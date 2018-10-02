@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Collection of ping messages",
+  "properties": {
+    "pingMessages": {
+      "description": "list of messages",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "pingMessage.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "pingMessages",
+    "totalRecords"
+  ]
+}

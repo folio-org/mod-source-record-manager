@@ -1,0 +1,13 @@
+{
+  "pingMessages": [
+    {
+      "id": "094fdeac-97ad-4f76-9cad-d5be9f3c3759",
+      "message": "Ping works"
+    },
+    {
+      "id": "3a24fdbf-e6ad-43ff-afd6-54f9517e5d17",
+      "message": "Ping works again"
+    }
+  ],
+  "totalRecords": 2
+}
