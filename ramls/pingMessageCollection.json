@@ -4,6 +4,7 @@
   "description": "Collection of ping messages",
   "properties": {
     "pingMessages": {
+      "description": "list of messages",
       "type": "array",
       "items": {
         "type": "object",
