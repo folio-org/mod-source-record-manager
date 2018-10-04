@@ -90,5 +90,5 @@ curl -w '\n' -X POST -D -   \
 
 ### Issue tracker
 
-See project [MODSOURCE](https://issues.folio.org/browse/MODSOURCE)
+See project [MODSOURMAN](https://issues.folio.org/browse/MODSOURMAN)
 at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker/).
