@@ -1,10 +1,13 @@
 {
   "id": "${artifactId}-${version}",
-  "name": "Ping",
-  "requires": [],
+  "name": "Source Record Manager Module",
+  "requires": [{
+    "id": "source-record-storage",
+    "version": "1.0"
+  }],
   "provides": [
     {
-      "id": "source-record-manager-ping",
+      "id": "source-record-manager",
       "version": "1.0",
       "handlers": [
         {
