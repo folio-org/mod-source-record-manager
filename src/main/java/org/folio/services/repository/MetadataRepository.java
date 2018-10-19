@@ -28,28 +28,28 @@ public interface MetadataRepository {
    * @param offset              starting index in a list of results
    * @param limit               maximum number of results to return
    * @param landingPage         flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page
-   * @param asyncResultHandler  result handler
+   * @param asyncResultHandler  result handler parametrized with JsonObject containing {@link org.folio.rest.jaxrs.model.LogCollection}
    */
   void getLogs(String tenantId, String query, int offset, int limit, boolean landingPage, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 
   /**
-   * Returns jobs
+   * Returns jobExecutions
    *
    * @param tenantId            tenant id
-   * @param query               query string to filter jobs based on matching criteria in fields
+   * @param query               query string to filter jobExecutions based on matching criteria in fields
    * @param offset              starting index in a list of results
    * @param limit               maximum number of results to return
-   * @param asyncResultHandler  result handler
+   * @param asyncResultHandler  result handler parametrized with JsonObject containing {@link org.folio.rest.jaxrs.model.JobExecutionCollection}
    */
-  void getJobs(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void getJobExecutions(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 
   void createLog(String tenantId, JsonObject log, Handler<AsyncResult<JsonObject>> asyncResultHandler);
   void updateLog(String tenantId, JsonObject log, Handler<AsyncResult<JsonObject>> asyncResultHandler);
   void getLogById(String tenantId, String logId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
   void deleteLogById(String tenantId, String logId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 
-  void createJob(String tenantId, JsonObject job, Handler<AsyncResult<JsonObject>> asyncResultHandler);
-  void updateJob(String tenantId, JsonObject job, Handler<AsyncResult<JsonObject>> asyncResultHandler);
-  void getJobById(String tenantId, String jobId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
-  void deleteJobById(String tenantId, String jobId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void createJobExecution(String tenantId, JsonObject jobExecution, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void updateJobExecution(String tenantId, JsonObject jobExecution, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void getJobExecutionById(String tenantId, String jobExecutionId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void deleteJobExecutionById(String tenantId, String jobExecutionId, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 }
