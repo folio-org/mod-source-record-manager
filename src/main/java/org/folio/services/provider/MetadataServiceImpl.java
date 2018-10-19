@@ -34,9 +34,9 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
-  public void getJobs(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler) {
+  public void getJobExecutions(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler) {
     try {
-      metadataRepository.getJobs(tenantId, query, offset, limit, asyncResultHandler);
+      metadataRepository.getJobExecutions(tenantId, query, offset, limit, asyncResultHandler);
     } catch (Exception e) {
       logger.error("Error querying metadata repository", e);
       asyncResultHandler.handle(Future.failedFuture(e));

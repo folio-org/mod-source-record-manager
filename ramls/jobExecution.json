@@ -53,7 +53,7 @@
       "format": "date-time"
     },
     "status": {
-      "description": "Current status of the job",
+      "description": "Current status of the job execution",
       "type": "string",
       "enum": ["PREPARING_FOR_PREVIEW", "READY_FOR_PREVIEW", "RUNNING", "RUNNING_COMPLETE"]
     }

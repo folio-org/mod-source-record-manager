@@ -3,10 +3,10 @@
   "description": "Collection of execution jobs",
   "type": "object",
   "properties": {
-    "jobs": {
+    "jobExecutions": {
       "description": "List of execution jobs",
       "type": "array",
-      "id": "jobList",
+      "id": "jobExecutionList",
       "items": {
         "type": "object",
         "$ref": "jobExecution.json"
@@ -17,7 +17,7 @@
     }
   },
   "required": [
-    "jobs",
+    "jobExecutions",
     "totalRecords"
   ]
 }

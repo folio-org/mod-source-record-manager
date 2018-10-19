@@ -28,18 +28,18 @@ public interface MetadataService {
    * @param offset              starting index in a list of results
    * @param limit               maximum number of results to return
    * @param landingPage         flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page
-   * @param asyncResultHandler  result handler
+   * @param asyncResultHandler  result handler parametrized with JsonObject containing {@link org.folio.rest.jaxrs.model.LogCollection}
    */
   void getLogs(String tenantId, String query, int offset, int limit, boolean landingPage, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 
   /**
-   * Returns jobs
+   * Returns jobExecutions
    *
    * @param tenantId            tenant id
-   * @param query               query string to filter jobs based on matching criteria in fields
+   * @param query               query string to filter jobExecutions based on matching criteria in fields
    * @param offset              starting index in a list of results
    * @param limit               maximum number of results to return
-   * @param asyncResultHandler  result handler
+   * @param asyncResultHandler  result handler parametrized with JsonObject containing {@link org.folio.rest.jaxrs.model.JobExecutionCollection}
    */
-  void getJobs(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void getJobExecutions(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 }

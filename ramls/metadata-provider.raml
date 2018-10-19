@@ -13,7 +13,7 @@ types:
   log: !include log.json
   logCollection: !include logCollection.json
   jobExecution: !include jobExecution.json
-  jobCollection: !include jobCollection.json
+  jobExecutionCollection: !include jobExecutionCollection.json
   errors: !include raml-util/schemas/errors.schema
 
 traits:
@@ -32,7 +32,7 @@ resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
 
-/source-record-manager:
+/metadata-provider:
   /logs:
     get:
       is: [
@@ -50,7 +50,7 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
-  /jobs:
+  /jobExecutions:
     get:
       is: [
         searchable: {description: "with valid searchable fields", example: "status=RUNNING"},
@@ -60,7 +60,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobCollection
+              schema: jobExecutionCollection
         500:
           description: "Internal server error"
           body:

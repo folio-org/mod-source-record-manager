@@ -29,7 +29,7 @@ public class RestVerticleTest {
   private static final String CONTENT_LENGTH = "Content-Length";
   private static final int CONTENT_LENGTH_DEFAULT = 1000;
   private static final String HOST = "http://localhost:";
-  private static final String SOURCE_RECORD_MANAGER_PATH = "/source-record-manager";
+  private static final String METADATA_PROVIDER_PATH = "/metadata-provider";
 
   private Vertx vertx;
   private int port;
@@ -42,7 +42,7 @@ public class RestVerticleTest {
     DeploymentOptions options = new DeploymentOptions()
       .setConfig(new JsonObject().put(HTTP_PORT, port));
     vertx.deployVerticle(RestVerticle.class.getName(), options, context.asyncAssertSuccess());
-    baseServicePath = HOST + port + SOURCE_RECORD_MANAGER_PATH;
+    baseServicePath = HOST + port + METADATA_PROVIDER_PATH;
   }
 
   @After
@@ -54,22 +54,22 @@ public class RestVerticleTest {
   public void testGetLogs(TestContext context) {
     //TODO Replace testing stub
     String serviceUrl = "/logs";
-    String dataStorageTestUrl = baseServicePath + serviceUrl;
+    String testUrl = baseServicePath + serviceUrl;
     getDefaultGiven()
       .param("query", "query")
       .param("landingPage", false)
-      .when().get(dataStorageTestUrl)
+      .when().get(testUrl)
       .then().statusCode(200);
   }
 
   @Test
-  public void testGetJobs(TestContext context) {
+  public void testGetJobExecutions(TestContext context) {
     //TODO Replace testing stub
-    String serviceUrl = "/jobs";
-    String dataStorageTestUrl = baseServicePath + serviceUrl;
+    String serviceUrl = "/jobExecutions";
+    String testUrl = baseServicePath + serviceUrl;
     getDefaultGiven()
       .param("query", "query")
-      .when().get(dataStorageTestUrl)
+      .when().get(testUrl)
       .then().statusCode(200);
   }
 

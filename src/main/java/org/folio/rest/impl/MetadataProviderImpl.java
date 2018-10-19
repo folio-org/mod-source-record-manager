@@ -7,16 +7,16 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.rest.jaxrs.model.JobCollection;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.LogCollection;
-import org.folio.rest.jaxrs.resource.SourceRecordManager;
+import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.services.provider.MetadataService;
 import org.folio.util.SourceRecordManagerConstants;
 
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-public class MetadataProviderImpl implements SourceRecordManager {
+public class MetadataProviderImpl implements MetadataProvider {
 
   private final Logger logger = LoggerFactory.getLogger(MetadataProviderImpl.class);
 
@@ -29,7 +29,7 @@ public class MetadataProviderImpl implements SourceRecordManager {
   }
 
   @Override
-  public void getSourceRecordManagerLogs(String query, int offset, int limit, boolean landingPage,
+  public void getMetadataProviderLogs(String query, int offset, int limit, boolean landingPage,
                                          Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                          Context vertxContext) {
     try {
@@ -37,41 +37,41 @@ public class MetadataProviderImpl implements SourceRecordManager {
         if (reply.succeeded()) {
           LogCollection logs = reply.result().mapTo(LogCollection.class);
           asyncResultHandler.handle(
-            Future.succeededFuture(GetSourceRecordManagerLogsResponse.respond200WithApplicationJson(logs)));
+            Future.succeededFuture(GetMetadataProviderLogsResponse.respond200WithApplicationJson(logs)));
         } else {
           String message = "Failed to get logs";
           logger.error(message, reply.cause());
           asyncResultHandler.handle(
-            Future.succeededFuture(GetSourceRecordManagerLogsResponse.respond500WithTextPlain(message)));
+            Future.succeededFuture(GetMetadataProviderLogsResponse.respond500WithTextPlain(message)));
         }
       }));
     } catch (Exception e) {
-      logger.error("Error running on verticle for getSourceRecordManagerLogs: " + e.getMessage(), e);
+      logger.error("Error running on verticle for getMetadataProviderLogs: " + e.getMessage(), e);
       asyncResultHandler.handle(Future.succeededFuture(
-        GetSourceRecordManagerLogsResponse.respond500WithTextPlain(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())));
+        GetMetadataProviderLogsResponse.respond500WithTextPlain(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())));
     }
   }
 
   @Override
-  public void getSourceRecordManagerJobs(String query, int offset, int limit, Map<String, String> okapiHeaders,
+  public void getMetadataProviderJobExecutions(String query, int offset, int limit, Map<String, String> okapiHeaders,
                                          Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     try {
-      vertxContext.runOnContext(v -> metadataService.getJobs(tenantId, query, offset, limit, reply -> {
+      vertxContext.runOnContext(v -> metadataService.getJobExecutions(tenantId, query, offset, limit, reply -> {
         if (reply.succeeded()) {
-          JobCollection jobs = reply.result().mapTo(JobCollection.class);
+          JobExecutionCollection jobs = reply.result().mapTo(JobExecutionCollection.class);
           asyncResultHandler.handle(
-            Future.succeededFuture(GetSourceRecordManagerJobsResponse.respond200WithApplicationJson(jobs)));
+            Future.succeededFuture(GetMetadataProviderJobExecutionsResponse.respond200WithApplicationJson(jobs)));
         } else {
-          String message = "Failed to get jobs";
+          String message = "Failed to get jobExecutions";
           logger.error(message, reply.cause());
           asyncResultHandler.handle(
-            Future.succeededFuture(GetSourceRecordManagerJobsResponse.respond500WithTextPlain(message)));
+            Future.succeededFuture(GetMetadataProviderJobExecutionsResponse.respond500WithTextPlain(message)));
         }
       }));
     } catch (Exception e) {
-      logger.error("Error running on verticle for getSourceRecordManagerJobs: " + e.getMessage(), e);
+      logger.error("Error running on verticle for getMetadataProviderJobExecutions: " + e.getMessage(), e);
       asyncResultHandler.handle(Future.succeededFuture(
-        GetSourceRecordManagerJobsResponse.respond500WithTextPlain(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())));
+        GetMetadataProviderJobExecutionsResponse.respond500WithTextPlain(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())));
     }
   }
 }
