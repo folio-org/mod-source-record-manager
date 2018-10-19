@@ -1,14 +1,15 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of execution jobs",
   "type": "object",
-  "description": "Collection of ping messages",
   "properties": {
-    "pingMessages": {
-      "description": "list of messages",
+    "jobs": {
+      "description": "List of execution jobs",
       "type": "array",
+      "id": "jobList",
       "items": {
         "type": "object",
-        "$ref": "pingMessage.json"
+        "$ref": "jobExecution.json"
       }
     },
     "totalRecords": {
@@ -16,7 +17,7 @@
     }
   },
   "required": [
-    "pingMessages",
+    "jobs",
     "totalRecords"
   ]
 }

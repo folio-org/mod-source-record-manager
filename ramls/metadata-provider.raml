@@ -1,0 +1,68 @@
+#%RAML 1.0
+
+title: Metadata Provider
+version: v0.1
+protocols: [ HTTP, HTTPS ]
+baseUri: http://localhost
+
+documentation:
+  - title: Metadata Provider API
+    content: API for accessing metadata
+
+types:
+  log: !include log.json
+  logCollection: !include logCollection.json
+  jobExecution: !include jobExecution.json
+  jobCollection: !include jobCollection.json
+  errors: !include raml-util/schemas/errors.schema
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+  queryable:
+    queryParameters:
+      landingPage:
+        description: "Flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page"
+        required: false
+        type: boolean
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+  collection-item: !include raml-util/rtypes/item-collection.raml
+
+/source-record-manager:
+  /logs:
+    get:
+      is: [
+        searchable: {description: "with valid searchable fields", example: "jobProfileName=marc"},
+        pageable,
+        queryable
+      ]
+      responses:
+        200:
+          body:
+            application/json:
+              schema: logCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+  /jobs:
+    get:
+      is: [
+        searchable: {description: "with valid searchable fields", example: "status=RUNNING"},
+        pageable
+      ]
+      responses:
+        200:
+          body:
+            application/json:
+              schema: jobCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"

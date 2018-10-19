@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of log records",
+  "type": "object",
+  "properties": {
+    "logs": {
+      "description": "List of log records",
+      "type": "array",
+      "id": "logList",
+      "items": {
+        "type": "object",
+        "$ref": "log.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "logs",
+    "totalRecords"
+  ]
+}

@@ -1,13 +1,11 @@
 package org.folio.rest.impl;
 
+import io.restassured.RestAssured;
+import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.rest.RestVerticle;
@@ -17,19 +15,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+
 @RunWith(VertxUnitRunner.class)
 public class RestVerticleTest {
 
+  private static final String HTTP_PORT = "http.port";
+  private static final String TENANT_ID = "diku";
+  private static final String ACCEPT_VALUES = "application/json, text/plain";
+  private static final String CONTENT_LENGTH = "Content-Length";
+  private static final int CONTENT_LENGTH_DEFAULT = 1000;
+  private static final String HOST = "http://localhost:";
+  private static final String SOURCE_RECORD_MANAGER_PATH = "/source-record-manager";
+
   private Vertx vertx;
   private int port;
+  private String baseServicePath;
 
   @Before
-  public void setUp(TestContext context) {
+  public void setUp(TestContext context) throws IOException {
     vertx = Vertx.vertx();
     port = NetworkUtils.nextFreePort();
     DeploymentOptions options = new DeploymentOptions()
-      .setConfig(new JsonObject().put("http.port", port));
+      .setConfig(new JsonObject().put(HTTP_PORT, port));
     vertx.deployVerticle(RestVerticle.class.getName(), options, context.asyncAssertSuccess());
+    baseServicePath = HOST + port + SOURCE_RECORD_MANAGER_PATH;
   }
 
   @After
@@ -38,30 +51,33 @@ public class RestVerticleTest {
   }
 
   @Test
-  public void testGetStub(TestContext context) {
+  public void testGetLogs(TestContext context) {
     //TODO Replace testing stub
-    final Async async = context.async();
-    String url = "http://localhost:" + port;
-    String testUrl = url + "/source-record-manager-ping";
-
-    Handler<HttpClientResponse> handler = response -> {
-      context.assertEquals(response.statusCode(), 200);
-      context.assertEquals(response.headers().get("content-type"), "application/json");
-      async.complete();
-    };
-    sendRequest(testUrl, HttpMethod.GET, handler);
+    String serviceUrl = "/logs";
+    String dataStorageTestUrl = baseServicePath + serviceUrl;
+    getDefaultGiven()
+      .param("query", "query")
+      .param("landingPage", false)
+      .when().get(dataStorageTestUrl)
+      .then().statusCode(200);
   }
 
-  private void sendRequest(String url, HttpMethod method, Handler<HttpClientResponse> handler) {
-    sendRequest(url, method, handler, "");
+  @Test
+  public void testGetJobs(TestContext context) {
+    //TODO Replace testing stub
+    String serviceUrl = "/jobs";
+    String dataStorageTestUrl = baseServicePath + serviceUrl;
+    getDefaultGiven()
+      .param("query", "query")
+      .when().get(dataStorageTestUrl)
+      .then().statusCode(200);
   }
 
-  private void sendRequest(String url, HttpMethod method, Handler<HttpClientResponse> handler, String content) {
-    Buffer buffer = Buffer.buffer(content);
-    vertx.createHttpClient()
-      .requestAbs(method, url, handler)
-      .putHeader("x-okapi-tenant", "diku")
-      .putHeader("Accept", "application/json,text/plain")
-      .end(buffer);
+  private RequestSpecification getDefaultGiven() {
+    return RestAssured.given()
+      .header(OKAPI_HEADER_TENANT, TENANT_ID)
+      .header(HttpHeaders.ACCEPT.toString(), ACCEPT_VALUES)
+      .header(HttpHeaders.CONTENT_TYPE.toString(), MediaType.APPLICATION_JSON)
+      .header(CONTENT_LENGTH, CONTENT_LENGTH_DEFAULT);
   }
 }
