@@ -23,9 +23,11 @@
       "type": "object",
       "properties": {
         "firstName": {
+          "description": "First name",
           "type": "string"
         },
         "lastName": {
+          "description": "Last name",
           "type": "string"
         }
       }

@@ -5,16 +5,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 public class MetadataRepositoryImpl implements MetadataRepository {
 
-  private final Logger logger = LoggerFactory.getLogger(MetadataRepositoryImpl.class);
   private static final String LOGS_STUB_PATH = "ramls/examples/logCollection.sample";
   private static final String JOBS_STUB_PATH = "ramls/examples/jobCollection.sample";
   private static final String LOG_STUB_PATH = "ramls/examples/log.sample";
   private static final String JOB_STUB_PATH = "ramls/examples/jobExecution.sample";
+  private static final String FAILED_RESPONSE = "Failed to read sample data";
   private final Vertx vertx;
 
   public MetadataRepositoryImpl(Vertx vertx) {
@@ -22,13 +20,13 @@ public class MetadataRepositoryImpl implements MetadataRepository {
   }
 
   @Override
-  public void getLogs(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler) {
+  public void getLogs(String tenantId, String query, int offset, int limit, boolean landingPage, Handler<AsyncResult<JsonObject>> asyncResultHandler) {
     //TODO replace stub response
     vertx.fileSystem().readFile(LOGS_STUB_PATH, event -> {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -40,7 +38,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -52,7 +50,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -64,7 +62,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -76,7 +74,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -94,7 +92,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -106,7 +104,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }
@@ -118,7 +116,7 @@ public class MetadataRepositoryImpl implements MetadataRepository {
       if (event.succeeded()) {
         asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
       } else {
-        asyncResultHandler.handle(Future.failedFuture("Failed to read sample data"));
+        asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }
     });
   }

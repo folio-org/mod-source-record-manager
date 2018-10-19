@@ -27,9 +27,10 @@ public interface MetadataRepository {
    * @param query               query string to filter logs based on matching criteria in fields
    * @param offset              starting index in a list of results
    * @param limit               maximum number of results to return
+   * @param landingPage         flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page
    * @param asyncResultHandler  result handler
    */
-  void getLogs(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler);
+  void getLogs(String tenantId, String query, int offset, int limit, boolean landingPage, Handler<AsyncResult<JsonObject>> asyncResultHandler);
 
   /**
    * Returns jobs
