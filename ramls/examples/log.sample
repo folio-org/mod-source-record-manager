@@ -1,0 +1,11 @@
+{
+  "id": "dc653de8-f0df-48ab-9630-13aacfe8e8f4",
+  "jobExecutionID": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+  "jobExecutionHRID": "123456789",
+  "jobProfileName": "Marc bib jobs",
+  "triggeredBy": {
+     "firstName": "John",
+     "lastName": "Doe"
+  },
+  "endedRunning": "2018-07-27T13:28:54Z"
+}

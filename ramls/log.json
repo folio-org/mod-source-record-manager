@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Log Schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "jobExecutionID": {
+      "description": "Unique identifier of the executed job",
+      "type": "string"
+    },
+    "jobExecutionHRID": {
+      "description": "Human readable id of the executed job",
+      "type": "string"
+    },
+    "jobProfileName": {
+      "description": "Name of applied job profile",
+      "type": "string"
+    },
+    "triggeredBy": {
+      "description": "First and last name of the user that triggered the job execution",
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "description": "First name",
+          "type": "string"
+        },
+        "lastName": {
+          "description": "Last name",
+          "type": "string"
+        }
+      }
+    },
+    "endedRunning": {
+      "description": "Date and time when completed the job execution",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "jobExecutionID",
+    "jobExecutionHRID",
+    "jobProfileName",
+    "triggeredBy",
+    "endedRunning"
+  ]
+}

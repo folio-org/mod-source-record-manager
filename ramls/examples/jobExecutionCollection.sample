@@ -1,0 +1,21 @@
+{
+  "jobExecutions": [
+    {
+      "jobExecutionID": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHRID": "123456789",
+      "jobProfileName": "Marc bib jobs",
+      "fileName": "import_2.csv",
+      "triggeredBy": {
+        "firstName": "John",
+        "lastName": "Doe"
+      },
+      "progress": {
+        "current": 109,
+        "end": 109
+      },
+      "endedRunning": "2018-07-27T13:28:54Z",
+      "status": "RUNNING_COMPLETE"
+    }
+  ],
+  "totalRecords": 1
+}

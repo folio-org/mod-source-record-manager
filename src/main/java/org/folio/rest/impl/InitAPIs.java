@@ -5,27 +5,26 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.shareddata.LocalMap;
-import io.vertx.core.shareddata.SharedData;
-import org.folio.rest.jaxrs.model.PingMessage;
+import io.vertx.serviceproxy.ServiceBinder;
 import org.folio.rest.resource.interfaces.InitAPI;
+import org.folio.services.provider.MetadataService;
+import org.folio.services.repository.MetadataRepository;
+import org.folio.util.SourceRecordManagerConstants;
 
+/**
+ * Performs preprocessing operations before the verticle is deployed,
+ * e.g. components registration, initializing, binding.
+ */
 public class InitAPIs implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
-    //TODO replace stub init
-    SharedData sharedData = vertx.sharedData();
-    LocalMap<String, JsonObject> pingMessages = sharedData.getLocalMap("pingMessages");
-    pingMessages.put("094fdeac-97ad-4f76-9cad-d5be9f3c3759",
-      JsonObject.mapFrom(new PingMessage()
-        .withId("094fdeac-97ad-4f76-9cad-d5be9f3c3759")
-        .withMessage("Ping works")));
-    pingMessages.put("3a24fdbf-e6ad-43ff-afd6-54f9517e5d17",
-      JsonObject.mapFrom(new PingMessage()
-        .withId("3a24fdbf-e6ad-43ff-afd6-54f9517e5d17")
-        .withMessage("Ping works again")));
+    new ServiceBinder(vertx)
+      .setAddress(SourceRecordManagerConstants.METADATA_SERVICE_ADDRESS)
+      .register(MetadataService.class, MetadataService.create(vertx));
+    new ServiceBinder(vertx)
+      .setAddress(SourceRecordManagerConstants.METADATA_REPOSITORY_ADDRESS)
+      .register(MetadataRepository.class, MetadataRepository.create(vertx));
 
     handler.handle(Future.succeededFuture(true));
   }

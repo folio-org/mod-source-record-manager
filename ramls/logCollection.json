@@ -1,14 +1,15 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Collection of log records",
   "type": "object",
-  "description": "Collection of ping messages",
   "properties": {
-    "pingMessages": {
-      "description": "list of messages",
+    "logs": {
+      "description": "List of log records",
       "type": "array",
+      "id": "logList",
       "items": {
         "type": "object",
-        "$ref": "pingMessage.json"
+        "$ref": "log.json"
       }
     },
     "totalRecords": {
@@ -16,7 +17,7 @@
     }
   },
   "required": [
-    "pingMessages",
+    "logs",
     "totalRecords"
   ]
 }

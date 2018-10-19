@@ -12,11 +12,11 @@
       "handlers": [
         {
           "methods": ["GET"],
-          "pathPattern": "/source-record-manager-ping"
+          "pathPattern": "/metadata-provider/logs"
         },
         {
-          "methods": ["POST"],
-          "pathPattern": "/source-record-manager-ping"
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/jobExecutions"
         }
       ]
     },
