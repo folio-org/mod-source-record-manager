@@ -1,16 +1,18 @@
 {
-  "jobExecutionID": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
-  "jobExecutionHRID": "123456789",
+  "jobExecutionId": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+  "jobExecutionHrId": "10000",
   "jobProfileName": "Marc bib jobs",
-  "fileName": "import_2.csv",
-  "triggeredBy": {
-    "firstName": "John",
-    "lastName": "Doe"
+  "fileName": "import_1.csv",
+  "runBy": {
+    "firstName": "DIKU",
+    "lastName": "ADMINISTRATOR"
   },
   "progress": {
-    "current": 109,
-    "end": 109
+    "current": 50,
+    "total": 50
   },
-  "endedRunning": "2018-07-27T13:28:54Z",
+  "startedDate": "2018-10-30T12:36:55.000",
+  "completedDate": "2018-10-30T12:40:01.000",
   "status": "RUNNING_COMPLETE"
+  }
 }
