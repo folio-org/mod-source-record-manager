@@ -1,7 +1,7 @@
 {
   "jobExecutionId": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
   "jobExecutionHrId": "10000",
-  "jobProfileName": "Marc bib jobs",
+  "jobProfileName": "Marc jobs profile",
   "fileName": "import_1.csv",
   "runBy": {
     "firstName": "DIKU",
