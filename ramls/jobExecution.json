@@ -3,11 +3,11 @@
   "description": "Job Execution Schema",
   "type": "object",
   "properties": {
-    "jobExecutionID": {
+    "jobExecutionId": {
       "description": "Unique identifier",
       "type": "string"
     },
-    "jobExecutionHRID": {
+    "jobExecutionHrId": {
       "description": "Human readable id",
       "type": "string"
     },
@@ -19,7 +19,7 @@
       "description": "File name with extension",
       "type": "string"
     },
-    "triggeredBy": {
+    "runBy": {
       "description": "First and last name of the user that triggered the job execution",
       "type": "object",
       "properties": {
@@ -41,16 +41,19 @@
           "description": "Currently processing record",
           "type": "integer"
         },
-        "end": {
+        "total": {
           "description": "Total number of records to be processed",
           "type": "integer"
         }
       }
     },
-    "endedRunning": {
-      "description": "Date and time when completed the job execution",
-      "type": "string",
-      "format": "date-time"
+    "startedDate": {
+      "description": "Date and time when the job execution started",
+      "type": "string"
+    },
+    "completedDate": {
+      "description": "Date and time when the job execution completed",
+      "type": "string"
     },
     "status": {
       "description": "Current status of the job execution",
@@ -61,6 +64,6 @@
   "required": [
     "jobProfileName",
     "fileName",
-    "triggeredBy"
+    "status"
   ]
 }

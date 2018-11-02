@@ -2,15 +2,328 @@
   "logs": [
     {
       "id": "dc653de8-f0df-48ab-9630-13aacfe8e8f4",
-      "jobExecutionID": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
-      "jobExecutionHRID": "123456789",
+      "jobExecutionId": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "13414",
       "jobProfileName": "Marc bib jobs",
-      "triggeredBy": {
+	     "fileName": "import_1.csv",
+      "runBy": {
          "firstName": "John",
          "lastName": "Doe"
       },
-      "endedRunning": "2018-07-27T13:28:54Z"
+      "completedDate": "2018-10-30T12:40:01.000"
+    },
+	  {
+      "id": "ff567j9l-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "klo09bvc-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "23112",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_1.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-30T12:40:01.000"
+    },
+	  {
+      "id": "ffgny678-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "zx334gbn-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "33112",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_1.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-30T12:40:01.000"
+    },
+	  {
+      "id": "jkl04579-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "qwsxcv44-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "48906",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_1.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T10:00:51.000"
+    },
+	  {
+      "id": "xcffgnh7-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "jj890npz-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "48906",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_2.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T10:00:51.000"
+    },
+	  {
+      "id": "jmssxc34-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "ccvg6fgh-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "58906",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_2.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-02T10:00:51.000"
+    },
+	  {
+      "id": "sdhhnmkl-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "erxdx46m-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "68551",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_3.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-02T10:00:51.000"
+    },
+	  {
+      "id": "554gh1xco-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "77iklzd5-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "75671",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_3.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T10:09:51.000"
+    },
+	  {
+      "id": "66784gnm-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "eefgbn89-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "81123",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T10:09:51.000"
+    },
+	  {
+      "id": "ggh090fg-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "ggh890fg-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "91124",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T10:09:51.000"
+    },
+	  {
+      "id": "12ddvb69-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "yty49kml-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "10556",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-02T12:09:51.000"
+    },
+	  {
+      "id": "tthjuv67-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "qqwedfv5-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "11250",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-03T10:01:30.000"
+    },
+	  {
+      "id": "ffbnj890-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "aazxc45f-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "12250",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-03T10:01:30.000"
+    },
+	  {
+      "id": "zxc66hn7-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "12ffvb67-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "13250",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_4.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-02T09:05:30.000"
+    },
+	  {
+      "id": "11fgb78c-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "hkdorl60-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "14250",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_5.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-03T11:45:21.000"
+    },
+	  {
+      "id": "sdvbnht6-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "asdcvbnm-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "15150",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_5.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-02T10:45:21.000"
+    },
+	  {
+      "id": "ascvr542-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "ghnm781a-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "16150",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-03T11:40:21.000"
+    },
+	  {
+      "id": "sdrtyhbn-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "rthn88mp-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "17091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-03T14:20:21.000"
+    },
+	  {
+      "id": "zxasdcvb-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "sdgbny65-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "18091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T14:20:21.000"
+    },
+	  {
+      "id": "fg667jmk-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "qwcvbn67-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "18091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-05T14:20:21.000"
+    },
+	  {
+      "id": "sdghnmkl-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "34thjn77-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "19091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-01T19:01:41.000"
+    },
+	  {
+      "id": "thnmjk5c-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "ascc56nm-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "20091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_6.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-05T14:20:21.000"
+    },
+	  {
+      "id": "zxssrgb6-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "hjmkll87-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "21091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_7.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-11-05T11:20:21.000"
+    },
+	  {
+      "id": "ghtynnm6-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "aaxcvf56-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "22091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_7.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-31T10:20:21.000"
+    },
+	  {
+      "id": "erfgbnhj-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "g6nnmklo-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "23091",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_8.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-31T10:20:21.000"
+    },
+	  {
+      "id": "erfgbnh6-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "dd9mlloy-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "24101",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_9.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-31T11:20:21.000"
+    },
+	  {
+      "id": "yyhj78fc-f0df-48ab-9630-13aacfe8e8f4",
+      "jobExecutionId": "zxc44ghn-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "25101",
+      "jobProfileName": "Marc bib jobs",
+	    "fileName": "import_10.csv",
+      "runBy": {
+         "firstName": "John",
+         "lastName": "Doe"
+      },
+      "completedDate": "2018-10-31T14:20:21.000"
     }
   ],
-  "totalRecords": 1
+  "totalRecords": 25
 }

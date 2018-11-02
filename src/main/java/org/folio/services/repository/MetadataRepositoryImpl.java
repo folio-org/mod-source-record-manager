@@ -5,8 +5,13 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang.StringUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.Log;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class MetadataRepositoryImpl implements MetadataRepository {
 
@@ -36,9 +41,27 @@ public class MetadataRepositoryImpl implements MetadataRepository {
   @Override
   public void getJobExecutions(String tenantId, String query, int offset, int limit, Handler<AsyncResult<JsonObject>> asyncResultHandler) {
     //TODO replace stub response
-    vertx.fileSystem().readFile(JOBS_STUB_PATH, event -> {
-      if (event.succeeded()) {
-        asyncResultHandler.handle(Future.succeededFuture(new JsonObject(event.result())));
+
+    vertx.fileSystem().readFile(JOBS_STUB_PATH, response -> {
+      if (response.succeeded()) {
+
+        JobExecutionCollection jobExecutionCollection = new JsonObject(response.result()).mapTo(JobExecutionCollection.class);
+        List<JobExecution> jobExecutionList = jobExecutionCollection.getJobExecutions();
+
+        JobExecutionCollection resultJobExecutionCollection = new JobExecutionCollection();
+        for (JobExecution jobExecution : jobExecutionList) {
+          if (StringUtils.isBlank(query) || (!StringUtils.isBlank(query) && query.contains(jobExecution.getStatus().toString()))) {
+            resultJobExecutionCollection.getJobExecutions().add(jobExecution);
+          }
+        }
+
+        for (JobExecution jobExecution : resultJobExecutionCollection.getJobExecutions()) {
+          if (JobExecution.Status.RUNNING.equals(jobExecution.getStatus())) {
+            jobExecution.setStartedDate(LocalDateTime.now().toString());
+          }
+        }
+        resultJobExecutionCollection.setTotalRecords(resultJobExecutionCollection.getJobExecutions().size());
+        asyncResultHandler.handle(Future.succeededFuture(JsonObject.mapFrom(resultJobExecutionCollection)));
       } else {
         asyncResultHandler.handle(Future.failedFuture(FAILED_RESPONSE));
       }

@@ -6,11 +6,11 @@
     "id": {
       "type": "string"
     },
-    "jobExecutionID": {
+    "jobExecutionId": {
       "description": "Unique identifier of the executed job",
       "type": "string"
     },
-    "jobExecutionHRID": {
+    "jobExecutionHdId": {
       "description": "Human readable id of the executed job",
       "type": "string"
     },
@@ -18,7 +18,11 @@
       "description": "Name of applied job profile",
       "type": "string"
     },
-    "triggeredBy": {
+    "fileName": {
+      "description": "File name with extension",
+      "type": "string"
+    },
+    "runBy": {
       "description": "First and last name of the user that triggered the job execution",
       "type": "object",
       "properties": {
@@ -32,17 +36,17 @@
         }
       }
     },
-    "endedRunning": {
+    "completedDate": {
       "description": "Date and time when completed the job execution",
       "type": "string",
       "format": "date-time"
     }
   },
   "required": [
-    "jobExecutionID",
-    "jobExecutionHRID",
+    "jobExecutionId",
+    "jobExecutionHrId",
     "jobProfileName",
-    "triggeredBy",
-    "endedRunning"
+    "runBy",
+    "completedDate"
   ]
 }
