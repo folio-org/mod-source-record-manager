@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "Job Execution Schema",
+  "description": "Job Execution data transfer object Schema",
   "type": "object",
   "properties": {
     "jobExecutionId": {
@@ -11,21 +11,12 @@
       "description": "Human readable id",
       "type": "string"
     },
-    "parentJobId": {
-      "description": "",
+    "jobProfileName": {
+      "description": "Name of applied job profile",
       "type": "string"
     },
-    "subordinationType": {
-      "description": "Type of subordination to another JobExecution entities",
-      "type": "string",
-      "enum": ["CHILD", "PARENT_SINGLE", "PARENT_MULTIPLE"]
-    },
-    "jobProfileId": {
-      "description": "Unique identifier of the JobProfile entity",
-      "type": "string"
-    },
-    "sourcePath": {
-      "description": "Path to the file",
+    "fileName": {
+      "description": "File name with extension",
       "type": "string"
     },
     "runBy": {
@@ -39,6 +30,20 @@
         "lastName": {
           "description": "Last name",
           "type": "string"
+        }
+      }
+    },
+    "progress": {
+      "description": "Execution progress of the job",
+      "type": "object",
+      "properties": {
+        "current": {
+          "description": "Currently processing record",
+          "type": "integer"
+        },
+        "total": {
+          "description": "Total number of records to be processed",
+          "type": "integer"
         }
       }
     },
@@ -57,10 +62,8 @@
     }
   },
   "required": [
-    "jobExecutionId",
-    "jobExecutionHrId",
-    "jobProfileId",
-    "sourcePath",
+    "jobProfileName",
+    "fileName",
     "status"
   ]
 }

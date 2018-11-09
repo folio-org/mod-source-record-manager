@@ -14,6 +14,8 @@ types:
   logCollection: !include logCollection.json
   jobExecution: !include jobExecution.json
   jobExecutionCollection: !include jobExecutionCollection.json
+  jobExecutionDto: !include dto/jobExecutionDto.json
+  jobExecutionCollectionDto: !include dto/jobExecutionCollectionDto.json
   errors: !include raml-util/schemas/errors.schema
 
 traits:
@@ -60,7 +62,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobExecutionCollection
+              schema: jobExecutionCollectionDto
         500:
           description: "Internal server error"
           body:
