@@ -12,7 +12,7 @@
       "type": "string"
     },
     "parentJobId": {
-      "description": "",
+      "description": "Id of the parent JobExecution entity",
       "type": "string"
     },
     "subordinationType": {
