@@ -15,7 +15,160 @@
       },
       "startedDate": "",
       "completedDate": "",
-      "status": "IMPORT_FINISHED"
+      "status": "RUNNING"
+    },
+    {
+      "jobExecutionId": "ffcmd309-qac1-jfm9-97er-d533f6360bdd",
+      "jobExecutionHrId": "23556",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_2.csv",
+      "runBy": {
+        "firstName": "Paolo",
+        "lastName": "Schiller"
+      },
+      "progress": {
+        "current": 2,
+        "total": 11
+      },
+      "startedDate": "",
+      "completedDate": "",
+      "status": "RUNNING"
+    },
+    {
+      "jobExecutionId": "bndlpm22-za91-dfj1-872p-d533f6360bdd",
+      "jobExecutionHrId": "30981",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_3.csv",
+      "runBy": {
+        "firstName": "Paolo",
+        "lastName": "Schiller"
+      },
+      "progress": {
+        "current": 17,
+        "total": 40
+      },
+      "startedDate": "",
+      "completedDate": "",
+      "status": "RUNNING"
+    },
+    {
+      "jobExecutionId": "mvndx44i-zzz2-ascc-lfmb-d533f6360bdd",
+      "jobExecutionHrId": "48009",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_4.csv",
+      "runBy": {
+        "firstName": "Paolo",
+        "lastName": "Schiller"
+      },
+      "progress": {
+        "current": 3,
+        "total": 36
+      },
+      "startedDate": "",
+      "completedDate": "",
+      "status": "RUNNING"
+    },
+    {
+      "jobExecutionId": "vcz98c50-sdvz-aasc-km33-d533f6360bdd",
+      "jobExecutionHrId": "54562",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_5.csv",
+      "runBy": {
+        "firstName": "Paolo",
+        "lastName": "Schiller"
+      },
+      "progress": {
+        "current": 41,
+        "total": 45
+      },
+      "startedDate": "",
+      "completedDate": "",
+      "status": "RUNNING"
+    },
+    {
+      "jobExecutionId": "xxcvxfv6-ssdc-65fv-as09-d533f6360bdd",
+      "jobExecutionHrId": "69008",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_6.csv",
+      "runBy": {
+        "firstName": "Consuelo",
+        "lastName": "Gulgowski"
+      },
+      "progress": {
+        "current": 41,
+        "total": 50
+      },
+      "startedDate": "2018-07-27T13:28:54.000",
+      "completedDate": "",
+      "status": "PREPARING_FOR_PREVIEW"
+    },
+    {
+      "jobExecutionId": "xxcvxfv6-ssdc-65fv-as09-d533f6360bdd",
+      "jobExecutionHrId": "74610",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_7.csv",
+      "runBy": {
+        "firstName": "Consuelo",
+        "lastName": "Gulgowski"
+      },
+      "progress": {
+        "current": 30,
+        "total": 44
+      },
+      "startedDate": "2018-07-27T13:29:00.000",
+      "completedDate": "",
+      "status": "PREPARING_FOR_PREVIEW"
+    },
+    {
+      "jobExecutionId": "zxdg40la-asnm-lk10-plza-d533f6360bdd",
+      "jobExecutionHrId": "81111",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_8.csv",
+      "runBy": {
+        "firstName": "Consuelo",
+        "lastName": "Gulgowski"
+      },
+      "progress": {
+        "current": 48,
+        "total": 50
+      },
+     "startedDate": "2018-07-27T13:31:05.000",
+      "completedDate": "",
+      "status": "PREPARING_FOR_PREVIEW"
+    },
+    {
+      "jobExecutionId": "zasd901q-mnss-9018-ad89-d533f6360bdd",
+      "jobExecutionHrId": "99908",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_9.csv",
+      "runBy": {
+        "firstName": "Brad",
+        "lastName": "Goodwin"
+      },
+      "progress": {
+        "current": 15,
+        "total": 15
+      },
+      "startedDate": "2018-10-30T13:20:10.000",
+      "completedDate": "2018-10-30T13:22:05.000",
+      "status": "RUNNING_COMPLETE"
+    },
+    {
+      "jobExecutionId": "zzas9087-mksa-9ikj-zxma-d533f6360bdd",
+      "jobExecutionHrId": "10341",
+      "jobProfileName": "Marc jobs profile",
+      "fileName": "import_10.csv",
+      "runBy": {
+        "firstName": "Brad",
+        "lastName": "Goodwin"
+      },
+      "progress": {
+        "current": 39,
+        "total": 39
+      },
+      "startedDate": "2018-10-30T13:20:10.000",
+      "completedDate": "2018-10-30T13:25:15.000",
+      "status": "RUNNING_COMPLETE"
     },
     {
       "jobExecutionId": "981oklm8-lkmn-mnds-za98-d533f6360bdd",
@@ -32,8 +185,8 @@
       },
       "startedDate": "2018-10-30T13:20:10.000",
       "completedDate": "2018-10-30T13:23:25.000",
-      "status": "COMMITED"
+      "status": "RUNNING_COMPLETE"
       }
   ],
-  "totalRecords": 2
+  "totalRecords": 11
 }

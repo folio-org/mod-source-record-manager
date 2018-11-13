@@ -8,10 +8,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollection;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
-import org.folio.services.converters.jobExecution.JobExecutionCollectionToDtoConverter;
 import org.folio.services.provider.MetadataService;
 import org.folio.util.SourceRecordManagerConstants;
 
@@ -24,18 +22,16 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private final MetadataService metadataService;
   private final String tenantId;
-  private JobExecutionCollectionToDtoConverter jobExecutionConverter;
 
-  public MetadataProviderImpl(Vertx vertx, String tenantId) {
+  public MetadataProviderImpl(Vertx vertx, String tenantId){
     this.tenantId = tenantId;
     this.metadataService = MetadataService.createProxy(vertx, SourceRecordManagerConstants.METADATA_SERVICE_ADDRESS);
-    this.jobExecutionConverter = new JobExecutionCollectionToDtoConverter();
   }
 
   @Override
   public void getMetadataProviderLogs(String query, int offset, int limit, boolean landingPage,
-                                      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
-                                      Context vertxContext) {
+                                         Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
+                                         Context vertxContext) {
     try {
       vertxContext.runOnContext(v -> metadataService.getLogs(tenantId, query, offset, limit, landingPage, reply -> {
         if (reply.succeeded()) {
@@ -58,14 +54,13 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobExecutions(String query, int offset, int limit, Map<String, String> okapiHeaders,
-                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     try {
       vertxContext.runOnContext(v -> metadataService.getJobExecutions(tenantId, query, offset, limit, reply -> {
         if (reply.succeeded()) {
-          JobExecutionCollection jobExecutionCollection = reply.result().mapTo(JobExecutionCollection.class);
-          JobExecutionCollectionDto jobExecutionCollectionDto = jobExecutionConverter.convert(jobExecutionCollection);
+          JobExecutionCollection jobs = reply.result().mapTo(JobExecutionCollection.class);
           asyncResultHandler.handle(
-            Future.succeededFuture(GetMetadataProviderJobExecutionsResponse.respond200WithApplicationJson(jobExecutionCollectionDto)));
+            Future.succeededFuture(GetMetadataProviderJobExecutionsResponse.respond200WithApplicationJson(jobs)));
         } else {
           String message = "Failed to get jobExecutions";
           logger.error(message, reply.cause());

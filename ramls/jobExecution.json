@@ -11,21 +11,12 @@
       "description": "Human readable id",
       "type": "string"
     },
-    "parentJobId": {
-      "description": "Id of the parent JobExecution entity",
+    "jobProfileName": {
+      "description": "Name of applied job profile",
       "type": "string"
     },
-    "subordinationType": {
-      "description": "Type of subordination to another JobExecution entities",
-      "type": "string",
-      "enum": ["CHILD", "PARENT_SINGLE", "PARENT_MULTIPLE"]
-    },
-    "jobProfileId": {
-      "description": "Unique identifier of the JobProfile entity",
-      "type": "string"
-    },
-    "sourcePath": {
-      "description": "Path to the file",
+    "fileName": {
+      "description": "File name with extension",
       "type": "string"
     },
     "runBy": {
@@ -42,6 +33,20 @@
         }
       }
     },
+    "progress": {
+      "description": "Execution progress of the job",
+      "type": "object",
+      "properties": {
+        "current": {
+          "description": "Currently processing record",
+          "type": "integer"
+        },
+        "total": {
+          "description": "Total number of records to be processed",
+          "type": "integer"
+        }
+      }
+    },
     "startedDate": {
       "description": "Date and time when the job execution started",
       "type": "string"
@@ -53,14 +58,12 @@
     "status": {
       "description": "Current status of the job execution",
       "type": "string",
-      "enum": ["NEW", "IMPORT_IN_PROGRESS", "IMPORT_FINISHED", "PARSING_IN_PROGRESS", "PARSING_FINISHED", "PROCESSING_IN_PROGRESS", "PROCESSING_FINISHED", "COMMITED"]
+      "enum": ["PREPARING_FOR_PREVIEW", "READY_FOR_PREVIEW", "RUNNING", "RUNNING_COMPLETE"]
     }
   },
   "required": [
-    "jobExecutionId",
-    "jobExecutionHrId",
-    "jobProfileId",
-    "sourcePath",
+    "jobProfileName",
+    "fileName",
     "status"
   ]
 }
