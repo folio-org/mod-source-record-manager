@@ -6,7 +6,7 @@ import org.folio.rest.jaxrs.model.Log;
 import java.util.List;
 
 /**
- * Log Service interface, contains logic of accessing logs.
+ * Log Service interface, contains logic for accessing logs.
  */
 public interface LogService {
 
