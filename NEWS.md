@@ -1,4 +1,4 @@
-## 2018-11-19 v1.0.0
+## 2018-11-19 v1.0.1
  * Module structure reorganization 
  (now module structure the same as for mod-data-import and mod-source-record-storage)
  * Generic DAO interface
