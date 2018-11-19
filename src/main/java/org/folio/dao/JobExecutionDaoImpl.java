@@ -12,8 +12,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
  */
 public class JobExecutionDaoImpl extends AbstractGenericDao<JobExecution> implements JobExecutionDao {
 
-  private final String tableName = "job_executions";
-  private final String schemaPath = "ramls/jobExecution.json";
+  private static final String TABLE_NAME = "job_executions";
+  private static final String SCHEMA_PATH = "ramls/jobExecution.json";
 
   public JobExecutionDaoImpl(Vertx vertx, String tenantId) {
     super(vertx, tenantId, JobExecution.class);
@@ -21,11 +21,11 @@ public class JobExecutionDaoImpl extends AbstractGenericDao<JobExecution> implem
 
   @Override
   protected String getTableName() {
-    return tableName;
+    return TABLE_NAME;
   }
 
   @Override
   protected String getSchemaPath() {
-    return schemaPath;
+    return SCHEMA_PATH;
   }
 }

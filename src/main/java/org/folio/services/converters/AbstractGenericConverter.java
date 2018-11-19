@@ -17,7 +17,7 @@ public abstract class AbstractGenericConverter<SOURCE, TARGET> implements Generi
     if (sources == null) {
       throw new IllegalArgumentException("Source object can not be null");
     }
-    List<TARGET> result = new ArrayList<TARGET>(sources.size());
+    List<TARGET> result = new ArrayList<>(sources.size());
     for (SOURCE source : sources) {
       result.add(convert(source));
     }

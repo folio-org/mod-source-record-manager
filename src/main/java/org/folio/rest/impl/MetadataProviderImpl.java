@@ -22,18 +22,13 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
-  private final Logger logger = LoggerFactory.getLogger("mod-source-record-manager");
-
   private JobExecutionService jobExecutionService;
   private LogService logService;
-
-  private JobExecutionToDtoConverter jobExecutionToDtoConverter;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) {
     String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
     this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
     this.logService = new LogServiceImpl(vertx);
-    this.jobExecutionToDtoConverter = new JobExecutionToDtoConverter();
   }
 
   @Override
@@ -56,8 +51,6 @@ public class MetadataProviderImpl implements MetadataProvider {
       }
     });
   }
-
-  ;
 
   @Override
   public void getMetadataProviderJobExecutions(String query, int offset, int limit, Map<String, String> okapiHeaders,
