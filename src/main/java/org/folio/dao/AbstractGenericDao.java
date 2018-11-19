@@ -2,6 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.util.DaoUtil;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -23,6 +25,8 @@ import static org.folio.dao.util.DaoUtil.constructCriteria;
  */
 public abstract class AbstractGenericDao<ENTITY> implements GenericDao<ENTITY> {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenericDao.class);
+
   private final String DEFAULT_ID_FIELD = "'id'";
 
   protected PostgresClient pgClient;
@@ -41,6 +45,7 @@ public abstract class AbstractGenericDao<ENTITY> implements GenericDao<ENTITY> {
       CQLWrapper cql = DaoUtil.getCQLWrapper(getTableName(), query, limit, offset);
       pgClient.get(getTableName(), entityClass, fieldList, cql, true, false, future.completer());
     } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
       future.fail(e);
     }
     return future.map(Results::getResults);
@@ -53,6 +58,7 @@ public abstract class AbstractGenericDao<ENTITY> implements GenericDao<ENTITY> {
       Criteria criteria = constructCriteria(getSchemaPath(), getIdField(), id);
       pgClient.get(getTableName(), entityClass, new Criterion(criteria), true, false, future.completer());
     } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
       future.fail(e);
     }
     return future
@@ -74,6 +80,7 @@ public abstract class AbstractGenericDao<ENTITY> implements GenericDao<ENTITY> {
       Criteria criteria = constructCriteria(getSchemaPath(), getIdField(), id);
       pgClient.update(getTableName(), entity, new Criterion(criteria), true, future.completer());
     } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
       future.fail(e);
     }
     return future.map(entity);
