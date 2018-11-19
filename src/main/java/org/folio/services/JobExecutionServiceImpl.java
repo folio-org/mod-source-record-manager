@@ -5,10 +5,10 @@ import io.vertx.core.Vertx;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,15 +29,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<List<JobExecution>> getByQuery(String query, int offset, int limit) {
-    return dao.getByQuery(query, offset, limit);
+  public Future<JobExecutionCollection> getByQuery(String query, int offset, int limit) {
+    return dao.getByQuery(query, offset, limit)
+      .map(results -> new JobExecutionCollection()
+        .withJobExecutions(results.getResults())
+        .withTotalRecords(results.getResultInfo().getTotalRecords()));
   }
 
   public Future<JobExecutionCollectionDto> getCollectionDtoByQuery(String query, int offset, int limit) {
     return getByQuery(query, offset, limit)
       .map(jobExecutions -> new JobExecutionCollectionDto()
-        .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutions))
-        .withTotalRecords(jobExecutions.size()));
+        .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutions.getJobExecutions()))
+        .withTotalRecords(jobExecutions.getTotalRecords()));
   }
 
   @Override

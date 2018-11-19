@@ -5,8 +5,7 @@ import io.vertx.core.Vertx;
 import org.folio.dao.LogDao;
 import org.folio.dao.LogDaoImpl;
 import org.folio.rest.jaxrs.model.Log;
-
-import java.util.List;
+import org.folio.rest.jaxrs.model.LogCollection;
 
 /**
  * Implementation of the LogService, calls LogDao to access Log metadata.
@@ -24,7 +23,7 @@ public class LogServiceImpl implements LogService {
   }
 
   @Override
-  public Future<List<Log>> getByQuery(String query, int offset, int limit) {
-    return dao.getByQuery(query, offset, limit);
+  public Future<LogCollection> getByQuery(String query, int offset, int limit) {
+    return dao.getByQuery(query, offset, limit).map(results -> new LogCollection().withLogs(results.getResults()));
   }
 }

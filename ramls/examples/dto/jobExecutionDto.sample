@@ -1,6 +1,6 @@
 {
-  "jobExecutionId": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
-  "jobExecutionHrId": "10000",
+  "id": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+  "hrId": "10000",
   "jobProfileName": "Marc jobs profile",
   "fileName": "import_1.csv",
   "runBy": {
