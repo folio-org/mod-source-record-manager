@@ -13,7 +13,7 @@ import javax.ws.rs.core.Response;
 
 public final class ExceptionHelper {
 
-  private static final Logger LOG = LoggerFactory.getLogger("mod-source-record-manager");
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHelper.class);
 
   private ExceptionHelper() {
   }
@@ -36,11 +36,11 @@ public final class ExceptionHelper {
     if (validationFuture.isComplete()) {
       Response response = validationFuture.result();
       if (response.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-        LOG.error(throwable.getMessage(), throwable);
+        LOGGER.error(throwable.getMessage(), throwable);
       }
       return response;
     }
-    LOG.error(throwable.getMessage(), throwable);
+    LOGGER.error(throwable.getMessage(), throwable);
     return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
       .type(MediaType.TEXT_PLAIN)
       .entity(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
