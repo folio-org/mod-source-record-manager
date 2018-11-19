@@ -3,11 +3,11 @@
   "description": "Job Execution Schema",
   "type": "object",
   "properties": {
-    "jobExecutionId": {
+    "id": {
       "description": "Unique identifier",
       "type": "string"
     },
-    "jobExecutionHrId": {
+    "hrId": {
       "description": "Human readable id",
       "type": "string"
     },
@@ -20,8 +20,8 @@
       "type": "string",
       "enum": ["CHILD", "PARENT_SINGLE", "PARENT_MULTIPLE"]
     },
-    "jobProfileId": {
-      "description": "Unique identifier of the JobProfile entity",
+    "jobProfileName": {
+      "description": "Name of the related JobProfile",
       "type": "string"
     },
     "sourcePath": {
