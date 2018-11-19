@@ -3,11 +3,11 @@
   "description": "Job Execution data transfer object Schema",
   "type": "object",
   "properties": {
-    "jobExecutionId": {
+    "id": {
       "description": "Unique identifier",
       "type": "string"
     },
-    "jobExecutionHrId": {
+    "hrId": {
       "description": "Human readable id",
       "type": "string"
     },
