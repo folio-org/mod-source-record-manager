@@ -5,10 +5,10 @@ import java.util.Collection;
 /**
  * The root interface for converting Source object to the Target object
  *
- * @param <SOURCE> source object
- * @param <TARGET> result target object
+ * @param <S> source object
+ * @param <T> result target object
  */
-public interface GenericConverter<SOURCE, TARGET> {
+public interface GenericConverter<S, T> {
 
   /**
    * Converts source object to target object.
@@ -16,7 +16,7 @@ public interface GenericConverter<SOURCE, TARGET> {
    * @param source - object to convert
    * @return converted object of target class
    */
-  TARGET convert(SOURCE source);
+  T convert(S source);
 
   /**
    * Converts Collection of source objects to Collection target objects.
@@ -24,5 +24,5 @@ public interface GenericConverter<SOURCE, TARGET> {
    * @param source - object to convert
    * @return converted object of target class
    */
-  Collection<TARGET> convert(Collection<SOURCE> source);
+  Collection<T> convert(Collection<S> source);
 }

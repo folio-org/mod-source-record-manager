@@ -7,18 +7,18 @@ import java.util.List;
 /**
  * Abstract converter, makes inheritors be able to convert list of the SOURCE objects.
  *
- * @param <SOURCE> - object with source data
- * @param <TARGET> - target object
+ * @param <S> - object with source data
+ * @param <T> - target object
  */
-public abstract class AbstractGenericConverter<SOURCE, TARGET> implements GenericConverter<SOURCE, TARGET> {
+public abstract class AbstractGenericConverter<S, T> implements GenericConverter<S, T> {
 
   @Override
-  public List<TARGET> convert(Collection<SOURCE> sources) {
+  public List<T> convert(Collection<S> sources) {
     if (sources == null) {
       throw new IllegalArgumentException("Source object can not be null");
     }
-    List<TARGET> result = new ArrayList<>(sources.size());
-    for (SOURCE source : sources) {
+    List<T> result = new ArrayList<>(sources.size());
+    for (S source : sources) {
       result.add(convert(source));
     }
     return result;

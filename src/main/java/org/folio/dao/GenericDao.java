@@ -8,9 +8,9 @@ import java.util.Optional;
 /**
  * The root interface for Data Access Objects, contains CRUD methods to work with <ENTITY>.
  *
- * @param <ENTITY> target entity type
+ * @param <E> dedicated entity
  */
-public interface GenericDao<ENTITY> {
+public interface GenericDao<E> {
 
   /**
    * Returns List of entities by the input query
@@ -19,7 +19,7 @@ public interface GenericDao<ENTITY> {
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<List<ENTITY>> getByQuery(String query, int offset, int limit);
+  Future<List<E>> getByQuery(String query, int offset, int limit);
 
   /**
    * Retrieves Entity if it exists
@@ -27,7 +27,7 @@ public interface GenericDao<ENTITY> {
    * @param id UUID value
    * @return optional entity
    */
-  Future<Optional<ENTITY>> getById(String id);
+  Future<Optional<E>> getById(String id);
 
   /**
    * Saves entity in the storage and returns
@@ -36,7 +36,7 @@ public interface GenericDao<ENTITY> {
    * @param entity entity to save
    * @return entity
    */
-  Future<ENTITY> save(String id, ENTITY entity);
+  Future<E> save(String id, E entity);
 
   /**
    * Updates entity in the storage and returns
@@ -45,7 +45,7 @@ public interface GenericDao<ENTITY> {
    * @param entity entity to update
    * @return entity
    */
-  Future<ENTITY> update(String id, ENTITY entity);
+  Future<E> update(String id, E entity);
 
   /**
    * Removes entity from the storage
