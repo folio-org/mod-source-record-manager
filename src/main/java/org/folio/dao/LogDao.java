@@ -2,8 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.Log;
-
-import java.util.List;
+import org.folio.rest.persist.interfaces.Results;
 
 /**
  * DAO interface for the Log entity.
@@ -13,11 +12,11 @@ import java.util.List;
 public interface LogDao {
 
   /**
-   * Returns List of Log entities by the input query
+   * Returns Results parametrized by Log entities
    *
    * @param query  query string to filter entities
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<List<Log>> getByQuery(String query, int offset, int limit);
+  Future<Results<Log>> getByQuery(String query, int offset, int limit);
 }

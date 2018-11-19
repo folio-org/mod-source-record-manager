@@ -1,8 +1,8 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import org.folio.rest.persist.interfaces.Results;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,13 +13,13 @@ import java.util.Optional;
 public interface GenericDao<E> {
 
   /**
-   * Returns List of entities by the input query
+   * Returns Results of entities by the input query
    *
    * @param query  query string to filter entities
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<List<E>> getByQuery(String query, int offset, int limit);
+  Future<Results<E>> getByQuery(String query, int offset, int limit);
 
   /**
    * Retrieves Entity if it exists

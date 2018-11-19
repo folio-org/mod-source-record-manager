@@ -1,8 +1,8 @@
 {
   "jobExecutions": [
     {
-      "jobExecutionId": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
-      "jobExecutionHrId": "13414",
+      "id": "67dfac11-1caf-4470-9ad1-d533f6360bdd",
+      "hrId": "13414",
       "jobProfileName": "Marc jobs profile",
       "fileName": "import_1.csv",
       "runBy": {
@@ -18,8 +18,8 @@
       "status": "IMPORT_FINISHED"
     }
     {
-      "jobExecutionId": "981oklm8-lkmn-mnds-za98-d533f6360bdd",
-      "jobExecutionHrId": "11844",
+      "id": "981oklm8-lkmn-mnds-za98-d533f6360bdd",
+      "hrId": "11844",
       "jobProfileName": "Marc jobs profile",
       "fileName": "import_11.csv",
       "runBy": {

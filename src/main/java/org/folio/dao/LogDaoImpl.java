@@ -6,8 +6,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import org.folio.rest.jaxrs.model.Log;
 import org.folio.rest.jaxrs.model.LogCollection;
-
-import java.util.List;
+import org.folio.rest.jaxrs.model.ResultInfo;
+import org.folio.rest.persist.interfaces.Results;
 
 /**
  * Current implementation for the LogDao uses {@link io.vertx.core.file.FileSystem#readFile} to access data
@@ -27,11 +27,17 @@ public class LogDaoImpl implements LogDao {
   }
 
   @Override
-  public Future<List<Log>> getByQuery(String query, int offset, int limit) {
+  public Future<Results<Log>> getByQuery(String query, int offset, int limit) {
     Future<Buffer> future = Future.future();
     //TODO replace stub response
     vertx.fileSystem().readFile(LOGS_STUB_PATH, future.completer());
-    return future.map(buffer -> new JsonObject(buffer).mapTo(LogCollection.class).getLogs()
+    return future.map(buffer -> {
+      LogCollection logs = new JsonObject(buffer).mapTo(LogCollection.class);
+      Results<Log> results = new Results<>();
+      results.setResults(logs.getLogs());
+      results.setResultInfo(new ResultInfo().withTotalRecords(logs.getTotalRecords()));
+      return results;
+      }
     );
   }
 }

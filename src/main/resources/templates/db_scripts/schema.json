@@ -9,7 +9,7 @@
       "pkColumnName": "_id",
       "index": [
         {
-          "fieldName": "jobExecutionId",
+          "fieldName": "id",
           "tOps": "ADD"
         }
       ]

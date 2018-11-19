@@ -2,9 +2,9 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,13 +16,13 @@ import java.util.Optional;
 public interface JobExecutionService {
 
   /**
-   * Returns List of JobExecution entities by the input query
+   * Returns JobExecutionCollection by the input query
    *
    * @param query  query string to filter entities
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<List<JobExecution>> getByQuery(String query, int offset, int limit);
+  Future<JobExecutionCollection> getByQuery(String query, int offset, int limit);
 
   /**
    * Returns JobExecutionCollectionDto by the input query

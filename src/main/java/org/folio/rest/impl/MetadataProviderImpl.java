@@ -5,7 +5,6 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.folio.rest.jaxrs.model.LogCollection;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
@@ -35,9 +34,6 @@ public class MetadataProviderImpl implements MetadataProvider {
     vertxContext.runOnContext(v -> {
       try {
         logService.getByQuery(query, offset, limit)
-          .map(logs -> new LogCollection()
-            .withLogs(logs)
-            .withTotalRecords(logs.size()))
           .map(GetMetadataProviderLogsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

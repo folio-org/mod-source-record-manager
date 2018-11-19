@@ -12,7 +12,6 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.folio.dao.util.DaoUtil.constructCriteria;
@@ -38,7 +37,7 @@ public abstract class AbstractGenericDao<E> implements GenericDao<E> {
   }
 
   @Override
-  public Future<List<E>> getByQuery(String query, int offset, int limit) {
+  public Future<Results<E>> getByQuery(String query, int offset, int limit) {
     Future<Results<E>> future = Future.future();
     try {
       String[] fieldList = {"*"};
@@ -48,7 +47,7 @@ public abstract class AbstractGenericDao<E> implements GenericDao<E> {
       LOGGER.error(e.getMessage(), e);
       future.fail(e);
     }
-    return future.map(Results::getResults);
+    return future;
   }
 
   @Override
