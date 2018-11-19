@@ -5,8 +5,6 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.LogCollection;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
@@ -14,7 +12,6 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 import org.folio.services.LogService;
 import org.folio.services.LogServiceImpl;
-import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.util.ExceptionHelper;
 
 import javax.ws.rs.core.Response;
