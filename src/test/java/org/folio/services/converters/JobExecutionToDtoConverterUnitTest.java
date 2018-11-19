@@ -5,9 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.services.converters.jobExecution.JobExecutionCollectionToDtoConverter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,18 +13,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+
 
 /**
- * Testing conversion logic for the JobExecutionCollectionToDtoConverter
+ * Testing conversion logic for the JobExecutionToDtoConverter
  *
- * @see JobExecutionCollectionToDtoConverter
+ * @see JobExecutionToDtoConverter
  */
 @RunWith(MockitoJUnitRunner.class)
-public class JobExecutionCollectionToDtoConverterUnitTest {
+public class JobExecutionToDtoConverterUnitTest {
 
   private static final String SINGLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionSingleTest.sample";
   private static final String MULTIPLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionMultipleTest.sample";
-  private JobExecutionCollectionToDtoConverter converter = new JobExecutionCollectionToDtoConverter();
+  private JobExecutionToDtoConverter converter = new JobExecutionToDtoConverter();
 
 
   @Test
@@ -35,24 +35,22 @@ public class JobExecutionCollectionToDtoConverterUnitTest {
     JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(readFileFromPath(SINGLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     JobExecution jobExecutionEntity = jobExecutionCollection.getJobExecutions().get(0);
     // when
-    JobExecutionCollectionDto collectionDto = converter.convert(jobExecutionCollection);
+    List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
     // then
-    Assert.assertNotNull(collectionDto);
-    Assert.assertNotNull(collectionDto.getJobExecutionDtos());
-    Assert.assertNotNull(collectionDto.getTotalRecords());
-    Assert.assertEquals(collectionDto.getJobExecutionDtos().size(), 1);
-    Assert.assertEquals(collectionDto.getTotalRecords().intValue(), 1);
+    Assert.assertNotNull(collectionDtoList);
+    Assert.assertEquals(collectionDtoList.size(), 1);
 
-    JobExecutionDto jobExecutionDto = collectionDto.getJobExecutionDtos().get(0);
-    Assert.assertEquals(jobExecutionDto.getJobExecutionId(), jobExecutionEntity.getJobExecutionId());
-    Assert.assertEquals(jobExecutionDto.getJobExecutionHrId(), jobExecutionEntity.getJobExecutionHrId());
+    JobExecutionDto jobExecutionDto = collectionDtoList.get(0);
+    Assert.assertEquals(jobExecutionDto.getId(), jobExecutionEntity.getId());
+    Assert.assertEquals(jobExecutionDto.getHrId(), jobExecutionEntity.getHrId());
     Assert.assertEquals(jobExecutionDto.getRunBy(), jobExecutionEntity.getRunBy());
     Assert.assertEquals(jobExecutionDto.getFileName(), FilenameUtils.getName(jobExecutionEntity.getSourcePath()));
     Assert.assertEquals(jobExecutionDto.getStartedDate(), jobExecutionEntity.getStartedDate());
     Assert.assertEquals(jobExecutionDto.getCompletedDate(), jobExecutionEntity.getCompletedDate());
     Assert.assertEquals(jobExecutionDto.getStatus().name(), jobExecutionEntity.getStatus().name());
+    // TODO assert JobProfile name properly using JobProfile id
+    Assert.assertEquals(jobExecutionDto.getJobProfileName(), jobExecutionEntity.getJobProfileName());
     // TODO assert progress properly
-    // TODO assert JobProfile name properly
   }
 
   @Test
@@ -60,25 +58,17 @@ public class JobExecutionCollectionToDtoConverterUnitTest {
     // given
     JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(readFileFromPath(MULTIPLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     // when
-    JobExecutionCollectionDto result = converter.convert(jobExecutionCollection);
+    List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
     // then
-    Assert.assertNotNull(result);
-    Assert.assertNotNull(result.getJobExecutionDtos());
-    Assert.assertNotNull(result.getTotalRecords());
-    Assert.assertEquals(result.getJobExecutionDtos().size(), jobExecutionCollection.getJobExecutions().size());
-    Assert.assertEquals(result.getTotalRecords().intValue(), jobExecutionCollection.getTotalRecords().intValue());
+    Assert.assertNotNull(collectionDtoList);
+    Assert.assertEquals(collectionDtoList.size(), jobExecutionCollection.getJobExecutions().size());
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void shouldReturnEmptyJobExecutionDtoCollectionWhenPassNull() {
-    // when
-    JobExecutionCollectionDto result = converter.convert(null);
-    // then
-    Assert.assertNotNull(result);
-    Assert.assertNotNull(result.getJobExecutionDtos());
-    Assert.assertNotNull(result.getTotalRecords());
-    Assert.assertEquals(result.getJobExecutionDtos().size(), 0);
-    Assert.assertEquals(result.getTotalRecords().intValue(), 0);
+    // given
+    List<JobExecution> givenNullCollection = null;
+    converter.convert(givenNullCollection);
   }
 
   private String readFileFromPath(String path) throws IOException {
