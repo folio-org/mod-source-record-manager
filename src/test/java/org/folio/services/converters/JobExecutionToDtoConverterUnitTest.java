@@ -38,7 +38,7 @@ public class JobExecutionToDtoConverterUnitTest {
     List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
     // then
     Assert.assertNotNull(collectionDtoList);
-    Assert.assertEquals(collectionDtoList.size(), 1);
+    Assert.assertEquals(1, collectionDtoList.size());
 
     JobExecutionDto jobExecutionDto = collectionDtoList.get(0);
     Assert.assertEquals(jobExecutionDto.getId(), jobExecutionEntity.getId());
@@ -68,7 +68,11 @@ public class JobExecutionToDtoConverterUnitTest {
   public void shouldReturnEmptyJobExecutionDtoCollectionWhenPassNull() {
     // given
     List<JobExecution> givenNullCollection = null;
+
+    // when
     converter.convert(givenNullCollection);
+
+    // then do expect exception
   }
 
   private String readFileFromPath(String path) throws IOException {

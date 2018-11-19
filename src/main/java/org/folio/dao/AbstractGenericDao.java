@@ -27,7 +27,7 @@ public abstract class AbstractGenericDao<E> implements GenericDao<E> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenericDao.class);
 
-  private final String DEFAULT_ID_FIELD = "'id'";
+  private static final String DEFAULT_ID_FIELD = "'id'";
 
   protected PostgresClient pgClient;
   protected Class<E> entityClass;
