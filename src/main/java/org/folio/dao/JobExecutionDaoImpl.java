@@ -4,10 +4,11 @@ import io.vertx.core.Vertx;
 import org.folio.rest.jaxrs.model.JobExecution;
 
 /**
- * Implementation for the JobExecutionDao.
+ * Implementation for the JobExecutionDao, works with PostgresClient to access the data.
  *
  * @see JobExecution
  * @see JobExecutionDao
+ * @see org.folio.rest.persist.PostgresClient
  */
 public class JobExecutionDaoImpl extends AbstractGenericDao<JobExecution> implements JobExecutionDao {
 

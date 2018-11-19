@@ -15,6 +15,12 @@ import java.util.Optional;
 
 import static org.folio.dao.util.DaoUtil.constructCriteria;
 
+/**
+ * Abstract Layer for Generic DAO, works with Database using PostgresClient.
+ *
+ * @param <ENTITY> entire entity type
+ * @see PostgresClient
+ */
 public abstract class AbstractGenericDao<ENTITY> implements GenericDao<ENTITY> {
 
   private final String DEFAULT_ID_FIELD = "'id'";

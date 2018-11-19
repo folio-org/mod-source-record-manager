@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JobExecution Service interface, contains logic of accessing jobs.
+ * JobExecution Service interface, contains logic for accessing jobs.
+ * @see JobExecution
+ * @see org.folio.dao.JobExecutionDao
+ * @see org.folio.rest.jaxrs.model.JobExecutionDto
  */
 public interface JobExecutionService {
 

@@ -10,7 +10,8 @@ import org.folio.rest.jaxrs.model.LogCollection;
 import java.util.List;
 
 /**
- * Current implementation for the LogDao uses data from text file.
+ * Current implementation for the LogDao uses {@link io.vertx.core.file.FileSystem#readFile} to access data
+ * from text file.
  *
  * @see Log
  * @see LogDao
