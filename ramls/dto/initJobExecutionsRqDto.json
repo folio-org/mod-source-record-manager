@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Request to initialize JobExecution entities",
+  "additionalProperties": false,
+  "properties": {
+    "uploadDefinitionId": {
+      "description": "UUID of the UploadDefinition entity",
+      "type": "string"
+    },
+    "filesNumber": {
+      "description": "Number of files to upload (FileDefinition entities)",
+      "type": "integer"
+    }
+  }
+}

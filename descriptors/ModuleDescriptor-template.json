@@ -17,6 +17,10 @@
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobExecutions"
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/jobExecutions"
         }
       ]
     },
