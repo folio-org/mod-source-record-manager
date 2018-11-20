@@ -1,4 +1,4 @@
-package org.folio.rest.impl;
+package org.folio.rest.impl.metadataProvider;
 
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -16,11 +16,11 @@ public class MetadataProviderLogAPITest extends AbstractMetadataProviderTest {
   @Test
   public void testGetLogs(TestContext context) {
     //TODO Replace testing stub
-    String testUrl = baseServicePath + servicePath;
     getDefaultGiven()
+      .port(port)
       .param("query", "query")
       .param("landingPage", false)
-      .when().get(testUrl)
+      .when().get(METADATA_PROVIDER_PATH + servicePath)
       .then().statusCode(200);
   }
 

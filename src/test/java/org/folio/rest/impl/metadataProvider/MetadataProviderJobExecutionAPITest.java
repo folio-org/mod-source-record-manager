@@ -1,9 +1,10 @@
-package org.folio.rest.impl;
+package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
+import org.folio.rest.impl.metadataProvider.AbstractMetadataProviderTest;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractMetadataProvide
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private String servicePath = "/jobExecutions";
 
-  public void setUp(TestContext context) throws Exception {
+  public void setUp(TestContext context) {
     clearJobExecutionsTable(context);
   }
 
