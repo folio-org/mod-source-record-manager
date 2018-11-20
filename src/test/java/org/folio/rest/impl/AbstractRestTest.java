@@ -51,7 +51,7 @@ public abstract class AbstractRestTest {
         break;
       default:
         String message = "No understood database choice made." +
-          "Please set org.folio.metadata.provider.test.config" +
+          "Please set org.folio.metadata.provider.test.database" +
           "to 'external', 'environment' or 'embedded'";
         throw new Exception(message);
     }
