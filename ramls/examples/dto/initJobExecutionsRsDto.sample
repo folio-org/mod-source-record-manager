@@ -1,0 +1,35 @@
+{
+  "parentJobExecutionId": "fgb8qq21-1caf-4470-9ad1-fgbmiu77lmaq"
+  "jobExecutions": [
+    {
+      "jobExecutionId": "zx45hh91-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "00001",
+      "jobProfileId": "sdm7op3s-1caf-4470-9ad1-dd9ek60psm31",
+      "parentJobId": "fgb8qq21-1caf-4470-9ad1-fgbmiu77lmaq",
+      "subordinationType": "CHILD",
+      "sourcePath": "C:\import\files\import.marc",
+      "runBy": {
+        "firstName": "DIKU",
+        "lastName": "ADMINISTRATOR"
+      },
+      "startedDate": "2018-10-30T12:36:55.000",
+      "completedDate": "2018-10-30T12:40:01.000",
+      "status": "COMMITED"
+    },
+    {
+      "jobExecutionId": "dc6jm9a1-1caf-4470-9ad1-d533f6360bdd",
+      "jobExecutionHrId": "00002",
+      "jobProfileId": "sdm7op3s-1caf-4470-9ad1-dd9ek60psm31",
+      "parentJobId": "fgb8qq21-1caf-4470-9ad1-fgbmiu77lmaq",
+      "subordinationType": "CHILD",
+      "sourcePath": "C:\import\files\import_1.csv",
+      "runBy": {
+        "firstName": "DIKU",
+        "lastName": "ADMINISTRATOR"
+      },
+      "startedDate": "2018-10-30T13:06:15.000",
+      "completedDate": "2018-10-30T13:07:01.000",
+      "status": "COMMITED"
+    }
+  ]
+}

@@ -12,11 +12,18 @@
       "handlers": [
         {
           "methods": ["GET"],
-          "pathPattern": "/metadata-provider/logs"
+          "pathPattern": "/metadata-provider/logs",
+          "permissionsRequired" : [ "metadata-provider.log.get" ]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/metadata-provider/jobExecutions"
+          "pathPattern": "/metadata-provider/jobExecutions",
+          "permissionsRequired" : [ "metadata-provider.jobexecution.get" ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/jobExecutions",
+          "permissionsRequired" : [ "change-manager.jobexecution.post" ]
         }
       ]
     },
