@@ -10,19 +10,19 @@ documentation:
     content: API for accessing metadata
 
 types:
-  log: !include log.json
-  logCollection: !include logCollection.json
-  jobExecution: !include jobExecution.json
-  jobExecutionCollection: !include jobExecutionCollection.json
-  jobExecutionDto: !include dto/jobExecutionDto.json
-  jobExecutionCollectionDto: !include dto/jobExecutionCollectionDto.json
-  errors: !include raml-util/schemas/errors.schema
+  log: !include raml-storage/schemas/mod-source-record-manager/log.json
+  logCollection: !include raml-storage/schemas/mod-source-record-manager/logCollection.json
+  jobExecution: !include raml-storage/schemas/mod-source-record-manager/jobExecution.json
+  jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
+  jobExecutionDto: !include raml-storage/schemas/dto/jobExecutionDto.json
+  jobExecutionCollectionDto: !include raml-storage/schemas/dto/jobExecutionCollectionDto.json
+  errors: !include raml-storage/raml-util/schemas/errors.schema
 
 traits:
-  validate: !include raml-util/traits/validation.raml
-  language: !include raml-util/traits/language.raml
-  pageable:  !include raml-util/traits/pageable.raml
-  searchable: !include raml-util/traits/searchable.raml
+  validate: !include raml-storage/raml-util/traits/validation.raml
+  language: !include raml-storage/raml-util/traits/language.raml
+  pageable:  !include raml-storage/raml-util/traits/pageable.raml
+  searchable: !include raml-storage/raml-util/traits/searchable.raml
   queryable:
     queryParameters:
       landingPage:
@@ -31,8 +31,8 @@ traits:
         type: boolean
 
 resourceTypes:
-  collection: !include raml-util/rtypes/collection.raml
-  collection-item: !include raml-util/rtypes/item-collection.raml
+  collection: !include raml-storage/raml-util/rtypes/collection.raml
+  collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
 
 /metadata-provider:
   /logs:
