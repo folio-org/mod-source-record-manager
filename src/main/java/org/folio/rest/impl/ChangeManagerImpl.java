@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -24,15 +25,15 @@ public class ChangeManagerImpl implements ChangeManager {
         String parentJobExecutionId = UUID.randomUUID().toString();
 
         rsDto.setParentJobExecutionId(parentJobExecutionId);
-        rsDto.setUploadDefinitionId(initJobExecutionsRqDto.getUploadDefinitionId());
-        for (int i = 0; i < initJobExecutionsRqDto.getFilesNumber(); i++) {
+        for (File file : initJobExecutionsRqDto.getFiles()) {
           rsDto.getJobExecutions().add(
             new JobExecution()
               .withId(UUID.randomUUID().toString())
               .withParentJobId(parentJobExecutionId)
+              .withSourcePath(file.getName())
           );
         }
-        asyncResultHandler.handle(Future.succeededFuture(PostChangeManagerJobExecutionsResponse.respond200WithApplicationJson(rsDto)));
+        asyncResultHandler.handle(Future.succeededFuture(PostChangeManagerJobExecutionsResponse.respond201WithApplicationJson(rsDto)));
       } catch (Exception e) {
         asyncResultHandler.handle(Future.failedFuture(e));
       }

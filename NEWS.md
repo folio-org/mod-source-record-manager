@@ -2,6 +2,7 @@
  * Created ChangeManager component
  * Added REST method for JobExecution entities initialization
  * REST method has stub implementation
+
    | METHOD |             URL                   | DESCRIPTION                                        |
    |--------|-----------------------------------|----------------------------------------------------|
    | GET    | /metadata-provider/jobExecutions  | Get list of the JobExecutions DTO by query         |
