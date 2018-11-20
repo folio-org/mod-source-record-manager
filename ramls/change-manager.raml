@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Change Manager
-version: v0.1
+version: v1.0
 protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
@@ -11,6 +11,7 @@ documentation:
 
 types:
   jobExecution: !include jobExecution.json
+  fileDto: !include dto/fileDto.json
   initJobExecutionsRqDto: !include dto/initJobExecutionsRqDto.json
   initJobExecutionsRsDto: !include dto/initJobExecutionsRsDto.json
   errors: !include raml-util/schemas/errors.schema
@@ -25,7 +26,7 @@ traits:
         application/json:
           schema: initJobExecutionsRqDto
       responses:
-        200:
+        201:
           body:
             application/json:
               schema: initJobExecutionsRsDto

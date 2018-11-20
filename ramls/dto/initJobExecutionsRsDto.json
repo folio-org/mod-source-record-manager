@@ -4,10 +4,6 @@
   "description": "Initialized JobExecution entities",
   "additionalProperties": false,
   "properties": {
-    "uploadDefinitionId": {
-      "description": "UUID of the UploadDefinition entity",
-      "type": "string"
-    },
     "parentJobExecutionId": {
       "description": "UUID of the JobExecution entity which is parent for all JobExecution entities in a scope of one file upload process",
       "type": "string"

@@ -4,13 +4,13 @@
   "description": "Request to initialize JobExecution entities",
   "additionalProperties": false,
   "properties": {
-    "uploadDefinitionId": {
-      "description": "UUID of the UploadDefinition entity",
-      "type": "string"
-    },
-    "filesNumber": {
-      "description": "Number of files to upload (FileDefinition entities)",
-      "type": "integer"
+    "files": {
+      "description": "Information about files to upload",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "fileDto.json"
+      }
     }
   }
 }
