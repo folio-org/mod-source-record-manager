@@ -10,14 +10,14 @@ documentation:
     content: API for accessing ChangeManager's bussiness logic
 
 types:
-  jobExecution: !include jobExecution.json
-  fileDto: !include dto/fileDto.json
-  initJobExecutionsRqDto: !include dto/initJobExecutionsRqDto.json
-  initJobExecutionsRsDto: !include dto/initJobExecutionsRsDto.json
-  errors: !include raml-util/schemas/errors.schema
+  jobExecution: !include raml-storage/schemas/mod-source-record-manager/jobExecution.json
+  fileDto: !include raml-storage/schemas/dto/fileDto.json
+  initJobExecutionsRqDto: !include raml-storage/schemas/dto/initJobExecutionsRqDto.json
+  initJobExecutionsRsDto: !include raml-storage/schemas/dto/initJobExecutionsRsDto.json
+  errors: !include raml-storage/raml-util/schemas/errors.schema
 
 traits:
-  validate: !include raml-util/traits/validation.raml
+  validate: !include raml-storage/raml-util/traits/validation.raml
 
 /change-manager:
   /jobExecutions:

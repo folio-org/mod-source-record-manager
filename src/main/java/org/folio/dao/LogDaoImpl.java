@@ -18,7 +18,7 @@ import org.folio.rest.persist.interfaces.Results;
  */
 public class LogDaoImpl implements LogDao {
 
-  private static final String LOGS_STUB_PATH = "ramls/examples/logCollection.sample";
+  private static final String LOGS_STUB_PATH = "ramls/raml-storage/examples/mod-source-record-manager/logCollection.sample";
 
   private Vertx vertx;
 
