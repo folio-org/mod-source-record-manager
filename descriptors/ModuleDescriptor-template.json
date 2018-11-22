@@ -47,6 +47,34 @@
       ]
     }
   ],
+  "permissionSets": [
+    {
+      "permissionName": "metadata-provider.log.get",
+      "displayName": "Metadata Provider - get logs",
+      "description": "Get logs"
+    },
+    {
+      "permissionName": "metadata-provider.jobexecution.get",
+      "displayName": "Metadata Provider - get jobExecutions",
+      "description": "Get JobExecutions"
+    },
+    {
+      "permissionName": "change-manager.jobexecution.post",
+      "displayName": "Change Manager - create jobExecution",
+      "description": "Post JobExecution"
+    },
+    {
+      "permissionName": "source-record-manager.all",
+      "displayName": "Source Record Manager - all permissions",
+      "description": "Entire set of permissions needed to manage jobExecutions",
+      "subPermissions": [
+        "metadata-provider.log.get",
+        "metadata-provider.jobexecution.get",
+        "change-manager.jobexecution.post"
+      ],
+      "visible": false
+    }
+  ],
   "launchDescriptor": {
     "dockerImage": "${artifactId}:${version}",
     "dockerArgs": {
