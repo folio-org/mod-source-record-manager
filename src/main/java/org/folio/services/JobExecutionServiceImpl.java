@@ -61,15 +61,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       List<JobExecution> jobExecutions = prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles());
       List<JsonObject> snapshots = prepareSnapshotList(jobExecutions);
 
-      Future savedJsobExecutionsFuture = saveJobExecutions(jobExecutions);
+      Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions);
       Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
 
-      return CompositeFuture.all(savedJsobExecutionsFuture, savedSnapshotsFuture)
+      return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
         .map(new InitJobExecutionsRsDto()
           .withParentJobExecutionId(parentJobExecutionId)
           .withJobExecutions(jobExecutions));
     }
-
   }
 
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files) {
