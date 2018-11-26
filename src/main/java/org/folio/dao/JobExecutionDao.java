@@ -6,6 +6,7 @@ import org.folio.rest.jaxrs.model.JobExecutionCollection;
 
 /**
  * DAO interface for the JobExecution entity
+ *
  * @see JobExecution
  */
 public interface JobExecutionDao {
@@ -19,5 +20,14 @@ public interface JobExecutionDao {
    * @return future with {@link JobExecutionCollection}
    */
   Future<JobExecutionCollection> getJobExecutions(String query, int offset, int limit);
+
+
+  /**
+   * Saves {@link JobExecution} to database
+   *
+   * @param jobExecution {@link JobExecution} to save
+   * @return future
+   */
+  Future<String> save(JobExecution jobExecution);
 
 }

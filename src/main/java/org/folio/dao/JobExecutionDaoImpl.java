@@ -38,11 +38,18 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
       pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cql, true, false, future.completer());
     } catch (Exception e) {
-      LOG.error("Error while querying db", e);
+      LOG.error("Error while getting JobExecutions", e);
       future.fail(e);
     }
     return future.map(results -> new JobExecutionCollection()
       .withJobExecutions(results.getResults())
       .withTotalRecords(results.getResultInfo().getTotalRecords()));
+  }
+
+  @Override
+  public Future<String> save(JobExecution jobExecution) {
+    Future<String> future = Future.future();
+    pgClient.save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
+    return future;
   }
 }

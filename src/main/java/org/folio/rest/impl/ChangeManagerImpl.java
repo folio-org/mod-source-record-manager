@@ -4,36 +4,37 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import org.folio.rest.jaxrs.model.File;
+import io.vertx.core.Vertx;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.resource.ChangeManager;
+import org.folio.rest.tools.utils.TenantTool;
+import org.folio.services.JobExecutionService;
+import org.folio.services.JobExecutionServiceImpl;
+import org.folio.util.ExceptionHelper;
+import org.folio.util.OkapiConnectionParams;
 
 import javax.ws.rs.core.Response;
 import java.util.Map;
-import java.util.UUID;
 
 public class ChangeManagerImpl implements ChangeManager {
+
+  private JobExecutionService jobExecutionService;
+
+  public ChangeManagerImpl(Vertx vertx, String tenantId) {
+    String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
+    this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
+  }
 
   @Override
   public void postChangeManagerJobExecutions(InitJobExecutionsRqDto initJobExecutionsRqDto, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        // TODO stub implementation
-        InitJobExecutionsRsDto rsDto = new InitJobExecutionsRsDto();
-        String parentJobExecutionId = UUID.randomUUID().toString();
-
-        rsDto.setParentJobExecutionId(parentJobExecutionId);
-        for (File file : initJobExecutionsRqDto.getFiles()) {
-          rsDto.getJobExecutions().add(
-            new JobExecution()
-              .withId(UUID.randomUUID().toString())
-              .withParentJobId(parentJobExecutionId)
-              .withSourcePath(file.getName())
-          );
-        }
-        asyncResultHandler.handle(Future.succeededFuture(PostChangeManagerJobExecutionsResponse.respond201WithApplicationJson(rsDto)));
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+          .map(initJobExecutionsRsDto ->
+            (Response) PostChangeManagerJobExecutionsResponse.respond201WithApplicationJson(initJobExecutionsRsDto))
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
       } catch (Exception e) {
         asyncResultHandler.handle(Future.failedFuture(e));
       }
