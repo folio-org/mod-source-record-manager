@@ -23,7 +23,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
 
-  private static final String TABLE_NAME = "job_executions";
+  public static final String TABLE_NAME = "job_executions";
   private PostgresClient pgClient;
 
   public JobExecutionDaoImpl(Vertx vertx, String tenantId) {
