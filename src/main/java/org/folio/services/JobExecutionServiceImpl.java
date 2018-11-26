@@ -52,26 +52,24 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
-    Future<InitJobExecutionsRsDto> future = Future.future();
     if (jobExecutionsRqDto.getFiles().isEmpty()) {
       logger.error("Received files must not be empty");
-      future.fail(new BadRequestException());
+      return Future.failedFuture(new BadRequestException());
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
 
       List<JobExecution> jobExecutions = prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles());
       List<JsonObject> snapshots = prepareSnapshotList(jobExecutions);
 
-      saveJobExecutions(jobExecutions);
-      saveSnapshots(snapshots, params);
+      Future savedJsobExecutionsFuture = saveJobExecutions(jobExecutions);
+      Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
 
-      // TODO wait for the completion of save JobExecutions and Snapshots if needed
-
-      future.complete(new InitJobExecutionsRsDto()
-        .withParentJobExecutionId(parentJobExecutionId)
-        .withJobExecutions(jobExecutions));
+      return CompositeFuture.all(savedJsobExecutionsFuture, savedSnapshotsFuture)
+        .map(new InitJobExecutionsRsDto()
+          .withParentJobExecutionId(parentJobExecutionId)
+          .withJobExecutions(jobExecutions));
     }
-    return future;
+
   }
 
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files) {
@@ -119,7 +117,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions) {
-    List<Future> savedJobExecutionFutures = new ArrayList<>();
+    List<Future> savedJobExecutionFutures = new ArrayList<>();;
     for (JobExecution jobExecution : jobExecutions) {
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
