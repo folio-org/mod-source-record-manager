@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.response.ResponseBodyExtractionOptions;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
@@ -18,6 +17,7 @@ import org.folio.rest.RestVerticle;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
@@ -28,7 +28,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.folio.util.RestUtil.OKAPI_TENANT_HEADER;
@@ -71,80 +73,78 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void testInitJobExecutionsWith1File(TestContext context) {
+  public void testInitJobExecutionsWith1File() {
     // given
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.getFiles().add(new File().withName("importBib.bib"));
+    File givenFile = new File().withName("importBib.bib");
+    requestDto.getFiles().add(givenFile);
     int expectedJobExecutionsNumber = 1;
 
     // when
-    ResponseBodyExtractionOptions body = RestAssured.given()
+    String body = RestAssured.given()
       .spec(spec)
       .header(TENANT_HEADER)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(POST_JOB_EXECUTIONS_PATH)
       .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().body();
+      .extract().body().jsonPath().prettify();
 
     // then
-    String actualParentJobExecutionId = body.jsonPath().getObject("parentJobExecutionId", String.class);
-    List<JobExecution> actualJobExecutions = body.jsonPath().getObject("jobExecutions", List.class);
+    InitJobExecutionsRsDto response = new JsonObject(body).mapTo(InitJobExecutionsRsDto.class);
+    String actualParentJobExecutionId = response.getParentJobExecutionId();
+    List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
     Assert.assertNotNull(actualParentJobExecutionId);
     Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+
+    JobExecution parentSingle = actualJobExecutions.get(0);
+    assertParent(parentSingle);
   }
 
   @Test
-  public void testInitJobExecutionsWith2Files(TestContext context) {
+  public void testInitJobExecutionsWith2Files() {
     // given
     String servicePath = "/jobExecutions";
     String testUrl = CHANGE_MANAGER_PATH + servicePath;
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
     requestDto.getFiles().add(new File().withName("importMarc.mrc"));
-    int expectedJobExecutionsNumber = 3;
+    int expectedParentJobExecutions = 1;
+    int expectedChildJobExecutions = 2;
+    int expectedJobExecutionsNumber = expectedParentJobExecutions + expectedChildJobExecutions;
 
     // when
-    ResponseBodyExtractionOptions body = RestAssured.given()
+    String body = RestAssured.given()
       .spec(spec)
       .header(TENANT_HEADER)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(testUrl)
       .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().body();
+      .extract().body().jsonPath().prettify();
 
     // then
-    String actualParentJobExecutionId = body.jsonPath().getObject("parentJobExecutionId", String.class);
-    List<JobExecution> actualJobExecutions = body.jsonPath().getObject("jobExecutions", List.class);
+    InitJobExecutionsRsDto response = new JsonObject(body).mapTo(InitJobExecutionsRsDto.class);
+    String actualParentJobExecutionId = response.getParentJobExecutionId();
+    List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
     Assert.assertNotNull(actualParentJobExecutionId);
     Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
-  }
 
-  @Test
-  public void testInitJobExecutionsWith3Files(TestContext context) {
-    // given
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.getFiles().add(new File().withName("importBib1.bib"));
-    requestDto.getFiles().add(new File().withName("importBib2.bib"));
-    requestDto.getFiles().add(new File().withName("importMarc1.bib"));
-    int expectedJobExecutionsNumber = 4;
+    int actualParentJobExecutions = 0;
+    int actualChildJobExecutions = 0;
 
-    // when
-    ResponseBodyExtractionOptions body = RestAssured.given()
-      .spec(spec)
-      .header(TENANT_HEADER)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(POST_JOB_EXECUTIONS_PATH)
-      .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().body();
+    for (JobExecution actualJobExecution : actualJobExecutions) {
+      if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(actualJobExecution.getSubordinationType())) {
+        assertParent(actualJobExecution);
+        actualParentJobExecutions++;
+      } else {
+        assertChild(actualJobExecution, actualParentJobExecutionId);
+        actualChildJobExecutions++;
+      }
+    }
 
-    // then
-    String actualParentJobExecutionId = body.jsonPath().getObject("parentJobExecutionId", String.class);
-    List<JobExecution> actualJobExecutions = body.jsonPath().getObject("jobExecutions", List.class);
-
-    Assert.assertNotNull(actualParentJobExecutionId);
-    Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+    Assert.assertEquals(expectedParentJobExecutions, actualParentJobExecutions);
+    Assert.assertEquals(expectedChildJobExecutions, actualChildJobExecutions);
   }
 
   @Test
@@ -159,6 +159,34 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(POST_JOB_EXECUTIONS_PATH)
       .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  private void assertParent(JobExecution parent) {
+    Assert.assertNotNull(parent);
+    Assert.assertNotNull(parent.getId());
+    Assert.assertNotNull(parent.getParentJobId());
+    Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
+      JobExecution.SubordinationType.PARENT_SINGLE,
+      JobExecution.SubordinationType.PARENT_MULTIPLE
+    );
+    Assert.assertTrue(parentTypes.contains(parent.getSubordinationType()));
+    Assert.assertEquals(parent.getId(), parent.getParentJobId());
+    Assert.assertEquals(JobExecution.Status.NEW, parent.getStatus());
+    if (JobExecution.SubordinationType.PARENT_SINGLE.equals(parent.getSubordinationType())) {
+      //TODO assert source path properly
+      Assert.assertNotNull(parent.getSourcePath());
+    }
+  }
+
+  private void assertChild(JobExecution child, String parentJobExecutionId) {
+    Assert.assertNotNull(child);
+    Assert.assertNotNull(child.getId());
+    Assert.assertNotNull(child.getParentJobId());
+    Assert.assertEquals(child.getParentJobId(), parentJobExecutionId);
+    Assert.assertEquals(JobExecution.Status.NEW, child.getStatus());
+    Assert.assertEquals(JobExecution.SubordinationType.CHILD, child.getSubordinationType());
+    //TODO assert source path properly
+    Assert.assertNotNull(child.getSourcePath());
   }
 
   private void clearTable(TestContext context) {
