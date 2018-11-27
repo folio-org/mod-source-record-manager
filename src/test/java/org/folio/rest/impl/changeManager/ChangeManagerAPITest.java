@@ -98,6 +98,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
     JobExecution parentSingle = actualJobExecutions.get(0);
+    Assert.assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     assertParent(parentSingle);
   }
 
