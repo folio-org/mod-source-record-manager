@@ -49,6 +49,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static RequestSpecification spec;
   private static String postedSnapshotResponseBody = UUID.randomUUID().toString();
 
+  Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
+    JobExecution.SubordinationType.PARENT_SINGLE,
+    JobExecution.SubordinationType.PARENT_MULTIPLE
+  );
+
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
@@ -166,10 +171,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(parent);
     Assert.assertNotNull(parent.getId());
     Assert.assertNotNull(parent.getParentJobId());
-    Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
-      JobExecution.SubordinationType.PARENT_SINGLE,
-      JobExecution.SubordinationType.PARENT_MULTIPLE
-    );
     Assert.assertTrue(parentTypes.contains(parent.getSubordinationType()));
     Assert.assertEquals(parent.getId(), parent.getParentJobId());
     Assert.assertEquals(JobExecution.Status.NEW, parent.getStatus());
