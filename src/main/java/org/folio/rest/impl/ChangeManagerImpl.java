@@ -8,6 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
@@ -20,8 +21,8 @@ import java.util.Map;
 
 public class ChangeManagerImpl implements ChangeManager {
 
-  private JobExecutionService jobExecutionService;
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerImpl.class);
+  private JobExecutionService jobExecutionService;
 
   public ChangeManagerImpl(Vertx vertx, String tenantId) {
     String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
@@ -29,7 +30,9 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void postChangeManagerJobExecutions(InitJobExecutionsRqDto initJobExecutionsRqDto, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postChangeManagerJobExecutions(InitJobExecutionsRqDto initJobExecutionsRqDto,
+                                             Map<String, String> okapiHeaders,
+                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
@@ -43,6 +46,22 @@ public class ChangeManagerImpl implements ChangeManager {
         asyncResultHandler.handle(Future.failedFuture(e));
       }
     });
+  }
 
+  @Override
+  public void putChangeManagerJobExecutionById(String id, JobExecution entity, Map<String, String> okapiHeaders,
+                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        entity.setId(id);
+        jobExecutionService.updateJobExecution(entity)
+          .map(updatedEntity -> (Response) PutChangeManagerJobExecutionByIdResponse.respond200WithApplicationJson(updatedEntity))
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to update JobExecution", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
   }
 }

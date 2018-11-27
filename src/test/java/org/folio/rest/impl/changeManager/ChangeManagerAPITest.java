@@ -1,101 +1,63 @@
 package org.folio.rest.impl.changeManager;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.http.ContentType;
-import io.restassured.specification.RequestSpecification;
+import io.restassured.response.Response;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
-import org.folio.dao.JobExecutionDaoImpl;
-import org.folio.rest.RestVerticle;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.persist.Criteria.Criterion;
-import org.folio.rest.persist.PostgresClient;
-import org.folio.services.JobExecutionServiceImpl;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import static org.folio.util.RestUtil.OKAPI_TENANT_HEADER;
-import static org.folio.util.RestUtil.OKAPI_URL_HEADER;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
  */
-
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerAPITest extends AbstractRestTest {
 
-  private static final String CHANGE_MANAGER_PATH = "/change-manager";
-  private static final String POST_JOB_EXECUTIONS_PATH = CHANGE_MANAGER_PATH + "/jobExecutions";
+  private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
+  private static final String PUT_JOB_EXECUTION_PATH = "/change-manager/jobExecution";
+  private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
 
-  private static RequestSpecification spec;
-  private static String postedSnapshotResponseBody = UUID.randomUUID().toString();
-
-  Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
+  private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
     JobExecution.SubordinationType.PARENT_MULTIPLE
   );
 
-  @Rule
-  public WireMockRule snapshotMockServer = new WireMockRule(
-    WireMockConfiguration.wireMockConfig()
-      .dynamicPort()
-      .notifier(new ConsoleNotifier(true)));
-
-  @Before
-  public void setUp(TestContext context) {
-    spec = new RequestSpecBuilder()
-      .setContentType(ContentType.JSON)
-      .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
-      .addHeader(OKAPI_TENANT_HEADER, TENANT_ID)
-      .addHeader(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString())
-      .addHeader("Accept", "text/plain, application/json")
-      .setBaseUri("http://localhost:" + port)
-      .build();
-
-    WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
-      .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
-
-    clearTable(context);
-  }
+  private JsonObject jobExecution = new JsonObject()
+    .put("id", "5105b55a-b9a3-4f76-9402-a5243ea63c95")
+    .put("hrId", "1000")
+    .put("parentJobId", "5105b55a-b9a3-4f76-9402-a5243ea63c95")
+    .put("subordinationType", "PARENT_SINGLE")
+    .put("status", "NEW")
+    .put("sourcePath", "importMarc.mrc")
+    .put("jobProfileName", "Marc jobs profile");
 
   @Test
   public void testInitJobExecutionsWith1File() {
     // given
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     File givenFile = new File().withName("importBib.bib");
-    requestDto.getFiles().add(givenFile);
     int expectedJobExecutionsNumber = 1;
 
     // when
-    String body = RestAssured.given()
-      .spec(spec)
-      .header(TENANT_HEADER)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(POST_JOB_EXECUTIONS_PATH)
-      .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().body().jsonPath().prettify();
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(givenFile)).body().as(InitJobExecutionsRsDto.class);
 
     // then
-    InitJobExecutionsRsDto response = new JsonObject(body).mapTo(InitJobExecutionsRsDto.class);
     String actualParentJobExecutionId = response.getParentJobExecutionId();
     List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
@@ -110,26 +72,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   @Test
   public void testInitJobExecutionsWith2Files() {
     // given
-    String servicePath = "/jobExecutions";
-    String testUrl = CHANGE_MANAGER_PATH + servicePath;
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.getFiles().add(new File().withName("importBib.bib"));
-    requestDto.getFiles().add(new File().withName("importMarc.mrc"));
+    File file1 = new File().withName("importBib.bib");
+    File file2 = new File().withName("importMarc.mrc");
     int expectedParentJobExecutions = 1;
     int expectedChildJobExecutions = 2;
     int expectedJobExecutionsNumber = expectedParentJobExecutions + expectedChildJobExecutions;
 
     // when
-    String body = RestAssured.given()
-      .spec(spec)
-      .header(TENANT_HEADER)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(testUrl)
-      .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().body().jsonPath().prettify();
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1, file2)).body().as(InitJobExecutionsRsDto.class);
 
     // then
-    InitJobExecutionsRsDto response = new JsonObject(body).mapTo(InitJobExecutionsRsDto.class);
     String actualParentJobExecutionId = response.getParentJobExecutionId();
     List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
@@ -161,10 +114,86 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     // when
     RestAssured.given()
       .spec(spec)
-      .header(TENANT_HEADER)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(POST_JOB_EXECUTIONS_PATH)
       .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnPutWhenNoJobExecutionPassedInBody() {
+    RestAssured.given()
+      .spec(spec)
+      .body(new JsonObject().toString())
+      .when()
+      .put(PUT_JOB_EXECUTION_PATH + "/11dfac11-1caf-4470-9ad1-d533f6360bdd")
+      .then()
+      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnPutWhenRecordDoesNotExist() {
+    RestAssured.given()
+      .spec(spec)
+      .body(jobExecution.toString())
+      .when()
+      .put(PUT_JOB_EXECUTION_PATH + "/" + jobExecution.getString("id"))
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldUpdateSingleParentOnPut() {
+    File file = new File().withName("importBib.bib");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution singleParent = createdJobExecutions.get(0);
+    Assert.assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
+
+    singleParent.setJobProfileName("Marc jobs profile");
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(singleParent).toString())
+      .when()
+      .put(PUT_JOB_EXECUTION_PATH + "/" + singleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("id", is(singleParent.getId()))
+      .body("jobProfileName", is(singleParent.getJobProfileName()));
+  }
+
+  @Test
+  public void shouldUpdateMultipleParentOnPut() {
+    File file1 = new File().withName("importBib.bib");
+    File file2 = new File().withName("importMarc.mrc");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1, file2)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(3));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    multipleParent.setJobProfileName("Marc jobs profile");
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(multipleParent).toString())
+      .when()
+      .put(PUT_JOB_EXECUTION_PATH + "/" + multipleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("id", is(multipleParent.getId()))
+      .body("jobProfileName", is(multipleParent.getJobProfileName()));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .when()
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDtos.size()", is(createdJobExecutions.size()))
+      .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfileName())));
   }
 
   private void assertParent(JobExecution parent) {
@@ -191,11 +220,13 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(child.getSourcePath());
   }
 
-  private void clearTable(TestContext context) {
-    PostgresClient.getInstance(vertx, TENANT_ID).delete(JobExecutionDaoImpl.TABLE_NAME, new Criterion(), event -> {
-      if (event.failed()) {
-        context.fail(event.cause());
-      }
-    });
+  private Response constructAndPostInitJobExecutionRqDto(List<File> files) {
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(files);
+    return RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(POST_JOB_EXECUTIONS_PATH);
   }
+
 }

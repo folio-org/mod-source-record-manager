@@ -4,6 +4,9 @@ import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * DAO interface for the JobExecution entity
  *
@@ -21,7 +24,6 @@ public interface JobExecutionDao {
    */
   Future<JobExecutionCollection> getJobExecutions(String query, int offset, int limit);
 
-
   /**
    * Saves {@link JobExecution} to database
    *
@@ -29,5 +31,29 @@ public interface JobExecutionDao {
    * @return future
    */
   Future<String> save(JobExecution jobExecution);
+
+  /**
+   * Updates {@link JobExecution}
+   *
+   * @param jobExecution entity to update
+   * @return updated entity
+   */
+  Future<JobExecution> updateJobExecution(JobExecution jobExecution);
+
+  /**
+   * Searches for {@link JobExecution} by parent id
+   *
+   * @param parentId parent id
+   * @return list of JobExecutions with specified parent id
+   */
+  Future<List<JobExecution>> getJobExecutionsByParentId(String parentId);
+
+  /**
+   * Searches for {@link JobExecution} by id
+   *
+   * @param id jobExecution id
+   * @return optional of JobExecution
+   */
+  Future<Optional<JobExecution>> getJobExecutionById(String id);
 
 }

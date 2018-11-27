@@ -38,4 +38,12 @@ public interface JobExecutionService {
    */
   Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto dto, OkapiConnectionParams params);
 
+  /**
+   * Updates jobExecution and its children in case it is a PARENT_MULTIPLE jobExecution
+   *
+   * @param jobExecution entity to update
+   * @return updated entity
+   */
+  Future<JobExecution> updateJobExecution(JobExecution jobExecution);
+
 }
