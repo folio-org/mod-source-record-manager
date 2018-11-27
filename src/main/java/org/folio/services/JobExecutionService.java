@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import org.folio.dao.JobExecutionDao;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -27,8 +28,12 @@ public interface JobExecutionService {
 
   /**
    * Performs creation of JobExecution and Snapshot entities
+   * Saves created JobExecution entities into storage using {@link JobExecutionDao}
+   * Performs save for created Snapshot entities.
+   * For each Snapshot posts the request to mod-source-record-manager.
    *
-   * @param dto Dto contains request params enough to create JobExecution and Snapshot entities
+   * @param dto    Dto contains request params enough to create JobExecution and Snapshot entities
+   * @param params object-wrapper with params necessary to connect to OKAPI
    * @return Future
    */
   Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto dto, OkapiConnectionParams params);

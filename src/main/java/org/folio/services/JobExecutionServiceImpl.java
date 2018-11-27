@@ -53,8 +53,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
     if (jobExecutionsRqDto.getFiles().isEmpty()) {
-      logger.error("Received files must not be empty");
-      return Future.failedFuture(new BadRequestException());
+      String errorMessage = "Received files must not be empty";
+      logger.error(errorMessage);
+      return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
 
@@ -154,6 +155,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * For each Snapshot posts the request to mod-source-record-manager.
    *
    * @param snapshots list of Snapshot entities
+   * @param params object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
   private Future saveSnapshots(List<JsonObject> snapshots, OkapiConnectionParams params) {
