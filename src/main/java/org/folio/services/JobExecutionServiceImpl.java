@@ -71,6 +71,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
   }
 
+  /**
+   * Creates and returns list of JobExecution entities depending on received files.
+   * In a case if only one file passed, method returns list with one JobExecution entity
+   * signed by SINGLE_PARENT status.
+   * In a case if N files passed (N > 1), method returns list with JobExecution entities
+   * with one JobExecution entity signed by PARENT_MULTIPLE and N JobExecution entities signed by CHILD status.
+   *
+   * @param parentJobExecutionId id of the parent JobExecution entity
+   * @param files Representations of the Files user uploads
+   * @return list of JobExecution entities
+   */
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files) {
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
@@ -102,6 +113,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return result;
   }
 
+  /**
+   * Creates and returns list of Snapshot entities (represented as JsonObject) depending on received JobExecution entities.
+   * For each JobExecution signed by SINGLE_PARENT or CHILD status
+   * method creates Snapshot entity.
+   *
+   * @param jobExecutions list of JobExecution entities
+   * @return returns list of Snapshot entities (represented as JsonObject)
+   */
   private List<JsonObject> prepareSnapshotList(List<JobExecution> jobExecutions) {
     List<JsonObject> jsonSnapshots = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
@@ -115,6 +134,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jsonSnapshots;
   }
 
+  /**
+   * Performs save for received JobExecution entities using {@link JobExecutionDao}
+   *
+   * @param jobExecutions list on JobExecution entities
+   * @return future
+   */
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions) {
     List<Future> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
@@ -124,6 +149,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return CompositeFuture.all(savedJobExecutionFutures).map(compositeFuture -> compositeFuture.result().list());
   }
 
+  /**
+   * Performs save for received Snapshot entities.
+   * For each Snapshot posts the request to mod-source-record-manager.
+   *
+   * @param snapshots list of Snapshot entities
+   * @return future
+   */
   private Future saveSnapshots(List<JsonObject> snapshots, OkapiConnectionParams params) {
     List<Future> postedSnapshotFutures = new ArrayList<>();
     for (JsonObject snapshot : snapshots) {
@@ -133,6 +165,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return CompositeFuture.all(postedSnapshotFutures).map(compositeFuture -> compositeFuture.result().list());
   }
 
+  /**
+   * Performs post request with given Snapshot entity.
+   *
+   * @param snapshot Snapshot entity (represented as JsonObject)
+   * @param params object-wrapper with params necessary to connect to OKAPI
+   * @return future
+   */
   private Future<String> postSnapshot(JsonObject snapshot, OkapiConnectionParams params) {
     Future<String> future = Future.future();
     RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot.encode())
