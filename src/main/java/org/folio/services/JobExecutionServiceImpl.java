@@ -19,6 +19,8 @@ import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,8 +36,8 @@ import static org.folio.util.RestUtil.CREATED_STATUS_CODE;
  */
 public class JobExecutionServiceImpl implements JobExecutionService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
   public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
-  private static final Logger logger = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
   private JobExecutionDao jobExecutionDao;
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
 
@@ -44,6 +46,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     this.jobExecutionToDtoConverter = new JobExecutionToDtoConverter();
   }
 
+  @Override
   public Future<JobExecutionCollectionDto> getCollectionDtoByQuery(String query, int offset, int limit) {
     return jobExecutionDao.getJobExecutions(query, offset, limit)
       .map(jobExecutionCollection -> new JobExecutionCollectionDto()
@@ -51,10 +54,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));
   }
 
+  @Override
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
     if (jobExecutionsRqDto.getFiles().isEmpty()) {
       String errorMessage = "Received files must not be empty";
-      logger.error(errorMessage);
+      LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
@@ -70,6 +74,27 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .withParentJobExecutionId(parentJobExecutionId)
           .withJobExecutions(jobExecutions));
     }
+  }
+
+  @Override
+  public Future<JobExecution> updateJobExecution(JobExecution jobExecution) {
+    return jobExecutionDao.getJobExecutionById(jobExecution.getId())
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExec -> {
+          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
+            return jobExecutionDao.getJobExecutionsByParentId(jobExec.getId())
+              .compose(children -> updateChildJobExecutions(children, jobExecution))
+              .compose(succeeded -> succeeded ?
+                Future.succeededFuture(jobExecution) :
+                Future.failedFuture(new InternalServerErrorException(
+                  String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId()))));
+          } else {
+            return jobExecutionDao.updateJobExecution(jobExecution);
+          }
+        })
+        .orElse(Future.failedFuture(new NotFoundException(
+          String.format("JobExecution with id '%s' was not found", jobExecution.getId()))))
+      );
   }
 
   /**
@@ -181,17 +206,34 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         try {
           int responseCode = responseResult.result().getCode();
           if (responseResult.failed() || responseCode != CREATED_STATUS_CODE) {
-            logger.error("Error during post for new Snapshot. Response code: " + responseCode, responseResult.cause());
+            LOGGER.error("Error during post for new Snapshot. Response code: " + responseCode, responseResult.cause());
             future.fail(responseResult.cause());
           } else {
             String responseBody = responseResult.result().getBody();
             future.complete(responseBody);
           }
         } catch (Exception e) {
-          logger.error("Error during post for new Snapshot", e, e.getMessage());
+          LOGGER.error("Error during post for new Snapshot", e, e.getMessage());
           future.fail(e);
         }
       });
     return future;
   }
+
+  /**
+   * Sets fields that can be updated and calls jobExecutionDao to update child JobExecutions
+   *
+   * @param children list of child JobExecutions
+   * @param parent parent JobExecution to the list of children
+   * @return future with true if succeeded
+   */
+  private Future<Boolean> updateChildJobExecutions(List<JobExecution> children, JobExecution parent) {
+    List<Future> futures = new ArrayList<>();
+    for (JobExecution child : children) {
+      child.setJobProfileName(parent.getJobProfileName());
+      futures.add(jobExecutionDao.updateJobExecution(child));
+    }
+    return CompositeFuture.all(futures).map(Future::succeeded);
+  }
+
 }
