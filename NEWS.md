@@ -1,3 +1,15 @@
+## 2018-11-28 v1.0.3
+ * Added REST endpoint to update JobExecution
+ * Implemented endpoint methods
+ * API covered with tests
+
+   | METHOD |             URL                   | DESCRIPTION                                        |
+   |--------|-----------------------------------|----------------------------------------------------|
+   | GET    | /metadata-provider/jobExecutions  | Get list of the JobExecutions DTO by query         |
+   | GET    | /metadata-provider/logs           | Get list of the Log entities by query              |
+   | POST   | /change-manager/jobExecutions     | Initialize JobExecution entities                   |
+   | PUT    | /change-manager/jobExecution/{id} | Update JobExecution entity                         |
+
 ## 2018-11-19 v1.0.2
  * Created ChangeManager component
  * Added REST method for JobExecution entities initialization
