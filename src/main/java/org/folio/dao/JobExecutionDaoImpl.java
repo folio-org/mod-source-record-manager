@@ -6,14 +6,21 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.persist.Criteria.Criteria;
+import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 
+import javax.ws.rs.NotFoundException;
+import java.util.List;
+import java.util.Optional;
+
+import static org.folio.dao.util.DaoUtil.constructCriteria;
 import static org.folio.dao.util.DaoUtil.getCQLWrapper;
 
 /**
- * Implementation for the JobExecutionDao, works with PostgresClient to access the data.
+ * Implementation for the JobExecutionDao, works with PostgresClient to access data.
  *
  * @see JobExecution
  * @see JobExecutionDao
@@ -21,9 +28,11 @@ import static org.folio.dao.util.DaoUtil.getCQLWrapper;
  */
 public class JobExecutionDaoImpl implements JobExecutionDao {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
 
-  public static final String TABLE_NAME = "job_executions";
+  private static final String TABLE_NAME = "job_executions";
+  private static final String ID_FIELD = "'id'";
+  private static final String PARENT_ID = "'parentJobId'";
   private PostgresClient pgClient;
 
   public JobExecutionDaoImpl(Vertx vertx, String tenantId) {
@@ -38,7 +47,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
       pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cql, true, false, future.completer());
     } catch (Exception e) {
-      LOG.error("Error while getting JobExecutions", e);
+      LOGGER.error("Error while getting JobExecutions", e);
       future.fail(e);
     }
     return future.map(results -> new JobExecutionCollection()
@@ -52,4 +61,57 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     pgClient.save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
     return future;
   }
+
+  @Override
+  public Future<JobExecution> updateJobExecution(JobExecution jobExecution) {
+    Future<JobExecution> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecution.getId());
+      pgClient.update(TABLE_NAME, jobExecution, new Criterion(idCrit), true, updateResult -> {
+        if (updateResult.failed()) {
+          LOGGER.error(String.format("Could not update jobExecution with id '%s'", jobExecution.getId()), updateResult.cause());
+          future.fail(updateResult.cause());
+        } else if (updateResult.result().getUpdated() != 1){
+          String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
+          LOGGER.error(errorMessage);
+          future.fail(new NotFoundException(errorMessage));
+        } else {
+          future.complete(jobExecution);
+        }
+      });
+    } catch (Exception e) {
+      LOGGER.error("Error updating jobExecution", e);
+      future.fail(e);
+    }
+    return future;
+  }
+
+  @Override
+  public Future<List<JobExecution>> getJobExecutionsByParentId(String parentId) {
+    Future<Results<JobExecution>> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(PARENT_ID, parentId);
+      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error getting jobExecutions by parent id", e);
+      future.fail(e);
+    }
+    return future.map(Results::getResults);
+  }
+
+  @Override
+  public Future<Optional<JobExecution>> getJobExecutionById(String id) {
+    Future<Results<JobExecution>> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(ID_FIELD, id);
+      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error getting jobExecution by id", e);
+      future.fail(e);
+    }
+    return future
+      .map(Results::getResults)
+      .map(jobExecutions -> jobExecutions.isEmpty() ? Optional.empty() : Optional.of(jobExecutions.get(0)));
+  }
+
 }

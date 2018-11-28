@@ -34,8 +34,8 @@ public class DaoUtil {
    * @param value - value corresponding to the key
    * @return - Criteria object
    */
-  public static Criteria constructCriteria(String schemaPath, String jsonbField, String value) throws Exception {
-    Criteria criteria = new Criteria(schemaPath);
+  public static Criteria constructCriteria(String jsonbField, String value) {
+    Criteria criteria = new Criteria();
     criteria.addField(jsonbField);
     criteria.setOperation("=");
     criteria.setValue(value);
