@@ -26,9 +26,18 @@
           "permissionsRequired" : [ "change-manager.jobexecution.post" ]
         },
         {
-          "methods": ["PUT"],
+          "methods": [
+            "PUT"
+          ],
           "pathPattern": "/change-manager/jobExecution/{id}",
-          "permissionsRequired" : [ "change-manager.jobexecution.put" ]
+          "permissionsRequired": [
+            "change-manager.jobexecution.put"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/records/{jobExecutionId}",
+          "permissionsRequired" : [ "change-manager.records.post" ]
         }
       ]
     },
@@ -74,6 +83,11 @@
       "description": "Put JobExecution"
     },
     {
+      "permissionName": "change-manager.records.post",
+      "displayName": "Change Manager - post chunk of raw records",
+      "description": "Post chunk of raw records"
+    },
+    {
       "permissionName": "source-record-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -81,7 +95,8 @@
         "metadata-provider.log.get",
         "metadata-provider.jobexecution.get",
         "change-manager.jobexecution.post",
-        "change-manager.jobexecution.put"
+        "change-manager.jobexecution.put",
+        "change-manager.records.post"
       ],
       "visible": false
     }

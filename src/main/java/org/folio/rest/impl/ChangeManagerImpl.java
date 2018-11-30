@@ -9,6 +9,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
@@ -63,5 +64,14 @@ public class ChangeManagerImpl implements ChangeManager {
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
+  }
+
+  @Override
+  public void postChangeManagerRecordsByJobExecutionId(String jobExecutionId, RawRecordsDto entity,
+                                                       Map<String, String> okapiHeaders,
+                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    // TODO replace stub response
+    asyncResultHandler.handle(Future.succeededFuture(
+      PostChangeManagerRecordsByJobExecutionIdResponse.respond500WithTextPlain("Method is not implemented")));
   }
 }
