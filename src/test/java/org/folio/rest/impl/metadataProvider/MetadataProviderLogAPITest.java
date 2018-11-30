@@ -18,13 +18,6 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   @Test
   public void testGetLogs(TestContext context) {
     //TODO Replace testing stub
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .param("query", "query")
-      .param("landingPage", false)
-      .when().get(GET_LOGS_PATH)
-      .then().statusCode(200);
   }
 
 }
