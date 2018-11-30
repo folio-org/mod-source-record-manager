@@ -92,27 +92,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                             }
                             parseRecords(records, job)
                               .forEach(record -> updatedRecordsFuture.add(updateRecord(params, job, record)));
+                            if (counter.get() >= totalRecords) {
+                              CompositeFuture.all(updatedRecordsFuture).setHandler(result -> {
+                                if (result.failed()) {
+                                  LOGGER.error("Error during update parsed records at storage", result.cause());
+                                  future.fail(result.cause());
+                                } else {
+                                  updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_FINISHED)
+                                    .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
+                                    .setHandler(statusUpdate -> {
+                                      if (statusUpdate.failed()) {
+                                        LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
+                                        future.fail(statusUpdate.cause());
+                                      } else {
+                                        future.complete(job);
+                                      }
+                                    });
+                                }
+                              });
+                            }
                           }
                         }
                       });
                   }
-                  CompositeFuture.all(updatedRecordsFuture).setHandler(result -> {
-                    if (result.failed()) {
-                      LOGGER.error("Error during update parsed records at storage", result.cause());
-                      future.fail(result.cause());
-                    } else {
-                      updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_FINISHED)
-                        .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
-                        .setHandler(statusUpdate -> {
-                          if (statusUpdate.failed()) {
-                            LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
-                            future.fail(statusUpdate.cause());
-                          } else {
-                            future.complete(job);
-                          }
-                        });
-                    }
-                  });
                 }
               }
             });
