@@ -18,11 +18,14 @@ import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.services.JobExecutionServiceImpl;
+import org.folio.util.OkapiConnectionParams;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.folio.util.RestUtil.OKAPI_TENANT_HEADER;
@@ -34,14 +37,15 @@ import static org.folio.util.RestUtil.OKAPI_URL_HEADER;
 public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
-  private static final String TENANT_ID = "diku";
   private static final String TOKEN = "token";
   private static final String HTTP_PORT = "http.port";
-  private static Vertx vertx;
   private static int port;
   private static String useExternalDatabase;
   private static String postedSnapshotResponseBody = UUID.randomUUID().toString();
+  protected static Vertx vertx;
+  protected static final String TENANT_ID = "diku";
   protected static RequestSpecification spec;
+  protected OkapiConnectionParams params;
 
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
@@ -54,7 +58,8 @@ public abstract class AbstractRestTest {
     Async async = context.async();
     vertx = Vertx.vertx();
     port = NetworkUtils.nextFreePort();
-
+    PostgresClient.stopEmbeddedPostgres();
+    PostgresClient.closeAllClients();
     useExternalDatabase = System.getProperty(
       "org.folio.metadata.provider.test.database",
       "embedded");
@@ -109,18 +114,20 @@ public abstract class AbstractRestTest {
   public void setUp(TestContext context) {
     spec = new RequestSpecBuilder()
       .setContentType(ContentType.JSON)
-      .addHeader(RestVerticle.OKAPI_HEADER_TENANT, TENANT_ID)
       .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
       .addHeader(OKAPI_TENANT_HEADER, TENANT_ID)
       .addHeader(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString())
       .addHeader("Accept", "text/plain, application/json")
       .setBaseUri("http://localhost:" + port)
       .build();
-
+    Map<String, String> okapiHeaders = new HashMap<>();
+    okapiHeaders.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
+    okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
+    okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString());
+    params = new OkapiConnectionParams(okapiHeaders, vertx);
     WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
-
-    clearTable(context);
+        clearTable(context);
   }
 
   private void clearTable(TestContext context) {
