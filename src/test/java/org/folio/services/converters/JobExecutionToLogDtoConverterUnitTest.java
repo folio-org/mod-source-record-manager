@@ -19,7 +19,6 @@ import java.util.List;
  *
  * @see JobExecutionToLogDtoConverter
  */
-@RunWith(MockitoJUnitRunner.class)
 public class JobExecutionToLogDtoConverterUnitTest extends JobExecutionToDtoConverterUnitTest {
 
   private JobExecutionToLogDtoConverter converter = new JobExecutionToLogDtoConverter();
@@ -41,7 +40,7 @@ public class JobExecutionToLogDtoConverterUnitTest extends JobExecutionToDtoConv
     Assert.assertEquals(logDto.getJobProfileName(), jobExecutionEntity.getJobProfileName());
     Assert.assertEquals(logDto.getRunBy().getFirstName(), jobExecutionEntity.getRunBy().getFirstName());
     Assert.assertEquals(logDto.getRunBy().getLastName(), jobExecutionEntity.getRunBy().getLastName());
-    Assert.assertEquals(logDto.getFileName(), FilenameUtils.getName(jobExecutionEntity.getSourcePath()));
+    Assert.assertEquals(logDto.getFileName(), jobExecutionEntity.getSourcePath());
     Assert.assertEquals(logDto.getCompletedDate(), jobExecutionEntity.getCompletedDate());
   }
 
