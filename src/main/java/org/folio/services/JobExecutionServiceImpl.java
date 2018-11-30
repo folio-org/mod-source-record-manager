@@ -60,8 +60,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit) {
-    // TODO stub impl
-    return Future.succeededFuture();
+    return jobExecutionDao.getJobExecutions(query, offset, limit)
+      .map(jobExecutionCollection -> new LogCollectionDto()
+        .withLogDtos(jobExecutionToLogDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
+        .withTotalRecords(jobExecutionCollection.getTotalRecords()));
   }
 
   @Override
