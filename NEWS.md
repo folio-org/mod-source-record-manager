@@ -1,7 +1,6 @@
-## 2018-11-28 v1.0.3
- * Added REST endpoint to update JobExecution
- * Implemented endpoint methods
- * API covered with tests
+## 2018-11-30 v0.1.0
+ * Created ChangeManager component
+ * Added API for managing JobExecution entities
 
    | METHOD |             URL                   | DESCRIPTION                                        |
    |--------|-----------------------------------|----------------------------------------------------|
@@ -9,31 +8,3 @@
    | GET    | /metadata-provider/logs           | Get list of the Log entities by query              |
    | POST   | /change-manager/jobExecutions     | Initialize JobExecution entities                   |
    | PUT    | /change-manager/jobExecution/{id} | Update JobExecution entity                         |
-
-## 2018-11-19 v1.0.2
- * Created ChangeManager component
- * Added REST method for JobExecution entities initialization
- * REST method has stub implementation
-
-   | METHOD |             URL                   | DESCRIPTION                                        |
-   |--------|-----------------------------------|----------------------------------------------------|
-   | GET    | /metadata-provider/jobExecutions  | Get list of the JobExecutions DTO by query         |
-   | GET    | /metadata-provider/logs           | Get list of the Log entities by query              |
-   | POST   | /change-manager/jobExecutions     | Initialize JobExecution entities                   |
-
-## 2018-11-19 v1.0.1
- * Module structure reorganization 
- (now module structure the same as for mod-data-import and mod-source-record-storage)
- * Generic DAO interface
- * Conversion JobExecution entity to DTO
- * Rest tests
- * Rest API
- * CRUD API for rules and password: 
-
-  | METHOD |             URL                   | DESCRIPTION                                        |
-  |--------|-----------------------------------|----------------------------------------------------|
-  | GET    | /metadata-provider/jobExecutions  | Get list of the JobExecutions DTO by query         |
-  | GET    | /metadata-provider/logs           | Get list of the Log entities by query              |
-
-## 2018-10-02 v0.0.1
- * Initial module setup
