@@ -45,4 +45,13 @@ public class ParsedResult {
   public void setHasError(boolean hasError) {
     isHasError = hasError;
   }
+
+  @Override
+  public String toString() {
+    return "ParsedResult{" +
+      "parsedRecord=" + parsedRecord +
+      ", errors=" + errors +
+      ", isHasError=" + isHasError +
+      '}';
+  }
 }

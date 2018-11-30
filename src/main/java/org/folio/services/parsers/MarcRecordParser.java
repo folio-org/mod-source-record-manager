@@ -13,6 +13,8 @@ import org.marc4j.marc.Record;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,22 +33,23 @@ public final class MarcRecordParser implements SourceRecordParser {
         MarcJsonWriter writer = new MarcJsonWriter(os);
         Record record = reader.next();
         List<MarcError> errorList = record.getErrors();
-        if (errorList.isEmpty()) {
+        if (errorList == null || errorList.isEmpty()) {
           writer.write(record);
           result.setParsedRecord(new JsonObject(new String(os.toByteArray())));
         } else {
-          JsonObject errorObject = new JsonObject();
-          JsonArray errors = new JsonArray();
-          errorObject.put("errors", errors);
-          errorList.forEach(e -> errors.add(buildErrorObject(e)));
-          result.setErrors(errorObject);
-          result.setHasError(true);
+          List<JsonObject> preparedErrors = new ArrayList<>();
+          errorList.forEach(e -> preparedErrors.add(buildErrorObject(e)));
+          prepareResultWithError(result, preparedErrors);
         }
         return result;
+      } else {
+        result.setParsedRecord(new JsonObject());
       }
     } catch (Exception e) {
       LOGGER.error("Error during parse MARC record from source record", e);
-      result.setHasError(true);
+      prepareResultWithError(result, Collections.singletonList(new JsonObject()
+        .put("name", e.getClass().getName())
+        .put("message", e.getMessage())));
     }
     return result;
   }
@@ -63,6 +66,15 @@ public final class MarcRecordParser implements SourceRecordParser {
     errorJson.put("curField", error.curField);
     errorJson.put("curSubfield", error.curSubfield);
     return errorJson;
+  }
+
+  private void prepareResultWithError(ParsedResult result, List<JsonObject> errorObjects) {
+    JsonObject errorObject = new JsonObject();
+    JsonArray errors = new JsonArray();
+    errorObject.put("errors", errors);
+    errorObjects.forEach(errors::add);
+    result.setErrors(errorObject);
+    result.setHasError(true);
   }
 
   @Override
