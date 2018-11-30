@@ -2,6 +2,7 @@ package org.folio.rest.impl.changeManager;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -32,6 +33,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
   private static final String PUT_JOB_EXECUTION_PATH = "/change-manager/jobExecution";
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
+  private static final String POST_RAW_RECORDS_PATH = "/change-manager/records";
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
@@ -46,6 +48,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .put("status", "NEW")
     .put("sourcePath", "importMarc.mrc")
     .put("jobProfileName", "Marc jobs profile");
+
+  private JsonObject chunk = new JsonObject()
+    .put("last", false)
+    .put("total", 15)
+    .put("records", new JsonArray());
 
   @Test
   public void testInitJobExecutionsWith1File() {
@@ -194,6 +201,29 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDtos.size()", is(createdJobExecutions.size()))
       .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfileName())));
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnPostWhenNoDtoPassedInBody() {
+    RestAssured.given()
+      .spec(spec)
+      .body(new JsonObject().toString())
+      .when()
+      .post(POST_RAW_RECORDS_PATH + "/11dfac11-1caf-4470-9ad1-d533f6360bdd")
+      .then()
+      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  // TODO replace stub test
+  @Test
+  public void shouldReturnErrorOnPost() {
+    RestAssured.given()
+      .spec(spec)
+      .body(chunk.toString())
+      .when()
+      .post(POST_RAW_RECORDS_PATH + "/11dfac11-1caf-4470-9ad1-d533f6360bdd")
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
   }
 
   private void assertParent(JobExecution parent) {

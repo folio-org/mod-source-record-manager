@@ -14,6 +14,7 @@ types:
   fileDto: !include raml-storage/schemas/dto/fileDto.json
   initJobExecutionsRqDto: !include raml-storage/schemas/dto/initJobExecutionsRqDto.json
   initJobExecutionsRsDto: !include raml-storage/schemas/dto/initJobExecutionsRsDto.json
+  rawRecordsDto: !include raml-storage/schemas/dto/rawRecordsDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
 
 traits:
@@ -22,6 +23,7 @@ traits:
 /change-manager:
   /jobExecutions:
     post:
+      description: "Initialize JobExecutions"
       body:
         application/json:
           schema: initJobExecutionsRqDto
@@ -37,6 +39,7 @@ traits:
               example: "Internal server error"
   /jobExecution/{id}:
     put:
+      description: "Update JobExecution"
       body:
         application/json:
           schema: jobExecution
@@ -45,6 +48,36 @@ traits:
           body:
             application/json:
               type: jobExecution
+        400:
+          description: "Bad request"
+          body:
+            text/plain:
+              example: "Bad request"
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+        422:
+          description: "Unprocessable Entity"
+          body:
+            application/json:
+              type: errors
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+  /records/{jobExecutionId}:
+    post:
+      description: "Receive chunk of raw records"
+      body:
+        application/json:
+          schema: rawRecordsDto
+      responses:
+        204:
+          body:
+            text/plain: !!null
         400:
           description: "Bad request"
           body:
