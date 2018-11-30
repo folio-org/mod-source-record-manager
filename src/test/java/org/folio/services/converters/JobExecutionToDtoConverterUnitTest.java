@@ -1,7 +1,6 @@
 package org.folio.services.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
@@ -11,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,15 +22,15 @@ import java.util.List;
 @RunWith(MockitoJUnitRunner.class)
 public class JobExecutionToDtoConverterUnitTest {
 
-  private static final String SINGLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionSingleTest.sample";
-  private static final String MULTIPLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionMultipleTest.sample";
+  protected static final String SINGLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionSingleTest.sample";
+  protected static final String MULTIPLE_JOB_EXECUTION_SAMPLE_PATH = "src/test/resources/org/folio/services/converters/jobExecutionCollectionMultipleTest.sample";
   private JobExecutionToDtoConverter converter = new JobExecutionToDtoConverter();
 
 
   @Test
   public void shouldReturnJobExecutionDtoCollectionWhenPassSingleEntity() throws IOException {
     // given
-    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(readFileFromPath(SINGLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
+    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(UnitTestUtil.readFileFromPath(SINGLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     JobExecution jobExecutionEntity = jobExecutionCollection.getJobExecutions().get(0);
     // when
     List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
@@ -56,7 +54,7 @@ public class JobExecutionToDtoConverterUnitTest {
   @Test
   public void shouldReturnJobExecutionDtoCollectionWhenPassMultipleEntity() throws IOException {
     // given
-    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(readFileFromPath(MULTIPLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
+    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(UnitTestUtil.readFileFromPath(MULTIPLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     // when
     List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
     // then
@@ -73,9 +71,5 @@ public class JobExecutionToDtoConverterUnitTest {
     converter.convert(givenNullCollection);
 
     // then do expect exception
-  }
-
-  private String readFileFromPath(String path) throws IOException {
-    return FileUtils.readFileToString(new File(path));
   }
 }
