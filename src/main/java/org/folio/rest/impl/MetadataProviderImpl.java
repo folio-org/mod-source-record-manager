@@ -29,7 +29,11 @@ public class MetadataProviderImpl implements MetadataProvider {
                                       Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        asyncResultHandler.handle(Future.succeededFuture());
+        jobExecutionService.getLogCollectionDtoByQuery(query, offset, limit)
+          .map(GetMetadataProviderLogsResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
       } catch (Exception e) {
         asyncResultHandler.handle(Future.succeededFuture(
           ExceptionHelper.mapExceptionToResponse(e)));
@@ -43,7 +47,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getCollectionDtoByQuery(query, offset, limit)
+        jobExecutionService.getJobExecutionCollectionDtoByQuery(query, offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

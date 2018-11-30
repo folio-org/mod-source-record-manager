@@ -10,8 +10,8 @@ documentation:
     content: API for accessing metadata
 
 types:
-  log: !include raml-storage/schemas/dto/logDto.json
-  logCollection: !include raml-storage/schemas/dto/logCollectionDto.json
+  logDto: !include raml-storage/schemas/dto/logDto.json
+  logCollectionDto: !include raml-storage/schemas/dto/logCollectionDto.json
   jobExecution: !include raml-storage/schemas/mod-source-record-manager/jobExecution.json
   jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
   jobExecutionDto: !include raml-storage/schemas/dto/jobExecutionDto.json
@@ -46,7 +46,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: logCollection
+              schema: logCollectionDto
         500:
           description: "Internal server error"
           body:

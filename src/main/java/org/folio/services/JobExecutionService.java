@@ -6,6 +6,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.util.OkapiConnectionParams;
 
 /**
@@ -24,7 +25,18 @@ public interface JobExecutionService {
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<JobExecutionCollectionDto> getCollectionDtoByQuery(String query, int offset, int limit);
+  Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit);
+
+
+  /**
+   * Returns LogCollectionDto by the input query
+   *
+   * @param query  query string to filter entities
+   * @param offset starting index in a list of results
+   * @param limit  maximum number of results to return
+   */
+  Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit);
+
 
   /**
    * Performs creation of JobExecution and Snapshot entities

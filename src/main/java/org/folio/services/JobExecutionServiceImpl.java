@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.util.OkapiConnectionParams;
@@ -50,11 +51,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionCollectionDto> getCollectionDtoByQuery(String query, int offset, int limit) {
+  public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit) {
     return jobExecutionDao.getJobExecutions(query, offset, limit)
       .map(jobExecutionCollection -> new JobExecutionCollectionDto()
         .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));
+  }
+
+  @Override
+  public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit) {
+    // TODO stub impl
+    return Future.succeededFuture();
   }
 
   @Override
