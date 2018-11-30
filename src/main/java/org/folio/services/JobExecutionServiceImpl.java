@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
+import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
@@ -40,10 +41,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
   private JobExecutionDao jobExecutionDao;
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
+  private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
 
   public JobExecutionServiceImpl(Vertx vertx, String tenantId) {
     this.jobExecutionDao = new JobExecutionDaoImpl(vertx, tenantId);
     this.jobExecutionToDtoConverter = new JobExecutionToDtoConverter();
+    this.jobExecutionToLogDtoConverter = new JobExecutionToLogDtoConverter();
   }
 
   @Override
