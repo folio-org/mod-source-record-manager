@@ -138,6 +138,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return future;
   }
 
+  /**
+   * Parse list of source records
+   *
+   * @param records   - list of source records for parsing
+   * @param execution - job execution of record's parsing process
+   * @return - list of records with parsed or error data
+   */
   private List<JsonObject> parseRecords(List<JsonObject> records, JobExecution execution) {
     SourceRecordParser parser = SourceRecordParserBuilder.buildParser(getRecordFormatByJobExecution(execution));
     if (parser == null) {
@@ -167,10 +174,23 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return records;
   }
 
+  /**
+   * STUB implementation until job profile is't exist
+   *
+   * @param execution - job execution object
+   * @return - Records format for jobExecution's records
+   */
   private RecordFormat getRecordFormatByJobExecution(JobExecution execution) {
     return RecordFormat.MARC;
   }
 
+  /**
+   * Load jobExecution from DB and update it status
+   *
+   * @param jobExecutionId - id of jobExecution
+   * @param status         - new status for jobExecution
+   * @return - updated job execution with new status
+   */
   private Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, JobExecution.Status status) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId)
       .compose(optionalJob -> optionalJob
@@ -179,6 +199,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       );
   }
 
+  /**
+   * Update snapshot status in record-storage. If this operation is failed - update jobExecution status
+   *
+   * @param params       - okapi params for connecting record-storage
+   * @param jobExecution - jobExecution that relates to snapshot
+   */
   private Future<JobExecution> updateSnapshotStatus(OkapiConnectionParams params, JobExecution jobExecution) {
     Future<JobExecution> future = Future.future();
     String url = SNAPSHOT_SERVICE_URL + "/" + jobExecution.getId();
@@ -215,6 +241,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return future;
   }
 
+  /**
+   * Update record entity in record-storage
+   *
+   * @param params       - okapi params for connecting record-storage
+   * @param jobExecution - job execution related to records
+   * @param record       - record json object
+   */
   private Future<JobExecution> updateRecord(OkapiConnectionParams params, JobExecution jobExecution, JsonObject record) {
     Future<JobExecution> future = Future.future();
     RestUtil.doRequest(params, RECORD_SERVICE_URL + "/" + record.getString("id"), HttpMethod.PUT, record.encode())
@@ -226,6 +259,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return future;
   }
 
+  /**
+   * Validate http response and fail future if need
+   *
+   * @param asyncResult - http response callback
+   * @param future      - future of callback
+   * @return - boolean value is response ok
+   */
   private boolean validateAsyncResult(AsyncResult<RestUtil.WrappedResponse> asyncResult, Future future) {
     if (asyncResult.failed()) {
       LOGGER.error("Error during HTTP request to source-storage", asyncResult.cause());
@@ -251,7 +291,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return true;
   }
 
-
+  /**
+   * Build query for loading records
+   *
+   * @param jobId  - job execution id
+   * @param offset - offset for loading records
+   * @return - url query
+   */
   private String buildQueryForRecordsLoad(String jobId, int offset) {
     String query = "snapshotId==" + jobId;
     StringBuilder queryParams = new StringBuilder(RECORD_SERVICE_URL);
