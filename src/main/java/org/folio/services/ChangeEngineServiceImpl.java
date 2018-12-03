@@ -25,15 +25,14 @@ import javax.ws.rs.NotFoundException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
-  private static final int DEF_CHUNCK_NUMBER = 20;
+  private static final int DEF_CHUNK_NUMBER = 20;
   private static final String HTTP_ERROR_MESSAGE = "Response HTTP code not equals 200. Response code: ";
-  public static final String RECORD_SERVICE_URL = "/source-storage/record";
-  public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
+  private static final String RECORD_SERVICE_URL = "/source-storage/record";
+  private static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
 
   private Vertx vertx;
   private String tenantId;
@@ -47,7 +46,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   @Override
   public Future<JobExecution> parseSourceRecordsForJobExecution(JobExecution job, OkapiConnectionParams params) {
-    AtomicInteger counter = new AtomicInteger(0);
     Future<JobExecution> future = Future.future();
     List<Future> updatedRecordsFuture = new ArrayList<>();
     updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_IN_PROGRESS)
@@ -70,16 +68,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                   future.fail(errorMessage);
                 } else {
                   Integer totalRecords = recordCollection.getInteger("totalRecords");
-                  while (counter.get() <= totalRecords && totalRecords > 0) {
-                    int offset = counter.get();
-                    counter.getAndAdd(DEF_CHUNCK_NUMBER);
+                  int chunksNumber = getChunksNumber(totalRecords);
+                  for (int i = 0; i < chunksNumber; i++) {
+                    final int offset = i == 0 ? 0 : DEF_CHUNK_NUMBER * i;
                     RestUtil.doRequest(params, RECORD_SERVICE_URL + buildQueryForRecordsLoad(job.getId(), offset), HttpMethod.GET, null)
                       .setHandler(loadChunksResult -> {
                         if (loadChunksResult.failed()) {
                           LOGGER.error("Error during getting records for parse for job execution with id: " + job.getId(), loadChunksResult.cause());
                           future.fail(loadChunksResult.cause());
                         } else {
-                          JsonObject chunks = countResult.result().getJson();
+                          JsonObject chunks = loadChunksResult.result().getJson();
                           if (chunks == null || chunks.getJsonArray("records") == null) {
                             String errorMessage = "Error during getting records for parse for job execution with id: " + job.getId();
                             LOGGER.error(errorMessage);
@@ -87,29 +85,46 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                           } else {
                             JsonArray jsonArray = chunks.getJsonArray("records");
                             List<JsonObject> records = new ArrayList<>();
-                            for (int i = 0; i < jsonArray.size(); i++) {
-                              records.add(jsonArray.getJsonObject(i));
+                            for (int j = 0; j < jsonArray.size(); j++) {
+                              records.add(jsonArray.getJsonObject(j));
                             }
                             parseRecords(records, job)
                               .forEach(record -> updatedRecordsFuture.add(updateRecord(params, job, record)));
-                            if (counter.get() >= totalRecords) {
-                              CompositeFuture.all(updatedRecordsFuture).setHandler(result -> {
-                                if (result.failed()) {
-                                  LOGGER.error("Error during update parsed records at storage", result.cause());
-                                  future.fail(result.cause());
-                                } else {
-                                  updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_FINISHED)
-                                    .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
-                                    .setHandler(statusUpdate -> {
-                                      if (statusUpdate.failed()) {
-                                        LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
-                                        future.fail(statusUpdate.cause());
-                                      } else {
-                                        future.complete(job);
-                                      }
-                                    });
-                                }
-                              });
+                            if ((offset > 0 ? (offset / DEF_CHUNK_NUMBER) : 1) == chunksNumber) {
+                              CompositeFuture.all(updatedRecordsFuture)
+                                .setHandler(result -> {
+                                  if (result.failed()) {
+                                    jobExecutionDao.getJobExecutionById(job.getId())
+                                      .setHandler(getJobExecutionResult -> {
+                                        if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
+                                          jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
+                                            .withErrorStatus(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR)
+                                            .withStatus(JobExecution.Status.ERROR))
+                                            .setHandler(updateJobStatusResult -> {
+                                              String message = "Can't update record in storage. jobId: " + job.getId();
+                                              LOGGER.error(message, result.cause());
+                                              future.fail(result.cause());
+                                            });
+                                        } else {
+                                          String message = "Can't load job execution for status updating. Error on snapshot update ID: "
+                                            + job.getId();
+                                          LOGGER.error(message, getJobExecutionResult.cause());
+                                          future.fail(getJobExecutionResult.cause());
+                                        }
+                                      });
+                                  } else {
+                                    updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_FINISHED)
+                                      .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
+                                      .setHandler(statusUpdate -> {
+                                        if (statusUpdate.failed()) {
+                                          LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
+                                          future.fail(statusUpdate.cause());
+                                        } else {
+                                          future.complete(job);
+                                        }
+                                      });
+                                  }
+                                });
                             }
                           }
                         }
@@ -174,6 +189,25 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot.encode()).setHandler(updateResult -> {
             if (validateAsyncResult(updateResult, future)) {
               future.complete(jobExecution);
+            } else {
+              jobExecutionDao.getJobExecutionById(jobExecution.getId())
+                .setHandler(getJobExecutionResult -> {
+                  if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
+                    jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
+                      .withErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR)
+                      .withStatus(JobExecution.Status.ERROR))
+                      .setHandler(updateJobStatusResult -> {
+                        String message = "Can't update snapshot status. ID: " + jobExecution.getId();
+                        LOGGER.error(message);
+                        future.fail(message);
+                      });
+                  } else {
+                    String message = "Can't load job execution for status updating. Error on snapshot update ID: "
+                      + jobExecution.getId();
+                    LOGGER.error(message);
+                    future.fail(message);
+                  }
+                });
             }
           });
         }
@@ -217,6 +251,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return true;
   }
 
+
   private String buildQueryForRecordsLoad(String jobId, int offset) {
     String query = "snapshotId==" + jobId;
     StringBuilder queryParams = new StringBuilder(RECORD_SERVICE_URL);
@@ -229,10 +264,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .append(offset)
         .append("&")
         .append("limit=")
-        .append(DEF_CHUNCK_NUMBER);
+        .append(DEF_CHUNK_NUMBER);
     } catch (Exception e) {
       LOGGER.error("Error during build query for records count", e);
     }
     return queryParams.toString();
+  }
+
+  /**
+   * @param totalRecords - number of records need to be loaded by chunks
+   * @return - number of chunks to load all records
+   */
+  private int getChunksNumber(Integer totalRecords) {
+    if (totalRecords == null || totalRecords < 1) {
+      return 0;
+    }
+    if (totalRecords <= DEF_CHUNK_NUMBER) {
+      return 1;
+    }
+    int chunks = totalRecords / DEF_CHUNK_NUMBER;
+    if (totalRecords % DEF_CHUNK_NUMBER > 0) {
+      chunks++;
+    }
+    return chunks;
   }
 }
