@@ -12,7 +12,8 @@
           "fieldName": "id",
           "tOps": "ADD"
         }
-      ]
+      ],
+      "customSnippetPath": "setup_test_data.sql"
     }
   ]
 }
