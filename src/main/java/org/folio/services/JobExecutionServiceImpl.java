@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
+import org.folio.services.converters.Status;
 import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
@@ -129,6 +130,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .withParentJobId(parentJobExecutionId)
           .withSubordinationType(JobExecution.SubordinationType.CHILD)
           .withStatus(JobExecution.Status.NEW)
+          .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
           .withSourcePath(file.getName());
         result.add(child);
       }
@@ -136,7 +138,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withId(parentJobExecutionId)
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(JobExecution.Status.NEW);
+        .withStatus(JobExecution.Status.NEW)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
       result.add(parentMultiple);
     } else {
       File file = files.get(0);
@@ -145,6 +148,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
         .withStatus(JobExecution.Status.NEW)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
         .withSourcePath(file.getName());
       result.add(parentSingle);
     }

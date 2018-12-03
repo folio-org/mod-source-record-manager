@@ -23,14 +23,9 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
     target.setStartedDate(source.getStartedDate());
     target.setCompletedDate(source.getCompletedDate());
     target.setStatus(JobExecutionDto.Status.valueOf(source.getStatus().name()));
-
-    // TODO fetch JobProfile entity by id and set profile name to the target
+    target.setUiStatus(JobExecutionDto.UiStatus.valueOf((source.getUiStatus().name())));
     target.setJobProfileName(source.getJobProfileName());
-    // TODO set progress properly
-    Progress progress = new Progress();
-    progress.setCurrent(23);
-    progress.setTotal(33);
-    target.setProgress(progress);
+    target.setProgress(source.getProgress());
     return target;
   }
 }
