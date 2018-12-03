@@ -3,7 +3,6 @@ package org.folio.services.converters;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.rest.jaxrs.model.Progress;
 
 /**
  * Converts JobExecution entity to the JobExecutionDto.
