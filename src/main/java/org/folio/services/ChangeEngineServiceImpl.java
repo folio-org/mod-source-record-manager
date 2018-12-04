@@ -12,6 +12,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.services.converters.Status;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.SourceRecordParser;
@@ -99,7 +100,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                         if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
                                           jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
                                             .withErrorStatus(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR)
-                                            .withStatus(JobExecution.Status.ERROR))
+                                            .withStatus(JobExecution.Status.ERROR)
+                                            .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.ERROR.value()).getUiStatus())))
                                             .setHandler(updateJobStatusResult -> {
                                               String message = "Can't update record in storage. jobId: " + job.getId();
                                               LOGGER.error(message, result.cause());
@@ -180,7 +182,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Load jobExecution from DB and update it status
+   * Load jobExecution from DB and update its status
    *
    * @param jobExecutionId - id of jobExecution
    * @param status         - new status for jobExecution
@@ -189,7 +191,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, JobExecution.Status status) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId)
       .compose(optionalJob -> optionalJob
-        .map(job -> jobExecutionDao.updateJobExecution(job.withStatus(status)))
+        .map(job -> jobExecutionDao.updateJobExecution(job.withStatus(status)
+          .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(status.value()).getUiStatus()))))
         .orElseThrow(NotFoundException::new)
       );
   }
@@ -216,7 +219,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                   if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
                     jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
                       .withErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR)
-                      .withStatus(JobExecution.Status.ERROR))
+                      .withStatus(JobExecution.Status.ERROR)
+                      .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.ERROR.value()).getUiStatus())))
                       .setHandler(updateJobStatusResult -> {
                         String message = "Can't update snapshot status. ID: " + jobExecution.getId();
                         LOGGER.error(message);
