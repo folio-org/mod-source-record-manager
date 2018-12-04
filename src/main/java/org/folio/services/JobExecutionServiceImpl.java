@@ -52,7 +52,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit) {
-    return jobExecutionDao.getJobExecutions(query, offset, limit)
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit)
       .map(jobExecutionCollection -> new JobExecutionCollectionDto()
         .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));
@@ -60,7 +60,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit) {
-    return jobExecutionDao.getJobExecutions(query, offset, limit)
+    return jobExecutionDao.getLogsWithoutMultipleParent(query, offset, limit)
       .map(jobExecutionCollection -> new LogCollectionDto()
         .withLogDtos(jobExecutionToLogDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));

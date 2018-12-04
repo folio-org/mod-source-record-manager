@@ -18,6 +18,8 @@ import java.util.Optional;
 
 import static org.folio.dao.util.DaoUtil.constructCriteria;
 import static org.folio.dao.util.DaoUtil.getCQLWrapper;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 
 /**
  * Implementation for the JobExecutionDao, works with PostgresClient to access data.
@@ -40,14 +42,33 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutions(String query, int offset, int limit) {
+  public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit) {
     Future<Results<JobExecution>> future = Future.future();
     try {
       String[] fieldList = {"*"};
-      CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cql, true, false, future.completer());
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
+      pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while getting JobExecutions", e);
+      future.fail(e);
+    }
+    return future.map(results -> new JobExecutionCollection()
+      .withJobExecutions(results.getResults())
+      .withTotalRecords(results.getResultInfo().getTotalRecords()));
+  }
+
+  @Override
+  public Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit) {
+    Future<Results<JobExecution>> future = Future.future();
+    try {
+      String[] fieldList = {"*"};
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status=" + COMMITTED));
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
+      pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error while getting Logs", e);
       future.fail(e);
     }
     return future.map(results -> new JobExecutionCollection()
@@ -71,7 +92,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         if (updateResult.failed()) {
           LOGGER.error(String.format("Could not update jobExecution with id '%s'", jobExecution.getId()), updateResult.cause());
           future.fail(updateResult.cause());
-        } else if (updateResult.result().getUpdated() != 1){
+        } else if (updateResult.result().getUpdated() != 1) {
           String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
           LOGGER.error(errorMessage);
           future.fail(new NotFoundException(errorMessage));
