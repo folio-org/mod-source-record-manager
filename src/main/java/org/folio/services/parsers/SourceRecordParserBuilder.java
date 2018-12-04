@@ -19,7 +19,10 @@ public final class SourceRecordParserBuilder {
    * @return - SourceRecordParser for chosen record format
    */
   public static SourceRecordParser buildParser(RecordFormat format) {
-    Optional<SourceRecordParser> sourceRecordParser = availableParsers.stream().filter(parser -> parser.getParserFormat().equals(format)).findFirst();
-    return sourceRecordParser.orElse(null);
+    Optional<SourceRecordParser> sourceRecordParser = availableParsers.stream()
+      .filter(parser -> parser.getParserFormat().equals(format))
+      .findFirst();
+    return sourceRecordParser
+      .orElseThrow(() -> new SourceRecordParserNotFoundException("Source Record Parser was not founded for Record Format: " + format.getFormat()));
   }
 }

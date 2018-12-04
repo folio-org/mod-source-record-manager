@@ -147,11 +147,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    */
   private List<JsonObject> parseRecords(List<JsonObject> records, JobExecution execution) {
     SourceRecordParser parser = SourceRecordParserBuilder.buildParser(getRecordFormatByJobExecution(execution));
-    if (parser == null) {
-      String parserErrorMessage = "Parser for JobExecution's records do not exist. JobExecution id: " + execution.getId();
-      LOGGER.error(parserErrorMessage);
-      throw new UnsupportedOperationException(parserErrorMessage);
-    }
     for (JsonObject record : records) {
       JsonObject sourceRecordObject = record.getJsonObject("sourceRecord");
       if (sourceRecordObject == null
@@ -283,12 +278,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
       future.fail(new InternalServerErrorException());
       return false;
-    } else if (asyncResult.result().getCode() != 200) {
-      LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
-      future.fail(new BadRequestException());
-      return false;
+    } else if (asyncResult.result().getCode() == 200 || asyncResult.result().getCode() == 201) {
+      return true;
     }
-    return true;
+    LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
+    future.fail(new BadRequestException());
+    return false;
   }
 
   /**

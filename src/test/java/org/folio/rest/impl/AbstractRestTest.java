@@ -112,6 +112,7 @@ public abstract class AbstractRestTest {
 
   @Before
   public void setUp(TestContext context) {
+    clearTable(context);
     spec = new RequestSpecBuilder()
       .setContentType(ContentType.JSON)
       .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
@@ -123,11 +124,11 @@ public abstract class AbstractRestTest {
     Map<String, String> okapiHeaders = new HashMap<>();
     okapiHeaders.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
+    okapiHeaders.put(RestVerticle.OKAPI_HEADER_TOKEN, TOKEN);
     okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString());
-    params = new OkapiConnectionParams(okapiHeaders, vertx);
+    params = new OkapiConnectionParams(okapiHeaders, vertx.getOrCreateContext().owner());
     WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
-        clearTable(context);
   }
 
   private void clearTable(TestContext context) {
