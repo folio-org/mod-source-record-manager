@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
+import org.folio.services.converters.Status;
 import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
@@ -117,7 +118,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * with one JobExecution entity signed by PARENT_MULTIPLE and N JobExecution entities signed by CHILD status.
    *
    * @param parentJobExecutionId id of the parent JobExecution entity
-   * @param files Representations of the Files user uploads
+   * @param files                Representations of the Files user uploads
    * @return list of JobExecution entities
    */
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files) {
@@ -129,6 +130,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .withParentJobId(parentJobExecutionId)
           .withSubordinationType(JobExecution.SubordinationType.CHILD)
           .withStatus(JobExecution.Status.NEW)
+          .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
           .withSourcePath(file.getName());
         result.add(child);
       }
@@ -136,7 +138,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withId(parentJobExecutionId)
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(JobExecution.Status.NEW);
+        .withStatus(JobExecution.Status.NEW)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
       result.add(parentMultiple);
     } else {
       File file = files.get(0);
@@ -145,6 +148,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
         .withStatus(JobExecution.Status.NEW)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
         .withSourcePath(file.getName());
       result.add(parentSingle);
     }
@@ -192,7 +196,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * For each Snapshot posts the request to mod-source-record-manager.
    *
    * @param snapshots list of Snapshot entities
-   * @param params object-wrapper with params necessary to connect to OKAPI
+   * @param params    object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
   private Future saveSnapshots(List<JsonObject> snapshots, OkapiConnectionParams params) {
@@ -208,7 +212,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * Performs post request with given Snapshot entity.
    *
    * @param snapshot Snapshot entity (represented as JsonObject)
-   * @param params object-wrapper with params necessary to connect to OKAPI
+   * @param params   object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
   private Future<String> postSnapshot(JsonObject snapshot, OkapiConnectionParams params) {
@@ -216,9 +220,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot.encode())
       .setHandler(responseResult -> {
         try {
-          int responseCode = responseResult.result().getCode();
-          if (responseResult.failed() || responseCode != CREATED_STATUS_CODE) {
-            LOGGER.error("Error during post for new Snapshot. Response code: " + responseCode, responseResult.cause());
+          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != CREATED_STATUS_CODE) {
+            LOGGER.error("Error during post for new Snapshot.", responseResult.cause());
             future.fail(responseResult.cause());
           } else {
             String responseBody = responseResult.result().getBody();
@@ -236,7 +239,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * Sets fields that can be updated and calls jobExecutionDao to update child JobExecutions
    *
    * @param children list of child JobExecutions
-   * @param parent parent JobExecution to the list of children
+   * @param parent   parent JobExecution to the list of children
    * @return future with true if succeeded
    */
   private Future<Boolean> updateChildJobExecutions(List<JobExecution> children, JobExecution parent) {

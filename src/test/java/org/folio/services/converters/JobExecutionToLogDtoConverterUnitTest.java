@@ -1,18 +1,14 @@
 package org.folio.services.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.LogDto;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.List;
-
 
 /**
  * Testing conversion logic for the JobExecutionToLogDtoConverter
@@ -42,6 +38,8 @@ public class JobExecutionToLogDtoConverterUnitTest extends JobExecutionToDtoConv
     Assert.assertEquals(logDto.getRunBy().getLastName(), jobExecutionEntity.getRunBy().getLastName());
     Assert.assertEquals(logDto.getFileName(), jobExecutionEntity.getSourcePath());
     Assert.assertEquals(logDto.getCompletedDate(), jobExecutionEntity.getCompletedDate());
+    Assert.assertEquals(logDto.getStatus().name(), jobExecutionEntity.getStatus().name());
+    Assert.assertEquals(logDto.getUiStatus().name(), jobExecutionEntity.getUiStatus().name());
   }
 
   @Test
