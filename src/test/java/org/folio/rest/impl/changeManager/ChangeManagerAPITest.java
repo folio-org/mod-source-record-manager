@@ -170,6 +170,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("jobProfileName", is(singleParent.getJobProfileName()));
   }
 
+  // TODO fixme
   @Test
   public void shouldUpdateMultipleParentOnPut() {
     File file1 = new File().withName("importBib.bib");
