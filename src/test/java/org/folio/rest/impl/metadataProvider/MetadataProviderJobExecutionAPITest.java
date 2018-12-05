@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
-  private static final String GET_JOB_EXECUTIONS_WITHOUT_PARENT_MULTIPLE_PATH = "/metadata-provider/jobExecutions";
+  private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
 
   @Test
@@ -33,7 +33,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_WITHOUT_PARENT_MULTIPLE_PATH)
+      .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDtos", empty())
@@ -49,7 +49,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_WITHOUT_PARENT_MULTIPLE_PATH)
+      .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDtos.size()", is(expectedJobExecutionsNumber))
@@ -65,7 +65,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_WITHOUT_PARENT_MULTIPLE_PATH + "?limit=2")
+      .get(GET_JOB_EXECUTIONS_PATH + "?limit=2")
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDtos.size()", is(expectedJobExecutionsNumber))
