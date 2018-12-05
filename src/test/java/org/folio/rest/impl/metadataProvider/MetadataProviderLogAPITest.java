@@ -21,7 +21,6 @@ import java.util.List;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_SINGLE;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -37,14 +36,17 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnEmptyListOnGetIfNoLogsExist() {
+    int expectedLogNumber = 0;
+    int expectedTotalRecords = 0;
+
     RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_LOGS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("logDtos", empty())
-      .body("totalRecords", is(0));
+      .body("logDtos.size()", is(expectedLogNumber))
+      .body("totalRecords", is(expectedTotalRecords));
   }
 
   @Test
