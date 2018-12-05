@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_SINGLE;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
@@ -34,7 +36,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   private static final String profileName = "Parse Marc files profile";
 
   @Test
-  public void shouldReturnEmptyListIfNoLogsExist() {
+  public void shouldReturnEmptyListOnGetIfNoLogsExist() {
     RestAssured.given()
       .spec(spec)
       .when()
@@ -46,7 +48,10 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnEmptyListIfCreated1ParentMultiple2ChildJobExecutions() {
+  public void shouldReturnEmptyListOnGetIfCreated1ParentMultiple2ChildJobExecutions() {
+    int expectedLogNumber = 0;
+    int expectedTotalRecords = 0;
+
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
     requestDto.getFiles().add(new File().withName("importMarc.mrc"));
@@ -66,12 +71,15 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .get(GET_LOGS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("logDtos", empty())
-      .body("totalRecords", is(0));
+      .body("logDtos.size()", is(expectedLogNumber))
+      .body("totalRecords", is(expectedTotalRecords));
   }
 
   @Test
-  public void shouldReturnEmptyListIfCreated1ParentSingleJobExecution() {
+  public void shouldReturnEmptyListOnGetIfCreated1ParentSingleJobExecution() {
+    int expectedLogNumber = 0;
+    int expectedTotalRecords = 0;
+
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
 
@@ -90,13 +98,54 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .get(GET_LOGS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("logDtos", empty())
-      .body("totalRecords", is(0));
+      .body("logDtos.size()", is(expectedLogNumber))
+      .body("totalRecords", is(expectedTotalRecords));
   }
 
   @Test
-  public void shouldReturn1LogIfCreated1ParentMultiple1ChildNew1ChildCommittedJobExecutions() {
+  public void should1LogOnGetIfCreated1ParentSingleCommittedJobExecution() {
     int expectedLogNumber = 1;
+    int expectedTotalRecords = 1;
+
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().add(new File().withName("importBib.bib"));
+
+    InitJobExecutionsRsDto response = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when()
+      .post(POST_JOB_EXECUTIONS_PATH)
+      .body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+
+    JobExecution expectedCommittedChild = createdJobExecutions.get(0);
+    Assert.assertEquals(expectedCommittedChild.getSubordinationType(), PARENT_SINGLE);
+    expectedCommittedChild.setStatus(COMMITTED);
+    expectedCommittedChild.setJobProfileName(profileName);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(expectedCommittedChild).toString())
+      .when()
+      .put(PUT_JOB_EXECUTIONS_PATH + expectedCommittedChild.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_LOGS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("logDtos.size()", is(expectedLogNumber))
+      .body("totalRecords", is(expectedTotalRecords));
+  }
+
+  @Test
+  public void shouldReturn1LogOnGetIfCreated1ParentMultiple1ChildNew1ChildCommittedJobExecutions() {
+    int expectedLogNumber = 1;
+    int expectedTotalRecords = 1;
 
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
@@ -112,7 +161,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(3));
 
     JobExecution expectedCommittedChild = createdJobExecutions.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).findFirst().get();
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).findFirst().get();
 
     expectedCommittedChild.setStatus(COMMITTED);
     expectedCommittedChild.setJobProfileName(profileName);
@@ -134,13 +183,14 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .extract().response().body().as(LogCollectionDto.class);
 
     Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logs.getLogDtos().get(0), expectedCommittedChild.getId());
-    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedLogNumber);
+    Assert.assertEquals(logs.getLogDtos().get(0).getJobExecutionId(), expectedCommittedChild.getId());
+    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
   }
 
   @Test
-  public void shouldReturn2LogsIfCreated1ParentMultiple2ChildCommittedJobExecutions() {
+  public void shouldReturn2LogsOnGetIfCreated1ParentMultiple2ChildCommittedJobExecutions() {
     int expectedLogNumber = 2;
+    int expectedTotalRecords = 2;
 
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
@@ -158,7 +208,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
     List<JobExecution> expectedCommittedChildren = new ArrayList<>();
     for (JobExecution createdJobExecution : createdJobExecutions) {
-      if (JobExecution.SubordinationType.CHILD.equals(createdJobExecution.getSubordinationType())) {
+      if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
         createdJobExecution.setJobProfileName(profileName);
         expectedCommittedChildren.add(createdJobExecution);
@@ -184,7 +234,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .extract().response().body().as(LogCollectionDto.class);
 
     Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedLogNumber);
+    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
 
     for (JobExecution childExpectedCommittedJoExec : expectedCommittedChildren) {
       LogDto log = logs.getLogDtos().stream()
@@ -193,5 +243,57 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         .orElse(null);
       Assert.assertNotNull(log);
     }
+  }
+
+  @Test
+  public void shouldReturnLimitedListOnGetIfCreated1ParentMultiple3ChildCommittedJobExecutionsWithLimit() {
+    int expectedLogNumber = 2;
+    // We do not expect PARENT entity in total records
+    int expectedTotalRecords = 3;
+
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().add(new File().withName("importBib.bib"));
+    requestDto.getFiles().add(new File().withName("importMarc.mrc"));
+    requestDto.getFiles().add(new File().withName("importCsv.csv"));
+
+    InitJobExecutionsRsDto response = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when()
+      .post(POST_JOB_EXECUTIONS_PATH)
+      .body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(4));
+
+
+    List<JobExecution> expectedCommittedChildren = new ArrayList<>();
+    for (JobExecution createdJobExecution : createdJobExecutions) {
+      if (CHILD.equals(createdJobExecution.getSubordinationType())) {
+        createdJobExecution.setStatus(COMMITTED);
+        createdJobExecution.setJobProfileName(profileName);
+        expectedCommittedChildren.add(createdJobExecution);
+      }
+    }
+
+    for (JobExecution child : expectedCommittedChildren) {
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(child).toString())
+        .when()
+        .put(PUT_JOB_EXECUTIONS_PATH + child.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    }
+
+    LogCollectionDto logs = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_LOGS_PATH + "?limit=2")
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(LogCollectionDto.class);
+
+    Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
+    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
   }
 }
