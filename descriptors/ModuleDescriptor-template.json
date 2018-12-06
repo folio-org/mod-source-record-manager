@@ -23,16 +23,13 @@
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
-          "permissionsRequired" : [ "change-manager.jobexecution.post" ]
+          "permissionsRequired" : [ "change-manager.jobexecution.post" ],
+          "modulePermissions": [ "source-storage.snapshot.post" ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecution/{id}",
-          "permissionsRequired": [
-            "change-manager.jobexecution.put"
-          ]
+          "permissionsRequired": [ "change-manager.jobexecution.put" ]
         },
         {
           "methods": ["POST"],
