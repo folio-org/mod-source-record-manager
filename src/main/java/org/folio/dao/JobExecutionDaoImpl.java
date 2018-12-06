@@ -65,7 +65,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String[] fieldList = {"*"};
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
       cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status=" + COMMITTED));
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
+      String excludeParentMultipleAndSortQuery = "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE + " sortBy completedDate/sort.descending";
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), excludeParentMultipleAndSortQuery));
       pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);

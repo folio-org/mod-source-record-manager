@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
@@ -298,5 +299,56 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
     Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
     Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
+  }
+
+  @Test
+  public void shouldReturnSortedListOnGetIfCreated() {
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().add(new File().withName("importBib.bib"));
+    requestDto.getFiles().add(new File().withName("importMarc.mrc"));
+    requestDto.getFiles().add(new File().withName("importCsv.csv"));
+
+    InitJobExecutionsRsDto response = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when()
+      .post(POST_JOB_EXECUTIONS_PATH)
+      .body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(4));
+
+    List<JobExecution> expectedCommittedChildren = new ArrayList<>();
+    for (int i = 0; i < createdJobExecutions.size(); i++) {
+      JobExecution createdJobExecution = createdJobExecutions.get(i);
+      if (CHILD.equals(createdJobExecution.getSubordinationType())) {
+        createdJobExecution.setStatus(COMMITTED);
+        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
+        expectedCommittedChildren.add(createdJobExecution);
+      }
+    }
+
+    for (JobExecution child : expectedCommittedChildren) {
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(child).toString())
+        .when()
+        .put(PUT_JOB_EXECUTIONS_PATH + child.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    }
+
+    LogCollectionDto logs = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(LogCollectionDto.class);
+
+    List<LogDto> logsList = logs.getLogDtos();
+    Assert.assertEquals(logsList.size(), createdJobExecutions.size() - 1);
+    Assert.assertTrue(logsList.get(0).getCompletedDate().after(logsList.get(1).getCompletedDate()));
+    Assert.assertTrue(logsList.get(1).getCompletedDate().after(logsList.get(2).getCompletedDate()));
   }
 }

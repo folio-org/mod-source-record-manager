@@ -170,7 +170,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("jobProfileName", is(singleParent.getJobProfileName()));
   }
 
-  // TODO fixme
   @Test
   public void shouldUpdateMultipleParentOnPut() {
     File file1 = new File().withName("importBib.bib");
@@ -200,7 +199,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(createdJobExecutions.size()))
+      // expect collection that does not contain PARENT_MULTIPLE itself
+      .body("jobExecutionDtos.size()", is(createdJobExecutions.size() - 1))
       .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfileName())));
   }
 
