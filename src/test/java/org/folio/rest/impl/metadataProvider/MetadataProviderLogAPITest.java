@@ -9,6 +9,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.impl.MetadataProviderImpl;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -38,9 +39,11 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   private static final String GET_LOGS_PATH_LANDING_PAGE_FALSE = "/metadata-provider/logs?landingPage=false";
+  private static final String GET_LOGS_PATH_LANDING_PAGE_TRUE = "/metadata-provider/logs?landingPage=true";
   private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
   private static final String PUT_JOB_EXECUTIONS_PATH = "/change-manager/jobExecution/";
   private static final String profileName = "Parse Marc files profile";
+  private int landingPageLogsLimit = MetadataProviderImpl.LANDING_PAGE_LOGS_LIMIT;
 
   @Test
   public void shouldReturnEmptyListOnGetIfNoLogsExist() {
@@ -180,7 +183,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK);
     }
 
-    LogCollectionDto logs = RestAssured.given()
+    LogCollectionDto logCollectionDto = RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
@@ -188,11 +191,11 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
+    Assert.assertEquals(logCollectionDto.getLogDtos().size(), expectedLogNumber);
+    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), expectedTotalRecords);
 
     for (JobExecution childExpectedCommittedJoExec : expectedCommittedChildren) {
-      LogDto log = logs.getLogDtos().stream()
+      LogDto log = logCollectionDto.getLogDtos().stream()
         .filter(logDto -> childExpectedCommittedJoExec.getId().equals(logDto.getJobExecutionId()))
         .findAny()
         .orElse(null);
@@ -227,7 +230,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK);
     }
 
-    LogCollectionDto logs = RestAssured.given()
+    LogCollectionDto logCollectionDto = RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_LOGS_PATH_LANDING_PAGE_FALSE + "&limit=" + actualLimit)
@@ -235,8 +238,8 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
+    Assert.assertEquals(logCollectionDto.getLogDtos().size(), expectedLogNumber);
+    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), expectedTotalRecords);
   }
 
   @Test
@@ -264,7 +267,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK);
     }
 
-    LogCollectionDto logs = RestAssured.given()
+    LogCollectionDto logCollectionDto = RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
@@ -272,10 +275,46 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    List<LogDto> logsList = logs.getLogDtos();
+    List<LogDto> logsList = logCollectionDto.getLogDtos();
     Assert.assertEquals(logsList.size(), createdJobExecutions.size() - 1);
     Assert.assertTrue(logsList.get(0).getCompletedDate().after(logsList.get(1).getCompletedDate()));
     Assert.assertTrue(logsList.get(1).getCompletedDate().after(logsList.get(2).getCompletedDate()));
+  }
+
+  @Test
+  public void shouldReturnLimitedListOnGetIfLandingPageIsTrue() throws IOException {
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(Integer.MAX_VALUE)
+      .as(InitJobExecutionsRsDto.class)
+      .getJobExecutions();
+
+    Assert.assertTrue(landingPageLogsLimit < createdJobExecutions.size());
+
+    List<JobExecution> expectedCommittedChildren = new ArrayList<>();
+    for (int i = 0; i < createdJobExecutions.size(); i++) {
+      JobExecution createdJobExecution = createdJobExecutions.get(i);
+      if (CHILD.equals(createdJobExecution.getSubordinationType())) {
+        createdJobExecution.setStatus(COMMITTED);
+        createdJobExecution.setJobProfileName(profileName);
+        expectedCommittedChildren.add(createdJobExecution);
+      }
+    }
+
+    for (JobExecution child : expectedCommittedChildren) {
+      putJobExecution(child)
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    }
+
+    LogCollectionDto logCollectionDto = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_LOGS_PATH_LANDING_PAGE_TRUE)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(LogCollectionDto.class);
+
+    Assert.assertEquals(logCollectionDto.getLogDtos().size(), landingPageLogsLimit);
+    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), createdJobExecutions.size() - 1);
   }
 
   private Response constructAndPostInitJobExecutionRqDto(int filesNumber) throws IOException {

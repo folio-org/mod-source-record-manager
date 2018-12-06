@@ -14,12 +14,9 @@ import org.folio.util.ExceptionHelper;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-
 public class MetadataProviderImpl implements MetadataProvider {
 
-  private static final int LANDING_PAGE_LOGS_LIMIT = Integer.parseInt(MODULE_SPECIFIC_ARGS
-    .getOrDefault("landingPage.logs.limit", "25"));
+  public static final int LANDING_PAGE_LOGS_LIMIT = 25;
 
   private JobExecutionService jobExecutionService;
 
