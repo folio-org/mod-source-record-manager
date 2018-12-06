@@ -2,6 +2,7 @@ package org.folio.services.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FilenameUtils;
+import org.folio.TestUtil;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
@@ -30,7 +31,7 @@ public class JobExecutionToDtoConverterUnitTest {
   @Test
   public void shouldReturnJobExecutionDtoCollectionWhenPassSingleEntity() throws IOException {
     // given
-    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(UnitTestUtil.readFileFromPath(SINGLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
+    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(TestUtil.readFileFromPath(SINGLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     JobExecution jobExecutionEntity = jobExecutionCollection.getJobExecutions().get(0);
     // when
     List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
@@ -54,7 +55,7 @@ public class JobExecutionToDtoConverterUnitTest {
   @Test
   public void shouldReturnJobExecutionDtoCollectionWhenPassMultipleEntity() throws IOException {
     // given
-    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(UnitTestUtil.readFileFromPath(MULTIPLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
+    JobExecutionCollection jobExecutionCollection = new ObjectMapper().readValue(TestUtil.readFileFromPath(MULTIPLE_JOB_EXECUTION_SAMPLE_PATH), JobExecutionCollection.class);
     // when
     List<JobExecutionDto> collectionDtoList = converter.convert(jobExecutionCollection.getJobExecutions());
     // then
