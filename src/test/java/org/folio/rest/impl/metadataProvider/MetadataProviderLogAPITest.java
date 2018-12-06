@@ -107,7 +107,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .getJobExecutions();
 
     JobExecution expectedCommittedChild = createdJobExecutions.get(0);
-    Assert.assertEquals(expectedCommittedChild.getSubordinationType(), PARENT_SINGLE);
+    Assert.assertEquals(PARENT_SINGLE, expectedCommittedChild.getSubordinationType());
     expectedCommittedChild.setStatus(COMMITTED);
     expectedCommittedChild.setJobProfileName(profileName);
 
