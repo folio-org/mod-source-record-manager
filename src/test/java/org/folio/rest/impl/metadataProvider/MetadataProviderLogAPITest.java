@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderLogAPITest extends AbstractRestTest {
 
-  private static final String GET_LOGS_PATH = "/metadata-provider/logs";
+  private static final String GET_LOGS_PATH_LANDING_PAGE_FALSE = "/metadata-provider/logs?landingPage=false";
   private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
   private static final String PUT_JOB_EXECUTIONS_PATH = "/change-manager/jobExecution/";
   private static final String profileName = "Parse Marc files profile";
@@ -42,7 +42,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("logDtos.size()", is(expectedLogNumber))
@@ -70,7 +70,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("logDtos.size()", is(expectedLogNumber))
@@ -97,7 +97,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("logDtos.size()", is(expectedLogNumber))
@@ -137,7 +137,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("logDtos.size()", is(expectedLogNumber))
@@ -179,7 +179,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     LogCollectionDto logs = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
@@ -230,7 +230,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     LogCollectionDto logs = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
@@ -249,6 +249,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnLimitedListOnGetIfCreated1ParentMultiple3ChildCommittedJobExecutionsWithLimit() {
+    int actualLimit = 2;
     int expectedLogNumber = 2;
     // We do not expect PARENT entity in total records
     int expectedTotalRecords = 3;
@@ -290,7 +291,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     LogCollectionDto logs = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH + "?limit=2")
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE + "&limit=" + actualLimit)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
