@@ -43,27 +43,33 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldReturnAllJobExecutionsOnGetWhenNoQueryIsSpecified() {
     List<JobExecution> createdJobExecution = createJobExecutions();
+    int givenJobExecutionsNumber = createdJobExecution.size();
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = givenJobExecutionsNumber - 1;
     RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(createdJobExecution.size()))
-      .body("totalRecords", is(createdJobExecution.size()));
+      .body("jobExecutionDtos.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber));
   }
 
   @Test
   public void shouldReturnLimitedCollectionOnGetWithLimit() {
     List<JobExecution> createdJobExecution = createJobExecutions();
+    int givenJobExecutionsNumber = createdJobExecution.size();
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = givenJobExecutionsNumber - 1;
     RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_JOB_EXECUTIONS_PATH + "?limit=2")
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(2))
-      .body("totalRecords", is(createdJobExecution.size()));
+      .body("jobExecutionDtos.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber));
   }
 
   private List<JobExecution> createJobExecutions() {

@@ -1,0 +1,92 @@
+[
+  {
+    "name" : "importBib1.bib"
+  },
+  {
+    "name" : "importBib2.bib"
+  },
+  {
+    "name" : "importBib3.bib"
+  },
+  {
+    "name" : "importBib4.bib"
+  },
+  {
+    "name" : "importBib5.bib"
+  },
+  {
+    "name" : "importMarc1.mrc"
+  },
+  {
+    "name" : "importMarc2.mrc"
+  },
+  {
+    "name" : "importMarc3.mrc"
+  },
+  {
+    "name" : "importMarc4.mrc"
+  },
+  {
+    "name" : "importMarc5.mrc"
+  },
+  {
+    "name" : "importTxt1.txt"
+  },
+  {
+    "name" : "importTxt2.txt"
+  },
+  {
+    "name" : "importTxt3.txt"
+  },
+  {
+    "name" : "importTxt4.txt"
+  },
+  {
+    "name" : "importTxt5.txt"
+  },
+  {
+    "name" : "importCsv1.csv"
+  },
+  {
+    "name" : "importCsv2.csv"
+  },
+  {
+    "name" : "importCsv3.csv"
+  },
+  {
+    "name" : "importCsv4.csv"
+  },
+  {
+    "name" : "importCsv5.csv"
+  },
+  {
+    "name" : "importRtf1.rtd"
+  },
+  {
+    "name" : "importRtf2.rtd"
+  },
+  {
+    "name" : "importRtf3.rtd"
+  },
+  {
+    "name" : "importRtf4.rtd"
+  },
+  {
+    "name" : "importRtf5.rtd"
+  },
+  {
+    "name" : "importWpd1.wpd"
+  },
+  {
+    "name" : "importWpd2.wpd"
+  },
+  {
+    "name" : "importWpd3.wpd"
+  },
+  {
+    "name" : "importWpd4.wpd"
+  },
+  {
+    "name" : "importWpd5.wpd"
+  }
+]

@@ -16,6 +16,8 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
+  public static final int LANDING_PAGE_LOGS_LIMIT = 25;
+
   private JobExecutionService jobExecutionService;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) {
@@ -24,12 +26,12 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderLogs(String query, int offset, int limit, boolean landingPage,
+  public void getMetadataProviderLogs(boolean landingPage, String query, int offset, int limit,
                                       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                       Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getLogCollectionDtoByQuery(query, offset, limit)
+        jobExecutionService.getLogCollectionDtoByQuery(query, offset, landingPage ? LANDING_PAGE_LOGS_LIMIT : limit)
           .map(GetMetadataProviderLogsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
