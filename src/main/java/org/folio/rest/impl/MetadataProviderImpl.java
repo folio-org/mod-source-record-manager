@@ -26,7 +26,7 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderLogs(String query, int offset, int limit, boolean landingPage,
+  public void getMetadataProviderLogs(boolean landingPage, String query, int offset, int limit,
                                       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                       Context vertxContext) {
     vertxContext.runOnContext(v -> {

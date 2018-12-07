@@ -1,15 +1,12 @@
 package org.folio.services.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FilenameUtils;
 import org.folio.TestUtil;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.LogDto;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.List;
