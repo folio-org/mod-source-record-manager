@@ -15,14 +15,29 @@ import java.util.Optional;
 public interface JobExecutionDao {
 
   /**
-   * Searches for {@link JobExecution} in the db
+   * Searches for {@link JobExecution} in the db which do not have subordinationType=PARENT_MULTIPLE
+   * (only CHILD and PARENT_SINGLE allowed).
    *
    * @param query  query string to filter jobExecutions based on matching criteria in fields
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    * @return future with {@link JobExecutionCollection}
    */
-  Future<JobExecutionCollection> getJobExecutions(String query, int offset, int limit);
+  Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit);
+
+  /**
+   * JobExecution entity is considered as Log entity when it has COMMITTED status.
+   * This method searches for {@link JobExecution} in the db
+   * which have status COMMITTED (Logs) but do not have subordinationType=PARENT_MULTIPLE
+   * (only CHILD and PARENT_SINGLE allowed).
+   *
+   * @param query  query string to filter Logs based on matching criteria in fields
+   * @param offset starting index in a list of results
+   * @param limit  maximum number of results to return
+   * @return future with {@link JobExecutionCollection}
+   */
+  Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit);
+
 
   /**
    * Saves {@link JobExecution} to database
