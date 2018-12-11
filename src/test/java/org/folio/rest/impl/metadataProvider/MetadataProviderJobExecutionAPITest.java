@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -76,6 +77,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().add(new File().withName("importBib.bib"));
     requestDto.getFiles().add(new File().withName("importMarc.mrc"));
+    requestDto.setUserId(UUID.randomUUID().toString());
     InitJobExecutionsRsDto response = RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())

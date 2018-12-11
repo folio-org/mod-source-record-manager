@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
@@ -367,6 +368,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     });
     List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
     requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(UUID.randomUUID().toString());
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
@@ -46,8 +47,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .put("parentJobId", "5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .put("subordinationType", "PARENT_SINGLE")
     .put("status", "NEW")
+    .put("uiStatus", "INITIALIZATION")
     .put("sourcePath", "importMarc.mrc")
-    .put("jobProfileName", "Marc jobs profile");
+    .put("jobProfileName", "Marc jobs profile")
+    .put("userId", UUID.randomUUID().toString());
 
   private JsonObject chunk = new JsonObject()
     .put("last", false)
@@ -117,6 +120,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void testInitJobExecutionsWithNoFiles(TestContext context) {
     // given
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(UUID.randomUUID().toString());
 
     // when
     RestAssured.given()
@@ -254,6 +258,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private Response constructAndPostInitJobExecutionRqDto(List<File> files) {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().addAll(files);
+    requestDto.setUserId(UUID.randomUUID().toString());
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())

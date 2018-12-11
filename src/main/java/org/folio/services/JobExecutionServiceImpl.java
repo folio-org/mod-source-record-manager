@@ -76,7 +76,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
 
-      List<JobExecution> jobExecutions = prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles());
+      List<JobExecution> jobExecutions =
+        prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId());
       List<JsonObject> snapshots = prepareSnapshotList(jobExecutions);
 
       Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions);
@@ -119,9 +120,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    *
    * @param parentJobExecutionId id of the parent JobExecution entity
    * @param files                Representations of the Files user uploads
+   * @param userId               id of the user creating JobExecution
    * @return list of JobExecution entities
    */
-  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files) {
+  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, String userId) {
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
       for (File file : files) {
@@ -131,7 +133,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .withSubordinationType(JobExecution.SubordinationType.CHILD)
           .withStatus(JobExecution.Status.NEW)
           .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
-          .withSourcePath(file.getName());
+          .withSourcePath(file.getName())
+          .withUserId(userId);
         result.add(child);
       }
       JobExecution parentMultiple = new JobExecution()
@@ -139,7 +142,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE)
         .withStatus(JobExecution.Status.NEW)
-        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
+        .withUserId(userId);
       result.add(parentMultiple);
     } else {
       File file = files.get(0);
@@ -149,7 +153,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
         .withStatus(JobExecution.Status.NEW)
         .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
-        .withSourcePath(file.getName());
+        .withSourcePath(file.getName())
+        .withUserId(userId);
       result.add(parentSingle);
     }
     return result;
