@@ -68,6 +68,23 @@ traits:
           body:
             text/plain:
               example: "Internal server error"
+    get:
+      description: Get JobExecution by id
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobExecution
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
   /records/{jobExecutionId}:
     post:
       description: "Receive chunk of raw records"

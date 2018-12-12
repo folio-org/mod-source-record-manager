@@ -9,6 +9,8 @@ import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.util.OkapiConnectionParams;
 
+import java.util.Optional;
+
 /**
  * JobExecution Service interface, contains logic for accessing jobs.
  *
@@ -27,7 +29,6 @@ public interface JobExecutionService {
    */
   Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit);
 
-
   /**
    * Returns LogCollectionDto by the input query
    *
@@ -36,7 +37,6 @@ public interface JobExecutionService {
    * @param limit  maximum number of results to return
    */
   Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit);
-
 
   /**
    * Performs creation of JobExecution and Snapshot entities
@@ -57,5 +57,13 @@ public interface JobExecutionService {
    * @return updated entity
    */
   Future<JobExecution> updateJobExecution(JobExecution jobExecution);
+
+  /**
+   * Searches for JobExecution by id
+   *
+   * @param id JobExecution id
+   * @return future with optional JobExecution
+   */
+  Future<Optional<JobExecution>> getJobExecutionById(String id);
 
 }
