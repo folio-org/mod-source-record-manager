@@ -13,7 +13,8 @@
       },
       "startedDate": "2018-09-11T10:06:25.000",
       "completedDate": "",
-      "status": "IMPORT_IN_PROGRESS"
+      "status": "IMPORT_IN_PROGRESS",
+      "uiStatus": "INITIALIZATION"
      }
   ],
   "totalRecords": 1

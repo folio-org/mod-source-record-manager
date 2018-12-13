@@ -13,7 +13,8 @@
       },
       "startedDate": "2018-10-30T12:36:55.000",
       "completedDate": "2018-10-30T12:40:01.000",
-      "status": "COMMITTED"
+      "status": "COMMITTED",
+      "uiStatus": "RUNNING_COMPLETE"
      },
     {
       "id": "zrrg6nm1-1caf-4470-9ad1-d533f6360bdd",
@@ -28,7 +29,8 @@
       },
       "startedDate": "2018-10-31T11:31:51.000",
       "completedDate": "2018-10-31T11:32:01.000",
-      "status": "COMMITTED"
+      "status": "COMMITTED",
+      "uiStatus": "RUNNING_COMPLETE"
      }
   ],
   "totalRecords": 2

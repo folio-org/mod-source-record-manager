@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
@@ -31,7 +32,7 @@ import static org.hamcrest.Matchers.is;
 public class ChangeManagerAPITest extends AbstractRestTest {
 
   private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
-  private static final String PUT_JOB_EXECUTION_PATH = "/change-manager/jobExecution";
+  private static final String JOB_EXECUTION_PATH = "/change-manager/jobExecution";
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String POST_RAW_RECORDS_PATH = "/change-manager/records";
 
@@ -46,8 +47,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .put("parentJobId", "5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .put("subordinationType", "PARENT_SINGLE")
     .put("status", "NEW")
+    .put("uiStatus", "INITIALIZATION")
     .put("sourcePath", "importMarc.mrc")
-    .put("jobProfileName", "Marc jobs profile");
+    .put("jobProfileName", "Marc jobs profile")
+    .put("userId", UUID.randomUUID().toString());
 
   private JsonObject chunk = new JsonObject()
     .put("last", false)
@@ -117,6 +120,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void testInitJobExecutionsWithNoFiles(TestContext context) {
     // given
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(UUID.randomUUID().toString());
 
     // when
     RestAssured.given()
@@ -132,7 +136,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .put(PUT_JOB_EXECUTION_PATH + "/11dfac11-1caf-4470-9ad1-d533f6360bdd")
+      .put(JOB_EXECUTION_PATH + "/11dfac11-1caf-4470-9ad1-d533f6360bdd")
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -143,7 +147,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(jobExecution.toString())
       .when()
-      .put(PUT_JOB_EXECUTION_PATH + "/" + jobExecution.getString("id"))
+      .put(JOB_EXECUTION_PATH + "/" + jobExecution.getString("id"))
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -163,11 +167,40 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
       .when()
-      .put(PUT_JOB_EXECUTION_PATH + "/" + singleParent.getId())
+      .put(JOB_EXECUTION_PATH + "/" + singleParent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(singleParent.getId()))
       .body("jobProfileName", is(singleParent.getJobProfileName()));
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnGetByIdWhenRecordDoesNotExist() {
+    RestAssured.given()
+      .spec(spec)
+      .body(jobExecution.toString())
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + jobExecution.getString("id"))
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnJobExecutionOnGetById() {
+    File file1 = new File().withName("importBib.bib");
+    File file2 = new File().withName("importMarc.mrc");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1, file2)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(3));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + createdJobExecutions.get(0).getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("id", is(createdJobExecutions.get(0).getId()));
   }
 
   @Test
@@ -186,7 +219,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(multipleParent).toString())
       .when()
-      .put(PUT_JOB_EXECUTION_PATH + "/" + multipleParent.getId())
+      .put(JOB_EXECUTION_PATH + "/" + multipleParent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(multipleParent.getId()))
@@ -254,6 +287,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private Response constructAndPostInitJobExecutionRqDto(List<File> files) {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.getFiles().addAll(files);
+    requestDto.setUserId(UUID.randomUUID().toString());
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())

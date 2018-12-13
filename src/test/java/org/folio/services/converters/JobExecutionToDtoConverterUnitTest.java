@@ -14,7 +14,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.IOException;
 import java.util.List;
 
-
 /**
  * Testing conversion logic for the JobExecutionToDtoConverter
  *
@@ -47,6 +46,7 @@ public class JobExecutionToDtoConverterUnitTest {
     Assert.assertEquals(jobExecutionDto.getStartedDate(), jobExecutionEntity.getStartedDate());
     Assert.assertEquals(jobExecutionDto.getCompletedDate(), jobExecutionEntity.getCompletedDate());
     Assert.assertEquals(jobExecutionDto.getStatus().name(), jobExecutionEntity.getStatus().name());
+    Assert.assertEquals(jobExecutionDto.getUiStatus().name(), jobExecutionEntity.getUiStatus().name());
     // TODO assert JobProfile name properly using JobProfile id
     Assert.assertEquals(jobExecutionDto.getJobProfileName(), jobExecutionEntity.getJobProfileName());
     // TODO assert progress properly

@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.folio.dao.util.DaoUtil.constructCriteria;
 import static org.folio.dao.util.DaoUtil.getCQLWrapper;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 
 /**
@@ -64,7 +65,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String[] fieldList = {"*"};
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status=" + COMMITTED));
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status any \"" + COMMITTED + " " + ERROR + " \""));
       String excludeParentMultipleAndSortQuery = "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE + " sortBy completedDate/sort.descending";
       cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), excludeParentMultipleAndSortQuery));
       pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());

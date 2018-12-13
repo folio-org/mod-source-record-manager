@@ -23,12 +23,6 @@ traits:
   language: !include raml-storage/raml-util/traits/language.raml
   pageable:  !include raml-storage/raml-util/traits/pageable.raml
   searchable: !include raml-storage/raml-util/traits/searchable.raml
-  queryable:
-    queryParameters:
-      landingPage:
-        description: "Flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page"
-        required: false
-        type: boolean
 
 resourceTypes:
   collection: !include raml-storage/raml-util/rtypes/collection.raml
@@ -39,9 +33,14 @@ resourceTypes:
     get:
       is: [
         searchable: {description: "with valid searchable fields", example: "jobProfileName=marc"},
-        pageable,
-        queryable
+        pageable
       ]
+      queryParameters:
+        landingPage:
+          description: "Flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page"
+          required: false
+          default: false
+          type: boolean
       responses:
         200:
           body:

@@ -24,11 +24,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_SINGLE;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -244,7 +248,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnSortedListOnGetIfCreated1ParentMultiple3ChildCommitted() throws IOException {
-    int actualFilesNumber = 3;
+    int actualFilesNumber = 4;
 
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
       .as(InitJobExecutionsRsDto.class)
@@ -279,6 +283,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     Assert.assertEquals(logsList.size(), createdJobExecutions.size() - 1);
     Assert.assertTrue(logsList.get(0).getCompletedDate().after(logsList.get(1).getCompletedDate()));
     Assert.assertTrue(logsList.get(1).getCompletedDate().after(logsList.get(2).getCompletedDate()));
+    Assert.assertTrue(logsList.get(2).getCompletedDate().after(logsList.get(3).getCompletedDate()));
   }
 
   @Test
@@ -317,6 +322,45 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), createdJobExecutions.size() - 1);
   }
 
+  @Test
+  public void shouldReturnCommittedAndErrorJobExecutionsAsLogs() throws IOException {
+    int actualFilesNumber = 10;
+
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
+      .as(InitJobExecutionsRsDto.class)
+      .getJobExecutions();
+
+    List<JobExecution> expectedLogs = new ArrayList<>();
+    for (int i = 0; i < createdJobExecutions.size(); i++) {
+      JobExecution createdJobExecution = createdJobExecutions.get(i);
+      if (CHILD.equals(createdJobExecution.getSubordinationType())) {
+        if (i % 2 == 0) {
+          createdJobExecution.setStatus(COMMITTED);
+        } else {
+          createdJobExecution.setStatus(ERROR);
+        }
+        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
+        expectedLogs.add(createdJobExecution);
+      }
+    }
+
+    for (JobExecution child : expectedLogs) {
+      putJobExecution(child)
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("totalRecords", is(expectedLogs.size()))
+      .body("logDtos*.status", everyItem(anyOf(is(LogDto.Status.COMMITTED.name()), is(LogDto.Status.ERROR.name()))));
+  }
+
   private Response constructAndPostInitJobExecutionRqDto(int filesNumber) throws IOException {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     String jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
@@ -324,6 +368,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     });
     List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
     requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(UUID.randomUUID().toString());
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
