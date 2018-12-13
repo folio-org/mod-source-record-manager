@@ -14,7 +14,8 @@ public enum Status {
   PROCESSING_FINISHED(JobExecution.UiStatus.READY_FOR_PREVIEW.value()),
   COMMIT_IN_PROGRESS(JobExecution.UiStatus.RUNNING.value()),
   COMMITTED(JobExecution.UiStatus.RUNNING_COMPLETE.value()),
-  ERROR(JobExecution.UiStatus.ERROR.value());
+  ERROR(JobExecution.UiStatus.ERROR.value()),
+  DISCARDED(JobExecution.UiStatus.DISCARDED.value());
 
   private String uiStatus;
 
