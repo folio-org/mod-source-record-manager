@@ -26,6 +26,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.util.RestUtil.CREATED_STATUS_CODE;
@@ -109,6 +110,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .orElse(Future.failedFuture(new NotFoundException(
           String.format("JobExecution with id '%s' was not found", jobExecution.getId()))))
       );
+  }
+
+  @Override
+  public Future<Optional<JobExecution>> getJobExecutionById(String id) {
+    return jobExecutionDao.getJobExecutionById(id);
   }
 
   /**

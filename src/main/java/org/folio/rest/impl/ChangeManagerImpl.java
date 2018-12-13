@@ -17,6 +17,7 @@ import org.folio.services.JobExecutionServiceImpl;
 import org.folio.util.ExceptionHelper;
 import org.folio.util.OkapiConnectionParams;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
@@ -61,6 +62,23 @@ public class ChangeManagerImpl implements ChangeManager {
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to update JobExecution", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
+  @Override
+  public void getChangeManagerJobExecutionById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(c -> {
+      try {
+        jobExecutionService.getJobExecutionById(id)
+          .map(optionalJobExecution -> optionalJobExecution.orElseThrow(() ->
+            new NotFoundException(String.format("JobExecution with id '%s' was not found", id))))
+          .map(GetChangeManagerJobExecutionByIdResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
