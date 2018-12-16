@@ -33,21 +33,20 @@ public class ModTenantAPI extends TenantAPI {
   @Validate
   @Override
   public void postTenant(TenantAttributes entity, Map<String, String> headers, Handler<AsyncResult<Response>> handlers, Context context) {
-    super.postTenant(entity, headers, (ar) -> {
+    super.postTenant(entity, headers, ar -> {
       if (ar.failed()) {
         handlers.handle(ar);
       } else {
-        setupTestData(entity, headers, context).setHandler((event) -> {
-          handlers.handle(ar);
-        });
+        setupTestData(headers, context).setHandler(event -> handlers.handle(ar));
       }
     }, context);
   }
 
-  private Future<List<String>> setupTestData(TenantAttributes entity, Map<String, String> headers, Context context) {
+  private Future<List<String>> setupTestData(Map<String, String> headers, Context context) {
     try {
 
       if (!Boolean.TRUE.equals(Boolean.valueOf(System.getProperty(TEST_MODE, "false")))) {
+        LOGGER.info("Test data was not initialized.");
         return Future.succeededFuture();
       }
 
@@ -63,6 +62,8 @@ public class ModTenantAPI extends TenantAPI {
 
       Future<List<String>> future = Future.future();
       PostgresClient.getInstance(context.owner()).runSQLFile(sqlScript, false, future::handle);
+
+      LOGGER.info("Test data was initialized.");
 
       return future;
     } catch (IOException e) {
