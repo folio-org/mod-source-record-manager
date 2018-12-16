@@ -91,7 +91,8 @@ public abstract class AbstractRestTest {
     final DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put(HTTP_PORT, port));
     vertx.deployVerticle(RestVerticle.class.getName(), options, res -> {
       try {
-        TenantAttributes tenantAttributes = new TenantAttributes().withModuleFrom("0.0.1").withModuleTo("0.0.1");
+//        TenantAttributes tenantAttributes = new TenantAttributes().withModuleFrom("0.0.1").withModuleTo("0.0.1");
+        TenantAttributes tenantAttributes = null;
         tenantClient.postTenant(tenantAttributes, res2 -> {
           async.complete();
         });
