@@ -14,6 +14,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
+import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
@@ -90,7 +91,9 @@ public abstract class AbstractRestTest {
     final DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put(HTTP_PORT, port));
     vertx.deployVerticle(RestVerticle.class.getName(), options, res -> {
       try {
-        tenantClient.postTenant(null, res2 -> {
+//        TenantAttributes tenantAttributes = new TenantAttributes().withModuleFrom("0.0.1").withModuleTo("0.0.1");
+        TenantAttributes tenantAttributes = null;
+        tenantClient.postTenant(tenantAttributes, res2 -> {
           async.complete();
         });
       } catch (Exception e) {
