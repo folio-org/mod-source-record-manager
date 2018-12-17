@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 
@@ -35,6 +36,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String JOB_EXECUTION_PATH = "/change-manager/jobExecution";
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String POST_RAW_RECORDS_PATH = "/change-manager/records";
+  private static final String CHILDREN_PATH = "/children";
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
@@ -178,7 +180,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldReturnNotFoundOnGetByIdWhenRecordDoesNotExist() {
     RestAssured.given()
       .spec(spec)
-      .body(jobExecution.toString())
       .when()
       .get(JOB_EXECUTION_PATH + "/" + jobExecution.getString("id"))
       .then()
@@ -201,6 +202,80 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(createdJobExecutions.get(0).getId()));
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnGetChildrenByIdWhenJobExecutionDoesNotExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnChildrenOfMultipleParentOnGetChildrenById() {
+    File file1 = new File().withName("importBib.bib");
+    File file2 = new File().withName("importMarc.mrc");
+    File file3 = new File().withName("importMarc2.mrc");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1, file2, file3)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(4));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + multipleParent.getId() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(createdJobExecutions.size() - 1))
+      .body("totalRecords", is(createdJobExecutions.size() - 1))
+      .body("jobExecutions*.subordinationType", everyItem(is(JobExecution.SubordinationType.CHILD.name())));
+  }
+
+  @Test
+  public void shouldReturnEmptyCollectionOnGetChildrenByIdInCaseOfSingleParent() {
+    File file1 = new File().withName("importBib.bib");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + jobExec.getId() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions", empty())
+      .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnEmptyCollectionOnGetChildrenByIdInCaseOfChild() {
+    File file1 = new File().withName("importBib.bib");
+    File file2 = new File().withName("importMarc.mrc");
+    File file3 = new File().withName("importMarc2.mrc");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1, file2, file3)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(4));
+    JobExecution child = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).findFirst().get();
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + child.getId() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions", empty())
+      .body("totalRecords", is(0));
   }
 
   @Test
@@ -228,6 +303,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
+      .get(JOB_EXECUTION_PATH + "/" + multipleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfileName", is(multipleParent.getJobProfileName()));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
       .when()
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
@@ -250,7 +333,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   // TODO replace stub test
   @Test
-  public void shouldReturnErrorOnPost() {
+  public void shouldReturnErrorOnPostRawRecords() {
     RestAssured.given()
       .spec(spec)
       .body(chunk.toString())

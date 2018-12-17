@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
@@ -97,12 +98,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.getJobExecutionsByParentId(jobExec.getId())
-              .compose(children -> updateChildJobExecutions(children, jobExecution))
+            return jobExecutionDao.updateJobExecution(jobExecution)
+              .compose(updated -> jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId())
+              .compose(children -> updateChildJobExecutions(children.getJobExecutions(), jobExecution))
               .compose(succeeded -> succeeded ?
                 Future.succeededFuture(jobExecution) :
                 Future.failedFuture(new InternalServerErrorException(
-                  String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId()))));
+                  String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId())))));
           } else {
             return jobExecutionDao.updateJobExecution(jobExecution);
           }
@@ -115,6 +117,22 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   @Override
   public Future<Optional<JobExecution>> getJobExecutionById(String id) {
     return jobExecutionDao.getJobExecutionById(id);
+  }
+
+  @Override
+  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId) {
+    return jobExecutionDao.getJobExecutionById(parentId)
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExec -> {
+          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
+            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId());
+          } else {
+            return Future.succeededFuture(new JobExecutionCollection().withTotalRecords(0));
+          }
+        })
+        .orElse(Future.failedFuture(new NotFoundException(
+          String.format("JobExecution with id '%s' was not found", parentId))))
+      );
   }
 
   /**

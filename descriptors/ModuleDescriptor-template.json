@@ -37,6 +37,11 @@
           "permissionsRequired": [ "change-manager.jobexecution.get" ]
         },
         {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/jobExecution/{id}/children",
+          "permissionsRequired": [ "change-manager.jobexecution.get" ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/change-manager/records/{jobExecutionId}",
           "permissionsRequired" : [ "change-manager.records.post" ],

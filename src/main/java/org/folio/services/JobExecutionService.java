@@ -5,6 +5,7 @@ import org.folio.dao.JobExecutionDao;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.util.OkapiConnectionParams;
@@ -65,5 +66,13 @@ public interface JobExecutionService {
    * @return future with optional JobExecution
    */
   Future<Optional<JobExecution>> getJobExecutionById(String id);
+
+  /**
+   * Searches for child JobExecutions by parent id
+   *
+   * @param parentId JobExecution parent id
+   * @return future with collection of child JobExecutions
+   */
+  Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId);
 
 }

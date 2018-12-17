@@ -16,6 +16,7 @@ types:
   initJobExecutionsRsDto: !include raml-storage/schemas/dto/initJobExecutionsRsDto.json
   rawRecordsDto: !include raml-storage/schemas/dto/rawRecordsDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
+  jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -85,6 +86,24 @@ traits:
           body:
             text/plain:
               example: "Internal server error"
+    /children:
+      get:
+        description: Get JobExecution children
+        responses:
+          200:
+            body:
+              application/json:
+                type: jobExecutionCollection
+          404:
+            description: "Not found"
+            body:
+              text/plain:
+                example: "Not found"
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"
   /records/{jobExecutionId}:
     post:
       description: "Receive chunk of raw records"
