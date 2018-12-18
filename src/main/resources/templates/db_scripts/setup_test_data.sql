@@ -1,6 +1,7 @@
 INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
 ('5cff8cbd-ecb3-404c-8eef-fa030d3579ea', '{
     "jobProfileName": "Authority updates",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import7.marc",
     "id": "5cff8cbd-ecb3-404c-8eef-fa030d3579ea",
     "hrId": "112984432",
@@ -19,6 +20,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('63a30136-06cb-405b-be72-f4d001614b4f', '{
     "jobProfileName": "Authority updates",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import8.marc",
     "id": "63a30136-06cb-405b-be72-f4d001614b4f",
     "hrId": "112974998",
@@ -37,6 +39,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('cc64986d-ec72-4b01-a3fd-1762f950e49a', '{
     "jobProfileName": "Marc bib jobs",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_156.mrc",
     "id": "cc64986d-ec72-4b01-a3fd-1762f950e49a",
     "hrId": "122984588",
@@ -55,6 +58,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('e6219fe2-abbc-47b6-afe4-8910d49fc337', '{
     "jobProfileName": "Marc jobs",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_209.mrc",
     "id": "e6219fe2-abbc-47b6-afe4-8910d49fc337",
     "hrId": "122984589",
@@ -73,6 +77,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('28f53010-a9d9-4f96-8f81-04a0549554d0', '{
     "jobProfileName": "Marc bib",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_159.mrc",
     "id": "28f53010-a9d9-4f96-8f81-04a0549554d0",
     "hrId": "182984219",
@@ -91,6 +96,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('d2b29a0c-3862-456e-9236-d14d33a4accb', '{
     "jobProfileName": "Library indexing",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_150.mrc",
     "id": "d2b29a0c-3862-456e-9236-d14d33a4accb",
     "hrId": "182984532",
@@ -109,6 +115,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('469eba83-41d1-4161-bd1a-0f46d8764c6a', '{
     "jobProfileName": "Library indexing",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_102.mrc",
     "id": "469eba83-41d1-4161-bd1a-0f46d8764c6a",
     "hrId": "182982989",
@@ -127,6 +134,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('2f42bcfa-9ad1-492d-a2b4-280020345f64', '{
     "jobProfileName": "Standard BIB Import",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBIB017.marc",
     "id": "2f42bcfa-9ad1-492d-a2b4-280020345f64",
     "hrId": "222984498",
@@ -145,6 +153,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('bf75b55e-12de-4329-ad75-879cc9ec8e34', '{
     "jobProfileName": "BIB Import from Boston",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBoston.marc",
     "id": "bf75b55e-12de-4329-ad75-879cc9ec8e34",
     "hrId": "143274991",
@@ -163,6 +172,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('78d4a7de-0677-40fb-875e-588ef87628c9', '{
     "jobProfileName": "Main bib jobs (MARC)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_332.mrc",
     "id": "78d4a7de-0677-40fb-875e-588ef87628c9",
     "hrId": "634984588",
@@ -181,6 +191,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('2bec675c-f605-4622-8a59-b43385181d7e', '{
     "jobProfileName": "Main bib jobs (MARC)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_211.mrc",
     "id": "2bec675c-f605-4622-8a59-b43385181d7e",
     "hrId": "126344589",
@@ -199,6 +210,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('3a560d98-10bd-4b29-a172-6cfc15a1420f', '{
     "jobProfileName": "Custom (CH) Marc bib",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "Supplier32_import_88.mrc",
     "id": "3a560d98-10bd-4b29-a172-6cfc15a1420f",
     "hrId": "837984210",
@@ -217,6 +229,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('bd4e22fd-799a-4fc3-9a2c-a17379921df7', '{
     "jobProfileName": "Library indexing",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx.mrc",
     "id": "bd4e22fd-799a-4fc3-9a2c-a17379921df7",
     "hrId": "321984532",
@@ -235,6 +248,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('7ca6e90e-ec2a-444f-a442-ccb65d88699e', '{
     "jobProfileName": "Library indexing",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx_unq.mrc",
     "id": "7ca6e90e-ec2a-444f-a442-ccb65d88699e",
     "hrId": "237482989",
@@ -257,6 +271,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_1.mrc",
     "runBy": {
        "firstName": "Luke",
@@ -275,6 +290,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "BIB profile with customized Holdings",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_2.mrc",
     "runBy": {
        "firstName": "Max",
@@ -293,6 +309,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Christie`s profile for CPL",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_3.mrc",
     "runBy": {
        "firstName": "Ollie",
@@ -311,6 +328,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "MIT Orders",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_4.mrc",
     "runBy": {
        "firstName": "Patrick",
@@ -329,6 +347,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile with fixes for Items (HU)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_5.mrc",
     "runBy": {
        "firstName": "Zac",
@@ -348,6 +367,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Obsolete BIB profile for backward compatibility",
     "sourcePath": "import_6.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Marc",
        "lastName": "Ruiz"
@@ -366,6 +386,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "New Holdings (Beta.2 Use carefully)",
     "sourcePath": "import_7.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Yehuda",
        "lastName": "Sharp"
@@ -384,6 +405,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Marc BIB-001 Jonathan test",
     "sourcePath": "import_8.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Callan",
        "lastName": "Nunez"
@@ -402,6 +424,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile",
     "sourcePath": "import_9.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Riley",
        "lastName": "Haynes"
@@ -420,6 +443,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile",
     "sourcePath": "import_10.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Jaylin",
        "lastName": "Daniels"
@@ -438,6 +462,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Simple BIB profile (description update)",
     "sourcePath": "import_11.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Oscar",
        "lastName": "Edwards"
@@ -456,6 +481,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile (Instances only)",
     "sourcePath": "import_12.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Theo",
        "lastName": "Newman"
@@ -473,6 +499,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "FOLIO Default",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_13.mrc",
     "runBy": {
        "firstName": "Connor",
@@ -491,6 +518,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Charlotte`s Core Case with Fixes",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_14.mrc",
     "runBy": {
        "firstName": "Dominic",
@@ -509,6 +537,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Pearson new data",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_15.mrc",
     "runBy": {
        "firstName": "Oscar",
@@ -527,6 +556,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Thomson Reuters standard",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_16.mrc",
     "runBy": {
        "firstName": "Eli",
@@ -545,6 +575,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_17.mrc",
     "runBy": {
        "firstName": "Adam",
@@ -563,6 +594,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Annual registry update profile",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_18.mrc",
     "runBy": {
        "firstName": "Amir",
@@ -582,6 +614,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Outdated! DO NOT USE (Just Special Cases!)",
     "sourcePath": "import_19.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Kingston",
        "lastName": "Forbes"
@@ -599,6 +632,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "BIB profile with customized Holdings",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_20.mrc",
     "runBy": {
        "firstName": "Jay",
@@ -617,6 +651,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "BIB profile with new Holdings & Items",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_21.mrc",
     "runBy": {
        "firstName": "Brandon",
@@ -635,6 +670,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_22.mrc",
     "runBy": {
        "firstName": "Elliot",
@@ -653,6 +689,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Marc bib jobs",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_23.mrc",
     "runBy": {
        "firstName": "Jackson",
@@ -671,6 +708,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "New Holdings (Beta.2 Use carefully)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_24.mrc",
     "runBy": {
        "firstName": "Hayden",
@@ -689,6 +727,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProsourcePath": "Standard BIB profile (2019 Q1 Beta test)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_25.mrc",
     "runBy": {
        "firstName": "Harry",
@@ -707,6 +746,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProsourcePath": "Semi-Valid test profile (NYPL Check)",
+    "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_26.mrc",
     "runBy": {
        "firstName": "Osvald",
@@ -726,6 +766,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "ERROR",
     "jobProsourcePath": "Standard BIB profile (2019 Q1 Beta test)",
     "sourcePath": "import_27.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Vlad",
        "lastName": "Reinhold"
@@ -744,6 +785,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "uiStatus": "ERROR",
     "jobProsourcePath": "Multilingual support check",
     "sourcePath": "import_28.mrc",
+    "subordinationType": "PARENT_SINGLE",
     "runBy": {
        "firstName": "Ozzy",
        "lastName": "Campenshtorm"
