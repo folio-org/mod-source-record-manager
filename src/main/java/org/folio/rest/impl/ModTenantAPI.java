@@ -15,6 +15,7 @@ import org.folio.rest.tools.utils.TenantTool;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -44,13 +45,25 @@ public class ModTenantAPI extends TenantAPI {
 
   private Future<List<String>> setupTestData(Map<String, String> headers, Context context) {
     try {
+//      LOGGER.info("***System.getenv():");
+//      System.getenv().entrySet().forEach(e -> LOGGER.info("       -> " + e.getKey() + ": " + e.getValue()));
+//
+//      LOGGER.info("***System.getProperties():");
+//      System.getProperties().entrySet().forEach(e -> LOGGER.info("       -> " + e.getKey() + ": " + e.getValue()));
 
-      if (!Boolean.TRUE.equals(Boolean.valueOf(System.getProperty(TEST_MODE, "false")))) {
+      if (!Boolean.TRUE.equals(Boolean.valueOf(System.getenv(TEST_MODE)))) {
         LOGGER.info("Test data was not initialized.");
         return Future.succeededFuture();
       }
 
-      String sqlScript = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(SETUP_TEST_DATA_SQL), StandardCharsets.UTF_8.name());
+      InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(SETUP_TEST_DATA_SQL);
+
+      if (inputStream == null) {
+        LOGGER.info("Test data was not initialized: no resources found: " + SETUP_TEST_DATA_SQL);
+        return Future.succeededFuture();
+      }
+
+      String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
       if (StringUtils.isBlank(sqlScript)) {
         return Future.succeededFuture();
       }
@@ -61,9 +74,9 @@ public class ModTenantAPI extends TenantAPI {
       sqlScript = sqlScript.replace(TENANT_PLACEHOLDER, tenantId).replace(MODULE_PLACEHOLDER, moduleName);
 
       Future<List<String>> future = Future.future();
-      PostgresClient.getInstance(context.owner()).runSQLFile(sqlScript, false, future::handle);
+      PostgresClient.getInstance(context.owner()).runSQLFile(sqlScript, false, future);
 
-      LOGGER.info("Test data was initialized.");
+      LOGGER.info("Test data will be initialized. Check the server log for details.");
 
       return future;
     } catch (IOException e) {
