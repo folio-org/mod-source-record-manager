@@ -1,10 +1,10 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,7 +38,6 @@ public interface JobExecutionDao {
    */
   Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit);
 
-
   /**
    * Saves {@link JobExecution} to database
    *
@@ -59,9 +58,9 @@ public interface JobExecutionDao {
    * Searches for {@link JobExecution} by parent id
    *
    * @param parentId parent id
-   * @return list of JobExecutions with specified parent id
+   * @return collection of JobExecutions with specified parent id
    */
-  Future<List<JobExecution>> getJobExecutionsByParentId(String parentId);
+  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId);
 
   /**
    * Searches for {@link JobExecution} by id
@@ -70,5 +69,14 @@ public interface JobExecutionDao {
    * @return optional of JobExecution
    */
   Future<Optional<JobExecution>> getJobExecutionById(String id);
+
+  /**
+   * Updates {@link JobExecution} in the db with row blocking
+   *
+   * @param jobExecutionId JobExecution id
+   * @param mutator        defines necessary changes to be made before save
+   * @return future with updated JobExecution
+   */
+  Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator);
 
 }

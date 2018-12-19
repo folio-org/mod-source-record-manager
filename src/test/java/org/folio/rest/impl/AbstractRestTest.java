@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.folio.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.util.RestUtil.OKAPI_URL_HEADER;
 
@@ -132,6 +135,8 @@ public abstract class AbstractRestTest {
     params = new OkapiConnectionParams(okapiHeaders, vertx.getOrCreateContext().owner());
     WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.ok()));
   }
 
   private void clearTable(TestContext context) {

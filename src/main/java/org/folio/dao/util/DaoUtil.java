@@ -21,10 +21,22 @@ public class DaoUtil {
    */
   public static CQLWrapper getCQLWrapper(String tableName, String query, int limit, int offset)
     throws org.z3950.zing.cql.cql2pgjson.FieldException {
-    CQL2PgJSON cql2pgJson = new CQL2PgJSON(tableName + ".jsonb");
-    return new CQLWrapper(cql2pgJson, query)
+    return getCQLWrapper(tableName, query)
       .setLimit(new Limit(limit))
       .setOffset(new Offset(offset));
+  }
+
+  /**
+   * Build CQL from request URL query
+   *
+   * @param query - query from URL
+   * @return - CQL wrapper for building postgres request to database
+   * @throws org.z3950.zing.cql.cql2pgjson.FieldException field exception
+   */
+  public static CQLWrapper getCQLWrapper(String tableName, String query)
+    throws org.z3950.zing.cql.cql2pgjson.FieldException {
+    CQL2PgJSON cql2pgJson = new CQL2PgJSON(tableName + ".jsonb");
+    return new CQLWrapper(cql2pgJson, query);
   }
 
   /**

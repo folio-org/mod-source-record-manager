@@ -1,5 +1,6 @@
 package org.folio.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClient;
@@ -67,8 +68,8 @@ public class RestUtil {
    * @param payload - body of request
    * @return - async http response
    */
-  public static Future<WrappedResponse> doRequest(OkapiConnectionParams params, String url,
-                                                  HttpMethod method, String payload) {
+  public static <T> Future<WrappedResponse> doRequest(OkapiConnectionParams params, String url,
+                                                  HttpMethod method, T payload) {
     Future<WrappedResponse> future = Future.future();
     try {
       CaseInsensitiveHeaders headers = params.getHeaders();
@@ -87,7 +88,7 @@ public class RestUtil {
         future.complete(wr);
       }));
       if (method == HttpMethod.PUT || method == HttpMethod.POST) {
-        request.end(payload);
+        request.end(new ObjectMapper().writeValueAsString(payload));
       } else {
         request.end();
       }

@@ -8,7 +8,7 @@
   "provides": [
     {
       "id": "source-record-manager",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -35,6 +35,19 @@
           "methods": ["GET"],
           "pathPattern": "/change-manager/jobExecution/{id}",
           "permissionsRequired": [ "change-manager.jobexecution.get" ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/jobExecution/{id}/children",
+          "permissionsRequired": [ "change-manager.jobexecution.get" ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/change-manager/jobExecution/{id}/status",
+          "permissionsRequired": [ "change-manager.jobexecution.put" ],
+          "modulePermissions": [
+            "source-storage.snapshot.put"
+          ]
         },
         {
           "methods": ["POST"],

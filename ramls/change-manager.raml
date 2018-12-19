@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Change Manager
-version: v1.0
+version: v1.1
 protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
@@ -16,6 +16,9 @@ types:
   initJobExecutionsRsDto: !include raml-storage/schemas/dto/initJobExecutionsRsDto.json
   rawRecordsDto: !include raml-storage/schemas/dto/rawRecordsDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
+  jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
+  statusDto: !include raml-storage/schemas/dto/statusDto.json
+  snapshot: !include raml-storage/schemas/mod-source-record-storage/snapshot.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -85,6 +88,55 @@ traits:
           body:
             text/plain:
               example: "Internal server error"
+    /children:
+      get:
+        description: Get JobExecution children
+        responses:
+          200:
+            body:
+              application/json:
+                type: jobExecutionCollection
+          404:
+            description: "Not found"
+            body:
+              text/plain:
+                example: "Not found"
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"
+    /status:
+      put:
+        description: "Update JobExecution status"
+        body:
+          application/json:
+            schema: statusDto
+        responses:
+          200:
+            body:
+              application/json:
+                type: jobExecution
+          400:
+            description: "Bad request"
+            body:
+              text/plain:
+                example: "Bad request"
+          404:
+            description: "Not found"
+            body:
+              text/plain:
+                example: "Not found"
+          422:
+            description: "Unprocessable Entity"
+            body:
+              application/json:
+                type: errors
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"
   /records/{jobExecutionId}:
     post:
       description: "Receive chunk of raw records"

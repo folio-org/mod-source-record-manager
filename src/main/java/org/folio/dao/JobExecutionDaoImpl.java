@@ -4,6 +4,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.sql.SQLConnection;
+import io.vertx.ext.sql.UpdateResult;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -11,9 +14,9 @@ import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
+import org.z3950.zing.cql.cql2pgjson.FieldException;
 
 import javax.ws.rs.NotFoundException;
-import java.util.List;
 import java.util.Optional;
 
 import static org.folio.dao.util.DaoUtil.constructCriteria;
@@ -36,10 +39,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_executions";
   private static final String ID_FIELD = "'id'";
   private static final String PARENT_ID = "'parentJobId'";
+  private static final String SUBORDINATION_TYPE = "'subordinationType'";
   private PostgresClient pgClient;
+  private String schema;
 
   public JobExecutionDaoImpl(Vertx vertx, String tenantId) {
     this.pgClient = PostgresClient.getInstance(vertx, tenantId);
+    this.schema = PostgresClient.convertToPsqlStandard(tenantId);
   }
 
   @Override
@@ -79,6 +85,37 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
+  public Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId) {
+    Future<Results<JobExecution>> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(PARENT_ID, parentId);
+      Criteria typeCrit = constructCriteria(SUBORDINATION_TYPE, JobExecution.SubordinationType.CHILD.name());
+      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit).addCriterion(typeCrit), true, false, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error getting jobExecutions by parent id", e);
+      future.fail(e);
+    }
+    return future.map(results -> new JobExecutionCollection()
+      .withJobExecutions(results.getResults())
+      .withTotalRecords(results.getResultInfo().getTotalRecords()));
+  }
+
+  @Override
+  public Future<Optional<JobExecution>> getJobExecutionById(String id) {
+    Future<Results<JobExecution>> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(ID_FIELD, id);
+      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error getting jobExecution by id", e);
+      future.fail(e);
+    }
+    return future
+      .map(Results::getResults)
+      .map(jobExecutions -> jobExecutions.isEmpty() ? Optional.empty() : Optional.of(jobExecutions.get(0)));
+  }
+
+  @Override
   public Future<String> save(JobExecution jobExecution) {
     Future<String> future = Future.future();
     pgClient.save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
@@ -110,31 +147,65 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<List<JobExecution>> getJobExecutionsByParentId(String parentId) {
-    Future<Results<JobExecution>> future = Future.future();
-    try {
-      Criteria idCrit = constructCriteria(PARENT_ID, parentId);
-      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, future.completer());
-    } catch (Exception e) {
-      LOGGER.error("Error getting jobExecutions by parent id", e);
-      future.fail(e);
-    }
-    return future.map(Results::getResults);
-  }
-
-  @Override
-  public Future<Optional<JobExecution>> getJobExecutionById(String id) {
-    Future<Results<JobExecution>> future = Future.future();
-    try {
-      Criteria idCrit = constructCriteria(ID_FIELD, id);
-      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, future.completer());
-    } catch (Exception e) {
-      LOGGER.error("Error getting jobExecution by id", e);
-      future.fail(e);
-    }
-    return future
-      .map(Results::getResults)
-      .map(jobExecutions -> jobExecutions.isEmpty() ? Optional.empty() : Optional.of(jobExecutions.get(0)));
+  public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator) {
+    Future<JobExecution> future = Future.future();
+    String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId; //NOSONAR
+    Future<SQLConnection> tx = Future.future(); //NOSONAR
+    Future<JobExecution> jobExecutionFuture = Future.future(); //NOSONAR
+    Future.succeededFuture()
+      .compose(v -> {
+        pgClient.startTx(tx.completer());
+        return tx;
+      }).compose(v -> {
+      StringBuilder selectJobExecutionQuery = new StringBuilder("SELECT jsonb FROM ") //NOSONAR
+        .append(schema)
+        .append(".")
+        .append(TABLE_NAME)
+        .append(" WHERE _id ='")
+        .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
+      Future<UpdateResult> selectResult = Future.future(); //NOSONAR
+      pgClient.execute(tx, selectJobExecutionQuery.toString(), selectResult);
+      return selectResult;
+    }).compose(selectResult -> {
+      if (selectResult.getUpdated() != 1) {
+        throw new NotFoundException(rollbackMessage);
+      }
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId); //NOSONAR
+      Future<Results<JobExecution>> jobExecResult = Future.future(); //NOSONAR
+      pgClient.get(tx, TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
+      return jobExecResult;
+    }).compose(jobExecResult -> {
+      if (jobExecResult.getResults().size() != 1) {
+        throw new NotFoundException(rollbackMessage);
+      }
+      JobExecution jobExecution = jobExecResult.getResults().get(0); //NOSONAR
+      mutator.mutate(jobExecution).setHandler(jobExecutionFuture);
+      return jobExecutionFuture;
+    }).compose(jobExecution -> {
+      CQLWrapper filter; //NOSONAR
+      try {
+        filter = getCQLWrapper(TABLE_NAME, "id==" + jobExecution.getId());
+      } catch (FieldException e) {
+        throw new RuntimeException(e);
+      }
+      Future<UpdateResult> updateHandler = Future.future(); //NOSONAR
+      pgClient.update(tx, TABLE_NAME, jobExecution, filter, true, updateHandler);
+      return updateHandler;
+    }).compose(updateHandler -> {
+      if (updateHandler.getUpdated() != 1) {
+        throw new NotFoundException(rollbackMessage);
+      }
+      Future<Void> endTxFuture = Future.future(); //NOSONAR
+      pgClient.endTx(tx, endTxFuture);
+      return endTxFuture;
+    }).setHandler(v -> {
+      if (v.failed()) {
+        pgClient.rollbackTx(tx, rollback -> future.fail(v.cause()));
+        return;
+      }
+      future.complete(jobExecutionFuture.result());
+    });
+    return future;
   }
 
 }
