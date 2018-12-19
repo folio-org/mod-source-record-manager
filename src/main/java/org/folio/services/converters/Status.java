@@ -4,8 +4,9 @@ import org.folio.rest.jaxrs.model.JobExecution;
 
 public enum Status {
 
+  PARENT(JobExecution.UiStatus.PARENT.value()),
   NEW(JobExecution.UiStatus.INITIALIZATION.value()),
-  DRAFT(JobExecution.UiStatus.INITIALIZATION.value()),
+  FILE_UPLOADED(JobExecution.UiStatus.INITIALIZATION.value()),
   IMPORT_IN_PROGRESS(JobExecution.UiStatus.INITIALIZATION.value()),
   IMPORT_FINISHED(JobExecution.UiStatus.INITIALIZATION.value()),
   PARSING_IN_PROGRESS(JobExecution.UiStatus.PREPARING_FOR_PREVIEW.value()),

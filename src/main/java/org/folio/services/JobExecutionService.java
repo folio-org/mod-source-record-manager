@@ -8,6 +8,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.util.OkapiConnectionParams;
 
 import java.util.Optional;
@@ -74,5 +75,15 @@ public interface JobExecutionService {
    * @return future with collection of child JobExecutions
    */
   Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId);
+
+  /**
+   * Updates status for JobExecution and calls source-record-manager to update Snapshot status
+   *
+   * @param jobExecutionId JobExecution id
+   * @param status         Dto that contains new status
+   * @param params         connection parameters
+   * @return future with updated JobExecution
+   */
+  Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
 
 }

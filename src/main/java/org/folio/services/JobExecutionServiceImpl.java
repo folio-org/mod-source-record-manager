@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -16,6 +17,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
+import org.folio.rest.jaxrs.model.Snapshot;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.services.converters.Status;
@@ -135,6 +138,23 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       );
   }
 
+  @Override
+  public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
+    return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+      Future<JobExecution> future = Future.future();
+      try {
+        jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
+        jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
+        future.complete(jobExecution);
+      } catch (Exception e) {
+        String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
+        LOGGER.error(errorMessage, e);
+        future.fail(errorMessage);
+      }
+      return future;
+    }).compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+  }
+
   /**
    * Creates and returns list of JobExecution entities depending on received files.
    * In a case if only one file passed, method returns list with one JobExecution entity
@@ -165,8 +185,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withId(parentJobExecutionId)
         .withParentJobId(parentJobExecutionId)
         .withSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(JobExecution.Status.NEW)
-        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
+        .withStatus(JobExecution.Status.PARENT)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()))
         .withUserId(userId);
       result.add(parentMultiple);
     } else {
@@ -278,6 +298,66 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       futures.add(jobExecutionDao.updateJobExecution(child));
     }
     return CompositeFuture.all(futures).map(Future::succeeded);
+  }
+
+  private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+    Future<JobExecution> future = Future.future();
+    String url = SNAPSHOT_SERVICE_URL + "/" + jobExecution.getId();
+    Snapshot snapshot = new Snapshot()
+      .withJobExecutionId(jobExecution.getId())
+      .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
+    RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot).setHandler(updateResult -> {
+      if (isValidAsyncResult(updateResult, future)) {
+        future.complete(jobExecution);
+      } else {
+        jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
+          Future<JobExecution> jobExecutionFuture = Future.future();
+          jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
+          jobExec.setStatus(JobExecution.Status.ERROR);
+          jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
+          jobExecutionFuture.complete(jobExec);
+          return jobExecutionFuture;
+        }).setHandler(jobExecutionUpdate -> {
+          String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
+          LOGGER.error(message);
+          future.fail(message);
+        });
+      }
+    });
+    return future;
+  }
+
+  /**
+   * Validate http response and fail future if necessary
+   *
+   * @param asyncResult - http response callback
+   * @param future      - future of callback
+   * @return - boolean value is response ok
+   */
+  private boolean isValidAsyncResult(AsyncResult<RestUtil.WrappedResponse> asyncResult, Future future) {
+    String httpErrorMessage = "HTTP response code is not OK. Actual response code: ";
+    if (asyncResult.failed()) {
+      LOGGER.error("Error during HTTP request to source-storage", asyncResult.cause());
+      future.fail(asyncResult.cause());
+      return false;
+    } else if (asyncResult.result() == null) {
+      LOGGER.error("Error during get response from source-storage");
+      future.fail(new BadRequestException());
+      return false;
+    } else if (asyncResult.result().getCode() == 404) {
+      LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
+      future.fail(new NotFoundException());
+      return false;
+    } else if (asyncResult.result().getCode() == 500) {
+      LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
+      future.fail(new InternalServerErrorException());
+      return false;
+    } else if (asyncResult.result().getCode() == 200 || asyncResult.result().getCode() == 201) {
+      return true;
+    }
+    LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
+    future.fail(new BadRequestException());
+    return false;
   }
 
 }

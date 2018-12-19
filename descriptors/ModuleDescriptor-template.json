@@ -42,6 +42,14 @@
           "permissionsRequired": [ "change-manager.jobexecution.get" ]
         },
         {
+          "methods": ["PUT"],
+          "pathPattern": "/change-manager/jobExecution/{id}/status",
+          "permissionsRequired": [ "change-manager.jobexecution.put" ],
+          "modulePermissions": [
+            "source-storage.snapshot.put"
+          ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/change-manager/records/{jobExecutionId}",
           "permissionsRequired" : [ "change-manager.records.post" ],

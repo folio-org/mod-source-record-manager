@@ -10,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
@@ -101,6 +102,25 @@ public class ChangeManagerImpl implements ChangeManager {
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
+  }
+
+  @Override
+  public void putChangeManagerJobExecutionStatusById(String id, StatusDto entity, Map<String, String> okapiHeaders,
+                                                      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        jobExecutionService.updateJobExecutionStatus(id, entity, params)
+          .map(PutChangeManagerJobExecutionStatusByIdResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to update status for JobExecution", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+
   }
 
   @Override
