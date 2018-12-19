@@ -149,53 +149,53 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   @Override
   public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator) {
     Future<JobExecution> future = Future.future();
-    String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId;
-    Future<SQLConnection> tx = Future.future();
-    Future<JobExecution> jobExecutionFuture = Future.future();
+    String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId; //NOSONAR
+    Future<SQLConnection> tx = Future.future(); //NOSONAR
+    Future<JobExecution> jobExecutionFuture = Future.future(); //NOSONAR
     Future.succeededFuture()
       .compose(v -> {
         pgClient.startTx(tx.completer());
         return tx;
       }).compose(v -> {
-      StringBuilder selectJobExecutionQuery = new StringBuilder("SELECT jsonb FROM ")
+      StringBuilder selectJobExecutionQuery = new StringBuilder("SELECT jsonb FROM ") //NOSONAR
         .append(schema)
         .append(".")
         .append(TABLE_NAME)
         .append(" WHERE _id ='")
         .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
-      Future<UpdateResult> selectResult = Future.future();
+      Future<UpdateResult> selectResult = Future.future(); //NOSONAR
       pgClient.execute(tx, selectJobExecutionQuery.toString(), selectResult);
       return selectResult;
     }).compose(selectResult -> {
       if (selectResult.getUpdated() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId);
-      Future<Results<JobExecution>> jobExecResult = Future.future();
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId); //NOSONAR
+      Future<Results<JobExecution>> jobExecResult = Future.future(); //NOSONAR
       pgClient.get(tx, TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
       return jobExecResult;
     }).compose(jobExecResult -> {
       if (jobExecResult.getResults().size() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
-      JobExecution jobExecution = jobExecResult.getResults().get(0);
+      JobExecution jobExecution = jobExecResult.getResults().get(0); //NOSONAR
       mutator.mutate(jobExecution).setHandler(jobExecutionFuture);
       return jobExecutionFuture;
     }).compose(jobExecution -> {
-      CQLWrapper filter;
+      CQLWrapper filter; //NOSONAR
       try {
         filter = getCQLWrapper(TABLE_NAME, "id==" + jobExecution.getId());
       } catch (FieldException e) {
         throw new RuntimeException(e);
       }
-      Future<UpdateResult> updateHandler = Future.future();
+      Future<UpdateResult> updateHandler = Future.future(); //NOSONAR
       pgClient.update(tx, TABLE_NAME, jobExecution, filter, true, updateHandler);
       return updateHandler;
     }).compose(updateHandler -> {
       if (updateHandler.getUpdated() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
-      Future<Void> endTxFuture = Future.future();
+      Future<Void> endTxFuture = Future.future(); //NOSONAR
       pgClient.endTx(tx, endTxFuture);
       return endTxFuture;
     }).setHandler(v -> {
