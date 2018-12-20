@@ -27,7 +27,7 @@ public class RestUtil {
   public static final String OKAPI_TOKEN_HEADER = "x-okapi-token";
   public static final String OKAPI_URL_HEADER = "x-okapi-url";
   public static final int CREATED_STATUS_CODE = 201;
-  private static final String HTTP_ERROR_MESSAGE = "Response HTTP code not equals 200. Response code: ";
+  private static final String HTTP_ERROR_MESSAGE = "Response HTTP code is not equals 200. Response code: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(RestUtil.class);
 
   public static class WrappedResponse {

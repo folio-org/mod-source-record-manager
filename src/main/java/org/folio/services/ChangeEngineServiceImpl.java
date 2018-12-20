@@ -4,11 +4,15 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
@@ -76,12 +80,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                             LOGGER.error(errorMessage);
                             future.fail(errorMessage);
                           } else {
-                            JsonArray jsonArray = chunks.getJsonArray("records");
-                            List<JsonObject> records = new ArrayList<>();
-                            for (int j = 0; j < jsonArray.size(); j++) {
-                              records.add(jsonArray.getJsonObject(j));
-                            }
-                            parseRecords(records, job)
+                            RecordCollection recordList = chunks.mapTo(RecordCollection.class);
+                            parseRecords(recordList.getRecords(), job)
                               .forEach(record -> updatedRecordsFuture.add(updateRecord(params, job, record)));
                             if ((offset > 0 ? (offset / DEF_CHUNK_NUMBER) : 1) == chunksNumber) {
                               CompositeFuture.all(updatedRecordsFuture)
@@ -125,25 +125,25 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param execution - job execution of record's parsing process
    * @return - list of records with parsed or error data
    */
-  private List<JsonObject> parseRecords(List<JsonObject> records, JobExecution execution) {
+  private List<Record> parseRecords(List<Record> records, JobExecution execution) {
+    if (records == null || records.isEmpty()) {
+      return new ArrayList<>(0);
+    }
     SourceRecordParser parser = SourceRecordParserBuilder.buildParser(getRecordFormatByJobExecution(execution));
-    for (JsonObject record : records) {
-      JsonObject sourceRecordObject = record.getJsonObject("sourceRecord");
+    for (Record record : records) {
+      SourceRecord sourceRecordObject = record.getSourceRecord();
       if (sourceRecordObject == null
-        || sourceRecordObject.getString("source") == null
-        || sourceRecordObject.getString("source").isEmpty()) {
+        || sourceRecordObject.getSource() == null
+        || sourceRecordObject.getSource().isEmpty()) {
         continue;
       }
-      ParsedResult parsedResult = parser.parseRecord(sourceRecordObject.getString("source"));
+      ParsedResult parsedResult = parser.parseRecord(sourceRecordObject.getSource());
       if (parsedResult.isHasError()) {
-        record.put("errorRecord", new JsonObject()
-          .put("content", sourceRecordObject.getValue("source"))
-          .put("description", parsedResult.getErrors().encode())
-        );
+        record.setErrorRecord(new ErrorRecord()
+          .withContent(sourceRecordObject.getSource())
+          .withDescription(parsedResult.getErrors().encode()));
       } else {
-        record.put("parsedRecord", new JsonObject()
-          .put("content", parsedResult.getParsedRecord().encode())
-        );
+        record.setParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       }
     }
     return records;
@@ -166,9 +166,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param jobExecution - job execution related to records
    * @param record       - record json object
    */
-  private Future<JobExecution> updateRecord(OkapiConnectionParams params, JobExecution jobExecution, JsonObject record) {
+  private Future<JobExecution> updateRecord(OkapiConnectionParams params, JobExecution jobExecution, Record record) {
     Future<JobExecution> future = Future.future();
-    RestUtil.doRequest(params, RECORD_SERVICE_URL + "/" + record.getString("id"), HttpMethod.PUT, record.encode())
+    RestUtil.doRequest(params, RECORD_SERVICE_URL + "/" + record.getId(), HttpMethod.PUT, record)
       .setHandler(updateResult -> {
         if (RestUtil.validateAsyncResult(updateResult, future)) {
           future.complete(jobExecution);

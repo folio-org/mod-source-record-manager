@@ -206,7 +206,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   /**
-   * Creates and returns list of Snapshot entities (represented as JsonObject) depending on received JobExecution entities.
+   * Creates and returns list of Snapshot entities depending on received JobExecution entities.
    * For each JobExecution signed by SINGLE_PARENT or CHILD status
    * method creates Snapshot entity.
    *
@@ -259,7 +259,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   /**
    * Performs post request with given Snapshot entity.
    *
-   * @param snapshot Snapshot entity (represented as JsonObject)
+   * @param snapshot Snapshot entity
    * @param params   object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
