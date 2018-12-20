@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -9,10 +8,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.dao.JobExecutionDao;
-import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.services.converters.Status;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.SourceRecordParser;
@@ -20,9 +17,6 @@ import org.folio.services.parsers.SourceRecordParserBuilder;
 import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,26 +25,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int DEF_CHUNK_NUMBER = 20;
-  private static final String HTTP_ERROR_MESSAGE = "Response HTTP code not equals 200. Response code: ";
+
   private static final String RECORD_SERVICE_URL = "/source-storage/record";
-  private static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
 
   private Vertx vertx;
   private String tenantId;
-  private JobExecutionDao jobExecutionDao;
+  private JobExecutionService jobExecutionService;
 
   public ChangeEngineServiceImpl(Vertx vertx, String tenantId) {
     this.vertx = vertx;
     this.tenantId = tenantId;
-    this.jobExecutionDao = new JobExecutionDaoImpl(vertx, tenantId);
+    this.jobExecutionService = new JobExecutionServiceImpl(vertx, tenantId);
   }
 
   @Override
   public Future<JobExecution> parseSourceRecordsForJobExecution(JobExecution job, OkapiConnectionParams params) {
     Future<JobExecution> future = Future.future();
     List<Future> updatedRecordsFuture = new ArrayList<>();
-    updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_IN_PROGRESS)
-      .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
+    jobExecutionService.updateJobExecutionStatus(job.getId(), new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params)
       .setHandler(updateResult -> {
         if (updateResult.failed()) {
           LOGGER.error("Error during updating status for jobExecution and Snapshot", updateResult.cause());
@@ -94,38 +86,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                             if ((offset > 0 ? (offset / DEF_CHUNK_NUMBER) : 1) == chunksNumber) {
                               CompositeFuture.all(updatedRecordsFuture)
                                 .setHandler(result -> {
+                                  StatusDto statusDto = new StatusDto();
                                   if (result.failed()) {
-                                    jobExecutionDao.getJobExecutionById(job.getId())
-                                      .setHandler(getJobExecutionResult -> {
-                                        if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
-                                          jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
-                                            .withErrorStatus(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR)
-                                            .withStatus(JobExecution.Status.ERROR)
-                                            .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.ERROR.value()).getUiStatus())))
-                                            .setHandler(updateJobStatusResult -> {
-                                              String message = "Can't update record in storage. jobId: " + job.getId();
-                                              LOGGER.error(message, result.cause());
-                                              future.fail(result.cause());
-                                            });
-                                        } else {
-                                          String message = "Can't load job execution for status updating. Error on snapshot update ID: "
-                                            + job.getId();
-                                          LOGGER.error(message, getJobExecutionResult.cause());
-                                          future.fail(getJobExecutionResult.cause());
-                                        }
-                                      });
+                                    statusDto
+                                      .withStatus(StatusDto.Status.ERROR)
+                                      .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+                                    LOGGER.error("Can't update record in storage. jobId: " + job.getId(), result.cause());
                                   } else {
-                                    updateJobExecutionStatus(job.getId(), JobExecution.Status.PARSING_FINISHED)
-                                      .compose(jobExecution -> updateSnapshotStatus(params, jobExecution))
-                                      .setHandler(statusUpdate -> {
-                                        if (statusUpdate.failed()) {
-                                          LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
-                                          future.fail(statusUpdate.cause());
-                                        } else {
-                                          future.complete(job);
-                                        }
-                                      });
+                                    statusDto
+                                      .withStatus(StatusDto.Status.PARSING_FINISHED);
                                   }
+                                  jobExecutionService.updateJobExecutionStatus(job.getId(), statusDto, params).setHandler(r -> {
+                                    if (r.failed()) {
+                                      LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
+                                      future.fail(r.cause());
+                                    } else {
+                                      future.complete(job);
+                                    }
+                                  });
                                 });
                             }
                           }
@@ -182,65 +160,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Load jobExecution from DB and update its status
-   *
-   * @param jobExecutionId - id of jobExecution
-   * @param status         - new status for jobExecution
-   * @return - updated job execution with new status
-   */
-  private Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, JobExecution.Status status) {
-    return jobExecutionDao.getJobExecutionById(jobExecutionId)
-      .compose(optionalJob -> optionalJob
-        .map(job -> jobExecutionDao.updateJobExecution(job.withStatus(status)
-          .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(status.value()).getUiStatus()))))
-        .orElseThrow(NotFoundException::new)
-      );
-  }
-
-  /**
-   * Update snapshot status in record-storage. If this operation is failed - update jobExecution status
-   *
-   * @param params       - okapi params for connecting record-storage
-   * @param jobExecution - jobExecution that relates to snapshot
-   */
-  private Future<JobExecution> updateSnapshotStatus(OkapiConnectionParams params, JobExecution jobExecution) {
-    Future<JobExecution> future = Future.future();
-    String url = SNAPSHOT_SERVICE_URL + "/" + jobExecution.getId();
-    RestUtil.doRequest(params, url, HttpMethod.GET, null)
-      .setHandler(getSnapshot -> {
-        if (validateAsyncResult(getSnapshot, future)) {
-          JsonObject snapshot = getSnapshot.result().getJson().put("status", jobExecution.getStatus().name());
-          RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot.encode()).setHandler(updateResult -> {
-            if (validateAsyncResult(updateResult, future)) {
-              future.complete(jobExecution);
-            } else {
-              jobExecutionDao.getJobExecutionById(jobExecution.getId())
-                .setHandler(getJobExecutionResult -> {
-                  if (getJobExecutionResult.succeeded() && getJobExecutionResult.result().isPresent()) {
-                    jobExecutionDao.updateJobExecution(getJobExecutionResult.result().get()
-                      .withErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR)
-                      .withStatus(JobExecution.Status.ERROR)
-                      .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.ERROR.value()).getUiStatus())))
-                      .setHandler(updateJobStatusResult -> {
-                        String message = "Can't update snapshot status. ID: " + jobExecution.getId();
-                        LOGGER.error(message);
-                        future.fail(message);
-                      });
-                  } else {
-                    String message = "Can't load job execution for status updating. Error on snapshot update ID: "
-                      + jobExecution.getId();
-                    LOGGER.error(message);
-                    future.fail(message);
-                  }
-                });
-            }
-          });
-        }
-      });
-    return future;
-  }
-
-  /**
    * Update record entity in record-storage
    *
    * @param params       - okapi params for connecting record-storage
@@ -251,43 +170,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<JobExecution> future = Future.future();
     RestUtil.doRequest(params, RECORD_SERVICE_URL + "/" + record.getString("id"), HttpMethod.PUT, record.encode())
       .setHandler(updateResult -> {
-        if (validateAsyncResult(updateResult, future)) {
+        if (RestUtil.validateAsyncResult(updateResult, future)) {
           future.complete(jobExecution);
         }
       });
     return future;
-  }
-
-  /**
-   * Validate http response and fail future if need
-   *
-   * @param asyncResult - http response callback
-   * @param future      - future of callback
-   * @return - boolean value is response ok
-   */
-  private boolean validateAsyncResult(AsyncResult<RestUtil.WrappedResponse> asyncResult, Future future) {
-    if (asyncResult.failed()) {
-      LOGGER.error("Error during HTTP request to source-storage", asyncResult.cause());
-      future.fail(asyncResult.cause());
-      return false;
-    } else if (asyncResult.result() == null) {
-      LOGGER.error("Error during get response from source-storage");
-      future.fail(new BadRequestException());
-      return false;
-    } else if (asyncResult.result().getCode() == 404) {
-      LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
-      future.fail(new NotFoundException());
-      return false;
-    } else if (asyncResult.result().getCode() == 500) {
-      LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
-      future.fail(new InternalServerErrorException());
-      return false;
-    } else if (asyncResult.result().getCode() == 200 || asyncResult.result().getCode() == 201) {
-      return true;
-    }
-    LOGGER.error(HTTP_ERROR_MESSAGE + asyncResult.result().getCode());
-    future.fail(new BadRequestException());
-    return false;
   }
 
   /**
