@@ -1,11 +1,9 @@
 package org.folio.services;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionDao;
@@ -83,7 +81,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
       List<JobExecution> jobExecutions =
         prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId());
-      List<JsonObject> snapshots = prepareSnapshotList(jobExecutions);
+      List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
 
       Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions);
       Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
@@ -103,11 +101,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
             return jobExecutionDao.updateJobExecution(jobExecution)
               .compose(updated -> jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId())
-              .compose(children -> updateChildJobExecutions(children.getJobExecutions(), jobExecution))
-              .compose(succeeded -> succeeded ?
-                Future.succeededFuture(jobExecution) :
-                Future.failedFuture(new InternalServerErrorException(
-                  String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId())))));
+                .compose(children -> updateChildJobExecutions(children.getJobExecutions(), jobExecution))
+                .compose(succeeded -> succeeded ?
+                  Future.succeededFuture(jobExecution) :
+                  Future.failedFuture(new InternalServerErrorException(
+                    String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId())))));
           } else {
             return jobExecutionDao.updateJobExecution(jobExecution);
           }
@@ -145,6 +143,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       try {
         jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
         jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
+        if (status.getStatus().equals(StatusDto.Status.ERROR)) {
+          jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+        }
         future.complete(jobExecution);
       } catch (Exception e) {
         String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
@@ -171,58 +172,56 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
       for (File file : files) {
-        JobExecution child = new JobExecution()
-          .withId(UUID.randomUUID().toString())
-          .withParentJobId(parentJobExecutionId)
-          .withSubordinationType(JobExecution.SubordinationType.CHILD)
-          .withStatus(JobExecution.Status.NEW)
-          .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
-          .withSourcePath(file.getName())
-          .withUserId(userId);
-        result.add(child);
+        result.add(buildNewJobExecution(false, false, parentJobExecutionId, file.getName(), userId));
       }
-      JobExecution parentMultiple = new JobExecution()
-        .withId(parentJobExecutionId)
-        .withParentJobId(parentJobExecutionId)
-        .withSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(JobExecution.Status.PARENT)
-        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()))
-        .withUserId(userId);
-      result.add(parentMultiple);
+      result.add(buildNewJobExecution(true, false, parentJobExecutionId, null, userId));
     } else {
       File file = files.get(0);
-      JobExecution parentSingle = new JobExecution()
-        .withId(parentJobExecutionId)
-        .withParentJobId(parentJobExecutionId)
-        .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
-        .withStatus(JobExecution.Status.NEW)
-        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()))
-        .withSourcePath(file.getName())
-        .withUserId(userId);
-      result.add(parentSingle);
+      result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
     }
     return result;
   }
 
   /**
-   * Creates and returns list of Snapshot entities (represented as JsonObject) depending on received JobExecution entities.
+   * Create new JobExecution object and fill fields
+   */
+  private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, String parentJobExecutionId, String fileName, String userId) {
+    JobExecution job = new JobExecution()
+      .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
+      .withParentJobId(parentJobExecutionId)
+      .withSourcePath(fileName)
+      .withUserId(userId);
+    if (!isParent) {
+      job.withSubordinationType(JobExecution.SubordinationType.CHILD)
+        .withStatus(JobExecution.Status.NEW)
+        .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
+    } else {
+      job.withSubordinationType(isSingle ? JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
+        .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
+        .withUiStatus(isSingle ?
+          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus())
+          : JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+    }
+    return job;
+  }
+
+  /**
+   * Creates and returns list of Snapshot entities depending on received JobExecution entities.
    * For each JobExecution signed by SINGLE_PARENT or CHILD status
    * method creates Snapshot entity.
    *
    * @param jobExecutions list of JobExecution entities
-   * @return returns list of Snapshot entities (represented as JsonObject)
+   * @return returns list of Snapshot entities
    */
-  private List<JsonObject> prepareSnapshotList(List<JobExecution> jobExecutions) {
-    List<JsonObject> jsonSnapshots = new ArrayList<>();
+  private List<Snapshot> prepareSnapshotList(List<JobExecution> jobExecutions) {
+    List<Snapshot> snapshotList = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
       if (!JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExecution.getSubordinationType())) {
-        JsonObject jsonSnapshot = new JsonObject();
-        jsonSnapshot.put("jobExecutionId", jobExecution.getId());
-        jsonSnapshot.put("status", JobExecution.Status.NEW.name());
-        jsonSnapshots.add(jsonSnapshot);
+        snapshotList.add(new Snapshot().withJobExecutionId(jobExecution.getId())
+          .withStatus(Snapshot.Status.NEW));
       }
     }
-    return jsonSnapshots;
+    return snapshotList;
   }
 
   /**
@@ -248,9 +247,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param params    object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
-  private Future saveSnapshots(List<JsonObject> snapshots, OkapiConnectionParams params) {
+  private Future saveSnapshots(List<Snapshot> snapshots, OkapiConnectionParams params) {
     List<Future> postedSnapshotFutures = new ArrayList<>();
-    for (JsonObject snapshot : snapshots) {
+    for (Snapshot snapshot : snapshots) {
       Future<String> postedSnapshotFuture = postSnapshot(snapshot, params);
       postedSnapshotFutures.add(postedSnapshotFuture);
     }
@@ -260,13 +259,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   /**
    * Performs post request with given Snapshot entity.
    *
-   * @param snapshot Snapshot entity (represented as JsonObject)
+   * @param snapshot Snapshot entity
    * @param params   object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
-  private Future<String> postSnapshot(JsonObject snapshot, OkapiConnectionParams params) {
+  private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
     Future<String> future = Future.future();
-    RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot.encode())
+    RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot)
       .setHandler(responseResult -> {
         try {
           if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != CREATED_STATUS_CODE) {
@@ -306,58 +305,26 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
       .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
-    RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot).setHandler(updateResult -> {
-      if (isValidAsyncResult(updateResult, future)) {
-        future.complete(jobExecution);
-      } else {
-        jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
-          Future<JobExecution> jobExecutionFuture = Future.future();
-          jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
-          jobExec.setStatus(JobExecution.Status.ERROR);
-          jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
-          jobExecutionFuture.complete(jobExec);
-          return jobExecutionFuture;
-        }).setHandler(jobExecutionUpdate -> {
-          String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
-          LOGGER.error(message);
-          future.fail(message);
-        });
-      }
-    });
+    RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot)
+      .setHandler(updateResult -> {
+        if (RestUtil.validateAsyncResult(updateResult, future)) {
+          future.complete(jobExecution);
+        } else {
+          jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
+            Future<JobExecution> jobExecutionFuture = Future.future();
+            jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
+            jobExec.setStatus(JobExecution.Status.ERROR);
+            jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
+            jobExecutionFuture.complete(jobExec);
+            return jobExecutionFuture;
+          }).setHandler(jobExecutionUpdate -> {
+            String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
+            LOGGER.error(message);
+            future.fail(message);
+          });
+        }
+      });
     return future;
-  }
-
-  /**
-   * Validate http response and fail future if necessary
-   *
-   * @param asyncResult - http response callback
-   * @param future      - future of callback
-   * @return - boolean value is response ok
-   */
-  private boolean isValidAsyncResult(AsyncResult<RestUtil.WrappedResponse> asyncResult, Future future) {
-    String httpErrorMessage = "HTTP response code is not OK. Actual response code: ";
-    if (asyncResult.failed()) {
-      LOGGER.error("Error during HTTP request to source-storage", asyncResult.cause());
-      future.fail(asyncResult.cause());
-      return false;
-    } else if (asyncResult.result() == null) {
-      LOGGER.error("Error during get response from source-storage");
-      future.fail(new BadRequestException());
-      return false;
-    } else if (asyncResult.result().getCode() == 404) {
-      LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
-      future.fail(new NotFoundException());
-      return false;
-    } else if (asyncResult.result().getCode() == 500) {
-      LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
-      future.fail(new InternalServerErrorException());
-      return false;
-    } else if (asyncResult.result().getCode() == 200 || asyncResult.result().getCode() == 201) {
-      return true;
-    }
-    LOGGER.error(httpErrorMessage + asyncResult.result().getCode());
-    future.fail(new BadRequestException());
-    return false;
   }
 
 }
