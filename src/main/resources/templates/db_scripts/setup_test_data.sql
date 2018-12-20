@@ -1,6 +1,9 @@
 INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
 ('5cff8cbd-ecb3-404c-8eef-fa030d3579ea', '{
-    "jobProfileName": "Authority updates",
+    "profile": {
+      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Authority updates"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import7.marc",
     "id": "5cff8cbd-ecb3-404c-8eef-fa030d3579ea",
@@ -19,7 +22,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-21T00:38:44.000"
   }'),
 ('63a30136-06cb-405b-be72-f4d001614b4f', '{
-    "jobProfileName": "Authority updates",
+    "profile": {
+      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Authority updates"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import8.marc",
     "id": "63a30136-06cb-405b-be72-f4d001614b4f",
@@ -38,7 +44,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
 ('cc64986d-ec72-4b01-a3fd-1762f950e49a', '{
-    "jobProfileName": "Marc bib jobs",
+    "profile": {
+      "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Marc bib jobs"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_156.mrc",
     "id": "cc64986d-ec72-4b01-a3fd-1762f950e49a",
@@ -57,7 +66,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('e6219fe2-abbc-47b6-afe4-8910d49fc337', '{
-    "jobProfileName": "Marc jobs",
+    "profile": {
+      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Marc jobs"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_209.mrc",
     "id": "e6219fe2-abbc-47b6-afe4-8910d49fc337",
@@ -76,7 +88,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('28f53010-a9d9-4f96-8f81-04a0549554d0', '{
-    "jobProfileName": "Marc bib",
+    "profile": {
+      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Marc jobs"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_159.mrc",
     "id": "28f53010-a9d9-4f96-8f81-04a0549554d0",
@@ -95,7 +110,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('d2b29a0c-3862-456e-9236-d14d33a4accb', '{
-    "jobProfileName": "Library indexing",
+    "profile": {
+      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_150.mrc",
     "id": "d2b29a0c-3862-456e-9236-d14d33a4accb",
@@ -114,7 +132,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('469eba83-41d1-4161-bd1a-0f46d8764c6a', '{
-    "jobProfileName": "Library indexing",
+    "profile": {
+      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_102.mrc",
     "id": "469eba83-41d1-4161-bd1a-0f46d8764c6a",
@@ -133,7 +154,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('2f42bcfa-9ad1-492d-a2b4-280020345f64', '{
-    "jobProfileName": "Standard BIB Import",
+    "profile": {
+      "id": "zd5000gh-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB Import"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBIB017.marc",
     "id": "2f42bcfa-9ad1-492d-a2b4-280020345f64",
@@ -152,7 +176,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-21T00:01:17.000"
   }'),
 ('bf75b55e-12de-4329-ad75-879cc9ec8e34', '{
-    "jobProfileName": "BIB Import from Boston",
+    "profile": {
+      "id": "sd5nl8i0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "BIB Import from Boston"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBoston.marc",
     "id": "bf75b55e-12de-4329-ad75-879cc9ec8e34",
@@ -171,7 +198,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
 ('78d4a7de-0677-40fb-875e-588ef87628c9', '{
-    "jobProfileName": "Main bib jobs (MARC)",
+    "profile": {
+      "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Main bib jobs (MARC)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_332.mrc",
     "id": "78d4a7de-0677-40fb-875e-588ef87628c9",
@@ -190,7 +220,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('2bec675c-f605-4622-8a59-b43385181d7e', '{
-    "jobProfileName": "Main bib jobs (MARC)",
+    "profile": {
+      "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Main bib jobs (MARC)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_211.mrc",
     "id": "2bec675c-f605-4622-8a59-b43385181d7e",
@@ -209,7 +242,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('3a560d98-10bd-4b29-a172-6cfc15a1420f', '{
-    "jobProfileName": "Custom (CH) Marc bib",
+    "profile": {
+      "id": "as3vhml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Custom (CH) Marc bib"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "Supplier32_import_88.mrc",
     "id": "3a560d98-10bd-4b29-a172-6cfc15a1420f",
@@ -228,7 +264,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('bd4e22fd-799a-4fc3-9a2c-a17379921df7', '{
-    "jobProfileName": "Library indexing",
+    "profile": {
+      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx.mrc",
     "id": "bd4e22fd-799a-4fc3-9a2c-a17379921df7",
@@ -247,7 +286,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('7ca6e90e-ec2a-444f-a442-ccb65d88699e', '{
-    "jobProfileName": "Library indexing",
+    "profile": {
+      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx_unq.mrc",
     "id": "7ca6e90e-ec2a-444f-a442-ccb65d88699e",
@@ -270,12 +312,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "13414",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_1.mrc",
     "runBy": {
-       "firstName": "Luke",
-       "lastName": "Mcdonald"
+      "firstName": "Luke",
+      "lastName": "Mcdonald"
     },
     "progress": {
       "current": 1000,
@@ -289,12 +334,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "BIB profile with customized Holdings",
+    "profile": {
+      "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "BIB profile with customized Holdings"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_2.mrc",
     "runBy": {
-       "firstName": "Max",
-       "lastName": "Fraser"
+      "firstName": "Max",
+      "lastName": "Fraser"
     },
     "progress": {
       "current": 1000,
@@ -308,12 +356,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "33112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Christie`s profile for CPL",
+    "profile": {
+      "id": "ffvb6yuj-3ec4-45cb-9846-9fd4b9773116",
+      "name": "Christie`s profile for CPL"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_3.mrc",
     "runBy": {
-       "firstName": "Ollie",
-       "lastName": "Rogers"
+      "firstName": "Ollie",
+      "lastName": "Rogers"
     },
     "progress": {
       "current": 1000,
@@ -327,12 +378,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "47906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "MIT Orders",
+    "profile": {
+      "id": "fgtt56z1-c31b-4d0f-8307-18703af07aed",
+      "name": "MIT Orders"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_4.mrc",
     "runBy": {
-       "firstName": "Patrick",
-       "lastName": "Griffiths"
+      "firstName": "Patrick",
+      "lastName": "Griffiths"
     },
     "progress": {
       "current": 1000,
@@ -346,12 +400,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "48906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile with fixes for Items (HU)",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile with fixes for Items (HU)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_5.mrc",
     "runBy": {
-       "firstName": "Zac",
-       "lastName": "White"
+      "firstName": "Zac",
+      "lastName": "White"
     },
     "progress": {
       "current": 1000,
@@ -365,12 +422,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "58906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Obsolete BIB profile for backward compatibility",
+    "profile": {
+        "id": "zdf44qo0-1caf-4470-9ad1-d533f6360bdd",
+        "name": "Obsolete BIB profile for backward compatibility"
+    },
     "sourcePath": "import_6.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Marc",
-       "lastName": "Ruiz"
+      "firstName": "Marc",
+      "lastName": "Ruiz"
     },
     "progress": {
       "current": 1000,
@@ -384,12 +444,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "68551",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "New Holdings (Beta.2 Use carefully)",
+    "profile": {
+      "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
+      "name": "New Holdings (Beta.2 Use carefully)"
+    },
     "sourcePath": "import_7.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Yehuda",
-       "lastName": "Sharp"
+      "firstName": "Yehuda",
+      "lastName": "Sharp"
     },
     "progress": {
       "current": 1000,
@@ -403,12 +466,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "75671",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Marc BIB-001 Jonathan test",
+    "profile": {
+      "id": "aasxcv31-1f29-4e7b-b45c-81660644028e",
+      "name": "Marc BIB-001 Jonathan test"
+    },
     "sourcePath": "import_8.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Callan",
-       "lastName": "Nunez"
+      "firstName": "Callan",
+      "lastName": "Nunez"
     },
     "progress": {
       "current": 1000,
@@ -422,12 +488,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "81123",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile"
+    },
     "sourcePath": "import_9.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Riley",
-       "lastName": "Haynes"
+      "firstName": "Riley",
+      "lastName": "Haynes"
     },
     "progress": {
       "current": 1000,
@@ -441,12 +510,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "91124",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile"
+    },
     "sourcePath": "import_10.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Jaylin",
-       "lastName": "Daniels"
+      "firstName": "Jaylin",
+      "lastName": "Daniels"
     },
     "progress": {
       "current": 1000,
@@ -460,12 +532,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "10556",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Simple BIB profile (description update)",
+    "profile": {
+      "id": "zzfky881-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Simple BIB profile (description update)"
+    },
     "sourcePath": "import_11.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Oscar",
-       "lastName": "Edwards"
+      "firstName": "Oscar",
+      "lastName": "Edwards"
     },
     "progress": {
       "current": 1000,
@@ -479,12 +554,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "11250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile (Instances only)",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile (Instances only)"
+    },
     "sourcePath": "import_12.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Theo",
-       "lastName": "Newman"
+      "firstName": "Theo",
+      "lastName": "Newman"
     },
     "progress": {
       "current": 1000,
@@ -498,12 +576,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "52250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "FOLIO Default",
+    "profile": {
+      "id": "zs99fhn1-31d1-4838-8c56-cb3cb97f7892",
+      "name": "FOLIO Default"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_13.mrc",
     "runBy": {
-       "firstName": "Connor",
-       "lastName": "Simpson"
+      "firstName": "Connor",
+      "lastName": "Simpson"
     },
     "progress": {
       "current": 1000,
@@ -517,12 +598,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "13250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Charlotte`s Core Case with Fixes",
+    "profile": {
+      "id": "as55nm80-31d1-4838-8c56-cb3cb97f7892",
+      "name": "Charlotte`s Core Case with Fixes"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_14.mrc",
     "runBy": {
-       "firstName": "Dominic",
-       "lastName": "Nicholson"
+      "firstName": "Dominic",
+      "lastName": "Nicholson"
     },
     "progress": {
       "current": 1000,
@@ -536,12 +620,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "14250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Pearson new data",
+    "profile": {
+      "id": "zxkd7789-31d1-4838-8c56-cb3cb97f7892",
+      "name": "Pearson new data"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_15.mrc",
     "runBy": {
-       "firstName": "Oscar",
-       "lastName": "Butler"
+      "firstName": "Oscar",
+      "lastName": "Butler"
     },
     "progress": {
       "current": 1000,
@@ -555,7 +642,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "15150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Thomson Reuters standard",
+    "profile": {
+      "id": "ffg60001-31d1-4838-8c56-cb3cb97f7892",
+      "name": "Thomson Reuters standard"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_16.mrc",
     "runBy": {
@@ -574,7 +664,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "16150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_17.mrc",
     "runBy": {
@@ -593,12 +686,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "17091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Annual registry update profile",
+    "profile": {
+      "id": "sd44100z-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Annual registry update profile"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_18.mrc",
     "runBy": {
-       "firstName": "Amir",
-       "lastName": "Cox"
+      "firstName": "Amir",
+      "lastName": "Cox"
     },
     "progress": {
       "current": 1000,
@@ -612,12 +708,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "18091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Outdated! DO NOT USE (Just Special Cases!)",
+    "profile": {
+      "id": "dftt6711-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Outdated! DO NOT USE (Just Special Cases!)"
+    },
     "sourcePath": "import_19.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Kingston",
-       "lastName": "Forbes"
+      "firstName": "Kingston",
+      "lastName": "Forbes"
     },
     "progress": {
       "current": 1000,
@@ -631,7 +730,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "18591",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "BIB profile with customized Holdings",
+    "profile": {
+      "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
+      "name": "BIB profile with customized Holdings"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_20.mrc",
     "runBy": {
@@ -650,12 +752,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "19091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "BIB profile with new Holdings & Items",
+    "profile": {
+      "id": "dfvv6yj0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "BIB profile with new Holdings & Items"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_21.mrc",
     "runBy": {
-       "firstName": "Brandon",
-       "lastName": "Marshall"
+      "firstName": "Brandon",
+      "lastName": "Marshall"
     },
     "progress": {
       "current": 1000,
@@ -669,12 +774,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "20091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_22.mrc",
     "runBy": {
-       "firstName": "Elliot",
-       "lastName": "Lane"
+      "firstName": "Elliot",
+      "lastName": "Lane"
     },
     "progress": {
       "current": 1000,
@@ -688,12 +796,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "21091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Marc bib jobs",
+    "profile": {
+      "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Marc bib jobs"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_23.mrc",
     "runBy": {
-       "firstName": "Jackson",
-       "lastName": "Adams"
+      "firstName": "Jackson",
+      "lastName": "Adams"
     },
     "progress": {
       "current": 1000,
@@ -707,12 +818,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "22091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "New Holdings (Beta.2 Use carefully)",
+    "profile": {
+      "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
+      "name": "New Holdings (Beta.2 Use carefully)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_24.mrc",
     "runBy": {
-       "firstName": "Hayden",
-       "lastName": "Smith"
+      "firstName": "Hayden",
+      "lastName": "Smith"
     },
     "progress": {
       "current": 1000,
@@ -726,7 +840,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "27091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "jobProsourcePath": "Standard BIB profile (2019 Q1 Beta test)",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile (2019 Q1 Beta test)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_25.mrc",
     "runBy": {
@@ -745,7 +862,10 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23191",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "jobProsourcePath": "Semi-Valid test profile (NYPL Check)",
+    "profile": {
+      "id": "zxc4rffz-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Semi-Valid test profile (NYPL Check)"
+    },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_26.mrc",
     "runBy": {
@@ -764,12 +884,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23291",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "jobProsourcePath": "Standard BIB profile (2019 Q1 Beta test)",
+    "profile": {
+      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Standard BIB profile (2019 Q1 Beta test)"
+    },
     "sourcePath": "import_27.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Vlad",
-       "lastName": "Reinhold"
+      "firstName": "Vlad",
+      "lastName": "Reinhold"
     },
     "progress": {
       "current": 0,
@@ -783,12 +906,15 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23391",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "jobProsourcePath": "Multilingual support check",
+    "profile": {
+      "id": "ssdvy7qq-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Multilingual support check"
+    },
     "sourcePath": "import_28.mrc",
     "subordinationType": "PARENT_SINGLE",
     "runBy": {
-       "firstName": "Ozzy",
-       "lastName": "Campenshtorm"
+      "firstName": "Ozzy",
+      "lastName": "Campenshtorm"
     },
     "progress": {
       "current": 0,
