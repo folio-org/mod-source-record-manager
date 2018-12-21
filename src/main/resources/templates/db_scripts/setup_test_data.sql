@@ -307,6 +307,94 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:50:44.000",
     "completedDate": ""
   }'),
+('zxc5tgb7-ec2a-444f-a442-ccb65d88699e', '{
+    "profile": {
+      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
+    "subordinationType": "PARENT_SINGLE",
+    "sourcePath": "import_idx_unq.mrc",
+    "id": "zxc5tgb7-ec2a-444f-a442-ccb65d88699e",
+    "hrId": "637483981",
+    "status": "COMMIT_IN_PROGRESS",
+    "uiStatus": "RUNNING",
+    "runBy": {
+      "firstName": "Preston",
+      "lastName": "Walker"
+    },
+    "progress": {
+      "current": 33,
+      "total": 3387
+    },
+    "startedDate": "2018-12-21T10:50:44.000",
+    "completedDate": ""
+  }'),
+('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
+    "profile": {
+      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
+    "subordinationType": "PARENT_SINGLE",
+    "sourcePath": "import_idx.mrc",
+    "id": "zxc44m00-ec2a-444f-a442-ccb65d88699e",
+    "hrId": "789311094",
+    "status": "COMMIT_IN_PROGRESS",
+    "uiStatus": "RUNNING",
+    "runBy": {
+      "firstName": "Preston",
+      "lastName": "Walker"
+    },
+    "progress": {
+      "current": 1192,
+      "total": 2290
+    },
+    "startedDate": "2018-12-21T09:10:14.000",
+    "completedDate": ""
+  }'),
+('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
+    "profile": {
+      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
+    "subordinationType": "PARENT_SINGLE",
+    "sourcePath": "import_indexes.mrc",
+    "id": "zxc44m00-ec2a-444f-a442-ccb65d88699e",
+    "hrId": "128890210",
+    "status": "COMMIT_IN_PROGRESS",
+    "uiStatus": "RUNNING",
+    "runBy": {
+      "firstName": "Preston",
+      "lastName": "Walker"
+    },
+    "progress": {
+      "current": 998,
+      "total": 2533
+    },
+    "startedDate": "2018-12-21T09:55:05.000",
+    "completedDate": ""
+  }'),
+('67hhjkl1-ec2a-444f-a442-ccb65d88699e', '{
+    "profile": {
+      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "name": "Library indexing"
+    },
+    "subordinationType": "PARENT_SINGLE",
+    "sourcePath": "import_idx_332.mrc",
+    "id": "67hhjkl1-ec2a-444f-a442-ccb65d88699e",
+    "hrId": "441098214",
+    "status": "COMMIT_IN_PROGRESS",
+    "uiStatus": "RUNNING",
+    "runBy": {
+      "firstName": "Preston",
+      "lastName": "Walker"
+    },
+    "progress": {
+      "current": 231,
+      "total": 1088
+    },
+    "startedDate": "2018-12-21T09:33:13.000",
+    "completedDate": ""
+  }'),
 ('c86362e7-1276-4037-a070-66d3040385e3', '{
     "id": "c86362e7-1276-4037-a070-66d3040385e3",
     "hrId": "13414",
