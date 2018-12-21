@@ -293,7 +293,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private Future<Boolean> updateChildJobExecutions(List<JobExecution> children, JobExecution parent) {
     List<Future> futures = new ArrayList<>();
     for (JobExecution child : children) {
-      child.setJobProfileName(parent.getJobProfileName());
+      child.setProfile(parent.getProfile());
       futures.add(jobExecutionDao.updateJobExecution(child));
     }
     return CompositeFuture.all(futures).map(Future::succeeded);

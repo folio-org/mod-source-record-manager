@@ -3,8 +3,11 @@
     {
       "id": "fgbnm001-1caf-4470-9ad1-d533f6360bdd",
       "hrId": "17782",
-      "jobProfileId": "1",
-      "parentJobId": "0",
+      "profile": {
+        "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+        "name": "Marc files profile"
+      },
+      "parentJobId": "12gb700q-1caf-4470-9ad1-d533f6360bdd",
       "subordinationType": "CHILD",
       "sourcePath": "C:\\import\\files\\import_1.csv",
       "runBy": {
@@ -19,8 +22,11 @@
     {
       "id": "zrrg6nm1-1caf-4470-9ad1-d533f6360bdd",
       "hrId": "24001",
-      "jobProfileId": "1",
-      "parentJobId": "0",
+      "profile": {
+        "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+         "name": "Marc files profile"
+      },
+      "parentJobId": "12gb700q-1caf-4470-9ad1-d533f6360bdd",
       "subordinationType": "CHILD",
       "sourcePath": "C:\\import\files\\import_1.csv",
       "runBy": {

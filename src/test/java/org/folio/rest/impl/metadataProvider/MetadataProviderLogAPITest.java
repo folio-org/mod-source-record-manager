@@ -16,6 +16,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.LogDto;
+import org.folio.rest.jaxrs.model.Profile;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,7 +114,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     JobExecution expectedCommittedChild = createdJobExecutions.get(0);
     Assert.assertEquals(PARENT_SINGLE, expectedCommittedChild.getSubordinationType());
     expectedCommittedChild.setStatus(COMMITTED);
-    expectedCommittedChild.setJobProfileName(profileName);
+    expectedCommittedChild.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
 
     putJobExecution(expectedCommittedChild)
       .then()
@@ -143,7 +144,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).findFirst().get();
 
     expectedCommittedChild.setStatus(COMMITTED);
-    expectedCommittedChild.setJobProfileName(profileName);
+    expectedCommittedChild.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
 
     putJobExecution(expectedCommittedChild)
       .then()
@@ -176,7 +177,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     for (JobExecution createdJobExecution : createdJobExecutions) {
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -223,7 +224,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     for (JobExecution createdJobExecution : createdJobExecutions) {
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -259,7 +260,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       JobExecution createdJobExecution = createdJobExecutions.get(i);
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
         createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
         expectedCommittedChildren.add(createdJobExecution);
       }
@@ -299,7 +300,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       JobExecution createdJobExecution = createdJobExecutions.get(i);
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -339,7 +340,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         } else {
           createdJobExecution.setStatus(ERROR);
         }
-        createdJobExecution.setJobProfileName(profileName);
+        createdJobExecution.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName(profileName));
         createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
         expectedLogs.add(createdJobExecution);
       }

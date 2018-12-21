@@ -35,7 +35,7 @@ public class JobExecutionToLogDtoConverterUnitTest extends JobExecutionToDtoConv
     LogDto logDto = collectionDtoList.get(0);
     Assert.assertEquals(logDto.getJobExecutionId(), jobExecutionEntity.getId());
     Assert.assertEquals(logDto.getJobExecutionHrId(), jobExecutionEntity.getHrId());
-    Assert.assertEquals(logDto.getJobProfileName(), jobExecutionEntity.getJobProfileName());
+    Assert.assertEquals(logDto.getJobProfileName(), jobExecutionEntity.getProfile().getName());
     Assert.assertEquals(logDto.getRunBy().getFirstName(), jobExecutionEntity.getRunBy().getFirstName());
     Assert.assertEquals(logDto.getRunBy().getLastName(), jobExecutionEntity.getRunBy().getLastName());
     Assert.assertEquals(logDto.getFileName(), jobExecutionEntity.getSourcePath());
