@@ -47,7 +47,7 @@ public class JobExecutionToDtoConverterUnitTest {
     Assert.assertEquals(jobExecutionDto.getCompletedDate(), jobExecutionEntity.getCompletedDate());
     Assert.assertEquals(jobExecutionDto.getStatus().name(), jobExecutionEntity.getStatus().name());
     Assert.assertEquals(jobExecutionDto.getUiStatus().name(), jobExecutionEntity.getUiStatus().name());
-    Assert.assertEquals(jobExecutionDto.getJobProfileName(), jobExecutionEntity.getProfile().getName());
+    Assert.assertEquals(jobExecutionDto.getJobProfileName(), jobExecutionEntity.getJobProfile().getName());
     // TODO assert progress properly
   }
 
