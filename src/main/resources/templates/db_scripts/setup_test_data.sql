@@ -1,6 +1,6 @@
 INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
 ('5cff8cbd-ecb3-404c-8eef-fa030d3579ea', '{
-    "profile": {
+    "jobProfile": {
       "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
       "name": "Authority updates"
     },
@@ -22,7 +22,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-21T00:38:44.000"
   }'),
 ('63a30136-06cb-405b-be72-f4d001614b4f', '{
-    "profile": {
+    "jobProfile": {
       "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
       "name": "Authority updates"
     },
@@ -44,7 +44,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
 ('cc64986d-ec72-4b01-a3fd-1762f950e49a', '{
-    "profile": {
+    "jobProfile": {
       "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
       "name": "Marc bib jobs"
     },
@@ -66,7 +66,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('e6219fe2-abbc-47b6-afe4-8910d49fc337', '{
-    "profile": {
+    "jobProfile": {
       "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
       "name": "Marc jobs"
     },
@@ -88,7 +88,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('28f53010-a9d9-4f96-8f81-04a0549554d0', '{
-    "profile": {
+    "jobProfile": {
       "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
       "name": "Marc jobs"
     },
@@ -110,7 +110,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('d2b29a0c-3862-456e-9236-d14d33a4accb', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -132,7 +132,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('469eba83-41d1-4161-bd1a-0f46d8764c6a', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -154,7 +154,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('2f42bcfa-9ad1-492d-a2b4-280020345f64', '{
-    "profile": {
+    "jobProfile": {
       "id": "zd5000gh-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB Import"
     },
@@ -176,7 +176,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-21T00:01:17.000"
   }'),
 ('bf75b55e-12de-4329-ad75-879cc9ec8e34', '{
-    "profile": {
+    "jobProfile": {
       "id": "sd5nl8i0-1caf-4470-9ad1-d533f6360bdd",
       "name": "BIB Import from Boston"
     },
@@ -198,7 +198,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
 ('78d4a7de-0677-40fb-875e-588ef87628c9', '{
-    "profile": {
+    "jobProfile": {
       "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
       "name": "Main bib jobs (MARC)"
     },
@@ -220,7 +220,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('2bec675c-f605-4622-8a59-b43385181d7e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
       "name": "Main bib jobs (MARC)"
     },
@@ -242,7 +242,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('3a560d98-10bd-4b29-a172-6cfc15a1420f', '{
-    "profile": {
+    "jobProfile": {
       "id": "as3vhml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Custom (CH) Marc bib"
     },
@@ -264,7 +264,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('bd4e22fd-799a-4fc3-9a2c-a17379921df7', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -286,7 +286,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('7ca6e90e-ec2a-444f-a442-ccb65d88699e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -308,7 +308,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('zxc5tgb7-ec2a-444f-a442-ccb65d88699e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -330,7 +330,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -352,7 +352,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -374,7 +374,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "completedDate": ""
   }'),
 ('67hhjkl1-ec2a-444f-a442-ccb65d88699e', '{
-    "profile": {
+    "jobProfile": {
       "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
       "name": "Library indexing"
     },
@@ -400,7 +400,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "13414",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile"
     },
@@ -422,7 +422,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
       "name": "BIB profile with customized Holdings"
     },
@@ -444,7 +444,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "33112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ffvb6yuj-3ec4-45cb-9846-9fd4b9773116",
       "name": "Christie`s profile for CPL"
     },
@@ -466,7 +466,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "47906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "fgtt56z1-c31b-4d0f-8307-18703af07aed",
       "name": "MIT Orders"
     },
@@ -488,7 +488,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "48906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile with fixes for Items (HU)"
     },
@@ -510,7 +510,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "58906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
         "id": "zdf44qo0-1caf-4470-9ad1-d533f6360bdd",
         "name": "Obsolete BIB profile for backward compatibility"
     },
@@ -532,7 +532,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "68551",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
       "name": "New Holdings (Beta.2 Use carefully)"
     },
@@ -554,7 +554,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "75671",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "aasxcv31-1f29-4e7b-b45c-81660644028e",
       "name": "Marc BIB-001 Jonathan test"
     },
@@ -576,7 +576,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "81123",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile"
     },
@@ -598,7 +598,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "91124",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile"
     },
@@ -620,7 +620,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "10556",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "zzfky881-1caf-4470-9ad1-d533f6360bdd",
       "name": "Simple BIB profile (description update)"
     },
@@ -642,7 +642,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "11250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile (Instances only)"
     },
@@ -664,7 +664,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "52250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "zs99fhn1-31d1-4838-8c56-cb3cb97f7892",
       "name": "FOLIO Default"
     },
@@ -686,7 +686,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "13250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "as55nm80-31d1-4838-8c56-cb3cb97f7892",
       "name": "Charlotte`s Core Case with Fixes"
     },
@@ -708,7 +708,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "14250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "zxkd7789-31d1-4838-8c56-cb3cb97f7892",
       "name": "Pearson new data"
     },
@@ -730,7 +730,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "15150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ffg60001-31d1-4838-8c56-cb3cb97f7892",
       "name": "Thomson Reuters standard"
     },
@@ -752,7 +752,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "16150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile"
     },
@@ -774,7 +774,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "17091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "sd44100z-1caf-4470-9ad1-d533f6360bdd",
       "name": "Annual registry update profile"
     },
@@ -796,7 +796,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "18091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "dftt6711-1caf-4470-9ad1-d533f6360bdd",
       "name": "Outdated! DO NOT USE (Just Special Cases!)"
     },
@@ -818,7 +818,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "18591",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
       "name": "BIB profile with customized Holdings"
     },
@@ -840,7 +840,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "19091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "dfvv6yj0-1caf-4470-9ad1-d533f6360bdd",
       "name": "BIB profile with new Holdings & Items"
     },
@@ -862,7 +862,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "20091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile"
     },
@@ -884,7 +884,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "21091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
       "name": "Marc bib jobs"
     },
@@ -906,7 +906,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "22091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
       "name": "New Holdings (Beta.2 Use carefully)"
     },
@@ -928,7 +928,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "27091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile (2019 Q1 Beta test)"
     },
@@ -950,7 +950,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23191",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "profile": {
+    "jobProfile": {
       "id": "zxc4rffz-1caf-4470-9ad1-d533f6360bdd",
       "name": "Semi-Valid test profile (NYPL Check)"
     },
@@ -972,7 +972,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23291",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "profile": {
+    "jobProfile": {
       "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
       "name": "Standard BIB profile (2019 Q1 Beta test)"
     },
@@ -994,7 +994,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "hrId": "23391",
     "status": "ERROR",
     "uiStatus": "ERROR",
-    "profile": {
+    "jobProfile": {
       "id": "ssdvy7qq-1caf-4470-9ad1-d533f6360bdd",
       "name": "Multilingual support check"
     },

@@ -12,7 +12,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.Profile;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.services.converters.Status;
 import org.junit.Assert;
 import org.junit.Test;
@@ -167,7 +167,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution singleParent = createdJobExecutions.get(0);
     Assert.assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
-    singleParent.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    singleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
@@ -176,7 +176,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(singleParent.getId()))
-      .body("profile.name", is(singleParent.getProfile().getName()));
+      .body("jobProfile.name", is(singleParent.getJobProfile().getName()));
   }
 
   @Test
@@ -379,7 +379,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution multipleParent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
-    multipleParent.setProfile(new Profile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    multipleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(multipleParent).toString())
@@ -388,7 +388,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(multipleParent.getId()))
-      .body("profile.name", is(multipleParent.getProfile().getName()));
+      .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
 
     RestAssured.given()
       .spec(spec)
@@ -396,7 +396,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + "/" + multipleParent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("profile.name", is(multipleParent.getProfile().getName()));
+      .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
 
     RestAssured.given()
       .spec(spec)
@@ -407,7 +407,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       // expect collection that does not contain PARENT_MULTIPLE itself
       .body("jobExecutionDtos.size()", is(createdJobExecutions.size() - 1))
-      .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getProfile().getName())));
+      .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfile().getName())));
   }
 
   @Test
