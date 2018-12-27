@@ -60,6 +60,31 @@
             "source-storage.record.post",
             "source-storage.record.put"
           ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/fileExtension",
+          "permissionsRequired": ["change-manager.fileExtension.get"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/fileExtension",
+          "permissionsRequired": ["change-manager.fileExtension.post"]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/fileExtension/{id}",
+          "permissionsRequired": ["change-manager.fileExtension.get"]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/change-manager/fileExtension/{id}",
+          "permissionsRequired": ["change-manager.fileExtension.put"]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/change-manager/fileExtension/{id}",
+          "permissionsRequired": ["change-manager.fileExtension.delete"]
         }
       ]
     },
@@ -115,6 +140,26 @@
       "description": "Post chunk of raw records"
     },
     {
+      "permissionName": "change-manager.fileExtension.get",
+      "displayName": "Change Manager - get file extension(s)",
+      "description": "Get FileExtension(s)"
+    },
+    {
+      "permissionName": "change-manager.fileExtension.post",
+      "displayName": "Change Manager - create new file extension",
+      "description": "Post FileExtension"
+    },
+    {
+      "permissionName": "change-manager.fileExtension.put",
+      "displayName": "Change Manager - update file extension",
+      "description": "Put FileExtension"
+    },
+    {
+      "permissionName": "change-manager.fileExtension.delete",
+      "displayName": "Change Manager - delete file extension",
+      "description": "Delete FileExtension"
+    },
+    {
       "permissionName": "source-record-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -124,7 +169,11 @@
         "change-manager.jobexecution.post",
         "change-manager.jobexecution.put",
         "change-manager.jobexecution.get",
-        "change-manager.records.post"
+        "change-manager.records.post",
+        "change-manager.fileExtension.get",
+        "change-manager.fileExtension.post",
+        "change-manager.fileExtension.put",
+        "change-manager.fileExtension.delete"
       ],
       "visible": false
     }
