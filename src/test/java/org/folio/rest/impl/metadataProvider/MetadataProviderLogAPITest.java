@@ -1,18 +1,11 @@
 package org.folio.rest.impl.metadataProvider;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
-import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.impl.MetadataProviderImpl;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
@@ -26,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
@@ -42,13 +34,11 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderLogAPITest extends AbstractRestTest {
 
-  protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   private static final String GET_LOGS_PATH_LANDING_PAGE_FALSE = "/metadata-provider/logs?landingPage=false";
   private static final String GET_LOGS_PATH_LANDING_PAGE_TRUE = "/metadata-provider/logs?landingPage=true";
-  private static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
   private static final String PUT_JOB_EXECUTIONS_PATH = "/change-manager/jobExecution/";
-  private static final String profileName = "Parse Marc files profile";
-  private int landingPageLogsLimit = MetadataProviderImpl.LANDING_PAGE_LOGS_LIMIT;
+  private static final String PROFILE_NAME = "Parse Marc files profile";
+  private  static final int LANDING_PAGE_LOGS_LIMIT = 25;
 
   @Test
   public void shouldReturnEmptyListOnGetIfNoLogsExist() {
@@ -66,7 +56,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnEmptyListOnGetIfCreated1ParentMultiple2Child() throws IOException {
+  public void shouldReturnEmptyListOnGetIfCreated1ParentMultiple2Child() {
     int actualFilesNumber = 2;
     int expectedLogNumber = 0;
     int expectedTotalRecords = 0;
@@ -84,7 +74,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnEmptyListOnGetIfCreated1ParentSingle() throws IOException {
+  public void shouldReturnEmptyListOnGetIfCreated1ParentSingle() {
     int actualFilesNumber = 1;
     int expectedLogNumber = 0;
     int expectedTotalRecords = 0;
@@ -102,19 +92,17 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void should1LogOnGetIfCreated1ParentSingleCommitted() throws IOException {
+  public void should1LogOnGetIfCreated1ParentSingleCommitted() {
     int actualFilesNumber = 1;
     int expectedLogNumber = 1;
     int expectedTotalRecords = 1;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     JobExecution expectedCommittedChild = createdJobExecutions.get(0);
     Assert.assertEquals(PARENT_SINGLE, expectedCommittedChild.getSubordinationType());
     expectedCommittedChild.setStatus(COMMITTED);
-    expectedCommittedChild.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+    expectedCommittedChild.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
 
     putJobExecution(expectedCommittedChild)
       .then()
@@ -131,20 +119,18 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturn1LogOnGetIfCreated1ParentMultiple1ChildNew1ChildCommitted() throws IOException {
+  public void shouldReturn1LogOnGetIfCreated1ParentMultiple1ChildNew1ChildCommitted() {
     int actualFilesNumber = 2;
     int expectedLogNumber = 1;
     int expectedTotalRecords = 1;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     JobExecution expectedCommittedChild = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).findFirst().get();
 
     expectedCommittedChild.setStatus(COMMITTED);
-    expectedCommittedChild.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+    expectedCommittedChild.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
 
     putJobExecution(expectedCommittedChild)
       .then()
@@ -164,20 +150,18 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturn2LogsOnGetIfCreated1ParentMultiple2ChildCommitted() throws IOException {
+  public void shouldReturn2LogsOnGetIfCreated1ParentMultiple2ChildCommitted() {
     int actualFilesNumber = 2;
     int expectedLogNumber = 2;
     int expectedTotalRecords = 2;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     List<JobExecution> expectedCommittedChildren = new ArrayList<>();
     for (JobExecution createdJobExecution : createdJobExecutions) {
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -209,22 +193,20 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnLimitedListOnGetIfCreated1ParentMultiple3ChildCommittedWithLimit() throws IOException {
+  public void shouldReturnLimitedListOnGetIfCreated1ParentMultiple3ChildCommittedWithLimit() {
     int actualLimit = 2;
     int expectedLogNumber = 2;
     // We do not expect PARENT entity in total records
     int expectedTotalRecords = 3;
     int actualFilesNumber = 3;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     List<JobExecution> expectedCommittedChildren = new ArrayList<>();
     for (JobExecution createdJobExecution : createdJobExecutions) {
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -248,19 +230,17 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnSortedListOnGetIfCreated1ParentMultiple3ChildCommitted() throws IOException {
+  public void shouldReturnSortedListOnGetIfCreated1ParentMultiple3ChildCommitted() {
     int actualFilesNumber = 4;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     List<JobExecution> expectedCommittedChildren = new ArrayList<>();
     for (int i = 0; i < createdJobExecutions.size(); i++) {
       JobExecution createdJobExecution = createdJobExecutions.get(i);
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
         createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
         expectedCommittedChildren.add(createdJobExecution);
       }
@@ -288,19 +268,17 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnLimitedListOnGetIfLandingPageIsTrue() throws IOException {
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(Integer.MAX_VALUE)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+  public void shouldReturnLimitedListOnGetIfLandingPageIsTrue() {
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(Integer.MAX_VALUE).getJobExecutions();
 
-    Assert.assertTrue(landingPageLogsLimit < createdJobExecutions.size());
+    Assert.assertTrue(LANDING_PAGE_LOGS_LIMIT < createdJobExecutions.size());
 
     List<JobExecution> expectedCommittedChildren = new ArrayList<>();
     for (int i = 0; i < createdJobExecutions.size(); i++) {
       JobExecution createdJobExecution = createdJobExecutions.get(i);
       if (CHILD.equals(createdJobExecution.getSubordinationType())) {
         createdJobExecution.setStatus(COMMITTED);
-        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
         expectedCommittedChildren.add(createdJobExecution);
       }
     }
@@ -319,17 +297,15 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logCollectionDto.getLogDtos().size(), landingPageLogsLimit);
+    Assert.assertEquals(logCollectionDto.getLogDtos().size(), LANDING_PAGE_LOGS_LIMIT);
     Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), createdJobExecutions.size() - 1);
   }
 
   @Test
-  public void shouldReturnCommittedAndErrorJobExecutionsAsLogs() throws IOException {
+  public void shouldReturnCommittedAndErrorJobExecutionsAsLogs() {
     int actualFilesNumber = 10;
 
-    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber)
-      .as(InitJobExecutionsRsDto.class)
-      .getJobExecutions();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(actualFilesNumber).getJobExecutions();
 
     List<JobExecution> expectedLogs = new ArrayList<>();
     for (int i = 0; i < createdJobExecutions.size(); i++) {
@@ -340,7 +316,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         } else {
           createdJobExecution.setStatus(ERROR);
         }
-        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(profileName));
+        createdJobExecution.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName(PROFILE_NAME));
         createdJobExecution.setCompletedDate(new Date(1542714612000L + i));
         expectedLogs.add(createdJobExecution);
       }
@@ -360,20 +336,6 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("totalRecords", is(expectedLogs.size()))
       .body("logDtos*.status", everyItem(anyOf(is(LogDto.Status.COMMITTED.name()), is(LogDto.Status.ERROR.name()))));
-  }
-
-  private Response constructAndPostInitJobExecutionRqDto(int filesNumber) throws IOException {
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    String jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
-    List<File> filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<List<File>>() {
-    });
-    List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
-    requestDto.getFiles().addAll(limitedFilesList);
-    requestDto.setUserId(UUID.randomUUID().toString());
-    return RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(POST_JOB_EXECUTIONS_PATH);
   }
 
   private Response putJobExecution(JobExecution jobExecution) {

@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
-  public static final int LANDING_PAGE_LOGS_LIMIT = 25;
+  private static final int LANDING_PAGE_LOGS_LIMIT = 25;
 
   private JobExecutionService jobExecutionService;
 
