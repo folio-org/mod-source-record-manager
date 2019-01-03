@@ -295,13 +295,24 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnBadRequestOnStatusUpdateWhenNoEntityPassed() {
+    RestAssured.given()
+      .spec(spec)
+      .body(new JsonObject().toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
   public void shouldReturnBadRequestOnStatusUpdate() {
     JsonObject status = new JsonObject().put("status", "Nonsense");
     RestAssured.given()
       .spec(spec)
       .body(status.toString())
       .when()
-      .post(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + STATUS_PATH)
+      .put(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + STATUS_PATH)
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
