@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -154,6 +155,22 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       }
       return future;
     }).compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+  }
+
+  @Override
+  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile) {
+    return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+      Future<JobExecution> future = Future.future();
+      try {
+        jobExecution.setJobProfile(jobProfile);
+        future.complete(jobExecution);
+      } catch (Exception e) {
+        String errorMessage = "Error setting JobProfile to JobExecution with id " + jobExecutionId;
+        LOGGER.error(errorMessage, e);
+        future.fail(errorMessage);
+      }
+      return future;
+    });
   }
 
   /**

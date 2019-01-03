@@ -40,6 +40,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String POST_RAW_RECORDS_PATH = "/change-manager/records";
   private static final String CHILDREN_PATH = "/children";
   private static final String STATUS_PATH = "/status";
+  private static final String JOB_PROFILE_PATH = "/jobProfile";
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
@@ -408,6 +409,60 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       // expect collection that does not contain PARENT_MULTIPLE itself
       .body("jobExecutionDtos.size()", is(createdJobExecutions.size() - 1))
       .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfile().getName())));
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnSetJobProfile() {
+    JsonObject jobProfile = new JsonObject().put("id", UUID.randomUUID().toString()).put("name", "marc");
+    RestAssured.given()
+      .spec(spec)
+      .body(jobProfile.toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnSetJobProfile() {
+    JsonObject jobProfile = new JsonObject().put("name", "Nonsense");
+    RestAssured.given()
+      .spec(spec)
+      .body(jobProfile.toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + "/" + UUID.randomUUID().toString() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  public void shouldSetJobProfileForJobExecution() {
+    File file1 = new File().withName("importBib.bib");
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(Arrays.asList(file1)).body().as(InitJobExecutionsRsDto.class);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    JsonObject jobProfile = new JsonObject().put("id", UUID.randomUUID().toString()).put("name", "marc");
+    RestAssured.given()
+      .spec(spec)
+      .body(jobProfile.toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + "/" + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfile.id", is(jobProfile.getString("id")))
+      .body("jobProfile.name", is(jobProfile.getString("name")));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfile.id", is(jobProfile.getString("id")))
+      .body("jobProfile.name", is(jobProfile.getString("name")));
   }
 
   @Test

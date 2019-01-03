@@ -10,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
@@ -125,7 +126,23 @@ public class ChangeManagerImpl implements ChangeManager {
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
+  }
 
+  @Override
+  public void putChangeManagerJobExecutionJobProfileById(String id, JobProfile entity, Map<String, String> okapiHeaders,
+                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        jobExecutionService.setJobProfileToJobExecution(id, entity)
+          .map(PutChangeManagerJobExecutionStatusByIdResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to set JobProfile for JobExecution", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
   }
 
   @Override

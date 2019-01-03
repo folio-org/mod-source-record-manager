@@ -7,6 +7,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.util.OkapiConnectionParams;
@@ -85,5 +86,14 @@ public interface JobExecutionService {
    * @return future with updated JobExecution
    */
   Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
+
+  /**
+   * Sets JobProfile for JobExecution
+   *
+   * @param jobExecutionId JobExecution id
+   * @param jobProfile     JobProfile entity
+   * @return future with updated JobExecution
+   */
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile);
 
 }
