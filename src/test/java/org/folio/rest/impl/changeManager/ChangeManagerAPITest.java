@@ -409,17 +409,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
-
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .when()
-      .get(GET_JOB_EXECUTIONS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      // expect collection that does not contain PARENT_MULTIPLE itself
-      .body("jobExecutionDtos.size()", is(createdJobExecutions.size() - 1))
-      .body("jobExecutionDtos*.jobProfileName", everyItem(is(multipleParent.getJobProfile().getName())));
   }
 
   @Test

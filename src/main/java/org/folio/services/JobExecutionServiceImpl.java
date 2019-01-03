@@ -25,7 +25,6 @@ import org.folio.util.OkapiConnectionParams;
 import org.folio.util.RestUtil;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,25 +94,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecution> updateJobExecution(JobExecution jobExecution) {
-    return jobExecutionDao.getJobExecutionById(jobExecution.getId())
-      .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExec -> {
-          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.updateJobExecution(jobExecution)
-              .compose(updated -> jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId())
-                .compose(children -> updateChildJobExecutions(children.getJobExecutions(), jobExecution))
-                .compose(succeeded -> succeeded ?
-                  Future.succeededFuture(jobExecution) :
-                  Future.failedFuture(new InternalServerErrorException(
-                    String.format("Could not update child jobExecutions with parent id '%s'", jobExecution.getId())))));
-          } else {
-            return jobExecutionDao.updateJobExecution(jobExecution);
-          }
-        })
-        .orElse(Future.failedFuture(new NotFoundException(
-          String.format("JobExecution with id '%s' was not found", jobExecution.getId()))))
-      );
+  public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
+    return jobExecutionDao.updateJobExecution(jobExecution)
+      .compose(jobExec -> updateSnapshotStatus(jobExecution, params));
   }
 
   @Override
@@ -298,22 +281,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     return future;
-  }
-
-  /**
-   * Sets fields that can be updated and calls jobExecutionDao to update child JobExecutions
-   *
-   * @param children list of child JobExecutions
-   * @param parent   parent JobExecution to the list of children
-   * @return future with true if succeeded
-   */
-  private Future<Boolean> updateChildJobExecutions(List<JobExecution> children, JobExecution parent) {
-    List<Future> futures = new ArrayList<>();
-    for (JobExecution child : children) {
-      child.setJobProfile(parent.getJobProfile());
-      futures.add(jobExecutionDao.updateJobExecution(child));
-    }
-    return CompositeFuture.all(futures).map(Future::succeeded);
   }
 
   private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {

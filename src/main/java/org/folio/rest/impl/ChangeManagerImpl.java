@@ -63,7 +63,8 @@ public class ChangeManagerImpl implements ChangeManager {
     vertxContext.runOnContext(v -> {
       try {
         entity.setId(id);
-        jobExecutionService.updateJobExecution(entity)
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        jobExecutionService.updateJobExecution(entity, params)
           .map(updatedEntity -> (Response) PutChangeManagerJobExecutionByIdResponse.respond200WithApplicationJson(updatedEntity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
