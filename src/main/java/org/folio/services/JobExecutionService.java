@@ -7,6 +7,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.util.OkapiConnectionParams;
@@ -44,7 +45,7 @@ public interface JobExecutionService {
    * Performs creation of JobExecution and Snapshot entities
    * Saves created JobExecution entities into storage using {@link JobExecutionDao}
    * Performs save for created Snapshot entities.
-   * For each Snapshot posts the request to mod-source-record-manager.
+   * For each Snapshot posts the request to source-record-storage.
    *
    * @param dto    Dto contains request params enough to create JobExecution and Snapshot entities
    * @param params object-wrapper with params necessary to connect to OKAPI
@@ -53,12 +54,13 @@ public interface JobExecutionService {
   Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto dto, OkapiConnectionParams params);
 
   /**
-   * Updates jobExecution and its children in case it is a PARENT_MULTIPLE jobExecution
+   * Updates jobExecution and calls source-record-storage to update Snapshot status
    *
    * @param jobExecution entity to update
+   * @param params         connection parameters
    * @return updated entity
    */
-  Future<JobExecution> updateJobExecution(JobExecution jobExecution);
+  Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
 
   /**
    * Searches for JobExecution by id
@@ -77,7 +79,7 @@ public interface JobExecutionService {
   Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId);
 
   /**
-   * Updates status for JobExecution and calls source-record-manager to update Snapshot status
+   * Updates status for JobExecution and calls source-record-storage to update Snapshot status
    *
    * @param jobExecutionId JobExecution id
    * @param status         Dto that contains new status
@@ -85,5 +87,14 @@ public interface JobExecutionService {
    * @return future with updated JobExecution
    */
   Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
+
+  /**
+   * Sets JobProfile for JobExecution
+   *
+   * @param jobExecutionId JobExecution id
+   * @param jobProfile     JobProfile entity
+   * @return future with updated JobExecution
+   */
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile);
 
 }

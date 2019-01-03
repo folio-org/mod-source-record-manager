@@ -50,6 +50,11 @@
           ]
         },
         {
+          "methods": ["PUT"],
+          "pathPattern": "/change-manager/jobExecution/{id}/jobProfile",
+          "permissionsRequired": [ "change-manager.jobexecution.put" ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/change-manager/records/{jobExecutionId}",
           "permissionsRequired" : [ "change-manager.records.post" ],
