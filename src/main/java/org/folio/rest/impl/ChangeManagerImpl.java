@@ -7,6 +7,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.dataImport.util.ExceptionHelper;
+import org.folio.dataImport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -19,8 +21,6 @@ import org.folio.services.FileExtensionService;
 import org.folio.services.FileExtensionServiceImpl;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
-import org.folio.util.ExceptionHelper;
-import org.folio.util.OkapiConnectionParams;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;

@@ -8,6 +8,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dataImport.util.OkapiConnectionParams;
+import org.folio.dataImport.util.RestUtil;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -21,8 +23,6 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.services.converters.Status;
-import org.folio.util.OkapiConnectionParams;
-import org.folio.util.RestUtil;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.folio.util.RestUtil.CREATED_STATUS_CODE;
 
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
@@ -268,7 +266,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot)
       .setHandler(responseResult -> {
         try {
-          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != CREATED_STATUS_CODE) {
+          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != 201) {
             LOGGER.error("Error during post for new Snapshot.", responseResult.cause());
             future.fail(responseResult.cause());
           } else {

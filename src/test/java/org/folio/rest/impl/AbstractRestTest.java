@@ -40,8 +40,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.folio.util.RestUtil.OKAPI_TENANT_HEADER;
-import static org.folio.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.dataImport.util.RestUtil.OKAPI_TENANT_HEADER;
+import static org.folio.dataImport.util.RestUtil.OKAPI_URL_HEADER;
 
 /**
  * Abstract test for the REST API testing needs.

@@ -7,6 +7,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.dataImport.util.OkapiConnectionParams;
+import org.folio.dataImport.util.RestUtil;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -18,8 +20,6 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.SourceRecordParser;
 import org.folio.services.parsers.SourceRecordParserBuilder;
-import org.folio.util.OkapiConnectionParams;
-import org.folio.util.RestUtil;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
