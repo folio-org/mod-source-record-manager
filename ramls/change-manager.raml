@@ -97,7 +97,7 @@ traits:
               example: "Internal server error"
     /children:
       get:
-        description: Get JobExecution children
+        description: Get children JobExecutions by parent id, by default returns all existing children JobExecutions, in order to limit the collection parameter limit should be explicitly specified
         is: [
           searchable: {
             description:
@@ -108,7 +108,6 @@ traits:
           pageable,
           validate
         ]
-#       override limit default value in order to return all JobExecution children by default
         queryParameters:
           limit:
             default: 2147483647
