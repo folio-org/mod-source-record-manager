@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class FileExtensionAPITest extends AbstractRestTest {
 
-  private static final String FILE_EXTENSION_PATH = "/change-manager/fileExtension";
+  private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")

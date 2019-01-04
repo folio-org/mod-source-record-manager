@@ -8,7 +8,7 @@
   "provides": [
     {
       "id": "source-record-manager",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -68,27 +68,27 @@
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/fileExtension",
+          "pathPattern": "/metadata-provider/fileExtension",
           "permissionsRequired": ["change-manager.fileExtension.get"]
         },
         {
           "methods": ["POST"],
-          "pathPattern": "/change-manager/fileExtension",
+          "pathPattern": "/metadata-provider/fileExtension",
           "permissionsRequired": ["change-manager.fileExtension.post"]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.get"]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.put"]
         },
         {
           "methods": ["DELETE"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.delete"]
         }
       ]
