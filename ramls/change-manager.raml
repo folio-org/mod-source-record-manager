@@ -98,6 +98,20 @@ traits:
     /children:
       get:
         description: Get JobExecution children
+        is: [
+          searchable: {
+            description:
+              "with valid searchable fields: for example status=IMPORT_IN_PROGRESS",
+            example:
+              "status=IMPORT_IN_PROGRESS"
+          },
+          pageable,
+          validate
+        ]
+#       override limit default value in order to return all JobExecution children by default
+        queryParameters:
+          limit:
+            default: 2147483647
         responses:
           200:
             body:

@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
@@ -209,11 +210,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnChildrenOfMultipleParentOnGetChildrenById() {
+  public void shouldReturnAllChildrenOfMultipleParentOnGetChildrenById() {
     InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(3);
+      constructAndPostInitJobExecutionRqDto(25);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(4));
+    Assert.assertThat(createdJobExecutions.size(), is(26));
     JobExecution multipleParent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
@@ -225,6 +226,60 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(createdJobExecutions.size() - 1))
       .body("totalRecords", is(createdJobExecutions.size() - 1))
+      .body("jobExecutions*.subordinationType", everyItem(is(JobExecution.SubordinationType.CHILD.name())));
+  }
+
+  @Test
+  public void shouldReturnLimitedCollectionOnGetChildrenById() {
+    int limit = 15;
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(25);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(26));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH + "?limit=" + limit)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(limit))
+      .body("totalRecords", is(createdJobExecutions.size() - 1))
+      .body("jobExecutions*.subordinationType", everyItem(is(JobExecution.SubordinationType.CHILD.name())));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionOnGetChildrenById() {
+    int numberOfFiles = 25;
+    int expectedNumberOfNew = 12;
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(numberOfFiles);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(numberOfFiles + 1));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    List<JobExecution> children = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).collect(Collectors.toList());
+    StatusDto importInProgressStatus = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+
+    for (int i = 0; i < children.size() - expectedNumberOfNew ; i++) {
+      updateJobExecutionStatus(children.get(i), importInProgressStatus)
+        .then()
+        .statusCode(HttpStatus.SC_OK);
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH + "?query=status=" + StatusDto.Status.IMPORT_IN_PROGRESS.name())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(children.size() - expectedNumberOfNew))
+      .body("totalRecords", is(children.size() - expectedNumberOfNew))
+      .body("jobExecutions*.status", everyItem(is(JobExecution.Status.IMPORT_IN_PROGRESS.name())))
       .body("jobExecutions*.subordinationType", everyItem(is(JobExecution.SubordinationType.CHILD.name())));
   }
 

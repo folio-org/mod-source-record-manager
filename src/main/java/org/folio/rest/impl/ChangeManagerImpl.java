@@ -94,12 +94,12 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerJobExecutionChildrenById(String id, Map<String, String> okapiHeaders,
-                                                       Handler<AsyncResult<Response>> asyncResultHandler,
-                                                       Context vertxContext) {
+  public void getChangeManagerJobExecutionChildrenById(String id, int limit, String query, int offset,
+                                                       Map<String, String> okapiHeaders,
+                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getJobExecutionCollectionByParentId(id)
+        jobExecutionService.getJobExecutionCollectionByParentId(id, query, offset, limit)
           .map(GetChangeManagerJobExecutionChildrenByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
