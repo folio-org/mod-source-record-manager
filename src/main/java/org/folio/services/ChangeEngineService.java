@@ -1,8 +1,8 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import org.folio.dataImport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.util.OkapiConnectionParams;
 
 public interface ChangeEngineService {
 

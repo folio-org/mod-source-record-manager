@@ -2,16 +2,17 @@ package org.folio.rest.impl.changeManager;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.DataType;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -25,22 +26,22 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   private static final String FILE_EXTENSION_PATH = "/change-manager/fileExtension";
 
-  private static JsonObject fileExtension_1 = new JsonObject()
-    .put("extension", ".marc")
-    .put("dataTypes", new JsonArray().add("MARC"))
-    .put("importBlocked", false);
-  private static JsonObject fileExtension_2 = new JsonObject()
-    .put("extension", ".edi")
-    .put("dataTypes", new JsonArray().add("EDIFACT"))
-    .put("importBlocked", false);
-  private static JsonObject fileExtension_3 = new JsonObject()
-    .put("extension", ".pdf")
-    .put("dataTypes", new JsonArray())
-    .put("importBlocked", true);
-  private static JsonObject fileExtension_4 = new JsonObject()
-    .put("extension", ".marc")
-    .put("dataTypes", new JsonArray())
-    .put("importBlocked", true);
+  private static FileExtension fileExtension_1 = new FileExtension()
+    .withExtension(".marc")
+    .withDataTypes(Arrays.asList(DataType.MARC))
+    .withImportBlocked(false);
+  private static FileExtension fileExtension_2 = new FileExtension()
+    .withExtension(".edi")
+    .withDataTypes(Arrays.asList(DataType.EDIFACT))
+    .withImportBlocked(false);
+  private static FileExtension fileExtension_3 = new FileExtension()
+    .withExtension(".pdf")
+    .withDataTypes(new ArrayList<>())
+    .withImportBlocked(true);
+  private static FileExtension fileExtension_4 = new FileExtension()
+    .withExtension(".marc")
+    .withDataTypes(new ArrayList<>())
+    .withImportBlocked(true);
 
   @Test
   public void shouldReturnEmptyListOnGetIfNoFileExtensionsExist() {
@@ -56,11 +57,11 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnAllFileExtensionsOnGetWhenNoQueryIsSpecified() {
-    List<JsonObject> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
-    for (JsonObject extension : extensionsToPost) {
+    List<FileExtension> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
+    for (FileExtension extension : extensionsToPost) {
       RestAssured.given()
         .spec(spec)
-        .body(extension.toString())
+        .body(JsonObject.mapFrom(extension).toString())
         .when()
         .post(FILE_EXTENSION_PATH)
         .then()
@@ -78,11 +79,11 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnFileExtensionsWithBlockedImportSetToFalse() {
-    List<JsonObject> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
-    for (JsonObject extension : extensionsToPost) {
+    List<FileExtension> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
+    for (FileExtension extension : extensionsToPost) {
       RestAssured.given()
         .spec(spec)
-        .body(extension.toString())
+        .body(JsonObject.mapFrom(extension).toString())
         .when()
         .post(FILE_EXTENSION_PATH)
         .then()
@@ -101,11 +102,11 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnLimitedCollectionOnGetWithLimit() {
-    List<JsonObject> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
-    for (JsonObject extension : extensionsToPost) {
+    List<FileExtension> extensionsToPost = Arrays.asList(fileExtension_1, fileExtension_2, fileExtension_3);
+    for (FileExtension extension : extensionsToPost) {
       RestAssured.given()
         .spec(spec)
-        .body(extension.toString())
+        .body(JsonObject.mapFrom(extension).toString())
         .when()
         .post(FILE_EXTENSION_PATH)
         .then()
@@ -137,14 +138,14 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldCreateFileExtensionOnPost() {
     RestAssured.given()
       .spec(spec)
-      .body(fileExtension_2.toString())
+      .body(JsonObject.mapFrom(fileExtension_2).toString())
       .when()
       .post(FILE_EXTENSION_PATH)
       .then()
       .statusCode(HttpStatus.SC_CREATED)
-      .body("extension", is(fileExtension_2.getString("extension")))
-      .body("dataTypes.size()", is(fileExtension_2.getJsonArray("dataTypes").size()))
-      .body("importBlocked", is(fileExtension_2.getBoolean("importBlocked")));
+      .body("extension", is(fileExtension_2.getExtension()))
+      .body("dataTypes.size()", is(fileExtension_2.getDataTypes().size()))
+      .body("importBlocked", is(fileExtension_2.getImportBlocked()));
   }
 
   @Test
@@ -162,7 +163,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldReturnNotFoundOnPutWhenFileExtensionDoesNotExist() {
     RestAssured.given()
       .spec(spec)
-      .body(fileExtension_1.toString())
+      .body(JsonObject.mapFrom(fileExtension_1).toString())
       .when()
       .put(FILE_EXTENSION_PATH + "/" + UUID.randomUUID().toString())
       .then()
@@ -173,7 +174,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldUpdateExistingFileExtensionOnPut() {
     Response createResponse = RestAssured.given()
       .spec(spec)
-      .body(fileExtension_1.toString())
+      .body(JsonObject.mapFrom(fileExtension_1).toString())
       .when()
       .post(FILE_EXTENSION_PATH);
     Assert.assertThat(createResponse.statusCode(), is(HttpStatus.SC_CREATED));
@@ -208,7 +209,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldReturnExistingFileExtensionOnGetById() {
     Response createResponse = RestAssured.given()
       .spec(spec)
-      .body(fileExtension_3.toString())
+      .body(JsonObject.mapFrom(fileExtension_3).toString())
       .when()
       .post(FILE_EXTENSION_PATH);
     Assert.assertThat(createResponse.statusCode(), is(HttpStatus.SC_CREATED));
@@ -240,7 +241,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldDeleteExistingFileExtensionOnDelete() {
     Response createResponse = RestAssured.given()
       .spec(spec)
-      .body(fileExtension_1.toString())
+      .body(JsonObject.mapFrom(fileExtension_1).toString())
       .when()
       .post(FILE_EXTENSION_PATH);
     Assert.assertThat(createResponse.statusCode(), is(HttpStatus.SC_CREATED));
@@ -258,18 +259,18 @@ public class FileExtensionAPITest extends AbstractRestTest {
   public void shouldReturnErrorOnSavingDuplicateExtension() {
     RestAssured.given()
       .spec(spec)
-      .body(fileExtension_1.toString())
+      .body(JsonObject.mapFrom(fileExtension_1).toString())
       .when()
       .post(FILE_EXTENSION_PATH)
       .then()
       .statusCode(HttpStatus.SC_CREATED)
-      .body("extension", is(fileExtension_1.getString("extension")))
-      .body("dataTypes.size()", is(fileExtension_1.getJsonArray("dataTypes").size()))
-      .body("importBlocked", is(fileExtension_1.getBoolean("importBlocked")));
+      .body("extension", is(fileExtension_1.getExtension()))
+      .body("dataTypes.size()", is(fileExtension_1.getDataTypes().size()))
+      .body("importBlocked", is(fileExtension_1.getImportBlocked()));
 
     RestAssured.given()
       .spec(spec)
-      .body(fileExtension_4.toString())
+      .body(JsonObject.mapFrom(fileExtension_4).toString())
       .when()
       .post(FILE_EXTENSION_PATH)
       .then()
