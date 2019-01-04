@@ -143,9 +143,9 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logs.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logs.getLogDtos().get(0).getJobExecutionId(), expectedCommittedChild.getId());
-    Assert.assertEquals(logs.getTotalRecords().intValue(), expectedTotalRecords);
+    Assert.assertEquals(expectedLogNumber, logs.getLogDtos().size());
+    Assert.assertEquals(expectedCommittedChild.getId(), logs.getLogDtos().get(0).getJobExecutionId());
+    Assert.assertEquals(expectedTotalRecords, logs.getTotalRecords().intValue());
   }
 
   @Test
@@ -179,8 +179,8 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logCollectionDto.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), expectedTotalRecords);
+    Assert.assertEquals(expectedLogNumber, logCollectionDto.getLogDtos().size());
+    Assert.assertEquals(expectedTotalRecords, logCollectionDto.getTotalRecords().intValue());
 
     for (JobExecution childExpectedCommittedJoExec : expectedCommittedChildren) {
       LogDto log = logCollectionDto.getLogDtos().stream()
@@ -224,8 +224,8 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logCollectionDto.getLogDtos().size(), expectedLogNumber);
-    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), expectedTotalRecords);
+    Assert.assertEquals(expectedLogNumber, logCollectionDto.getLogDtos().size());
+    Assert.assertEquals(expectedTotalRecords, logCollectionDto.getTotalRecords().intValue());
   }
 
   @Test
@@ -260,7 +260,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .extract().response().body().as(LogCollectionDto.class);
 
     List<LogDto> logsList = logCollectionDto.getLogDtos();
-    Assert.assertEquals(logsList.size(), createdJobExecutions.size() - 1);
+    Assert.assertEquals(createdJobExecutions.size() - 1, logsList.size());
     Assert.assertTrue(logsList.get(0).getCompletedDate().after(logsList.get(1).getCompletedDate()));
     Assert.assertTrue(logsList.get(1).getCompletedDate().after(logsList.get(2).getCompletedDate()));
     Assert.assertTrue(logsList.get(2).getCompletedDate().after(logsList.get(3).getCompletedDate()));
@@ -296,8 +296,8 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
 
-    Assert.assertEquals(logCollectionDto.getLogDtos().size(), LANDING_PAGE_LOGS_LIMIT);
-    Assert.assertEquals(logCollectionDto.getTotalRecords().intValue(), createdJobExecutions.size() - 1);
+    Assert.assertEquals(LANDING_PAGE_LOGS_LIMIT, logCollectionDto.getLogDtos().size());
+    Assert.assertEquals(createdJobExecutions.size() - 1, logCollectionDto.getTotalRecords().intValue());
   }
 
   @Test
