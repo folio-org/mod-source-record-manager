@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,6 +31,13 @@ public interface FileExtensionDao {
   Future<Optional<FileExtension>> getFileExtensionById(String id);
 
   /**
+   * Searches for all {@link FileExtension} in database
+   *
+   * @return future with {@link FileExtensionCollection}
+   */
+  Future<FileExtensionCollection> getAllFileExtensions();
+
+  /**
    * Saves {@link FileExtension} to database
    *
    * @param fileExtension FileExtension to save
@@ -52,4 +60,11 @@ public interface FileExtensionDao {
    * @return future with true if succeeded
    */
   Future<Boolean> deleteFileExtension(String id);
+
+  /**
+   * Restore default values for {@link FileExtension}
+   *
+   * @return - future with true if succeeded
+   */
+  Future<Boolean> restoreFileExtensions();
 }

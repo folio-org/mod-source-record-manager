@@ -1,7 +1,8 @@
-package org.folio.rest.impl.changeManager;
+package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
@@ -25,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 public class FileExtensionAPITest extends AbstractRestTest {
 
   private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
+  private static final String FILE_EXTENSION_DEFAULT = FILE_EXTENSION_PATH + "/default";
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")
@@ -275,6 +277,18 @@ public class FileExtensionAPITest extends AbstractRestTest {
       .post(FILE_EXTENSION_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  public void shouldRestoreToDefault() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(FILE_EXTENSION_DEFAULT)
+      .then()
+      .log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("totalRecords", is(16));
   }
 
 }
