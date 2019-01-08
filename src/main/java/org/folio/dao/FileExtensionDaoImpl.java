@@ -7,7 +7,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -128,8 +127,8 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
   }
 
   @Override
-  public Future<Boolean> restoreFileExtensions() {
-    Future<Boolean> future = Future.future();
+  public Future<FileExtensionCollection> restoreFileExtensions() {
+    Future<FileExtensionCollection> future = Future.future();
     Future<SQLConnection> tx = Future.future(); //NOSONAR
     String moduleName = PostgresClient.getModuleName();
     Future.succeededFuture()
@@ -144,21 +143,13 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
       try {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(DEFAULT_FILE_EXTENSIONS_SQL);
-        if (inputStream == null) {
-          resultFuture.fail("");
-          return resultFuture;
-        }
         String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
-        if (StringUtils.isBlank(sqlScript)) {
-          resultFuture.fail("");
-          return resultFuture;
-        }
         sqlScript = sqlScript.replace(TENANT_PLACEHOLDER, tenantId)
           .replace(MODULE_PLACEHOLDER, moduleName)
           .replace(DEFAULT_FILE_EXTENSIONS_TABLE, FILE_EXTENSIONS_TABLE);
         pgClient.execute(tx, sqlScript, resultFuture);
       } catch (Exception e) {
-        resultFuture.fail(e);
+        throw new RuntimeException(e);
       }
       return resultFuture;
     }).compose(updateHandler -> {
@@ -168,13 +159,14 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       Future<Void> endTxFuture = Future.future(); //NOSONAR
       pgClient.endTx(tx, endTxFuture);
       return endTxFuture;
-    }).setHandler(result -> {
-      if (result.failed()) {
-        pgClient.rollbackTx(tx, rollback -> future.fail(result.cause()));
-      } else {
-        future.complete(true);
-      }
-    });
+    }).compose(v -> getAllFileExtensions())
+      .setHandler(result -> {
+        if (result.failed()) {
+          pgClient.rollbackTx(tx, rollback -> future.fail(result.cause()));
+        } else {
+          future.complete(result.result());
+        }
+      });
     return future;
   }
 }

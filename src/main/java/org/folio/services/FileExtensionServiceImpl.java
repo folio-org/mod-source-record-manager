@@ -52,20 +52,6 @@ public class FileExtensionServiceImpl implements FileExtensionService {
 
   @Override
   public Future<FileExtensionCollection> restoreFileExtensions() {
-    Future<FileExtensionCollection> future = Future.future();
-    fileExtensionDao.restoreFileExtensions().setHandler(v -> {
-      if (v.succeeded()) {
-        fileExtensionDao.getAllFileExtensions().setHandler(h -> {
-          if (h.succeeded()) {
-            future.complete(h.result());
-          } else {
-            future.fail("");
-          }
-        });
-      } else {
-        future.fail("");
-      }
-    });
-    return future;
+    return fileExtensionDao.restoreFileExtensions();
   }
 }

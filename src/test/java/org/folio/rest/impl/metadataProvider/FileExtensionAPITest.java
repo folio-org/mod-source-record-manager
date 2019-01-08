@@ -279,16 +279,4 @@ public class FileExtensionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
 
-  @Test
-  public void shouldRestoreToDefault() {
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(FILE_EXTENSION_DEFAULT)
-      .then()
-      .log().all()
-      .statusCode(HttpStatus.SC_OK)
-      .body("totalRecords", is(16));
-  }
-
 }

@@ -64,7 +64,7 @@ public interface FileExtensionDao {
   /**
    * Restore default values for {@link FileExtension}
    *
-   * @return - future with true if succeeded
+   * @return - future with restored file extensions
    */
-  Future<Boolean> restoreFileExtensions();
+  Future<FileExtensionCollection> restoreFileExtensions();
 }
