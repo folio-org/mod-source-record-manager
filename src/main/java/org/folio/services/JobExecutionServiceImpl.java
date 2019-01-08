@@ -6,7 +6,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.apache.http.HttpStatus;
+import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dataImport.util.OkapiConnectionParams;
@@ -267,7 +267,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot)
       .setHandler(responseResult -> {
         try {
-          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != HttpStatus.SC_CREATED ) {
+          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != HttpStatus.HTTP_CREATED.toInt()) {
             LOGGER.error("Error during post for new Snapshot.", responseResult.cause());
             future.fail(responseResult.cause());
           } else {
