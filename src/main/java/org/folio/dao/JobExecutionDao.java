@@ -58,9 +58,12 @@ public interface JobExecutionDao {
    * Searches for {@link JobExecution} by parent id
    *
    * @param parentId parent id
+   * @param query  query string to filter jobExecutions based on matching criteria in fields
+   * @param offset starting index in a list of results
+   * @param limit  maximum number of results to return
    * @return collection of JobExecutions with specified parent id
    */
-  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId);
+  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit);
 
   /**
    * Searches for {@link JobExecution} by id

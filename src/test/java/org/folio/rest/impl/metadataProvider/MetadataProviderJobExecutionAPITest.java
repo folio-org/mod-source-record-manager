@@ -1,8 +1,6 @@
 package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
@@ -95,14 +93,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionDtos.size()", is(expectedNotDiscardedNumber))
       .body("jobExecutionDtos*.status", not(StatusDto.Status.DISCARDED.name()))
       .body("totalRecords", is(expectedNotDiscardedNumber));
-  }
-
-  private Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
-    return RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(statusDto).toString())
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExecution.getId() + "/status");
   }
 
 }

@@ -104,12 +104,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId) {
+  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit) {
     return jobExecutionDao.getJobExecutionById(parentId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId());
+            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit);
           } else {
             return Future.succeededFuture(new JobExecutionCollection().withTotalRecords(0));
           }

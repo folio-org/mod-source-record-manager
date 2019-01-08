@@ -39,8 +39,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final String TABLE_NAME = "job_executions";
   private static final String ID_FIELD = "'id'";
-  private static final String PARENT_ID = "'parentJobId'";
-  private static final String SUBORDINATION_TYPE = "'subordinationType'";
   private PostgresClient pgClient;
   private String schema;
 
@@ -87,12 +85,14 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId) {
+  public Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit) {
     Future<Results<JobExecution>> future = Future.future();
     try {
-      Criteria idCrit = constructCriteria(PARENT_ID, parentId);
-      Criteria typeCrit = constructCriteria(SUBORDINATION_TYPE, JobExecution.SubordinationType.CHILD.name());
-      pgClient.get(TABLE_NAME, JobExecution.class, new Criterion(idCrit).addCriterion(typeCrit), true, false, future.completer());
+      String[] fieldList = {"*"};
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "parentJobId=" + parentId));
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=" + JobExecution.SubordinationType.CHILD.name()));
+      pgClient.get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecutions by parent id", e);
       future.fail(e);

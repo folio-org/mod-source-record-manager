@@ -71,12 +71,17 @@ public interface JobExecutionService {
   Future<Optional<JobExecution>> getJobExecutionById(String id);
 
   /**
-   * Searches for child JobExecutions by parent id
+   * Searches for children JobExecutions by parent id,
+   * by default returns all existing children JobExecutions,
+   * to limit the collection param limit should be explicitly specified
    *
    * @param parentId JobExecution parent id
+   * @param query  query string to filter entities
+   * @param offset starting index in a list of results
+   * @param limit  maximum number of results to return
    * @return future with collection of child JobExecutions
    */
-  Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId);
+  Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit);
 
   /**
    * Updates status for JobExecution and calls source-record-storage to update Snapshot status

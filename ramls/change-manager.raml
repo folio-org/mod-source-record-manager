@@ -97,7 +97,20 @@ traits:
               example: "Internal server error"
     /children:
       get:
-        description: Get JobExecution children
+        description: Get children JobExecutions by parent id, by default returns all existing children JobExecutions, in order to limit the collection parameter limit should be explicitly specified
+        is: [
+          searchable: {
+            description:
+              "with valid searchable fields: for example status=IMPORT_IN_PROGRESS",
+            example:
+              "status=IMPORT_IN_PROGRESS"
+          },
+          pageable,
+          validate
+        ]
+        queryParameters:
+          limit:
+            default: 2147483647
         responses:
           200:
             body:

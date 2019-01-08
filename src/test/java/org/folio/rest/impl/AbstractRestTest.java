@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -23,6 +24,8 @@ import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
@@ -178,5 +181,13 @@ public abstract class AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(POST_JOB_EXECUTIONS_PATH).body().as(InitJobExecutionsRsDto.class);
+  }
+
+  protected Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
+    return RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(statusDto).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExecution.getId() + "/status");
   }
 }
