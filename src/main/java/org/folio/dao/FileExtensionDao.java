@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

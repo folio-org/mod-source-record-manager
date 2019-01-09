@@ -130,7 +130,7 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
   public Future<FileExtensionCollection> restoreFileExtensions() {
     Future<FileExtensionCollection> future = Future.future();
     Future<SQLConnection> tx = Future.future(); //NOSONAR
-    String moduleName = PostgresClient.getModuleName();
+    String moduleName = PostgresClient.getModuleName(); //NOSONAR
     Future.succeededFuture()
       .compose(v -> {
         pgClient.startTx(tx.completer());
@@ -142,8 +142,8 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
     }).compose(v -> {
       Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
       try {
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(DEFAULT_FILE_EXTENSIONS_SQL);
-        String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(DEFAULT_FILE_EXTENSIONS_SQL); //NOSONAR
+        String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); //NOSONAR
         sqlScript = sqlScript.replace(TENANT_PLACEHOLDER, tenantId)
           .replace(MODULE_PLACEHOLDER, moduleName)
           .replace(DEFAULT_FILE_EXTENSIONS_TABLE, FILE_EXTENSIONS_TABLE);
