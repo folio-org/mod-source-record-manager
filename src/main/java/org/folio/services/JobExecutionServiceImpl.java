@@ -94,8 +94,19 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
-    return jobExecutionDao.updateJobExecution(jobExecution)
-      .compose(jobExec -> updateSnapshotStatus(jobExecution, params));
+    return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
+      Future<JobExecution> future = Future.future();
+      if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
+        String errorMessage = String.format("JobExecution %s current status is %s and cannot be updated to %s",
+          currentJobExec.getId(), currentJobExec.getStatus(), jobExecution.getStatus());
+        LOGGER.error(errorMessage);
+        future.fail(new BadRequestException(errorMessage));
+      } else {
+        currentJobExec = jobExecution;
+        future.complete(currentJobExec);
+      }
+      return future;
+    }).compose(jobExec -> updateSnapshotStatus(jobExecution, params));
   }
 
   @Override
@@ -121,22 +132,34 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
-    return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-      Future<JobExecution> future = Future.future();
-      try {
-        jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
-        jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
-        if (status.getStatus().equals(StatusDto.Status.ERROR)) {
-          jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+    if (JobExecution.Status.PARENT.name().equals(status.getStatus().name())) {
+      String errorMessage = "Cannot update JobExecution status to PARENT";
+      LOGGER.error(errorMessage);
+      return Future.failedFuture(new BadRequestException(errorMessage));
+    } else {
+      return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+        Future<JobExecution> future = Future.future();
+        try {
+          if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
+            String message = String.format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
+            LOGGER.error(message);
+            future.fail(new BadRequestException(message));
+          } else {
+            jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
+            jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
+            if (status.getStatus().equals(StatusDto.Status.ERROR)) {
+              jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+            }
+            future.complete(jobExecution);
+          }
+        } catch (Exception e) {
+          String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
+          LOGGER.error(errorMessage, e);
+          future.fail(errorMessage);
         }
-        future.complete(jobExecution);
-      } catch (Exception e) {
-        String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
-        LOGGER.error(errorMessage, e);
-        future.fail(errorMessage);
-      }
-      return future;
-    }).compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+        return future;
+      }).compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+    }
   }
 
   @Override
