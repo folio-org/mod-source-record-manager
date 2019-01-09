@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.is;
 public class FileExtensionAPITest extends AbstractRestTest {
 
   private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
-  private static final String FILE_EXTENSION_DEFAULT = FILE_EXTENSION_PATH + "/default";
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")

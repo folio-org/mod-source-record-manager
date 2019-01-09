@@ -93,7 +93,7 @@
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/metadata-provider/fileExtension/default",
+          "pathPattern": "/metadata-provider/fileExtension/restore/default",
           "permissionsRequired": ["change-manager.fileExtension.default"]
         }
       ]

@@ -189,26 +189,27 @@ resourceTypes:
             body:
               text/plain:
                 example: "Internal server error"
-    /default:
-      get:
-        description: Restore fileExtension settings to default
-        responses:
-          200:
-            body:
-              application/json:
-                type: fileExtensionCollection
-          400:
-            description: "Bad request"
-            body:
-              text/plain:
-                example: "Bad request"
-          422:
-            description: "Unprocessable Entity"
-            body:
-              application/json:
-                type: errors
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
+    /restore:
+      /default:
+        get:
+          description: Restore fileExtension settings to default
+          responses:
+            200:
+              body:
+                application/json:
+                  type: fileExtensionCollection
+            400:
+              description: "Bad request"
+              body:
+                text/plain:
+                  example: "Bad request"
+            422:
+              description: "Unprocessable Entity"
+              body:
+                application/json:
+                  type: errors
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"

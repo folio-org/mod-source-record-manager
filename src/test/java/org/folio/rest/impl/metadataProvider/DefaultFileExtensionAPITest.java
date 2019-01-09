@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.is;
 public class DefaultFileExtensionAPITest extends AbstractRestTest {
 
   private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
-  private static final String FILE_EXTENSION_DEFAULT = FILE_EXTENSION_PATH + "/default";
+  private static final String FILE_EXTENSION_DEFAULT = FILE_EXTENSION_PATH + "/restore/default";
 
   @Test
   public void shouldRestoreToDefault() {

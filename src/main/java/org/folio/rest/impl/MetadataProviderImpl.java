@@ -161,13 +161,14 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderFileExtensionDefault(Map<String, String> okapiHeaders,
-                                                       Handler<AsyncResult<Response>> asyncResultHandler,
-                                                       Context vertxContext) {
+  public void getMetadataProviderFileExtensionRestoreDefault(Map<String, String> okapiHeaders,
+                                                             Handler<AsyncResult<Response>> asyncResultHandler,
+                                                             Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         fileExtensionService.restoreFileExtensions()
-          .map(defaultCollection -> (Response) GetMetadataProviderFileExtensionDefaultResponse.respond200WithApplicationJson(defaultCollection))
+          .map(defaultCollection -> (Response) GetMetadataProviderFileExtensionRestoreDefaultResponse
+            .respond200WithApplicationJson(defaultCollection))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {

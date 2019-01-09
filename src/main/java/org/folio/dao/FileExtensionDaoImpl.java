@@ -136,9 +136,9 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
         pgClient.startTx(tx.completer());
         return tx;
       }).compose(v -> {
-      Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
-      pgClient.delete(tx, FILE_EXTENSIONS_TABLE, new Criterion(), resultFuture);
-      return resultFuture;
+      Future<UpdateResult> deleteFuture = Future.future(); //NOSONAR
+      pgClient.delete(tx, FILE_EXTENSIONS_TABLE, new Criterion(), deleteFuture);
+      return deleteFuture;
     }).compose(v -> {
       Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
       try {
@@ -159,14 +159,13 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       Future<Void> endTxFuture = Future.future(); //NOSONAR
       pgClient.endTx(tx, endTxFuture);
       return endTxFuture;
-    }).compose(v -> getAllFileExtensions())
-      .setHandler(result -> {
-        if (result.failed()) {
-          pgClient.rollbackTx(tx, rollback -> future.fail(result.cause()));
-        } else {
-          future.complete(result.result());
-        }
-      });
-    return future;
+    }).setHandler(result -> {
+      if (result.failed()) {
+        pgClient.rollbackTx(tx, rollback -> future.fail(result.cause()));
+      } else {
+        future.complete();
+      }
+    });
+    return future.compose(v->getAllFileExtensions());
   }
 }
