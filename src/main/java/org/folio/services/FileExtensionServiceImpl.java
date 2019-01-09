@@ -49,4 +49,9 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   public Future<Boolean> deleteFileExtension(String id) {
     return fileExtensionDao.deleteFileExtension(id);
   }
+
+  @Override
+  public Future<FileExtensionCollection> restoreFileExtensions() {
+    return fileExtensionDao.restoreFileExtensions();
+  }
 }

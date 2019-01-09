@@ -1,7 +1,8 @@
-package org.folio.rest.impl.changeManager;
+package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
@@ -24,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class FileExtensionAPITest extends AbstractRestTest {
 
-  private static final String FILE_EXTENSION_PATH = "/change-manager/fileExtension";
+  private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")

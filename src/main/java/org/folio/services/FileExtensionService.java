@@ -52,4 +52,11 @@ public interface FileExtensionService {
    * @return future with true if succeeded
    */
   Future<Boolean> deleteFileExtension(String id);
+
+  /**
+   * Restore default values for {@link FileExtension}
+   *
+   * @return future with {@link FileExtensionCollection} that contains default values
+   */
+  Future<FileExtensionCollection> restoreFileExtensions();
 }

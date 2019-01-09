@@ -8,7 +8,7 @@
   "provides": [
     {
       "id": "source-record-manager",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -68,28 +68,33 @@
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/fileExtension",
+          "pathPattern": "/metadata-provider/fileExtension",
           "permissionsRequired": ["change-manager.fileExtension.get"]
         },
         {
           "methods": ["POST"],
-          "pathPattern": "/change-manager/fileExtension",
+          "pathPattern": "/metadata-provider/fileExtension",
           "permissionsRequired": ["change-manager.fileExtension.post"]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.get"]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.put"]
         },
         {
           "methods": ["DELETE"],
-          "pathPattern": "/change-manager/fileExtension/{id}",
+          "pathPattern": "/metadata-provider/fileExtension/{id}",
           "permissionsRequired": ["change-manager.fileExtension.delete"]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/fileExtension/restore/default",
+          "permissionsRequired": ["change-manager.fileExtension.default"]
         }
       ]
     },
@@ -145,24 +150,29 @@
       "description": "Post chunk of raw records"
     },
     {
-      "permissionName": "change-manager.fileExtension.get",
+      "permissionName": "metadata-provider.fileExtension.get",
       "displayName": "Change Manager - get file extension(s)",
       "description": "Get FileExtension(s)"
     },
     {
-      "permissionName": "change-manager.fileExtension.post",
+      "permissionName": "metadata-provider.fileExtension.post",
       "displayName": "Change Manager - create new file extension",
       "description": "Post FileExtension"
     },
     {
-      "permissionName": "change-manager.fileExtension.put",
+      "permissionName": "metadata-provider.fileExtension.put",
       "displayName": "Change Manager - update file extension",
       "description": "Put FileExtension"
     },
     {
-      "permissionName": "change-manager.fileExtension.delete",
+      "permissionName": "metadata-provider.fileExtension.delete",
       "displayName": "Change Manager - delete file extension",
       "description": "Delete FileExtension"
+    },
+    {
+      "permissionName": "metadata-provider.fileExtension.default",
+      "displayName": "Change Manager - restore file extensions to default",
+      "description": "Restore FileExtension to default"
     },
     {
       "permissionName": "source-record-manager.all",
@@ -175,10 +185,11 @@
         "change-manager.jobexecution.put",
         "change-manager.jobexecution.get",
         "change-manager.records.post",
-        "change-manager.fileExtension.get",
-        "change-manager.fileExtension.post",
-        "change-manager.fileExtension.put",
-        "change-manager.fileExtension.delete"
+        "metadata-provider.fileExtension.get",
+        "metadata-provider.fileExtension.post",
+        "metadata-provider.fileExtension.put",
+        "metadata-provider.fileExtension.delete",
+        "metadata-provider.fileExtension.default"
       ],
       "visible": false
     }

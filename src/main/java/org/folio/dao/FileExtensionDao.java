@@ -30,6 +30,13 @@ public interface FileExtensionDao {
   Future<Optional<FileExtension>> getFileExtensionById(String id);
 
   /**
+   * Searches for all {@link FileExtension} in database
+   *
+   * @return future with {@link FileExtensionCollection}
+   */
+  Future<FileExtensionCollection> getAllFileExtensions();
+
+  /**
    * Saves {@link FileExtension} to database
    *
    * @param fileExtension FileExtension to save
@@ -52,4 +59,11 @@ public interface FileExtensionDao {
    * @return future with true if succeeded
    */
   Future<Boolean> deleteFileExtension(String id);
+
+  /**
+   * Restore default values for {@link FileExtension}
+   *
+   * @return - future with restored file extensions
+   */
+  Future<FileExtensionCollection> restoreFileExtensions();
 }

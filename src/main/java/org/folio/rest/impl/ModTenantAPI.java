@@ -27,9 +27,9 @@ public class ModTenantAPI extends TenantAPI {
 
   private static final String SETUP_TEST_DATA_SQL = "templates/db_scripts/setup_test_data.sql";
 
-  private static final String TENANT_PLACEHOLDER = "${myuniversity}";
+  public static final String TENANT_PLACEHOLDER = "${myuniversity}";
 
-  private static final String MODULE_PLACEHOLDER = "${mymodule}";
+  public static final String MODULE_PLACEHOLDER = "${mymodule}";
 
   @Validate
   @Override
