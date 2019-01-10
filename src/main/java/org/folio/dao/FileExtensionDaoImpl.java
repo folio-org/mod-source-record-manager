@@ -6,7 +6,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
-import org.apache.commons.io.IOUtils;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -17,14 +16,10 @@ import org.folio.rest.persist.interfaces.Results;
 
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.folio.dao.util.DaoUtil.constructCriteria;
 import static org.folio.dao.util.DaoUtil.getCQLWrapper;
-import static org.folio.rest.impl.ModTenantAPI.MODULE_PLACEHOLDER;
-import static org.folio.rest.impl.ModTenantAPI.TENANT_PLACEHOLDER;
 
 public class FileExtensionDaoImpl implements FileExtensionDao {
 
@@ -60,10 +55,10 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
   }
 
   @Override
-  public Future<FileExtensionCollection> getAllFileExtensions() {
+  public Future<FileExtensionCollection> getAllFileExtensionsFromTable(String tableName) {
     Future<Results<FileExtension>> future = Future.future();
     try {
-      pgClient.get(FILE_EXTENSIONS_TABLE, FileExtension.class, new Criterion(), true, false, future.completer());
+      pgClient.get(tableName, FileExtension.class, new Criterion(), true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while searching for FileExtensions", e);
       future.fail(e);
@@ -141,16 +136,11 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       return deleteFuture;
     }).compose(v -> {
       Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
-      try {
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(DEFAULT_FILE_EXTENSIONS_SQL); //NOSONAR
-        String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name()); //NOSONAR
-        sqlScript = sqlScript.replace(TENANT_PLACEHOLDER, tenantId)
-          .replace(MODULE_PLACEHOLDER, moduleName)
-          .replace(DEFAULT_FILE_EXTENSIONS_TABLE, FILE_EXTENSIONS_TABLE);
-        pgClient.execute(tx, sqlScript, resultFuture);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+      StringBuilder sqlScript = new StringBuilder("INSERT INTO ")
+        .append(tenantId).append("_").append(moduleName).append(".").append(FILE_EXTENSIONS_TABLE)
+        .append(" SELECT * FROM ")
+        .append(tenantId).append("_").append(moduleName).append(".").append(DEFAULT_FILE_EXTENSIONS_TABLE).append(";");
+      pgClient.execute(tx, sqlScript.toString(), resultFuture);
       return resultFuture;
     }).compose(updateHandler -> {
       if (updateHandler.getUpdated() < 1) {
@@ -166,7 +156,7 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
         future.complete();
       }
     });
-    return future.compose(v->getAllFileExtensions());
+    return future.compose(v -> getAllFileExtensionsFromTable(FILE_EXTENSIONS_TABLE));
   }
 }
 

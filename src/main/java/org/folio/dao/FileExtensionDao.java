@@ -30,11 +30,11 @@ public interface FileExtensionDao {
   Future<Optional<FileExtension>> getFileExtensionById(String id);
 
   /**
-   * Searches for all {@link FileExtension} in database
+   * Searches for all {@link FileExtension} in database from selected table
    *
    * @return future with {@link FileExtensionCollection}
    */
-  Future<FileExtensionCollection> getAllFileExtensions();
+  Future<FileExtensionCollection> getAllFileExtensionsFromTable(String tableName);
 
   /**
    * Saves {@link FileExtension} to database
