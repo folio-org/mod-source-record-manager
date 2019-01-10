@@ -415,6 +415,61 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldNotUpdateStatusToParent() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARENT);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(jobExec.getStatus().name()))
+      .body("uiStatus", is(jobExec.getUiStatus().name()));
+  }
+
+  @Test
+  public void shouldNotUpdateStatusOfParentMultiple() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(3);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(4));
+    JobExecution parent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + parent.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.PARENT.name()))
+      .body("uiStatus", is(JobExecution.UiStatus.PARENT.name()));
+  }
+
+  @Test
   public void shouldUpdateMultipleParentOnPut() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(2);
@@ -441,6 +496,61 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
+  }
+
+  @Test
+  public void shouldNotUpdateMultipleParentStatusOnPut() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(2);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(3));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    multipleParent.setStatus(JobExecution.Status.IMPORT_IN_PROGRESS);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(multipleParent).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + multipleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + multipleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.PARENT.name()))
+      .body("uiStatus", is(JobExecution.UiStatus.PARENT.name()));
+  }
+
+  @Test
+  public void shouldNotUpdateStatusToParentOnPut() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    jobExec.setStatus(JobExecution.Status.PARENT);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(jobExec).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.NEW.name()))
+      .body("uiStatus", is(JobExecution.UiStatus.INITIALIZATION.name()));
   }
 
   @Test
