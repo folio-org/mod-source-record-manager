@@ -97,7 +97,7 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       Criteria idCrit = constructCriteria(ID_FIELD, fileExtension.getId());
       pgClient.update(FILE_EXTENSIONS_TABLE, fileExtension, new Criterion(idCrit), true, updateResult -> {
         if (updateResult.failed()) {
-          LOGGER.error(String.format("Could not update fileExtension with id '%s'", fileExtension.getId()), updateResult.cause());
+          LOGGER.error("Could not update fileExtension with id {}", fileExtension.getId(), updateResult.cause());
           future.fail(updateResult.cause());
         } else if (updateResult.result().getUpdated() != 1) {
           String errorMessage = String.format("FileExtension with id '%s' was not found", fileExtension.getId());

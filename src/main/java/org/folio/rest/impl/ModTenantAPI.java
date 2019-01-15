@@ -59,7 +59,7 @@ public class ModTenantAPI extends TenantAPI {
       InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(SETUP_TEST_DATA_SQL);
 
       if (inputStream == null) {
-        LOGGER.info("Test data was not initialized: no resources found: " + SETUP_TEST_DATA_SQL);
+        LOGGER.info("Test data was not initialized: no resources found: {}", SETUP_TEST_DATA_SQL);
         return Future.succeededFuture();
       }
 

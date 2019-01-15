@@ -131,7 +131,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       Criteria idCrit = constructCriteria(ID_FIELD, jobExecution.getId());
       pgClient.update(TABLE_NAME, jobExecution, new Criterion(idCrit), true, updateResult -> {
         if (updateResult.failed()) {
-          LOGGER.error(String.format("Could not update jobExecution with id '%s'", jobExecution.getId()), updateResult.cause());
+          LOGGER.error("Could not update jobExecution with id {}", jobExecution.getId(), updateResult.cause());
           future.fail(updateResult.cause());
         } else if (updateResult.result().getUpdated() != 1) {
           String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());

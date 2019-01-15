@@ -55,7 +55,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           RestUtil.doRequest(params, buildQueryForRecordsLoad(job.getId(), 0), HttpMethod.GET, null)
             .setHandler(countResult -> {
               if (countResult.failed()) {
-                LOGGER.error("Error during requesting number of records for jobExecution with id: " + job.getId());
+                LOGGER.error("Error during requesting number of records for jobExecution with id: {}", job.getId());
                 future.fail(countResult.cause());
               } else {
                 JsonObject recordCollection = countResult.result().getJson();
@@ -71,7 +71,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                     RestUtil.doRequest(params, RECORD_SERVICE_URL + buildQueryForRecordsLoad(job.getId(), offset), HttpMethod.GET, null)
                       .setHandler(loadChunksResult -> {
                         if (loadChunksResult.failed()) {
-                          LOGGER.error("Error during getting records for parse for job execution with id: " + job.getId(), loadChunksResult.cause());
+                          LOGGER.error("Error during getting records for parse for job execution with id: {}", job.getId(), loadChunksResult.cause());
                           future.fail(loadChunksResult.cause());
                         } else {
                           JsonObject chunks = loadChunksResult.result().getJson();
@@ -91,7 +91,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                     statusDto
                                       .withStatus(StatusDto.Status.ERROR)
                                       .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-                                    LOGGER.error("Can't update record in storage. jobId: " + job.getId(), result.cause());
+                                    LOGGER.error("Can't update record in storage. jobId: {}", job.getId(), result.cause());
                                   } else {
                                     statusDto
                                       .withStatus(StatusDto.Status.PARSING_FINISHED);
