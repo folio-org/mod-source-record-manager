@@ -69,32 +69,32 @@
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/fileExtension",
-          "permissionsRequired": ["change-manager.fileExtension.get"]
+          "permissionsRequired": ["metadata-provider.fileExtension.get"]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/metadata-provider/fileExtension",
-          "permissionsRequired": ["change-manager.fileExtension.post"]
+          "permissionsRequired": ["metadata-provider.fileExtension.post"]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["change-manager.fileExtension.get"]
+          "permissionsRequired": ["metadata-provider.fileExtension.get"]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["change-manager.fileExtension.put"]
+          "permissionsRequired": ["metadata-provider.fileExtension.put"]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["change-manager.fileExtension.delete"]
+          "permissionsRequired": ["metadata-provider.fileExtension.delete"]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/fileExtension/restore/default",
-          "permissionsRequired": ["change-manager.fileExtension.default"]
+          "permissionsRequired": ["metadata-provider.fileExtension.default"]
         }
       ]
     },
@@ -151,27 +151,27 @@
     },
     {
       "permissionName": "metadata-provider.fileExtension.get",
-      "displayName": "Change Manager - get file extension(s)",
+      "displayName": "Metadata Provider - get file extension(s)",
       "description": "Get FileExtension(s)"
     },
     {
       "permissionName": "metadata-provider.fileExtension.post",
-      "displayName": "Change Manager - create new file extension",
+      "displayName": "Metadata Provider - create new file extension",
       "description": "Post FileExtension"
     },
     {
       "permissionName": "metadata-provider.fileExtension.put",
-      "displayName": "Change Manager - update file extension",
+      "displayName": "Metadata Provider - update file extension",
       "description": "Put FileExtension"
     },
     {
       "permissionName": "metadata-provider.fileExtension.delete",
-      "displayName": "Change Manager - delete file extension",
+      "displayName": "Metadata Provider - delete file extension",
       "description": "Delete FileExtension"
     },
     {
       "permissionName": "metadata-provider.fileExtension.default",
-      "displayName": "Change Manager - restore file extensions to default",
+      "displayName": "Metadata Provider - restore file extensions to default",
       "description": "Restore FileExtension to default"
     },
     {
