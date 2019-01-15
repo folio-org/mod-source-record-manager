@@ -1,12 +1,12 @@
 INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
-('5cff8cbd-ecb3-404c-8eef-fa030d3579ea', '{
+('e451348f-2273-4b45-b385-0a8b0184b4e1', '{
     "jobProfile": {
-      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "d7932fc1-0ef3-466b-8d9c-f375914a2584",
       "name": "Authority updates"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import7.marc",
-    "id": "5cff8cbd-ecb3-404c-8eef-fa030d3579ea",
+    "id": "e451348f-2273-4b45-b385-0a8b0184b4e1",
     "hrId": "112984432",
     "status": "PROCESSING_FINISHED",
     "uiStatus": "READY_FOR_PREVIEW",
@@ -21,14 +21,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T23:26:44.000",
     "completedDate": "2018-11-21T00:38:44.000"
   }'),
-('63a30136-06cb-405b-be72-f4d001614b4f', '{
+('4030c4ee-5578-4727-a77f-86a7a39d1960', '{
     "jobProfile": {
-      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "d7932fc1-0ef3-466b-8d9c-f375914a2584",
       "name": "Authority updates"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import8.marc",
-    "id": "63a30136-06cb-405b-be72-f4d001614b4f",
+    "id": "4030c4ee-5578-4727-a77f-86a7a39d1960",
     "hrId": "112974998",
     "status": "PROCESSING_FINISHED",
     "uiStatus": "READY_FOR_PREVIEW",
@@ -43,14 +43,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T23:38:44.000",
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
-('cc64986d-ec72-4b01-a3fd-1762f950e49a', '{
+('eb573f78-ebf7-4873-8f4a-e1df67b709fd', '{
     "jobProfile": {
-      "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
+      "id": "469aa375-25e9-4ed9-adea-1b0dca2d0502",
       "name": "Marc bib jobs"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_156.mrc",
-    "id": "cc64986d-ec72-4b01-a3fd-1762f950e49a",
+    "id": "eb573f78-ebf7-4873-8f4a-e1df67b709fd",
     "hrId": "122984588",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -65,14 +65,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T13:26:44.000",
     "completedDate": ""
   }'),
-('e6219fe2-abbc-47b6-afe4-8910d49fc337', '{
+('76ea6b29-c8aa-4def-a2fa-544174a22597', '{
     "jobProfile": {
-      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "1f4402cf-db46-45b4-af21-32cd845b495a",
       "name": "Marc jobs"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_209.mrc",
-    "id": "e6219fe2-abbc-47b6-afe4-8910d49fc337",
+    "id": "76ea6b29-c8aa-4def-a2fa-544174a22597",
     "hrId": "122984589",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -87,14 +87,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:14:44.000",
     "completedDate": ""
   }'),
-('28f53010-a9d9-4f96-8f81-04a0549554d0', '{
+('9a1f4329-9f39-4494-972b-d35a60014aff', '{
     "jobProfile": {
-      "id": "as4fgbn1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "1f4402cf-db46-45b4-af21-32cd845b495a",
       "name": "Marc jobs"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_159.mrc",
-    "id": "28f53010-a9d9-4f96-8f81-04a0549554d0",
+    "id": "9a1f4329-9f39-4494-972b-d35a60014aff",
     "hrId": "182984219",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -109,14 +109,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:56:12.000",
     "completedDate": ""
   }'),
-('d2b29a0c-3862-456e-9236-d14d33a4accb', '{
+('989ca01b-0b2c-4969-b22d-f8ff586f99e5', '{
     "jobProfile": {
-      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_150.mrc",
-    "id": "d2b29a0c-3862-456e-9236-d14d33a4accb",
+    "id": "989ca01b-0b2c-4969-b22d-f8ff586f99e5",
     "hrId": "182984532",
     "status": "PROCESSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -131,14 +131,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:32:44.000",
     "completedDate": ""
   }'),
-('469eba83-41d1-4161-bd1a-0f46d8764c6a', '{
+('ab2fdcd2-b9a9-46eb-bc99-640b253c1f37', '{
     "jobProfile": {
-      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_102.mrc",
-    "id": "469eba83-41d1-4161-bd1a-0f46d8764c6a",
+    "id": "ab2fdcd2-b9a9-46eb-bc99-640b253c1f37",
     "hrId": "182982989",
     "status": "PROCESSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -153,14 +153,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:50:44.000",
     "completedDate": ""
   }'),
-('2f42bcfa-9ad1-492d-a2b4-280020345f64', '{
+('80632ccd-0967-4e8c-8951-d9f448a68da1', '{
     "jobProfile": {
-      "id": "zd5000gh-1caf-4470-9ad1-d533f6360bdd",
+      "id": "60ccb7c7-629b-4e9a-8a3b-6614679ea400",
       "name": "Standard BIB Import"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBIB017.marc",
-    "id": "2f42bcfa-9ad1-492d-a2b4-280020345f64",
+    "id": "80632ccd-0967-4e8c-8951-d9f448a68da1",
     "hrId": "222984498",
     "status": "PROCESSING_FINISHED",
     "uiStatus": "READY_FOR_PREVIEW",
@@ -175,14 +175,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-09T22:26:12.000",
     "completedDate": "2018-11-21T00:01:17.000"
   }'),
-('bf75b55e-12de-4329-ad75-879cc9ec8e34', '{
+('4680c2b1-2002-42d0-9480-4dd8025780b4', '{
     "jobProfile": {
-      "id": "sd5nl8i0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "d3865f21-fe1c-4677-b20f-3368ed6bd6af",
       "name": "BIB Import from Boston"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "importBoston.marc",
-    "id": "bf75b55e-12de-4329-ad75-879cc9ec8e34",
+    "id": "4680c2b1-2002-42d0-9480-4dd8025780b4",
     "hrId": "143274991",
     "status": "PROCESSING_FINISHED",
     "uiStatus": "READY_FOR_PREVIEW",
@@ -197,14 +197,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T23:38:44.000",
     "completedDate": "2018-11-20T23:50:44.000"
   }'),
-('78d4a7de-0677-40fb-875e-588ef87628c9', '{
+('46d499d5-00cd-4ddd-a5c1-a952aad3b23c', '{
     "jobProfile": {
-      "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
+      "id": "a861874e-321c-4f39-af71-b48a772e6d9c",
       "name": "Main bib jobs (MARC)"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_332.mrc",
-    "id": "78d4a7de-0677-40fb-875e-588ef87628c9",
+    "id": "46d499d5-00cd-4ddd-a5c1-a952aad3b23c",
     "hrId": "634984588",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -219,14 +219,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T13:26:44.000",
     "completedDate": ""
   }'),
-('2bec675c-f605-4622-8a59-b43385181d7e', '{
+('3fee4e9b-e49b-43a2-a4d9-4b7fa3bb010c', '{
     "jobProfile": {
-      "id": "zsdf0012-1caf-4470-9ad1-d533f6360bdd",
+      "id": "a861874e-321c-4f39-af71-b48a772e6d9c",
       "name": "Main bib jobs (MARC)"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_211.mrc",
-    "id": "2bec675c-f605-4622-8a59-b43385181d7e",
+    "id": "3fee4e9b-e49b-43a2-a4d9-4b7fa3bb010c",
     "hrId": "126344589",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -241,14 +241,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:14:44.000",
     "completedDate": ""
   }'),
-('3a560d98-10bd-4b29-a172-6cfc15a1420f', '{
+('cea0ffa3-242e-43df-bac4-2f500ba603e6', '{
     "jobProfile": {
-      "id": "as3vhml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "b79818e7-55ef-48fa-9835-daa351a1b9f5",
       "name": "Custom (CH) Marc bib"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "Supplier32_import_88.mrc",
-    "id": "3a560d98-10bd-4b29-a172-6cfc15a1420f",
+    "id": "cea0ffa3-242e-43df-bac4-2f500ba603e6",
     "hrId": "837984210",
     "status": "PARSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -263,14 +263,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:44:44.000",
     "completedDate": ""
   }'),
-('bd4e22fd-799a-4fc3-9a2c-a17379921df7', '{
+('676ceee8-bb8a-4f33-a1b2-d2a806fa6e08', '{
     "jobProfile": {
-      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx.mrc",
-    "id": "bd4e22fd-799a-4fc3-9a2c-a17379921df7",
+    "id": "676ceee8-bb8a-4f33-a1b2-d2a806fa6e08",
     "hrId": "321984532",
     "status": "PROCESSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -285,14 +285,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:32:44.000",
     "completedDate": ""
   }'),
-('7ca6e90e-ec2a-444f-a442-ccb65d88699e', '{
+('d9ece709-6cb5-484b-86c6-159477b2e836', '{
     "jobProfile": {
-      "id": "zxc4gh80-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx_unq.mrc",
-    "id": "7ca6e90e-ec2a-444f-a442-ccb65d88699e",
+    "id": "d9ece709-6cb5-484b-86c6-159477b2e836",
     "hrId": "237482989",
     "status": "PROCESSING_IN_PROGRESS",
     "uiStatus": "PREPARING_FOR_PREVIEW",
@@ -307,14 +307,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-20T14:50:44.000",
     "completedDate": ""
   }'),
-('zxc5tgb7-ec2a-444f-a442-ccb65d88699e', '{
+('9e4ee24a-c474-4213-a4ac-735b14596a09', '{
     "jobProfile": {
-      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx_unq.mrc",
-    "id": "zxc5tgb7-ec2a-444f-a442-ccb65d88699e",
+    "id": "9e4ee24a-c474-4213-a4ac-735b14596a09",
     "hrId": "637483981",
     "status": "COMMIT_IN_PROGRESS",
     "uiStatus": "RUNNING",
@@ -329,14 +329,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-12-21T10:50:44.000",
     "completedDate": ""
   }'),
-('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
+('273d9f09-aa60-4800-87bc-a11419d9f27e', '{
     "jobProfile": {
-      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx.mrc",
-    "id": "zxc44m00-ec2a-444f-a442-ccb65d88699e",
+    "id": "273d9f09-aa60-4800-87bc-a11419d9f27e",
     "hrId": "789311094",
     "status": "COMMIT_IN_PROGRESS",
     "uiStatus": "RUNNING",
@@ -351,14 +351,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-12-21T09:10:14.000",
     "completedDate": ""
   }'),
-('zxc44m00-ec2a-444f-a442-ccb65d88699e', '{
+('91f4f491-335f-44be-b946-8a9b936b9bbd', '{
     "jobProfile": {
-      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_indexes.mrc",
-    "id": "zxc44m00-ec2a-444f-a442-ccb65d88699e",
+    "id": "91f4f491-335f-44be-b946-8a9b936b9bbd",
     "hrId": "128890210",
     "status": "COMMIT_IN_PROGRESS",
     "uiStatus": "RUNNING",
@@ -373,14 +373,14 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-12-21T09:55:05.000",
     "completedDate": ""
   }'),
-('67hhjkl1-ec2a-444f-a442-ccb65d88699e', '{
+('4431c6a0-17d6-4faa-8e29-bb61945f3bf4', '{
     "jobProfile": {
-      "id": "zxc5tgb7-1caf-4470-9ad1-d533f6360bdd",
+      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
       "name": "Library indexing"
     },
     "subordinationType": "PARENT_SINGLE",
     "sourcePath": "import_idx_332.mrc",
-    "id": "67hhjkl1-ec2a-444f-a442-ccb65d88699e",
+    "id": "4431c6a0-17d6-4faa-8e29-bb61945f3bf4",
     "hrId": "441098214",
     "status": "COMMIT_IN_PROGRESS",
     "uiStatus": "RUNNING",
@@ -395,13 +395,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-12-21T09:33:13.000",
     "completedDate": ""
   }'),
-('c86362e7-1276-4037-a070-66d3040385e3', '{
-    "id": "c86362e7-1276-4037-a070-66d3040385e3",
+('8ff3cba7-9d5e-4410-8946-a872dece416f', '{
+    "id": "8ff3cba7-9d5e-4410-8946-a872dece416f",
     "hrId": "13414",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
       "name": "Standard BIB profile"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -417,13 +417,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-30T11:41:22.000",
     "completedDate": "2018-10-30T12:41:22.000"
   }'),
-('6e49b9da-f025-4414-b58e-85ef2fcbbd4b', '{
-    "id": "6e49b9da-f025-4414-b58e-85ef2fcbbd4b",
+('90244497-c55f-4575-9ed4-65fa10947420', '{
+    "id": "90244497-c55f-4575-9ed4-65fa10947420",
     "hrId": "23112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "d7ee0026-382b-49cd-9b8f-7aa159e4f3cd",
       "name": "BIB profile with customized Holdings"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -439,13 +439,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-30T10:42:18.000",
     "completedDate": "2018-10-30T12:42:18.000"
   }'),
-('2cfa097f-3ec4-45cb-9846-9fd4b9773116', '{
-    "id": "2cfa097f-3ec4-45cb-9846-9fd4b9773116",
+('0ce29a2a-b40e-4d28-b510-e11162270a6f', '{
+    "id": "0ce29a2a-b40e-4d28-b510-e11162270a6f",
     "hrId": "33112",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ffvb6yuj-3ec4-45cb-9846-9fd4b9773116",
+      "id": "9b0ee93c-4de5-454a-990f-52d504e12981",
       "name": "Christie`s profile for CPL"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -461,13 +461,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-30T11:45:33.000",
     "completedDate": "2018-10-30T12:45:33.000"
   }'),
-('3d4f2e36-c31b-4d0f-8307-18703af07aed', '{
-    "id": "3d4f2e36-c31b-4d0f-8307-18703af07aed",
+('cb6bd862-f451-4446-bcbc-cb2302eec62c', '{
+    "id": "cb6bd862-f451-4446-bcbc-cb2302eec62c",
     "hrId": "47906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "fgtt56z1-c31b-4d0f-8307-18703af07aed",
+      "id": "df0ad779-7099-4d9f-b061-30d907c4884f",
       "name": "MIT Orders"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -483,13 +483,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T10:10:51.000",
     "completedDate": "2018-11-01T10:12:51.000"
   }'),
-('f209acc9-6cb0-47fd-91e6-3d5adbdaeea2', '{
-    "id": "f209acc9-6cb0-47fd-91e6-3d5adbdaeea2",
+('842c5c52-994e-407d-b881-472db22e6b03', '{
+    "id": "842c5c52-994e-407d-b881-472db22e6b03",
     "hrId": "48906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "9a3169ed-8451-4b83-a1f2-aa8af3da46e4",
       "name": "Standard BIB profile with fixes for Items (HU)"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -505,13 +505,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T09:37:53.000",
     "completedDate": "2018-11-01T10:37:53.000"
   }'),
-('88a7b1a7-a6ac-4cc8-904f-056b9e4920d5', '{
-    "id": "88a7b1a7-a6ac-4cc8-904f-056b9e4920d5",
+('72327eb3-4d8d-4586-a643-f1f26a17d2c4', '{
+    "id": "72327eb3-4d8d-4586-a643-f1f26a17d2c4",
     "hrId": "58906",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-        "id": "zdf44qo0-1caf-4470-9ad1-d533f6360bdd",
+        "id": "3f80a012-a959-46d0-a204-f5ac6cb9df81",
         "name": "Obsolete BIB profile for backward compatibility"
     },
     "sourcePath": "import_6.mrc",
@@ -527,13 +527,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-02T10:00:31.000",
     "completedDate": "2018-11-02T10:20:32.000"
   }'),
-('5b6f60a3-f390-4d66-be68-a56d54ccded5', '{
-    "id": "5b6f60a3-f390-4d66-be68-a56d54ccded5",
+('6a0e227b-ff6e-4ce7-9fd9-144bfe6d3581', '{
+    "id": "6a0e227b-ff6e-4ce7-9fd9-144bfe6d3581",
     "hrId": "68551",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
+      "id": "98a74968-9511-48f1-b1d8-374a05a789ce",
       "name": "New Holdings (Beta.2 Use carefully)"
     },
     "sourcePath": "import_7.mrc",
@@ -549,13 +549,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-02T08:18:44.000",
     "completedDate": "2018-11-02T10:18:44.000"
   }'),
-('835cb64c-1f29-4e7b-b45c-81660644028e', '{
-    "id": "835cb64c-1f29-4e7b-b45c-81660644028e",
+('cceb5288-d15a-48d4-9444-34ac36c53be5', '{
+    "id": "cceb5288-d15a-48d4-9444-34ac36c53be5",
     "hrId": "75671",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "aasxcv31-1f29-4e7b-b45c-81660644028e",
+      "id": "60b4f4a9-9bf0-409f-93fd-848294c9bec2",
       "name": "Marc BIB-001 Jonathan test"
     },
     "sourcePath": "import_8.mrc",
@@ -571,13 +571,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T09:03:52.000",
     "completedDate": "2018-11-01T10:09:51.000"
   }'),
-('9eff154f-02cf-4562-bdcd-b5d21c614ad9', '{
-    "id": "9eff154f-02cf-4562-bdcd-b5d21c614ad9",
+('03a4961e-d8e0-4bd2-bf44-5c7078287f90', '{
+    "id": "03a4961e-d8e0-4bd2-bf44-5c7078287f90",
     "hrId": "81123",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
       "name": "Standard BIB profile"
     },
     "sourcePath": "import_9.mrc",
@@ -593,13 +593,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T10:18:42.000",
     "completedDate": "2018-11-01T11:12:42.000"
   }'),
-('473e2b27-7589-4766-8cb9-fe0961456be9', '{
-    "id": "473e2b27-7589-4766-8cb9-fe0961456be9",
+('c3daa4b4-9dc8-4e42-89d6-b3036206e69b', '{
+    "id": "c3daa4b4-9dc8-4e42-89d6-b3036206e69b",
     "hrId": "91124",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
       "name": "Standard BIB profile"
     },
     "sourcePath": "import_10.mrc",
@@ -615,13 +615,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T11:08:21.000",
     "completedDate": "2018-11-01T13:33:21.000"
   }'),
-('f8b239c3-2cfe-4a0f-bd38-6e95017f122c', '{
-    "id": "f8b239c3-2cfe-4a0f-bd38-6e95017f122c",
+('73c77152-560e-4629-a262-0a8fb808f4e0', '{
+    "id": "73c77152-560e-4629-a262-0a8fb808f4e0",
     "hrId": "10556",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "zzfky881-1caf-4470-9ad1-d533f6360bdd",
+      "id": "b3e122be-226d-47f7-8768-3684b2bbb6c3",
       "name": "Simple BIB profile (description update)"
     },
     "sourcePath": "import_11.mrc",
@@ -637,13 +637,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-02T12:14:31.000",
     "completedDate": "2018-11-02T12:15:51.000"
   }'),
-('73af5945-31d1-4838-8c56-cb3cb97f7892', '{
-    "id": "73af5945-31d1-4838-8c56-cb3cb97f7892",
+('33878b32-d1ed-43ad-b87d-5607e8c941c0', '{
+    "id": "33878b32-d1ed-43ad-b87d-5607e8c941c0",
     "hrId": "11250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "37abcf73-a169-40f6-8440-1ee2554a8da6",
       "name": "Standard BIB profile (Instances only)"
     },
     "sourcePath": "import_12.mrc",
@@ -659,13 +659,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-03T10:01:30.000",
     "completedDate": "2018-11-03T10:03:30.000"
   }'),
-('8d76dd02-4f76-459c-8bc5-db9abc355f55', '{
-    "id": "8d76dd02-4f76-459c-8bc5-db9abc355f55",
+('fdf27cf4-e8e7-4742-a5f2-ef8e3aaaaed7', '{
+    "id": "fdf27cf4-e8e7-4742-a5f2-ef8e3aaaaed7",
     "hrId": "52250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "zs99fhn1-31d1-4838-8c56-cb3cb97f7892",
+      "id": "40aa0dfe-e707-4495-a0d3-6c79a49776bb",
       "name": "FOLIO Default"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -681,13 +681,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-03T10:22:30.000",
     "completedDate": "2018-11-03T11:22:30.000"
   }'),
-('9f0364d2-7ba3-4073-a884-5ec3fa0708c7', '{
-    "id": "9f0364d2-7ba3-4073-a884-5ec3fa0708c7",
+('b2e9005e-25e0-46c1-bac3-9eee12d061d0', '{
+    "id": "b2e9005e-25e0-46c1-bac3-9eee12d061d0",
     "hrId": "13250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "as55nm80-31d1-4838-8c56-cb3cb97f7892",
+      "id": "fc8d73c2-81c8-4dfc-b521-40788e58e32f",
       "name": "Charlotte`s Core Case with Fixes"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -703,13 +703,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-02T09:05:30.000",
     "completedDate": "2018-11-02T10:05:30.000"
   }'),
-('813c5ff9-78f7-4729-a65e-26b7162fc3ce', '{
-    "id": "813c5ff9-78f7-4729-a65e-26b7162fc3ce",
+('825c2d6f-9f07-483d-a936-065487a1d85c', '{
+    "id": "825c2d6f-9f07-483d-a936-065487a1d85c",
     "hrId": "14250",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "zxkd7789-31d1-4838-8c56-cb3cb97f7892",
+      "id": "d39cba50-6811-43ce-98a6-6f178ea9dc27",
       "name": "Pearson new data"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -725,13 +725,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-03T11:45:21.000",
     "completedDate": "2018-11-03T13:47:23.000"
   }'),
-('08c4d2e8-14bf-4fd3-bc3c-9de137333625', '{
-    "id": "08c4d2e8-14bf-4fd3-bc3c-9de137333625",
+('a8a551d7-7280-410b-867f-e18137c43220', '{
+    "id": "a8a551d7-7280-410b-867f-e18137c43220",
     "hrId": "15150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ffg60001-31d1-4838-8c56-cb3cb97f7892",
+      "id": "52fc50f5-7160-43d1-8ef4-e000c16887d8",
       "name": "Thomson Reuters standard"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -747,13 +747,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-02T10:45:21.000",
     "completedDate": "2018-11-02T12:45:21.000"
   }'),
-('5b342fdd-6b0f-4738-b6f1-dba1458004ea', '{
-    "id": "5b342fdd-6b0f-4738-b6f1-dba1458004ea",
+('dc2c91e5-0c5a-40e3-861a-fc753e4c89b2', '{
+    "id": "dc2c91e5-0c5a-40e3-861a-fc753e4c89b2",
     "hrId": "16150",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
       "name": "Standard BIB profile"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -769,13 +769,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-03T10:40:21.000",
     "completedDate": "2018-11-03T11:40:21.000"
   }'),
-('425909fd-e54a-4dff-9dda-71042dba4f12', '{
-    "id": "425909fd-e54a-4dff-9dda-71042dba4f12",
+('b1f484a0-b51b-45f5-b507-556996e17ca5', '{
+    "id": "b1f484a0-b51b-45f5-b507-556996e17ca5",
     "hrId": "17091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "sd44100z-1caf-4470-9ad1-d533f6360bdd",
+      "id": "5a7d9b3e-fcb1-4164-9b0c-139f96ad14a0",
       "name": "Annual registry update profile"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -791,13 +791,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-03T13:20:21.000",
     "completedDate": "2018-11-03T14:20:21.000"
   }'),
-('2e2f0a82-1652-48f6-b484-85dfd392fa9b', '{
-    "id": "2e2f0a82-1652-48f6-b484-85dfd392fa9b",
+('2b7afc17-f59d-4813-b118-0423a818d5d6', '{
+    "id": "2b7afc17-f59d-4813-b118-0423a818d5d6",
     "hrId": "18091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "dftt6711-1caf-4470-9ad1-d533f6360bdd",
+      "id": "c9d3fa9b-63e9-4b62-b109-fe738b40e0fb",
       "name": "Outdated! DO NOT USE (Just Special Cases!)"
     },
     "sourcePath": "import_19.mrc",
@@ -813,13 +813,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T14:21:28.000",
     "completedDate": "2018-11-01T15:21:28.000"
   }'),
-('954e84ea-6bf7-4a5e-b8e9-0868f87f2202', '{
-    "id": "954e84ea-6bf7-4a5e-b8e9-0868f87f2202",
+('4aa3f7f9-3fe5-4a29-a149-72f7b08879da', '{
+    "id": "4aa3f7f9-3fe5-4a29-a149-72f7b08879da",
     "hrId": "18591",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "sd4400q1-1caf-4470-9ad1-d533f6360bdd",
+      "id": "d7ee0026-382b-49cd-9b8f-7aa159e4f3cd",
       "name": "BIB profile with customized Holdings"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -835,13 +835,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-05T12:08:12.000",
     "completedDate": "2018-11-05T13:08:12.000"
   }'),
-('98ddeb72-bc0a-4d7d-9cc9-dc08dd9b5969', '{
-    "id": "98ddeb72-bc0a-4d7d-9cc9-dc08dd9b5969",
+('e66f3554-b31e-49d8-825f-5a89786c8bce', '{
+    "id": "e66f3554-b31e-49d8-825f-5a89786c8bce",
     "hrId": "19091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "dfvv6yj0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "1733f573-f9f8-40dc-9260-fbe82574370f",
       "name": "BIB profile with new Holdings & Items"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -857,13 +857,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-01T17:01:41.000",
     "completedDate": "2018-11-01T19:01:41.000"
   }'),
-('18ef4eb4-f429-4923-a4c3-10ab075d35c5', '{
-    "id": "18ef4eb4-f429-4923-a4c3-10ab075d35c5",
+('2e149aef-bb77-45aa-8a28-e139674b55e1', '{
+    "id": "2e149aef-bb77-45aa-8a28-e139674b55e1",
     "hrId": "20091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
       "name": "Standard BIB profile"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -879,13 +879,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-05T11:21:57.000",
     "completedDate": "2018-11-05T14:21:57.000"
   }'),
-('3482ec36-8ef1-4729-be67-df4cd3b4ab93', '{
-    "id": "3482ec36-8ef1-4729-be67-df4cd3b4ab93",
+('1d3acb27-04f7-4952-ac6a-9a568d82c7e4', '{
+    "id": "1d3acb27-04f7-4952-ac6a-9a568d82c7e4",
     "hrId": "21091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "g770zz10-1caf-4470-9ad1-d533f6360bdd",
+      "id": "469aa375-25e9-4ed9-adea-1b0dca2d0502",
       "name": "Marc bib jobs"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -901,13 +901,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-11-05T08:59:55.000",
     "completedDate": "2018-11-05T10:59:55.000"
   }'),
-('6fafb9cb-e596-4688-ad9a-6e85ed47c369', '{
-    "id": "6fafb9cb-e596-4688-ad9a-6e85ed47c369",
+('cece4a3a-6376-4378-b2f0-e80468d0d387', '{
+    "id": "cece4a3a-6376-4378-b2f0-e80468d0d387",
     "hrId": "22091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "zxdfty00-1caf-4470-9ad1-d533f6360bdd",
+      "id": "98a74968-9511-48f1-b1d8-374a05a789ce",
       "name": "New Holdings (Beta.2 Use carefully)"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -923,13 +923,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-31T16:40:44.000",
     "completedDate": "2018-10-31T17:40:44.000"
   }'),
-('72f78de9-7f85-4d1c-8d10-40fa31cb0b96', '{
-    "id": "72f78de9-7f85-4d1c-8d10-40fa31cb0b96",
+('f23762ab-a573-4044-b9a7-0181825b48e9', '{
+    "id": "f23762ab-a573-4044-b9a7-0181825b48e9",
     "hrId": "27091",
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "4e73a4ce-8a58-4dd8-a3ab-4e91f7feaea1",
       "name": "Standard BIB profile (2019 Q1 Beta test)"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -945,13 +945,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-31T15:33:35.000",
     "completedDate": "2018-10-31T16:33:35.000"
   }'),
-('e065cb5f-e6c0-4890-bc10-8c75a399ed14', '{
-    "id": "e065cb5f-e6c0-4890-bc10-8c75a399ed14",
+('fe006584-c1e3-45f6-9c00-e910417a55b4', '{
+    "id": "fe006584-c1e3-45f6-9c00-e910417a55b4",
     "hrId": "23191",
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfile": {
-      "id": "zxc4rffz-1caf-4470-9ad1-d533f6360bdd",
+      "id": "1b971a5c-76fb-49a6-bd3c-95e99cd33faf",
       "name": "Semi-Valid test profile (NYPL Check)"
     },
     "subordinationType": "PARENT_SINGLE",
@@ -967,13 +967,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-10-31T12:31:32.000",
     "completedDate": "2018-10-31T12:37:38.000"
 }'),
-('7425103a-cb1f-44b6-a3bd-c8440fb58d7f', '{
-    "id": "7425103a-cb1f-44b6-a3bd-c8440fb58d7f",
+('18ede361-7b97-40e4-9b1e-e5316366368c', '{
+    "id": "18ede361-7b97-40e4-9b1e-e5316366368c",
     "hrId": "23291",
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfile": {
-      "id": "ad55bml0-1caf-4470-9ad1-d533f6360bdd",
+      "id": "4e73a4ce-8a58-4dd8-a3ab-4e91f7feaea1",
       "name": "Standard BIB profile (2019 Q1 Beta test)"
     },
     "sourcePath": "import_27.mrc",
@@ -989,13 +989,13 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-90-27T11:11:23.000",
     "completedDate": "2018-09-27T12:11:15.000"
 }'),
-('3b1f0d19-b43e-4d77-9e2e-7de8101ca3ab', '{
-    "id": "3b1f0d19-b43e-4d77-9e2e-7de8101ca3ab",
+('3d790a2a-86de-46f9-a9ae-c9109bba746b', '{
+    "id": "3d790a2a-86de-46f9-a9ae-c9109bba746b",
     "hrId": "23391",
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfile": {
-      "id": "ssdvy7qq-1caf-4470-9ad1-d533f6360bdd",
+      "id": "1c65838f-1fbb-42be-917b-7d83bf0bf918",
       "name": "Multilingual support check"
     },
     "sourcePath": "import_28.mrc",
