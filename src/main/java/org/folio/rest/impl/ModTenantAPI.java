@@ -93,7 +93,7 @@ public class ModTenantAPI extends TenantAPI {
     try {
       FileExtensionService service = new FileExtensionServiceImpl(context.owner(), TenantTool.calculateTenantId(headers.get("x-okapi-tenant")));
       return
-        service.getFileExtensions("", 0, 1)
+        service.getFileExtensions(null, 0, 1)
           .compose(r -> createDefExtensionsIfNeed(r, service));
     } catch (Exception e) {
       return Future.failedFuture(e);
@@ -103,7 +103,8 @@ public class ModTenantAPI extends TenantAPI {
   private Future<Boolean> createDefExtensionsIfNeed(FileExtensionCollection collection, FileExtensionService service) {
     Future<Boolean> future = Future.future();
     if (collection.getTotalRecords() == 0) {
-      return service.copyExtensionsFromDefault().map(r -> r.getUpdated() > 0);
+      return service.copyExtensionsFromDefault()
+        .map(r -> r.getUpdated() > 0);
     } else {
       future.complete(true);
     }
