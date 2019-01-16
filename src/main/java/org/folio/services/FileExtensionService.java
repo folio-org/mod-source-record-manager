@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.ext.sql.UpdateResult;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
@@ -59,4 +60,11 @@ public interface FileExtensionService {
    * @return future with {@link FileExtensionCollection} that contains default values
    */
   Future<FileExtensionCollection> restoreFileExtensions();
+
+  /**
+   * Copy values from default_file_extensions into the file_extensions table
+   *
+   * @return - Update Result of coping execution
+   */
+  Future<UpdateResult> copyExtensionsFromDefault();
 }

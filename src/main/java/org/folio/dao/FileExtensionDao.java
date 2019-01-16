@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import io.vertx.ext.sql.UpdateResult;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
@@ -66,4 +67,11 @@ public interface FileExtensionDao {
    * @return - future with restored file extensions
    */
   Future<FileExtensionCollection> restoreFileExtensions();
+
+  /**
+   * Copy values from default_file_extensions into the file_extensions table
+   *
+   * @return - Update Result of coping execution
+   */
+  Future<UpdateResult> copyExtensionsFromDefault();
 }

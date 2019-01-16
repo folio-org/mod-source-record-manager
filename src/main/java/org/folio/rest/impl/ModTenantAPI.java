@@ -9,9 +9,12 @@ import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.TenantTool;
+import org.folio.services.FileExtensionService;
+import org.folio.services.FileExtensionServiceImpl;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -38,7 +41,9 @@ public class ModTenantAPI extends TenantAPI {
       if (ar.failed()) {
         handlers.handle(ar);
       } else {
-        setupTestData(headers, context).setHandler(event -> handlers.handle(ar));
+        setupTestData(headers, context)
+          .compose(v -> setupDefaultFileExtensions(headers, context))
+          .setHandler(event -> handlers.handle(ar));
       }
     }, context);
   }
@@ -82,6 +87,27 @@ public class ModTenantAPI extends TenantAPI {
     } catch (IOException e) {
       return Future.failedFuture(e);
     }
+  }
+
+  private Future<Boolean> setupDefaultFileExtensions(Map<String, String> headers, Context context) {
+    try {
+      FileExtensionService service = new FileExtensionServiceImpl(context.owner(), TenantTool.calculateTenantId(headers.get("x-okapi-tenant")));
+      return
+        service.getFileExtensions("", 0, 1)
+          .compose(r -> createDefExtensionsIfNeed(r, service));
+    } catch (Exception e) {
+      return Future.failedFuture(e);
+    }
+  }
+
+  private Future<Boolean> createDefExtensionsIfNeed(FileExtensionCollection collection, FileExtensionService service) {
+    Future<Boolean> future = Future.future();
+    if (collection.getTotalRecords() == 0) {
+      return service.copyExtensionsFromDefault().map(r -> r.getUpdated() > 0);
+    } else {
+      future.complete(true);
+    }
+    return future;
   }
 
 }
