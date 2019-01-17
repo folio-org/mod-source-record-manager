@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.FileExtensionDao;
 import org.folio.dao.FileExtensionDaoImpl;
 import org.folio.rest.jaxrs.model.FileExtension;
@@ -53,5 +54,10 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   @Override
   public Future<FileExtensionCollection> restoreFileExtensions() {
     return fileExtensionDao.restoreFileExtensions();
+  }
+
+  @Override
+  public Future<UpdateResult> copyExtensionsFromDefault() {
+    return fileExtensionDao.copyExtensionsFromDefault();
   }
 }

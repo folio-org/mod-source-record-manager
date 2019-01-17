@@ -125,7 +125,6 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
   public Future<FileExtensionCollection> restoreFileExtensions() {
     Future<FileExtensionCollection> future = Future.future();
     Future<SQLConnection> tx = Future.future(); //NOSONAR
-    String moduleName = PostgresClient.getModuleName(); //NOSONAR
     Future.succeededFuture()
       .compose(v -> {
         pgClient.startTx(tx.completer());
@@ -134,22 +133,15 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       Future<UpdateResult> deleteFuture = Future.future(); //NOSONAR
       pgClient.delete(tx, FILE_EXTENSIONS_TABLE, new Criterion(), deleteFuture);
       return deleteFuture;
-    }).compose(v -> {
-      Future<UpdateResult> resultFuture = Future.future(); //NOSONAR
-      StringBuilder sqlScript = new StringBuilder("INSERT INTO ")
-        .append(tenantId).append("_").append(moduleName).append(".").append(FILE_EXTENSIONS_TABLE)
-        .append(" SELECT * FROM ")
-        .append(tenantId).append("_").append(moduleName).append(".").append(DEFAULT_FILE_EXTENSIONS_TABLE).append(";");
-      pgClient.execute(tx, sqlScript.toString(), resultFuture);
-      return resultFuture;
-    }).compose(updateHandler -> {
-      if (updateHandler.getUpdated() < 1) {
-        throw new InternalServerErrorException();
-      }
-      Future<Void> endTxFuture = Future.future(); //NOSONAR
-      pgClient.endTx(tx, endTxFuture);
-      return endTxFuture;
-    }).setHandler(result -> {
+    }).compose(v -> copyExtensionsFromDefault(tx))
+      .compose(updateHandler -> {
+        if (updateHandler.getUpdated() < 1) {
+          throw new InternalServerErrorException();
+        }
+        Future<Void> endTxFuture = Future.future(); //NOSONAR
+        pgClient.endTx(tx, endTxFuture);
+        return endTxFuture;
+      }).setHandler(result -> {
       if (result.failed()) {
         pgClient.rollbackTx(tx, rollback -> future.fail(result.cause()));
       } else {
@@ -157,6 +149,40 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
       }
     });
     return future.compose(v -> getAllFileExtensionsFromTable(FILE_EXTENSIONS_TABLE));
+  }
+
+  private Future<UpdateResult> copyExtensionsFromDefault(Future<SQLConnection> tx) {
+    String moduleName = PostgresClient.getModuleName();
+    Future<UpdateResult> resultFuture = Future.future();
+    StringBuilder sqlScript = new StringBuilder("INSERT INTO ")
+      .append(tenantId).append("_").append(moduleName).append(".").append(FILE_EXTENSIONS_TABLE)
+      .append(" SELECT * FROM ")
+      .append(tenantId).append("_").append(moduleName).append(".").append(DEFAULT_FILE_EXTENSIONS_TABLE).append(";");
+    pgClient.execute(tx, sqlScript.toString(), resultFuture);
+    return resultFuture;
+  }
+
+  @Override
+  public Future<UpdateResult> copyExtensionsFromDefault() {
+    Future<UpdateResult> resultFuture = Future.future();
+    Future<SQLConnection> tx = Future.future(); //NOSONAR
+    Future.succeededFuture()
+      .compose(v -> {
+        pgClient.startTx(tx.completer());
+        return tx;
+      }).compose(v -> copyExtensionsFromDefault(tx))
+      .setHandler(r -> {
+        if (r.succeeded()) {
+          pgClient.endTx(tx, end ->
+            resultFuture.complete(r.result()));
+        } else {
+          pgClient.rollbackTx(tx, rollback -> {
+            LOGGER.error("Error during coping file extensions from default table to the main", r.cause());
+            resultFuture.fail(r.cause());
+          });
+        }
+      });
+    return resultFuture;
   }
 }
 
