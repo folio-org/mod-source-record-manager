@@ -7,7 +7,7 @@ VALUES
       "id":"f375ffe9-b00b-4786-b0a8-cd99f93e5aab",
       "extension":".csv",
       "dataTypes":[
-        "DELIMITED"
+        "Delimited"
       ],
       "importBlocked":false,
       "metadata":{
@@ -235,7 +235,7 @@ VALUES
       "id":"4a052746-5a21-44d1-a2ed-472c5747a488",
       "extension":".tsv",
       "dataTypes":[
-        "DELIMITED"
+        "Delimited"
       ],
       "importBlocked":false,
       "metadata":{
@@ -254,7 +254,7 @@ VALUES
       "id":"bd7ccd60-0528-4abf-88cc-a89b0b127be1",
       "extension":".txt",
       "dataTypes":[
-        "DELIMITED"
+        "Delimited"
       ],
       "importBlocked":false,
       "metadata":{
