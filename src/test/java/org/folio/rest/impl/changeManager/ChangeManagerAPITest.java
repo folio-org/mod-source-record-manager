@@ -57,7 +57,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
     .withLast(false)
-    .withTotal(15)
+    .withCounter(15)
     .withRecords(new ArrayList<>());
 
   @Test
