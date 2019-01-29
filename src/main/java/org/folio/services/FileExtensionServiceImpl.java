@@ -5,10 +5,13 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.FileExtensionDao;
 import org.folio.dao.FileExtensionDaoImpl;
+import org.folio.rest.jaxrs.model.DataType;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
 import javax.ws.rs.NotFoundException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +36,7 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   @Override
   public Future<FileExtension> addFileExtension(FileExtension fileExtension) {
     fileExtension.setId(UUID.randomUUID().toString());
+    fileExtension.setDataTypes(sortDataTypes(fileExtension.getDataTypes()));
     return fileExtensionDao.addFileExtension(fileExtension).map(fileExtension);
   }
 
@@ -40,7 +44,8 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   public Future<FileExtension> updateFileExtension(FileExtension fileExtension) {
     return getFileExtensionById(fileExtension.getId())
       .compose(optionalFileExtension -> optionalFileExtension
-        .map(fileExt -> fileExtensionDao.updateFileExtension(fileExtension))
+        .map(fileExt -> fileExtensionDao.updateFileExtension(fileExtension
+          .withDataTypes(sortDataTypes(fileExtension.getDataTypes()))))
         .orElse(Future.failedFuture(new NotFoundException(
           String.format("FileExtension with id '%s' was not found", fileExtension.getId()))))
       );
@@ -59,5 +64,13 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   @Override
   public Future<UpdateResult> copyExtensionsFromDefault() {
     return fileExtensionDao.copyExtensionsFromDefault();
+  }
+
+  private List<DataType> sortDataTypes(List<DataType> list) {
+    if (list == null) {
+      return Collections.emptyList();
+    }
+    Collections.sort(list);
+    return list;
   }
 }
