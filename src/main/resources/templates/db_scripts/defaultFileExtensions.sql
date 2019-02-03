@@ -6,9 +6,15 @@ VALUES
     '{
       "id":"f375ffe9-b00b-4786-b0a8-cd99f93e5aab",
       "extension":".csv",
+      "description": "",
       "dataTypes":[
         "Delimited"
       ],
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "importBlocked":false,
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
@@ -25,10 +31,16 @@ VALUES
     '{
       "id":"5cf7a0e5-f359-43f5-8c96-e5df74131183",
       "extension":".dat",
+      "description": "",
       "dataTypes":[
         "MARC"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -44,10 +56,16 @@ VALUES
     '{
       "id":"ebb05fe7-45d5-4eab-80cd-587bda42c7ca",
       "extension":".edi",
+      "description": "",
       "dataTypes":[
         "EDIFACT"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -63,10 +81,16 @@ VALUES
     '{
       "id":"8d3a66b7-3a88-4f59-9d83-a50b020ac60a",
       "extension":".gif",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -82,10 +106,16 @@ VALUES
     '{
       "id":"f340c632-a8b0-4d07-9c2f-b913e82d23d5",
       "extension":".inv",
+      "description": "",
       "dataTypes":[
         "EDIFACT"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -101,10 +131,16 @@ VALUES
     '{
       "id":"e6747033-7a8f-45a8-beba-21468dd554c7",
       "extension":".jpg",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -120,10 +156,16 @@ VALUES
     '{
       "id":"1df36889-4d3a-482e-a8c8-9c67b8245feb",
       "extension":".marc",
+      "description": "",
       "dataTypes":[
         "MARC"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -139,10 +181,16 @@ VALUES
     '{
       "id":"f445092c-94b8-408a-a9f1-5edd8b5919c9",
       "extension":".mrc",
+      "description": "",
       "dataTypes":[
         "MARC"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -158,10 +206,16 @@ VALUES
     '{
       "id":"0001886d-679b-4167-bcf6-9ba640929a8f",
       "extension":".mrk",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -177,10 +231,16 @@ VALUES
     '{
       "id":"8ffe5abc-a532-48cb-ab0e-827ea980154c",
       "extension":".ord",
+      "description": "",
       "dataTypes":[
         "MARC"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -196,10 +256,16 @@ VALUES
     '{
       "id":"9dff36d2-cb05-4483-80bc-40dbb57888e6",
       "extension":".pdf",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -215,10 +281,16 @@ VALUES
     '{
       "id":"756800be-ec03-47b6-ace3-e62d1bd6c5dd",
       "extension":".png",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -234,10 +306,16 @@ VALUES
     '{
       "id":"4a052746-5a21-44d1-a2ed-472c5747a488",
       "extension":".tsv",
+      "description": "",
       "dataTypes":[
         "Delimited"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -253,10 +331,16 @@ VALUES
     '{
       "id":"bd7ccd60-0528-4abf-88cc-a89b0b127be1",
       "extension":".txt",
+      "description": "",
       "dataTypes":[
         "Delimited"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -272,10 +356,16 @@ VALUES
     '{
       "id":"6cf5568b-4d37-4d35-9116-e8a52120779d",
       "extension":".xml",
+      "description": "",
       "dataTypes":[
         "MARC"
       ],
       "importBlocked":false,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
@@ -291,10 +381,16 @@ VALUES
     '{
       "id":"8d15a305-5bf8-497f-b2ff-6cffda5f13cf",
       "extension":".zip",
+      "description": "",
       "dataTypes":[
 
       ],
       "importBlocked":true,
+      "userInfo":{
+        "firstName":"",
+        "lastName":"",
+        "userName":"System"
+      },
       "metadata":{
         "createdDate":"2019-01-01T11:22:07Z",
         "createdByUserId":"00000000-0000-0000-0000-000000000000",
