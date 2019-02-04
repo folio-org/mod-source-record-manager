@@ -74,7 +74,8 @@
         {
           "methods": ["POST"],
           "pathPattern": "/metadata-provider/fileExtension",
-          "permissionsRequired": ["metadata-provider.fileExtension.post"]
+          "permissionsRequired": ["metadata-provider.fileExtension.post"],
+          "modulePermissions": ["users.item.get"]
         },
         {
           "methods": ["GET"],
@@ -84,7 +85,8 @@
         {
           "methods": ["PUT"],
           "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["metadata-provider.fileExtension.put"]
+          "permissionsRequired": ["metadata-provider.fileExtension.put"],
+          "modulePermissions": ["users.item.get"]
         },
         {
           "methods": ["DELETE"],
