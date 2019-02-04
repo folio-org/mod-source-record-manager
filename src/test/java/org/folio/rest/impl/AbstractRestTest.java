@@ -15,6 +15,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -64,7 +65,15 @@ public abstract class AbstractRestTest {
 
   protected static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecution/";
+  private static final String GET_USER_URL = "/users?query=id==";
   private static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
+
+  private JsonObject userResponse = new JsonObject()
+    .put("users",
+      new JsonArray().add(new JsonObject()
+        .put("username", "diku_admin")
+        .put("personal", new JsonObject().put("firstName", "DIKU").put("lastName", "ADMINISTRATOR"))))
+    .put("totalRecords", 1);
 
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
@@ -134,11 +143,12 @@ public abstract class AbstractRestTest {
   @Before
   public void setUp(TestContext context) {
     clearTable(context);
+    String okapiUserIdHeader = UUID.randomUUID().toString();
     spec = new RequestSpecBuilder()
       .setContentType(ContentType.JSON)
       .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
       .addHeader(OKAPI_TENANT_HEADER, TENANT_ID)
-      .addHeader(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString())
+      .addHeader(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader)
       .addHeader("Accept", "text/plain, application/json")
       .setBaseUri("http://localhost:" + port)
       .build();
@@ -146,11 +156,13 @@ public abstract class AbstractRestTest {
     okapiHeaders.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
     okapiHeaders.put(RestVerticle.OKAPI_HEADER_TOKEN, TOKEN);
-    okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, UUID.randomUUID().toString());
+    okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader);
     WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
+    WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
+      .willReturn(WireMock.okJson(userResponse.toString())));
   }
 
   private void clearTable(TestContext context) {

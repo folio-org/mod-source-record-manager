@@ -8,6 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataImport.util.ExceptionHelper;
+import org.folio.dataImport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
@@ -27,8 +28,10 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionService jobExecutionService;
   private FileExtensionService fileExtensionService;
+  private Vertx vertx;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) {
+    this.vertx = vertx;
     String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
     this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
     this.fileExtensionService = new FileExtensionServiceImpl(vertx, calculatedTenantId);
@@ -91,7 +94,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        fileExtensionService.addFileExtension(entity)
+        fileExtensionService.addFileExtension(entity, new OkapiConnectionParams(okapiHeaders, vertx))
           .map((Response) PostMetadataProviderFileExtensionResponse
             .respond201WithApplicationJson(entity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -128,7 +131,7 @@ public class MetadataProviderImpl implements MetadataProvider {
     vertxContext.runOnContext(v -> {
       try {
         entity.setId(id);
-        fileExtensionService.updateFileExtension(entity)
+        fileExtensionService.updateFileExtension(entity, new OkapiConnectionParams(okapiHeaders, vertx))
           .map(updatedEntity -> (Response) PutMetadataProviderFileExtensionByIdResponse.respond200WithApplicationJson(updatedEntity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
