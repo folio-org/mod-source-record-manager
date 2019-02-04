@@ -47,7 +47,8 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   public Future<FileExtension> addFileExtension(FileExtension fileExtension, OkapiConnectionParams params) {
     fileExtension.setId(UUID.randomUUID().toString());
     fileExtension.setDataTypes(sortDataTypes(fileExtension.getDataTypes()));
-    return lookupUser(params).compose(userInfo -> {
+    String userId = fileExtension.getMetadata().getUpdatedByUserId();
+    return lookupUser(userId, params).compose(userInfo -> {
       fileExtension.setUserInfo(userInfo);
       return fileExtensionDao.addFileExtension(fileExtension).map(fileExtension);
     });
@@ -55,8 +56,9 @@ public class FileExtensionServiceImpl implements FileExtensionService {
 
   @Override
   public Future<FileExtension> updateFileExtension(FileExtension fileExtension, OkapiConnectionParams params) {
+    String userId = fileExtension.getMetadata().getUpdatedByUserId();
     return getFileExtensionById(fileExtension.getId())
-      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt ->lookupUser(params).compose(userInfo -> {
+      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt ->lookupUser(userId, params).compose(userInfo -> {
         fileExtension.setUserInfo(userInfo);
         return fileExtensionDao.updateFileExtension(fileExtension.withDataTypes(sortDataTypes(fileExtension.getDataTypes())));
       })
@@ -88,13 +90,12 @@ public class FileExtensionServiceImpl implements FileExtensionService {
 
   /**
    * Finds user by user id and returns UserInfo
-   *
+   * @param userId user id
    * @param params Okapi connection params
    * @return Future with found UserInfo
    */
-  private Future<UserInfo> lookupUser(OkapiConnectionParams params) {
+  private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
     Future<UserInfo> future = Future.future();
-    String userId = params.getHeaders().get(OKAPI_USERID_HEADER);
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .setHandler(getUserResult -> {
         if (RestUtil.validateAsyncResult(getUserResult, future)) {
