@@ -18,8 +18,8 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import java.util.Optional;
 
-import static org.folio.dao.util.DaoUtil.constructCriteria;
-import static org.folio.dao.util.DaoUtil.getCQLWrapper;
+import static org.folio.dataimport.util.DaoUtil.constructCriteria;
+import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 
 public class FileExtensionDaoImpl implements FileExtensionDao {
 
@@ -27,7 +27,6 @@ public class FileExtensionDaoImpl implements FileExtensionDao {
 
   private static final String FILE_EXTENSIONS_TABLE = "file_extensions";
   private static final String DEFAULT_FILE_EXTENSIONS_TABLE = "default_file_extensions";
-  private static final String DEFAULT_FILE_EXTENSIONS_SQL = "templates/db_scripts/defaultFileExtensions.sql";
   private static final String ID_FIELD = "'id'";
 
   private PostgresClient pgClient;

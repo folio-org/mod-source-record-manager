@@ -19,8 +19,8 @@ import org.z3950.zing.cql.cql2pgjson.FieldException;
 import javax.ws.rs.NotFoundException;
 import java.util.Optional;
 
-import static org.folio.dao.util.DaoUtil.constructCriteria;
-import static org.folio.dao.util.DaoUtil.getCQLWrapper;
+import static org.folio.dataimport.util.DaoUtil.constructCriteria;
+import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.DISCARDED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;

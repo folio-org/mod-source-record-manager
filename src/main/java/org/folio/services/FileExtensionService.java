@@ -2,7 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.ext.sql.UpdateResult;
-import org.folio.dataImport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 
