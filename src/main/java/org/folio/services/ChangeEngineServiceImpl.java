@@ -3,12 +3,13 @@ package org.folio.services;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
+import org.folio.HttpStatus;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.RestUtil;
+import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -21,7 +22,6 @@ import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.SourceRecordParser;
 import org.folio.services.parsers.SourceRecordParserBuilder;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,76 +45,111 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   @Override
   public Future<JobExecution> parseSourceRecordsForJobExecution(JobExecution job, OkapiConnectionParams params) {
     Future<JobExecution> future = Future.future();
-    List<Future> updatedRecordsFuture = new ArrayList<>();
     jobExecutionService.updateJobExecutionStatus(job.getId(), new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params)
       .setHandler(updateResult -> {
         if (updateResult.failed()) {
           LOGGER.error("Error during updating status for jobExecution and Snapshot", updateResult.cause());
           future.fail(updateResult.cause());
         } else {
-          RestUtil.doRequest(params, buildQueryForRecordsLoad(job.getId(), 0), HttpMethod.GET, null)
-            .setHandler(countResult -> {
-              if (countResult.failed()) {
-                LOGGER.error("Error during requesting number of records for jobExecution with id: {}", job.getId());
-                future.fail(countResult.cause());
+          receiveTotalRecordsCountByJobId(job.getId(), params)
+            .compose(recordsCount -> parseRecordsByJob(job, params, recordsCount))
+            .setHandler(ar -> {
+              if (ar.failed()) {
+                String errorMessage = String.format("Error during parse records for job execution with id: %s, cause: %s", job.getId(), ar.cause().getMessage());
+                LOGGER.error(errorMessage);
+                future.fail(errorMessage);
               } else {
-                JsonObject recordCollection = countResult.result().getJson();
-                if (recordCollection == null || recordCollection.getInteger("totalRecords") == null) {
-                  String errorMessage = "Error during getting records for count records for job execution with id: " + job.getId();
-                  LOGGER.error(errorMessage);
-                  future.fail(errorMessage);
-                } else {
-                  Integer totalRecords = recordCollection.getInteger("totalRecords");
-                  int chunksNumber = getChunksNumber(totalRecords);
-                  for (int i = 0; i < chunksNumber; i++) {
-                    final int offset = i == 0 ? 0 : DEF_CHUNK_NUMBER * i;
-                    RestUtil.doRequest(params, RECORD_SERVICE_URL + buildQueryForRecordsLoad(job.getId(), offset), HttpMethod.GET, null)
-                      .setHandler(loadChunksResult -> {
-                        if (loadChunksResult.failed()) {
-                          LOGGER.error("Error during getting records for parse for job execution with id: {}", job.getId(), loadChunksResult.cause());
-                          future.fail(loadChunksResult.cause());
-                        } else {
-                          JsonObject chunks = loadChunksResult.result().getJson();
-                          if (chunks == null || chunks.getJsonArray("records") == null) {
-                            String errorMessage = "Error during getting records for parse for job execution with id: " + job.getId();
-                            LOGGER.error(errorMessage);
-                            future.fail(errorMessage);
-                          } else {
-                            RecordCollection recordList = chunks.mapTo(RecordCollection.class);
-                            parseRecords(recordList.getRecords(), job)
-                              .forEach(record -> updatedRecordsFuture.add(updateRecord(params, job, record)));
-                            if ((offset > 0 ? (offset / DEF_CHUNK_NUMBER) : 1) == chunksNumber) {
-                              CompositeFuture.all(updatedRecordsFuture)
-                                .setHandler(result -> {
-                                  StatusDto statusDto = new StatusDto();
-                                  if (result.failed()) {
-                                    statusDto
-                                      .withStatus(StatusDto.Status.ERROR)
-                                      .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-                                    LOGGER.error("Can't update record in storage. jobId: {}", job.getId(), result.cause());
-                                  } else {
-                                    statusDto
-                                      .withStatus(StatusDto.Status.PARSING_FINISHED);
-                                  }
-                                  jobExecutionService.updateJobExecutionStatus(job.getId(), statusDto, params).setHandler(r -> {
-                                    if (r.failed()) {
-                                      LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
-                                      future.fail(r.cause());
-                                    } else {
-                                      future.complete(job);
-                                    }
-                                  });
-                                });
-                            }
-                          }
-                        }
-                      });
-                  }
-                }
+                future.complete(job);
               }
             });
         }
       });
+    return future;
+  }
+
+  private Future<Integer> receiveTotalRecordsCountByJobId(String jobId, OkapiConnectionParams params) {
+    Future<Integer> future = Future.future();
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.getSourceStorageRecord(buildQueryByJobId(jobId), 0, DEF_CHUNK_NUMBER, null, countResult -> {
+        if (countResult.statusCode() != HttpStatus.HTTP_OK.toInt()) {
+          LOGGER.error("Error during requesting number of records for jobExecution with id: {}", jobId);
+          future.fail(new HttpStatusException(countResult.statusCode(), "Error during requesting number of records for jobExecution with id: " + jobId));
+        } else {
+          countResult.bodyHandler(buffer -> {
+            JsonObject recordCollection = buffer.toJsonObject();
+            if (recordCollection == null || recordCollection.getInteger("totalRecords") == null) {
+              String errorMessage = "Error during getting records for count records for job execution with id: " + jobId;
+              LOGGER.error(errorMessage);
+              future.fail(errorMessage);
+            } else {
+              future.complete(recordCollection.getInteger("totalRecords"));
+            }
+          });
+        }
+      });
+    } catch (Exception e) {
+      LOGGER.error("Error during requesting number of records for jobExecution with id: {}", jobId, e, e.getMessage());
+      future.fail(e);
+    }
+    return future;
+  }
+
+  private Future<JobExecution> parseRecordsByJob(JobExecution job, OkapiConnectionParams params, int recordsCount) {
+    Future<JobExecution> future = Future.future();
+    List<Future> updatedRecordsFuture = new ArrayList<>();
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    int chunksNumber = getChunksNumber(recordsCount);
+    try {
+      for (int i = 0; i < chunksNumber; i++) {
+        final int offset = i == 0 ? 0 : DEF_CHUNK_NUMBER * i;
+        client.getSourceStorageRecord(buildQueryByJobId(job.getId()), offset, DEF_CHUNK_NUMBER, null, loadChunksResponse -> {
+          if (loadChunksResponse.statusCode() != HttpStatus.HTTP_OK.toInt()) {
+            LOGGER.error("Error during getting records for parse for job execution with id: {}", job.getId());
+            future.fail(new HttpStatusException(loadChunksResponse.statusCode(), "Error during getting records for parse for job execution with id: " + job.getId()));
+          } else {
+            loadChunksResponse.bodyHandler(chunksBuffer -> {
+              JsonObject chunks = chunksBuffer.toJsonObject();
+              if (chunks == null || chunks.getJsonArray("records") == null) {
+                String errorMessage = "Error during getting records for parse for job execution with id: " + job.getId();
+                LOGGER.error(errorMessage);
+                future.fail(errorMessage);
+              } else {
+                RecordCollection recordList = chunks.mapTo(RecordCollection.class);
+                parseRecords(recordList.getRecords(), job)
+                  .forEach(record -> updatedRecordsFuture.add(updateRecord(params, job, record)));
+                if ((offset > 0 ? (offset / DEF_CHUNK_NUMBER) : 1) == chunksNumber) {
+                  CompositeFuture.all(updatedRecordsFuture)
+                    .setHandler(result -> {
+                      StatusDto statusDto = new StatusDto();
+                      if (result.failed()) {
+                        statusDto
+                          .withStatus(StatusDto.Status.ERROR)
+                          .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+                        LOGGER.error("Can't update record in storage. jobId: {}", job.getId(), result.cause());
+                      } else {
+                        statusDto
+                          .withStatus(StatusDto.Status.PARSING_FINISHED);
+                      }
+                      jobExecutionService.updateJobExecutionStatus(job.getId(), statusDto, params).setHandler(r -> {
+                        if (r.failed()) {
+                          LOGGER.error("Error during update jobExecution and snapshot after parsing", result.cause());
+                          future.fail(r.cause());
+                        } else {
+                          future.complete(job);
+                        }
+                      });
+                    });
+                }
+              }
+            });
+          }
+        });
+      }
+    } catch (Exception e) {
+      LOGGER.error("Error during getting records for parse for job execution with id: {}", job.getId(), e, e.getMessage());
+      future.fail(e);
+    }
     return future;
   }
 
@@ -168,39 +203,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    */
   private Future<JobExecution> updateRecord(OkapiConnectionParams params, JobExecution jobExecution, Record record) {
     Future<JobExecution> future = Future.future();
-    RestUtil.doRequest(params, RECORD_SERVICE_URL + "/" + record.getId(), HttpMethod.PUT, record)
-      .setHandler(updateResult -> {
-        if (RestUtil.validateAsyncResult(updateResult, future)) {
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.putSourceStorageRecordById(record.getId(), record, response -> {
+        if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
           future.complete(jobExecution);
         }
       });
+    } catch (Exception e) {
+      LOGGER.error("Error during update record with id: {}", record.getId(), e, e.getMessage());
+      future.fail(e);
+    }
     return future;
   }
 
   /**
-   * Build query for loading records
+   * Build query for loading records by job id
    *
-   * @param jobId  - job execution id
-   * @param offset - offset for loading records
-   * @return - url query
+   * @param jobId - job execution id
+   * @return - query
    */
-  private String buildQueryForRecordsLoad(String jobId, int offset) {
-    String query = "snapshotId==" + jobId;
-    StringBuilder queryParams = new StringBuilder(RECORD_SERVICE_URL);
-    try {
-      queryParams.append("?")
-        .append("query=")
-        .append(URLEncoder.encode(query, "UTF-8"))
-        .append("&")
-        .append("offset=")
-        .append(offset)
-        .append("&")
-        .append("limit=")
-        .append(DEF_CHUNK_NUMBER);
-    } catch (Exception e) {
-      LOGGER.error("Error during build query for records count", e);
-    }
-    return queryParams.toString();
+  private String buildQueryByJobId(String jobId) {
+    return "snapshotId==" + jobId;
   }
 
   /**

@@ -3,14 +3,14 @@ package org.folio.services;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.RestUtil;
+import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -287,33 +287,34 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    */
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
     Future<String> future = Future.future();
-    RestUtil.doRequest(params, SNAPSHOT_SERVICE_URL, HttpMethod.POST, snapshot)
-      .setHandler(responseResult -> {
-        try {
-          if (responseResult.failed() || responseResult.result() == null || responseResult.result().getCode() != HttpStatus.HTTP_CREATED.toInt()) {
-            LOGGER.error("Error during post for new Snapshot.", responseResult.cause());
-            future.fail(responseResult.cause());
-          } else {
-            String responseBody = responseResult.result().getBody();
-            future.complete(responseBody);
-          }
-        } catch (Exception e) {
-          LOGGER.error("Error during post for new Snapshot", e, e.getMessage());
-          future.fail(e);
+
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.postSourceStorageSnapshot(null, snapshot, response -> {
+        if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
+          LOGGER.error("Error during post for new Snapshot.", response.statusMessage());
+          future.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
+        } else {
+          response.bodyHandler(buffer -> future.complete(buffer.toString()));
         }
       });
+    } catch (Exception e) {
+      LOGGER.error("Error during post for new Snapshot", e, e.getMessage());
+      future.fail(e);
+    }
     return future;
   }
 
   private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     Future<JobExecution> future = Future.future();
-    String url = SNAPSHOT_SERVICE_URL + "/" + jobExecution.getId();
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
       .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
-    RestUtil.doRequest(params, url, HttpMethod.PUT, snapshot)
-      .setHandler(updateResult -> {
-        if (RestUtil.validateAsyncResult(updateResult, future)) {
+
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.putSourceStorageSnapshotByJobExecutionId(jobExecution.getId(), snapshot, response -> {
+        if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
           future.complete(jobExecution);
         } else {
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
@@ -330,6 +331,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           });
         }
       });
+    } catch (Exception e) {
+      LOGGER.error("Error during update for Snapshot with id " + jobExecution.getId(), e, e.getMessage());
+      future.fail(e);
+    }
     return future;
   }
 
