@@ -30,8 +30,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int DEF_CHUNK_NUMBER = 20;
 
-  private static final String RECORD_SERVICE_URL = "/source-storage/record";
-
   private Vertx vertx;
   private String tenantId;
   private JobExecutionService jobExecutionService;
@@ -95,7 +93,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return future;
   }
 
-  private Future<JobExecution> parseRecordsByJob(JobExecution job, OkapiConnectionParams params, int recordsCount) {
+  private Future<JobExecution> parseRecordsByJob(JobExecution job, OkapiConnectionParams params, int recordsCount) { //NOSONAR
     Future<JobExecution> future = Future.future();
     List<Future> updatedRecordsFuture = new ArrayList<>();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
