@@ -3,8 +3,10 @@ package org.folio.services;
 import io.vertx.core.Future;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DataTypeCollection;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
+import org.folio.rest.jaxrs.model.DataType;
 
 import java.util.Optional;
 
@@ -70,4 +72,11 @@ public interface FileExtensionService {
    * @return - Update Result of coping execution
    */
   Future<UpdateResult> copyExtensionsFromDefault();
+
+  /**
+   * Returns {@link DataType}
+   *
+   * @return future with {@link DataTypeCollection}
+   */
+  Future<DataTypeCollection> getDataTypes();
 }
