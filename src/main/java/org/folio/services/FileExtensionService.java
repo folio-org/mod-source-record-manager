@@ -74,12 +74,6 @@ public interface FileExtensionService {
   Future<UpdateResult> copyExtensionsFromDefault();
 
   /**
-   * @param fileExtension - {@link FileExtension} object
-   * @return - is file extension exist in database
-   */
-  Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension);
-
-  /**
    * Returns {@link DataType}
    *
    * @return future with {@link DataTypeCollection}

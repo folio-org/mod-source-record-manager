@@ -18,7 +18,6 @@ import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.jaxrs.model.UserInfo;
 
 import javax.ws.rs.NotFoundException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -127,17 +126,6 @@ public class FileExtensionServiceImpl implements FileExtensionService {
         }
       });
     return future;
-  }
-
-  @Override
-  public Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension) {
-    StringBuilder query = new StringBuilder("extension=" + fileExtension.getExtension());
-    if (fileExtension.getId() != null) {
-      query.append("&id!=")
-        .append(fileExtension.getId());
-    }
-    return fileExtensionDao.getFileExtensions(query.toString(), 0, 1)
-      .compose(collection -> Future.succeededFuture(collection.getTotalRecords() != 0));
   }
 
   @Override
