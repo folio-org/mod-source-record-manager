@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
-
 public class FileExtensionServiceImpl implements FileExtensionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileExtensionServiceImpl.class);
   private static final String GET_USER_URL = "/users?query=id==";
@@ -58,11 +56,11 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   public Future<FileExtension> updateFileExtension(FileExtension fileExtension, OkapiConnectionParams params) {
     String userId = fileExtension.getMetadata().getUpdatedByUserId();
     return getFileExtensionById(fileExtension.getId())
-      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt ->lookupUser(userId, params).compose(userInfo -> {
-        fileExtension.setUserInfo(userInfo);
-        return fileExtensionDao.updateFileExtension(fileExtension.withDataTypes(sortDataTypes(fileExtension.getDataTypes())));
-      })
-    ).orElse(Future.failedFuture(new NotFoundException(String.format("FileExtension with id '%s' was not found", fileExtension.getId())))));
+      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt -> lookupUser(userId, params).compose(userInfo -> {
+          fileExtension.setUserInfo(userInfo);
+          return fileExtensionDao.updateFileExtension(fileExtension.withDataTypes(sortDataTypes(fileExtension.getDataTypes())));
+        })
+      ).orElse(Future.failedFuture(new NotFoundException(String.format("FileExtension with id '%s' was not found", fileExtension.getId())))));
   }
 
   @Override
@@ -90,6 +88,7 @@ public class FileExtensionServiceImpl implements FileExtensionService {
 
   /**
    * Finds user by user id and returns UserInfo
+   *
    * @param userId user id
    * @param params Okapi connection params
    * @return Future with found UserInfo
@@ -125,5 +124,16 @@ public class FileExtensionServiceImpl implements FileExtensionService {
         }
       });
     return future;
+  }
+
+  @Override
+  public Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension) {
+    StringBuilder query = new StringBuilder("extension=" + fileExtension.getExtension());
+    if (fileExtension.getId() != null) {
+      query.append("&id!=")
+        .append(fileExtension.getId());
+    }
+    return fileExtensionDao.getFileExtensions(query.toString(), 0, 1)
+      .compose(collection -> Future.succeededFuture(collection.getTotalRecords() != 0));
   }
 }
