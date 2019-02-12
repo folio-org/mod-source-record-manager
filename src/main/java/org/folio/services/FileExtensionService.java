@@ -86,10 +86,4 @@ public interface FileExtensionService {
    */
   Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension);
 
-  /**
-   * Returns {@link DataType}
-   *
-   * @return future with {@link DataTypeCollection}
-   */
-  Future<DataTypeCollection> getDataTypes();
 }
