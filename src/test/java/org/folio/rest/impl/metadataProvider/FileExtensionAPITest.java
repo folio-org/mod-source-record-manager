@@ -20,12 +20,14 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
 public class FileExtensionAPITest extends AbstractRestTest {
 
   private static final String FILE_EXTENSION_PATH = "/metadata-provider/fileExtension";
+  private static final String DATA_TYPE_PATH = "/metadata-provider/dataTypes";
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")
@@ -276,6 +278,21 @@ public class FileExtensionAPITest extends AbstractRestTest {
       .post(FILE_EXTENSION_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  public void shouldReturnAllDataTypesOnGet() {
+    Response response = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(DATA_TYPE_PATH);
+    String[] dataTypesNames = Arrays.stream(DataType.values()).map(Enum::toString).toArray(String[]::new);
+
+    response.then()
+      .log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("totalRecords", is(DataType.values().length))
+      .body("dataTypes", hasItems(dataTypesNames));
   }
 
 }

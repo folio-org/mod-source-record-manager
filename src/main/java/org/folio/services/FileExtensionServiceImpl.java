@@ -12,11 +12,13 @@ import org.folio.dao.FileExtensionDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.jaxrs.model.DataType;
+import org.folio.rest.jaxrs.model.DataTypeCollection;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.jaxrs.model.UserInfo;
 
 import javax.ws.rs.NotFoundException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -123,6 +125,16 @@ public class FileExtensionServiceImpl implements FileExtensionService {
           }
         }
       });
+    return future;
+  }
+
+  @Override
+  public Future<DataTypeCollection> getDataTypes() {
+    Future<DataTypeCollection> future = Future.future();
+    DataTypeCollection dataTypeCollection = new DataTypeCollection();
+    dataTypeCollection.setDataTypes(Arrays.asList(DataType.values()));
+    dataTypeCollection.setTotalRecords(DataType.values().length);
+    future.complete(dataTypeCollection);
     return future;
   }
 

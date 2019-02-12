@@ -13,9 +13,9 @@ import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
@@ -164,16 +164,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
     SourceRecordParser parser = SourceRecordParserBuilder.buildParser(getRecordFormatByJobExecution(execution));
     for (Record record : records) {
-      SourceRecord sourceRecordObject = record.getSourceRecord();
+      RawRecord sourceRecordObject = record.getRawRecord();
       if (sourceRecordObject == null
-        || sourceRecordObject.getSource() == null
-        || sourceRecordObject.getSource().isEmpty()) {
+        || sourceRecordObject.getContent() == null
+        || sourceRecordObject.getContent().isEmpty()) {
         continue;
       }
-      ParsedResult parsedResult = parser.parseRecord(sourceRecordObject.getSource());
+      ParsedResult parsedResult = parser.parseRecord(sourceRecordObject.getContent());
       if (parsedResult.isHasError()) {
         record.setErrorRecord(new ErrorRecord()
-          .withContent(sourceRecordObject.getSource())
+          .withContent(sourceRecordObject.getContent())
           .withDescription(parsedResult.getErrors().encode()));
       } else {
         record.setParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));

@@ -204,6 +204,22 @@ public class MetadataProviderImpl implements MetadataProvider {
     });
   }
 
+  @Override
+  public void getMetadataProviderDataTypes(Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        fileExtensionService.getDataTypes()
+          .map(GetMetadataProviderDataTypesResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to get all data types", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
   /**
    * Validate {@link FileExtension} before save or update
    *

@@ -3,8 +3,10 @@ package org.folio.services;
 import io.vertx.core.Future;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DataTypeCollection;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.model.FileExtensionCollection;
+import org.folio.rest.jaxrs.model.DataType;
 
 import java.util.Optional;
 
@@ -35,7 +37,7 @@ public interface FileExtensionService {
    * Saves {@link FileExtension}
    *
    * @param fileExtension FileExtension to save
-   * @param params        Okapi connection params
+   * @param params Okapi connection params
    * @return future with {@link FileExtension}
    */
   Future<FileExtension> addFileExtension(FileExtension fileExtension, OkapiConnectionParams params);
@@ -72,8 +74,16 @@ public interface FileExtensionService {
   Future<UpdateResult> copyExtensionsFromDefault();
 
   /**
+   * Returns {@link DataType}
+   *
+   * @return future with {@link DataTypeCollection}
+   */
+  Future<DataTypeCollection> getDataTypes();
+
+  /**
    * @param fileExtension - {@link FileExtension} object
    * @return - is file extension exist in database
    */
   Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension);
+
 }
