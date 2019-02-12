@@ -14,7 +14,10 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FileExtension;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
-import org.folio.services.*;
+import org.folio.services.FileExtensionService;
+import org.folio.services.FileExtensionServiceImpl;
+import org.folio.services.JobExecutionService;
+import org.folio.services.JobExecutionServiceImpl;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -205,12 +208,12 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderDataTypes(Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-          fileExtensionService.getDataTypes()
-            .map(GetMetadataProviderDataTypesResponse::respond200WithApplicationJson)
-            .map(Response.class::cast)
-            .otherwise(ExceptionHelper::mapExceptionToResponse)
-            .setHandler(asyncResultHandler);
-      }catch (Exception e) {
+        fileExtensionService.getDataTypes()
+          .map(GetMetadataProviderDataTypesResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
         LOGGER.error("Failed to get all data types", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
