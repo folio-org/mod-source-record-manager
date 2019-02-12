@@ -14,10 +14,14 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
 public class FileExtensionAPITest extends AbstractRestTest {
@@ -27,11 +31,11 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")
-    .withDataTypes(Arrays.asList(DataType.MARC))
+    .withDataTypes(Collections.singletonList(DataType.MARC))
     .withImportBlocked(false);
   private static FileExtension fileExtension_2 = new FileExtension()
     .withExtension(".edi")
-    .withDataTypes(Arrays.asList(DataType.EDIFACT))
+    .withDataTypes(Collections.singletonList(DataType.EDIFACT))
     .withImportBlocked(false);
   private static FileExtension fileExtension_3 = new FileExtension()
     .withExtension(".pdf")
@@ -282,7 +286,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .get(DATA_TYPE_PATH);
-    String[] dataTypesNames= Arrays.stream(DataType.values()).map(Enum::toString).toArray(String[]::new);
+    String[] dataTypesNames = Arrays.stream(DataType.values()).map(Enum::toString).toArray(String[]::new);
 
     response.then()
       .log().all()

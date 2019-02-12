@@ -11,12 +11,18 @@ import org.folio.dao.FileExtensionDao;
 import org.folio.dao.FileExtensionDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.DataType;
+import org.folio.rest.jaxrs.model.DataTypeCollection;
+import org.folio.rest.jaxrs.model.FileExtension;
+import org.folio.rest.jaxrs.model.FileExtensionCollection;
+import org.folio.rest.jaxrs.model.UserInfo;
 
 import javax.ws.rs.NotFoundException;
-import java.util.*;
-
-import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class FileExtensionServiceImpl implements FileExtensionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileExtensionServiceImpl.class);
@@ -52,11 +58,11 @@ public class FileExtensionServiceImpl implements FileExtensionService {
   public Future<FileExtension> updateFileExtension(FileExtension fileExtension, OkapiConnectionParams params) {
     String userId = fileExtension.getMetadata().getUpdatedByUserId();
     return getFileExtensionById(fileExtension.getId())
-      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt ->lookupUser(userId, params).compose(userInfo -> {
-        fileExtension.setUserInfo(userInfo);
-        return fileExtensionDao.updateFileExtension(fileExtension.withDataTypes(sortDataTypes(fileExtension.getDataTypes())));
-      })
-    ).orElse(Future.failedFuture(new NotFoundException(String.format("FileExtension with id '%s' was not found", fileExtension.getId())))));
+      .compose(optionalFileExtension -> optionalFileExtension.map(fileExt -> lookupUser(userId, params).compose(userInfo -> {
+          fileExtension.setUserInfo(userInfo);
+          return fileExtensionDao.updateFileExtension(fileExtension.withDataTypes(sortDataTypes(fileExtension.getDataTypes())));
+        })
+      ).orElse(Future.failedFuture(new NotFoundException(String.format("FileExtension with id '%s' was not found", fileExtension.getId())))));
   }
 
   @Override
@@ -84,6 +90,7 @@ public class FileExtensionServiceImpl implements FileExtensionService {
 
   /**
    * Finds user by user id and returns UserInfo
+   *
    * @param userId user id
    * @param params Okapi connection params
    * @return Future with found UserInfo
