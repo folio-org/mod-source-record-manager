@@ -11,10 +11,19 @@ import org.folio.dao.FileExtensionDao;
 import org.folio.dao.FileExtensionDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.DataType;
+import org.folio.rest.jaxrs.model.DataTypeCollection;
+import org.folio.rest.jaxrs.model.FileExtension;
+import org.folio.rest.jaxrs.model.FileExtensionCollection;
+import org.folio.rest.jaxrs.model.UserInfo;
 
 import javax.ws.rs.NotFoundException;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class FileExtensionServiceImpl implements FileExtensionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileExtensionServiceImpl.class);

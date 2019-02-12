@@ -16,7 +16,6 @@ import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;

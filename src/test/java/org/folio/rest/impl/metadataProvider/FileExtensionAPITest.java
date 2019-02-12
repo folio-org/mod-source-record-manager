@@ -18,7 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
 public class FileExtensionAPITest extends AbstractRestTest {
@@ -283,7 +286,7 @@ public class FileExtensionAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .get(DATA_TYPE_PATH);
-    String[] dataTypesNames= Arrays.stream(DataType.values()).map(Enum::toString).toArray(String[]::new);
+    String[] dataTypesNames = Arrays.stream(DataType.values()).map(Enum::toString).toArray(String[]::new);
 
     response.then()
       .log().all()
