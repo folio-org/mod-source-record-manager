@@ -148,4 +148,14 @@ public class FileExtensionServiceImpl implements FileExtensionService {
     return fileExtensionDao.getFileExtensions(query.toString(), 0, 1)
       .compose(collection -> Future.succeededFuture(collection.getTotalRecords() != 0));
   }
+
+  @Override
+  public Future<DataTypeCollection> getDataTypes() {
+    Future<DataTypeCollection> future = Future.future();
+    DataTypeCollection dataTypeCollection = new DataTypeCollection();
+    dataTypeCollection.setDataTypes(Arrays.asList(DataType.values()));
+    dataTypeCollection.setTotalRecords(DataType.values().length);
+    future.complete(dataTypeCollection);
+    return future;
+  }
 }
