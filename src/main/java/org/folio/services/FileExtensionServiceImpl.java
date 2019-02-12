@@ -137,4 +137,15 @@ public class FileExtensionServiceImpl implements FileExtensionService {
     future.complete(dataTypeCollection);
     return future;
   }
+
+  @Override
+  public Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension) {
+    StringBuilder query = new StringBuilder("extension=" + fileExtension.getExtension());
+    if (fileExtension.getId() != null) {
+      query.append("&id!=")
+        .append(fileExtension.getId());
+    }
+    return fileExtensionDao.getFileExtensions(query.toString(), 0, 1)
+      .compose(collection -> Future.succeededFuture(collection.getTotalRecords() != 0));
+  }
 }
