@@ -85,4 +85,10 @@ public interface FileExtensionService {
    * @return future with {@link DataTypeCollection}
    */
   Future<DataTypeCollection> getDataTypes();
+
+  /**
+   * @param fileExtension - {@link FileExtension} object
+   * @return - is file extension exist in database
+   */
+  Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension);
 }
