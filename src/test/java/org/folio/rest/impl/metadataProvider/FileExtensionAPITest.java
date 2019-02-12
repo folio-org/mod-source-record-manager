@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,11 +29,11 @@ public class FileExtensionAPITest extends AbstractRestTest {
 
   private static FileExtension fileExtension_1 = new FileExtension()
     .withExtension(".marc")
-    .withDataTypes(Arrays.asList(DataType.MARC))
+    .withDataTypes(Collections.singletonList(DataType.MARC))
     .withImportBlocked(false);
   private static FileExtension fileExtension_2 = new FileExtension()
     .withExtension(".edi")
-    .withDataTypes(Arrays.asList(DataType.EDIFACT))
+    .withDataTypes(Collections.singletonList(DataType.EDIFACT))
     .withImportBlocked(false);
   private static FileExtension fileExtension_3 = new FileExtension()
     .withExtension(".pdf")

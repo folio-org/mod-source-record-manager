@@ -35,7 +35,7 @@ public interface FileExtensionService {
    * Saves {@link FileExtension}
    *
    * @param fileExtension FileExtension to save
-   * @param params Okapi connection params
+   * @param params        Okapi connection params
    * @return future with {@link FileExtension}
    */
   Future<FileExtension> addFileExtension(FileExtension fileExtension, OkapiConnectionParams params);
@@ -44,7 +44,7 @@ public interface FileExtensionService {
    * Updates {@link FileExtension} with given id
    *
    * @param fileExtension FileExtension to update
-   * @param params Okapi connection params
+   * @param params        Okapi connection params
    * @return future with {@link FileExtension}
    */
   Future<FileExtension> updateFileExtension(FileExtension fileExtension, OkapiConnectionParams params);
@@ -70,4 +70,10 @@ public interface FileExtensionService {
    * @return - Update Result of coping execution
    */
   Future<UpdateResult> copyExtensionsFromDefault();
+
+  /**
+   * @param fileExtension - {@link FileExtension} object
+   * @return - is file extension exist in database
+   */
+  Future<Boolean> isFileExtensionExistByName(FileExtension fileExtension);
 }
