@@ -35,7 +35,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
 
   private static final String GET_LOGS_PATH_LANDING_PAGE_FALSE = "/metadata-provider/logs?landingPage=false";
   private static final String GET_LOGS_PATH_LANDING_PAGE_TRUE = "/metadata-provider/logs?landingPage=true";
-  private static final String PUT_JOB_EXECUTIONS_PATH = "/change-manager/jobExecution/";
+  private static final String PUT_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions/";
   private static final String PROFILE_NAME = "Parse Marc files profile";
   private  static final int LANDING_PAGE_LOGS_LIMIT = 25;
 

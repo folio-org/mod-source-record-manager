@@ -69,7 +69,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<Integer> future = Future.future();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.getSourceStorageRecord(buildQueryByJobId(jobId), 0, DEF_CHUNK_NUMBER, null, countResult -> {
+      client.getSourceStorageRecords(buildQueryByJobId(jobId), 0, DEF_CHUNK_NUMBER, null, countResult -> {
         if (countResult.statusCode() != HttpStatus.HTTP_OK.toInt()) {
           LOGGER.error("Error during requesting number of records for jobExecution with id: {}", jobId);
           future.fail(new HttpStatusException(countResult.statusCode(), "Error during requesting number of records for jobExecution with id: " + jobId));
@@ -101,7 +101,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     try {
       for (int i = 0; i < chunksNumber; i++) {
         final int offset = i == 0 ? 0 : DEF_CHUNK_NUMBER * i;
-        client.getSourceStorageRecord(buildQueryByJobId(job.getId()), offset, DEF_CHUNK_NUMBER, null, loadChunksResponse -> {
+        client.getSourceStorageRecords(buildQueryByJobId(job.getId()), offset, DEF_CHUNK_NUMBER, null, loadChunksResponse -> {
           if (loadChunksResponse.statusCode() != HttpStatus.HTTP_OK.toInt()) {
             LOGGER.error("Error during getting records for parse for job execution with id: {}", job.getId());
             future.fail(new HttpStatusException(loadChunksResponse.statusCode(), "Error during getting records for parse for job execution with id: " + job.getId()));
@@ -203,7 +203,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<JobExecution> future = Future.future();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.putSourceStorageRecordById(record.getId(), record, response -> {
+      client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
         if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
           future.complete(jobExecution);
         }

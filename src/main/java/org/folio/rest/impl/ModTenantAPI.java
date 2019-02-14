@@ -9,12 +9,9 @@ import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.jaxrs.model.FileExtensionCollection;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.TenantTool;
-import org.folio.services.FileExtensionService;
-import org.folio.services.FileExtensionServiceImpl;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -42,7 +39,6 @@ public class ModTenantAPI extends TenantAPI {
         handlers.handle(ar);
       } else {
         setupTestData(headers, context)
-          .compose(v -> setupDefaultFileExtensions(headers, context))
           .setHandler(event -> handlers.handle(ar));
       }
     }, context);
@@ -50,29 +46,19 @@ public class ModTenantAPI extends TenantAPI {
 
   private Future<List<String>> setupTestData(Map<String, String> headers, Context context) {
     try {
-//      LOGGER.info("***System.getenv():");
-//      System.getenv().entrySet().forEach(e -> LOGGER.info("       -> " + e.getKey() + ": " + e.getValue()));
-//
-//      LOGGER.info("***System.getProperties():");
-//      System.getProperties().entrySet().forEach(e -> LOGGER.info("       -> " + e.getKey() + ": " + e.getValue()));
-
       if (!Boolean.TRUE.equals(Boolean.valueOf(System.getenv(TEST_MODE)))) {
         LOGGER.info("Test data was not initialized.");
         return Future.succeededFuture();
       }
-
       InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(SETUP_TEST_DATA_SQL);
-
       if (inputStream == null) {
         LOGGER.info("Test data was not initialized: no resources found: {}", SETUP_TEST_DATA_SQL);
         return Future.succeededFuture();
       }
-
       String sqlScript = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
       if (StringUtils.isBlank(sqlScript)) {
         return Future.succeededFuture();
       }
-
       String tenantId = TenantTool.calculateTenantId((String) headers.get("x-okapi-tenant"));
       String moduleName = PostgresClient.getModuleName();
 
@@ -87,28 +73,6 @@ public class ModTenantAPI extends TenantAPI {
     } catch (IOException e) {
       return Future.failedFuture(e);
     }
-  }
-
-  private Future<Boolean> setupDefaultFileExtensions(Map<String, String> headers, Context context) {
-    try {
-      FileExtensionService service = new FileExtensionServiceImpl(context.owner(), TenantTool.calculateTenantId(headers.get("x-okapi-tenant")));
-      return
-        service.getFileExtensions(null, 0, 1)
-          .compose(r -> createDefExtensionsIfNeed(r, service));
-    } catch (Exception e) {
-      return Future.failedFuture(e);
-    }
-  }
-
-  private Future<Boolean> createDefExtensionsIfNeed(FileExtensionCollection collection, FileExtensionService service) {
-    Future<Boolean> future = Future.future();
-    if (collection.getTotalRecords() == 0) {
-      return service.copyExtensionsFromDefault()
-        .map(r -> r.getUpdated() > 0);
-    } else {
-      future.complete(true);
-    }
-    return future;
   }
 
 }

@@ -53,14 +53,13 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionById(String id, JobExecution entity, Map<String, String> okapiHeaders,
-                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putChangeManagerJobExecutionsById(String id, String lang, JobExecution entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         entity.setId(id);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.updateJobExecution(entity, params)
-          .map(updatedEntity -> (Response) PutChangeManagerJobExecutionByIdResponse.respond200WithApplicationJson(updatedEntity))
+          .map(updatedEntity -> (Response) PutChangeManagerJobExecutionsByIdResponse.respond200WithApplicationJson(updatedEntity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
@@ -71,14 +70,13 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerJobExecutionById(String id, Map<String, String> okapiHeaders,
-                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
         jobExecutionService.getJobExecutionById(id)
           .map(optionalJobExecution -> optionalJobExecution.orElseThrow(() ->
             new NotFoundException(String.format("JobExecution with id '%s' was not found", id))))
-          .map(GetChangeManagerJobExecutionByIdResponse::respond200WithApplicationJson)
+          .map(GetChangeManagerJobExecutionsByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
@@ -89,13 +87,20 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerJobExecutionChildrenById(String id, int limit, String query, int offset,
-                                                       Map<String, String> okapiHeaders,
-                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    asyncResultHandler.handle(Future.succeededFuture(
+      PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
+  }
+
+
+  @Override
+  public void getChangeManagerJobExecutionsChildrenById(String id, int limit, String query, int offset,
+                                                        Map<String, String> okapiHeaders,
+                                                        Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         jobExecutionService.getJobExecutionCollectionByParentId(id, query, offset, limit)
-          .map(GetChangeManagerJobExecutionChildrenByIdResponse::respond200WithApplicationJson)
+          .map(GetChangeManagerJobExecutionsChildrenByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
@@ -107,13 +112,13 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionStatusById(String id, StatusDto entity, Map<String, String> okapiHeaders,
-                                                     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putChangeManagerJobExecutionsStatusById(String id, StatusDto entity, Map<String, String> okapiHeaders,
+                                                      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.updateJobExecutionStatus(id, entity, params)
-          .map(PutChangeManagerJobExecutionStatusByIdResponse::respond200WithApplicationJson)
+          .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
@@ -125,12 +130,12 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionJobProfileById(String id, JobProfile entity, Map<String, String> okapiHeaders,
-                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putChangeManagerJobExecutionsJobProfileById(String id, JobProfile entity, Map<String, String> okapiHeaders,
+                                                          Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         jobExecutionService.setJobProfileToJobExecution(id, entity)
-          .map(PutChangeManagerJobExecutionStatusByIdResponse::respond200WithApplicationJson)
+          .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
@@ -142,11 +147,9 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void postChangeManagerRecordsByJobExecutionId(String jobExecutionId, RawRecordsDto entity,
-                                                       Map<String, String> okapiHeaders,
-                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postChangeManagerJobExecutionsRecordsById(String id, RawRecordsDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     // TODO replace stub response
     asyncResultHandler.handle(Future.succeededFuture(
-      PostChangeManagerRecordsByJobExecutionIdResponse.respond500WithTextPlain("Method is not implemented")));
+      PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
   }
 }

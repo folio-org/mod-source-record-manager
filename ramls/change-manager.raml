@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Change Manager
-version: v1.1
+version: v2.0
 protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
@@ -27,6 +27,11 @@ traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
   pageable:  !include raml-storage/raml-util/traits/pageable.raml
   searchable: !include raml-storage/raml-util/traits/searchable.raml
+  language: !include raml-storage/raml-util/traits/language.raml
+
+resourceTypes:
+  collection: !include raml-storage/raml-util/rtypes/collection.raml
+  collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
 
 /change-manager:
   /jobExecutions:
@@ -45,174 +50,135 @@ traits:
           body:
             text/plain:
               example: "Internal server error"
-  /jobExecution/{id}:
-    put:
-      description: "Update JobExecution"
-      body:
-        application/json:
+    /{id}:
+      displayName: JobExecution
+      description: Get or Update a specific JobExecution
+      type:
+        collection-item:
           schema: jobExecution
-      responses:
-        200:
-          body:
-            application/json:
-              type: jobExecution
-        400:
-          description: "Bad request"
-          body:
-            text/plain:
-              example: "Bad request"
-        404:
-          description: "Not found"
-          body:
-            text/plain:
-              example: "Not found"
-        422:
-          description: "Unprocessable Entity"
-          body:
-            application/json:
-              type: errors
-        500:
-          description: "Internal server error"
-          body:
-            text/plain:
-              example: "Internal server error"
-    get:
-      description: Get JobExecution by id
-      responses:
-        200:
-          body:
-            application/json:
-              type: jobExecution
-        404:
-          description: "Not found"
-          body:
-            text/plain:
-              example: "Not found"
-        500:
-          description: "Internal server error"
-          body:
-            text/plain:
-              example: "Internal server error"
-    /children:
+          exampleItem: !include raml-storage/examples/mod-source-record-manager/jobExecution.sample
+      put:
+        is: [validate]
+        responses:
+          200:
+            body:
+              application/json:
+                type: jobExecution
       get:
-        description: Get children JobExecutions by parent id, by default returns all existing children JobExecutions, in order to limit the collection parameter limit should be explicitly specified
-        is: [
-          searchable: {
-            description:
-              "with valid searchable fields: for example status=IMPORT_IN_PROGRESS",
-            example:
-              "status=IMPORT_IN_PROGRESS"
-          },
-          pageable,
-          validate
-        ]
-        queryParameters:
-          limit:
-            default: 2147483647
-        responses:
-          200:
-            body:
-              application/json:
-                type: jobExecutionCollection
-          404:
-            description: "Not found"
-            body:
-              text/plain:
-                example: "Not found"
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
-    /status:
-      put:
-        description: "Update JobExecution status"
-        body:
-          application/json:
-            schema: statusDto
+        description: Get JobExecution by id
         responses:
           200:
             body:
               application/json:
                 type: jobExecution
-          400:
-            description: "Bad request"
-            body:
-              text/plain:
-                example: "Bad request"
-          404:
-            description: "Not found"
-            body:
-              text/plain:
-                example: "Not found"
-          422:
-            description: "Unprocessable Entity"
-            body:
-              application/json:
-                type: errors
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
-    /jobProfile:
-      put:
-        description: "Set JobProfile for JobExecution"
-        body:
-          application/json:
-            schema: jobProfile
-        responses:
-          200:
-            body:
-              application/json:
-                type: jobExecution
-          400:
-            description: "Bad request"
-            body:
-              text/plain:
-                example: "Bad request"
-          404:
-            description: "Not found"
-            body:
-              text/plain:
-                example: "Not found"
-          422:
-            description: "Unprocessable Entity"
-            body:
-              application/json:
-                type: errors
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
-  /records/{jobExecutionId}:
-    post:
-      description: "Receive chunk of raw records"
-      body:
-        application/json:
-          schema: rawRecordsDto
-      responses:
-        204:
-          body:
-            text/plain: !!null
-        400:
-          description: "Bad request"
-          body:
-            text/plain:
-              example: "Bad request"
-        404:
-          description: "Not found"
-          body:
-            text/plain:
-              example: "Not found"
-        422:
-          description: "Unprocessable Entity"
+      /children:
+        get:
+          description: Get children JobExecutions by parent id, by default returns all existing children JobExecutions, in order to limit the collection parameter limit should be explicitly specified
+          is: [
+           searchable: {
+             description:
+               "with valid searchable fields: for example status=IMPORT_IN_PROGRESS",
+              example:
+               "status=IMPORT_IN_PROGRESS"
+            },
+            pageable,
+            validate
+          ]
+          queryParameters:
+           limit:
+             default: 2147483647
+          responses:
+            200:
+              body:
+                application/json:
+                  type: jobExecutionCollection
+            404:
+              description: "Not found"
+              body:
+                text/plain:
+                  example: "Not found"
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"
+      /status:
+        put:
+          is: [validate]
+          description: "Update JobExecution status"
           body:
             application/json:
-              type: errors
-        500:
-          description: "Internal server error"
+              schema: statusDto
+          responses:
+            200:
+              body:
+                application/json:
+                  type: jobExecution
+            400:
+              description: "Bad request"
+              body:
+                text/plain:
+                  example: "Bad request"
+            404:
+              description: "Not found"
+              body:
+                text/plain:
+                  example: "Not found"
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"
+      /jobProfile:
+        put:
+          is: [validate]
+          description: "Set JobProfile for JobExecution"
           body:
-            text/plain:
-              example: "Internal server error"
+            application/json:
+              schema: jobProfile
+          responses:
+            200:
+              body:
+                application/json:
+                  type: jobExecution
+            400:
+              description: "Bad request"
+              body:
+                text/plain:
+                  example: "Bad request"
+            404:
+              description: "Not found"
+              body:
+                text/plain:
+                  example: "Not found"
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"
+      /records:
+        post:
+          is: [validate]
+          description: "Receive chunk of raw records"
+          body:
+            application/json:
+              schema: rawRecordsDto
+          responses:
+            204:
+              body:
+                text/plain: !!null
+            400:
+              description: "Bad request"
+              body:
+                text/plain:
+                  example: "Bad request"
+            404:
+              description: "Not found"
+              body:
+                text/plain:
+                  example: "Not found"
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"
