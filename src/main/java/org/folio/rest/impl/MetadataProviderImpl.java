@@ -5,8 +5,6 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
@@ -19,9 +17,6 @@ import java.util.Map;
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final int LANDING_PAGE_LOGS_LIMIT = 25;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataProviderImpl.class);
-  private static final String FILE_EXTENSION_DUPLICATE_ERROR_CODE = "fileExtension.duplication.invalid";
-  private static final String FILE_EXTENSION_VALIDATE_ERROR_MESSAGE = "Failed to validate file extension";
 
   private JobExecutionService jobExecutionService;
   private Vertx vertx;
