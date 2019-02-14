@@ -42,7 +42,7 @@ import java.util.UUID;
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
-  public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshot";
+  public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   private JobExecutionDao jobExecutionDao;
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
   private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
@@ -290,7 +290,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.postSourceStorageSnapshot(null, snapshot, response -> {
+      client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.error("Error during post for new Snapshot.", response.statusMessage());
           future.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
@@ -313,7 +313,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.putSourceStorageSnapshotByJobExecutionId(jobExecution.getId(), snapshot, response -> {
+      client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), null, snapshot, response -> {
         if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
           future.complete(jobExecution);
         } else {

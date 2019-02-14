@@ -63,8 +63,7 @@ public abstract class AbstractRestTest {
   private static final String TENANT_ID = "diku";
   protected static RequestSpecification spec;
 
-  protected static final String POST_JOB_EXECUTIONS_PATH = "/change-manager/jobExecutions";
-  protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecution/";
+  protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
 
@@ -166,12 +165,12 @@ public abstract class AbstractRestTest {
   }
 
   private void clearTable(TestContext context) {
+    Async async = context.async();
     PostgresClient.getInstance(vertx, TENANT_ID).delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event1 -> {
-      PostgresClient.getInstance(vertx, TENANT_ID).delete(FILE_EXTENSIONS_TABLE, new Criterion(), event2 -> {
-        if (event2.failed()) {
-          context.fail(event2.cause());
-        }
-      });
+      if (event1.failed()) {
+        context.fail(event1.cause());
+      }
+      async.complete();
     });
   }
 
@@ -192,7 +191,7 @@ public abstract class AbstractRestTest {
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(POST_JOB_EXECUTIONS_PATH).body().as(InitJobExecutionsRsDto.class);
+      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
   }
 
   protected Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {

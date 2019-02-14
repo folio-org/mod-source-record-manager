@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerAPITest extends AbstractRestTest {
 
-  private static final String POST_RAW_RECORDS_PATH = "/change-manager/records/";
+  private static final String POST_RAW_RECORDS_PATH = "/records";
   private static final String CHILDREN_PATH = "/children";
   private static final String STATUS_PATH = "/status";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
@@ -126,7 +126,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(POST_JOB_EXECUTIONS_PATH)
+      .when().post(JOB_EXECUTION_PATH)
       .then().statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
@@ -265,7 +265,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).collect(Collectors.toList());
     StatusDto importInProgressStatus = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
 
-    for (int i = 0; i < children.size() - expectedNumberOfNew ; i++) {
+    for (int i = 0; i < children.size() - expectedNumberOfNew; i++) {
       updateJobExecutionStatus(children.get(i), importInProgressStatus)
         .then()
         .statusCode(HttpStatus.SC_OK);
@@ -612,7 +612,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .post(POST_RAW_RECORDS_PATH + UUID.randomUUID().toString())
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -624,7 +624,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(rawRecordsDto).toString())
       .when()
-      .post(POST_RAW_RECORDS_PATH + UUID.randomUUID().toString())
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
   }

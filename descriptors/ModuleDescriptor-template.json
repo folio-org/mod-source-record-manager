@@ -3,12 +3,12 @@
   "name": "Source Record Manager Module",
   "requires": [{
     "id": "source-record-storage",
-    "version": "1.0"
+    "version": "2.0"
   }],
   "provides": [
     {
       "id": "source-record-manager",
-      "version": "1.2",
+      "version": "2.0",
       "handlers": [
         {
           "methods": ["GET"],
@@ -18,85 +18,53 @@
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobExecutions",
-          "permissionsRequired" : [ "metadata-provider.jobexecution.get" ]
+          "permissionsRequired" : [ "metadata-provider.jobexecutions.get" ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
-          "permissionsRequired" : [ "change-manager.jobexecution.post" ],
-          "modulePermissions": [ "source-storage.snapshot.post" ]
+          "permissionsRequired" : [ "change-manager.jobexecutions.post" ],
+          "modulePermissions": [ "source-storage.snapshots.post" ]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/change-manager/jobExecution/{id}",
-          "permissionsRequired": [ "change-manager.jobexecution.put" ]
+          "pathPattern": "/change-manager/jobExecutions/{id}",
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/jobExecution/{id}",
-          "permissionsRequired": [ "change-manager.jobexecution.get" ]
+          "pathPattern": "/change-manager/jobExecutions/{id}",
+          "permissionsRequired": [ "change-manager.jobexecutions.get" ]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/change-manager/jobExecution/{id}/children",
-          "permissionsRequired": [ "change-manager.jobexecution.get" ]
+          "pathPattern": "/change-manager/jobExecutions/{id}/children",
+          "permissionsRequired": [ "change-manager.jobexecutions.get" ]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/change-manager/jobExecution/{id}/status",
-          "permissionsRequired": [ "change-manager.jobexecution.put" ],
+          "pathPattern": "/change-manager/jobExecutions/{id}/status",
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ],
           "modulePermissions": [
-            "source-storage.snapshot.put"
+            "source-storage.snapshots.put"
           ]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/change-manager/jobExecution/{id}/jobProfile",
-          "permissionsRequired": [ "change-manager.jobexecution.put" ]
+          "pathPattern": "/change-manager/jobExecutions/{id}/jobProfile",
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ]
         },
         {
           "methods": ["POST"],
-          "pathPattern": "/change-manager/records/{jobExecutionId}",
+          "pathPattern": "/change-manager/jobExecutions/{id}/records",
           "permissionsRequired" : [ "change-manager.records.post" ],
           "modulePermissions": [
-            "source-storage.snapshot.get",
-            "source-storage.snapshot.put",
-            "source-storage.record.get",
-            "source-storage.record.post",
-            "source-storage.record.put"
+            "source-storage.snapshots.get",
+            "source-storage.snapshots.put",
+            "source-storage.records.get",
+            "source-storage.records.post",
+            "source-storage.records.put"
           ]
-        },
-        {
-          "methods": ["GET"],
-          "pathPattern": "/metadata-provider/fileExtension",
-          "permissionsRequired": ["metadata-provider.fileExtension.get"]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/metadata-provider/fileExtension",
-          "permissionsRequired": ["metadata-provider.fileExtension.post"],
-          "modulePermissions": ["users.item.get"]
-        },
-        {
-          "methods": ["GET"],
-          "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["metadata-provider.fileExtension.get"]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["metadata-provider.fileExtension.put"],
-          "modulePermissions": ["users.item.get"]
-        },
-        {
-          "methods": ["DELETE"],
-          "pathPattern": "/metadata-provider/fileExtension/{id}",
-          "permissionsRequired": ["metadata-provider.fileExtension.delete"]
-        },
-        {
-          "methods": ["GET"],
-          "pathPattern": "/metadata-provider/fileExtension/restore/default",
-          "permissionsRequired": ["metadata-provider.fileExtension.default"]
         }
       ]
     },
@@ -127,23 +95,23 @@
       "description": "Get logs"
     },
     {
-      "permissionName": "metadata-provider.jobexecution.get",
+      "permissionName": "metadata-provider.jobexecutions.get",
       "displayName": "Metadata Provider - get jobExecutions",
       "description": "Get JobExecutions"
     },
     {
-      "permissionName": "change-manager.jobexecution.post",
-      "displayName": "Change Manager - create jobExecution",
+      "permissionName": "change-manager.jobexecutions.post",
+      "displayName": "Change Manager - create jobExecutions",
       "description": "Post JobExecution"
     },
     {
-      "permissionName": "change-manager.jobexecution.put",
-      "displayName": "Change Manager - update jobExecution",
+      "permissionName": "change-manager.jobexecutions.put",
+      "displayName": "Change Manager - update jobExecutions",
       "description": "Put JobExecution"
     },
     {
-      "permissionName": "change-manager.jobexecution.get",
-      "displayName": "Change Manager - get jobExecution by id",
+      "permissionName": "change-manager.jobexecutions.get",
+      "displayName": "Change Manager - get jobExecutions by id",
       "description": "Get JobExecution by id"
     },
     {
@@ -152,46 +120,16 @@
       "description": "Post chunk of raw records"
     },
     {
-      "permissionName": "metadata-provider.fileExtension.get",
-      "displayName": "Metadata Provider - get file extension(s)",
-      "description": "Get FileExtension(s)"
-    },
-    {
-      "permissionName": "metadata-provider.fileExtension.post",
-      "displayName": "Metadata Provider - create new file extension",
-      "description": "Post FileExtension"
-    },
-    {
-      "permissionName": "metadata-provider.fileExtension.put",
-      "displayName": "Metadata Provider - update file extension",
-      "description": "Put FileExtension"
-    },
-    {
-      "permissionName": "metadata-provider.fileExtension.delete",
-      "displayName": "Metadata Provider - delete file extension",
-      "description": "Delete FileExtension"
-    },
-    {
-      "permissionName": "metadata-provider.fileExtension.default",
-      "displayName": "Metadata Provider - restore file extensions to default",
-      "description": "Restore FileExtension to default"
-    },
-    {
-      "permissionName": "source-record-manager.all",
+      "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
       "subPermissions": [
         "metadata-provider.log.get",
-        "metadata-provider.jobexecution.get",
-        "change-manager.jobexecution.post",
-        "change-manager.jobexecution.put",
-        "change-manager.jobexecution.get",
-        "change-manager.records.post",
-        "metadata-provider.fileExtension.get",
-        "metadata-provider.fileExtension.post",
-        "metadata-provider.fileExtension.put",
-        "metadata-provider.fileExtension.delete",
-        "metadata-provider.fileExtension.default"
+        "metadata-provider.jobexecutions.get",
+        "change-manager.jobexecutions.post",
+        "change-manager.jobexecutions.put",
+        "change-manager.jobexecutions.get",
+        "change-manager.records.post"
       ],
       "visible": false
     }
