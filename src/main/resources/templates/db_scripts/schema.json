@@ -13,6 +13,30 @@
           "tOps": "ADD"
         }
       ]
+    },
+    {
+      "tableName": "job_execution_source_chunks",
+      "generateId": false,
+      "fromModuleVersion": "1.0",
+      "withMetadata": false,
+      "pkColumnName": "_id",
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        },
+        {
+          "fieldName": "jobExecutionId",
+          "tOps": "ADD"
+        }
+      ],
+      "foreignKeys": [
+        {
+          "fieldName": "jobExecutionId",
+          "targetTable": "job_executions",
+          "tOps": "ADD"
+        }
+      ]
     }
   ]
 }
