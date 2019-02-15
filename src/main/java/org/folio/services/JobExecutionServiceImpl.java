@@ -42,7 +42,6 @@ import java.util.UUID;
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
-  public static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   private JobExecutionDao jobExecutionDao;
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
   private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;

@@ -66,6 +66,7 @@ public abstract class AbstractRestTest {
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
+  private static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
@@ -156,9 +157,9 @@ public abstract class AbstractRestTest {
     okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
     okapiHeaders.put(RestVerticle.OKAPI_HEADER_TOKEN, TOKEN);
     okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader);
-    WireMock.stubFor(WireMock.post(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL)
+    WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
-    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(JobExecutionServiceImpl.SNAPSHOT_SERVICE_URL + "/.*"), true))
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(WireMock.okJson(userResponse.toString())));
