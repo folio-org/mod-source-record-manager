@@ -47,7 +47,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           statusDto
             .withStatus(StatusDto.Status.ERROR)
             .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-          LOGGER.error("Can't create record in storage. jobId: {}", job.getId(), result.cause());
+          LOGGER.error("Can't create record in storage. JobExecution ID: {}", job.getId(), result.cause());
           jobExecutionService.updateJobExecutionStatus(job.getId(), statusDto, params)
             .setHandler(r -> {
               if (r.failed()) {
