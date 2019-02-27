@@ -18,16 +18,16 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Source record parser implementation for MARC format. Use marc4j library
+ * Raw record parser implementation for MARC format. Use marc4j library
  */
-public final class MarcRecordParser implements SourceRecordParser {
+public final class MarcRecordParser implements RawRecordParser {
   private static final Logger LOGGER = LoggerFactory.getLogger(MarcRecordParser.class);
 
   @Override
-  public ParsedResult parseRecord(String sourceRecord) {
+  public ParsedResult parseRecord(String rawRecord) {
     ParsedResult result = new ParsedResult();
     try {
-      MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(sourceRecord.getBytes(StandardCharsets.UTF_8)));
+      MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(rawRecord.getBytes(StandardCharsets.UTF_8)));
       if (reader.hasNext()) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         MarcJsonWriter writer = new MarcJsonWriter(os);
@@ -46,7 +46,7 @@ public final class MarcRecordParser implements SourceRecordParser {
         result.setParsedRecord(new JsonObject());
       }
     } catch (Exception e) {
-      LOGGER.error("Error during parse MARC record from source record", e);
+      LOGGER.error("Error during parse MARC record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage())));

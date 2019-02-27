@@ -3,9 +3,9 @@ package org.folio.services;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.services.parsers.ParsedResult;
+import org.folio.services.parsers.RawRecordParser;
+import org.folio.services.parsers.RawRecordParserBuilder;
 import org.folio.services.parsers.RecordFormat;
-import org.folio.services.parsers.SourceRecordParser;
-import org.folio.services.parsers.SourceRecordParserBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
  */
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
-  private static final SourceRecordParser PARSER = SourceRecordParserBuilder.buildParser(RecordFormat.MARC);
+  private static final RawRecordParser PARSER = RawRecordParserBuilder.buildParser(RecordFormat.MARC);
   private static final String CORRECT_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006" +
     "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
     "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
