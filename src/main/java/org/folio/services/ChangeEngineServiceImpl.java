@@ -55,8 +55,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               }
               future.fail(result.cause());
             });
+        } else {
+          future.complete(chunk);
         }
-        future.complete(chunk);
       });
     return future;
   }
