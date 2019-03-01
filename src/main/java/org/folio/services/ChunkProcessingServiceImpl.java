@@ -38,12 +38,15 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk)
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_IN_PROGRESS, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, params))
-      .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk.withState(JobExecutionSourceChunk.State.COMPLETED)))
+      .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
+        .withState(JobExecutionSourceChunk.State.COMPLETED)
+        .withCompletedDate(new Date())))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId))
       .compose(completed -> {
         if (completed) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_FINISHED, params)
-            .map(jobExecution -> true);
+            .compose(this::processRecords)
+            .map(result -> true);
         }
         return Future.succeededFuture(true);
       });
@@ -61,7 +64,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   private Future<Boolean> checkIfProcessingCompleted(String jobExecutionId) {
-    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + "&&last=true",0, 1)
+    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true",0, 1)
       .compose(chunks -> {
         if(chunks != null && !chunks.isEmpty()) {
           return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId, 0, Integer.MAX_VALUE)
@@ -69,5 +72,12 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         }
         return Future.succeededFuture(false);
       });
+  }
+
+  /**
+   * STUB implementation since processing of parsed records is not defined yet
+   */
+  private Future<JobExecution> processRecords(JobExecution jobExecution) {
+    return Future.succeededFuture(jobExecution);
   }
 }

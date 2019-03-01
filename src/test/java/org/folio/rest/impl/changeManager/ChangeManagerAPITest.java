@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +59,18 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
     .withLast(false)
     .withCounter(15)
-    .withRecords(new ArrayList<>());
+    .withRecords(Collections.singletonList("01240cas a2200397   450000100070000000500170000700800410002401000170006" +
+      "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
+      "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
+      "6550042006067000045006488530018006938630023007119020016007349050021007509480037007719500034008083668322014110622" +
+      "1425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)not" +
+      "isABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Jou" +
+      "rnal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [e" +
+      "tc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Ap" +
+      "r. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7" +
+      "aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-" +
+      "1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm" +
+      " a2200361   "));
 
   @Test
   public void testInitJobExecutionsWith1File() {
@@ -617,16 +629,65 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
 
-  // TODO replace stub test
   @Test
-  public void shouldReturnErrorOnPostRawRecords() {
+  public void shouldReturnErrorOnPostRawRecordsWhenJobExecutionDoesNotExist() {
     RestAssured.given()
       .spec(spec)
-      .body(JsonObject.mapFrom(rawRecordsDto).toString())
+      .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  public void shouldProcessChunkOfRawRecords() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.IMPORT_IN_PROGRESS.name()));
+  }
+
+  @Test
+  public void shouldProcessLastChunkOfRawRecords() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto.withLast(true))
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.IMPORT_FINISHED.name()));
   }
 
   private void assertParent(JobExecution parent) {
