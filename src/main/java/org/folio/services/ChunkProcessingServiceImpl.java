@@ -52,6 +52,14 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       });
   }
 
+  /**
+   * Checks JobExecution current status and updates it if needed
+   *
+   * @param jobExecutionId - JobExecution id
+   * @param status         - required status of JobExecution
+   * @param params         - okapi connection params
+   * @return future
+   */
   private Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, JobExecution.Status status, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId)
       .compose(optionalJobExecution -> optionalJobExecution
@@ -63,10 +71,16 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
+  /**
+   * Checks if last chunk exists and if so checks that all chunks are processed
+   *
+   * @param jobExecutionId - JobExecution id
+   * @return future with true if processing is completed, false if not
+   */
   private Future<Boolean> checkIfProcessingCompleted(String jobExecutionId) {
-    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true",0, 1)
+    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1)
       .compose(chunks -> {
-        if(chunks != null && !chunks.isEmpty()) {
+        if (chunks != null && !chunks.isEmpty()) {
           return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId, 0, Integer.MAX_VALUE)
             .map(list -> list.stream().filter(chunk -> JobExecutionSourceChunk.State.COMPLETED.equals(chunk.getState())).count() == list.size());
         }
