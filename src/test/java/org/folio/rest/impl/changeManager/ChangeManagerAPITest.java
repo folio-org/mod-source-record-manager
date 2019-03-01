@@ -626,7 +626,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
 
   private void assertParent(JobExecution parent) {

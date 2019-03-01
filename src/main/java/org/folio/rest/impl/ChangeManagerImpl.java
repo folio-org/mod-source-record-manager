@@ -16,6 +16,8 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
+import org.folio.services.ChunkProcessingService;
+import org.folio.services.ChunkProcessingServiceImpl;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 
@@ -27,10 +29,12 @@ public class ChangeManagerImpl implements ChangeManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerImpl.class);
   private JobExecutionService jobExecutionService;
+  private ChunkProcessingService chunkProcessingService;
 
   public ChangeManagerImpl(Vertx vertx, String tenantId) {
     String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
     this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
+    this.chunkProcessingService = new ChunkProcessingServiceImpl(vertx, tenantId);
   }
 
   @Override
@@ -53,7 +57,8 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionsById(String id, String lang, JobExecution entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putChangeManagerJobExecutionsById(String id, String lang, JobExecution entity, Map<String, String> okapiHeaders,
+                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         entity.setId(id);
@@ -70,7 +75,8 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
+                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
         jobExecutionService.getJobExecutionById(id)
@@ -87,7 +93,8 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
+                                                   Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     asyncResultHandler.handle(Future.succeededFuture(
       PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
   }
@@ -147,9 +154,21 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void postChangeManagerJobExecutionsRecordsById(String id, RawRecordsDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    // TODO replace stub response
-    asyncResultHandler.handle(Future.succeededFuture(
-      PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
+  public void postChangeManagerJobExecutionsRecordsById(String id, RawRecordsDto entity, Map<String, String> okapiHeaders,
+                                                        Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        chunkProcessingService.processChunk(entity, id, params)
+           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
+            String.format("Chunk of RawRecords with JobExecution id %s was successfully processed", id)))
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", id, e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
   }
 }
