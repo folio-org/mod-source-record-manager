@@ -2,6 +2,7 @@ package org.folio.services.converters;
 
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.LogDto;
+import org.springframework.stereotype.Component;
 
 /**
  * Converts JobExecution entity to the LogDto.
@@ -9,6 +10,7 @@ import org.folio.rest.jaxrs.model.LogDto;
  * @see JobExecution
  * @see LogDto
  */
+@Component
 public class JobExecutionToLogDtoConverter extends AbstractGenericConverter<JobExecution, LogDto> {
 
   @Override

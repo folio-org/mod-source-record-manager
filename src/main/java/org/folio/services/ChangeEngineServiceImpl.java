@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.HttpStatus;
@@ -19,20 +18,19 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RawRecordParser;
 import org.folio.services.parsers.RawRecordParserBuilder;
 import org.folio.services.parsers.RecordFormat;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
-
+  @Autowired
   private JobExecutionService jobExecutionService;
-
-  public ChangeEngineServiceImpl(Vertx vertx, String tenantId) {
-    this.jobExecutionService = new JobExecutionServiceImpl(vertx, tenantId);
-  }
 
   @Override
   public Future<RawRecordsDto> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution job, OkapiConnectionParams params) {

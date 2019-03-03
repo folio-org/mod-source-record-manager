@@ -9,7 +9,8 @@ import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
-import org.folio.services.JobExecutionServiceImpl;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
 import java.util.Map;
@@ -17,14 +18,13 @@ import java.util.Map;
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final int LANDING_PAGE_LOGS_LIMIT = 25;
-
+  @Autowired
   private JobExecutionService jobExecutionService;
-  private Vertx vertx;
+  private String tenantId;
 
-  public MetadataProviderImpl(Vertx vertx, String tenantId) {
-    this.vertx = vertx;
-    String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
-    this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
+  public MetadataProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+    this.tenantId = TenantTool.calculateTenantId(tenantId);
   }
 
   @Override
@@ -33,7 +33,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                       Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getLogCollectionDtoByQuery(query, offset, landingPage ? LANDING_PAGE_LOGS_LIMIT : limit)
+        jobExecutionService.getLogCollectionDtoByQuery(query, offset, landingPage ? LANDING_PAGE_LOGS_LIMIT : limit, tenantId)
           .map(GetMetadataProviderLogsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -50,7 +50,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getJobExecutionCollectionDtoByQuery(query, offset, limit)
+        jobExecutionService.getJobExecutionCollectionDtoByQuery(query, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

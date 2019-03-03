@@ -1,16 +1,17 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.UpdateResult;
+import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
-import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.NotFoundException;
 import java.util.List;
@@ -26,32 +27,30 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
  * @see JobExecutionSourceChunkDao
  * @see org.folio.rest.persist.PostgresClient
  */
+@Repository
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
-
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
-  private PostgresClient pgClient;
 
-  public JobExecutionSourceChunkDaoImpl(Vertx vertx, String tenantId) {
-    this.pgClient = PostgresClient.getInstance(vertx, tenantId);
-  }
+  @Autowired
+  private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<String> save(JobExecutionSourceChunk jobExecutionChunk) {
+  public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
     Future<String> future = Future.future();
-    pgClient.save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, future.completer());
+    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, future.completer());
     return future;
   }
 
   @Override
-  public Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit) {
+  public Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit, String tenantId) {
     Future<Results<JobExecutionSourceChunk>> future = Future.future();
     try {
       String[] fieldList = {"*"};
       CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      pgClient.get(TABLE_NAME, JobExecutionSourceChunk.class, fieldList, cql, true, false, future.completer());
+      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionSourceChunk.class, fieldList, cql, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while searching for JobExecutionSourceChunks", e);
       future.fail(e);
@@ -60,11 +59,11 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Optional<JobExecutionSourceChunk>> getById(String id) {
+  public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
     Future<Results<JobExecutionSourceChunk>> future = Future.future();
     try {
       Criteria idCrit = constructCriteria(ID_FIELD, id);
-      pgClient.get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, future.completer());
+      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error querying JobExecutionSourceChunk by id {}", id, e);
       future.fail(e);
@@ -75,11 +74,11 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk) {
+  public Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
     Future<JobExecutionSourceChunk> future = Future.future();
     try {
       Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionChunk.getId());
-      pgClient.update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
+      pgClientFactory.createInstance(tenantId).update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
         if (updateResult.failed()) {
           LOGGER.error("Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
           future.fail(updateResult.cause());
@@ -99,9 +98,9 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Boolean> delete(String id) {
+  public Future<Boolean> delete(String id, String tenantId) {
     Future<UpdateResult> future = Future.future();
-    pgClient.delete(TABLE_NAME, id, future.completer());
+    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id, future.completer());
     return future.map(updateResult -> updateResult.getUpdated() == 1);
   }
 }
