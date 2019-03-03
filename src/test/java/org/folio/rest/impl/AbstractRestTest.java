@@ -53,7 +53,7 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
-  private static final String FILE_EXTENSIONS_TABLE = "file_extensions";
+  private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   private static final String TOKEN = "token";
   private static final String HTTP_PORT = "http.port";
   private static int port;
@@ -67,6 +67,7 @@ public abstract class AbstractRestTest {
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   private static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
+  private static final String RECORDS_SERVICE_URL = "/source-storage/records";
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
@@ -159,6 +160,8 @@ public abstract class AbstractRestTest {
     okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader);
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
+    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+      .willReturn(WireMock.created()));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
@@ -168,10 +171,12 @@ public abstract class AbstractRestTest {
   private void clearTable(TestContext context) {
     Async async = context.async();
     PostgresClient.getInstance(vertx, TENANT_ID).delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event1 -> {
-      if (event1.failed()) {
-        context.fail(event1.cause());
-      }
-      async.complete();
+      PostgresClient.getInstance(vertx, TENANT_ID).delete(CHUNKS_TABLE_NAME, new Criterion(), event2 -> {
+        if (event2.failed()) {
+          context.fail(event2.cause());
+        }
+        async.complete();
+      });
     });
   }
 
