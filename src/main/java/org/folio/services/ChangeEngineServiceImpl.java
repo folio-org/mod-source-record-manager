@@ -112,7 +112,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
         return record;
       })
-      .peek(stat -> {
+      .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
           LOGGER.info("Parsed {} records out of {}", counter.get(), rawRecords.size());
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
