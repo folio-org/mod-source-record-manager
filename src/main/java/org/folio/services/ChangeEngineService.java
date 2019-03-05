@@ -10,10 +10,11 @@ public interface ChangeEngineService {
   /**
    * Parse raw records and save parsed result or errors to mod-source-storage
    *
-   * @param chunk  - {@link RawRecordsDto} chunk with list of raw records for parse
-   * @param job    - JobExecution which records should be parsed
-   * @param params - OkapiConnectionParams to interact with external services
+   * @param chunk         - {@link RawRecordsDto} chunk with list of raw records for parse
+   * @param jobExecution  - JobExecution which records should be parsed
+   * @param sourceChunkId - id of the JobExecutionSourceChunk
+   * @param params        - OkapiConnectionParams to interact with external services
    * @return - {@link RawRecordsDto} that was parsed and saved into the source-record-storage
    */
-  Future<RawRecordsDto> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution job, OkapiConnectionParams params);
+  Future<RawRecordsDto> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params);
 }
