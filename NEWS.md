@@ -4,6 +4,7 @@
  * Raw records MARC parser was added
  * PUT endpoint for update status and jobProfile for single JobExecution was added
  * Created ChunkProcessing Service
+ * Added Spring DI support
 
    | METHOD |             URL                               | DESCRIPTION                                        |
    |--------|-----------------------------------------------|----------------------------------------------------|

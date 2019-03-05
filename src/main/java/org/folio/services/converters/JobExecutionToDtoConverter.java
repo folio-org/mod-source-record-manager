@@ -4,6 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.Progress;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Random;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see JobExecution
  * @see JobExecutionDto
  */
+@Component
 public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExecution, JobExecutionDto> {
   // TODO: JUST for Demo session!!! Must be removed!!!
   // Progress support
@@ -102,7 +104,7 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
       case PROCESSING_IN_PROGRESS:
         int current = progress.getCurrent();
         int total = progress.getTotal();
-        current =  current + random.nextInt(101);
+        current = current + random.nextInt(101);
         if (current > total) {
           current -= total;
         }

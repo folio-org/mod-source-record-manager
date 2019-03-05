@@ -17,9 +17,9 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
-import org.folio.services.ChunkProcessingServiceImpl;
 import org.folio.services.JobExecutionService;
-import org.folio.services.JobExecutionServiceImpl;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -28,13 +28,15 @@ import java.util.Map;
 public class ChangeManagerImpl implements ChangeManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerImpl.class);
+  @Autowired
   private JobExecutionService jobExecutionService;
+  @Autowired
   private ChunkProcessingService chunkProcessingService;
+  private String tenantId;
 
-  public ChangeManagerImpl(Vertx vertx, String tenantId) {
-    String calculatedTenantId = TenantTool.calculateTenantId(tenantId);
-    this.jobExecutionService = new JobExecutionServiceImpl(vertx, calculatedTenantId);
-    this.chunkProcessingService = new ChunkProcessingServiceImpl(vertx, tenantId);
+  public ChangeManagerImpl(Vertx vertx, String tenantId) { //NOSONAR
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+    this.tenantId = TenantTool.calculateTenantId(tenantId);
   }
 
   @Override
@@ -79,7 +81,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
-        jobExecutionService.getJobExecutionById(id)
+        jobExecutionService.getJobExecutionById(id, tenantId)
           .map(optionalJobExecution -> optionalJobExecution.orElseThrow(() ->
             new NotFoundException(String.format("JobExecution with id '%s' was not found", id))))
           .map(GetChangeManagerJobExecutionsByIdResponse::respond200WithApplicationJson)
@@ -106,7 +108,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getJobExecutionCollectionByParentId(id, query, offset, limit)
+        jobExecutionService.getJobExecutionCollectionByParentId(id, query, offset, limit, tenantId)
           .map(GetChangeManagerJobExecutionsChildrenByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -141,7 +143,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                           Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.setJobProfileToJobExecution(id, entity)
+        jobExecutionService.setJobProfileToJobExecution(id, entity, tenantId)
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -160,7 +162,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         chunkProcessingService.processChunk(entity, id, params)
-           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
+          .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
             String.format("Chunk of RawRecords with JobExecution id %s was successfully processed", id)))
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

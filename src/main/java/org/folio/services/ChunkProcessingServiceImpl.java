@@ -1,30 +1,28 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
 import java.util.UUID;
 
+@Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
 
+  @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
+  @Autowired
   private JobExecutionService jobExecutionService;
+  @Autowired
   private ChangeEngineService changeEngineService;
-
-  public ChunkProcessingServiceImpl(Vertx vertx, String tenantId) {
-    this.jobExecutionSourceChunkDao = new JobExecutionSourceChunkDaoImpl(vertx, tenantId);
-    this.jobExecutionService = new JobExecutionServiceImpl(vertx, tenantId);
-    this.changeEngineService = new ChangeEngineServiceImpl(vertx, tenantId);
-  }
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params) {
@@ -35,13 +33,13 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(chunk.getRecords().size())
       .withCreatedDate(new Date());
-    return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk)
+    return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_IN_PROGRESS, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, params))
       .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
         .withState(JobExecutionSourceChunk.State.COMPLETED)
-        .withCompletedDate(new Date())))
-      .compose(ch -> checkIfProcessingCompleted(jobExecutionId))
+        .withCompletedDate(new Date()), params.getTenantId()))
+      .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
       .compose(completed -> {
         if (completed) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_FINISHED, params)
@@ -61,7 +59,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @return future
    */
   private Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, JobExecution.Status status, OkapiConnectionParams params) {
-    return jobExecutionService.getJobExecutionById(jobExecutionId)
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           if (!status.equals(jobExecution.getStatus())) {
@@ -77,11 +75,11 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param jobExecutionId - JobExecution id
    * @return future with true if processing is completed, false if not
    */
-  private Future<Boolean> checkIfProcessingCompleted(String jobExecutionId) {
-    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1)
+  private Future<Boolean> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
+    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
-          return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId, 0, Integer.MAX_VALUE)
+          return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId, 0, Integer.MAX_VALUE, tenantId)
             .map(list -> list.stream().filter(chunk -> JobExecutionSourceChunk.State.COMPLETED.equals(chunk.getState())).count() == list.size());
         }
         return Future.succeededFuture(false);

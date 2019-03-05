@@ -19,7 +19,7 @@ public interface JobExecutionSourceChunkDao {
    * @param jobExecutionChunk {@link JobExecutionSourceChunk} to save
    * @return future
    */
-  Future<String> save(JobExecutionSourceChunk jobExecutionChunk);
+  Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId);
 
   /**
    * Searches for {@link JobExecutionSourceChunk} in database by {@code query}
@@ -29,7 +29,7 @@ public interface JobExecutionSourceChunkDao {
    * @param limit  limit of records for pagination
    * @return future with list of {@link JobExecutionSourceChunk}
    */
-  Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit);
+  Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit, String tenantId);
 
   /**
    * Searches JobExecutionSourceChunk by id
@@ -37,7 +37,7 @@ public interface JobExecutionSourceChunkDao {
    * @param id id of the JobExecutionSourceChunk entity
    * @return future with JobExecutionSourceChunk
    */
-  Future<Optional<JobExecutionSourceChunk>> getById(String id);
+  Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId);
 
   /**
    * Updates JobExecutionSourceChunk in DB
@@ -45,7 +45,7 @@ public interface JobExecutionSourceChunkDao {
    * @param jobExecutionChunk entity to update
    * @return future with updated JobExecutionSourceChunk
    */
-  Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk);
+  Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk, String tenantId);
 
   /**
    * Deletes JobExecutionSourceChunk from DB
@@ -53,6 +53,6 @@ public interface JobExecutionSourceChunkDao {
    * @param id id of the {@link JobExecutionSourceChunk} to delete
    * @return future with true if succeeded
    */
-  Future<Boolean> delete(String id);
+  Future<Boolean> delete(String id, String tenantId);
 
 }

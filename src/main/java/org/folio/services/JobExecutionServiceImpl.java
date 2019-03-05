@@ -2,13 +2,11 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
-import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
@@ -24,6 +22,8 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.services.converters.Status;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -39,30 +39,28 @@ import java.util.UUID;
  * @see JobExecutionDao
  * @see JobExecution
  */
+@Service
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
+  @Autowired
   private JobExecutionDao jobExecutionDao;
+  @Autowired
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
+  @Autowired
   private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
 
-  public JobExecutionServiceImpl(Vertx vertx, String tenantId) {
-    this.jobExecutionDao = new JobExecutionDaoImpl(vertx, tenantId);
-    this.jobExecutionToDtoConverter = new JobExecutionToDtoConverter();
-    this.jobExecutionToLogDtoConverter = new JobExecutionToLogDtoConverter();
-  }
-
   @Override
-  public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit)
+  public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId)
       .map(jobExecutionCollection -> new JobExecutionCollectionDto()
         .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));
   }
 
   @Override
-  public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit) {
-    return jobExecutionDao.getLogsWithoutMultipleParent(query, offset, limit)
+  public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getLogsWithoutMultipleParent(query, offset, limit, tenantId)
       .map(jobExecutionCollection -> new LogCollectionDto()
         .withLogDtos(jobExecutionToLogDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
         .withTotalRecords(jobExecutionCollection.getTotalRecords()));
@@ -81,7 +79,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId());
       List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
 
-      Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions);
+      Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
       Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
 
       return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
@@ -105,21 +103,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         future.complete(currentJobExec);
       }
       return future;
-    }).compose(jobExec -> updateSnapshotStatus(jobExecution, params));
+    }, params.getTenantId()).compose(jobExec -> updateSnapshotStatus(jobExecution, params));
   }
 
   @Override
-  public Future<Optional<JobExecution>> getJobExecutionById(String id) {
-    return jobExecutionDao.getJobExecutionById(id);
+  public Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId) {
+    return jobExecutionDao.getJobExecutionById(id, tenantId);
   }
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit) {
-    return jobExecutionDao.getJobExecutionById(parentId)
+  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit);
+            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionCollection().withTotalRecords(0));
           }
@@ -157,12 +155,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           future.fail(errorMessage);
         }
         return future;
-      }).compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+      }, params.getTenantId())
+        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
     }
   }
 
   @Override
-  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile) {
+  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile, String tenantId) {
     return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
       Future<JobExecution> future = Future.future();
       try {
@@ -174,7 +173,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         future.fail(errorMessage);
       }
       return future;
-    });
+    }, tenantId);
   }
 
   /**
@@ -251,10 +250,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param jobExecutions list on JobExecution entities
    * @return future
    */
-  private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions) {
+  private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions, String tenantId) {
     List<Future> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
-      Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution);
+      Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
     return CompositeFuture.all(savedJobExecutionFutures).map(compositeFuture -> compositeFuture.result().list());
@@ -323,7 +322,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
             jobExecutionFuture.complete(jobExec);
             return jobExecutionFuture;
-          }).setHandler(jobExecutionUpdate -> {
+          }, params.getTenantId()).setHandler(jobExecutionUpdate -> {
             String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
             LOGGER.error(message);
             future.fail(message);

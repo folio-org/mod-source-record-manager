@@ -23,7 +23,7 @@ public interface JobExecutionDao {
    * @param limit  maximum number of results to return
    * @return future with {@link JobExecutionCollection}
    */
-  Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit);
+  Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
 
   /**
    * JobExecution entity is considered as Log entity when it has COMMITTED status.
@@ -36,7 +36,7 @@ public interface JobExecutionDao {
    * @param limit  maximum number of results to return
    * @return future with {@link JobExecutionCollection}
    */
-  Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit);
+  Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit, String tenantId);
 
   /**
    * Saves {@link JobExecution} to database
@@ -44,7 +44,7 @@ public interface JobExecutionDao {
    * @param jobExecution {@link JobExecution} to save
    * @return future
    */
-  Future<String> save(JobExecution jobExecution);
+  Future<String> save(JobExecution jobExecution, String tenantId);
 
   /**
    * Updates {@link JobExecution}
@@ -52,18 +52,18 @@ public interface JobExecutionDao {
    * @param jobExecution entity to update
    * @return updated entity
    */
-  Future<JobExecution> updateJobExecution(JobExecution jobExecution);
+  Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId);
 
   /**
    * Searches for {@link JobExecution} by parent id
    *
    * @param parentId parent id
-   * @param query  query string to filter jobExecutions based on matching criteria in fields
-   * @param offset starting index in a list of results
-   * @param limit  maximum number of results to return
+   * @param query    query string to filter jobExecutions based on matching criteria in fields
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
    * @return collection of JobExecutions with specified parent id
    */
-  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit);
+  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId);
 
   /**
    * Searches for {@link JobExecution} by id
@@ -71,7 +71,7 @@ public interface JobExecutionDao {
    * @param id jobExecution id
    * @return optional of JobExecution
    */
-  Future<Optional<JobExecution>> getJobExecutionById(String id);
+  Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId);
 
   /**
    * Updates {@link JobExecution} in the db with row blocking
@@ -80,6 +80,6 @@ public interface JobExecutionDao {
    * @param mutator        defines necessary changes to be made before save
    * @return future with updated JobExecution
    */
-  Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator);
+  Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
 }

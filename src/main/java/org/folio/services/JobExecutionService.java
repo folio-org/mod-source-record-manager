@@ -30,7 +30,7 @@ public interface JobExecutionService {
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit);
+  Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId);
 
   /**
    * Returns LogCollectionDto by the input query
@@ -39,7 +39,7 @@ public interface JobExecutionService {
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    */
-  Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit);
+  Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit, String tenantId);
 
   /**
    * Performs creation of JobExecution and Snapshot entities
@@ -57,7 +57,7 @@ public interface JobExecutionService {
    * Updates jobExecution and calls source-record-storage to update Snapshot status
    *
    * @param jobExecution entity to update
-   * @param params         connection parameters
+   * @param params       connection parameters
    * @return updated entity
    */
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
@@ -68,7 +68,7 @@ public interface JobExecutionService {
    * @param id JobExecution id
    * @return future with optional JobExecution
    */
-  Future<Optional<JobExecution>> getJobExecutionById(String id);
+  Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId);
 
   /**
    * Searches for children JobExecutions by parent id,
@@ -76,12 +76,12 @@ public interface JobExecutionService {
    * to limit the collection param limit should be explicitly specified
    *
    * @param parentId JobExecution parent id
-   * @param query  query string to filter entities
-   * @param offset starting index in a list of results
-   * @param limit  maximum number of results to return
+   * @param query    query string to filter entities
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
    * @return future with collection of child JobExecutions
    */
-  Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit);
+  Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId);
 
   /**
    * Updates status for JobExecution and calls source-record-storage to update Snapshot status
@@ -100,6 +100,6 @@ public interface JobExecutionService {
    * @param jobProfile     JobProfile entity
    * @return future with updated JobExecution
    */
-  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile);
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile, String tenantId);
 
 }
