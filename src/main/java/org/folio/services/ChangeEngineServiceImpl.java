@@ -148,6 +148,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       client.postSourceStorageRecords(null, record, response -> {
         if (response.statusCode() == HttpStatus.HTTP_CREATED.toInt()) {
           future.complete(jobExecution);
+        } else {
+          String message = String.format("Couldn't create new Record with JobExecution id %s in source-record-storage, response code %s", jobExecution.getId(), response.statusCode());
+          LOGGER.error(message);
+          future.fail(message);
         }
       });
     } catch (Exception e) {
