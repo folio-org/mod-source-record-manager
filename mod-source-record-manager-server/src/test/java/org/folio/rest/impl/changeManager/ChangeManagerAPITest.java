@@ -1,5 +1,8 @@
 package org.folio.rest.impl.changeManager;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
@@ -716,6 +719,57 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertEquals(JobExecution.SubordinationType.CHILD, child.getSubordinationType());
     //TODO assert source path properly
     Assert.assertNotNull(child.getSourcePath());
+  }
+
+  @Test
+  public void shouldUpdateSingleParentOnPutWhenSnapshotUpdateFailed() {
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.serverError()));
+
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution singleParent = createdJobExecutions.get(0);
+    Assert.assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
+
+    singleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(singleParent).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + singleParent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+
+  @Test
+  public void shouldReturnErrorOnPostChunkOfRawRecordsWhenFailedPostRecordsToRecordsStorage() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.ERROR.name()));
   }
 
 }
