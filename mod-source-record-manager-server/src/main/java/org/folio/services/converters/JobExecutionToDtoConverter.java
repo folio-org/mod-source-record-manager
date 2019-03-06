@@ -1,5 +1,7 @@
 package org.folio.services.converters;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
@@ -18,7 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExecution, JobExecutionDto> {
-  // TODO: JUST for Demo session!!! Must be removed!!!
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionToDtoConverter.class);
+
+  // JUST for Demo session!!! Must be removed!!!
   // Progress support
   private static final Map<String, Progress> dummyProgress = new ConcurrentHashMap<>();
   private final Random random = new Random();
@@ -37,7 +42,7 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
     if (source.getJobProfile() != null) {
       target.setJobProfileName(source.getJobProfile().getName());
     }
-    // TODO set progress properly
+    // set progress properly
     target.setProgress(getProgress(source));
     return target;
   }
@@ -49,7 +54,8 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
     JobExecution.Status status = source.getStatus();
     Progress progress = dummyProgress.get(sourceId);
     if (progress == null) {
-      Progress tmpProgress = dummyProgress.putIfAbsent(sourceId, progress = new Progress());
+      progress = new Progress();
+      Progress tmpProgress = dummyProgress.putIfAbsent(sourceId, progress);
       if (tmpProgress != null) {
         progress = tmpProgress;
       }
@@ -71,7 +77,7 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
   }
 
   private Progress fillProgressData(Progress progress, JobExecution.Status status) {
-    // TODO set progress properly
+    // set progress properly
 
     int nextInt;
     int total;
@@ -112,6 +118,8 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
         progress.setCurrent(current);
 
         return new Progress().withCurrent(current).withTotal(total);
+      default:
+        LOGGER.warn("Wrong jobExecution status: {}", status);
     }
     return progress;
   }
