@@ -1,10 +1,11 @@
-## 2018-02-14 v1.1.0-SNAPSHOT
+## 2018-02-14 v1.2.0-SNAPSHOT
  * Renamed endpoints
  * Configured log4j2 for logging
  * Raw records MARC parser was added
  * PUT endpoint for update status and jobProfile for single JobExecution was added
  * Created ChunkProcessing Service
  * Added Spring DI support
+ * Changed project structure to contain server and client parts. Client builds as a lightweight java library.
 
    | METHOD |             URL                               | DESCRIPTION                                        |
    |--------|-----------------------------------------------|----------------------------------------------------|
