@@ -35,7 +35,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withCreatedDate(new Date());
     return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_IN_PROGRESS, params))
-      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, params))
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
       .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
         .withState(JobExecutionSourceChunk.State.COMPLETED)
         .withCompletedDate(new Date()), params.getTenantId()))
