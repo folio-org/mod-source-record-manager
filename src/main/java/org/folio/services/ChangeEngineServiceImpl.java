@@ -4,6 +4,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -27,7 +28,6 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
@@ -91,7 +91,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return Collections.emptyList();
     }
     RawRecordParser parser = RawRecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution));
-    final AtomicInteger counter = new AtomicInteger();
+    MutableInt counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
@@ -114,10 +114,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       })
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
-          LOGGER.info("Parsed {} records out of {}", counter.get(), rawRecords.size());
+          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.get()), tenantId))
+              .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
