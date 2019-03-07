@@ -66,10 +66,7 @@ public class JobExecutionSourceChunkDaoImplTest {
     Results<Object> queryResults = new Results<>();
     queryResults.setResults(Collections.singletonList(jobExecutionSourceChunk));
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(5)).handle(Future.succeededFuture(queryResults));
-      return null;
-    })
+    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(queryResults),5))
       .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.getById(jobExecutionSourceChunk.getId(), TENANT_ID)
@@ -111,13 +108,13 @@ public class JobExecutionSourceChunkDaoImplTest {
     UpdateResult updateResult = new UpdateResult();
     updateResult.setUpdated(updatedRowsNumber);
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(2)).handle(Future.succeededFuture(updateResult));
-      return null;
-    })
+    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(updateResult),2))
       .when(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
 
-    jobExecutionSourceChunkDao.delete(jobExecutionSourceChunk.getId(), TENANT_ID).setHandler(ar -> {
+    // when
+    jobExecutionSourceChunkDao.delete(jobExecutionSourceChunk.getId(), TENANT_ID)
+    // then
+    .setHandler(ar -> {
       Assert.assertTrue(ar.succeeded());
       Assert.assertEquals(true, ar.result());
       verify(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
@@ -133,10 +130,7 @@ public class JobExecutionSourceChunkDaoImplTest {
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(4)).handle(updateResult);
-      return null;
-    })
+    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.update(jobExecutionSourceChunk, TENANT_ID)

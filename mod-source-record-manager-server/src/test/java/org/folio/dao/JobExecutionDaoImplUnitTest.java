@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.JobExecutionDao;
@@ -10,6 +11,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.services.GenericHandlerAnswer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,11 +72,8 @@ public class JobExecutionDaoImplUnitTest {
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(4)).handle(updateResult);
-      return null;
-    })
-    .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
+      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
 
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
@@ -106,10 +105,7 @@ public class JobExecutionDaoImplUnitTest {
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(4)).handle(updateResult);
-      return null;
-    })
+    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
@@ -126,10 +122,7 @@ public class JobExecutionDaoImplUnitTest {
     AsyncResult updateResult = mock(AsyncResult.class);
     when(updateResult.failed()).thenReturn(true);
 
-    doAnswer(invocation -> {
-      ((Handler) invocation.getArgument(4)).handle(updateResult);
-      return null;
-    })
+    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
