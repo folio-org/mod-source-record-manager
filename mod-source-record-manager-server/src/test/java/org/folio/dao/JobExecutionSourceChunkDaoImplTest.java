@@ -1,5 +1,6 @@
 package org.folio.dao;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.sql.UpdateResult;
@@ -10,6 +11,7 @@ import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.interfaces.Results;
+import org.folio.services.GenericHandlerAnswer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -119,5 +122,42 @@ public class JobExecutionSourceChunkDaoImplTest {
       Assert.assertEquals(true, ar.result());
       verify(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
     });
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenEntityWithSpecifiedIdNotFound() {
+    // given
+    int numberUpdatedRows = 0;
+    UpdateResult sqlUpdateResult = when(mock(UpdateResult.class).getUpdated()).thenReturn(numberUpdatedRows).getMock();
+    AsyncResult updateResult = mock(AsyncResult.class);
+    when(updateResult.failed()).thenReturn(false);
+    when(updateResult.result()).thenReturn(sqlUpdateResult);
+
+    doAnswer(invocation -> {
+      ((Handler) invocation.getArgument(4)).handle(updateResult);
+      return null;
+    })
+      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
+    // when
+    jobExecutionSourceChunkDao.update(jobExecutionSourceChunk, TENANT_ID)
+    // then
+    .setHandler(ar -> {
+      Assert.assertTrue(ar.failed());
+      verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));;
+    });
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenPgClientThrewException() {
+    // given
+    doThrow(RuntimeException.class)
+      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
+    // when
+    jobExecutionSourceChunkDao.update(jobExecutionSourceChunk, TENANT_ID)
+    // then
+      .setHandler(ar -> {
+        Assert.assertTrue(ar.failed());
+        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
+      });
   }
 }

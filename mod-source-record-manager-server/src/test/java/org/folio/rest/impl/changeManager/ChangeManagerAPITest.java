@@ -1,5 +1,7 @@
 package org.folio.rest.impl.changeManager;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
@@ -8,7 +10,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
+import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -20,7 +24,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -770,6 +776,29 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.ERROR.name()));
+  }
+
+  @Test
+  public void shouldReturnErrorOnPostJobExecutionWhenFailedPostSnapshotToStorage() throws IOException {
+    WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
+      .willReturn(WireMock.serverError()));
+
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    String jsonFiles = null;
+    List<File> filesList = null;
+    jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+    filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<List<File>>() {
+    });
+
+    requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
+    requestDto.setUserId(UUID.randomUUID().toString());
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when()
+      .post(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
   }
 
 }
