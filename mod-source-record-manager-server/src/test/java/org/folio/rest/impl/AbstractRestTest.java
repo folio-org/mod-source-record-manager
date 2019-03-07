@@ -65,9 +65,9 @@ public abstract class AbstractRestTest {
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
-  private static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
-  private static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
-  private static final String RECORDS_SERVICE_URL = "/source-storage/records";
+  protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
+  protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
+  protected static final String RECORDS_SERVICE_URL = "/source-storage/records";
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
