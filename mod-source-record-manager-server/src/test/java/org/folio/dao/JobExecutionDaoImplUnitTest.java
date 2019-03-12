@@ -1,17 +1,14 @@
 package org.folio.dao;
 
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.sql.UpdateResult;
-import org.folio.dao.JobExecutionDao;
-import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.services.GenericHandlerAnswer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
