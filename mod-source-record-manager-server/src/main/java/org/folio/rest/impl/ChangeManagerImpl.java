@@ -11,7 +11,7 @@ import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
@@ -139,8 +139,7 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionsJobProfileById(String id, JobProfile entity, Map<String, String> okapiHeaders,
-                                                          Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putChangeManagerJobExecutionsJobProfileById(String id, JobProfileInfo entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         jobExecutionService.setJobProfileToJobExecution(id, entity, tenantId)

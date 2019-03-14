@@ -6,7 +6,7 @@ import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.junit.Assert;
@@ -42,7 +42,7 @@ public class JobExecutionDaoImplUnitTest {
     .withStatus(JobExecution.Status.NEW)
     .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
     .withSourcePath("importMarc.mrc")
-    .withJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+    .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
     .withUserId(UUID.randomUUID().toString());
 
   @Mock
@@ -69,13 +69,13 @@ public class JobExecutionDaoImplUnitTest {
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
 
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
 
-    // then
+      // then
       .setHandler(ar -> {
         Assert.assertTrue(ar.succeeded());
         Assert.assertEquals(jobExecution.getId(), ar.result().getId());
@@ -86,8 +86,8 @@ public class JobExecutionDaoImplUnitTest {
         Assert.assertEquals(jobExecution.getUiStatus(), ar.result().getUiStatus());
         Assert.assertEquals(jobExecution.getSourcePath(), ar.result().getSourcePath());
         Assert.assertEquals(jobExecution.getUserId(), ar.result().getUserId());
-        Assert.assertEquals(jobExecution.getJobProfile().getId(), ar.result().getJobProfile().getId());
-        Assert.assertEquals(jobExecution.getJobProfile().getName(), ar.result().getJobProfile().getName());
+        Assert.assertEquals(jobExecution.getJobProfileInfo().getId(), ar.result().getJobProfileInfo().getId());
+        Assert.assertEquals(jobExecution.getJobProfileInfo().getName(), ar.result().getJobProfileInfo().getName());
 
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
       });
@@ -102,11 +102,11 @@ public class JobExecutionDaoImplUnitTest {
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-    // then
+      // then
       .setHandler(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
@@ -119,11 +119,11 @@ public class JobExecutionDaoImplUnitTest {
     AsyncResult updateResult = mock(AsyncResult.class);
     when(updateResult.failed()).thenReturn(true);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-    // then
+      // then
       .setHandler(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
@@ -137,7 +137,7 @@ public class JobExecutionDaoImplUnitTest {
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-    // then
+      // then
       .setHandler(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));

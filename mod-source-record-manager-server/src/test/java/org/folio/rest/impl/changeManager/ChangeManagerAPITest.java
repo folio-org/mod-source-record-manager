@@ -16,7 +16,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.Status;
@@ -60,7 +60,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .withStatus(JobExecution.Status.NEW)
     .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
     .withSourcePath("importMarc.mrc")
-    .withJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+    .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
     .withUserId(UUID.randomUUID().toString());
 
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
@@ -180,7 +180,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution singleParent = createdJobExecutions.get(0);
     Assert.assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
-    singleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    singleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
@@ -189,7 +189,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(singleParent.getId()))
-      .body("jobProfile.name", is(singleParent.getJobProfile().getName()));
+      .body("jobProfileInfo.name", is(singleParent.getJobProfileInfo().getName()));
   }
 
   @Test
@@ -497,7 +497,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution multipleParent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
-    multipleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    multipleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(multipleParent).toString())
@@ -506,7 +506,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(multipleParent.getId()))
-      .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
+      .body("jobProfileInfo.name", is(multipleParent.getJobProfileInfo().getName()));
 
     RestAssured.given()
       .spec(spec)
@@ -514,7 +514,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + multipleParent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobProfile.name", is(multipleParent.getJobProfile().getName()));
+      .body("jobProfileInfo.name", is(multipleParent.getJobProfileInfo().getName()));
   }
 
   @Test
@@ -573,8 +573,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnNotFoundOnSetJobProfile() {
-    JobProfile jobProfile = new JobProfile().withId(UUID.randomUUID().toString()).withName("marc");
+  public void shouldReturnNotFoundOnSetJobProfileInfo() {
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -585,8 +585,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnBadRequestOnSetJobProfile() {
-    JobProfile jobProfile = new JobProfile().withName("Nonsense");
+  public void shouldReturnBadRequestOnSetJobProfileInfo() {
+    JobProfileInfo jobProfile = new JobProfileInfo().withName("Nonsense");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -597,14 +597,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSetJobProfileForJobExecution() {
+  public void shouldSetJobProfileInfoForJobExecution() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    JobProfile jobProfile = new JobProfile().withId(UUID.randomUUID().toString()).withName("marc");
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -612,8 +612,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobProfile.id", is(jobProfile.getId()))
-      .body("jobProfile.name", is(jobProfile.getName()));
+      .body("jobProfileInfo.id", is(jobProfile.getId()))
+      .body("jobProfileInfo.name", is(jobProfile.getName()));
 
     RestAssured.given()
       .spec(spec)
@@ -621,8 +621,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobProfile.id", is(jobProfile.getId()))
-      .body("jobProfile.name", is(jobProfile.getName()));
+      .body("jobProfileInfo.id", is(jobProfile.getId()))
+      .body("jobProfileInfo.name", is(jobProfile.getName()));
   }
 
   @Test
@@ -657,6 +657,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     RestAssured.given()
       .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
       .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
@@ -679,6 +690,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
 
     RestAssured.given()
       .spec(spec)
@@ -737,7 +759,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution singleParent = createdJobExecutions.get(0);
     Assert.assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
-    singleParent.setJobProfile(new JobProfile().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    singleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
@@ -755,6 +777,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
 
     WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
       .willReturn(WireMock.serverError()));

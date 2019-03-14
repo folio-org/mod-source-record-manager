@@ -8,7 +8,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
-import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 
@@ -97,9 +97,9 @@ public interface JobExecutionService {
    * Sets JobProfile for JobExecution
    *
    * @param jobExecutionId JobExecution id
-   * @param jobProfile     JobProfile entity
+   * @param jobProfile     JobProfileInfo entity
    * @return future with updated JobExecution
    */
-  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfile jobProfile, String tenantId);
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, String tenantId);
 
 }

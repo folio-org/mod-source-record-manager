@@ -28,6 +28,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
@@ -99,6 +100,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord);
         Record record = new Record()
+          .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
           .withSnapshotId(jobExecution.getId())
           .withRawRecord(new RawRecord()
             .withContent(rawRecord));
@@ -125,13 +127,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * STUB implementation until job profile is't exist
+   * Get records format for parser from Job Execution
    *
    * @param jobExecution - job execution object
    * @return - Records format for jobExecution's records
    */
-  private RecordFormat getRecordFormatByJobExecution(JobExecution jobExecution) { //NOSONAR
-    return RecordFormat.MARC;
+  private RecordFormat getRecordFormatByJobExecution(JobExecution jobExecution) {
+    return RecordFormat.getByDataType(jobExecution.getJobProfileInfo().getDataType());
   }
 
   /**
@@ -159,5 +161,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       future.fail(e);
     }
     return future;
+  }
+
+  private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR
+    // STUB implementation
+    return UUID.randomUUID().toString();
   }
 }
