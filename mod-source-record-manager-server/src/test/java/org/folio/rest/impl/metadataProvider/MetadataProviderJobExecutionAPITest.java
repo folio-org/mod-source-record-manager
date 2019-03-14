@@ -78,7 +78,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).collect(Collectors.toList());
     StatusDto discardedStatus = new StatusDto().withStatus(StatusDto.Status.DISCARDED);
 
-    for (int i = 0; i < children.size() - expectedNotDiscardedNumber ; i++) {
+    for (int i = 0; i < children.size() - expectedNotDiscardedNumber; i++) {
       updateJobExecutionStatus(children.get(i), discardedStatus)
         .then()
         .statusCode(HttpStatus.SC_OK);
