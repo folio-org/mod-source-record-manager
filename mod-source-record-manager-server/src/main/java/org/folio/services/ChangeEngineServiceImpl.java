@@ -127,7 +127,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * STUB implementation until job profile is't exist
+   * Get records format for parser from Job Execution
    *
    * @param jobExecution - job execution object
    * @return - Records format for jobExecution's records
