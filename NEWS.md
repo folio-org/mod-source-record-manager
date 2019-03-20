@@ -1,4 +1,4 @@
-## 2018-02-14 v1.2.0-SNAPSHOT
+## 2018-03-20 v1.2.0
  * Renamed endpoints
  * Configured log4j2 for logging
  * Raw records MARC parser was added
