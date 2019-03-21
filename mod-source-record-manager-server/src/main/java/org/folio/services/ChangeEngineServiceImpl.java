@@ -101,6 +101,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         ParsedResult parsedResult = parser.parseRecord(rawRecord);
         Record record = new Record()
           .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
+          .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
           .withRawRecord(new RawRecord()
             .withContent(rawRecord));
