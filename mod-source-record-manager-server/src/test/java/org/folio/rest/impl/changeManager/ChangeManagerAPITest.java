@@ -17,7 +17,9 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.Status;
 import org.junit.Assert;
@@ -695,6 +697,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
+    jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
+    jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
+    jobExec.setStartedDate(new Date());
+
+    RestAssured.given()
+      .spec(spec)
+      .body(jobExec)
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK).log().all();
 
     RestAssured.given()
       .spec(spec)
