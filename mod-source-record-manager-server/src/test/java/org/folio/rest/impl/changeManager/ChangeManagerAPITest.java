@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -282,10 +284,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     List<JobExecution> children = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).collect(Collectors.toList());
-    StatusDto importInProgressStatus = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+    StatusDto parsingInProgressStatus = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
 
     for (int i = 0; i < children.size() - expectedNumberOfNew; i++) {
-      updateJobExecutionStatus(children.get(i), importInProgressStatus)
+      updateJobExecutionStatus(children.get(i), parsingInProgressStatus)
         .then()
         .statusCode(HttpStatus.SC_OK);
     }
@@ -293,12 +295,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH + "?query=status=" + StatusDto.Status.IMPORT_IN_PROGRESS.name())
+      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH + "?query=status=" + StatusDto.Status.PARSING_IN_PROGRESS.name())
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(children.size() - expectedNumberOfNew))
       .body("totalRecords", is(children.size() - expectedNumberOfNew))
-      .body("jobExecutions*.status", everyItem(is(JobExecution.Status.IMPORT_IN_PROGRESS.name())))
+      .body("jobExecutions*.status", everyItem(is(JobExecution.Status.PARSING_IN_PROGRESS.name())))
       .body("jobExecutions*.subordinationType", everyItem(is(JobExecution.SubordinationType.CHILD.name())));
   }
 
@@ -382,7 +384,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
@@ -412,7 +414,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution child = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).findFirst().get();
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
@@ -469,7 +471,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution parent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.IMPORT_IN_PROGRESS);
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
@@ -526,7 +528,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution multipleParent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
-    multipleParent.setStatus(JobExecution.Status.IMPORT_IN_PROGRESS);
+    multipleParent.setStatus(JobExecution.Status.PARSING_IN_PROGRESS);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(multipleParent).toString())
@@ -680,7 +682,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.IMPORT_IN_PROGRESS.name()));
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("runBy.firstName", is("DIKU"))
+      .body("progress.total", is(1000))
+      .body("startedDate", notNullValue(Date.class)).log().all();
   }
 
   @Test
@@ -716,7 +721,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.IMPORT_FINISHED.name()));
+      .body("status", is(JobExecution.Status.PARSING_FINISHED.name()));
   }
 
   private void assertParent(JobExecution parent) {

@@ -82,7 +82,6 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
     int nextInt;
     int total;
     switch (status) {
-      case IMPORT_IN_PROGRESS:
       case PARSING_IN_PROGRESS:
       case PROCESSING_IN_PROGRESS:
         nextInt = random.nextInt(1000);
@@ -90,7 +89,6 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
         break;
       case PARSING_FINISHED:
       case PROCESSING_FINISHED:
-      case IMPORT_FINISHED:
       case COMMITTED:
       default:
         nextInt = random.nextInt(1000);
@@ -105,7 +103,6 @@ public class JobExecutionToDtoConverter extends AbstractGenericConverter<JobExec
   private Progress checkAndMoveProgressData(Progress progress, JobExecution.Status status) {
 
     switch (status) {
-      case IMPORT_IN_PROGRESS:
       case PARSING_IN_PROGRESS:
       case PROCESSING_IN_PROGRESS:
         int current = progress.getCurrent();
