@@ -1,4 +1,9 @@
-## 2018-03-20 v1.2.0
+## 2019-03-22 v1.2.1-SNAPSHOT
+ * Set required recordType field for the Record entity
+ * Removed deprecated IMPORT_IN_PROGRESS and IMPORT_FINISHED statuses for JobExecution
+ * Set stub data for runBy, progress ans startedDate fields for JobExecution entity
+
+## 2019-03-20 v1.2.0
  * Renamed endpoints
  * Configured log4j2 for logging
  * Raw records MARC parser was added

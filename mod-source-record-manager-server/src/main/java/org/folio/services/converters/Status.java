@@ -7,8 +7,6 @@ public enum Status {
   PARENT(JobExecution.UiStatus.PARENT.value()),
   NEW(JobExecution.UiStatus.INITIALIZATION.value()),
   FILE_UPLOADED(JobExecution.UiStatus.INITIALIZATION.value()),
-  IMPORT_IN_PROGRESS(JobExecution.UiStatus.INITIALIZATION.value()),
-  IMPORT_FINISHED(JobExecution.UiStatus.INITIALIZATION.value()),
   PARSING_IN_PROGRESS(JobExecution.UiStatus.PREPARING_FOR_PREVIEW.value()),
   PARSING_FINISHED(JobExecution.UiStatus.PREPARING_FOR_PREVIEW.value()),
   PROCESSING_IN_PROGRESS(JobExecution.UiStatus.PREPARING_FOR_PREVIEW.value()),
