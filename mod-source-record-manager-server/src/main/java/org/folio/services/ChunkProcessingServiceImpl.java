@@ -5,7 +5,9 @@ import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withChunkSize(chunk.getRecords().size())
       .withCreatedDate(new Date());
     return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, params.getTenantId())
-      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_IN_PROGRESS, params))
+      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
+      .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
       .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
         .withState(JobExecutionSourceChunk.State.COMPLETED)
@@ -42,7 +45,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
       .compose(completed -> {
         if (completed) {
-          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.IMPORT_FINISHED, params)
+          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
             .compose(this::processRecords)
             .map(result -> true);
         }
@@ -64,6 +67,28 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         .map(jobExecution -> {
           if (!status.equals(jobExecution.getStatus())) {
             return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.fromValue(status.name())), params);
+          }
+          return Future.succeededFuture(jobExecution);
+        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
+
+  /**
+   * STUB implementation
+   * Checks JobExecution runBy, progress and startedDate fields and updates them if needed
+   *
+   * @param jobExecutionId - JobExecution id
+   * @param params         - okapi connection params
+   * @return future
+   */
+  private Future<JobExecution> checkAndUpdateJobExecutionFieldsIfNecessary(String jobExecutionId, OkapiConnectionParams params) {
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExecution -> {
+          if (jobExecution.getRunBy() == null || jobExecution.getProgress() == null || jobExecution.getStartedDate() == null) {
+            return jobExecutionService.updateJobExecution(jobExecution
+              .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"))
+              .withProgress(new Progress().withCurrent(1000).withTotal(1000))
+              .withStartedDate(new Date()), params);
           }
           return Future.succeededFuture(jobExecution);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
