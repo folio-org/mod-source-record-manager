@@ -1,4 +1,4 @@
-## 2019-03-22 v1.2.1-SNAPSHOT
+## 2019-03-25 v1.2.1
  * Set required recordType field for the Record entity
  * Removed deprecated IMPORT_IN_PROGRESS and IMPORT_FINISHED statuses for JobExecution
  * Set stub data for runBy, progress ans startedDate fields for JobExecution entity
