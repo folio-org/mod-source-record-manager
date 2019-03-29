@@ -1034,6 +1034,236 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "startedDate": "2018-90-27T11:11:23.000",
     "completedDate": "2018-09-27T12:11:15.000"
 }'),
+('3b00f0ec-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f0ec-515f-11e9-8647-d663bd873d93",
+    "hrId": "454510",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_01.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-27T11:11:23.000",
+    "completedDate": "2018-09-27T12:11:15.000"
+}'),
+('3b00f3d0-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f3d0-515f-11e9-8647-d663bd873d93",
+    "hrId": "454511",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_02.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00f556-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f556-515f-11e9-8647-d663bd873d93",
+    "hrId": "454513",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_03.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00f6b4-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f6b4-515f-11e9-8647-d663bd873d93",
+    "hrId": "454514",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_04.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00f812-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f812-515f-11e9-8647-d663bd873d93",
+    "hrId": "454515",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_06.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00f970-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00f970-515f-11e9-8647-d663bd873d93",
+    "hrId": "454516",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_07.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00face-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00face-515f-11e9-8647-d663bd873d93",
+    "hrId": "454517",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_08.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00fc22-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00fc22-515f-11e9-8647-d663bd873d93",
+    "hrId": "454518",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_09.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00fda8-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00fda8-515f-11e9-8647-d663bd873d93",
+    "hrId": "454519",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_10.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
+('3b00ff10-515f-11e9-8647-d663bd873d93', '{
+    "id": "3b00ff10-515f-11e9-8647-d663bd873d93",
+    "hrId": "454520",
+    "status": "COMMITTED",
+    "uiStatus": "READY_FOR_PREVIEW",
+    "jobProfileInfo": {
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "name": "MARC TEST JOBS",
+      "dataType": "MARC"
+    },
+    "sourcePath": "import_marc_11.mrc",
+    "subordinationType": "PARENT_SINGLE",
+    "runBy": {
+      "firstName": "DIKU",
+      "lastName": "ADMIN"
+    },
+    "progress": {
+      "current": 1234,
+      "total": 1234
+    },
+    "startedDate": "2018-90-28T11:11:23.000",
+    "completedDate": "2018-09-28T12:11:15.000"
+}'),
 ('3d790a2a-86de-46f9-a9ae-c9109bba746b', '{
     "id": "3d790a2a-86de-46f9-a9ae-c9109bba746b",
     "hrId": "23391",
