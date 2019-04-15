@@ -28,7 +28,6 @@
     <main.basedir>${project.basedir}</main.basedir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <sonar.exclusions>org/folio/services/mappers/processor/**</sonar.exclusions>
   </properties>
 
   <build>
