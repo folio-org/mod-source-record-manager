@@ -1,10 +1,11 @@
 {
   "id": "${artifactId}-${version}",
   "name": "Source Record Manager Module",
-  "requires": [{
-    "id": "source-record-storage",
-    "version": "2.0"
-  }],
+  "requires": [
+    {
+      "id": "source-record-storage",
+      "version": "2.0"
+    }],
   "provides": [
     {
       "id": "source-record-manager",
@@ -63,7 +64,8 @@
             "source-storage.snapshots.put",
             "source-storage.records.get",
             "source-storage.records.post",
-            "source-storage.records.put"
+            "source-storage.records.put",
+            "inventory.instances.item.post"
           ]
         }
       ]

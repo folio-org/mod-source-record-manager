@@ -1,0 +1,2859 @@
+{
+  "001": [
+    {
+      "target": "identifiers.identifierTypeId",
+      "description": "Type for Control Number (001)",
+      "subfield": [],
+      "rules": [
+        {
+          "conditions": [],
+          "value": "5d164f4b-0b15-4e42-ae75-cfcf85318ad9"
+        }
+      ]
+    },
+    {
+      "target": "identifiers.value",
+      "description": "Control Number (001)",
+      "subfield": [],
+      "rules": []
+    }
+  ],
+  "008": [
+    {
+      "target": "instanceTypeId",
+      "description": "Instance type based on LDR/06",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Instance type for notated music",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "c",
+              "LDR": true
+            }
+          ],
+          "value": "c2677271-188e-46c2-9593-71ba82b901e4"
+        },
+        {
+          "description": "Instance type for manuscript notated music",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "d",
+              "LDR": true
+            }
+          ],
+          "value": "c2e873be-4c99-4070-9133-76314941e166"
+        },
+        {
+          "description": "Instance type for maps",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "e",
+              "LDR": true
+            }
+          ],
+          "value": "e2f217ff-95ba-47d7-9150-b044f275e06e"
+        },
+        {
+          "description": "Instance type for maps",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "f",
+              "LDR": true
+            }
+          ],
+          "value": "e2f217ff-95ba-47d7-9150-b044f275e06e"
+        },
+        {
+          "description": "Instance type for projected medium (videorecording)",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "g",
+              "LDR": true
+            }
+          ],
+          "value": "85c58579-a833-4624-904a-754973374679"
+        },
+        {
+          "description": "Instance type for nonmusical sound recording (spoken record)",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "i",
+              "LDR": true
+            }
+          ],
+          "value": "a385b165-b103-4436-bbb3-02f9ef6f8a2c"
+        },
+        {
+          "description": "Instance type for musical sound recording",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "j",
+              "LDR": true
+            }
+          ],
+          "value": "2e48e713-17f3-7c13-09f8-23845bb210ac"
+        },
+        {
+          "description": "Instance type for 2D nonprojectable graphic (charts, posters)",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "k",
+              "LDR": true
+            }
+          ],
+          "value": "ac011474-5e2c-49d4-a6aa-42193cbd8213"
+        },
+        {
+          "description": "Instance type for computer file",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "m",
+              "LDR": true
+            }
+          ],
+          "value": "4c72d83d-2625-4bde-8209-93abe245362e"
+        },
+        {
+          "description": "Instance type for kit",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "o",
+              "LDR": true
+            }
+          ],
+          "value": "20d12382-98a6-4e3a-ba50-dc35445b35c0"
+        },
+        {
+          "description": "Instance type for mixed materials",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "p",
+              "LDR": true
+            }
+          ],
+          "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0c"
+        },
+        {
+          "description": "Instance type for 3D artifact",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6",
+              "value": "r",
+              "LDR": true
+            }
+          ],
+          "value": "464102a7-1527-4bd6-9bca-886597cebf29"
+        },
+        {
+          "description": "Instance type for serials",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6-7",
+              "value": "as",
+              "LDR": true
+            }
+          ],
+          "value": "a35947c6-795f-41d4-9c34-e5668d925d3f"
+        },
+        {
+          "description": "Instance type for books",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6-7",
+              "value": "am",
+              "LDR": true
+            }
+          ],
+          "value": "2b94c631-fca9-a892-c730-03ee529ffe2c"
+        },
+        {
+          "description": "Instance type for books",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6-7",
+              "value": "tm",
+              "LDR": true
+            }
+          ],
+          "value": "2b94c631-fca9-a892-c730-03ee529ffe2c"
+        }
+      ]
+    },
+    {
+      "target": "languages",
+      "description": "Language code",
+      "subfield": [],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "35-37"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "010": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for LCCN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "LCCN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for LCCN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "LCCN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "020": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for ISBN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISBN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for ISBN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISBN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                }
+              ]
+            }
+
+          ]
+        }
+      ]
+    }
+  ],
+  "022": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for ISSN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISSN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for ISSN",
+          "subfield": ["y"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISSN",
+          "subfield": ["y"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for ISSN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISSN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "024": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Other Standard Identifier",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Other Standard Identifier",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Other Standard Identifier",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Other Standard Identifier",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "027": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Standard Technical Report Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "8e3dd25e-db82-4b06-8311-90d41998c109"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Standard Technical Report Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Standard Technical Report Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "8e3dd25e-db82-4b06-8311-90d41998c109"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Standard Technical Report Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "028": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Publisher Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Publisher Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "030": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for CODEN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "593b78cb-32f3-44d1-ba8c-63fd5e6989e6"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "CODEN",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for CODEN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "593b78cb-32f3-44d1-ba8c-63fd5e6989e6"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "CODEN",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "035": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for System Control Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "System Control Number",
+          "subfield": ["a"]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for System Control Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "System Control Number",
+          "subfield": ["z"]
+        }
+      ]
+    }
+  ],
+  "041": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["a"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["b"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["d"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["e"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["f"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["g"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["j"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "languages",
+          "description": "Language code",
+          "subfield": ["k"],
+          "subFieldSplit": {
+            "type": "split_every",
+            "value": "3"
+          }
+        }
+      ]
+    }
+  ],
+  "050": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for LC classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "LC classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "055": [
+    {
+      "target": "classifications.classificationTypeId",
+      "description": "Type for LAC classification",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [],
+          "value": "ad615f6e-e28c-4343-b4a0-457397c5be3e"
+        }
+      ]
+    },
+    {
+      "target": "classifications.classificationNumber",
+      "description": "LAC classification",
+      "subfield": ["a"]
+    }
+  ],
+  "060": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for NLM classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "NLM classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "070": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for NAL classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "9a60012a-0fcf-4da9-a1d1-148e818c27ad"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "NAL classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "074": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for GPO Item Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "GPO Item Number",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for GPO Item Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "GPO Item Number",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                }
+              ]
+            }
+
+          ]
+        }
+      ]
+    }
+  ],
+  "080": [
+    {
+      "target": "classifications.classificationTypeId",
+      "description": "Type for UDC classification",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [],
+          "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+        }
+      ]
+    },
+    {
+      "target": "classifications.classificationNumber",
+      "description": "UDC classification",
+      "subfield": ["a"]
+    }
+  ],
+  "082": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for Dewey classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "Dewey classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "083": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for additional Dewey classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "74c08086-81a4-4466-93d8-d117ce8646db"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "Dewey classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "086": [
+    {
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for gov doc classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "Gov doc classification",
+          "subfield": ["a"]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for gov doc classification",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "Gov doc classification",
+          "subfield": ["z"]
+        }
+      ]
+    }
+  ],
+  "090": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for LC classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "LC classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "092": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "classifications.classificationTypeId",
+          "description": "Type for Dewey classification",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "Dewey classification",
+          "subfield": ["a"]
+        }
+      ]
+    }
+  ],
+  "096": [
+    {
+      "target": "classifications.classificationTypeId",
+      "description": "Type for NLM classification",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [],
+          "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+        }
+      ]
+    },
+    {
+      "target": "classifications.classificationNumber",
+      "description": "NLM classification",
+      "subfield": ["a"]
+    }
+  ],
+  "100": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Personal Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2b94c631-fca9-a892-c730-03ee529ffe2a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Personal Name",
+          "subfield": ["a","b","c","d","j","q"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "110": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Corporate Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2e48e713-17f3-7c13-09f8-23845bb210aa"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Corporate Name",
+          "subfield": ["a","b","c","d","g","n"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "111": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Meeting Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Meeting Name",
+          "subfield": ["a","b","c","d","g","n","q"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "130": [
+    {
+      "target": "alternativeTitles",
+      "description": "Alternative Title",
+      "subfield": ["a","d","f","g","h","k","l","m","n","o","p","r","s","t"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "240": [
+    {
+      "target": "alternativeTitles",
+      "description": "Alternative Title",
+      "subfield": ["a","d","f","g","k","l"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "245": [
+    {
+      "target": "title",
+      "description": "Resource Title",
+      "subfield": ["a","b","c","f","g","h","k","n","p","s"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "246": [
+    {
+      "target": "alternativeTitles",
+      "description": "Alternative Title",
+      "subfield": ["a","b","f","g","h","i","n","p"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "247": [
+    {
+      "target": "alternativeTitles",
+      "description": "Alternative Title",
+      "subfield": ["a","b","f","g","h","n","p"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "250": [
+    {
+      "target": "edition",
+      "description": "Edition",
+      "subfield": ["a","b"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "260": [
+    {
+      "target": "publication.place",
+      "description": "Place of publication",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "publication.publisher",
+      "subfield": ["b"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "publication.dateOfPublication",
+      "subfield": ["c"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "264": [
+    {
+      "target": "publication.place",
+      "description": "Place of publication",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "publication.publisher",
+      "subfield": ["b"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "publication.dateOfPublication",
+      "subfield": ["c"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "300": [
+    {
+      "target": "physicalDescriptions",
+      "subfield": ["a","b","c","e","f","g"]
+    }
+  ],
+  "490": [
+    {
+      "target": "series",
+      "description": "Series Statement",
+      "subfield": ["a","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "500": [
+    {
+      "target": "notes",
+      "description": "General Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "501": [
+    {
+      "target": "notes",
+      "description": "With Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "502": [
+    {
+      "target": "notes",
+      "description": "Dissertation Note",
+      "subfield": ["a","b","c","d","g","o"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "504": [
+    {
+      "target": "notes",
+      "description": "Bibliography, etc. Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "505": [
+    {
+      "target": "notes",
+      "description": "Formatted Contents Note",
+      "subfield": ["a","g","r","t","u"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "506": [
+    {
+      "target": "notes",
+      "description": "Restrictions on Access Note",
+      "subfield": ["a","b","c","d","e","f","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "507": [
+    {
+      "target": "notes",
+      "description": "Scale Note for Graphic Material",
+      "subfield": ["a","b"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "508": [
+    {
+      "target": "notes",
+      "description": "Creation/Production Credits Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "510": [
+    {
+      "target": "notes",
+      "description": "Citation/References Note",
+      "subfield": ["a","b","c","u","x","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "511": [
+    {
+      "target": "notes",
+      "description": "Participant or Performer Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "513": [
+    {
+      "target": "notes",
+      "description": "Type of Report and Period Covered Note",
+      "subfield": ["a","b"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "514": [
+    {
+      "target": "notes",
+      "description": "Data Quality Note",
+      "subfield": ["a","b","c","d","e","f","g","h","i","j","k","m","u","z"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "515": [
+    {
+      "target": "notes",
+      "description": "Numbering Peculiarities Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "516": [
+    {
+      "target": "notes",
+      "description": "Type of Computer File or Data Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "518": [
+    {
+      "target": "notes",
+      "description": "Date/Time and Place of an Event Note",
+      "subfield": ["a","d","o","p","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "520": [
+    {
+      "target": "notes",
+      "description": "Summary, Etc.",
+      "subfield": ["a","b","c","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "521": [
+    {
+      "target": "notes",
+      "description": "Target Audience Note",
+      "subfield": ["a","b","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "522": [
+    {
+      "target": "notes",
+      "description": "Geographic Coverage Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "524": [
+    {
+      "target": "notes",
+      "description": "Preferred Citation of Described Materials Note",
+      "subfield": ["a","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "525": [
+    {
+      "target": "notes",
+      "description": "Supplement Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "526": [
+    {
+      "target": "notes",
+      "description": "Study Program Information Note",
+      "subfield": ["a","b","c","d","i","x","z"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "530": [
+    {
+      "target": "notes",
+      "description": "Additional Physical Form Available Note",
+      "subfield": ["a","b","c","d","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "533": [
+    {
+      "target": "notes",
+      "description": "Reproduction Note",
+      "subfield": ["a","b","c","d","e","f","m","n","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "534": [
+    {
+      "target": "notes",
+      "description": "Original Version Note",
+      "subfield": ["a","b","c","e","f","k","l","m","n","o","p","t","x","z","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "535": [
+    {
+      "target": "notes",
+      "description": "Location of Originals/Duplicates Note",
+      "subfield": ["a","b","c","d","g","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "536": [
+    {
+      "target": "notes",
+      "description": "Funding Information Note",
+      "subfield": ["a","b","c","d","e","f","g","h"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "538": [
+    {
+      "target": "notes",
+      "description": "System Details Note",
+      "subfield": ["a","i","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "540": [
+    {
+      "target": "notes",
+      "description": "Terms Governing Use and Reproduction Note",
+      "subfield": ["a","b","c","d","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "541": [
+    {
+      "target": "notes",
+      "description": "Immediate Source of Acquisition Note",
+      "subfield": ["a","b","c","d","e","f","h","n","o","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "542": [
+    {
+      "target": "notes",
+      "description": "Information Relating to Copyright Status",
+      "subfield": ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "544": [
+    {
+      "target": "notes",
+      "description": "Location of Other Archival Materials Note",
+      "subfield": ["a","b","c","d","e","n","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "545": [
+    {
+      "target": "notes",
+      "description": "Biographical or Historical Data",
+      "subfield": ["a","b","u"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "546": [
+    {
+      "target": "notes",
+      "description": "Language Note",
+      "subfield": ["a","b","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "547": [
+    {
+      "target": "notes",
+      "description": "Former Title Complexity Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "550": [
+    {
+      "target": "notes",
+      "description": "Issuing Body Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "552": [
+    {
+      "target": "notes",
+      "description": "Entity and Attribute Information Note",
+      "subfield": ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","u","z"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "555": [
+    {
+      "target": "notes",
+      "description": "Cumulative Index/Finding Aids Note",
+      "subfield": ["a","b","c","d","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "556": [
+    {
+      "target": "notes",
+      "description": "Information About Documentation Note",
+      "subfield": ["a","z"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "561": [
+    {
+      "target": "notes",
+      "description": "Ownership and Custodial History",
+      "subfield": ["a","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "562": [
+    {
+      "target": "notes",
+      "description": "Copy and Version Identification Note",
+      "subfield": ["a","b","c","d","e","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "563": [
+    {
+      "target": "notes",
+      "description": "Binding Information",
+      "subfield": ["a","u","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "565": [
+    {
+      "target": "notes",
+      "description": "Case File Characteristics Note",
+      "subfield": ["a","b","c","d","e","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "567": [
+    {
+      "target": "notes",
+      "description": "Methodology Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "580": [
+    {
+      "target": "notes",
+      "description": "Linking Entry Complexity Note",
+      "subfield": ["a"],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "581": [
+    {
+      "target": "notes",
+      "description": "Publications About Described Materials Note",
+      "subfield": ["a","z","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "583": [
+    {
+      "target": "notes",
+      "description": "Action Note",
+      "subfield": ["a","b","c","d","e","f","h","i","j","k","l","n","o","u","x","z","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "584": [
+    {
+      "target": "notes",
+      "description": "Accumulation and Frequency of Use Note",
+      "subfield": ["a","b","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "585": [
+    {
+      "target": "notes",
+      "description": "Exhibitions Note",
+      "subfield": ["a","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "586": [
+    {
+      "target": "notes",
+      "description": "Awards Note",
+      "subfield": ["a","3"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "588": [
+    {
+      "target": "notes",
+      "description": "Source of Description Note",
+      "subfield": ["a"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "600": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","c","d","j","q","t","f","g","k","l","m","n","o","p","r","s","x","y","z","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ",
+          "subfields": ["a","b","c","d","j","q","t","f","g","k","l","m","n","o","p","r","s"]
+        },
+        {
+          "value": "--",
+          "subfields": ["x","y","z","v"]
+        },
+        {
+          "value": "--",
+          "subfields": []
+        }
+      ]
+    }
+  ],
+  "610": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","c","d","t","f","g","k","l","m","n","o","p","s","x","y","z","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ",
+          "subfields": ["a","b","c","d","t","f","g","k","l","m","n","o","p","s"]
+        },
+        {
+          "value": "--",
+          "subfields": ["x","y","z","v"]
+        },
+        {
+          "value": "--",
+          "subfields": []
+        }
+      ]
+    }
+  ],
+  "611": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","c","d","e","q","t","f","g","k","l","m","n","o","p","r","s","x","y","z","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ",
+          "subfields": ["a","c","d","e","q","t","f","g","k","l","m","n","o","p","r","s"]
+        },
+        {
+          "value": "--",
+          "subfields": ["x","y","z","v"]
+        },
+        {
+          "value": "--",
+          "subfields": []
+        }
+      ]
+    }
+  ],
+  "630": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","d","f","g","k","l","m","n","o","p","r","s","x","y","z","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ",
+          "subfields": ["a","d","f","g","k","l","m","n","o","p","r","s"]
+        },
+        {
+          "value": "--",
+          "subfields": ["x","y","z","v"]
+        },
+        {
+          "value": "--",
+          "subfields": []
+        }
+      ]
+    }
+  ],
+  "647": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","c","d","g","x","y","z","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ",
+          "subfields": ["a","c","d","g"]
+        },
+        {
+          "value": "--",
+          "subfields": ["x","y","z","v"]
+        },
+        {
+          "value": "--",
+          "subfields": []
+        }
+      ]
+    }
+  ],
+  "648": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "650": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","c","d","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","b","c","d","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "651": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "653": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "654": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","b","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "655": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","b","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "656": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","k","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","k","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "657": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","x","y","z","v"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","x","y","z","v"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "662": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": ["a","b","c","d","f","g","h"],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": ["a","b","c","d","f","g","h"]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "700": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Personal Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2b94c631-fca9-a892-c730-03ee529ffe2a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Personal Name",
+          "subfield": ["a","b","c","d","j","q"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "710": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Corporate Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2e48e713-17f3-7c13-09f8-23845bb210aa"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Corporate Name",
+          "subfield": ["a","b","c","d","g","n"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "711": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Meeting Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "target": "contributors.name",
+          "description": "Meeting Name",
+          "subfield": ["a","b","c","d","g","n","q"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "720": [
+    {
+      "entity": [
+        {
+          "target": "contributors.contributorNameTypeId",
+          "description": "Type for Personal Name",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "2b94c631-fca9-a892-c730-03ee529ffe2a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        },
+       {
+          "target": "contributors.name",
+          "description": "Personal Name (uncontrolled)",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "830": [
+    {
+      "target": "series",
+      "description": "Series Statement",
+      "subfield": ["a","d","f","g","h","k","l","m","n","o","p","r","s","t","v"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "remove_ending_punc, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "856": [
+    {
+      "target": "urls",
+      "description": "URL",
+      "subfield": ["u"]
+    }
+  ]
+}

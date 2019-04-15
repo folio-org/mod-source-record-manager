@@ -68,6 +68,7 @@ public abstract class AbstractRestTest {
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   protected static final String RECORDS_SERVICE_URL = "/source-storage/records";
+  private static final String INVENTORY_URL = "/inventory/instances";
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
@@ -161,6 +162,8 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
     WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+      .willReturn(WireMock.created()));
+    WireMock.stubFor(WireMock.post(INVENTORY_URL)
       .willReturn(WireMock.created()));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));

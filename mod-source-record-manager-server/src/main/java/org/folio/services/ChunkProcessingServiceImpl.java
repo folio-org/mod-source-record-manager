@@ -25,6 +25,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private JobExecutionService jobExecutionService;
   @Autowired
   private ChangeEngineService changeEngineService;
+  @Autowired
+  private InstanceProcessingService instanceProcessingService;
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params) {
@@ -39,7 +41,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
-      .compose(rawRecords -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
+      .compose(parsedRecords -> instanceProcessingService.mapRecordsToInstances(parsedRecords, jobExecutionSourceChunk.getId(), params))
+      .compose(instances -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
         .withState(JobExecutionSourceChunk.State.COMPLETED)
         .withCompletedDate(new Date()), params.getTenantId()))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
