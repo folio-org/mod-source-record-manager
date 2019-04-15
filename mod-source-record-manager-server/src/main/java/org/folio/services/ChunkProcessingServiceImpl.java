@@ -26,7 +26,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   @Autowired
   private ChangeEngineService changeEngineService;
   @Autowired
-  private InstanceProcessingService instanceProcessingService;
+  private AfterProcessingService afterProcessingService;
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params) {
@@ -41,15 +41,14 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
-      .compose(parsedRecords -> instanceProcessingService.mapRecordsToInstances(parsedRecords, jobExecutionSourceChunk.getId(), params))
-      .compose(instances -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
+      .compose(parsedRecords -> afterProcessingService.process(parsedRecords, jobExecutionSourceChunk.getId(), params))
+      .compose(records -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
         .withState(JobExecutionSourceChunk.State.COMPLETED)
         .withCompletedDate(new Date()), params.getTenantId()))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
       .compose(completed -> {
         if (completed) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
-            .compose(this::processRecords)
             .map(result -> true);
         }
         return Future.succeededFuture(true);
@@ -112,12 +111,5 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         }
         return Future.succeededFuture(false);
       });
-  }
-
-  /**
-   * STUB implementation since processing of parsed records is not defined yet
-   */
-  private Future<JobExecution> processRecords(JobExecution jobExecution) {
-    return Future.succeededFuture(jobExecution);
   }
 }

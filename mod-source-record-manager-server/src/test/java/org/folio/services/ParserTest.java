@@ -9,9 +9,6 @@ import org.folio.services.parsers.RecordFormat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * REST tests for MetadataProvider to manager JobExecution entities
- */
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
   private static final RawRecordParser PARSER = RawRecordParserBuilder.buildParser(RecordFormat.MARC);

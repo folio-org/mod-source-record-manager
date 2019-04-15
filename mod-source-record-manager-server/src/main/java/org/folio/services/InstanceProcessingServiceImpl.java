@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class InstanceProcessingServiceImpl implements InstanceProcessingService {
+public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances";
@@ -34,21 +34,23 @@ public class InstanceProcessingServiceImpl implements InstanceProcessingService 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
 
   @Override
-  public Future<List<Instance>> mapRecordsToInstances(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
-    Future<List<Instance>> future = Future.future();
+  public Future<List<Record>> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
+    Future<List<Record>> future = Future.future();
     List<Future> createRecordsFuture = new ArrayList<>();
     List<Instance> instances = mapToInstance(records);
     instances.forEach(instance -> createRecordsFuture.add(postInstance(instance, params)));
     CompositeFuture.all(createRecordsFuture)
       .setHandler(result -> {
         if (result.failed()) {
+          LOGGER.error("Couldn't create Instance in mod-inventory", result.cause());
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+          future.fail(result.cause());
         } else {
-          future.complete(instances);
+          future.complete(records);
         }
       });
     return future;
