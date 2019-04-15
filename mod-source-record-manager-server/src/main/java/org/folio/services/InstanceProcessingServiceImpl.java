@@ -37,7 +37,7 @@ public class InstanceProcessingServiceImpl implements InstanceProcessingService 
   public Future<List<Instance>> mapRecordsToInstances(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Instance>> future = Future.future();
     List<Future> createRecordsFuture = new ArrayList<>();
-    List<Instance> instances = mapToInstance(records, sourceChunkId, params.getTenantId());
+    List<Instance> instances = mapToInstance(records);
     instances.forEach(instance -> createRecordsFuture.add(postInstance(instance, params)));
     CompositeFuture.all(createRecordsFuture)
       .setHandler(result -> {
@@ -73,7 +73,7 @@ public class InstanceProcessingServiceImpl implements InstanceProcessingService 
     return future;
   }
 
-  private List<Instance> mapToInstance(List<Record> records, String sourceChunkId, String tenantId) {
+  private List<Instance> mapToInstance(List<Record> records) {
     if (records == null || records.isEmpty()) {
       return Collections.emptyList();
     }

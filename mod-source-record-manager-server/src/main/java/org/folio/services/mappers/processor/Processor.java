@@ -58,7 +58,7 @@ public class Processor {
   private final List<StringBuilder> buffers2concat = new ArrayList<>();
   private final Map<String, StringBuilder> subField2Data = new HashMap<>();
   private final Map<String, String> subField2Delimiter = new HashMap<>();
-  private final String MAPPING_RULES = "rules.json";
+  private static final String MAPPING_RULES = "rules.json";
 
   public Processor() {
     InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(MAPPING_RULES);
