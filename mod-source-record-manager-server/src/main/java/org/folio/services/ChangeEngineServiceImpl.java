@@ -4,6 +4,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -88,7 +89,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return - list of records with parsed or error data
    */
   private List<Record> parseRecords(List<String> rawRecords, JobExecution jobExecution, String sourceChunkId, String tenantId) {
-    if (rawRecords == null || rawRecords.isEmpty()) {
+    if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
     RawRecordParser parser = RawRecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution));

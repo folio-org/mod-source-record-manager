@@ -19,6 +19,8 @@ public interface RecordToInstanceMapper {
   Instance mapRecord(JsonObject parsedRecord);
 
   /**
+   * Provides access to the MapperFormat
+   *
    * @return - format which RecordMapper can map
    */
   RecordFormat getMapperFormat();

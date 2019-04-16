@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
@@ -76,7 +77,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   private List<Instance> mapToInstance(List<Record> records) {
-    if (records == null || records.isEmpty()) {
+    if (CollectionUtils.isEmpty(records)) {
       return Collections.emptyList();
     }
     RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(records.get(0).getRecordType()));

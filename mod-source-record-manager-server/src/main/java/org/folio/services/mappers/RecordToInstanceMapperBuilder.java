@@ -4,27 +4,27 @@ import org.folio.services.parsers.RecordFormat;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Builder for creating a mapper object by type of the records
  */
 public final class RecordToInstanceMapperBuilder {
 
-  private static List<RecordToInstanceMapper> availableMappers = Collections.singletonList(new MarcToInstanceMapper());
+  private static List<RecordToInstanceMapper> mappers = Collections.singletonList(new MarcToInstanceMapper());
 
   private RecordToInstanceMapperBuilder() {
   }
 
   /**
+   * Builds specific mapper based on the record format
+   *
    * @param format - record format
    * @return - RecordToInstanceMapper for the specified record format
    */
   public static RecordToInstanceMapper buildMapper(RecordFormat format) {
-    Optional<RecordToInstanceMapper> recordToInstanceMapper = availableMappers.stream()
+    return  mappers.stream()
       .filter(mapper -> mapper.getMapperFormat().equals(format))
-      .findFirst();
-    return recordToInstanceMapper
-      .orElseThrow(() -> new RecordToInstanceMapperNotFoundException("Record to Instance Mapper was not found for Record Format: " + format.getFormat()));
+      .findFirst()
+      .orElseThrow(() -> new RecordToInstanceMapperNotFoundException(String.format("Record to Instance Mapper was not found for Record Format: %s", format.getFormat())));
   }
 }
