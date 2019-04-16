@@ -4,6 +4,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -46,11 +47,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionService jobExecutionService;
 
   @Override
-  public Future<RawRecordsDto> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
-    Future<RawRecordsDto> future = Future.future();
+  public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
+    Future<List<Record>> future = Future.future();
     List<Future> createRecordsFuture = new ArrayList<>();
-    parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId())
-      .forEach(record -> createRecordsFuture.add(postRecord(params, jobExecution, record)));
+    List<Record> parsedRecords = parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId());
+    parsedRecords.forEach(record -> createRecordsFuture.add(postRecord(params, jobExecution, record)));
     CompositeFuture.all(createRecordsFuture)
       .setHandler(result -> {
         StatusDto statusDto = new StatusDto();
@@ -72,7 +73,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         } else {
-          future.complete(chunk);
+          future.complete(parsedRecords);
         }
       });
     return future;
@@ -88,7 +89,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return - list of records with parsed or error data
    */
   private List<Record> parseRecords(List<String> rawRecords, JobExecution jobExecution, String sourceChunkId, String tenantId) {
-    if (rawRecords == null || rawRecords.isEmpty()) {
+    if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
     RawRecordParser parser = RawRecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution));

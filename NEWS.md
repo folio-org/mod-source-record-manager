@@ -1,4 +1,7 @@
-## 2018-03-20 v1.2.0
+## 2019-04-15 v1.3.0-SNAPSHOT
+ * Borrowed mapping of MARC to Instance logic from mod-data-loader. After parsing Records are mapped to Instances and saved in mod-inventory.
+
+## 2019-03-20 v1.2.0
  * Renamed endpoints
  * Configured log4j2 for logging
  * Raw records MARC parser was added

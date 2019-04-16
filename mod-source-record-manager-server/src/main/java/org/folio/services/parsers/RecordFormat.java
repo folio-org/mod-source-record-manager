@@ -1,12 +1,13 @@
 package org.folio.services.parsers;
 
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.Record;
 
 /**
  * Source Record formats
  */
 public enum RecordFormat {
-  MARC("marc", JobProfileInfo.DataType.MARC);
+  MARC("MARC", JobProfileInfo.DataType.MARC);
 
   private String format;
   private JobProfileInfo.DataType dataType;
@@ -31,5 +32,9 @@ public enum RecordFormat {
       }
     }
     return null;
+  }
+
+  public static RecordFormat getByDataType(Record.RecordType recordType) {
+    return getByDataType(JobProfileInfo.DataType.fromValue(recordType.value()));
   }
 }
