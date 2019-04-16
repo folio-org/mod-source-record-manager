@@ -7,7 +7,7 @@ import org.folio.rest.jaxrs.model.Record;
  * Source Record formats
  */
 public enum RecordFormat {
-  MARC("marc", JobProfileInfo.DataType.MARC);
+  MARC("MARC", JobProfileInfo.DataType.MARC);
 
   private String format;
   private JobProfileInfo.DataType dataType;

@@ -9,7 +9,7 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
 
   @Override
   public Instance mapRecord(JsonObject parsedRecord) {
-    return new Processor().process(parsedRecord);
+    return new Processor().process(parsedRecord).withSource(getMapperFormat().getFormat());
   }
 
   @Override
