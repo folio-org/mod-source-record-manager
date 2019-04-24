@@ -51,9 +51,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Future<Results<JobExecution>> future = Future.future();
     try {
       String[] fieldList = {"*"};
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE, limit, offset);
       cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status=\"\" NOT status=" + DISCARDED));
+      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), query));
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while getting JobExecutions", e);
