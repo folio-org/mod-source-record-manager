@@ -5,6 +5,14 @@
     {
       "id": "source-record-storage",
       "version": "2.0"
+    },
+    {
+      "id": "inventory",
+      "version": "8.3"
+    },
+    {
+      "id": "users",
+      "version": "15.0"
     }],
   "provides": [
     {
