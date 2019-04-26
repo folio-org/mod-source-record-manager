@@ -1,7 +1,7 @@
 INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
 ('e451348f-2273-4b45-b385-0a8b0184b4e1', '{
     "jobProfileInfo": {
-      "id": "d7932fc1-0ef3-466b-8d9c-f375914a2584",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Authority updates",
       "dataType": "MARC"
     },
@@ -24,7 +24,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('4030c4ee-5578-4727-a77f-86a7a39d1960', '{
     "jobProfileInfo": {
-      "id": "d7932fc1-0ef3-466b-8d9c-f375914a2584",
+      "id": "295e28b4-aea2-4458-9073-385a31e1da05",
       "name": "Authority updates",
       "dataType": "MARC"
     },
@@ -47,7 +47,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('eb573f78-ebf7-4873-8f4a-e1df67b709fd', '{
     "jobProfileInfo": {
-      "id": "469aa375-25e9-4ed9-adea-1b0dca2d0502",
+      "id": "bb689511-5365-4050-8084-a03d94728d88",
       "name": "Marc bib jobs",
       "dataType": "MARC"
     },
@@ -70,7 +70,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('76ea6b29-c8aa-4def-a2fa-544174a22597', '{
     "jobProfileInfo": {
-      "id": "1f4402cf-db46-45b4-af21-32cd845b495a",
+      "id": "3e705998-9169-4f31-b048-90ffdcbd24c1",
       "name": "Marc jobs",
       "dataType": "MARC"
     },
@@ -93,7 +93,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('9a1f4329-9f39-4494-972b-d35a60014aff', '{
     "jobProfileInfo": {
-      "id": "1f4402cf-db46-45b4-af21-32cd845b495a",
+      "id": "15426802-bb0d-4dfb-8eee-90f64fed0cf1",
       "name": "Marc jobs",
       "dataType": "MARC"
     },
@@ -116,7 +116,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('989ca01b-0b2c-4969-b22d-f8ff586f99e5', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "87e4ad58-d677-43dd-8b04-9795741b2103",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -139,7 +139,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('ab2fdcd2-b9a9-46eb-bc99-640b253c1f37', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "72af7eb7-d7e2-4d16-93ac-682b9a58a94c",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -162,7 +162,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('80632ccd-0967-4e8c-8951-d9f448a68da1', '{
     "jobProfileInfo": {
-      "id": "60ccb7c7-629b-4e9a-8a3b-6614679ea400",
+      "id": "4d1b5024-2c49-42bd-b781-4330d14cefb0",
       "name": "Standard BIB Import",
       "dataType": "MARC"
     },
@@ -185,7 +185,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('4680c2b1-2002-42d0-9480-4dd8025780b4', '{
     "jobProfileInfo": {
-      "id": "d3865f21-fe1c-4677-b20f-3368ed6bd6af",
+      "id": "b32e79bc-01d9-4d31-bc08-a3621fcfc1aa",
       "name": "BIB Import from Boston",
       "dataType": "MARC"
     },
@@ -208,7 +208,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('46d499d5-00cd-4ddd-a5c1-a952aad3b23c', '{
     "jobProfileInfo": {
-      "id": "a861874e-321c-4f39-af71-b48a772e6d9c",
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
       "name": "Main bib jobs (MARC)",
       "dataType": "MARC"
     },
@@ -231,7 +231,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('3fee4e9b-e49b-43a2-a4d9-4b7fa3bb010c', '{
     "jobProfileInfo": {
-      "id": "a861874e-321c-4f39-af71-b48a772e6d9c",
+      "id": "828a787c-bcf3-4c28-891a-9e6f3ba5068b",
       "name": "Main bib jobs (MARC)",
       "dataType": "MARC"
     },
@@ -254,7 +254,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('cea0ffa3-242e-43df-bac4-2f500ba603e6', '{
     "jobProfileInfo": {
-      "id": "b79818e7-55ef-48fa-9835-daa351a1b9f5",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Custom (CH) Marc bib",
       "dataType": "MARC"
     },
@@ -277,7 +277,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('676ceee8-bb8a-4f33-a1b2-d2a806fa6e08', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "295e28b4-aea2-4458-9073-385a31e1da05",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -300,7 +300,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('d9ece709-6cb5-484b-86c6-159477b2e836', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "bb689511-5365-4050-8084-a03d94728d88",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -323,7 +323,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('9e4ee24a-c474-4213-a4ac-735b14596a09', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "3e705998-9169-4f31-b048-90ffdcbd24c1",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -346,7 +346,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('273d9f09-aa60-4800-87bc-a11419d9f27e', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "15426802-bb0d-4dfb-8eee-90f64fed0cf1",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -369,7 +369,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('91f4f491-335f-44be-b946-8a9b936b9bbd', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "87e4ad58-d677-43dd-8b04-9795741b2103",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -392,7 +392,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
   }'),
 ('4431c6a0-17d6-4faa-8e29-bb61945f3bf4', '{
     "jobProfileInfo": {
-      "id": "15933a56-06a2-47e6-a90b-18a1fe566657",
+      "id": "72af7eb7-d7e2-4d16-93ac-682b9a58a94c",
       "name": "Library indexing",
       "dataType": "MARC"
     },
@@ -419,7 +419,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
+      "id": "4d1b5024-2c49-42bd-b781-4330d14cefb0",
       "name": "Standard BIB profile",
       "dataType": "MARC"
     },
@@ -442,7 +442,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "d7ee0026-382b-49cd-9b8f-7aa159e4f3cd",
+      "id": "b32e79bc-01d9-4d31-bc08-a3621fcfc1aa",
       "name": "BIB profile with customized Holdings",
       "dataType": "MARC"
     },
@@ -465,7 +465,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "9b0ee93c-4de5-454a-990f-52d504e12981",
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
       "name": "Christie`s profile for CPL",
       "dataType": "MARC"
     },
@@ -488,7 +488,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "df0ad779-7099-4d9f-b061-30d907c4884f",
+      "id": "828a787c-bcf3-4c28-891a-9e6f3ba5068b",
       "name": "MIT Orders",
       "dataType": "MARC"
     },
@@ -511,7 +511,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "9a3169ed-8451-4b83-a1f2-aa8af3da46e4",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Standard BIB profile with fixes for Items (HU)",
       "dataType": "MARC"
     },
@@ -534,7 +534,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-        "id": "3f80a012-a959-46d0-a204-f5ac6cb9df81",
+        "id": "295e28b4-aea2-4458-9073-385a31e1da05",
         "name": "Obsolete BIB profile for backward compatibility",
         "dataType": "MARC"
     },
@@ -557,7 +557,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "98a74968-9511-48f1-b1d8-374a05a789ce",
+      "id": "bb689511-5365-4050-8084-a03d94728d88",
       "name": "New Holdings (Beta.2 Use carefully)",
       "dataType": "MARC"
     },
@@ -580,7 +580,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "60b4f4a9-9bf0-409f-93fd-848294c9bec2",
+      "id": "3e705998-9169-4f31-b048-90ffdcbd24c1",
       "name": "Marc BIB-001 Jonathan test",
       "dataType": "MARC"
     },
@@ -603,7 +603,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
+      "id": "15426802-bb0d-4dfb-8eee-90f64fed0cf1",
       "name": "Standard BIB profile",
       "dataType": "MARC"
     },
@@ -626,7 +626,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
+      "id": "87e4ad58-d677-43dd-8b04-9795741b2103",
       "name": "Standard BIB profile",
       "dataType": "MARC"
     },
@@ -649,7 +649,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "b3e122be-226d-47f7-8768-3684b2bbb6c3",
+      "id": "72af7eb7-d7e2-4d16-93ac-682b9a58a94c",
       "name": "Simple BIB profile (description update)",
       "dataType": "MARC"
     },
@@ -672,7 +672,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "37abcf73-a169-40f6-8440-1ee2554a8da6",
+      "id": "4d1b5024-2c49-42bd-b781-4330d14cefb0",
       "name": "Standard BIB profile (Instances only)",
       "dataType": "MARC"
     },
@@ -695,7 +695,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "40aa0dfe-e707-4495-a0d3-6c79a49776bb",
+      "id": "b32e79bc-01d9-4d31-bc08-a3621fcfc1aa",
       "name": "FOLIO Default",
       "dataType": "MARC"
     },
@@ -718,7 +718,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "fc8d73c2-81c8-4dfc-b521-40788e58e32f",
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
       "name": "Charlotte`s Core Case with Fixes",
       "dataType": "MARC"
     },
@@ -741,7 +741,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "d39cba50-6811-43ce-98a6-6f178ea9dc27",
+      "id": "828a787c-bcf3-4c28-891a-9e6f3ba5068b",
       "name": "Pearson new data",
       "dataType": "MARC"
     },
@@ -764,7 +764,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "52fc50f5-7160-43d1-8ef4-e000c16887d8",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Thomson Reuters standard",
       "dataType": "MARC"
     },
@@ -787,7 +787,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
+      "id": "295e28b4-aea2-4458-9073-385a31e1da05",
       "name": "Standard BIB profile",
       "dataType": "MARC"
     },
@@ -810,7 +810,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "5a7d9b3e-fcb1-4164-9b0c-139f96ad14a0",
+      "id": "bb689511-5365-4050-8084-a03d94728d88",
       "name": "Annual registry update profile",
       "dataType": "MARC"
     },
@@ -833,7 +833,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "c9d3fa9b-63e9-4b62-b109-fe738b40e0fb",
+      "id": "3e705998-9169-4f31-b048-90ffdcbd24c1",
       "name": "Outdated! DO NOT USE (Just Special Cases!)",
       "dataType": "MARC"
     },
@@ -856,7 +856,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "d7ee0026-382b-49cd-9b8f-7aa159e4f3cd",
+      "id": "15426802-bb0d-4dfb-8eee-90f64fed0cf1",
       "name": "BIB profile with customized Holdings",
       "dataType": "MARC"
     },
@@ -879,7 +879,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "1733f573-f9f8-40dc-9260-fbe82574370f",
+      "id": "87e4ad58-d677-43dd-8b04-9795741b2103",
       "name": "BIB profile with new Holdings & Items",
       "dataType": "MARC"
     },
@@ -902,7 +902,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "797eb0be-5ade-4101-9336-316be5846a1c",
+      "id": "72af7eb7-d7e2-4d16-93ac-682b9a58a94c",
       "name": "Standard BIB profile",
       "dataType": "MARC"
     },
@@ -925,7 +925,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "469aa375-25e9-4ed9-adea-1b0dca2d0502",
+      "id": "4d1b5024-2c49-42bd-b781-4330d14cefb0",
       "name": "Marc bib jobs",
       "dataType": "MARC"
     },
@@ -948,7 +948,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "98a74968-9511-48f1-b1d8-374a05a789ce",
+      "id": "b32e79bc-01d9-4d31-bc08-a3621fcfc1aa",
       "name": "New Holdings (Beta.2 Use carefully)",
       "dataType": "MARC"
     },
@@ -971,7 +971,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "RUNNING_COMPLETE",
     "jobProfileInfo": {
-      "id": "4e73a4ce-8a58-4dd8-a3ab-4e91f7feaea1",
+      "id": "558dede0-515d-11e9-8647-d663bd873d93",
       "name": "Standard BIB profile (2019 Q1 Beta test)",
       "dataType": "MARC"
     },
@@ -994,7 +994,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfileInfo": {
-      "id": "1b971a5c-76fb-49a6-bd3c-95e99cd33faf",
+      "id": "828a787c-bcf3-4c28-891a-9e6f3ba5068b",
       "name": "Semi-Valid test profile (NYPL Check)",
       "dataType": "MARC"
     },
@@ -1017,7 +1017,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfileInfo": {
-      "id": "4e73a4ce-8a58-4dd8-a3ab-4e91f7feaea1",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Standard BIB profile (2019 Q1 Beta test)",
       "dataType": "MARC"
     },
@@ -1040,7 +1040,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "295e28b4-aea2-4458-9073-385a31e1da05",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1063,7 +1063,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "bb689511-5365-4050-8084-a03d94728d88",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1086,7 +1086,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "3e705998-9169-4f31-b048-90ffdcbd24c1",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1109,7 +1109,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "15426802-bb0d-4dfb-8eee-90f64fed0cf1",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1132,7 +1132,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "87e4ad58-d677-43dd-8b04-9795741b2103",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1155,7 +1155,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "72af7eb7-d7e2-4d16-93ac-682b9a58a94c",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1178,7 +1178,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "4d1b5024-2c49-42bd-b781-4330d14cefb0",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1201,7 +1201,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "b32e79bc-01d9-4d31-bc08-a3621fcfc1aa",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1247,7 +1247,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "COMMITTED",
     "uiStatus": "READY_FOR_PREVIEW",
     "jobProfileInfo": {
-      "id": "558dede0-515d-11e9-8647-d663bd873d93",
+      "id": "828a787c-bcf3-4c28-891a-9e6f3ba5068b",
       "name": "MARC TEST JOBS",
       "dataType": "MARC"
     },
@@ -1270,7 +1270,7 @@ INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
     "status": "ERROR",
     "uiStatus": "ERROR",
     "jobProfileInfo": {
-      "id": "1c65838f-1fbb-42be-917b-7d83bf0bf918",
+      "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",
       "name": "Multilingual support check",
       "dataType": "MARC"
     },
