@@ -1,15 +1,20 @@
 package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,6 +98,43 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionDtos.size()", is(expectedNotDiscardedNumber))
       .body("jobExecutionDtos*.status", not(StatusDto.Status.DISCARDED.name()))
       .body("totalRecords", is(expectedNotDiscardedNumber));
+  }
+
+  @Test
+  public void shouldReturnSortedJobExecutionsOnGetWhenSortByIsSpecified() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
+
+    for (int i = 0; i < createdJobExecution.size(); i++) {
+      putJobExecution(createdJobExecution.get(i).withCompletedDate(new Date(1234567892000L + i)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = createdJobExecution.size() - 1;
+    JobExecutionCollectionDto jobExecutionCollectionDto = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTIONS_PATH + "?query=(uiStatus==\"INITIALIZATION\") sortBy completedDate/sort.descending")
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionCollectionDto.class);
+
+    List<JobExecutionDto> jobExecutionDtoList = jobExecutionCollectionDto.getJobExecutionDtos();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutionDtoList.size());
+    Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(2).getCompletedDate().after(jobExecutionDtoList.get(3).getCompletedDate()));
+  }
+
+  private JobExecution putJobExecution(JobExecution jobExecution) {
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(jobExecution).encode())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    return jobExecution;
   }
 
 }
