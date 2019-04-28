@@ -44,12 +44,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
 
-  @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
   private JobExecutionService jobExecutionService;
-  @Autowired
   private AdditionalFieldsConfig fieldsConfig;
+
+  public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                 @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired AdditionalFieldsConfig fieldsConfig) {
+    this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
+    this.jobExecutionService = jobExecutionService;
+    this.fieldsConfig = fieldsConfig;
+  }
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
@@ -146,7 +151,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Adds new fields to marc record
+   * Adds additional fields to marc record
    * @param record MARC Record
    */
   private void addAdditionalFieldsToMarcRecord(Record record) {
@@ -158,6 +163,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     String targetFieldContent =
       fieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content.replace("{recordId}", record.getId()));
     fields.add(new JsonObject(targetFieldContent));
+    record.getParsedRecord().setContent(parsedRecordContent.toString());
   }
 
   /**
