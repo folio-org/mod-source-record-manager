@@ -2,6 +2,8 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,6 +35,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -41,10 +44,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
 
-  @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
   private JobExecutionService jobExecutionService;
+  private AdditionalFieldsConfig fieldsConfig;
+
+  public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                 @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired AdditionalFieldsConfig fieldsConfig) {
+    this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
+    this.jobExecutionService = jobExecutionService;
+    this.fieldsConfig = fieldsConfig;
+  }
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
@@ -101,11 +111,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord);
         Record record = new Record()
+          .withId(UUID.randomUUID().toString())
           .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
           .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
-          .withRawRecord(new RawRecord()
-            .withContent(rawRecord));
+          .withRawRecord(new RawRecord().withContent(rawRecord));
         if (parsedResult.isHasError()) {
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
@@ -113,6 +123,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord()
             .withContent(parsedResult.getParsedRecord().encode()));
+          fillRecordWithAdditionalFields(record);
         }
         return record;
       })
@@ -126,6 +137,32 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
+  }
+
+  /**
+   * Adds new additional fields to incoming record
+   *
+   * @param record Record
+   */
+  private void fillRecordWithAdditionalFields(Record record) {
+    if (MARC.equals(record.getRecordType())) {
+      addAdditionalFieldsToMarcRecord(record);
+    }
+  }
+
+  /**
+   * Adds additional fields to marc record
+   * @param record MARC Record
+   */
+  private void addAdditionalFieldsToMarcRecord(Record record) {
+    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+    if (parsedRecordContent.containsKey("fields")) {
+      JsonArray fields = parsedRecordContent.getJsonArray("fields");
+      String targetFieldContent =
+        fieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content.replace("{recordId}", record.getId()));
+      fields.add(new JsonObject(targetFieldContent));
+      record.getParsedRecord().setContent(parsedRecordContent.toString());
+    }
   }
 
   /**
