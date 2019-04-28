@@ -156,14 +156,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    */
   private void addAdditionalFieldsToMarcRecord(Record record) {
     JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-    if (!parsedRecordContent.containsKey("fields")) {
-      parsedRecordContent.put("fields", new JsonArray());
+    if (parsedRecordContent.containsKey("fields")) {
+      JsonArray fields = parsedRecordContent.getJsonArray("fields");
+      String targetFieldContent =
+        fieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content.replace("{recordId}", record.getId()));
+      fields.add(new JsonObject(targetFieldContent));
+      record.getParsedRecord().setContent(parsedRecordContent.toString());
     }
-    JsonArray fields = parsedRecordContent.getJsonArray("fields");
-    String targetFieldContent =
-      fieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content.replace("{recordId}", record.getId()));
-    fields.add(new JsonObject(targetFieldContent));
-    record.getParsedRecord().setContent(parsedRecordContent.toString());
   }
 
   /**
