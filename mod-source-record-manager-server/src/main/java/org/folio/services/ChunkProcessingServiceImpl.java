@@ -1,12 +1,21 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,45 +23,87 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+
+import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessingServiceImpl.class);
 
-  @Autowired
+  private static final int THREAD_POOL_SIZE =
+    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("update.records.thread.pool.size", "100"));
+  private Vertx vertx;
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
   private JobExecutionService jobExecutionService;
-  @Autowired
   private ChangeEngineService changeEngineService;
-  @Autowired
   private AfterProcessingService afterProcessingService;
+  private AdditionalFieldsConfig additionalFieldsConfig;
+  private WorkerExecutor workerExecutor;
+
+  public ChunkProcessingServiceImpl(@Autowired Vertx vertx,
+                                    @Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                    @Autowired JobExecutionService jobExecutionService,
+                                    @Autowired ChangeEngineService changeEngineService,
+                                    @Autowired AfterProcessingService afterProcessingService,
+                                    @Autowired AdditionalFieldsConfig additionalFieldsConfig) {
+    this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
+    this.jobExecutionService = jobExecutionService;
+    this.changeEngineService = changeEngineService;
+    this.afterProcessingService = afterProcessingService;
+    this.additionalFieldsConfig = additionalFieldsConfig;
+    this.workerExecutor =
+      this.vertx.createSharedWorkerExecutor("updating-records-thread-pool", THREAD_POOL_SIZE);
+  }
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params) {
-    JobExecutionSourceChunk jobExecutionSourceChunk = new JobExecutionSourceChunk()
+    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
       .withLast(chunk.getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(chunk.getRecords().size())
       .withCreatedDate(new Date());
-    return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, params.getTenantId())
+    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
-      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
-      .compose(parsedRecords -> afterProcessingService.process(parsedRecords, jobExecutionSourceChunk.getId(), params))
-      .compose(records -> jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
-        .withState(JobExecutionSourceChunk.State.COMPLETED)
-        .withCompletedDate(new Date()), params.getTenantId()))
-      .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
-      .compose(completed -> {
-        if (completed) {
-          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
-            .map(result -> true);
-        }
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, sourceChunk.getId(), params))
+      .compose(parsedRecords -> {
+        postProcessRecords(parsedRecords, sourceChunk, jobExecutionId, params);
         return Future.succeededFuture(true);
       });
+  }
+
+  /**
+   * Performs records processing after records were parsed
+   *
+   * @param parsedRecords  list of parsed records
+   * @param sourceChunk    chunk of raw records
+   * @param jobExecutionId job id
+   * @param params         parameters enough to connect to OKAPI
+   */
+  private void postProcessRecords(List<Record> parsedRecords, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
+    workerExecutor.executeBlocking(blockingFuture -> {
+        RecordProcessingContext context = new RecordProcessingContext(parsedRecords);
+        afterProcessingService.process(context, sourceChunk.getId(), params)
+          .compose(r -> {
+            sourceChunk.withState(JobExecutionSourceChunk.State.COMPLETED);
+            return jobExecutionSourceChunkDao.update(sourceChunk, params.getTenantId());
+          })
+          .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
+          .compose(completed -> {
+            if (completed) {
+              updateRecordsWithAdditionalFields(context, params);
+              return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
+                .map(result -> true);
+            }
+            return Future.succeededFuture(true);
+          });
+      },
+      false,
+      null);
   }
 
   /**
@@ -111,5 +162,59 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         }
         return Future.succeededFuture(false);
       });
+  }
+
+  /**
+   * @param processingContext context object with records and properties
+   * @param params            OKAPI connection params
+   */
+  private void updateRecordsWithAdditionalFields(RecordProcessingContext processingContext, OkapiConnectionParams params) {
+    if (!processingContext.getRecordsContext().isEmpty()) {
+      RecordProcessingContext.RecordContext recordContext = processingContext.getRecordsContext().get(0);
+      if (Record.RecordType.MARC.equals(recordContext.getRecord().getRecordType())) {
+        addAdditionalFieldsToMarcRecords(processingContext, params);
+      }
+    }
+  }
+
+  /**
+   * Adds additional custom fields to parsed MARC records
+   * @param processingContext context object with records and properties
+   * @param params            OKAPI connection params
+   */
+  private void addAdditionalFieldsToMarcRecords(RecordProcessingContext processingContext, OkapiConnectionParams params) {
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    for (RecordProcessingContext.RecordContext recordContext : processingContext.getRecordsContext()) {
+      addAdditionalFieldsToMarcRecord(recordContext);
+      Record record = recordContext.getRecord();
+      try {
+        client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
+          if (response.statusCode() != HttpStatus.HTTP_OK.toInt()) {
+            LOGGER.error("Error updating Record by id {}", record.getId());
+          } else {
+            LOGGER.info("Record with id {} successfully updated.", record.getId());
+          }
+        });
+      } catch (Exception e) {
+        LOGGER.error("Couldn't update Record with id {}", record.getId(), e);
+      }
+    }
+  }
+
+  /**
+   * Adds additional custom fields to parsed MARC record
+   * @param recordContext context object with record and properties
+   */
+  private void addAdditionalFieldsToMarcRecord(RecordProcessingContext.RecordContext recordContext) {
+    Record record = recordContext.getRecord();
+    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+    if (parsedRecordContent.containsKey("fields")) {
+      JsonArray fields = parsedRecordContent.getJsonArray("fields");
+      String targetField = additionalFieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content
+        .replace("{recordId}", record.getId())
+        .replace("{instanceId}", recordContext.getInstanceId()));
+      fields.add(new JsonObject(targetField));
+      record.getParsedRecord().setContent(parsedRecordContent.toString());
+    }
   }
 }
