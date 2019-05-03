@@ -67,9 +67,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Sends POST request to Inventory
+   * Creates Inventory Instance
    *
-   * @param instance Instance entity to POST
+   * @param instance Instance entity serves as request body to POST request to Inventory
    * @param params   params enough to connect ot OKAPI
    * @return Instance id
    */
@@ -94,7 +94,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Creates Inventory Instance by record in accordance with default mapping rules
+   * Creates Inventory Instance by Record in accordance with default mapping rules
    *
    * @param recordsContext context object with records and properties
    * @return  list of key-valued objects where a key is Record, value is an Instance
