@@ -34,7 +34,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
 
   private static final int THREAD_POOL_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("update.records.thread.pool.size", "100"));
-  private Vertx vertx;
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private ChangeEngineService changeEngineService;
@@ -53,51 +52,68 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     this.changeEngineService = changeEngineService;
     this.afterProcessingService = afterProcessingService;
     this.additionalFieldsConfig = additionalFieldsConfig;
-    this.workerExecutor =
-      this.vertx.createSharedWorkerExecutor("updating-records-thread-pool", THREAD_POOL_SIZE);
+    this.workerExecutor = vertx.createSharedWorkerExecutor("post-processing-records-thread-pool", THREAD_POOL_SIZE);
   }
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params) {
-    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
+    JobExecutionSourceChunk jobExecutionSourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
       .withLast(chunk.getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(chunk.getRecords().size())
       .withCreatedDate(new Date());
-    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+    return jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
-      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, sourceChunk.getId(), params))
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(chunk, jobExec, jobExecutionSourceChunk.getId(), params))
       .compose(parsedRecords -> {
-        postProcessRecords(parsedRecords, sourceChunk, jobExecutionId, params);
+        jobExecutionSourceChunkDao.update(jobExecutionSourceChunk
+          .withState(JobExecutionSourceChunk.State.COMPLETED)
+          .withCompletedDate(new Date()), params.getTenantId());
+        checkIfProcessingCompleted(jobExecutionId, params.getTenantId())
+          .compose(completed -> {
+            if (completed) {
+              postProcessRecords(parsedRecords, jobExecutionSourceChunk, jobExecutionId, params);
+              return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
+                .map(result -> true);
+            }
+            return Future.succeededFuture(true);
+          });
         return Future.succeededFuture(true);
       });
   }
 
   /**
-   * Performs records processing after records were parsed
+   * Performs post processing logic for parsed records using a threads from the worker pool.
    *
    * @param parsedRecords  list of parsed records
    * @param sourceChunk    chunk of raw records
    * @param jobExecutionId job id
    * @param params         parameters enough to connect to OKAPI
    */
-  private void postProcessRecords(List<Record> parsedRecords, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
+  protected void postProcessRecords(List<Record> parsedRecords, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
     workerExecutor.executeBlocking(blockingFuture -> {
         RecordProcessingContext context = new RecordProcessingContext(parsedRecords);
         afterProcessingService.process(context, sourceChunk.getId(), params)
-          .compose(r -> {
+          .compose(ar -> {
             sourceChunk.withState(JobExecutionSourceChunk.State.COMPLETED);
             return jobExecutionSourceChunkDao.update(sourceChunk, params.getTenantId());
           })
-          .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
+          .compose(ar -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
           .compose(completed -> {
             if (completed) {
-              updateRecordsWithAdditionalFields(context, params);
-              return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
-                .map(result -> true);
+              addAdditionalFieldsToRecords(context, params);
+              checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params).setHandler(ar -> {
+                if (ar.failed()) {
+                  String errorMessage = String.format("Fail to complete blocking future for post processing records {}", ar.cause());
+                  LOGGER.error(errorMessage);
+                  blockingFuture.fail(errorMessage);
+                } else {
+                  blockingFuture.complete();
+                }
+              });
             }
             return Future.succeededFuture(true);
           });
@@ -165,10 +181,12 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
+   * Adds additional external fields to parsed records
+   *
    * @param processingContext context object with records and properties
    * @param params            OKAPI connection params
    */
-  private void updateRecordsWithAdditionalFields(RecordProcessingContext processingContext, OkapiConnectionParams params) {
+  private void addAdditionalFieldsToRecords(RecordProcessingContext processingContext, OkapiConnectionParams params) {
     if (!processingContext.getRecordsContext().isEmpty()) {
       RecordProcessingContext.RecordContext recordContext = processingContext.getRecordsContext().get(0);
       if (Record.RecordType.MARC.equals(recordContext.getRecord().getRecordType())) {
@@ -178,7 +196,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * Adds additional custom fields to parsed MARC records
+   * Adds additional external fields to parsed MARC records from processing context
+   *
    * @param processingContext context object with records and properties
    * @param params            OKAPI connection params
    */
@@ -202,7 +221,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * Adds additional custom fields to parsed MARC record
+   * Adds additional external fields to parsed MARC record from processing context
+   *
    * @param recordContext context object with record and properties
    */
   private void addAdditionalFieldsToMarcRecord(RecordProcessingContext.RecordContext recordContext) {
