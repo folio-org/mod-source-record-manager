@@ -30,6 +30,6 @@ public class JsonRecordParser implements RecordParser {
   // Implementation will be changed in scope of (@link https://issues.folio.org/browse/MODSOURMAN-112)
   @Override
   public RecordFormat getParserFormat() {
-    return null;
+    throw new UnsupportedOperationException("There is no corresponding RecordFormat for json since any type of Record can be stored in json format");
   }
 }
