@@ -8,7 +8,7 @@ import java.util.List;
  */
 public final class RecordParserBuilder {
 
-  private static List<RecordParser> rawRecordParsers = Collections.singletonList(new RawMarcRecordParser());
+  private static List<RecordParser> rawRecordParsers = Collections.singletonList(new MarcRecordParser());
 
   private RecordParserBuilder() {
   }
@@ -30,6 +30,6 @@ public final class RecordParserBuilder {
     return rawRecordParsers.stream()
       .filter(parser -> parser.getParserFormat().equals(format))
       .findFirst()
-      .orElseThrow(() -> new RecordParserNotFoundException(String.format("Raw Record Parser was not found for Record Format: %s", format.getFormat())));
+      .orElseThrow(() -> new RecordParserNotFoundException(String.format("Raw Record Parser was not found for Record Format: %s", format)));
   }
 }
