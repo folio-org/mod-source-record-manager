@@ -1,5 +1,11 @@
-## 2019-04-15 v1.3.0-SNAPSHOT
+## 2019-05-03 v1.3.0-SNAPSHOT
  * Borrowed mapping of MARC to Instance logic from mod-data-loader. After parsing Records are mapped to Instances and saved in mod-inventory.
+ * Added support for records coming for processing in json format.
+
+## 2019-03-25 v1.2.1
+ * Set required recordType field for the Record entity
+ * Removed deprecated IMPORT_IN_PROGRESS and IMPORT_FINISHED statuses for JobExecution
+ * Set stub data for runBy, progress ans startedDate fields for JobExecution entity
 
 ## 2019-03-20 v1.2.0
  * Renamed endpoints

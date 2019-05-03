@@ -20,8 +20,8 @@ import java.util.List;
 /**
  * Raw record parser implementation for MARC format. Use marc4j library
  */
-public final class MarcRecordParser implements RawRecordParser {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarcRecordParser.class);
+public final class RawMarcRecordParser implements RecordParser {
+  private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcRecordParser.class);
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
