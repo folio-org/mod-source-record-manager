@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.afterProcessing;
 
 import org.springframework.stereotype.Component;
 

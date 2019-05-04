@@ -35,7 +35,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {

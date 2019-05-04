@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.afterProcessing;
 
 import org.folio.rest.jaxrs.model.Record;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Context class for holding Records and their properties
+ * Class for holding records and their related properties
  */
 public class RecordProcessingContext {
 

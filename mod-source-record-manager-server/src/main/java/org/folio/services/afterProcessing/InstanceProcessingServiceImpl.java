@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.afterProcessing;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service("instanceProcessingService")
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
@@ -97,7 +97,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Creates Inventory Instance by Record in accordance with default mapping rules
    *
    * @param recordsContext context object with records and properties
-   * @return  list of key-valued objects where a key is Record, value is an Instance
+   * @return list of key-valued objects where a key is Record, value is an Instance
    */
   private List<Pair<RecordProcessingContext.RecordContext, Instance>> mapToInstance(List<RecordProcessingContext.RecordContext> recordsContext) {
     if (CollectionUtils.isEmpty(recordsContext)) {
@@ -108,7 +108,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     return recordsContext.stream()
       .map(recordContext -> {
         Instance instance = mapper.mapRecord(new JsonObject(recordContext.getRecord().getParsedRecord().getContent().toString()));
-        return new ImmutablePair(recordContext, instance);
+        Pair<RecordProcessingContext.RecordContext, Instance> result = new ImmutablePair(recordContext, instance);
+        return result;
       })
       .collect(Collectors.toList());
   }
