@@ -21,8 +21,8 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
-import org.folio.services.parsers.RawRecordParser;
-import org.folio.services.parsers.RawRecordParserBuilder;
+import org.folio.services.parsers.RecordParser;
+import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,7 +98,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
-    RawRecordParser parser = RawRecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution));
+    RecordParser parser = RecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution), rawRecords.get(0));
     MutableInt counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
