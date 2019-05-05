@@ -691,7 +691,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldParseChunkOfRawRecordsAndFailIfInstancesAreNotCreated() {
+  public void shouldParseChunkOfRawRecordsIfInstancesAreNotCreated() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -718,7 +718,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
