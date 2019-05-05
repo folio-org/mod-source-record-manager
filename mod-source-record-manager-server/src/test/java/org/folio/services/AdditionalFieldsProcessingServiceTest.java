@@ -63,7 +63,7 @@ public class AdditionalFieldsProcessingServiceTest {
     Async async = testContext.async();
     RecordProcessingContext givenProcessingContext = new RecordProcessingContext(Collections.EMPTY_LIST);
 
-    Future<RecordProcessingContext> future = additionalFieldsProcessingService.process(givenProcessingContext, null, null);
+    Future<RecordProcessingContext> future = additionalFieldsProcessingService.process(givenProcessingContext, SOURCE_CHUNK_ID, null);
 
     future.setHandler(ar -> {
       testContext.assertTrue(ar.succeeded());
