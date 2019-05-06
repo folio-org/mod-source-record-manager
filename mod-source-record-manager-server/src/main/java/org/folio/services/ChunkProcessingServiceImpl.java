@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -25,21 +24,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
 
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessingServiceImpl.class);
 
-  private static final int THREAD_POOL_SIZE =
-    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("update.records.thread.pool.size", "100"));
+  private Vertx vertx;
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private ChangeEngineService changeEngineService;
   private AfterProcessingService instanceProcessingService;
   private AfterProcessingService additionalFieldsProcessingService;
-  private WorkerExecutor workerExecutor;
 
   public ChunkProcessingServiceImpl(@Autowired Vertx vertx,
                                     @Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
@@ -49,12 +45,12 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
                                       AfterProcessingService instanceProcessingService,
                                     @Autowired @Qualifier("additionalFieldsProcessingService")
                                       AfterProcessingService additionalFieldsProcessingService) {
+    this.vertx = vertx;
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.changeEngineService = changeEngineService;
     this.instanceProcessingService = instanceProcessingService;
     this.additionalFieldsProcessingService = additionalFieldsProcessingService;
-    this.workerExecutor = vertx.createSharedWorkerExecutor("post-processing-records-thread-pool", THREAD_POOL_SIZE);
   }
 
   @Override
@@ -152,7 +148,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    */
   private Future<Void> postProcessRecords(List<Record> records, JobExecutionSourceChunk sourceChunk, OkapiConnectionParams params) {
     RecordProcessingContext context = new RecordProcessingContext(records);
-    workerExecutor.executeBlocking(blockingFuture ->
+    vertx.executeBlocking(blockingFuture ->
         instanceProcessingService.process(context, sourceChunk.getId(), params)
           .compose(ar -> additionalFieldsProcessingService.process(context, sourceChunk.getId(), params))
           .setHandler(ar -> {
