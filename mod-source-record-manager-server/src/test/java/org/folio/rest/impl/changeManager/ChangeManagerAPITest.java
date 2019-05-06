@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
@@ -652,13 +653,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecords() {
+  public void shouldProcessChunkOfRawRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -669,7 +671,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto)
@@ -677,7 +681,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -688,6 +694,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(1000))
       .body("startedDate", notNullValue(Date.class)).log().all();
+    async.complete();
   }
 
   @Test
