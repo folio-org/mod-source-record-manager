@@ -729,7 +729,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessLastChunkOfRawRecords() {
+  public void shouldProcessLastChunkOfRawRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -739,6 +739,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
     jobExec.setStartedDate(new Date());
 
+    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(jobExec)
@@ -746,7 +747,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK).log().all();
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -757,7 +760,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto.withLast(true))
@@ -765,7 +770,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -773,6 +780,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_FINISHED.name()));
+    async.complete();
   }
 
   private void assertParent(JobExecution parent) {
