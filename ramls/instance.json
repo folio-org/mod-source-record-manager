@@ -111,9 +111,11 @@
         "type": "object",
         "properties": {
           "classificationNumber": {
+            "description": "classification number",
             "type": "string"
           },
           "classificationTypeId": {
+            "description": "classification type id",
             "type": "string"
           }
         },
