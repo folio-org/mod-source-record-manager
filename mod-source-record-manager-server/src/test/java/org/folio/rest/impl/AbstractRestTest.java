@@ -67,7 +67,7 @@ public abstract class AbstractRestTest {
   private static final String GET_USER_URL = "/users?query=id==";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
-  protected static final String RECORDS_SERVICE_URL = "/source-storage/records";
+  protected static final String RECORDS_SERVICE_URL = "/source-storage/recordsCollection";
   protected static final String INVENTORY_URL = "/inventory/instances";
 
   private JsonObject userResponse = new JsonObject()

@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 @RunWith(VertxUnitRunner.class)
 public class ChangeEngineServiceTest {
 
-  private static final String SOURCE_STORAGE_SERVICE = "/source-storage/records";
+  private static final String SOURCE_STORAGE_SERVICE = "/source-storage/recordsCollection";
   private static final String TENANT = "diku";
   private static final String TOKEN = "token";
   private static final String RAW_RECORD = "01535nam  2200313 a 450000100140000000300080001400500170002200600190003900" +

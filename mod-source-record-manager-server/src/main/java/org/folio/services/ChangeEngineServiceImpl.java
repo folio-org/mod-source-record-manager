@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -19,16 +18,16 @@ import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
+import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
-import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -59,23 +58,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Record>> future = Future.future();
-    List<Future> createRecordsFuture = new ArrayList<>();
     List<Record> parsedRecords = parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId());
-    parsedRecords.forEach(record -> createRecordsFuture.add(postRecord(params, jobExecution, record)));
-    CompositeFuture.all(createRecordsFuture)
-      .setHandler(result -> {
-        StatusDto statusDto = new StatusDto();
-        if (result.failed()) {
-          statusDto
+    postRecords(params, jobExecution, parsedRecords)
+      .setHandler(postAr -> {
+        if (postAr.failed()) {
+          StatusDto statusDto = new StatusDto()
             .withStatus(StatusDto.Status.ERROR)
             .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-          LOGGER.error("Can't create record in storage. JobExecution ID: {}", jobExecution.getId(), result.cause());
           jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
             .setHandler(r -> {
               if (r.failed()) {
-                LOGGER.error("Error during update jobExecution and snapshot status", result.cause());
+                LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
               }
-              future.fail(result.cause());
+              future.fail(postAr.cause());
             });
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
@@ -176,27 +171,30 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Update record entity in record-storage
+   * Update records in record-storage
    *
-   * @param params       - okapi params for connecting record-storage
-   * @param jobExecution - job execution related to records
-   * @param record       - record json object
+   * @param params        - okapi params for connecting record-storage
+   * @param jobExecution  - job execution related to records
+   * @param parsedRecords - parsed records
    */
-  private Future<JobExecution> postRecord(OkapiConnectionParams params, JobExecution jobExecution, Record record) {
-    Future<JobExecution> future = Future.future();
-    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+  private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
+    Future<List<Record>> future = Future.future();
     try {
-      client.postSourceStorageRecords(null, record, response -> {
+      SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+      RecordCollection recordCollection = new RecordCollection()
+        .withRecords(parsedRecords)
+        .withTotalRecords(parsedRecords.size());
+      client.postSourceStorageRecordsCollection(recordCollection, response -> {
         if (response.statusCode() == HttpStatus.HTTP_CREATED.toInt()) {
-          future.complete(jobExecution);
+          future.complete(parsedRecords);
         } else {
-          String message = String.format("Couldn't create new Record with JobExecution id %s in source-record-storage, response code %s", jobExecution.getId(), response.statusCode());
+          String message = String.format("Can't create new records with JobExecution id: %s in source-record-storage, response code %s", jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error during POST new record", e, e.getMessage());
+      LOGGER.error("Error during POST new records", e, e.getMessage());
       future.fail(e);
     }
     return future;
