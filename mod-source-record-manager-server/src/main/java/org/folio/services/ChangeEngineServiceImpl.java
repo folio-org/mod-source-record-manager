@@ -1,8 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +32,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -45,14 +42,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
-  private AdditionalFieldsConfig fieldsConfig;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                 @Autowired JobExecutionService jobExecutionService,
-                                 @Autowired AdditionalFieldsConfig fieldsConfig) {
+                                 @Autowired JobExecutionService jobExecutionService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
-    this.fieldsConfig = fieldsConfig;
   }
 
   @Override
@@ -116,9 +110,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
         } else {
-          record.setParsedRecord(new ParsedRecord()
-            .withContent(parsedResult.getParsedRecord().encode()));
-          fillRecordWithAdditionalFields(record);
+          record.setParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
         }
         return record;
       })
@@ -132,32 +124,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
-  }
-
-  /**
-   * Adds new additional fields to incoming record
-   *
-   * @param record Record
-   */
-  private void fillRecordWithAdditionalFields(Record record) {
-    if (MARC.equals(record.getRecordType())) {
-      addAdditionalFieldsToMarcRecord(record);
-    }
-  }
-
-  /**
-   * Adds additional fields to marc record
-   * @param record MARC Record
-   */
-  private void addAdditionalFieldsToMarcRecord(Record record) {
-    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-    if (parsedRecordContent.containsKey("fields")) {
-      JsonArray fields = parsedRecordContent.getJsonArray("fields");
-      String targetFieldContent =
-        fieldsConfig.apply(AdditionalFieldsConfig.TAG_999, content -> content.replace("{recordId}", record.getId()));
-      fields.add(new JsonObject(targetFieldContent));
-      record.getParsedRecord().setContent(parsedRecordContent.toString());
-    }
   }
 
   /**

@@ -1,43 +1,56 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
+  "description": "Inventory instance entity",
   "properties": {
     "id": {
+      "description": "UUID",
       "type": "string"
     },
     "source": {
+      "description": "source type",
       "type": "string"
     },
     "title": {
+      "description": "source title",
       "type": "string"
     },
     "alternativeTitles": {
+      "description": "alternative titles",
       "type": "array",
       "items": {
+        "description": "alternative title item",
         "type": "string"
       },
       "uniqueItems": true
     },
     "edition": {
+      "description": "edition",
       "type": "string"
     },
     "series": {
+      "description": "series",
       "type": "array",
       "items": {
+        "description": "series item",
         "type": "string"
       },
       "uniqueItems": true
     },
     "identifiers": {
+      "description": "identifiers",
       "type": "array",
       "minItems": 0,
       "items": {
+        "description": "identifier item",
         "type": "object",
         "properties": {
           "value": {
+            "description": "identifier value",
             "type": "string"
           },
           "identifierTypeId": {
+            "description": "identifier type id",
             "type": "string"
           }
         },
@@ -49,21 +62,27 @@
       }
     },
     "contributors": {
+      "description": "contributors",
       "type": "array",
       "minItems": 0,
       "items": {
+        "description": "contributor item",
         "type": "object",
         "properties": {
           "contributorTypeId": {
+            "description": "contributor type id",
             "type": "string"
           },
           "contributorNameTypeId": {
+            "description": "contributor name type id",
             "type": "string"
           },
           "primary": {
+            "description": "primary",
             "type": "boolean"
           },
           "name": {
+            "description": "name",
             "type": "string"
           }
         },
@@ -75,22 +94,28 @@
       }
     },
     "subjects": {
+      "description": "subjects",
       "type": "array",
       "items": {
+        "description": "subject item",
         "type": "string"
       },
       "uniqueItems": true
     },
     "classifications": {
+      "description": "classifications",
       "type": "array",
       "minItems": 0,
       "items": {
+        "description": "classification item",
         "type": "object",
         "properties": {
           "classificationNumber": {
+            "description": "classification number",
             "type": "string"
           },
           "classificationTypeId": {
+            "description": "classification type id",
             "type": "string"
           }
         },
@@ -102,17 +127,22 @@
       }
     },
     "publication": {
+      "description": "publication",
       "type": "array",
       "items": {
+        "description": "publication item",
         "type": "object",
         "properties": {
           "publisher": {
+            "description": "publisher",
             "type": "string"
           },
           "place": {
+            "description": "place",
             "type": "string"
           },
           "dateOfPublication": {
+            "description": "dateOfPublication",
             "type": "string"
           }
         },
@@ -120,35 +150,45 @@
       }
     },
     "urls": {
+      "description": "urls",
       "type": "array",
       "items": {
+        "description": "url item",
         "type": "string"
       },
       "uniqueItems": true
     },
     "instanceTypeId": {
+      "description": "instanceTypeId",
       "type": "string"
     },
     "instanceFormatId": {
+      "description": "instanceFormatId",
       "type": "string"
     },
     "physicalDescriptions": {
+      "description": "physical descriptions",
       "type": "array",
       "items": {
+        "description": "physical description",
         "type": "string"
       }
     },
     "languages": {
+      "description": "languages",
       "type": "array",
       "minItems": 0,
       "items": {
+        "description": "language item",
         "type": "string"
       },
       "uniqueItems": true
     },
     "notes": {
+      "description": "notes",
       "type": "array",
       "items": {
+        "description": "note item",
         "type": "string"
       }
     }
