@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.afterProcessing;
 
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,10 @@ import java.util.function.Function;
 public class AdditionalFieldsConfig {
 
   public static final String TAG_999 = "999";
-
   private static final List<Field> fieldsStorage = Collections.singletonList(
     new Field(
       TAG_999,
-      "{\"" + TAG_999 + "\":{\"subfields\":[{\"s\":\"{recordId}\"}],\"ind1\":\"f\",\"ind2\":\"f\"}}"
+      "{\"" + TAG_999 + "\":{\"ind1\":\"f\",\"ind2\":\"f\",\"subfields\":[{\"i\":\"{instanceId}\"},{\"s\":\"{recordId}\"}]}}"
     )
   );
 
