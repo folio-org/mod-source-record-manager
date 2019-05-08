@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,15 +69,19 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
-    if (jobExecutionsRqDto.getFiles().isEmpty()) {
+    if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.FILES) && jobExecutionsRqDto.getFiles().isEmpty()) {
       String errorMessage = "Received files must not be empty";
+      LOGGER.error(errorMessage);
+      return Future.failedFuture(new BadRequestException(errorMessage));
+    } else if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE) && jobExecutionsRqDto.getJobProfileInfo() == null) {
+      String errorMessage = "Received jobProfileInfo must not be empty";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
 
       List<JobExecution> jobExecutions =
-        prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId());
+        prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId(), jobExecutionsRqDto);
       List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
 
       Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
@@ -186,9 +191,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param parentJobExecutionId id of the parent JobExecution entity
    * @param files                Representations of the Files user uploads
    * @param userId               id of the user creating JobExecution
+   * @param dto                  {@link InitJobExecutionsRqDto}
    * @return list of JobExecution entities
    */
-  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, String userId) {
+  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, String userId, InitJobExecutionsRqDto dto) {
+    if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
+      return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
+        .withJobProfileInfo(dto.getJobProfileInfo()));
+    }
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
       for (File file : files) {

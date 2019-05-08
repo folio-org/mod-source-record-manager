@@ -31,7 +31,6 @@ import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
-import org.folio.services.JobExecutionServiceImpl;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -197,6 +196,7 @@ public abstract class AbstractRestTest {
     List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
     requestDto.getFiles().addAll(limitedFilesList);
     requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())

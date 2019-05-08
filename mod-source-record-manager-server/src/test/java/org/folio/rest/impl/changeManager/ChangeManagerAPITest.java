@@ -106,6 +106,44 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void testInitJobExecutionsWithJobProfile() {
+    // given
+    int expectedJobExecutionsNumber = 1;
+
+    // when
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
+    requestDto.setJobProfileInfo(new JobProfileInfo()
+      .withId(UUID.randomUUID().toString())
+      .withDataType(JobProfileInfo.DataType.MARC)
+      .withName("Test Profile"));
+
+    InitJobExecutionsRsDto response = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().log().all()
+      .post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
+
+    // then
+    String actualParentJobExecutionId = response.getParentJobExecutionId();
+    List<JobExecution> actualJobExecutions = response.getJobExecutions();
+
+    Assert.assertNotNull(actualParentJobExecutionId);
+    Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+
+    JobExecution parentSingle = actualJobExecutions.get(0);
+    Assert.assertNotNull(parentSingle);
+    Assert.assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
+    Assert.assertNotNull(parentSingle.getId());
+    Assert.assertNotNull(parentSingle.getParentJobId());
+    Assert.assertTrue(parentTypes.contains(parentSingle.getSubordinationType()));
+    Assert.assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
+    Assert.assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
+    Assert.assertNotNull(parentSingle.getJobProfileInfo());
+  }
+
+  @Test
   public void testInitJobExecutionsWith2Files() {
     // given
     int expectedParentJobExecutions = 1;
@@ -145,6 +183,22 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     // given
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
     requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void testInitJobExecutionsWithNoProfile(TestContext context) {
+    // given
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
 
     // when
     RestAssured.given()
@@ -887,6 +941,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
     requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
