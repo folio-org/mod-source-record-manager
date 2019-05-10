@@ -14,6 +14,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.parsers.RecordFormat;
@@ -22,29 +23,39 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service("instanceProcessingService")
+@Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances";
-  private static final String LOCATION_HEADER = "location";
+  private static final String INSTANCE_LOCATION_RESPONSE_HEADER = "location";
 
-  @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
+  private AdditionalFieldsUtil additionalInstanceFieldsUtil;
+
+  public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                       @Autowired AdditionalFieldsUtil additionalInstanceFieldsUtil) {
+    this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
+    this.additionalInstanceFieldsUtil = additionalInstanceFieldsUtil;
+  }
 
   @Override
-  public Future<RecordProcessingContext> process(RecordProcessingContext context, String sourceChunkId, OkapiConnectionParams params) {
-    Future<RecordProcessingContext> future = Future.future();
+  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
+    if (CollectionUtils.isEmpty(records)) {
+      Future.succeededFuture();
+    }
+    Future<Void> future = Future.future();
     List<Future> createRecordsFuture = new ArrayList<>();
-    List<Pair<RecordProcessingContext.RecordContext, Instance>> recordInstancesPairs = mapToInstance(context.getRecordsContext());
-    recordInstancesPairs.forEach(recordInstancePair -> {
-      Future<String> postInstanceFuture = postInstance(recordInstancePair.getValue(), params).compose(instanceId -> {
-        RecordProcessingContext.RecordContext recordContext = recordInstancePair.getKey();
-        recordContext.setInstanceId(instanceId);
+    List<Pair<Record, Instance>> recordToInstancePairs = mapToInstance(records);
+    RecordProcessingContext processingContext = new RecordProcessingContext(getRecordsType(records));
+    recordToInstancePairs.forEach(recordToInstancePair -> {
+      Record record = recordToInstancePair.getLeft();
+      Instance instance = recordToInstancePair.getRight();
+      Future<Void> postInstanceFuture = postInstance(instance, params).compose(instanceId -> {
+        processingContext.addRecordContext(record.getId(), instanceId);
         return Future.succeededFuture();
       });
       createRecordsFuture.add(postInstanceFuture);
@@ -60,7 +71,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
           future.fail(result.cause());
         } else {
-          future.complete(context);
+          additionalInstanceFieldsUtil.addAdditionalFields(processingContext, params);
+          future.complete();
         }
       });
     return future;
@@ -71,7 +83,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param instance Instance entity serves as request body to POST request to Inventory
    * @param params   params enough to connect ot OKAPI
-   * @return Instance id
+   * @return future with Instance id
    */
   private Future<String> postInstance(Instance instance, OkapiConnectionParams params) {
     Future<String> future = Future.future();
@@ -81,8 +93,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
           if (!RestUtil.validateAsyncResult(responseResult, future)) {
             LOGGER.error("Error creating new Instance record", future.cause());
           } else {
-            String locationHeader = responseResult.result().getResponse().getHeader(LOCATION_HEADER);
-            String id = locationHeader.substring(locationHeader.lastIndexOf("/"));
+            String location = responseResult.result().getResponse().getHeader(INSTANCE_LOCATION_RESPONSE_HEADER);
+            String id = location.substring(location.lastIndexOf("/") + 1);
             future.complete(id);
           }
         } catch (Exception e) {
@@ -96,21 +108,26 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Creates Inventory Instance by Record in accordance with default mapping rules
    *
-   * @param recordsContext context object with records and properties
-   * @return list of key-valued objects where a key is Record, value is an Instance
+   * @param records records to map instances
+   * @return list of key-valued objects where key is a Record, value is an Instance
    */
-  private List<Pair<RecordProcessingContext.RecordContext, Instance>> mapToInstance(List<RecordProcessingContext.RecordContext> recordsContext) {
-    if (CollectionUtils.isEmpty(recordsContext)) {
-      return Collections.emptyList();
-    }
-    RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder
-      .buildMapper(RecordFormat.getByDataType(recordsContext.get(0).getRecord().getRecordType()));
-    return recordsContext.stream()
-      .map(recordContext -> {
-        Instance instance = mapper.mapRecord(new JsonObject(recordContext.getRecord().getParsedRecord().getContent().toString()));
-        Pair<RecordProcessingContext.RecordContext, Instance> result = new ImmutablePair(recordContext, instance);
-        return result;
-      })
-      .collect(Collectors.toList());
+  private List<Pair<Record, Instance>> mapToInstance(List<Record> records) {
+    RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
+    return records.stream()
+      .map(record -> {
+        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+        Pair<Record, Instance> recordInstancePair = new ImmutablePair<>(record, instance);
+        return recordInstancePair;
+      }).collect(Collectors.toList());
+  }
+
+  /**
+   * Return type of records
+   *
+   * @param records list of records
+   * @return type of records
+   */
+  private Record.RecordType getRecordsType(List<Record> records) {
+    return records.get(0).getRecordType();
   }
 }

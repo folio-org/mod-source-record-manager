@@ -11,31 +11,39 @@ import java.util.List;
 public class RecordProcessingContext {
 
   private List<RecordContext> recordsContext = new ArrayList<>();
+  private Record.RecordType recordsType;
 
-  public RecordProcessingContext(List<Record> parsedRecords) {
-    for (Record record : parsedRecords) {
-      recordsContext.add(new RecordContext(record));
-    }
+  public RecordProcessingContext(Record.RecordType recordsType) {
+    this.recordsType = recordsType;
   }
 
   public List<RecordContext> getRecordsContext() {
     return recordsContext;
   }
 
+  public Record.RecordType getRecordsType() {
+    return recordsType;
+  }
+
+  public void addRecordContext(String recordId, String instanceId) {
+    recordsContext.add(new RecordContext(recordId, instanceId));
+  }
+
   public class RecordContext {
-    private Record record;
+    private String recordId;
     private String instanceId;
 
-    public RecordContext(Record record) {
-      this.record = record;
+    public RecordContext(String recordId, String instanceId) {
+      this.recordId = recordId;
+      this.instanceId = instanceId;
     }
 
-    public Record getRecord() {
-      return record;
+    public String getRecordId() {
+      return recordId;
     }
 
-    public void setRecord(Record record) {
-      this.record = record;
+    public void setRecordId(String recordId) {
+      this.recordId = recordId;
     }
 
     public String getInstanceId() {

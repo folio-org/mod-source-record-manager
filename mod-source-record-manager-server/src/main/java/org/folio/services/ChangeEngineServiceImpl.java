@@ -1,6 +1,8 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -18,6 +20,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterProcessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.RecordParser;
@@ -42,17 +45,21 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
+  private AdditionalFieldsConfig additionalFieldsConfig;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                 @Autowired JobExecutionService jobExecutionService) {
+                                 @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired AdditionalFieldsConfig additionalFieldsConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
+    this.additionalFieldsConfig = additionalFieldsConfig;
   }
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Record>> future = Future.future();
     List<Record> parsedRecords = parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId());
+    fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
       .setHandler(postAr -> {
         if (postAr.failed()) {
@@ -82,7 +89,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * Parse list of source records
    *
    * @param rawRecords    - list of raw records for parsing
-   * @param jobExecution  - job execution of record's parsing process
+   * @param jobExecution  - job execution of record's parsing addAdditionalFields
    * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
@@ -124,6 +131,39 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
+  }
+
+  /**
+   * Adds new additional fields into parsed records content to incoming records
+   *
+   * @param records list of records
+   */
+  private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
+    if (!CollectionUtils.isEmpty(records)) {
+      Record.RecordType recordType = records.get(0).getRecordType();
+      if (Record.RecordType.MARC.equals(recordType)) {
+        for (Record record : records) {
+          addAdditionalFieldsToMarcRecord(record);
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds additional fields to MARC record
+   *
+   * @param record MARC Record
+   */
+  private void addAdditionalFieldsToMarcRecord(Record record) {
+    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+    if (parsedRecordContent.containsKey("fields")) {
+      JsonArray fields = parsedRecordContent.getJsonArray("fields");
+      JsonObject targetField = additionalFieldsConfig.getFieldByTag(AdditionalFieldsConfig.TAG_999);
+      JsonObject srsIdSubfield = new JsonObject().put("s", record.getId());
+      targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(srsIdSubfield);
+      fields.add(targetField);
+      record.getParsedRecord().setContent(parsedRecordContent.toString());
+    }
   }
 
   /**

@@ -1,10 +1,10 @@
 package org.folio.services.afterProcessing;
 
+import io.vertx.core.json.JsonObject;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Configuration for additional fields
@@ -13,27 +13,27 @@ import java.util.function.Function;
 public class AdditionalFieldsConfig {
 
   public static final String TAG_999 = "999";
-  private static final List<Field> fieldsStorage = Collections.singletonList(
-    new Field(
-      TAG_999,
-      "{\"" + TAG_999 + "\":{\"ind1\":\"f\",\"ind2\":\"f\",\"subfields\":[{\"i\":\"{instanceId}\"},{\"s\":\"{recordId}\"}]}}"
-    )
+  private static final List<Field> STORAGE = Collections.singletonList(
+    new Field(TAG_999, new JsonObject("{\"" + TAG_999 + "\":{\"ind1\":\"f\",\"ind2\":\"f\",\"subfields\":[]}}"))
   );
 
-  public String apply(String tag, Function<String, String> function) {
-    for (Field field : fieldsStorage) {
+  public JsonObject getFieldByTag(String tag) {
+    for (Field field : STORAGE) {
       if (field.getTag().equals(tag)) {
-        return function.apply(field.getContent());
+        return field.getContent();
       }
     }
     return null;
   }
 
+  /**
+   * Internal class helper to describe field structure
+   */
   private static class Field {
     private String tag;
-    private String content;
+    private JsonObject content;
 
-    public Field(String tag, String content) {
+    public Field(String tag, JsonObject content) {
       this.tag = tag;
       this.content = content;
     }
@@ -42,7 +42,7 @@ public class AdditionalFieldsConfig {
       return tag;
     }
 
-    public String getContent() {
+    public JsonObject getContent() {
       return content;
     }
   }
