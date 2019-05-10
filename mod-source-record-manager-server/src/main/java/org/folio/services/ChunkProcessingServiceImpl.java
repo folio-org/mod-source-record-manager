@@ -13,7 +13,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterProcessing.AfterProcessingService;
+import org.folio.services.afterprocessing.AfterProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

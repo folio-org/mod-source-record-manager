@@ -20,7 +20,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterProcessing.AdditionalFieldsConfig;
+import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.RecordParser;

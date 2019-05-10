@@ -1,4 +1,4 @@
-package org.folio.services.afterProcessing;
+package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -18,9 +18,6 @@ import org.springframework.stereotype.Component;
 public class AdditionalFieldsUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldsUtil.class);
 
-  public AdditionalFieldsUtil() {
-  }
-
   /**
    * Adds additional fields to records from processing context
    *
@@ -28,10 +25,8 @@ public class AdditionalFieldsUtil {
    * @param params  okapi connection params
    */
   public void addAdditionalFields(RecordProcessingContext context, OkapiConnectionParams params) {
-    if (!context.getRecordsContext().isEmpty()) {
-      if (Record.RecordType.MARC.equals(context.getRecordsType())) {
+    if (!context.getRecordsContext().isEmpty() && Record.RecordType.MARC.equals(context.getRecordsType())) {
         addAdditionalFieldsToMarcRecords(context, params);
-      }
     }
   }
 

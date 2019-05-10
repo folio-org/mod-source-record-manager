@@ -1,4 +1,4 @@
-package org.folio.services.afterProcessing;
+package org.folio.services.afterprocessing;
 
 import org.folio.rest.jaxrs.model.Record;
 

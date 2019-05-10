@@ -1,4 +1,4 @@
-package org.folio.services.afterProcessing;
+package org.folio.services.afterprocessing;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
@@ -37,7 +37,7 @@ public class AdditionalFieldsUtilTest {
   private static final String TENANT = "diku";
   private static final String TOKEN = "token";
   private static final String SOURCE_STORAGE_SERVICE_URL = "/source-storage/records/";
-  private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterProcessing/parsedRecord.json";
+  private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
 
   @Rule
   public WireMockRule mockServer =
@@ -111,24 +111,4 @@ public class AdditionalFieldsUtilTest {
       async.complete();
     });
   }
-
-
-  @Test
-  public void shouldGetRecordAddFieldsAndPutSuccessfully(TestContext testContext) throws IOException {
-    Async async = testContext.async();
-    // given
-    OkapiConnectionParams params = new OkapiConnectionParams(headers, vertx);
-    String recordId = UUID.randomUUID().toString();
-    String instanceId = UUID.randomUUID().toString();
-    Record record = new Record().withId(recordId);
-    WireMock.stubFor(WireMock.get(SOURCE_STORAGE_SERVICE_URL + recordId).willReturn(WireMock.ok(JsonObject.mapFrom(record).toString())));
-    WireMock.stubFor(WireMock.put(SOURCE_STORAGE_SERVICE_URL + recordId).willReturn(WireMock.ok()));
-    RecordProcessingContext processingContext = new RecordProcessingContext(Record.RecordType.MARC);
-    processingContext.addRecordContext(recordId, instanceId);
-
-    // when
-    additionalFieldsUtil.addAdditionalFields(processingContext, params);
-    async.complete();
-  }
-
 }

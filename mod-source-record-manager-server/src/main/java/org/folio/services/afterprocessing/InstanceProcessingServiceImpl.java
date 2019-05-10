@@ -1,4 +1,4 @@
-package org.folio.services.afterProcessing;
+package org.folio.services.afterprocessing;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -94,7 +93,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
             LOGGER.error("Error creating new Instance record", future.cause());
           } else {
             String location = responseResult.result().getResponse().getHeader(INSTANCE_LOCATION_RESPONSE_HEADER);
-            String id = location.substring(location.lastIndexOf("/") + 1);
+            String id = location.substring(location.lastIndexOf('/') + 1);
             future.complete(id);
           }
         } catch (Exception e) {
@@ -113,12 +112,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private List<Pair<Record, Instance>> mapToInstance(List<Record> records) {
     RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
-    return records.stream()
-      .map(record -> {
-        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        Pair<Record, Instance> recordInstancePair = new ImmutablePair<>(record, instance);
-        return recordInstancePair;
-      }).collect(Collectors.toList());
+    List<Pair<Record, Instance>> pairs = new ArrayList<>();
+    for (Record record : records) {
+      Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+      Pair<Record, Instance> recordInstancePair = new ImmutablePair<>(record, instance);
+      pairs.add(recordInstancePair);
+    }
+    return pairs;
   }
 
   /**

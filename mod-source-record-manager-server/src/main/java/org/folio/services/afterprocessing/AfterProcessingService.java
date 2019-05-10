@@ -1,4 +1,4 @@
-package org.folio.services.afterProcessing;
+package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
 import org.folio.dataimport.util.OkapiConnectionParams;
