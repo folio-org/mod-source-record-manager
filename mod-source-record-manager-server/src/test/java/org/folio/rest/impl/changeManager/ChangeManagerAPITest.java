@@ -833,7 +833,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.PARSING_FINISHED.name()));
+      // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+      .body("status", is(JobExecution.Status.COMMITTED.name()));
     async.complete();
   }
 

@@ -73,7 +73,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
       .compose(completed -> {
         if (completed) {
-          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_FINISHED, params)
+          // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.COMMITTED, params)
             .map(result -> true);
         }
         return Future.succeededFuture(true);
@@ -144,7 +145,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param records     - target parsed records
    * @param sourceChunk - source chunk
    * @param params      - OkapiConnectionParams to interact with external services
-   * @return
    */
   private Future<Void> postProcessRecords(List<Record> records, JobExecutionSourceChunk sourceChunk, OkapiConnectionParams params) {
     RecordProcessingContext context = new RecordProcessingContext(records);
