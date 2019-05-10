@@ -13,10 +13,8 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterProcessing.AfterProcessingService;
-import org.folio.services.afterProcessing.RecordProcessingContext;
+import org.folio.services.afterprocessing.AfterProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
@@ -35,22 +33,17 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private JobExecutionService jobExecutionService;
   private ChangeEngineService changeEngineService;
   private AfterProcessingService instanceProcessingService;
-  private AfterProcessingService additionalFieldsProcessingService;
 
   public ChunkProcessingServiceImpl(@Autowired Vertx vertx,
                                     @Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                     @Autowired JobExecutionService jobExecutionService,
                                     @Autowired ChangeEngineService changeEngineService,
-                                    @Autowired @Qualifier("instanceProcessingService")
-                                      AfterProcessingService instanceProcessingService,
-                                    @Autowired @Qualifier("additionalFieldsProcessingService")
-                                      AfterProcessingService additionalFieldsProcessingService) {
+                                    @Autowired AfterProcessingService instanceProcessingService) {
     this.vertx = vertx;
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.changeEngineService = changeEngineService;
     this.instanceProcessingService = instanceProcessingService;
-    this.additionalFieldsProcessingService = additionalFieldsProcessingService;
   }
 
   @Override
@@ -147,10 +140,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param params      - OkapiConnectionParams to interact with external services
    */
   private Future<Void> postProcessRecords(List<Record> records, JobExecutionSourceChunk sourceChunk, OkapiConnectionParams params) {
-    RecordProcessingContext context = new RecordProcessingContext(records);
     vertx.executeBlocking(blockingFuture ->
-        instanceProcessingService.process(context, sourceChunk.getId(), params)
-          .compose(ar -> additionalFieldsProcessingService.process(context, sourceChunk.getId(), params))
+        instanceProcessingService.process(records, sourceChunk.getId(), params)
           .setHandler(ar -> {
             if (ar.failed()) {
               String errorMessage = String.format("Fail to complete blocking future for post processing records {}", ar.cause());
