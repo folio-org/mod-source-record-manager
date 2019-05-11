@@ -20,7 +20,7 @@ public class AdditionalFieldsConfig {
   public JsonObject getFieldByTag(String tag) {
     for (Field field : STORAGE) {
       if (field.getTag().equals(tag)) {
-        return field.getContent();
+        return field.getContent().copy();
       }
     }
     return null;

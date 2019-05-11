@@ -65,8 +65,10 @@ public abstract class AbstractRestTest {
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
+  protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   protected static final String RECORDS_SERVICE_URL = "/source-storage/recordsCollection";
+  protected static final String RECORD_SERVICE_URL = "/source-storage/records";
   protected static final String INVENTORY_URL = "/inventory/instances";
 
   private JsonObject userResponse = new JsonObject()
@@ -142,7 +144,7 @@ public abstract class AbstractRestTest {
   }
 
   @Before
-  public void setUp(TestContext context) {
+  public void setUp(TestContext context) throws IOException {
     clearTable(context);
     String okapiUserIdHeader = UUID.randomUUID().toString();
     spec = new RequestSpecBuilder()
@@ -158,12 +160,19 @@ public abstract class AbstractRestTest {
     okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
     okapiHeaders.put(RestVerticle.OKAPI_HEADER_TOKEN, TOKEN);
     okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader);
+
+    String record = TestUtil.readFileFromPath(RECORD_PATH);
+
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
     WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
       .willReturn(WireMock.created()));
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.ok()));
+    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(record)));
     WireMock.stubFor(WireMock.post(INVENTORY_URL)
-      .willReturn(WireMock.created()));
+      .willReturn(WireMock.created().withHeader("location", UUID.randomUUID().toString())));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
