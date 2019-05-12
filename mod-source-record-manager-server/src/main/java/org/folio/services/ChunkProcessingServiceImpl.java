@@ -140,7 +140,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param params      - OkapiConnectionParams to interact with external services
    */
   private Future<Void> postProcessRecords(List<Record> records, JobExecutionSourceChunk sourceChunk, OkapiConnectionParams params) {
-    Future<Void> future = Future.future();
     vertx.executeBlocking(blockingFuture ->
         instanceProcessingService.process(records, sourceChunk.getId(), params)
           .setHandler(ar -> {
@@ -154,7 +153,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
           })
       ,
       false,
-      future.completer());
-    return future;
+      null);
+    return Future.succeededFuture();
   }
 }
