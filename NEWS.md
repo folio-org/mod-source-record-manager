@@ -1,4 +1,4 @@
-## 2019-05-03 v1.3.0-SNAPSHOT
+## 2019-05-12 v1.3.0
  * Borrowed mapping of MARC to Instance logic from mod-data-loader. After parsing Records are mapped to Instances and saved in mod-inventory.
  * Added support for records coming for processing in json format.
  * Applied logic for expanding parsed MARC records with additional custom fields (999 field)
