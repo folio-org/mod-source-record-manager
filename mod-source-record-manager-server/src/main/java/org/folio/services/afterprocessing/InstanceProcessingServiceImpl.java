@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -92,9 +93,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
           if (!RestUtil.validateAsyncResult(responseResult, future)) {
             LOGGER.error("Error creating new Instance record", future.cause());
           } else {
-            String location = responseResult.result().getResponse().getHeader(INSTANCE_LOCATION_RESPONSE_HEADER);
-            String id = location.substring(location.lastIndexOf('/') + 1);
-            future.complete(id);
+            if (StringUtils.isNotEmpty(instance.getId())) {
+              String instanceId = instance.getId();
+              future.complete(instanceId);
+            } else {
+              String location = responseResult.result().getResponse().getHeader(INSTANCE_LOCATION_RESPONSE_HEADER);
+              String instanceId = location.substring(location.lastIndexOf('/') + 1);
+              future.complete(instanceId);
+            }
           }
         } catch (Exception e) {
           LOGGER.error("Error during post for new Instance", e);
