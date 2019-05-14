@@ -55,4 +55,11 @@ public interface JobExecutionSourceChunkDao {
    */
   Future<Boolean> delete(String id, String tenantId);
 
+  /**
+   * @param jobExecutionId - UUID of related JobExecution
+   * @param tenantId       - tenantId
+   * @return - return boolean value is all {@link JobExecutionSourceChunk} related to one jobExecution have status COMPLETED
+   */
+  Future<Boolean> isAllChunksCompleted(String jobExecutionId, String tenantId);
+
 }
