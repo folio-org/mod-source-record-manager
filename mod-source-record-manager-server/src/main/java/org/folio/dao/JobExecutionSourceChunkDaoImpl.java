@@ -3,11 +3,13 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
+import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,5 +104,33 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
     Future<UpdateResult> future = Future.future();
     pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id, future.completer());
     return future.map(updateResult -> updateResult.getUpdated() == 1);
+  }
+
+  @Override
+  public Future<Boolean> isAllChunksCompleted(String jobExecutionId, String tenantId) {
+    Future<ResultSet> future = Future.future();
+
+    StringBuilder subQuery = new StringBuilder("(SELECT count(_id) FROM ") //NOSONAR
+      .append(PostgresClient.convertToPsqlStandard(tenantId))
+      .append(".")
+      .append(TABLE_NAME)
+      .append(" WHERE jsonb->>'jobExecutionId' ='")
+      .append(jobExecutionId)
+      .append("')");
+
+    StringBuilder selectQuery = new StringBuilder("SELECT count(_id) = ") //NOSONAR
+      .append(subQuery)
+      .append(" as result FROM ")
+      .append(PostgresClient.convertToPsqlStandard(tenantId))
+      .append(".")
+      .append(TABLE_NAME)
+      .append(" WHERE jsonb->>'jobExecutionId' ='")
+      .append(jobExecutionId)
+      .append("' AND jsonb->>'state' ='")
+      .append(JobExecutionSourceChunk.State.COMPLETED.value())
+      .append("';");
+
+    pgClientFactory.createInstance(tenantId).select(selectQuery.toString(), future.completer());
+    return future.map(resultSet -> resultSet.getRows().get(0).getBoolean("result"));
   }
 }

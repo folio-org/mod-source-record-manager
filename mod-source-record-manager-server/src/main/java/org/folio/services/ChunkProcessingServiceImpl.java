@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
-
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessingServiceImpl.class);
@@ -68,6 +66,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         if (completed) {
           // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.COMMITTED, params)
+            .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
             .map(result -> true);
         }
         return Future.succeededFuture(true);
@@ -125,8 +124,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
-          return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId, 0, Integer.MAX_VALUE, tenantId)
-            .map(list -> list.stream().filter(chunk -> COMPLETED.equals(chunk.getState())).count() == list.size());
+          return jobExecutionSourceChunkDao.isAllChunksCompleted(jobExecutionId, tenantId);
         }
         return Future.succeededFuture(false);
       });

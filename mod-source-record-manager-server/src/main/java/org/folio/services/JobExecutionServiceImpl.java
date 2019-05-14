@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -50,6 +51,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
   @Autowired
   private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
+  private Random random = new Random();
 
   @Override
   public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
@@ -218,6 +220,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, String parentJobExecutionId, String fileName, String userId) {
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
+      // stub hrId
+      .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
       .withUserId(userId);
