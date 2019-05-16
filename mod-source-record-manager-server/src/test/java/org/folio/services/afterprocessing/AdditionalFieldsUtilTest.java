@@ -26,8 +26,6 @@ public class AdditionalFieldsUtilTest {
     // given
     String recordId = UUID.randomUUID().toString();
     String instanceId = UUID.randomUUID().toString();
-    RecordProcessingContext recordProcessingContext = new RecordProcessingContext(Record.RecordType.MARC);
-    recordProcessingContext.addRecordContext(recordId, instanceId);
 
     String parsedRecordContent = FileUtils.readFileToString(new File(PARSED_RECORD_PATH), "UTF-8");
     ParsedRecord parsedRecord = new ParsedRecord();
