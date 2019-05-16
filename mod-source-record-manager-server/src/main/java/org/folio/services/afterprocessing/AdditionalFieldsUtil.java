@@ -17,11 +17,11 @@ public class AdditionalFieldsUtil {
    * Adds inventory instance id into MARC record
    *
    * @param record     record
-   * @param instanceId UUID of Instance entity in mod-inventory
+   * @param instanceId UUID of Instance entity
    */
   public Future<Record> addInstanceIdToMarcRecord(Record record, String instanceId) {
     if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-      JsonObject parsedRecordContent = JsonObject.mapFrom(new ObjectMapper().convertValue(record.getParsedRecord().getContent(), JsonObject.class));
+      JsonObject parsedRecordContent = JsonObject.mapFrom(record.getParsedRecord().getContent());
       if (parsedRecordContent.containsKey("fields")) {
         JsonArray fields = parsedRecordContent.getJsonArray("fields");
         for (int i = fields.size(); i-- > 0; ) {
