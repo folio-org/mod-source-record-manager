@@ -1,6 +1,6 @@
 package org.folio.services.afterprocessing;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
+
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -12,8 +12,6 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.commons.io.FileUtils;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.junit.Before;
@@ -36,7 +34,6 @@ public class AdditionalFieldsUtilTest {
 
   private static final String TENANT = "diku";
   private static final String TOKEN = "token";
-  private static final String SOURCE_STORAGE_SERVICE_URL = "/source-storage/records/";
   private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
 
   @Rule
@@ -67,7 +64,7 @@ public class AdditionalFieldsUtilTest {
     parsedRecord.setContent(parsedRecordContent);
     Record record = new Record().withId(recordId).withParsedRecord(parsedRecord);
     // when
-    Future<Record> future = additionalFieldsUtil.putInstanceIdToMarcRecord(record, recordProcessingContext.getRecordsContext().get(0));
+    Future<Record> future = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
     // then
     future.setHandler(ar -> {
       testContext.assertTrue(ar.succeeded());
@@ -89,26 +86,6 @@ public class AdditionalFieldsUtilTest {
           }
         }
       }
-    });
-  }
-
-  @Test
-  public void shouldGetRecordById(TestContext testContext) throws IOException {
-    Async async = testContext.async();
-    // given
-    OkapiConnectionParams params = new OkapiConnectionParams(headers, vertx);
-    SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-    String recordId = UUID.randomUUID().toString();
-    Record record = new Record().withId(recordId);
-    WireMock.stubFor(WireMock.get(SOURCE_STORAGE_SERVICE_URL + recordId).willReturn(WireMock.ok(JsonObject.mapFrom(record).toString())));
-    // when
-    Future<Record> future = additionalFieldsUtil.getRecordById(recordId, sourceStorageClient);
-    // then
-    future.setHandler(ar -> {
-      testContext.assertTrue(ar.succeeded());
-      Record actualRecord = ar.result();
-      testContext.assertEquals(record.getId(), actualRecord.getId());
-      async.complete();
     });
   }
 }
