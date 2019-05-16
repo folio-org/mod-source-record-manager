@@ -4,7 +4,8 @@
   "type": "object",
   "properties": {
     "@context": {
-      "type": "string"
+      "type": "string",
+      "description": "context"
     },
     "id": {
       "type": "string",
@@ -20,6 +21,7 @@
     },
     "parentInstances": {
       "type": "array",
+      "description": "parentInstances",
       "items": {
         "type": "object",
         "properties": {
@@ -27,10 +29,12 @@
             "type": "string"
           },
           "superInstanceId": {
-            "type": "string"
+            "type": "string",
+            "description": "superInstanceId"
           },
           "instanceRelationshipTypeId": {
-            "type": "string"
+            "type": "string",
+            "description": "instanceRelationshipTypeId"
           }
         },
         "additionalProperties": false,
@@ -42,6 +46,7 @@
     },
     "childInstances": {
       "type": "array",
+      "description": "childInstances",
       "items": {
         "type": "object",
         "properties": {
@@ -49,10 +54,12 @@
             "type": "string"
           },
           "subInstanceId": {
-            "type": "string"
+            "type": "string",
+            "description": "subInstanceId"
           },
           "instanceRelationshipTypeId": {
-            "type": "string"
+            "type": "string",
+            "description": "instanceRelationshipTypeId"
           }
         },
         "additionalProperties": false,
@@ -349,6 +356,7 @@
     },
     "links": {
       "type": "object",
+      "description": "links",
       "properties": {
         "self": {
           "type": "string"
