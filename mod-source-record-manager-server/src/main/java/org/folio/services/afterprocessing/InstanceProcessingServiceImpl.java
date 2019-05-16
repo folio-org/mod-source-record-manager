@@ -75,7 +75,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
             .orElseThrow(() -> new NotFoundException(String.format(
               "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
       }
-      // Immediately complete future in order to do not wait for processing async result
+      // Immediately complete future in order to do not wait for processing of async result
       future.complete();
     });
     return future;
