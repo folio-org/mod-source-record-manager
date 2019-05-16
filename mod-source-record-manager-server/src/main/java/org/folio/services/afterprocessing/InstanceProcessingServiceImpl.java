@@ -74,10 +74,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
             .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
             .orElseThrow(() -> new NotFoundException(String.format(
               "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
-        future.complete();
-      } else {
-        future.complete();
       }
+      // Immediately complete future in order to do not wait for processing async result
+      future.complete();
     });
     return future;
   }
