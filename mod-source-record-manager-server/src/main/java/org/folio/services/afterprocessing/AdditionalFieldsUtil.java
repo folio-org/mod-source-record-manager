@@ -1,5 +1,7 @@
 package org.folio.services.afterprocessing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,6 +12,9 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.Record;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Util to work with additional fields
@@ -24,10 +29,11 @@ public class AdditionalFieldsUtil {
    * @param context records processing context
    * @param params  okapi connection params
    */
-  public void addAdditionalFields(RecordProcessingContext context, OkapiConnectionParams params) {
+  public Future<Void> addAdditionalFields(RecordProcessingContext context, OkapiConnectionParams params) {
     if (!context.getRecordsContext().isEmpty() && Record.RecordType.MARC.equals(context.getRecordsType())) {
-        addAdditionalFieldsToMarcRecords(context, params);
+       return addAdditionalFieldsToMarcRecords(context, params);
     }
+    return Future.succeededFuture();
   }
 
   /**
@@ -36,13 +42,24 @@ public class AdditionalFieldsUtil {
    * @param processingContext context object with records and properties
    * @param params            OKAPI connection params
    */
-  private void addAdditionalFieldsToMarcRecords(RecordProcessingContext processingContext, OkapiConnectionParams params) {
+  private Future<Void> addAdditionalFieldsToMarcRecords(RecordProcessingContext processingContext, OkapiConnectionParams params) {
+    Future<Void> future = Future.future();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    List<Future> updatedRecordsFuture = new ArrayList<>();
     for (RecordProcessingContext.RecordContext recordContext : processingContext.getRecordsContext()) {
-      getRecordById(recordContext.getRecordId(), client)
+      updatedRecordsFuture.add(getRecordById(recordContext.getRecordId(), client)
         .compose(record -> putInstanceIdToMarcRecord(record, recordContext))
-        .compose(record -> updateRecord(record, client));
+        .compose(record -> updateRecord(record, client)));
     }
+    CompositeFuture.all(updatedRecordsFuture).setHandler(ar -> {
+      if (ar.failed()) {
+        LOGGER.error("Failed to add additional fields for MARC records", ar.cause());
+        future.fail(ar.cause());
+      } else {
+        future.complete();
+      }
+    });
+    return future;
   }
 
   /**
@@ -79,7 +96,8 @@ public class AdditionalFieldsUtil {
    * @param recordContext context object with record and properties
    */
   protected Future<Record> putInstanceIdToMarcRecord(Record record, RecordProcessingContext.RecordContext recordContext) {
-    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+    //TODO make sure there is no NPE
+    JsonObject parsedRecordContent = JsonObject.mapFrom(new ObjectMapper().convertValue(record.getParsedRecord().getContent(), JsonObject.class));
     if (parsedRecordContent.containsKey("fields")) {
       JsonArray fields = parsedRecordContent.getJsonArray("fields");
       for (int i = fields.size(); i-- > 0; ) {

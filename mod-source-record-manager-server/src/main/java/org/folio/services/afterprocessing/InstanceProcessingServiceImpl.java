@@ -45,7 +45,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
-      Future.succeededFuture();
+      return Future.succeededFuture();
     }
     Future<Void> future = Future.future();
     List<Future> createRecordsFuture = new ArrayList<>();
@@ -60,6 +60,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       });
       createRecordsFuture.add(postInstanceFuture);
     });
+    //TODO get rid of the composite future here
     CompositeFuture.all(createRecordsFuture)
       .setHandler(result -> {
         if (result.failed()) {
@@ -69,10 +70,16 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
-          future.fail(result.cause());
-        } else {
-          additionalInstanceFieldsUtil.addAdditionalFields(processingContext, params);
+          //complete in order to proceed with parsing
           future.complete();
+        } else {
+          additionalInstanceFieldsUtil.addAdditionalFields(processingContext, params).setHandler(ar -> {
+            if (ar.failed()) {
+              future.fail(ar.cause());
+            } else {
+              future.complete();
+            }
+          });
         }
       });
     return future;
