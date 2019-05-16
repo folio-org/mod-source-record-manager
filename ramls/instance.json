@@ -344,7 +344,7 @@
     },
     "metadata": {
       "type": "object",
-      "$ref": "raml-util/schemas/metadata.schema",
+      "$ref": "raml-storage/raml-util/schemas/metadata.schema",
       "readonly": true
     },
     "links": {
