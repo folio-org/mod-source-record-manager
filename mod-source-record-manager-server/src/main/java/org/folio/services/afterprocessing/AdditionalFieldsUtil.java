@@ -21,7 +21,7 @@ public class AdditionalFieldsUtil {
    */
   public Future<Record> addInstanceIdToMarcRecord(Record record, String instanceId) {
     if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-      JsonObject parsedRecordContent = JsonObject.mapFrom(record.getParsedRecord().getContent());
+      JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
       if (parsedRecordContent.containsKey("fields")) {
         JsonArray fields = parsedRecordContent.getJsonArray("fields");
         for (int i = fields.size(); i-- > 0; ) {
