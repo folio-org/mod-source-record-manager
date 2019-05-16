@@ -359,7 +359,8 @@
       "description": "links",
       "properties": {
         "self": {
-          "type": "string"
+          "type": "string",
+          "description": "self"
         }
       },
       "additionalProperties": false,
