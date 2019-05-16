@@ -1,9 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -22,20 +19,15 @@ import java.util.UUID;
 
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessingServiceImpl.class);
-
-  private Vertx vertx;
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private ChangeEngineService changeEngineService;
   private AfterProcessingService instanceProcessingService;
 
-  public ChunkProcessingServiceImpl(@Autowired Vertx vertx,
-                                    @Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+  public ChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                     @Autowired JobExecutionService jobExecutionService,
                                     @Autowired ChangeEngineService changeEngineService,
                                     @Autowired AfterProcessingService instanceProcessingService) {
-    this.vertx = vertx;
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.changeEngineService = changeEngineService;
