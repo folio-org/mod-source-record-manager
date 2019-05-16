@@ -57,11 +57,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         Future postInstanceFuture = postInstance(instance, params)
           .compose(instanceId -> {
             if (Record.RecordType.MARC.equals(record.getRecordType())) {
-              return additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId)
-                .compose(recordWithAdditionalFields -> updateRecord(recordWithAdditionalFields, sourceStorageClient));
-            } else {
-              return Future.succeededFuture();
+              boolean addedInstanceId = additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+              if (addedInstanceId) {
+                return updateRecord(record, sourceStorageClient);
+              }
             }
+            return Future.succeededFuture();
           });
         postInstanceFutureList.add(postInstanceFuture);
       }
