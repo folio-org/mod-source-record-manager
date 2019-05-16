@@ -79,4 +79,19 @@ public class AdditionalFieldsUtilTest {
     Assert.assertNotNull(record.getParsedRecord().getContent());
     Assert.assertEquals(StringUtils.EMPTY, record.getParsedRecord().getContent());
   }
+
+  @Test
+  public void shouldNotAddInstanceIdSubfieldIfCanNotConvertParsedContentToJsonObject() {
+    // given
+    Record record = new Record();
+    record.setParsedRecord(new ParsedRecord().withContent("{fields}"));
+    String instanceId = UUID.randomUUID().toString();
+    // when
+    boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+    // then
+    Assert.assertFalse(added);
+    Assert.assertNotNull(record.getParsedRecord());
+    Assert.assertNotNull(record.getParsedRecord().getContent());
+    Assert.assertEquals("{fields}", record.getParsedRecord().getContent());
+  }
 }
