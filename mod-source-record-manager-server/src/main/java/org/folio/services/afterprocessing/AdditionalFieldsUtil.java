@@ -28,24 +28,23 @@ public class AdditionalFieldsUtil {
       if (content != null) {
         String stringContent = content.toString();
         if (StringUtils.isNotEmpty(stringContent)) {
-          JsonObject jsonContent = null;
           try {
-            jsonContent = new JsonObject(stringContent);
-          } catch (Exception exception) {
-            LOGGER.error("Can not convert parsed record content to JsonObject. Cause:{}", exception.getCause());
-            return false;
-          }
-          if (jsonContent.containsKey("fields")) {
-            JsonArray fields = jsonContent.getJsonArray("fields");
-            for (int i = fields.size(); i-- > 0; ) {
-              JsonObject targetField = fields.getJsonObject(i);
-              if (targetField.containsKey(AdditionalFieldsConfig.TAG_999)) {
-                JsonObject instanceIdSubField = new JsonObject().put("i", instanceId);
-                targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(instanceIdSubField);
-                record.getParsedRecord().setContent(jsonContent.toString());
-                return true;
+            JsonObject jsonContent = new JsonObject(stringContent);
+            if (jsonContent.containsKey("fields")) {
+              JsonArray fields = jsonContent.getJsonArray("fields");
+              for (int i = fields.size(); i-- > 0; ) {
+                JsonObject targetField = fields.getJsonObject(i);
+                if (targetField.containsKey(AdditionalFieldsConfig.TAG_999)) {
+                  JsonObject instanceIdSubField = new JsonObject().put("i", instanceId);
+                  targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(instanceIdSubField);
+                  record.getParsedRecord().setContent(jsonContent.toString());
+                  return true;
+                }
               }
             }
+          } catch (Exception exception) {
+            LOGGER.error("Can not convert parsed record content to JsonObject. Cause:{}", exception.getMessage());
+            return false;
           }
         }
       }

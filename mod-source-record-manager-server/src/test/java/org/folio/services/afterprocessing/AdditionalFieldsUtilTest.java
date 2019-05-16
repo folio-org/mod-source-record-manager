@@ -69,7 +69,8 @@ public class AdditionalFieldsUtilTest {
   public void shouldNotAddInstanceIdSubfieldIfNoFieldsInParsedRecordContent() {
     // given
     Record record = new Record();
-    record.setParsedRecord(new ParsedRecord().withContent(StringUtils.EMPTY));
+    String content = StringUtils.EMPTY;
+    record.setParsedRecord(new ParsedRecord().withContent(content));
     String instanceId = UUID.randomUUID().toString();
     // when
     boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
@@ -77,14 +78,15 @@ public class AdditionalFieldsUtilTest {
     Assert.assertFalse(added);
     Assert.assertNotNull(record.getParsedRecord());
     Assert.assertNotNull(record.getParsedRecord().getContent());
-    Assert.assertEquals(StringUtils.EMPTY, record.getParsedRecord().getContent());
+    Assert.assertEquals(content, record.getParsedRecord().getContent());
   }
 
   @Test
   public void shouldNotAddInstanceIdSubfieldIfCanNotConvertParsedContentToJsonObject() {
     // given
     Record record = new Record();
-    record.setParsedRecord(new ParsedRecord().withContent("{fields}"));
+    String content = "{fields}";
+    record.setParsedRecord(new ParsedRecord().withContent(content));
     String instanceId = UUID.randomUUID().toString();
     // when
     boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
@@ -92,6 +94,51 @@ public class AdditionalFieldsUtilTest {
     Assert.assertFalse(added);
     Assert.assertNotNull(record.getParsedRecord());
     Assert.assertNotNull(record.getParsedRecord().getContent());
-    Assert.assertEquals("{fields}", record.getParsedRecord().getContent());
+    Assert.assertEquals(content, record.getParsedRecord().getContent());
+  }
+
+  @Test
+  public void shouldNotAddInstanceIdSubfieldIfContentHasNoFields() {
+    // given
+    Record record = new Record();
+    String content = "{\"leader\":\"01240cas a2200397\"}";
+    record.setParsedRecord(new ParsedRecord().withContent(content));
+    String instanceId = UUID.randomUUID().toString();
+    // when
+    boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+    // then
+    Assert.assertFalse(added);
+    Assert.assertNotNull(record.getParsedRecord());
+    Assert.assertNotNull(record.getParsedRecord().getContent());
+    Assert.assertEquals(content, record.getParsedRecord().getContent());
+  }
+
+  @Test
+  public void shouldNotAddInstanceIdSubfieldIfContentIsNull() {
+    // given
+    Record record = new Record();
+    record.setParsedRecord(new ParsedRecord().withContent(null));
+    String instanceId = UUID.randomUUID().toString();
+    // when
+    boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+    // then
+    Assert.assertFalse(added);
+    Assert.assertNotNull(record.getParsedRecord());
+    Assert.assertNull(record.getParsedRecord().getContent());
+  }
+
+  @Test
+  public void shouldNotAddInstanceIdSubfieldIfNo999Field() {
+    // given
+    Record record = new Record();
+    String content = "{\"fields\":\"[]\"}";
+    record.setParsedRecord(new ParsedRecord().withContent(content));
+    String instanceId = UUID.randomUUID().toString();
+    // when
+    boolean added = additionalFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+    // then
+    Assert.assertFalse(added);
+    Assert.assertNotNull(record.getParsedRecord());
+    Assert.assertEquals(content, record.getParsedRecord().getContent());
   }
 }
