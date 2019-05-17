@@ -2,8 +2,8 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
