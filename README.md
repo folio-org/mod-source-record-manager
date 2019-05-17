@@ -129,3 +129,178 @@ Example of sending a request to the mod-source-record-manager
 
 See project [MODSOURMAN](https://issues.folio.org/browse/MODSOURMAN)
 at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker/).
+
+
+## Data import workflow
+In order importing data to folio system without using mod-data-import file uploading functional, mod-source-record-manager
+provides such ability in appropriate endpoints.
+In this case should follow this steps:
+1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
+2. Send RawRecordsDto containing records list and field last=false.
+3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total amount sent field in field "counter".
+
+### Create JobExecution
+
+Parsing records starts from creating Job Execution. 
+Send POST request with InitJobExecutionsRqDto.
+```
+curl -w '\n' -X POST -D -   \
+   -H "Content-type: application/json"   \
+   -H "x-okapi-tenant: diku"  \
+   -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
+   -d @initJobExecutionsRqDto.json \
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions
+```
+
+##### initJobExecutionsRqDto.json
+
+```
+{
+    "files": [],
+    "sourceType": "ONLINE",
+    "jobProfileInfo": {
+      "id": "c8f98545-898c-4f48-a494-3ab6736a3243",
+      "name": "Default job profile",
+      "dataType": "MARC"
+    },
+    "userId": "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+}
+```
+
+##### Response with JobExecution entity
+
+```
+{
+  "parentJobExecutionId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+  "jobExecutions" : [ {
+    "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+    "hrId" : "86030",
+    "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+    "subordinationType" : "PARENT_SINGLE",
+    "jobProfileInfo" : {
+      "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
+      "name" : "Default job profile",
+      "dataType" : "MARC"
+    },
+    "status" : "NEW",
+    "uiStatus" : "INITIALIZATION",
+    "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+  } ]
+}
+```
+
+### Post raw records to parsing
+
+To initiate records parsing should send POST request containing RawRecordsDto, wich contains raw records list ("records" field)
+to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. 
+{jobExecutionId} - JobExecution id, which can be retrieved from response of previous request.
+```
+curl -w '\n' -X POST -D -   \
+   -H "Content-type: application/json"   \
+   -H "Accept: text/plain, application/json"   \
+   -H "x-okapi-tenant: diku"  \
+   -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
+   -d @rawRecordsDto.json \
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+```
+
+##### rawRecordsDto.json
+
+```
+{
+  "last": false,
+  "counter": 3,
+  "records": [
+    "01240cas a2200397   4500001000700000005001700007008004100024010001700065022001400082035002600096035002200122035001100144035001900155040004400174050001500218082001100233222004200244245004300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561655004200606700004500648853001800693863002300711902001600734905002100750948003700771950003400808\u001E366832\u001E20141106221425.0\u001E750907c19509999enkqr p       0   a0eng d\u001E  \u001Fa   58020553 \u001E  \u001Fa0022-0469\u001E  \u001Fa(CStRLIN)NYCX1604275S\u001E  \u001Fa(NIC)notisABP6388\u001E  \u001Fa366832\u001E  \u001Fa(OCoLC)1604275\u001E  \u001FdCtY\u001FdMBTI\u001FdCtY\u001FdMBTI\u001FdNIC\u001FdCStRLIN\u001FdNIC\u001E0 \u001FaBR140\u001Fb.J6\u001E  \u001Fa270.05\u001E04\u001FaThe Journal of ecclesiastical history\u001E04\u001FaThe Journal of ecclesiastical history.\u001E  \u001FaLondon,\u001FbCambridge University Press [etc.]\u001E  \u001Fa32 East 57th St., New York, 10022\u001E  \u001Fav.\u001Fb25 cm.\u001E  \u001FaQuarterly,\u001Fb1970-\u001E  \u001FaSemiannual,\u001Fb1950-69\u001E0 \u001Fav. 1-   Apr. 1950-\u001E  \u001FaEditor:   C. W. Dugmore.\u001E 0\u001FaChurch history\u001FxPeriodicals.\u001E 7\u001FaChurch history\u001F2fast\u001F0(OCoLC)fst00860740\u001E 7\u001FaPeriodicals\u001F2fast\u001F0(OCoLC)fst01411641\u001E1 \u001FaDugmore, C. W.\u001Fq(Clifford William),\u001Feed.\u001E03\u001F81\u001Fav.\u001Fi(year)\u001E40\u001F81\u001Fa1-49\u001Fi1950-1998\u001E  \u001Fapfnd\u001FbLintz\u001E  \u001Fa19890510120000.0\u001E2 \u001Fa20141106\u001Fbm\u001Fdbatch\u001Felts\u001Fxaddfast\u001E  \u001FlOLIN\u001FaBR140\u001Fb.J86\u001Fh01/01/01 N\u001E\u001D01542ccm a2200361   ",     
+    "01240cas a2200397   4500001000700000005001700007008004100024010001700065022001400082035002600096035002200122035001100144035001900155040004400174050001500218082001100233222004200244245004300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561655004200606700004500648853001800693863002300711902001600734905002100750948003700771950003400808\u001E366832\u001E20141106221425.0\u001E750907c19509999enkqr p       0   a0eng d\u001E  \u001Fa   58020553 \u001E  \u001Fa0022-0469\u001E  \u001Fa(CStRLIN)NYCX1604275S\u001E  \u001Fa(NIC)notisABP6388\u001E  \u001Fa366832\u001E  \u001Fa(OCoLC)1604275\u001E  \u001FdCtY\u001FdMBTI\u001FdCtY\u001FdMBTI\u001FdNIC\u001FdCStRLIN\u001FdNIC\u001E0 \u001FaBR140\u001Fb.J6\u001E  \u001Fa270.05\u001E04\u001FaThe Journal of ecclesiastical history\u001E04\u001FaThe Journal of ecclesiastical history.\u001E  \u001FaLondon,\u001FbCambridge University Press [etc.]\u001E  \u001Fa32 East 57th St., New York, 10022\u001E  \u001Fav.\u001Fb25 cm.\u001E  \u001FaQuarterly,\u001Fb1970-\u001E  \u001FaSemiannual,\u001Fb1950-69\u001E0 \u001Fav. 1-   Apr. 1950-\u001E  \u001FaEditor:   C. W. Dugmore.\u001E 0\u001FaChurch history\u001FxPeriodicals.\u001E 7\u001FaChurch history\u001F2fast\u001F0(OCoLC)fst00860740\u001E 7\u001FaPeriodicals\u001F2fast\u001F0(OCoLC)fst01411641\u001E1 \u001FaDugmore, C. W.\u001Fq(Clifford William),\u001Feed.\u001E03\u001F81\u001Fav.\u001Fi(year)\u001E40\u001F81\u001Fa1-49\u001Fi1950-1998\u001E  \u001Fapfnd\u001FbLintz\u001E  \u001Fa19890510120000.0\u001E2 \u001Fa20141106\u001Fbm\u001Fdbatch\u001Felts\u001Fxaddfast\u001E  \u001FlOLIN\u001FaBR140\u001Fb.J86\u001Fh01/01/01 N\u001E\u001D01542ccm a2200361   ",     
+    "01240cas a2200397   4500001000700000005001700007008004100024010001700065022001400082035002600096035002200122035001100144035001900155040004400174050001500218082001100233222004200244245004300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561655004200606700004500648853001800693863002300711902001600734905002100750948003700771950003400808\u001E366832\u001E20141106221425.0\u001E750907c19509999enkqr p       0   a0eng d\u001E  \u001Fa   58020553 \u001E  \u001Fa0022-0469\u001E  \u001Fa(CStRLIN)NYCX1604275S\u001E  \u001Fa(NIC)notisABP6388\u001E  \u001Fa366832\u001E  \u001Fa(OCoLC)1604275\u001E  \u001FdCtY\u001FdMBTI\u001FdCtY\u001FdMBTI\u001FdNIC\u001FdCStRLIN\u001FdNIC\u001E0 \u001FaBR140\u001Fb.J6\u001E  \u001Fa270.05\u001E04\u001FaThe Journal of ecclesiastical history\u001E04\u001FaThe Journal of ecclesiastical history.\u001E  \u001FaLondon,\u001FbCambridge University Press [etc.]\u001E  \u001Fa32 East 57th St., New York, 10022\u001E  \u001Fav.\u001Fb25 cm.\u001E  \u001FaQuarterly,\u001Fb1970-\u001E  \u001FaSemiannual,\u001Fb1950-69\u001E0 \u001Fav. 1-   Apr. 1950-\u001E  \u001FaEditor:   C. W. Dugmore.\u001E 0\u001FaChurch history\u001FxPeriodicals.\u001E 7\u001FaChurch history\u001F2fast\u001F0(OCoLC)fst00860740\u001E 7\u001FaPeriodicals\u001F2fast\u001F0(OCoLC)fst01411641\u001E1 \u001FaDugmore, C. W.\u001Fq(Clifford William),\u001Feed.\u001E03\u001F81\u001Fav.\u001Fi(year)\u001E40\u001F81\u001Fa1-49\u001Fi1950-1998\u001E  \u001Fapfnd\u001FbLintz\u001E  \u001Fa19890510120000.0\u001E2 \u001Fa20141106\u001Fbm\u001Fdbatch\u001Felts\u001Fxaddfast\u001E  \u001FlOLIN\u001FaBR140\u001Fb.J86\u001Fh01/01/01 N\u001E\u001D01542ccm a2200361   "     
+  ]
+}
+```
+
+##### Response
+If the records parsing is successfully initiated, there won't be any content in the response (HTTP status 204).
+
+JobExecution entity will be have following changed state
+```
+{
+  "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+  "hrId" : "86030",
+  "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+  "subordinationType" : "PARENT_SINGLE",
+  "jobProfileInfo" : {
+    "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
+    "name" : "Default job profile",
+    "dataType" : "MARC"
+  },
+  "runBy" : {
+    "firstName" : "DIKU",
+    "lastName" : "ADMINISTRATOR"
+  },
+  "progress" : {
+    "current" : 1000,
+    "total" : 1000
+  },
+  "startedDate" : "2019-05-15T14:36:00.776+0000",
+  "status" : "PARSING_IN_PROGRESS",
+  "uiStatus" : "PREPARING_FOR_PREVIEW",
+  "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+}
+```
+
+### Finishing raw records parsing
+To indicate end of raw records transfering for parsing should send POST request containing last RawRecordsDto
+to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. 
+{jobExecutionId} - JobExecution id, which can be retrieved from response of JobExecution creation request.
+The last RawRecordsDto should contains empty raw records list ("records" field) and field "last" = true.
+
+```
+curl -w '\n' -X POST -D -   \
+   -H "Content-type: application/json"   \
+   -H "Accept: text/plain, application/json"   \
+   -H "x-okapi-tenant: diku"  \
+   -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
+   -d @lastRawRecordsDto.json \
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+```
+
+##### lastRawRecordsDto.json
+
+```
+{
+  "last": true,
+  "counter": 3,
+  "records": []
+}
+```
+
+##### Response
+Successful response won't have any content (HTTP status 204).
+
+JobExecution entity will be have following changed state
+```
+{
+  "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+  "hrId" : "86030",
+  "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
+  "subordinationType" : "PARENT_SINGLE",
+  "jobProfileInfo" : {
+    "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
+    "name" : "Default job profile",
+    "dataType" : "MARC"
+  },
+  "runBy" : {
+    "firstName" : "DIKU",
+    "lastName" : "ADMINISTRATOR"
+  },
+  "progress" : {
+    "current" : 1000,
+    "total" : 1000
+  },
+  "startedDate" : "2019-05-15T14:36:00.776+0000",
+  "completedDate" : "2019-05-15T14:56:23.387+0000",
+  "status" : "COMMITTED",
+  "uiStatus" : "RUNNING_COMPLETE",
+  "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+}
+```
