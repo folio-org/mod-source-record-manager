@@ -48,26 +48,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       return Future.succeededFuture();
     }
     Future<Void> future = Future.future();
-    List<Future> postInstanceFutureList = new ArrayList<>();
+    List<Future> processRecordFutures = new ArrayList<>();
     RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
     SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     for (Record record : records) {
-      if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        Future postInstanceFuture = postInstance(instance, params)
-          .compose(instanceId -> {
-            if (Record.RecordType.MARC.equals(record.getRecordType())) {
-              boolean addedInstanceId = additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
-              if (addedInstanceId) {
-                return updateRecord(record, sourceStorageClient);
-              }
-            }
-            return Future.succeededFuture();
-          });
-        postInstanceFutureList.add(postInstanceFuture);
-      }
+      processRecordFutures.add(processRecordForInstance(record, mapper, sourceStorageClient, params));
     }
-    CompositeFuture.all(postInstanceFutureList).setHandler(result -> {
+    CompositeFuture.all(processRecordFutures).setHandler(result -> {
       if (result.failed()) {
         LOGGER.error("Couldn't create Instance in mod-inventory", result.cause());
         jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
@@ -80,6 +67,41 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       future.complete();
     });
     return future;
+  }
+
+  /**
+   * Performs mapping a given Record to Instance and sends result Instance to mod-inventory.
+   * If given Record is MARC record, adds additional fields into ParsedRecord.
+   * If given Record is ERROR record - just successfully complete.
+   *
+   * @param record              Record
+   * @param mapper              Instance mapper
+   * @param sourceStorageClient http client for client storage
+   * @param params              OKAPI connection paras
+   * @return future
+   */
+  private Future<Void> processRecordForInstance(Record record, RecordToInstanceMapper mapper, SourceStorageClient sourceStorageClient, OkapiConnectionParams params) {
+    // If given Record is not ERROR Record - try to map Record to Instance
+    if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+      try {
+        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+        return postInstance(instance, params).compose(instanceId -> {
+          if (Record.RecordType.MARC.equals(record.getRecordType())) {
+            boolean addedInstanceId = additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+            if (addedInstanceId) {
+              return updateRecord(record, sourceStorageClient);
+            }
+          }
+          return Future.succeededFuture();
+        });
+      } catch (Exception exception) {
+        String errorMessage = String.format("Can not process given Record for Instance. Cause: " + exception.getMessage());
+        LOGGER.error(errorMessage, exception);
+        return Future.failedFuture(errorMessage);
+      }
+    }
+    // IF given Record is ERROR record - return succeeded future
+    return Future.succeededFuture();
   }
 
   /**
