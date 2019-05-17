@@ -12,9 +12,8 @@ import org.marc4j.marc.Leader;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 import org.marc4j.marc.impl.SubfieldImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import javax.script.ScriptException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

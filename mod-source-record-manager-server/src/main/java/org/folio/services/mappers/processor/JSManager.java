@@ -1,8 +1,7 @@
 package org.folio.services.mappers.processor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
