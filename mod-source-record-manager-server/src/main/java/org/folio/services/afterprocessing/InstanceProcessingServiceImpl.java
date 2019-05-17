@@ -51,9 +51,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     List<Future> processRecordFutures = new ArrayList<>();
     RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
     SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-    for (Record record : records) {
-      processRecordFutures.add(processRecordForInstance(record, mapper, sourceStorageClient, params));
-    }
+    records
+      .parallelStream()
+      .forEach(record -> processRecordFutures.add(processRecordForInstance(record, mapper, sourceStorageClient, params)));
     CompositeFuture.all(processRecordFutures).setHandler(result -> {
       if (result.failed()) {
         LOGGER.error("Couldn't create Instance in mod-inventory", result.cause());
