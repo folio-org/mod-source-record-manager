@@ -114,6 +114,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private Future<String> postInstance(Instance instance, OkapiConnectionParams params) {
     Future<String> future = Future.future();
+    params.getHeaders().add("Transfer-Encoding", "chunked");
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instance).setHandler(responseResult -> {
       try {
         if (!RestUtil.validateAsyncResult(responseResult, future)) {
