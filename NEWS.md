@@ -1,6 +1,7 @@
-## 2019-05-14 v1.4.0
+## 2019-05-16 v1.4.0-SNAPSHOT
  * Filled complete date and stub HrID for Job Execution
- * Changed implementation for checking statuses for JobExecutionSourceChunk 
+ * Changed implementation for checking statuses for JobExecutionSourceChunk
+ * Applied bug fixes to build 999 fields
  
 ## 2019-05-12 v1.3.0
  * Borrowed mapping of MARC to Instance logic from mod-data-loader. After parsing Records are mapped to Instances and saved in mod-inventory.

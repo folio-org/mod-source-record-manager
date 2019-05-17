@@ -111,7 +111,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
           .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
-          .withRawRecord(new RawRecord().withContent(rawRecord));
+          .withRawRecord(new RawRecord().withId(UUID.randomUUID().toString()).withContent(rawRecord));
         if (parsedResult.isHasError()) {
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
