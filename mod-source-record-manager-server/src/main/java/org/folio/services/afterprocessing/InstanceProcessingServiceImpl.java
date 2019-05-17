@@ -95,8 +95,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
           return Future.succeededFuture();
         });
       } catch (Exception exception) {
-        String errorMessage = String.format("Can not process given Record for Instance. Cause: " + exception.getMessage());
-        LOGGER.error(errorMessage, exception);
+        String errorMessage =
+          String.format("Can not process given Record for Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
+        LOGGER.error(errorMessage);
         return Future.failedFuture(errorMessage);
       }
     }
