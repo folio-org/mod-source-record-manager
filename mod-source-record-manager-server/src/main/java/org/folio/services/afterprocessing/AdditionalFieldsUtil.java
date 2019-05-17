@@ -43,7 +43,7 @@ public class AdditionalFieldsUtil {
               }
             }
           } catch (Exception exception) {
-            LOGGER.error("Can not convert parsed record content to JsonObject. Cause:{}", exception.getMessage());
+            LOGGER.error("Can not convert parsed record content to JsonObject. Cause:{}", exception.getMessage(), exception);
             return false;
           }
         }
