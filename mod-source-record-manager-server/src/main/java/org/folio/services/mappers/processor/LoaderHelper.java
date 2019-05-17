@@ -1,8 +1,8 @@
 package org.folio.services.mappers.processor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;

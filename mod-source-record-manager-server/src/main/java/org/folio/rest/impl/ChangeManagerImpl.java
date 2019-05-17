@@ -17,10 +17,9 @@ import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
 import org.folio.spring.SpringContextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
