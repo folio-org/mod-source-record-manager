@@ -1,5 +1,6 @@
 ## 2019-05-17 v1.4.0-SNAPSHOT
  * Added description for data-import flow
+ * Added transfer-encoding header to request to POST Instances
  
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
