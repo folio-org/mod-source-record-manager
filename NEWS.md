@@ -1,4 +1,4 @@
-## 2019-05-16 v1.4.0-SNAPSHOT
+## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
  * Changed implementation for checking statuses for JobExecutionSourceChunk
  * Applied bug fixes to build 999 fields
