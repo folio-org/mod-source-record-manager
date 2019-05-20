@@ -155,14 +155,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param record MARC Record
    */
   private void addAdditionalFieldsToMarcRecord(Record record) {
-    JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-    if (parsedRecordContent.containsKey("fields")) {
-      JsonArray fields = parsedRecordContent.getJsonArray("fields");
-      JsonObject targetField = additionalFieldsConfig.getFieldByTag(AdditionalFieldsConfig.TAG_999);
-      JsonObject srsIdSubfield = new JsonObject().put("s", record.getId());
-      targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(srsIdSubfield);
-      fields.add(targetField);
-      record.getParsedRecord().setContent(parsedRecordContent.toString());
+    if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+      JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+      if (parsedRecordContent.containsKey("fields")) {
+        JsonArray fields = parsedRecordContent.getJsonArray("fields");
+        JsonObject targetField = additionalFieldsConfig.getFieldByTag(AdditionalFieldsConfig.TAG_999);
+        JsonObject srsIdSubfield = new JsonObject().put("s", record.getId());
+        targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(srsIdSubfield);
+        fields.add(targetField);
+        record.getParsedRecord().setContent(parsedRecordContent.toString());
+      }
     }
   }
 

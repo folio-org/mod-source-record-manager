@@ -1,5 +1,6 @@
 ## 2019-05-17 v1.4.0-SNAPSHOT
  * Added description for data-import flow
+ * Fixed issue with saving errorRecords
  
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
