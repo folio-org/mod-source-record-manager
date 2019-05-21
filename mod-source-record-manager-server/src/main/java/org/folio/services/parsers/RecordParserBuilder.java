@@ -1,6 +1,8 @@
 package org.folio.services.parsers;
 
-import java.util.Collections;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -8,28 +10,21 @@ import java.util.List;
  */
 public final class RecordParserBuilder {
 
-  private static List<RecordParser> rawRecordParsers = Collections.singletonList(new MarcRecordParser());
+  private static List<RecordParser> rawRecordParsers = Arrays.asList(new MarcRecordParser(), new JsonRecordParser(), new XmlRecordParser());
 
   private RecordParserBuilder() {
   }
 
   /**
-   * TODO implement a more elaborate way to define a RecordParser //NOSONAR
+   * Builds specific parser based on the record content type
    *
-   * Currently this method builds specific parser based on the record format
-   * Implementation will be changed in scope of (@link https://issues.folio.org/browse/MODSOURMAN-112)
-   *
-   * @param format - raw record format
-   * @param rawRecord - raw record itself
-   * @return - RecordParser for chosen record format
+   * @param recordContentType - record content type
+   * @return - RecordParser for chosen record content type
    */
-  public static RecordParser buildParser(RecordFormat format, String rawRecord) {
-    if (rawRecord.startsWith("{")) {
-      return new JsonRecordParser();
-    }
+  public static RecordParser buildParser(RawRecordsDto.ContentType recordContentType) {
     return rawRecordParsers.stream()
-      .filter(parser -> parser.getParserFormat().equals(format))
+      .filter(parser -> parser.getParserFormat().equals(recordContentType))
       .findFirst()
-      .orElseThrow(() -> new RecordParserNotFoundException(String.format("Raw Record Parser was not found for Record Format: %s", format)));
+      .orElseThrow(() -> new RecordParserNotFoundException(String.format("Raw Record Parser was not found for record content type: %s", recordContentType)));
   }
 }

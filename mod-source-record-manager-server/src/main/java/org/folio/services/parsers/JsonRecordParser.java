@@ -3,6 +3,8 @@ package org.folio.services.parsers;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RawRecordsDto.ContentType;
 
 /**
  * Json record parser implementation
@@ -26,10 +28,8 @@ public class JsonRecordParser implements RecordParser {
     return result;
   }
 
-  // Currently there is no corresponding RecordFormat for json since any type of Record can be stored in json format
-  // Implementation will be changed in scope of (@link https://issues.folio.org/browse/MODSOURMAN-112)
   @Override
-  public RecordFormat getParserFormat() {
-    throw new UnsupportedOperationException("There is no corresponding RecordFormat for json since any type of Record can be stored in json format");
+  public ContentType getParserFormat() {
+    return ContentType.MARC_JSON;
   }
 }

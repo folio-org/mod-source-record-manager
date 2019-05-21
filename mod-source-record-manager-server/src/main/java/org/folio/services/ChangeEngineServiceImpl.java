@@ -58,7 +58,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Record>> future = Future.future();
-    List<Record> parsedRecords = parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId());
+//    List<Record> parsedRecords = parseRecords(chunk.getRecords(), jobExecution, sourceChunkId, params.getTenantId());
+    List<Record> parsedRecords = parseRecords(chunk.getRecords(), chunk.getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
       .setHandler(postAr -> {
@@ -94,11 +95,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
    */
-  private List<Record> parseRecords(List<String> rawRecords, JobExecution jobExecution, String sourceChunkId, String tenantId) {
+  private List<Record> parseRecords(List<String> rawRecords, RawRecordsDto.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
-    RecordParser parser = RecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution), rawRecords.get(0));
+//    RecordParser parser = RecordParserBuilder.buildParser(getRecordFormatByJobExecution(jobExecution), rawRecords.get(0));
+    RecordParser parser = RecordParserBuilder.buildParser(recordContentType);
     MutableInt counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
