@@ -2,6 +2,7 @@
  * Added description for data-import flow
  * Fixed issue with saving ErrorRecords
  * Added batch update of ParsedRecords after assigning Instance id to MARC records
+ * Added support for records processing in XML format
  
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
