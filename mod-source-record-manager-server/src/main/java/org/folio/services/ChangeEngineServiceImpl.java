@@ -114,10 +114,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withRawRecord(new RawRecord().withId(UUID.randomUUID().toString()).withContent(rawRecord));
         if (parsedResult.isHasError()) {
           record.setErrorRecord(new ErrorRecord()
+            .withId(UUID.randomUUID().toString())
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
         } else {
-          record.setParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+          record.setParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString()).withContent(parsedResult.getParsedRecord().encode()));
         }
         return record;
       })
