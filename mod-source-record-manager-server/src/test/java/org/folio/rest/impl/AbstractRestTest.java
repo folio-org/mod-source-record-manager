@@ -70,6 +70,7 @@ public abstract class AbstractRestTest {
   protected static final String RECORDS_SERVICE_URL = "/source-storage/recordsCollection";
   protected static final String RECORD_SERVICE_URL = "/source-storage/records";
   protected static final String INVENTORY_URL = "/inventory/instances";
+  protected static final String PARSED_RECORDS_COLLECTION_URL = "/source-storage/parsedRecordsCollection";
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
@@ -168,6 +169,8 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
       .willReturn(WireMock.created()));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.ok()));
+    WireMock.stubFor(WireMock.put(PARSED_RECORDS_COLLECTION_URL)
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok().withBody(record)));

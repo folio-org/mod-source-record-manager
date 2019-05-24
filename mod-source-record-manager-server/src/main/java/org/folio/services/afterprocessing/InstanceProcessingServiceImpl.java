@@ -15,6 +15,8 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ParsedRecordCollection;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
@@ -50,10 +52,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     Future<Void> future = Future.future();
     List<Future> processRecordFutures = new ArrayList<>();
     RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
-    SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     records
       .parallelStream()
-      .forEach(record -> processRecordFutures.add(processRecordForInstance(record, mapper, sourceStorageClient, params)));
+      .forEach(record -> processRecordFutures.add(processRecordForInstance(record, mapper, params)));
     CompositeFuture.all(processRecordFutures).setHandler(result -> {
       if (result.failed()) {
         LOGGER.error("Couldn't create Instance in mod-inventory", result.cause());
@@ -62,8 +63,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
             .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
             .orElseThrow(() -> new NotFoundException(String.format(
               "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+      } else {
+        if (Record.RecordType.MARC.equals(records.get(0).getRecordType())) {
+          updateParsedRecords(records, params);
+        }
       }
-      // Immediately complete future in order to do not wait for processing of async result
+      // Complete future in order to continue the import process regardless of the result of creating Instances
       future.complete();
     });
     return future;
@@ -76,21 +81,17 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param record              Record
    * @param mapper              Instance mapper
-   * @param sourceStorageClient http client for client storage
    * @param params              OKAPI connection paras
    * @return future
    */
-  private Future<Void> processRecordForInstance(Record record, RecordToInstanceMapper mapper, SourceStorageClient sourceStorageClient, OkapiConnectionParams params) {
+  private Future<Void> processRecordForInstance(Record record, RecordToInstanceMapper mapper, OkapiConnectionParams params) {
     // If given Record is not ERROR Record - try to map Record to Instance
     if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
       try {
         Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
         return postInstance(instance, params).compose(instanceId -> {
           if (Record.RecordType.MARC.equals(record.getRecordType())) {
-            boolean addedInstanceId = additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
-            if (addedInstanceId) {
-              return updateRecord(record, sourceStorageClient);
-            }
+            additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
           }
           return Future.succeededFuture();
         });
@@ -147,18 +148,31 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Updates given record
+   * Updates a collection of parsedRecords
    *
-   * @param record given record
-   * @param client http client
+   * @param records collection of records containing updated parsed records
+   * @param params OkapiConnectionParams
    * @return void
    */
-  protected Future<Void> updateRecord(Record record, SourceStorageClient client) {
+  private Future<Void> updateParsedRecords(List<Record> records, OkapiConnectionParams params) {
+    if (CollectionUtils.isEmpty(records)) {
+      return Future.succeededFuture();
+    }
     Future<Void> future = Future.future();
     try {
-      client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
+      List<ParsedRecord> parsedRecords = new ArrayList<>();
+      records.forEach(record -> {
+        if (record.getParsedRecord() != null) {
+          parsedRecords.add(record.getParsedRecord());
+      }});
+      ParsedRecordCollection parsedRecordsCollection = new ParsedRecordCollection()
+        .withParsedRecords(parsedRecords)
+        .withTotalRecords(parsedRecords.size())
+        .withRecordType(ParsedRecordCollection.RecordType.valueOf(records.get(0).getRecordType().value()));
+      SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+      sourceStorageClient.putSourceStorageParsedRecordsCollection(parsedRecordsCollection, response -> {
         if (response.statusCode() != HttpStatus.HTTP_OK.toInt()) {
-          String errorMessage = "Error updating Record by id " + record.getId();
+          String errorMessage = String.format("Couldn't update parsed records collection - response status code %s, expected 200", response.statusCode());
           LOGGER.error(errorMessage);
           future.fail(errorMessage);
         } else {
@@ -166,7 +180,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Couldn't send request to update Record with id {}", record.getId(), e);
+      LOGGER.error("Failed to update parsed records collection", e);
       future.fail(e);
     }
     return future;
