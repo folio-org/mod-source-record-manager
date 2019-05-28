@@ -154,11 +154,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       records.forEach(record -> {
         if (record.getParsedRecord() != null) {
           parsedRecords.add(record.getParsedRecord());
-      }});
+        }
+      });
       ParsedRecordCollection parsedRecordsCollection = new ParsedRecordCollection()
         .withParsedRecords(parsedRecords)
         .withTotalRecords(parsedRecords.size())
-        .withRecordType(ParsedRecordCollection.RecordType.valueOf(records.get(0).getRecordType().value()));
+        .withRecordType(ParsedRecordCollection.RecordType.valueOf(getRecordsType(records).value()));
       SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
       sourceStorageClient.putSourceStorageParsedRecordsCollection(parsedRecordsCollection, response -> {
         if (response.statusCode() != HttpStatus.HTTP_OK.toInt()) {
