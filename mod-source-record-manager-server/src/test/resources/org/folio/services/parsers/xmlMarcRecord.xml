@@ -1,0 +1,812 @@
+<marc:record xmlns:marc="http://www.loc.gov/MARC21/slim">
+  <marc:leader>13112cam a2200553Ii 4500</marc:leader>
+  <marc:controlfield tag="001">10424784</marc:controlfield>
+  <marc:controlfield tag="003">OLE</marc:controlfield>
+  <marc:controlfield tag="005">20160505024808.0</marc:controlfield>
+  <marc:controlfield tag="008">120208s2013 cc a 000 0 chi d</marc:controlfield>
+  <marc:datafield tag="020" ind1=" " ind2=" ">
+    <marc:subfield code="a">9787507741155</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="020" ind1=" " ind2=" ">
+    <marc:subfield code="a">750774115X</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="035" ind1=" " ind2=" ">
+    <marc:subfield code="a">(OCoLC)775658364</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="040" ind1=" " ind2=" ">
+    <marc:subfield code="a">BCBTC</marc:subfield>
+    <marc:subfield code="b">eng</marc:subfield>
+    <marc:subfield code="e">rda</marc:subfield>
+    <marc:subfield code="c">BCBTC</marc:subfield>
+    <marc:subfield code="d">HMY</marc:subfield>
+    <marc:subfield code="d">CGU</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="043" ind1=" " ind2=" ">
+    <marc:subfield code="a">a-cc---</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="049" ind1=" " ind2=" ">
+    <marc:subfield code="a">CGUA</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="050" ind1=" " ind2="4">
+    <marc:subfield code="a">PL2564</marc:subfield>
+    <marc:subfield code="b">.F792 2013</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="245" ind1="0" ind2="0">
+    <marc:subfield code="6">880-01</marc:subfield>
+    <marc:subfield code="a">Fu Xihua cang gu dian xi qu qu pu shen duan pu cong kan /</marc:subfield>
+    <marc:subfield code="c">zhu bian Wang Wenzhang ; fu zhu bian Liu Wenfeng.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="250" ind1=" " ind2=" ">
+    <marc:subfield code="6">880-02</marc:subfield>
+    <marc:subfield code="a">Di yi ban.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="264" ind1=" " ind2="1">
+    <marc:subfield code="6">880-03</marc:subfield>
+    <marc:subfield code="a">Beijing Shi :</marc:subfield>
+    <marc:subfield code="b">Xue yuan chu ban she,</marc:subfield>
+    <marc:subfield code="c">2013.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="300" ind1=" " ind2=" ">
+    <marc:subfield code="a">101 volumes :</marc:subfield>
+    <marc:subfield code="b">illustrations ;</marc:subfield>
+    <marc:subfield code="c">27 cm.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="336" ind1=" " ind2=" ">
+    <marc:subfield code="a">text</marc:subfield>
+    <marc:subfield code="2">rdacontent</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="337" ind1=" " ind2=" ">
+    <marc:subfield code="a">unmediated</marc:subfield>
+    <marc:subfield code="2">rdamedia</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="338" ind1=" " ind2=" ">
+    <marc:subfield code="a">volume</marc:subfield>
+    <marc:subfield code="2">rdacarrier</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="505" ind1="0" ind2="0">
+    <marc:subfield code="6">880-04</marc:subfield>
+    <marc:subfield code="g">000.</marc:subfield>
+    <marc:subfield code="t">Fu Xihua cang gu dian xi qu qu pu shen duan pu cong kan ti yao --</marc:subfield>
+    <marc:subfield code="g">001.</marc:subfield>
+    <marc:subfield code="t">Mu yang ji.</marc:subfield>
+    <marc:subfield code="t">Jing chai ji.</marc:subfield>
+    <marc:subfield code="t">Bai yue ting ji --</marc:subfield>
+    <marc:subfield code="g">002.</marc:subfield>
+    <marc:subfield code="t">Bai yue ting ji.</marc:subfield>
+    <marc:subfield code="t">Pi pa ji --</marc:subfield>
+    <marc:subfield code="g">003.</marc:subfield>
+    <marc:subfield code="t">Pi pa ji.</marc:subfield>
+    <marc:subfield code="t">Bei xi xiang --</marc:subfield>
+    <marc:subfield code="g">004.</marc:subfield>
+    <marc:subfield code="t">Bei xi xiang.</marc:subfield>
+    <marc:subfield code="t">Ma ling dao --</marc:subfield>
+    <marc:subfield code="g">005.</marc:subfield>
+    <marc:subfield code="t">Xi xiang ji.</marc:subfield>
+    <marc:subfield code="t">Bao jian ji.</marc:subfield>
+    <marc:subfield code="t">Huan sha ji --</marc:subfield>
+    <marc:subfield code="g">006.</marc:subfield>
+    <marc:subfield code="t">Huan sha ji.</marc:subfield>
+    <marc:subfield code="t">Si sheng yuan.</marc:subfield>
+    <marc:subfield code="t">Hong fo ji.</marc:subfield>
+    <marc:subfield code="t">Xiu ru ji --</marc:subfield>
+    <marc:subfield code="g">007.</marc:subfield>
+    <marc:subfield code="t">Xiu ru ji.</marc:subfield>
+    <marc:subfield code="t">Mu dan ting --</marc:subfield>
+    <marc:subfield code="g">008.</marc:subfield>
+    <marc:subfield code="t">Mu dan ting.</marc:subfield>
+    <marc:subfield code="t">Nan ke meng --</marc:subfield>
+    <marc:subfield code="g">009.</marc:subfield>
+    <marc:subfield code="t">Han dan ji.</marc:subfield>
+    <marc:subfield code="t">Shi hou ji.</marc:subfield>
+    <marc:subfield code="t">Shui hu ji.</marc:subfield>
+    <marc:subfield code="t">Yu zan ji.</marc:subfield>
+    <marc:subfield code="t">Hong li ji.</marc:subfield>
+    <marc:subfield code="t">Xiao guang jian.</marc:subfield>
+    <marc:subfield code="t">Jin suo ji.</marc:subfield>
+    <marc:subfield code="t">Gui yuan jing.</marc:subfield>
+    <marc:subfield code="t">Fen xiang ji.</marc:subfield>
+    <marc:subfield code="t">Chai chuan ji.</marc:subfield>
+    <marc:subfield code="t">Shuang hong ji --</marc:subfield>
+    <marc:subfield code="g">010.</marc:subfield>
+    <marc:subfield code="t">Jin que ji.</marc:subfield>
+    <marc:subfield code="t">Gu cheng ji.</marc:subfield>
+    <marc:subfield code="t">Xi lou ji.</marc:subfield>
+    <marc:subfield code="t">Yi peng xue --</marc:subfield>
+    <marc:subfield code="g">011.</marc:subfield>
+    <marc:subfield code="t">Yi peng xue.</marc:subfield>
+    <marc:subfield code="t">Zhan hua kui.</marc:subfield>
+    <marc:subfield code="t">Hao tian ta.</marc:subfield>
+    <marc:subfield code="t">Mei shan xiu.</marc:subfield>
+    <marc:subfield code="t">Qi lin ge.</marc:subfield>
+    <marc:subfield code="t">Tian xia le.</marc:subfield>
+    <marc:subfield code="t">Zui pu ti.</marc:subfield>
+    <marc:subfield code="t">Shuang guan gao.</marc:subfield>
+    <marc:subfield code="t">Chang sheng dian --</marc:subfield>
+    <marc:subfield code="g">012.</marc:subfield>
+    <marc:subfield code="t">Chang sheng dian --</marc:subfield>
+    <marc:subfield code="g">013.</marc:subfield>
+    <marc:subfield code="t">Chang sheng dian.</marc:subfield>
+    <marc:subfield code="t">Tao hua shan.</marc:subfield>
+    <marc:subfield code="t">Nü tan ci.</marc:subfield>
+    <marc:subfield code="t">Lei feng ta (huang tu bi yuan zhuan).</marc:subfield>
+    <marc:subfield code="t">Xue zhong ren --</marc:subfield>
+    <marc:subfield code="g">014.</marc:subfield>
+    <marc:subfield code="t">Xue zhong ren.</marc:subfield>
+    <marc:subfield code="t">Ying luan xin qu.</marc:subfield>
+    <marc:subfield code="t">Lei feng ta (fang cheng pei zhuan).</marc:subfield>
+    <marc:subfield code="t">Bao en yuan.</marc:subfield>
+    <marc:subfield code="t">Cai ren fu.</marc:subfield>
+    <marc:subfield code="t">Lan gui xian.</marc:subfield>
+    <marc:subfield code="t">Wei chen xuan qu pu --</marc:subfield>
+    <marc:subfield code="g">015.</marc:subfield>
+    <marc:subfield code="t">Wei chen xuan qu pu.</marc:subfield>
+    <marc:subfield code="t">Ci fu.</marc:subfield>
+    <marc:subfield code="t">Ji yao qi lin.</marc:subfield>
+    <marc:subfield code="t">Hun yuan he.</marc:subfield>
+    <marc:subfield code="t">Fu gui Changchun.</marc:subfield>
+    <marc:subfield code="t">Xi you ji.</marc:subfield>
+    <marc:subfield code="t">Hou xi you.</marc:subfield>
+    <marc:subfield code="t">Lan ke shan.</marc:subfield>
+    <marc:subfield code="t">Tie guan tu.</marc:subfield>
+    <marc:subfield code="t">Dai zhong fu --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="505" ind1="8" ind2="0">
+    <marc:subfield code="6">880-05</marc:subfield>
+    <marc:subfield code="g">016.</marc:subfield>
+    <marc:subfield code="t">Qian qiu jian.</marc:subfield>
+    <marc:subfield code="t">Nie hai ji.</marc:subfield>
+    <marc:subfield code="t">San xiao yin yuan.</marc:subfield>
+    <marc:subfield code="t">Yu qing ting.</marc:subfield>
+    <marc:subfield code="t">Hong ni guan.</marc:subfield>
+    <marc:subfield code="t">Yue yuan qu pu.</marc:subfield>
+    <marc:subfield code="t">Hong lou meng.</marc:subfield>
+    <marc:subfield code="t">Ya guan lou.</marc:subfield>
+    <marc:subfield code="t">Wan hua deng quan pu.</marc:subfield>
+    <marc:subfield code="t">Xin jiu men shen jiao dai qu pu.</marc:subfield>
+    <marc:subfield code="t">Luo mao feng qu pu.</marc:subfield>
+    <marc:subfield code="t">Shi nian ji.</marc:subfield>
+    <marc:subfield code="t">Fang pu zong qu pu ti qu zong qu pu chuan pu.</marc:subfield>
+    <marc:subfield code="t">Tiao pao bi xiu deng qu pu qi zhong.</marc:subfield>
+    <marc:subfield code="t">Cao di zang zhou qu pu.</marc:subfield>
+    <marc:subfield code="t">Jing bian mai yu ming pan deng qu pu.</marc:subfield>
+    <marc:subfield code="t">Ku xiang ku kui xing qu pu --</marc:subfield>
+    <marc:subfield code="g">017.</marc:subfield>
+    <marc:subfield code="t">Nü tan ci pi pa xing.</marc:subfield>
+    <marc:subfield code="t">Qin tiao wen bing tou shi shui dou qu pu.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu ju ben yi ji --</marc:subfield>
+    <marc:subfield code="g">018.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu ju ben er ji.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu ju ben san ji --</marc:subfield>
+    <marc:subfield code="g">019.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu ju ben san ji.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu qu pu si zhong.</marc:subfield>
+    <marc:subfield code="t">Qing ting cheng ying xi qu pu si chu.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu qu pu shi zhong --</marc:subfield>
+    <marc:subfield code="g">020.</marc:subfield>
+    <marc:subfield code="t">Kun qu san she shi er zhong.</marc:subfield>
+    <marc:subfield code="t">Qing gong cheng ying qu pu shi san chu.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu qu pu shi jiu zhong --</marc:subfield>
+    <marc:subfield code="g">021-022.</marc:subfield>
+    <marc:subfield code="t">Cheng ying qu pu liu shi jiu zhong --</marc:subfield>
+    <marc:subfield code="g">023.</marc:subfield>
+    <marc:subfield code="t">Qing gong cheng ying qu pu.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu qu pu.</marc:subfield>
+    <marc:subfield code="t">Sheng ping shu zhe zi ju ben ji.</marc:subfield>
+    <marc:subfield code="t">Qian long chao ben qu pu shi zhong --</marc:subfield>
+    <marc:subfield code="g">024.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu --</marc:subfield>
+    <marc:subfield code="g">025.</marc:subfield>
+    <marc:subfield code="t">Qu pu liu zhong.</marc:subfield>
+    <marc:subfield code="t">Yun xiang yi shang.</marc:subfield>
+    <marc:subfield code="t">Liu guan lou qu pu liu juan cun di 1 juan.</marc:subfield>
+    <marc:subfield code="t">Yun xiu xuan cang pu.</marc:subfield>
+    <marc:subfield code="t">Qing yin ya du --</marc:subfield>
+    <marc:subfield code="g">026.</marc:subfield>
+    <marc:subfield code="t">Kun qu ju ben san she.</marc:subfield>
+    <marc:subfield code="t">Bu guo zhai qu pu.</marc:subfield>
+    <marc:subfield code="t">Huai yin shu wu song ling cang pu --</marc:subfield>
+    <marc:subfield code="g">027.</marc:subfield>
+    <marc:subfield code="t">Huai yin shu wu song ling cang pu --</marc:subfield>
+    <marc:subfield code="g">028-029.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="505" ind1="8" ind2="0">
+    <marc:subfield code="6">880-06</marc:subfield>
+    <marc:subfield code="g">030-031.</marc:subfield>
+    <marc:subfield code="t">E yun ge qu pu fu xue qu li yan --</marc:subfield>
+    <marc:subfield code="g">032.</marc:subfield>
+    <marc:subfield code="t">E yun ge qu pu fu xue qu li yan.</marc:subfield>
+    <marc:subfield code="t">Ni chang wen yi quan pu si juan --</marc:subfield>
+    <marc:subfield code="g">033.</marc:subfield>
+    <marc:subfield code="t">Ni chang wen yi quan pu si juan.</marc:subfield>
+    <marc:subfield code="t">Qing yin yue qu --</marc:subfield>
+    <marc:subfield code="g">034.</marc:subfield>
+    <marc:subfield code="t">Liu ye qu pu chu ji si juan.</marc:subfield>
+    <marc:subfield code="t">Chun xue ge qu pu san ji --</marc:subfield>
+    <marc:subfield code="g">035-038.</marc:subfield>
+    <marc:subfield code="t">Zeng ji liu ye qu pu si ji --</marc:subfield>
+    <marc:subfield code="g">039-042.</marc:subfield>
+    <marc:subfield code="t">Hui tu jing xuan kun qu da quan si ji --</marc:subfield>
+    <marc:subfield code="g">043.</marc:subfield>
+    <marc:subfield code="t">Kun qu shi liu zhong qu pu.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu.</marc:subfield>
+    <marc:subfield code="t">Zhai jin --</marc:subfield>
+    <marc:subfield code="g">044-052.</marc:subfield>
+    <marc:subfield code="t">Qian shou yi zhai qu pu shi er ji er shi si juan --</marc:subfield>
+    <marc:subfield code="g">052.</marc:subfield>
+    <marc:subfield code="t">Qian shou yi zhai qu pu shi er ji er shi si juan.</marc:subfield>
+    <marc:subfield code="t">Yu jia xue shi fan quan pu --</marc:subfield>
+    <marc:subfield code="g">053.</marc:subfield>
+    <marc:subfield code="t">Yu jia xue shi fan quan pu --</marc:subfield>
+    <marc:subfield code="g">054.</marc:subfield>
+    <marc:subfield code="t">Yu jia xue shi fan quan pu.</marc:subfield>
+    <marc:subfield code="t">Wei guo xuan qu pu si juan cun er zhi si juan --</marc:subfield>
+    <marc:subfield code="g">055.</marc:subfield>
+    <marc:subfield code="t">Nan qu qu pu --</marc:subfield>
+    <marc:subfield code="g">056.</marc:subfield>
+    <marc:subfield code="t">Su pai kun qiang pu.</marc:subfield>
+    <marc:subfield code="t">Qu pu za lu.</marc:subfield>
+    <marc:subfield code="t">Kun qu pu --</marc:subfield>
+    <marc:subfield code="g">057.</marc:subfield>
+    <marc:subfield code="t">Kun qu pu.</marc:subfield>
+    <marc:subfield code="t">Kun qu san chu shi er she --</marc:subfield>
+    <marc:subfield code="g">058.</marc:subfield>
+    <marc:subfield code="t">Kun qu san chu shi san she.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu ji --</marc:subfield>
+    <marc:subfield code="g">059.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu ji.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu wu ji --</marc:subfield>
+    <marc:subfield code="g">060-063.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu wu ji --</marc:subfield>
+    <marc:subfield code="g">064.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu wu ji.</marc:subfield>
+    <marc:subfield code="t">Shen sheng zhi yin --</marc:subfield>
+    <marc:subfield code="g">065.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu liu zhong.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu --</marc:subfield>
+    <marc:subfield code="g">066.</marc:subfield>
+    <marc:subfield code="t">Kun qu qu pu.</marc:subfield>
+    <marc:subfield code="t">Qu zong can cun shi er ji --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="505" ind1="8" ind2="0">
+    <marc:subfield code="6">880-07</marc:subfield>
+    <marc:subfield code="g">067.</marc:subfield>
+    <marc:subfield code="t">Qu zong can cun shi er ji.</marc:subfield>
+    <marc:subfield code="t">Li yuan qu pu cun wu ji --</marc:subfield>
+    <marc:subfield code="g">068.</marc:subfield>
+    <marc:subfield code="t">Gu ya yang feng --</marc:subfield>
+    <marc:subfield code="g">069.</marc:subfield>
+    <marc:subfield code="t">Gu ya yang feng.</marc:subfield>
+    <marc:subfield code="t">Zi yun yi qu pu.</marc:subfield>
+    <marc:subfield code="t">Qiu sheng guan qu pu --</marc:subfield>
+    <marc:subfield code="g">070.</marc:subfield>
+    <marc:subfield code="t">Qiu sheng guan qu pu --</marc:subfield>
+    <marc:subfield code="g">071.</marc:subfield>
+    <marc:subfield code="t">Qiu sheng guan qu pu --</marc:subfield>
+    <marc:subfield code="g">072.</marc:subfield>
+    <marc:subfield code="t">Qiu sheng guan qu pu.</marc:subfield>
+    <marc:subfield code="t">Zhao hua gun qu pu shi ji --</marc:subfield>
+    <marc:subfield code="g">073.</marc:subfield>
+    <marc:subfield code="t">Zhao hua gun qu pu shi ji.</marc:subfield>
+    <marc:subfield code="t">Liao yi zi yu zhai qu pu liu ji --</marc:subfield>
+    <marc:subfield code="g">074.</marc:subfield>
+    <marc:subfield code="t">Liao yi zi yu zhai qu pu liu ji --</marc:subfield>
+    <marc:subfield code="g">075.</marc:subfield>
+    <marc:subfield code="t">Xi ju ci pu.</marc:subfield>
+    <marc:subfield code="t">Qu pu hui ji.</marc:subfield>
+    <marc:subfield code="t">Xiao xian ji --</marc:subfield>
+    <marc:subfield code="g">076-077.</marc:subfield>
+    <marc:subfield code="t">Xiao xian ji --</marc:subfield>
+    <marc:subfield code="g">078.</marc:subfield>
+    <marc:subfield code="t">Le zai qi zhong.</marc:subfield>
+    <marc:subfield code="t">Tian yun she qu pu liu juan yi bai er shi chu --</marc:subfield>
+    <marc:subfield code="g">079-080.</marc:subfield>
+    <marc:subfield code="t">Tian yun she qu pu liu juan yi bai er shi chu --</marc:subfield>
+    <marc:subfield code="g">081-082.</marc:subfield>
+    <marc:subfield code="t">Shuang hu lei ge qu pu liu zhong gao ben --</marc:subfield>
+    <marc:subfield code="g">083.</marc:subfield>
+    <marc:subfield code="t">Shuang hu lei ge qu pu liu zhong gao ben.</marc:subfield>
+    <marc:subfield code="t">Kun qu cui cun chu ji --</marc:subfield>
+    <marc:subfield code="g">084.</marc:subfield>
+    <marc:subfield code="t">Kun qu cui cun chu ji.</marc:subfield>
+    <marc:subfield code="t">Kun qu zhe zi ju ben ji --</marc:subfield>
+    <marc:subfield code="g">085.</marc:subfield>
+    <marc:subfield code="t">Kun qu zhe zi ju ben ji.</marc:subfield>
+    <marc:subfield code="t">Kun qu san chu qu pu.</marc:subfield>
+    <marc:subfield code="t">Yu su lu zi shu chang pian qu pu.</marc:subfield>
+    <marc:subfield code="t">Yu zhong qu pu ba juan --</marc:subfield>
+    <marc:subfield code="g">086.</marc:subfield>
+    <marc:subfield code="t">Yu zhong qu pu ba juan --</marc:subfield>
+    <marc:subfield code="g">087.</marc:subfield>
+    <marc:subfield code="t">Yu zhong qu pu ba juan.</marc:subfield>
+    <marc:subfield code="t">Yin lu qu pu --</marc:subfield>
+    <marc:subfield code="g">088.</marc:subfield>
+    <marc:subfield code="t">Yin lu qu pu.</marc:subfield>
+    <marc:subfield code="t">Kun qu pu ling sui --</marc:subfield>
+    <marc:subfield code="g">089.</marc:subfield>
+    <marc:subfield code="t">Kun qu ji jing er ji --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="505" ind1="8" ind2="0">
+    <marc:subfield code="6">880-08</marc:subfield>
+    <marc:subfield code="g">090.</marc:subfield>
+    <marc:subfield code="t">Kun qu ji jing er ji.</marc:subfield>
+    <marc:subfield code="t">Qin ding qu pu shi er juan fu shou wei er juan --</marc:subfield>
+    <marc:subfield code="g">091.</marc:subfield>
+    <marc:subfield code="t">Qin ding qu pu shi er juan fu shou wei er juan --</marc:subfield>
+    <marc:subfield code="g">092-093.</marc:subfield>
+    <marc:subfield code="t">Tai gu chuan zong si juan fu xian suo diao shi ju xin pu --</marc:subfield>
+    <marc:subfield code="g">094.</marc:subfield>
+    <marc:subfield code="t">Tai gu chuan zong si juan fu xian suo diao shi ju xin pu.</marc:subfield>
+    <marc:subfield code="t">Jun tian miao le.</marc:subfield>
+    <marc:subfield code="t">Xi qu pai zi chao.</marc:subfield>
+    <marc:subfield code="t">Jiu zhi qu pu.</marc:subfield>
+    <marc:subfield code="t">Jing kun gong chi pu.</marc:subfield>
+    <marc:subfield code="t">Ming xin bao jian.</marc:subfield>
+    <marc:subfield code="t">Gong chi pu luo gu pu --</marc:subfield>
+    <marc:subfield code="g">095.</marc:subfield>
+    <marc:subfield code="t">Jing chai ji.</marc:subfield>
+    <marc:subfield code="t">Bai tu ji.</marc:subfield>
+    <marc:subfield code="t">Pi pa ji.</marc:subfield>
+    <marc:subfield code="t">Dan dao hui.</marc:subfield>
+    <marc:subfield code="t">Xi you ji.</marc:subfield>
+    <marc:subfield code="t">Nan xi xiang ji.</marc:subfield>
+    <marc:subfield code="t">Lian huan ji.</marc:subfield>
+    <marc:subfield code="t">Qian jin ji.</marc:subfield>
+    <marc:subfield code="t">Yue li ji.</marc:subfield>
+    <marc:subfield code="t">Jin yin ji.</marc:subfield>
+    <marc:subfield code="t">Ming feng ji --</marc:subfield>
+    <marc:subfield code="g">096.</marc:subfield>
+    <marc:subfield code="t">Ming feng ji.</marc:subfield>
+    <marc:subfield code="t">Mu dan ting.</marc:subfield>
+    <marc:subfield code="t">Tao fu ji.</marc:subfield>
+    <marc:subfield code="t">Yi xia ji.</marc:subfield>
+    <marc:subfield code="t">Yu zan ji.</marc:subfield>
+    <marc:subfield code="t">Xiao guang jian.</marc:subfield>
+    <marc:subfield code="t">Hong li ji.</marc:subfield>
+    <marc:subfield code="t">Jing hong ji.</marc:subfield>
+    <marc:subfield code="t">Ba yi ji.</marc:subfield>
+    <marc:subfield code="t">Cui ping shan --</marc:subfield>
+    <marc:subfield code="g">097.</marc:subfield>
+    <marc:subfield code="t">Cui ping shan.</marc:subfield>
+    <marc:subfield code="t">Wang hu ting.</marc:subfield>
+    <marc:subfield code="t">Bai luo shan.</marc:subfield>
+    <marc:subfield code="t">Yi zhu ji.</marc:subfield>
+    <marc:subfield code="t">Jing zhong ji.</marc:subfield>
+    <marc:subfield code="t">Xi lou ji.</marc:subfield>
+    <marc:subfield code="t">Qian zhong lu.</marc:subfield>
+    <marc:subfield code="t">Yi peng xue --</marc:subfield>
+    <marc:subfield code="g">098.</marc:subfield>
+    <marc:subfield code="t">Wan li yuan.</marc:subfield>
+    <marc:subfield code="t">Hu die meng.</marc:subfield>
+    <marc:subfield code="t">Zhuo la [ ].</marc:subfield>
+    <marc:subfield code="t">Dang ren bei.</marc:subfield>
+    <marc:subfield code="t">Fei cui yuan.</marc:subfield>
+    <marc:subfield code="t">Yan yun ting.</marc:subfield>
+    <marc:subfield code="t">Chang sheng dian.</marc:subfield>
+    <marc:subfield code="t">Jin bu huan (you ming "Jin pu tuan" ).</marc:subfield>
+    <marc:subfield code="t">Lei feng ta.</marc:subfield>
+    <marc:subfield code="t">Bi yu chuan.</marc:subfield>
+    <marc:subfield code="t">Nie hai ji --</marc:subfield>
+    <marc:subfield code="g">099.</marc:subfield>
+    <marc:subfield code="t">Mei kai liang du (yi ming "Yu xie zan" ).</marc:subfield>
+    <marc:subfield code="t">Xun zi shen duan pu chi meng shen gong pu"</marc:subfield>
+    <marc:subfield code="t">Tou shi shen duan pu qun xian qing he shen gong pu.</marc:subfield>
+    <marc:subfield code="t">Gong yan jian fu shen duan pu fu xi shu.</marc:subfield>
+    <marc:subfield code="t">Ye jian cai mi fan kuang shen gong pu.</marc:subfield>
+    <marc:subfield code="t">Kun qu er shi wu chu.</marc:subfield>
+    <marc:subfield code="t">Xiang zhu shen duan ju ben --</marc:subfield>
+    <marc:subfield code="g">100.</marc:subfield>
+    <marc:subfield code="t">Xiang zhu shen duan ju ben.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="610" ind1="2" ind2="0">
+    <marc:subfield code="6">880-09</marc:subfield>
+    <marc:subfield code="a">Bi qu guan</marc:subfield>
+    <marc:subfield code="v">Bibliography</marc:subfield>
+    <marc:subfield code="v">Catalogs.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="650" ind1=" " ind2="0">
+    <marc:subfield code="a">Qu (Chinese literature)</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="650" ind1=" " ind2="0">
+    <marc:subfield code="a">San qu.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="650" ind1=" " ind2="0">
+    <marc:subfield code="a">Chinese drama.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="700" ind1="1" ind2=" ">
+    <marc:subfield code="6">880-10</marc:subfield>
+    <marc:subfield code="a">Fu, Xihua,</marc:subfield>
+    <marc:subfield code="d">1907-</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="700" ind1="1" ind2=" ">
+    <marc:subfield code="6">880-11</marc:subfield>
+    <marc:subfield code="a">Liu, Wenfeng.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="700" ind1="1" ind2=" ">
+    <marc:subfield code="6">880-12</marc:subfield>
+    <marc:subfield code="a">Wang, Wenzhang,</marc:subfield>
+    <marc:subfield code="d">1951-</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="852" ind1=" " ind2=" ">
+    <marc:subfield code="a">ICU-FE</marc:subfield>
+    <marc:subfield code="b">CJK</marc:subfield>
+    <marc:subfield code="t">c.1 v.0-100</marc:subfield>
+    <marc:subfield code="x">xz</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="0" ind2="0">
+    <marc:subfield code="6">245-01</marc:subfield>
+    <marc:subfield code="a">傅惜华藏古典戏曲曲谱身段谱丛刊 /</marc:subfield>
+    <marc:subfield code="c">主编王文章 ; 副主编刘文峰.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1=" " ind2=" ">
+    <marc:subfield code="6">250-02</marc:subfield>
+    <marc:subfield code="a">第一版.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1=" " ind2="1">
+    <marc:subfield code="6">264-03</marc:subfield>
+    <marc:subfield code="a">北京市 :</marc:subfield>
+    <marc:subfield code="b">学苑出版社,</marc:subfield>
+    <marc:subfield code="c">2013.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="0" ind2="0">
+    <marc:subfield code="6">505-04</marc:subfield>
+    <marc:subfield code="g">000.</marc:subfield>
+    <marc:subfield code="t">傅惜华藏古典戏曲曲谱身段谱丛刊 提要 --</marc:subfield>
+    <marc:subfield code="g">001.</marc:subfield>
+    <marc:subfield code="t">牧羊记.</marc:subfield>
+    <marc:subfield code="t">荊钗记.</marc:subfield>
+    <marc:subfield code="t">拜月亭记 --</marc:subfield>
+    <marc:subfield code="g">002.</marc:subfield>
+    <marc:subfield code="t">拜月亭记.</marc:subfield>
+    <marc:subfield code="t">琵琶记 --</marc:subfield>
+    <marc:subfield code="g">003.</marc:subfield>
+    <marc:subfield code="t">琵琶记.</marc:subfield>
+    <marc:subfield code="t">北西厢 --</marc:subfield>
+    <marc:subfield code="g">004.</marc:subfield>
+    <marc:subfield code="t">北西厢.</marc:subfield>
+    <marc:subfield code="t">马陵道 --</marc:subfield>
+    <marc:subfield code="g">005.</marc:subfield>
+    <marc:subfield code="t">西厢记.</marc:subfield>
+    <marc:subfield code="t">宝剑记.</marc:subfield>
+    <marc:subfield code="t">浣纱记 --</marc:subfield>
+    <marc:subfield code="g">006.</marc:subfield>
+    <marc:subfield code="t">浣纱记.</marc:subfield>
+    <marc:subfield code="t">四声猿.</marc:subfield>
+    <marc:subfield code="t">红佛记.</marc:subfield>
+    <marc:subfield code="t">绣襦记 --</marc:subfield>
+    <marc:subfield code="g">007.</marc:subfield>
+    <marc:subfield code="t">绣襦记.</marc:subfield>
+    <marc:subfield code="t">牡丹亭 --</marc:subfield>
+    <marc:subfield code="g">008.</marc:subfield>
+    <marc:subfield code="t">牡丹亭.</marc:subfield>
+    <marc:subfield code="t">南柯梦 --</marc:subfield>
+    <marc:subfield code="g">009.</marc:subfield>
+    <marc:subfield code="t">邯郸记.</marc:subfield>
+    <marc:subfield code="t">狮吼记.</marc:subfield>
+    <marc:subfield code="t">水浒记.</marc:subfield>
+    <marc:subfield code="t">玉簪记.</marc:subfield>
+    <marc:subfield code="t">红梨记.</marc:subfield>
+    <marc:subfield code="t">宵光剑.</marc:subfield>
+    <marc:subfield code="t">金锁记.</marc:subfield>
+    <marc:subfield code="t">归元镜.</marc:subfield>
+    <marc:subfield code="t">焚香记.</marc:subfield>
+    <marc:subfield code="t">钗钏记.</marc:subfield>
+    <marc:subfield code="t">双红记 --</marc:subfield>
+    <marc:subfield code="g">010.</marc:subfield>
+    <marc:subfield code="t">金雀记.</marc:subfield>
+    <marc:subfield code="t">古城记.</marc:subfield>
+    <marc:subfield code="t">西楼记.</marc:subfield>
+    <marc:subfield code="t">一捧雪 --</marc:subfield>
+    <marc:subfield code="g">011.</marc:subfield>
+    <marc:subfield code="t">一捧雪.</marc:subfield>
+    <marc:subfield code="t">占花魁.</marc:subfield>
+    <marc:subfield code="t">昊天塔.</marc:subfield>
+    <marc:subfield code="t">眉山秀.</marc:subfield>
+    <marc:subfield code="t">麒麟阁.</marc:subfield>
+    <marc:subfield code="t">天下乐.</marc:subfield>
+    <marc:subfield code="t">醉菩提.</marc:subfield>
+    <marc:subfield code="t">双冠诰.</marc:subfield>
+    <marc:subfield code="t">长生殿 --</marc:subfield>
+    <marc:subfield code="g">012.</marc:subfield>
+    <marc:subfield code="t">长生殿 --</marc:subfield>
+    <marc:subfield code="g">013.</marc:subfield>
+    <marc:subfield code="t">长生殿.</marc:subfield>
+    <marc:subfield code="t">桃花扇.</marc:subfield>
+    <marc:subfield code="t">女弹词.</marc:subfield>
+    <marc:subfield code="t">雷峰塔(黄图珌原撰).</marc:subfield>
+    <marc:subfield code="t">雪中人 --</marc:subfield>
+    <marc:subfield code="g">014.</marc:subfield>
+    <marc:subfield code="t">雪中人.</marc:subfield>
+    <marc:subfield code="t">迎銮新曲.</marc:subfield>
+    <marc:subfield code="t">雷峰塔(方成培撰).</marc:subfield>
+    <marc:subfield code="t">报恩缘.</marc:subfield>
+    <marc:subfield code="t">才人福.</marc:subfield>
+    <marc:subfield code="t">兰桂仙.</marc:subfield>
+    <marc:subfield code="t">味尘轩曲谱 --</marc:subfield>
+    <marc:subfield code="g">015.</marc:subfield>
+    <marc:subfield code="t">味尘轩曲谱.</marc:subfield>
+    <marc:subfield code="t">赐福.</marc:subfield>
+    <marc:subfield code="t">吉曜齐临.</marc:subfield>
+    <marc:subfield code="t">混元盒.</marc:subfield>
+    <marc:subfield code="t">富贵长春.</marc:subfield>
+    <marc:subfield code="t">西游记.</marc:subfield>
+    <marc:subfield code="t">后西游.</marc:subfield>
+    <marc:subfield code="t">烂柯山.</marc:subfield>
+    <marc:subfield code="t">铁冠图.</marc:subfield>
+    <marc:subfield code="t">呆中福 --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="8" ind2="0">
+    <marc:subfield code="6">505-05</marc:subfield>
+    <marc:subfield code="g">016.</marc:subfield>
+    <marc:subfield code="t">千秋鉴.</marc:subfield>
+    <marc:subfield code="t">孽海记.</marc:subfield>
+    <marc:subfield code="t">三笑姻缘.</marc:subfield>
+    <marc:subfield code="t">玉蜻蜓.</marc:subfield>
+    <marc:subfield code="t">虹霓关.</marc:subfield>
+    <marc:subfield code="t">月圆曲谱.</marc:subfield>
+    <marc:subfield code="t">红楼梦.</marc:subfield>
+    <marc:subfield code="t">雅观楼.</marc:subfield>
+    <marc:subfield code="t">万花灯全谱.</marc:subfield>
+    <marc:subfield code="t">新旧门神交代曲谱.</marc:subfield>
+    <marc:subfield code="t">落帽风曲谱.</marc:subfield>
+    <marc:subfield code="t">十年记.</marc:subfield>
+    <marc:subfield code="t">访普总曲谱题曲总曲谱串普.</marc:subfield>
+    <marc:subfield code="t">挑袍逼休等曲谱七种.</marc:subfield>
+    <marc:subfield code="t">草地藏舟曲谱.</marc:subfield>
+    <marc:subfield code="t">惊变埋玉冥判等曲谱.</marc:subfield>
+    <marc:subfield code="t">哭相哭魁星曲谱 --</marc:subfield>
+    <marc:subfield code="g">017.</marc:subfield>
+    <marc:subfield code="t">女弹词琵琶行.</marc:subfield>
+    <marc:subfield code="t">琴挑问病偷诗水斗曲谱.</marc:subfield>
+    <marc:subfield code="t">昇平署剧本一集 --</marc:subfield>
+    <marc:subfield code="g">018.</marc:subfield>
+    <marc:subfield code="t">昇平署剧本二集.</marc:subfield>
+    <marc:subfield code="t">昇平署剧本三集 --</marc:subfield>
+    <marc:subfield code="g">019.</marc:subfield>
+    <marc:subfield code="t">昇平署剧本三集.</marc:subfield>
+    <marc:subfield code="t">昇平署曲谱四种.</marc:subfield>
+    <marc:subfield code="t">清廷承应戏曲谱四出.</marc:subfield>
+    <marc:subfield code="t">昇平署曲谱十种 --</marc:subfield>
+    <marc:subfield code="g">020.</marc:subfield>
+    <marc:subfield code="t">昆曲散折十二种.</marc:subfield>
+    <marc:subfield code="t">清宮承应曲谱十三出.</marc:subfield>
+    <marc:subfield code="t">昇平署曲谱十九种 --</marc:subfield>
+    <marc:subfield code="g">021-022.</marc:subfield>
+    <marc:subfield code="t">承应曲谱六十九种 --</marc:subfield>
+    <marc:subfield code="g">023.</marc:subfield>
+    <marc:subfield code="t">清宮承应曲谱.</marc:subfield>
+    <marc:subfield code="t">昇平署曲谱.</marc:subfield>
+    <marc:subfield code="t">昇平署折子剧本集.</marc:subfield>
+    <marc:subfield code="t">乾隆抄本曲谱十种 --</marc:subfield>
+    <marc:subfield code="g">024.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱 --</marc:subfield>
+    <marc:subfield code="g">025.</marc:subfield>
+    <marc:subfield code="t">曲谱六种.</marc:subfield>
+    <marc:subfield code="t">云想衣裳.</marc:subfield>
+    <marc:subfield code="t">六观楼曲谱六卷存第一卷.</marc:subfield>
+    <marc:subfield code="t">蕴秀轩藏谱.</marc:subfield>
+    <marc:subfield code="t">清音雅度 --</marc:subfield>
+    <marc:subfield code="g">026.</marc:subfield>
+    <marc:subfield code="t">昆曲剧本散折.</marc:subfield>
+    <marc:subfield code="t">补过斋曲谱.</marc:subfield>
+    <marc:subfield code="t">槐荫书屋松龄藏谱 --</marc:subfield>
+    <marc:subfield code="g">027.</marc:subfield>
+    <marc:subfield code="t">槐荫书屋松龄藏谱 --</marc:subfield>
+    <marc:subfield code="g">028-029.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱 --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="8" ind2="0">
+    <marc:subfield code="6">505-06</marc:subfield>
+    <marc:subfield code="g">030-031.</marc:subfield>
+    <marc:subfield code="t">遏云阁曲谱附学曲例言 --</marc:subfield>
+    <marc:subfield code="g">032.</marc:subfield>
+    <marc:subfield code="t">遏云阁曲谱附学曲例言.</marc:subfield>
+    <marc:subfield code="t">霓裳文艺全谱四卷 --</marc:subfield>
+    <marc:subfield code="g">033.</marc:subfield>
+    <marc:subfield code="t">霓裳文艺全谱四卷.</marc:subfield>
+    <marc:subfield code="t">清音乐曲 --</marc:subfield>
+    <marc:subfield code="g">034.</marc:subfield>
+    <marc:subfield code="t">六也曲谱初集四卷.</marc:subfield>
+    <marc:subfield code="t">春雪阁曲谱三记 --</marc:subfield>
+    <marc:subfield code="g">035-038.</marc:subfield>
+    <marc:subfield code="t">增辑六也曲谱四集 --</marc:subfield>
+    <marc:subfield code="g">039-042.</marc:subfield>
+    <marc:subfield code="t">绘图精选昆曲大全四集 --</marc:subfield>
+    <marc:subfield code="g">043.</marc:subfield>
+    <marc:subfield code="t">昆曲十六种曲谱.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱.</marc:subfield>
+    <marc:subfield code="t">摘锦 --</marc:subfield>
+    <marc:subfield code="g">044-052.</marc:subfield>
+    <marc:subfield code="t">谦受益斋曲谱十二集二十四卷 --</marc:subfield>
+    <marc:subfield code="g">052.</marc:subfield>
+    <marc:subfield code="t">谦受益斋曲谱十二集二十四卷.</marc:subfield>
+    <marc:subfield code="t">雨加雪十番全谱 --</marc:subfield>
+    <marc:subfield code="g">053.</marc:subfield>
+    <marc:subfield code="t">雨加雪十番全谱 --</marc:subfield>
+    <marc:subfield code="g">054.</marc:subfield>
+    <marc:subfield code="t">雨加雪十番全谱.</marc:subfield>
+    <marc:subfield code="t">味果轩曲谱四卷存二至四卷 --</marc:subfield>
+    <marc:subfield code="g">055.</marc:subfield>
+    <marc:subfield code="t">南曲曲谱 --</marc:subfield>
+    <marc:subfield code="g">056.</marc:subfield>
+    <marc:subfield code="t">苏派昆腔谱.</marc:subfield>
+    <marc:subfield code="t">曲谱杂录.</marc:subfield>
+    <marc:subfield code="t">昆曲谱 --</marc:subfield>
+    <marc:subfield code="g">057.</marc:subfield>
+    <marc:subfield code="t">昆曲谱.</marc:subfield>
+    <marc:subfield code="t">昆曲散出十二折 --</marc:subfield>
+    <marc:subfield code="g">058.</marc:subfield>
+    <marc:subfield code="t">昆曲散出十三折.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱集 --</marc:subfield>
+    <marc:subfield code="g">059.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱集.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱五集 --</marc:subfield>
+    <marc:subfield code="g">060-063.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱五集 --</marc:subfield>
+    <marc:subfield code="g">064.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱五集.</marc:subfield>
+    <marc:subfield code="t">审声知音 --</marc:subfield>
+    <marc:subfield code="g">065.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱六种.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱 --</marc:subfield>
+    <marc:subfield code="g">066.</marc:subfield>
+    <marc:subfield code="t">昆曲曲谱.</marc:subfield>
+    <marc:subfield code="t">曲宗残存十二集 --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="8" ind2="0">
+    <marc:subfield code="6">505-07</marc:subfield>
+    <marc:subfield code="g">067.</marc:subfield>
+    <marc:subfield code="t">曲宗残存十二集.</marc:subfield>
+    <marc:subfield code="t">梨园曲谱存五集 --</marc:subfield>
+    <marc:subfield code="g">068.</marc:subfield>
+    <marc:subfield code="t">扢雅扬风 --</marc:subfield>
+    <marc:subfield code="g">069.</marc:subfield>
+    <marc:subfield code="t">扢雅扬风.</marc:subfield>
+    <marc:subfield code="t">紫云簃曲谱.</marc:subfield>
+    <marc:subfield code="t">秋生馆曲谱 --</marc:subfield>
+    <marc:subfield code="g">070.</marc:subfield>
+    <marc:subfield code="t">秋生馆曲谱 --</marc:subfield>
+    <marc:subfield code="g">071.</marc:subfield>
+    <marc:subfield code="t">秋生馆曲谱 --</marc:subfield>
+    <marc:subfield code="g">072.</marc:subfield>
+    <marc:subfield code="t">秋生馆曲谱.</marc:subfield>
+    <marc:subfield code="t">昭华琯曲谱十集 --</marc:subfield>
+    <marc:subfield code="g">073.</marc:subfield>
+    <marc:subfield code="t">昭华琯曲谱十集.</marc:subfield>
+    <marc:subfield code="t">聊以自娱斋曲谱六集 --</marc:subfield>
+    <marc:subfield code="g">074.</marc:subfield>
+    <marc:subfield code="t">聊以自娱斋曲谱六集 --</marc:subfield>
+    <marc:subfield code="g">075.</marc:subfield>
+    <marc:subfield code="t">戏剧词谱.</marc:subfield>
+    <marc:subfield code="t">曲谱汇集.</marc:subfield>
+    <marc:subfield code="t">消闲集 --</marc:subfield>
+    <marc:subfield code="g">076-077.</marc:subfield>
+    <marc:subfield code="t">消闲集 --</marc:subfield>
+    <marc:subfield code="g">078.</marc:subfield>
+    <marc:subfield code="t">乐在其中.</marc:subfield>
+    <marc:subfield code="t">天韵社曲谱六卷一百二十出 --</marc:subfield>
+    <marc:subfield code="g">079-080.</marc:subfield>
+    <marc:subfield code="t">天韵社曲谱六卷一百二十出 --</marc:subfield>
+    <marc:subfield code="g">081-082.</marc:subfield>
+    <marc:subfield code="t">双忽雷阁曲谱六种稿本 --</marc:subfield>
+    <marc:subfield code="g">083.</marc:subfield>
+    <marc:subfield code="t">双忽雷阁曲谱六种稿本.</marc:subfield>
+    <marc:subfield code="t">昆曲粹存初集 --</marc:subfield>
+    <marc:subfield code="g">084.</marc:subfield>
+    <marc:subfield code="t">昆曲粹存初集.</marc:subfield>
+    <marc:subfield code="t">昆曲折子剧本集 --</marc:subfield>
+    <marc:subfield code="g">085.</marc:subfield>
+    <marc:subfield code="t">昆曲折子剧本集.</marc:subfield>
+    <marc:subfield code="t">昆曲散出曲谱.</marc:subfield>
+    <marc:subfield code="t">俞粟庐自书唱片曲谱.</marc:subfield>
+    <marc:subfield code="t">与众曲谱八卷 --</marc:subfield>
+    <marc:subfield code="g">086.</marc:subfield>
+    <marc:subfield code="t">与众曲谱八卷 --</marc:subfield>
+    <marc:subfield code="g">087.</marc:subfield>
+    <marc:subfield code="t">与众曲谱八卷.</marc:subfield>
+    <marc:subfield code="t">螾庐曲谱 --</marc:subfield>
+    <marc:subfield code="g">088.</marc:subfield>
+    <marc:subfield code="t">螾庐曲谱.</marc:subfield>
+    <marc:subfield code="t">昆曲谱零碎 --</marc:subfield>
+    <marc:subfield code="g">089.</marc:subfield>
+    <marc:subfield code="t">昆曲集净二集 --</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="8" ind2="0">
+    <marc:subfield code="6">505-08</marc:subfield>
+    <marc:subfield code="g">090.</marc:subfield>
+    <marc:subfield code="t">昆曲集净二集.</marc:subfield>
+    <marc:subfield code="t">钦定曲谱十二卷附首尾二卷 --</marc:subfield>
+    <marc:subfield code="g">091.</marc:subfield>
+    <marc:subfield code="t">钦定曲谱十二卷附首尾二卷 --</marc:subfield>
+    <marc:subfield code="g">092-093.</marc:subfield>
+    <marc:subfield code="t">太古传宗四卷附弦索调时剧新谱 --</marc:subfield>
+    <marc:subfield code="g">094.</marc:subfield>
+    <marc:subfield code="t">太古传宗四卷附弦索调时剧新谱.</marc:subfield>
+    <marc:subfield code="t">钧天妙乐.</marc:subfield>
+    <marc:subfield code="t">戏曲牌子抄.</marc:subfield>
+    <marc:subfield code="t">九枝曲谱.</marc:subfield>
+    <marc:subfield code="t">京昆工尺谱.</marc:subfield>
+    <marc:subfield code="t">明心宝鉴.</marc:subfield>
+    <marc:subfield code="t">工尺谱锣鼓谱 --</marc:subfield>
+    <marc:subfield code="g">095.</marc:subfield>
+    <marc:subfield code="t">荊钗记.</marc:subfield>
+    <marc:subfield code="t">白兔记.</marc:subfield>
+    <marc:subfield code="t">琵琶记.</marc:subfield>
+    <marc:subfield code="t">单刀会.</marc:subfield>
+    <marc:subfield code="t">西游记.</marc:subfield>
+    <marc:subfield code="t">南西厢记.</marc:subfield>
+    <marc:subfield code="t">连环记.</marc:subfield>
+    <marc:subfield code="t">千金记.</marc:subfield>
+    <marc:subfield code="t">跃鲤记.</marc:subfield>
+    <marc:subfield code="t">金印记.</marc:subfield>
+    <marc:subfield code="t">鸣凤记 --</marc:subfield>
+    <marc:subfield code="g">096.</marc:subfield>
+    <marc:subfield code="t">鸣凤记.</marc:subfield>
+    <marc:subfield code="t">牡丹亭.</marc:subfield>
+    <marc:subfield code="t">桃符记.</marc:subfield>
+    <marc:subfield code="t">义侠记.</marc:subfield>
+    <marc:subfield code="t">玉簪记.</marc:subfield>
+    <marc:subfield code="t">宵光剑.</marc:subfield>
+    <marc:subfield code="t">红梨记.</marc:subfield>
+    <marc:subfield code="t">惊鸿记.</marc:subfield>
+    <marc:subfield code="t">八义记.</marc:subfield>
+    <marc:subfield code="t">翠屏山 --</marc:subfield>
+    <marc:subfield code="g">097.</marc:subfield>
+    <marc:subfield code="t">翠屏山.</marc:subfield>
+    <marc:subfield code="t">望湖亭.</marc:subfield>
+    <marc:subfield code="t">白罗衫.</marc:subfield>
+    <marc:subfield code="t">衣珠记.</marc:subfield>
+    <marc:subfield code="t">精忠记.</marc:subfield>
+    <marc:subfield code="t">西楼记.</marc:subfield>
+    <marc:subfield code="t">千钟录.</marc:subfield>
+    <marc:subfield code="t">一捧雪 --</marc:subfield>
+    <marc:subfield code="g">098.</marc:subfield>
+    <marc:subfield code="t">万里缘.</marc:subfield>
+    <marc:subfield code="t">蝴蝶梦.</marc:subfield>
+    <marc:subfield code="t">捉垃[ ].</marc:subfield>
+    <marc:subfield code="t">党人碑.</marc:subfield>
+    <marc:subfield code="t">翡翠园.</marc:subfield>
+    <marc:subfield code="t">艳云亭.</marc:subfield>
+    <marc:subfield code="t">长生殿.</marc:subfield>
+    <marc:subfield code="t">金不换 (又名《锦蒲团》).</marc:subfield>
+    <marc:subfield code="t">雷峰塔.</marc:subfield>
+    <marc:subfield code="t">碧玉串.</marc:subfield>
+    <marc:subfield code="t">孽海记 --</marc:subfield>
+    <marc:subfield code="g">099.</marc:subfield>
+    <marc:subfield code="t">梅开两度 (一名《玉蟹簪》).</marc:subfield>
+    <marc:subfield code="t">训子身段谱痴梦身工谱》</marc:subfield>
+    <marc:subfield code="t">偷诗身段谱群仙庆贺身工谱.</marc:subfield>
+    <marc:subfield code="t">功宴谏父身段谱附戏叔.</marc:subfield>
+    <marc:subfield code="t">谒见猜谜反诳身工谱.</marc:subfield>
+    <marc:subfield code="t">昆曲二十五出.</marc:subfield>
+    <marc:subfield code="t">详注身段剧本 --</marc:subfield>
+    <marc:subfield code="g">100.</marc:subfield>
+    <marc:subfield code="t">详注身段剧本.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1=" " ind2=" ">
+    <marc:subfield code="6">500-00</marc:subfield>
+    <marc:subfield code="a">001-016: 古典戏曲曲谱 (一) 剧曲谱. 016-094: 古典戏曲曲谱 (二) 曲谱集. 095-099: 古典戏曲身段谱 (一) 单剧身段谱. 099-100:
+      古典戏曲身段谱 (二) 身段谱集.
+    </marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="2" ind2="4">
+    <marc:subfield code="6">610-09</marc:subfield>
+    <marc:subfield code="a">碧蕖馆</marc:subfield>
+    <marc:subfield code="v">Bibliography</marc:subfield>
+    <marc:subfield code="v">Catalogs.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="1" ind2=" ">
+    <marc:subfield code="6">700-10</marc:subfield>
+    <marc:subfield code="a">傅惜华,</marc:subfield>
+    <marc:subfield code="d">1907-</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="1" ind2=" ">
+    <marc:subfield code="6">700-11</marc:subfield>
+    <marc:subfield code="a">刘文峰.</marc:subfield>
+  </marc:datafield>
+  <marc:datafield tag="880" ind1="1" ind2=" ">
+    <marc:subfield code="6">700-12</marc:subfield>
+    <marc:subfield code="a">王文章,</marc:subfield>
+    <marc:subfield code="d">1951-</marc:subfield>
+  </marc:datafield>
+</marc:record>
