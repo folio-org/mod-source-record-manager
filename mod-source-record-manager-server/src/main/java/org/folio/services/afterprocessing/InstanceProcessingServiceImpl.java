@@ -63,9 +63,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               recordToInstanceMap.entrySet().parallelStream().forEach(entry ->
                 additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(entry.getKey(), entry.getValue().getId())
               );
-              updateParsedRecords(records, params).setHandler(updatedParsedRecordsAr -> {
-                if (updatedParsedRecordsAr.failed()) {
-                  LOGGER.error("Couldn't update parsed records", updatedParsedRecordsAr.cause());
+              updateParsedRecords(new ArrayList<>(recordToInstanceMap.keySet()), params).setHandler(updatedAr -> {
+                if (updatedAr.failed()) {
+                  LOGGER.error("Couldn't update parsed records", updatedAr.cause());
                 }
               });
             }
