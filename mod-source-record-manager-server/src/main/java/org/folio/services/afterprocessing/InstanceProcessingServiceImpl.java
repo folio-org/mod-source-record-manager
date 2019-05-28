@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -24,10 +25,10 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -46,37 +47,19 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
-    if (!CollectionUtils.isEmpty(records)) {
-      Map<Record, Instance> recordToInstanceMap = mapRecordsToInstances(records);
-      if (!recordToInstanceMap.isEmpty()) {
-        Future<Void> future = Future.future();
-        postInstances(recordToInstanceMap.values(), params).setHandler(ar -> {
-          if (ar.failed()) {
-            jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-              .compose(optional -> optional
-                .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-                .orElseThrow(() ->
-                  new NotFoundException(
-                    String.format("Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
-          } else {
-            if (Record.RecordType.MARC == getRecordsType(records)) {
-              recordToInstanceMap.entrySet().parallelStream().forEach(entry ->
-                additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(entry.getKey(), entry.getValue().getId())
-              );
-              updateParsedRecords(new ArrayList<>(recordToInstanceMap.keySet()), params).setHandler(updatedAr -> {
-                if (updatedAr.failed()) {
-                  LOGGER.error("Couldn't update parsed records", updatedAr.cause());
-                }
-              });
-            }
-          }
-          // Complete future in order to continue the import process regardless of the result of creating Instances
-          future.complete();
-        });
-        return future;
+    Future<Void> future = Future.future();
+    List<Pair<Record, Instance>> recordToInstanceList = mapRecordsToInstances(records);
+    List<Instance> instances = recordToInstanceList.parallelStream().map(Pair::getValue).collect(Collectors.toList());
+    postInstances(instances, params).setHandler(ar -> {
+      if (ar.failed()) {
+        updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
+      } else {
+        addAdditionalFields(recordToInstanceList, records, params);
       }
-    }
-    return Future.succeededFuture();
+      // Complete future in order to continue the import process regardless of the result of creating Instances
+      future.complete();
+    });
+    return future;
   }
 
   /**
@@ -85,22 +68,33 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param records given list of records
    * @return association between Records and corresponding Instances
    */
-  private Map<Record, Instance> mapRecordsToInstances(List<Record> records) {
-    RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
-    Map<Record, Instance> recordToInstanceMap = new ConcurrentHashMap(records.size());
-    records.parallelStream().forEach(record -> {
-      try {
-        if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-          Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-          recordToInstanceMap.put(record, instance);
-        }
-      } catch (Exception exception) {
-        String errorMessage =
-          String.format("Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
-        LOGGER.error(errorMessage);
+  private List<Pair<Record, Instance>> mapRecordsToInstances(List<Record> records) {
+    if (CollectionUtils.isEmpty(records)) {
+      return Collections.emptyList();
+    }
+    final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
+    return records.parallelStream()
+      .map(record -> mapRecordToInstance(mapper, record))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * @param mapper
+   * @param record
+   * @return
+   */
+  private Pair<Record, Instance> mapRecordToInstance(RecordToInstanceMapper mapper, Record record) {
+    try {
+      if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+        return Pair.of(record, instance);
       }
-    });
-    return recordToInstanceMap;
+    } catch (Exception exception) {
+      String errorMessage = String.format("Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
+      LOGGER.error(errorMessage);
+    }
+    return null;
   }
 
   /**
@@ -110,7 +104,10 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params    Okapi connection params
    * @return future
    */
-  private Future<Void> postInstances(Collection<Instance> instances, OkapiConnectionParams params) {
+  private Future<Void> postInstances(List<Instance> instances, OkapiConnectionParams params) {
+    if (CollectionUtils.isEmpty(instances)) {
+      return Future.succeededFuture();
+    }
     Future<Void> future = Future.future();
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
@@ -125,6 +122,48 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       }
     });
     return future;
+  }
+
+  /**
+   * Adds additional custom fields to parsed records and updates parsed records in mod-source-record-storage
+   *
+   * @param recordToInstanceList association between Records and corresponding Instances
+   * @param records              original list of records
+   * @param params               okapi connection params
+   */
+  private void addAdditionalFields(List<Pair<Record, Instance>> recordToInstanceList,
+                                   List<Record> records,
+                                   OkapiConnectionParams params) {
+    if (!CollectionUtils.isEmpty(recordToInstanceList) || !CollectionUtils.isEmpty(records)) {
+      Record.RecordType recordType = getRecordsType(records);
+      if (Record.RecordType.MARC == recordType) {
+        recordToInstanceList.parallelStream().forEach(entry ->
+          additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(entry.getKey(), entry.getValue().getId())
+        );
+        List<Record> recordsFromInstances = recordToInstanceList.parallelStream().map(Pair::getKey).collect(Collectors.toList());
+        updateParsedRecords(recordsFromInstances, params).setHandler(updatedAr -> {
+          if (updatedAr.failed()) {
+            LOGGER.error("Couldn't update parsed records", updatedAr.cause());
+          }
+        });
+      }
+    }
+  }
+
+  /**
+   * Updates state of given source chunk
+   *
+   * @param sourceChunkId id of source chunk
+   * @param state         state of source chunk
+   * @param params        okapi connection params
+   */
+  private void updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
+    jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+      .compose(optional -> optional
+        .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(state), params.getTenantId()))
+        .orElseThrow(() ->
+          new NotFoundException(
+            String.format("Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
   }
 
   /**
