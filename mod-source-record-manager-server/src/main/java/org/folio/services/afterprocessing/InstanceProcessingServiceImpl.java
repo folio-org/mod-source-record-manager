@@ -1,13 +1,11 @@
 package org.folio.services.afterprocessing;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -26,14 +24,16 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
-  private static final String INVENTORY_URL = "/inventory/instances";
-  private static final String INSTANCE_LOCATION_RESPONSE_HEADER = "location";
+  private static final String INVENTORY_URL = "/inventory/instancesCollection";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private AdditionalFieldsUtil additionalInstanceFieldsUtil;
@@ -46,91 +46,81 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
-    if (CollectionUtils.isEmpty(records)) {
-      return Future.succeededFuture();
-    }
-    Future<Void> future = Future.future();
-    List<Future> processRecordFutures = new ArrayList<>();
-    RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
-    records
-      .parallelStream()
-      .forEach(record -> processRecordFutures.add(processRecordForInstance(record, mapper, params)));
-    CompositeFuture.all(processRecordFutures).setHandler(result -> {
-      if (result.failed()) {
-        LOGGER.error("Couldn't create Instance in mod-inventory", result.cause());
-        jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-          .compose(optional -> optional
-            .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-            .orElseThrow(() -> new NotFoundException(String.format(
-              "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
-      } else {
-        if (Record.RecordType.MARC.equals(records.get(0).getRecordType())) {
-          updateParsedRecords(records, params);
-        }
-      }
-      // Complete future in order to continue the import process regardless of the result of creating Instances
-      future.complete();
-    });
-    return future;
-  }
-
-  /**
-   * Performs mapping a given Record to Instance and sends result Instance to mod-inventory.
-   * If given Record is MARC record, adds additional fields into ParsedRecord.
-   * If given Record is ERROR record - just successfully complete.
-   *
-   * @param record              Record
-   * @param mapper              Instance mapper
-   * @param params              OKAPI connection paras
-   * @return future
-   */
-  private Future<Void> processRecordForInstance(Record record, RecordToInstanceMapper mapper, OkapiConnectionParams params) {
-    // If given Record is not ERROR Record - try to map Record to Instance
-    if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-      try {
-        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        return postInstance(instance, params).compose(instanceId -> {
-          if (Record.RecordType.MARC.equals(record.getRecordType())) {
-            additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(record, instanceId);
+    if (!CollectionUtils.isEmpty(records)) {
+      Map<Record, Instance> recordToInstanceMap = mapRecordsToInstances(records);
+      if (!recordToInstanceMap.isEmpty()) {
+        Future<Void> future = Future.future();
+        postInstances(recordToInstanceMap.values(), params).setHandler(ar -> {
+          if (ar.failed()) {
+            jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+              .compose(optional -> optional
+                .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+                .orElseThrow(() ->
+                  new NotFoundException(
+                    String.format("Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+          } else {
+            if (Record.RecordType.MARC == getRecordsType(records)) {
+              recordToInstanceMap.entrySet().parallelStream().forEach(entry ->
+                additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(entry.getKey(), entry.getValue().getId())
+              );
+              updateParsedRecords(records, params).setHandler(updatedParsedRecordsAr -> {
+                if (updatedParsedRecordsAr.failed()) {
+                  LOGGER.error("Couldn't update parsed records", updatedParsedRecordsAr.cause());
+                }
+              });
+            }
           }
-          return Future.succeededFuture();
+          // Complete future in order to continue the import process regardless of the result of creating Instances
+          future.complete();
         });
-      } catch (Exception exception) {
-        String errorMessage =
-          String.format("Can not process given Record for Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
-        LOGGER.error(errorMessage);
-        return Future.failedFuture(errorMessage);
+        return future;
       }
     }
-    // IF given Record is ERROR record - return succeeded future
     return Future.succeededFuture();
   }
 
   /**
-   * Creates Inventory Instance
+   * Performs mapping a given Records to Instances.
    *
-   * @param instance Instance entity serves as request body to POST request to Inventory
-   * @param params   params enough to connect ot OKAPI
-   * @return future with Instance id
+   * @param records given list of records
+   * @return association between Records and corresponding Instances
    */
-  private Future<String> postInstance(Instance instance, OkapiConnectionParams params) {
-    Future<String> future = Future.future();
-    RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instance).setHandler(responseResult -> {
+  private Map<Record, Instance> mapRecordsToInstances(List<Record> records) {
+    RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
+    Map<Record, Instance> recordToInstanceMap = new ConcurrentHashMap(records.size());
+    records.parallelStream().forEach(record -> {
+      try {
+        if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+          Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+          recordToInstanceMap.put(record, instance);
+        }
+      } catch (Exception exception) {
+        String errorMessage =
+          String.format("Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
+        LOGGER.error(errorMessage);
+      }
+    });
+    return recordToInstanceMap;
+  }
+
+  /**
+   * Sends given collection of Instances to mod-inventory
+   *
+   * @param instances collection of Instances
+   * @param params    Okapi connection params
+   * @return future
+   */
+  private Future<Void> postInstances(Collection<Instance> instances, OkapiConnectionParams params) {
+    Future<Void> future = Future.future();
+    RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
         if (!RestUtil.validateAsyncResult(responseResult, future)) {
-          LOGGER.error("Error creating new Instance record", future.cause());
+          LOGGER.error("Error creating a new collection of Instances", future.cause());
         } else {
-          if (StringUtils.isNotEmpty(instance.getId())) {
-            String instanceId = instance.getId();
-            future.complete(instanceId);
-          } else {
-            String location = responseResult.result().getResponse().getHeader(INSTANCE_LOCATION_RESPONSE_HEADER);
-            String instanceId = location.substring(location.lastIndexOf('/') + 1);
-            future.complete(instanceId);
-          }
+          future.complete();
         }
       } catch (Exception e) {
-        LOGGER.error("Error during post for new Instance", e);
+        LOGGER.error("Error during post for new collection of Instances", e);
         future.fail(e);
       }
     });
@@ -151,8 +141,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Updates a collection of parsedRecords
    *
    * @param records collection of records containing updated parsed records
-   * @param params OkapiConnectionParams
-   * @return void
+   * @param params  okapi connection params
+   * @return Future
    */
   private Future<Void> updateParsedRecords(List<Record> records, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {

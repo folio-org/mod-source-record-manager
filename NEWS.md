@@ -1,7 +1,8 @@
-## 2019-05-17 v1.4.0-SNAPSHOT
+## 2019-05-28 v1.4.0-SNAPSHOT
  * Added description for data-import flow
  * Fixed issue with saving ErrorRecords
  * Added batch update of ParsedRecords after assigning Instance id to MARC records
+ * Applied parallel approach for mapping from records to instances
  
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
