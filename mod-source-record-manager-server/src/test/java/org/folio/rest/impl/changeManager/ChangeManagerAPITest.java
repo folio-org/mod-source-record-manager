@@ -785,38 +785,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotParseChunkOfRawRecordsIfRecordListEmpty() {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(WireMock.post(INVENTORY_URL)
-      .willReturn(WireMock.serverError()));
-
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-
-    RestAssured.given()
-      .spec(spec)
-      .body(new RawRecordsDto().withContentType(RawRecordsDto.ContentType.MARC_RAW).withLast(false).withCounter(1))
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-  }
-
-  @Test
-  public void shouldProcessChunkOfRawRecordsIfAdd(TestContext testContext) {
+  public void shouldProcessChunkOfRawRecordsIfAddingAdditionalFieldsWasFail(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -862,6 +831,38 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
+
+  @Test
+  public void shouldNotParseChunkOfRawRecordsIfRecordListEmpty() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(WireMock.post(INVENTORY_URL)
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new RawRecordsDto().withContentType(RawRecordsDto.ContentType.MARC_RAW).withLast(false).withCounter(1))
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+  }
+
 
   @Test
   public void shouldProcessLastChunkOfRawRecords(TestContext testContext) {
