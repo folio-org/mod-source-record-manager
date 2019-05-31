@@ -4,6 +4,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RawRecordsDto.ContentType;
 import org.marc4j.MarcError;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcReader;
@@ -77,7 +79,7 @@ public final class MarcRecordParser implements RecordParser {
   }
 
   @Override
-  public RecordFormat getParserFormat() {
-    return RecordFormat.MARC;
+  public ContentType getParserFormat() {
+    return ContentType.MARC_RAW;
   }
 }

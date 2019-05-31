@@ -2,13 +2,18 @@ package org.folio.services;
 
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.apache.commons.io.FileUtils;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.parsers.ParsedResult;
-import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.parsers.RecordParserNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
@@ -58,12 +63,16 @@ public class ParserTest {
     "    \"1998\u001E  \u001Fapfnd\u001FbLintz\u001E  \u001Fa19890510120000.0\u001E2 \u001Fa20141106\u001Fbm\u001Fdbatch\u001Felts\u001Fxaddfast\u001E  \u001FlOLIN\u001FaBR140\u001Fb.J86\u001Fh01/01/01 N\u001E\u001D01542ccm\" +\n" +
     "    \" a2200361   ";
   private static final String JSON_INCORRECT_RECORD = "{\"leader\":\"01542ccm a2200361   4500\",";
+  private static final String XML_INCORRECT_RECORD = "<marc:record xmlns:marc=\"http://www.loc.gov/MARC21/slim\"><marc:leader>13112cam a2200553Ii 4500</marc:leader>\n" +
+    "<marc:controlfield tag=\"001\">10424784</marc:controlfield>";
   private static final String EMPTY_RECORD = " ";
   private static final String NULL_RECORD = null;
+  public static final String XML_MARC_RECORD_PATH = "src/test/resources/org/folio/services/parsers/xmlMarcRecord.xml";
 
   @Test
   public void parseRawRecord(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, RAW_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_RAW);
+
     ParsedResult result = parser.parseRecord(RAW_MARC_RECORD);
     testContext.assertFalse(result.isHasError());
     testContext.assertNotNull(result.getParsedRecord());
@@ -72,7 +81,8 @@ public class ParserTest {
 
   @Test
   public void parseRawErrorSource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, RAW_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_RAW);
+
     ParsedResult result = parser.parseRecord(RAW_INCORRECT_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
@@ -81,7 +91,8 @@ public class ParserTest {
 
   @Test
   public void parsEmptySource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, RAW_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_RAW);
+
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
@@ -90,7 +101,8 @@ public class ParserTest {
 
   @Test
   public void parsNullSource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, RAW_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_RAW);
+
     ParsedResult result = parser.parseRecord(NULL_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
@@ -99,7 +111,8 @@ public class ParserTest {
 
   @Test
   public void parseJsonRecord(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, JSON_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_JSON);
+
     ParsedResult result = parser.parseRecord(JSON_MARC_RECORD);
     testContext.assertFalse(result.isHasError());
     testContext.assertNotNull(result.getParsedRecord());
@@ -108,7 +121,8 @@ public class ParserTest {
 
   @Test
   public void parseJsonErrorSource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, JSON_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_JSON);
+
     ParsedResult result = parser.parseRecord(JSON_INCORRECT_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
@@ -117,7 +131,8 @@ public class ParserTest {
 
   @Test
   public void parseJsonEmptySource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, JSON_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_JSON);
+
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
@@ -126,16 +141,52 @@ public class ParserTest {
 
   @Test
   public void parseNullSource(TestContext testContext) {
-    RecordParser parser = RecordParserBuilder.buildParser(RecordFormat.MARC, JSON_MARC_RECORD);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_JSON);
+
     ParsedResult result = parser.parseRecord(NULL_RECORD);
     testContext.assertTrue(result.isHasError());
     testContext.assertNotNull(result.getErrors());
     testContext.assertNotEquals(result.getErrors().encode(), "");
   }
 
-  @Test(expected = RecordParserNotFoundException.class)
-  public void expectError(TestContext testContext) {
-    RecordParserBuilder.buildParser(null, RAW_MARC_RECORD);
+  @Test
+  public void parseXmlRecord(TestContext testContext) throws IOException {
+    String xmlMarcRecord = FileUtils.readFileToString(new File(XML_MARC_RECORD_PATH), StandardCharsets.UTF_8);
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_XML);
+
+    ParsedResult result = parser.parseRecord(xmlMarcRecord);
+    testContext.assertFalse(result.isHasError());
+    testContext.assertNotNull(result.getParsedRecord());
+    testContext.assertNotEquals(result.getParsedRecord().encode(), "");
   }
 
+  @Test
+  public void parseXmlErrorSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_XML);
+
+    ParsedResult result = parser.parseRecord(XML_INCORRECT_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseXmlEmptySource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_XML);
+
+    ParsedResult result = parser.parseRecord(EMPTY_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseXmlNullSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RawRecordsDto.ContentType.MARC_XML);
+
+    ParsedResult result = parser.parseRecord(NULL_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
 }
