@@ -1,5 +1,12 @@
 package org.folio.services.afterprocessing;
 
+import javax.ws.rs.NotFoundException;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -13,6 +20,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.Instance;
+import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordCollection;
@@ -22,13 +30,6 @@ import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -54,7 +55,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       if (ar.failed()) {
         updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
       } else {
-        addAdditionalFields(recordToInstanceList, records, params);
+        addAdditionalFields(recordToInstanceList, params);
       }
       // Complete future in order to continue the import process regardless of the result of creating Instances
       future.complete();
@@ -80,9 +81,11 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * @param mapper
-   * @param record
-   * @return
+   * Maps a record to an instance record.
+   *
+   * @param mapper a record to instance record mapper.
+   * @param record a record.
+   * @return either a pair of record-instance or null.
    */
   private Pair<Record, Instance> mapRecordToInstance(RecordToInstanceMapper mapper, Record record) {
     try {
@@ -100,15 +103,16 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Sends given collection of Instances to mod-inventory
    *
-   * @param instances collection of Instances
-   * @param params    Okapi connection params
+   * @param instanceList collection of Instances
+   * @param params       Okapi connection params
    * @return future
    */
-  private Future<Void> postInstances(List<Instance> instances, OkapiConnectionParams params) {
-    if (CollectionUtils.isEmpty(instances)) {
+  private Future<Void> postInstances(List<Instance> instanceList, OkapiConnectionParams params) {
+    if (CollectionUtils.isEmpty(instanceList)) {
       return Future.succeededFuture();
     }
     Future<Void> future = Future.future();
+    Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
         if (!RestUtil.validateAsyncResult(responseResult, future)) {
@@ -128,25 +132,24 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Adds additional custom fields to parsed records and updates parsed records in mod-source-record-storage
    *
    * @param recordToInstanceList association between Records and corresponding Instances
-   * @param records              original list of records
    * @param params               okapi connection params
    */
-  private void addAdditionalFields(List<Pair<Record, Instance>> recordToInstanceList,
-                                   List<Record> records,
-                                   OkapiConnectionParams params) {
-    if (!CollectionUtils.isEmpty(recordToInstanceList) || !CollectionUtils.isEmpty(records)) {
-      Record.RecordType recordType = getRecordsType(records);
-      if (Record.RecordType.MARC == recordType) {
-        recordToInstanceList.parallelStream().forEach(entry ->
-          additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(entry.getKey(), entry.getValue().getId())
-        );
-        List<Record> recordsFromInstances = recordToInstanceList.parallelStream().map(Pair::getKey).collect(Collectors.toList());
-        updateParsedRecords(recordsFromInstances, params).setHandler(updatedAr -> {
-          if (updatedAr.failed()) {
-            LOGGER.error("Couldn't update parsed records", updatedAr.cause());
-          }
-        });
-      }
+  private void addAdditionalFields(List<Pair<Record, Instance>> recordToInstanceList, OkapiConnectionParams params) {
+    if (CollectionUtils.isEmpty(recordToInstanceList)) {
+      return;
+    }
+
+    if (Record.RecordType.MARC == recordToInstanceList.get(0).getKey().getRecordType()) {
+      List<Record> records = recordToInstanceList.parallelStream()
+        .peek(it -> additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(it.getKey(), it.getValue().getId()))
+        .map(Pair::getKey)
+        .collect(Collectors.toList());
+
+      updateParsedRecords(records, params).setHandler(updatedAr -> {
+        if (updatedAr.failed()) {
+          LOGGER.error("Couldn't update parsed records", updatedAr.cause());
+        }
+      });
     }
   }
 
@@ -189,30 +192,34 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     }
     Future<Void> future = Future.future();
     try {
-      List<ParsedRecord> parsedRecords = new ArrayList<>();
-      records.forEach(record -> {
-        if (record.getParsedRecord() != null) {
-          parsedRecords.add(record.getParsedRecord());
-        }
-      });
-      ParsedRecordCollection parsedRecordsCollection = new ParsedRecordCollection()
-        .withParsedRecords(parsedRecords)
-        .withTotalRecords(parsedRecords.size())
-        .withRecordType(ParsedRecordCollection.RecordType.valueOf(getRecordsType(records).value()));
-      SourceStorageClient sourceStorageClient = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-      sourceStorageClient.putSourceStorageParsedRecordsCollection(parsedRecordsCollection, response -> {
-        if (response.statusCode() != HttpStatus.HTTP_OK.toInt()) {
-          String errorMessage = String.format("Couldn't update parsed records collection - response status code %s, expected 200", response.statusCode());
-          LOGGER.error(errorMessage);
-          future.fail(errorMessage);
-        } else {
-          future.complete();
-        }
-      });
+      new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
+        .putSourceStorageParsedRecordsCollection(buildParsedRecordCollection(records), response -> {
+          if (HttpStatus.HTTP_OK.toInt() != response.statusCode()) {
+            setFail(future, response.statusCode());
+          }
+        });
     } catch (Exception e) {
       LOGGER.error("Failed to update parsed records collection", e);
       future.fail(e);
     }
-    return future;
+    return future.isComplete() ? future : Future.succeededFuture();
+  }
+
+  private void setFail(Future<Void> future, int statusCode) {
+    String errorMessage = String.format("Couldn't update parsed records collection - response status code %s, expected 200", statusCode);
+    LOGGER.error(errorMessage);
+    future.fail(errorMessage);
+  }
+
+  private ParsedRecordCollection buildParsedRecordCollection(List<Record> records) {
+    List<ParsedRecord> parsedRecords = records.stream()
+      .filter(record -> record.getParsedRecord() != null)
+      .map(Record::getParsedRecord)
+      .collect(Collectors.toList());
+
+    return new ParsedRecordCollection()
+      .withParsedRecords(parsedRecords)
+      .withTotalRecords(parsedRecords.size())
+      .withRecordType(ParsedRecordCollection.RecordType.valueOf(getRecordsType(records).value()));
   }
 }
