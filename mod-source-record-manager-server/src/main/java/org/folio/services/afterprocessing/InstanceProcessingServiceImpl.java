@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
-  private static final String INVENTORY_URL = "/inventory/instancesCollection";
+  private static final String INVENTORY_URL = "/inventory/instances/batch";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private AdditionalFieldsUtil additionalInstanceFieldsUtil;
