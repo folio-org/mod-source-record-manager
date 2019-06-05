@@ -69,7 +69,7 @@ public abstract class AbstractRestTest {
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   protected static final String RECORDS_SERVICE_URL = "/source-storage/recordsCollection";
   protected static final String RECORD_SERVICE_URL = "/source-storage/records";
-  protected static final String INVENTORY_URL = "/inventory/instances";
+  protected static final String INVENTORY_URL = "/inventory/instances/batch";
   protected static final String PARSED_RECORDS_COLLECTION_URL = "/source-storage/parsedRecordsCollection";
 
   private JsonObject userResponse = new JsonObject()

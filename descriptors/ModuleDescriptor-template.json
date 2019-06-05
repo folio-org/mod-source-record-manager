@@ -7,8 +7,8 @@
       "version": "2.0"
     },
     {
-      "id": "inventory",
-      "version": "8.3"
+      "id": "inventory-batch",
+      "version": "0.1"
     },
     {
       "id": "users",
@@ -73,7 +73,7 @@
             "source-storage.records.get",
             "source-storage.records.post",
             "source-storage.records.put",
-            "inventory.instances.item.post"
+            "inventory.instances.batch.post"
           ]
         }
       ]

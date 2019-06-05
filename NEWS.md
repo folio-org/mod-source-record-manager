@@ -1,9 +1,11 @@
-## 2019-05-17 v1.4.0-SNAPSHOT
+## 2019-06-05 v1.4.0-SNAPSHOT
  * Added description for data-import flow
  * Fixed issue with saving ErrorRecords
  * Added batch update of ParsedRecords after assigning Instance id to MARC records
  * Added support for records processing in XML format
- 
+ * Applied parallel approach for mapping from records to instances
+ * Use batch post to send Instances to the mod-inventory
+
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
  * Changed implementation for checking statuses for JobExecutionSourceChunk
