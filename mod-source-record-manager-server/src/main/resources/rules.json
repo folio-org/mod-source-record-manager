@@ -303,8 +303,8 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim",
+                  "value": ""
                 }
               ]
             }
@@ -340,8 +340,8 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim",
+                  "value": ""
                 }
               ]
             }
@@ -676,8 +676,8 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim",
+                  "value": ""
                 }
               ]
             }
@@ -710,8 +710,8 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim",
+                  "value": ""
                 }
               ]
             }

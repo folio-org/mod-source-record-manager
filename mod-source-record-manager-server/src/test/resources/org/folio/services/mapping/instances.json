@@ -1,0 +1,209 @@
+[
+  {
+    "id": "538528f3-2e4b-452c-85b3-78888e620a5a",
+    "hrid": "9928371",
+    "source": "MARC",
+    "parentInstances": [],
+    "childInstances": [],
+    "title": "Orihon / Tom Burtonwood",
+    "indexTitle": "Oriho",
+    "alternativeTitles": [],
+    "editions": [],
+    "series": [],
+    "identifiers": [
+      {
+        "value": "(OCoLC)874849566",
+        "identifierTypeId": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+      }
+    ],
+    "contributors": [
+      {
+        "name": "Burtonwood, Tom, 1974- ,",
+        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+      },
+      {
+        "name": "Bakutis, Jason, 1969- ,",
+        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+      },
+      {
+        "name": "AMinimal Studio"
+      },
+      {
+        "name": "Booklyn Artists Alliance,",
+        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+      },
+      {
+        "name": "Pretty Small Things"
+      }
+    ],
+    "subjects": [
+      "Artists' books--United States",
+      "Three-dimensional printing",
+      "Artists' books.--fast",
+      "Three-dimensional printing.--fast",
+      "United States.--fast"
+    ],
+    "classifications": [
+      {
+        "classificationNumber": "N7433.3",
+        "classificationTypeId": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+      },
+      {
+        "classificationNumber": ".B87 2014",
+        "classificationTypeId": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+      }
+    ],
+    "publication": [
+      {
+        "publisher": "Booklyn Artists Alliance",
+        "place": "Brooklyn, New York",
+        "dateOfPublication": "2014"
+      }
+    ],
+    "publicationFrequency": [],
+    "publicationRange": [],
+    "electronicAccess": [
+      {
+        "uri": "http://www.thingiverse.com/thing:110411",
+        "publicNote": "3D printer files also available online"
+      },
+      {
+        "uri": "http://booklyn.org/archive/index.php/Detail/Object/Show/object_id/1513",
+        "publicNote": "Publisher's description"
+      }
+    ],
+    "instanceTypeId": "c1e95c2b-4efc-48cf-9e71-edb622cf0c22",
+    "instanceFormatIds": [
+      "object nr rdacarrier",
+      "other cz rdacarrier accompanying USB flash drive"
+    ],
+    "physicalDescriptions": [
+      "1 object : plastic ; 13 x 20 x 20 cm + 1 USB flash drive."
+    ],
+    "languages": [
+      "eng"
+    ],
+    "notes": [
+      "\\\"Released under the Creative Commons Attribution-ShareAlike 3.0 unported (CC BY-SA 3.0) license\\\"--First leaf",
+      "Head of an ogre / by Tom Burtonwood -- Boddhisattva / by Jason Bakutis -- Olmec colossal head / by Pretty Small Things -- Mayan head / by Tom Burtonwood -- Torso of an emperor, Roman Imperial / by AMinimal Studio -- Art Institute of Chicago lion / by Tom Burtonwood",
+      "A 3D-printed, book-like object consisting of eight leaves, with six relief illustrations, each created using photogrammetric scans of a sculpture. Leaves are connected by hinges and folded accordion style. The accompanying USB flash drive contains all data files used to create the object with a 3D printer. Six of the leaves feature scans of a sculpture found at the Art Institute of Chicago and the Metropolitan Museum of Art in New York",
+      "Title from publisher's website (viewed March 26, 2014)"
+    ],
+    "statisticalCodeIds": []
+  },
+  {
+    "id": "b08d831e-4f35-4772-a1e2-b47863aa97f4",
+    "hrid": "9766936",
+    "source": "MARC",
+    "parentInstances": [],
+    "childInstances": [],
+    "title": "Krai͡eznavt͡si Cherkavshchyny : biobibliohrafichnyĭ dovidnyk / upori͡adnyky: V.M. Melʹnychenko, H.M. Holysh",
+    "indexTitle": "Kr",
+    "alternativeTitles": [],
+    "editions": [],
+    "series": [],
+    "identifiers": [
+      {
+        "value": "9789662783858",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "(paperback)",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "(paperback)",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "9662783857",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "(paperback)",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "(paperback)",
+        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+      },
+      {
+        "value": "(OCoLC)987797440",
+        "identifierTypeId": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+      },
+      {
+        "value": "(RuMoEVIS)5135521B",
+        "identifierTypeId": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+      },
+      {
+        "value": "9766936",
+        "identifierTypeId": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+      }
+    ],
+    "contributors": [
+      {
+        "name": "Melʹnychenko, V. M. (Vasylʹ Mykolaĭovych),",
+        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+      },
+      {
+        "name": "Holysh, H. M. (Hryhoriĭ Mykhaĭlovych), 1949-",
+        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+      },
+      {
+        "name": "Nat︠s︡ionalʹna spilka krai︠e︡znavt︠s︡iv Ukraïny. Cherkasʹka oblasna orhanizat︠s︡ii︠a︡,",
+        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+      },
+      {
+        "name": "Cherkasʹkyĭ nat︠s︡ionalʹnyĭ universytet imeni Bohdana Khmelʹnyt︠s︡ʹkoho,",
+        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+      }
+    ],
+    "subjects": [
+      "Historians--Ukraine--Cherkasʹka oblastʹ--Bio-bibliography--Dictionaries--Ukrainian",
+      "Cherkasʹka oblastʹ (Ukraine)--Bio-bibliography--Dictionaries--Ukrainian",
+      "Historians.--fast",
+      "Ukraine--Cherkasʹka oblastʹ.--fast"
+    ],
+    "classifications": [
+      {
+        "classificationNumber": "DK508.465",
+        "classificationTypeId": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+      },
+      {
+        "classificationNumber": ".K725 2016",
+        "classificationTypeId": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+      }
+    ],
+    "publication": [
+      {
+        "publisher": "Vertykalʹ",
+        "place": "Cherkasy",
+        "dateOfPublication": "2016"
+      },
+      {
+        "dateOfPublication": "©2016"
+      }
+    ],
+    "publicationFrequency": [],
+    "publicationRange": [],
+    "electronicAccess": [],
+    "instanceTypeId": "6312d172-f0cf-40f6-b27d-9fa8feaf332f",
+    "instanceFormatIds": [
+      "volume nc rdacarrier"
+    ],
+    "physicalDescriptions": [
+      "219 pages : illustrations ; 20 cm"
+    ],
+    "languages": [
+      "ukr",
+      "ukr"
+    ],
+    "notes": [
+      "At head of title: Cherkasʹka oblasna orhanizat͡sii͡a Nat͡sionalʹnoï spilky krai͡eznavt͡siv Ukraïny, Cherkasʹkyĭ nat͡sionalʹnyĭ universytet imeni Bohdana Khmelʹnyt͡sʹkoho",
+      "\\\"25-richchi͡u Nezalez͡hnosti Ukraïny prysvi͡achui͡etʹsi͡a.\\\"",
+      "In Ukrainian with summary in English",
+      "Includes bibliographical references"
+    ],
+    "statisticalCodeIds": []
+  }
+]
