@@ -1,12 +1,12 @@
 [
   {
-    "id": "538528f3-2e4b-452c-85b3-78888e620a5a",
+    "id": "0",
     "hrid": "9928371",
     "source": "MARC",
     "parentInstances": [],
     "childInstances": [],
     "title": "Orihon / Tom Burtonwood",
-    "indexTitle": "Oriho",
+    "indexTitle": "Orih",
     "alternativeTitles": [],
     "editions": [],
     "series": [],
@@ -92,13 +92,13 @@
     "statisticalCodeIds": []
   },
   {
-    "id": "b08d831e-4f35-4772-a1e2-b47863aa97f4",
+    "id": "0",
     "hrid": "9766936",
     "source": "MARC",
     "parentInstances": [],
     "childInstances": [],
     "title": "Krai͡eznavt͡si Cherkavshchyny : biobibliohrafichnyĭ dovidnyk / upori͡adnyky: V.M. Melʹnychenko, H.M. Holysh",
-    "indexTitle": "Kr",
+    "indexTitle": "Krai",
     "alternativeTitles": [],
     "editions": [],
     "series": [],

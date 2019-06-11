@@ -27,8 +27,8 @@ public class MappingTest {
     JsonArray marcs = new JsonArray(TestUtil.readFileFromPath(MARCS_PATH));
     JsonArray instances = new JsonArray(TestUtil.readFileFromPath(INSTANCES_PATH));
     Instance instance = mapper.mapRecord(marcs.getJsonObject(0));
-    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(0).put("id", "0").encode());
+    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(0).encode());
     instance = mapper.mapRecord(marcs.getJsonObject(1));
-    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(1).put("id", "0").encode());
+    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(1).encode());
   }
 }
