@@ -1,0 +1,1433 @@
+[
+  {
+    "fields": [
+      {
+        "001": "9928371"
+      },
+      {
+        "005": "20170607135506.0"
+      },
+      {
+        "008": "140326s2014    ilu               cneng d"
+      },
+      {
+        "040": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "MYG"
+            },
+            {
+              "b": "eng"
+            },
+            {
+              "e": "rda"
+            },
+            {
+              "c": "MYG"
+            },
+            {
+              "d": "MYG"
+            },
+            {
+              "d": "CUT"
+            },
+            {
+              "d": "OCLCO"
+            },
+            {
+              "d": "OCLCF"
+            },
+            {
+              "d": "OCLCO"
+            },
+            {
+              "d": "NIC"
+            }
+          ]
+        }
+      },
+      {
+        "035": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "(OCoLC)874849566"
+            }
+          ]
+        }
+      },
+      {
+        "043": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "n-us---"
+            }
+          ]
+        }
+      },
+      {
+        "050": {
+          "ind1": "1",
+          "ind2": "4",
+          "subfields": [
+            {
+              "a": "N7433.3"
+            },
+            {
+              "b": ".B87 2014"
+            }
+          ]
+        }
+      },
+      {
+        "100": {
+          "ind1": "1",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "Burtonwood, Tom,"
+            },
+            {
+              "d": "1974- ,"
+            },
+            {
+              "e": "artist."
+            }
+          ]
+        }
+      },
+      {
+        "245": {
+          "ind1": "1",
+          "ind2": "0",
+          "subfields": [
+            {
+              "a": "Orihon /"
+            },
+            {
+              "c": "Tom Burtonwood."
+            }
+          ]
+        }
+      },
+      {
+        "264": {
+          "ind1": " ",
+          "ind2": "1",
+          "subfields": [
+            {
+              "a": "Brooklyn, New York :"
+            },
+            {
+              "b": "Booklyn Artists Alliance,"
+            },
+            {
+              "c": "2014."
+            }
+          ]
+        }
+      },
+      {
+        "300": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "1 object :"
+            },
+            {
+              "b": "plastic ;"
+            },
+            {
+              "c": "13 x 20 x 20 cm +"
+            },
+            {
+              "e": "1 USB flash drive."
+            }
+          ]
+        }
+      },
+      {
+        "336": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "three-dimensional form"
+            },
+            {
+              "b": "tdf"
+            },
+            {
+              "2": "rdacontent"
+            }
+          ]
+        }
+      },
+      {
+        "336": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "computer dataset"
+            },
+            {
+              "b": "cod"
+            },
+            {
+              "2": "rdacontent"
+            },
+            {
+              "3": "accompanying USB flash drive"
+            }
+          ]
+        }
+      },
+      {
+        "337": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "unmediated"
+            },
+            {
+              "b": "n"
+            },
+            {
+              "2": "rdamedia"
+            }
+          ]
+        }
+      },
+      {
+        "337": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "computer"
+            },
+            {
+              "b": "c"
+            },
+            {
+              "2": "rdamedia"
+            },
+            {
+              "3": "accompanying USB flash drive"
+            }
+          ]
+        }
+      },
+      {
+        "338": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "object"
+            },
+            {
+              "b": "nr"
+            },
+            {
+              "2": "rdacarrier"
+            }
+          ]
+        }
+      },
+      {
+        "338": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "other"
+            },
+            {
+              "b": "cz"
+            },
+            {
+              "2": "rdacarrier"
+            },
+            {
+              "3": "accompanying USB flash drive"
+            }
+          ]
+        }
+      },
+      {
+        "500": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "\"Released under the Creative Commons Attribution-ShareAlike 3.0 unported (CC BY-SA 3.0) license\"--First leaf."
+            }
+          ]
+        }
+      },
+      {
+        "505": {
+          "ind1": "0",
+          "ind2": "0",
+          "subfields": [
+            {
+              "t": "Head of an ogre /"
+            },
+            {
+              "r": "by Tom Burtonwood --"
+            },
+            {
+              "t": "Boddhisattva /"
+            },
+            {
+              "r": "by Jason Bakutis --"
+            },
+            {
+              "t": "Olmec colossal head /"
+            },
+            {
+              "r": "by Pretty Small Things --"
+            },
+            {
+              "t": "Mayan head /"
+            },
+            {
+              "r": "by Tom Burtonwood --"
+            },
+            {
+              "t": "Torso of an emperor, Roman Imperial /"
+            },
+            {
+              "r": "by AMinimal Studio --"
+            },
+            {
+              "t": "Art Institute of Chicago lion /"
+            },
+            {
+              "r": "by Tom Burtonwood."
+            }
+          ]
+        }
+      },
+      {
+        "520": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "A 3D-printed, book-like object consisting of eight leaves, with six relief illustrations, each created using photogrammetric scans of a sculpture. Leaves are connected by hinges and folded accordion style. The accompanying USB flash drive contains all data files used to create the object with a 3D printer. Six of the leaves feature scans of a sculpture found at the Art Institute of Chicago and the Metropolitan Museum of Art in New York."
+            }
+          ]
+        }
+      },
+      {
+        "588": {
+          "ind1": " ",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "Title from publisher's website (viewed March 26, 2014)."
+            }
+          ]
+        }
+      },
+      {
+        "650": {
+          "ind1": " ",
+          "ind2": "0",
+          "subfields": [
+            {
+              "a": "Artists' books"
+            },
+            {
+              "z": "United States."
+            }
+          ]
+        }
+      },
+      {
+        "650": {
+          "ind1": " ",
+          "ind2": "0",
+          "subfields": [
+            {
+              "a": "Three-dimensional printing."
+            }
+          ]
+        }
+      },
+      {
+        "650": {
+          "ind1": " ",
+          "ind2": "7",
+          "subfields": [
+            {
+              "a": "Artists' books."
+            },
+            {
+              "2": "fast"
+            },
+            {
+              "0": "(OCoLC)fst00817660"
+            }
+          ]
+        }
+      },
+      {
+        "650": {
+          "ind1": " ",
+          "ind2": "7",
+          "subfields": [
+            {
+              "a": "Three-dimensional printing."
+            },
+            {
+              "2": "fast"
+            },
+            {
+              "0": "(OCoLC)fst01748862"
+            }
+          ]
+        }
+      },
+      {
+        "651": {
+          "ind1": " ",
+          "ind2": "7",
+          "subfields": [
+            {
+              "a": "United States."
+            },
+            {
+              "2": "fast"
+            },
+            {
+              "0": "(OCoLC)fst01204155"
+            }
+          ]
+        }
+      },
+      {
+        "655": {
+          "ind1": " ",
+          "ind2": "7",
+          "subfields": [
+            {
+              "a": "Artists' books."
+            },
+            {
+              "2": "aat"
+            }
+          ]
+        }
+      },
+      {
+        "700": {
+          "ind1": "1",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "Bakutis, Jason,"
+            },
+            {
+              "d": "1969- ,"
+            },
+            {
+              "e": "artist."
+            }
+          ]
+        }
+      },
+      {
+        "710": {
+          "ind1": "2",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "AMinimal Studio."
+            }
+          ]
+        }
+      },
+      {
+        "710": {
+          "ind1": "2",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "Booklyn Artists Alliance,"
+            },
+            {
+              "e": "publisher."
+            }
+          ]
+        }
+      },
+      {
+        "710": {
+          "ind1": "2",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "Pretty Small Things."
+            }
+          ]
+        }
+      },
+      {
+        "856": {
+          "ind1": "4",
+          "ind2": "1",
+          "subfields": [
+            {
+              "u": "http://www.thingiverse.com/thing:110411"
+            },
+            {
+              "z": "3D printer files also available online"
+            }
+          ]
+        }
+      },
+      {
+        "856": {
+          "ind1": "4",
+          "ind2": "2",
+          "subfields": [
+            {
+              "u": "http://booklyn.org/archive/index.php/Detail/Object/Show/object_id/1513"
+            },
+            {
+              "z": "Publisher's description"
+            }
+          ]
+        }
+      },
+      {
+        "948": {
+          "ind1": "1",
+          "ind2": " ",
+          "subfields": [
+            {
+              "a": "20170607"
+            },
+            {
+              "b": "c"
+            },
+            {
+              "d": "mnr1"
+            },
+            {
+              "e": "lts"
+            }
+          ]
+        }
+      },
+      {
+        "999": {
+          "ind1": "f",
+          "ind2": "f",
+          "subfields": [
+            {
+              "s": "85b5ab23-7a49-4c65-8adf-394c0fcad97c"
+            },
+            {
+              "i": "ddda75d7-1364-4b46-84c8-98892327b572"
+            }
+          ]
+        }
+      }
+    ],
+    "leader": "02566crm a2200433Ii 4500"
+  },
+  {
+    "id": "620ed284-425c-4319-911b-4d1e9ae00366",
+    "content": {
+      "fields": [
+        {
+          "001": "9766936"
+        },
+        {
+          "005": "20170726114813.0"
+        },
+        {
+          "008": "160906t20162016un a     bd   000 0cukr c"
+        },
+        {
+          "020": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "9789662783858"
+              },
+              {
+                "q": "(paperback)"
+              }
+            ]
+          }
+        },
+        {
+          "020": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "9662783857"
+              },
+              {
+                "q": "(paperback)"
+              }
+            ]
+          }
+        },
+        {
+          "035": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "(OCoLC)987797440"
+              }
+            ]
+          }
+        },
+        {
+          "035": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "(RuMoEVIS)5135521B"
+              }
+            ]
+          }
+        },
+        {
+          "035": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "9766936"
+              }
+            ]
+          }
+        },
+        {
+          "040": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "STF"
+              },
+              {
+                "b": "eng"
+              },
+              {
+                "e": "rda"
+              },
+              {
+                "c": "STF"
+              },
+              {
+                "d": "OCLCO"
+              },
+              {
+                "d": "OCLCF"
+              },
+              {
+                "d": "NIC"
+              }
+            ]
+          }
+        },
+        {
+          "041": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "ukr"
+              },
+              {
+                "b": "eng"
+              }
+            ]
+          }
+        },
+        {
+          "042": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "pcc"
+              }
+            ]
+          }
+        },
+        {
+          "043": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "e-un---"
+              }
+            ]
+          }
+        },
+        {
+          "050": {
+            "ind1": " ",
+            "ind2": "4",
+            "subfields": [
+              {
+                "a": "DK508.465"
+              },
+              {
+                "b": ".K725 2016"
+              }
+            ]
+          }
+        },
+        {
+          "066": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "c": "(Q"
+              },
+              {
+                "c": "(N"
+              }
+            ]
+          }
+        },
+        {
+          "245": {
+            "ind1": "0",
+            "ind2": "0",
+            "subfields": [
+              {
+                "6": "880-01"
+              },
+              {
+                "a": "Krai͡eznavt͡si Cherkavshchyny :"
+              },
+              {
+                "b": "biobibliohrafichnyĭ dovidnyk /"
+              },
+              {
+                "c": "upori͡adnyky: V.M. Melʹnychenko, H.M. Holysh."
+              }
+            ]
+          }
+        },
+        {
+          "264": {
+            "ind1": " ",
+            "ind2": "1",
+            "subfields": [
+              {
+                "6": "880-02"
+              },
+              {
+                "a": "Cherkasy :"
+              },
+              {
+                "b": "Vertykalʹ,"
+              },
+              {
+                "c": "2016."
+              }
+            ]
+          }
+        },
+        {
+          "264": {
+            "ind1": " ",
+            "ind2": "4",
+            "subfields": [
+              {
+                "c": "©2016"
+              }
+            ]
+          }
+        },
+        {
+          "300": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "219 pages :"
+              },
+              {
+                "b": "illustrations ;"
+              },
+              {
+                "c": "20 cm"
+              }
+            ]
+          }
+        },
+        {
+          "336": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "text"
+              },
+              {
+                "b": "txt"
+              },
+              {
+                "2": "rdacontent"
+              }
+            ]
+          }
+        },
+        {
+          "337": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "unmediated"
+              },
+              {
+                "b": "n"
+              },
+              {
+                "2": "rdamedia"
+              }
+            ]
+          }
+        },
+        {
+          "338": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "volume"
+              },
+              {
+                "b": "nc"
+              },
+              {
+                "2": "rdacarrier"
+              }
+            ]
+          }
+        },
+        {
+          "500": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-03"
+              },
+              {
+                "a": "At head of title: Cherkasʹka oblasna orhanizat͡sii͡a Nat͡sionalʹnoï spilky krai͡eznavt͡siv Ukraïny, Cherkasʹkyĭ nat͡sionalʹnyĭ universytet imeni Bohdana Khmelʹnyt͡sʹkoho."
+              }
+            ]
+          }
+        },
+        {
+          "500": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-04"
+              },
+              {
+                "a": "\"25-richchi͡u Nezalez͡hnosti Ukraïny prysvi͡achui͡etʹsi͡a.\""
+              }
+            ]
+          }
+        },
+        {
+          "546": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "In Ukrainian with summary in English."
+              }
+            ]
+          }
+        },
+        {
+          "504": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "Includes bibliographical references."
+              }
+            ]
+          }
+        },
+        {
+          "650": {
+            "ind1": " ",
+            "ind2": "0",
+            "subfields": [
+              {
+                "a": "Historians"
+              },
+              {
+                "z": "Ukraine"
+              },
+              {
+                "z": "Cherkasʹka oblastʹ"
+              },
+              {
+                "v": "Bio-bibliography"
+              },
+              {
+                "v": "Dictionaries"
+              },
+              {
+                "x": "Ukrainian."
+              }
+            ]
+          }
+        },
+        {
+          "651": {
+            "ind1": " ",
+            "ind2": "0",
+            "subfields": [
+              {
+                "a": "Cherkasʹka oblastʹ (Ukraine)"
+              },
+              {
+                "v": "Bio-bibliography"
+              },
+              {
+                "v": "Dictionaries"
+              },
+              {
+                "x": "Ukrainian."
+              }
+            ]
+          }
+        },
+        {
+          "650": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Historians."
+              },
+              {
+                "2": "fast"
+              },
+              {
+                "0": "(OCoLC)fst00957686"
+              }
+            ]
+          }
+        },
+        {
+          "651": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Ukraine"
+              },
+              {
+                "z": "Cherkasʹka oblastʹ."
+              },
+              {
+                "2": "fast"
+              },
+              {
+                "0": "(OCoLC)fst01229006"
+              }
+            ]
+          }
+        },
+        {
+          "653": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "Bibliography."
+              }
+            ]
+          }
+        },
+        {
+          "653": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "Dictionaries and other reference general works."
+              }
+            ]
+          }
+        },
+        {
+          "653": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "History (General)"
+              }
+            ]
+          }
+        },
+        {
+          "653": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "Ukraine."
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Biographies."
+              },
+              {
+                "2": "lcgft"
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Bibliographies."
+              },
+              {
+                "2": "lcgft"
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Dictionaries."
+              },
+              {
+                "2": "lcgft"
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Bibliographies."
+              },
+              {
+                "2": "fast"
+              },
+              {
+                "0": "(OCoLC)fst01919895"
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Biographies."
+              },
+              {
+                "2": "fast"
+              },
+              {
+                "0": "(OCoLC)fst01919896"
+              }
+            ]
+          }
+        },
+        {
+          "655": {
+            "ind1": " ",
+            "ind2": "7",
+            "subfields": [
+              {
+                "a": "Dictionaries."
+              },
+              {
+                "2": "fast"
+              },
+              {
+                "0": "(OCoLC)fst01423826"
+              }
+            ]
+          }
+        },
+        {
+          "700": {
+            "ind1": "1",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-05"
+              },
+              {
+                "a": "Melʹnychenko, V. M."
+              },
+              {
+                "q": "(Vasylʹ Mykolaĭovych),"
+              },
+              {
+                "e": "editor."
+              }
+            ]
+          }
+        },
+        {
+          "700": {
+            "ind1": "1",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-06"
+              },
+              {
+                "a": "Holysh, H. M."
+              },
+              {
+                "q": "(Hryhoriĭ Mykhaĭlovych),"
+              },
+              {
+                "d": "1949-"
+              },
+              {
+                "e": "editor."
+              }
+            ]
+          }
+        },
+        {
+          "710": {
+            "ind1": "2",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-07"
+              },
+              {
+                "a": "Nat︠s︡ionalʹna spilka krai︠e︡znavt︠s︡iv Ukraïny."
+              },
+              {
+                "b": "Cherkasʹka oblasna orhanizat︠s︡ii︠a︡,"
+              },
+              {
+                "e": "issuing body."
+              }
+            ]
+          }
+        },
+        {
+          "710": {
+            "ind1": "2",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "880-08"
+              },
+              {
+                "a": "Cherkasʹkyĭ nat︠s︡ionalʹnyĭ universytet imeni Bohdana Khmelʹnyt︠s︡ʹkoho,"
+              },
+              {
+                "e": "issuing body."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": "0",
+            "ind2": "0",
+            "subfields": [
+              {
+                "6": "245-01"
+              },
+              {
+                "a": "Краєзнавці Черкавщини :"
+              },
+              {
+                "b": "біобібліографічний довідник /"
+              },
+              {
+                "c": "упорядники: В.М. Мельниченко, Г.М. Голиш."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": " ",
+            "ind2": "1",
+            "subfields": [
+              {
+                "6": "264-02"
+              },
+              {
+                "a": "Черкаси :"
+              },
+              {
+                "b": "Вертикаль,"
+              },
+              {
+                "c": "2016."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "500-03"
+              },
+              {
+                "a": "At head of title: Черкаська обласна організація Національної спілки краєзнавців України, Черкаський національний університет імені Богдана Хмельницького."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": " ",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "500-04"
+              },
+              {
+                "a": "\"25-річчю Незалежності України присвячується.\""
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": "1",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "700-05"
+              },
+              {
+                "a": "Мельниченко, В. М."
+              },
+              {
+                "q": "(Василь Миколайович),"
+              },
+              {
+                "e": "editor."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": "1",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "700-06"
+              },
+              {
+                "a": "Голиш, Г. М."
+              },
+              {
+                "q": "(Григорій Михайлович),"
+              },
+              {
+                "d": "1949-"
+              },
+              {
+                "e": "editor."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": "2",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "710-07"
+              },
+              {
+                "a": "Національна спілка краєзнавців України."
+              },
+              {
+                "b": "Черкаська обласна організація,"
+              },
+              {
+                "e": "issuing body."
+              }
+            ]
+          }
+        },
+        {
+          "880": {
+            "ind1": "2",
+            "ind2": " ",
+            "subfields": [
+              {
+                "6": "710-08"
+              },
+              {
+                "a": "Черкаський національний університет імені Богдана Хмельницького,"
+              },
+              {
+                "e": "issuing body."
+              }
+            ]
+          }
+        },
+        {
+          "948": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "20170126"
+              },
+              {
+                "b": "i"
+              },
+              {
+                "d": "batch"
+              },
+              {
+                "e": "lts"
+              },
+              {
+                "h": "appr"
+              }
+            ]
+          }
+        },
+        {
+          "948": {
+            "ind1": "3",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "20170126"
+              },
+              {
+                "h": "EastView"
+              },
+              {
+                "i": "EV20170126-135.mrc.uc"
+              }
+            ]
+          }
+        },
+        {
+          "948": {
+            "ind1": "0",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "20170419"
+              },
+              {
+                "b": "m"
+              },
+              {
+                "d": "nk31"
+              },
+              {
+                "e": "lts"
+              }
+            ]
+          }
+        },
+        {
+          "948": {
+            "ind1": "1",
+            "ind2": " ",
+            "subfields": [
+              {
+                "a": "20170726"
+              },
+              {
+                "b": "c"
+              },
+              {
+                "d": "gln1"
+              },
+              {
+                "e": "lts"
+              }
+            ]
+          }
+        },
+        {
+          "999": {
+            "ind1": "f",
+            "ind2": "f",
+            "subfields": [
+              {
+                "s": "784bfddc-6b45-43d7-a69a-87e532f4822f"
+              },
+              {
+                "i": "3f27672a-409d-4bea-a47d-8d7141c79451"
+              }
+            ]
+          }
+        }
+      ],
+      "leader": "03886cam a2200685 i 4500"
+    }
+  }
+]
