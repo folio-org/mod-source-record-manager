@@ -13,30 +13,559 @@ import org.junit.runner.RunWith;
 public class MappingTest {
 
   private RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.MARC);
-  private static final String JSON_MARC_RECORD = "{\"leader\":\"01542ccm a2200361   4500\",\"fields\":[{\"001\":\"393893\"},{\"005\":\"20141107001016.0\"}," +
-    "{\"008\":\"830419m19559999gw mua   hiz   n    lat  \"},{\"010\":{\"subfields\":[{\"a\":\"   55001156/M \"}],\"ind1\":\"\",\"ind2\":\" \"}},{\"035\":" +
-    "{\"subfields\":[{\"a\":\"(OCoLC)63611770\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"035\":{\"subfields\":[{\"a\":\"393893\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
-    "{\"040\":{\"subfields\":[{\"c\":\"UPB\"},{\"d\":\"UPB\"},{\"d\":\"NIC\"},{\"d\":\"NIC\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"041\":{\"subfields\":[{\"a\":\"latitager\"}," +
-    "{\"g\":\"ger\"}],\"ind1\":\"0\",\"ind2\":\" \"}},{\"045\":{\"subfields\":[{\"a\":\"v6v9\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"047\":{\"subfields\":[{\"a\":\"cn\"}," +
-    "{\"a\":\"ct\"},{\"a\":\"co\"},{\"a\":\"df\"},{\"a\":\"dv\"},{\"a\":\"ft\"},{\"a\":\"fg\"},{\"a\":\"ms\"},{\"a\":\"mi\"},{\"a\":\"nc\"},{\"a\":\"op\"},{\"a\":\"ov\"}," +
-    "{\"a\":\"rq\"},{\"a\":\"sn\"},{\"a\":\"su\"},{\"a\":\"sy\"},{\"a\":\"vr\"},{\"a\":\"zz\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"050\":{\"subfields\":[{\"a\":\"M3\"},{\"b\":\".M896\"}]," +
-    "\"ind1\":\"0\",\"ind2\":\" \"}},{\"100\":{\"subfields\":[{\"a\":\"Mozart, Wolfgang Amadeus,\"},{\"d\":\"1756-1791.\"}],\"ind1\":\"1\",\"ind2\":\" \"}},{\"240\":{\"subfields\":" +
-    "[{\"a\":\"Works\"}],\"ind1\":\"1\",\"ind2\":\"0\"}},{\"245\":{\"subfields\":[{\"a\":\"Neue Ausgabe sa\\u0308mtlicher Werke,\"},{\"b\":\"in Verbindung mit den Mozartsta\\u0308dten," +
-    " Augsburg, Salzburg und Wien.\"},{\"c\":\"Hrsg. von der Internationalen Stiftung Mozarteum, Salzburg.\"}],\"ind1\":\"1\",\"ind2\":\"0\"}},{\"246\":{\"subfields\":[{\"a\":" +
-    "\"Neue Mozart-Ausgabe\"}],\"ind1\":\"3\",\"ind2\":\"3\"}},{\"260\":{\"subfields\":[{\"a\":\"Kassel,\"},{\"b\":\"Ba\\u0308renreiter,\"},{\"c\":\"c1955-\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
-    "{\"300\":{\"subfields\":[{\"a\":\"v.\"},{\"b\":\"facsims.\"},{\"c\":\"33 cm.\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"505\":{\"subfields\":[{\"a\":\"Ser. I. Geistliche Gesangswerke -- Ser. " +
-    "II. Opern -- Ser. III. Lieder, mehrstimmige Gesa\\u0308nge, Kanons -- Ser. IV. Orchesterwerke -- Ser. V. Konzerte -- Ser. VI. Kirchensonaten -- Ser. VII. Ensemblemusik fu\\u0308r " +
-    "gro\\u0308ssere Solobesetzungen -- Ser. VIII. Kammermusik -- Ser. IX. Klaviermusik -- Ser. X. Supplement.\"}],\"ind1\":\"0\",\"ind2\":\" \"}},{\"650\":{\"subfields\":[{\"a\":\"Vocal music\"}]," +
-    "\"ind1\":\" \",\"ind2\":\"0\"}},{\"650\":{\"subfields\":[{\"a\":\"Instrumental music\"}],\"ind1\":\" \",\"ind2\":\"0\"}},{\"650\":{\"subfields\":[{\"a\":\"Instrumental music\"},{\"2\":\"fast\"},{\"0\"" +
-    ":\"(OCoLC)fst00974414\"}],\"ind1\":\" \",\"ind2\":\"7\"}},{\"650\":{\"subfields\":[{\"a\":\"Vocal music\"},{\"2\":\"fast\"},{\"0\":\"(OCoLC)fst01168379\"}],\"ind1\":\" \",\"ind2\":\"7\"}},{\"902\":{\"subfields\"" +
-    ":[{\"a\":\"pfnd\"},{\"b\":\"Austin Music\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"905\":{\"subfields\":[{\"a\":\"19980728120000.0\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"948\":{\"subfields\":" +
-    "[{\"a\":\"20100622\"},{\"b\":\"s\"},{\"d\":\"lap11\"},{\"e\":\"lts\"},{\"x\":\"ToAddCatStat\"}],\"ind1\":\"1\",\"ind2\":\" \"}},{\"948\":{\"subfields\":[{\"a\":\"20110818\"},{\"b\":\"r\"}," +
-    "{\"d\":\"np55\"},{\"e\":\"lts\"}],\"ind1\":\"0\",\"ind2\":\" \"}},{\"948\":{\"subfields\":[{\"a\":\"20130128\"},{\"b\":\"m\"},{\"d\":\"bmt1\"},{\"e\":\"lts\"}],\"ind1\":\"2\",\"ind2\":\" \"}}," +
-    "{\"948\":{\"subfields\":[{\"a\":\"20141106\"},{\"b\":\"m\"},{\"d\":\"batch\"},{\"e\":\"lts\"},{\"x\":\"addfast\"}],\"ind1\":\"2\",\"ind2\":\"\"}}]}\n";
+  private static final String JSON_MARC_RECORD = "{\n" +
+    "        \"fields\": [\n" +
+    "          {\n" +
+    "            \"001\": \"9928371\"\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"005\": \"20170607135506.0\"\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"008\": \"140326s2014    ilu               cneng d\"\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"040\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"MYG\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"eng\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"rda\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"c\": \"MYG\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"MYG\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"CUT\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"OCLCO\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"OCLCF\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"OCLCO\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"NIC\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"035\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"(OCoLC)874849566\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"043\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"n-us---\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"050\": {\n" +
+    "              \"ind1\": \"1\",\n" +
+    "              \"ind2\": \"4\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"N7433.3\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \".B87 2014\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"100\": {\n" +
+    "              \"ind1\": \"1\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Burtonwood, Tom,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"1974- ,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"artist.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"245\": {\n" +
+    "              \"ind1\": \"1\",\n" +
+    "              \"ind2\": \"0\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Orihon /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"c\": \"Tom Burtonwood.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"264\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"1\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Brooklyn, New York :\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"Booklyn Artists Alliance,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"c\": \"2014.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"300\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"1 object :\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"plastic ;\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"c\": \"13 x 20 x 20 cm +\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"1 USB flash drive.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"336\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"three-dimensional form\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"tdf\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdacontent\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"336\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"computer dataset\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"cod\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdacontent\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"3\": \"accompanying USB flash drive\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"337\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"unmediated\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"n\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdamedia\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"337\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"computer\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"c\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdamedia\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"3\": \"accompanying USB flash drive\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"338\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"object\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"nr\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdacarrier\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"338\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"other\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"cz\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"rdacarrier\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"3\": \"accompanying USB flash drive\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"500\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"\\\"Released under the Creative Commons Attribution-ShareAlike 3.0 unported (CC BY-SA 3.0) license\\\"--First leaf.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"505\": {\n" +
+    "              \"ind1\": \"0\",\n" +
+    "              \"ind2\": \"0\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"t\": \"Head of an ogre /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by Tom Burtonwood --\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"t\": \"Boddhisattva /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by Jason Bakutis --\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"t\": \"Olmec colossal head /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by Pretty Small Things --\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"t\": \"Mayan head /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by Tom Burtonwood --\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"t\": \"Torso of an emperor, Roman Imperial /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by AMinimal Studio --\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"t\": \"Art Institute of Chicago lion /\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"r\": \"by Tom Burtonwood.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"520\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"A 3D-printed, book-like object consisting of eight leaves, with six relief illustrations, each created using photogrammetric scans of a sculpture. Leaves are connected by hinges and folded accordion style. The accompanying USB flash drive contains all data files used to create the object with a 3D printer. Six of the leaves feature scans of a sculpture found at the Art Institute of Chicago and the Metropolitan Museum of Art in New York.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"588\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Title from publisher's website (viewed March 26, 2014).\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"650\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"0\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Artists' books\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"z\": \"United States.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"650\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"0\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Three-dimensional printing.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"650\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"7\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Artists' books.\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"fast\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"0\": \"(OCoLC)fst00817660\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"650\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"7\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Three-dimensional printing.\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"fast\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"0\": \"(OCoLC)fst01748862\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"651\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"7\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"United States.\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"fast\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"0\": \"(OCoLC)fst01204155\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"655\": {\n" +
+    "              \"ind1\": \" \",\n" +
+    "              \"ind2\": \"7\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Artists' books.\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"2\": \"aat\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"700\": {\n" +
+    "              \"ind1\": \"1\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Bakutis, Jason,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"1969- ,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"artist.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"710\": {\n" +
+    "              \"ind1\": \"2\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"AMinimal Studio.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"710\": {\n" +
+    "              \"ind1\": \"2\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Booklyn Artists Alliance,\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"publisher.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"710\": {\n" +
+    "              \"ind1\": \"2\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"Pretty Small Things.\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"856\": {\n" +
+    "              \"ind1\": \"4\",\n" +
+    "              \"ind2\": \"1\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"u\": \"http://www.thingiverse.com/thing:110411\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"z\": \"3D printer files also available online\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"856\": {\n" +
+    "              \"ind1\": \"4\",\n" +
+    "              \"ind2\": \"2\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"u\": \"http://booklyn.org/archive/index.php/Detail/Object/Show/object_id/1513\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"z\": \"Publisher's description\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"948\": {\n" +
+    "              \"ind1\": \"1\",\n" +
+    "              \"ind2\": \" \",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"a\": \"20170607\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"b\": \"c\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"d\": \"mnr1\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"e\": \"lts\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"999\": {\n" +
+    "              \"ind1\": \"f\",\n" +
+    "              \"ind2\": \"f\",\n" +
+    "              \"subfields\": [\n" +
+    "                {\n" +
+    "                  \"s\": \"85b5ab23-7a49-4c65-8adf-394c0fcad97c\"\n" +
+    "                },\n" +
+    "                {\n" +
+    "                  \"i\": \"ddda75d7-1364-4b46-84c8-98892327b572\"\n" +
+    "                }\n" +
+    "              ]\n" +
+    "            }\n" +
+    "          }\n" +
+    "        ],\n" +
+    "        \"leader\": \"02566crm a2200433Ii 4500\"\n" +
+    "      }";
 
   @Test
   public void testMarcToInstance() {
     Instance instance = mapper.mapRecord(new JsonObject(JSON_MARC_RECORD));
-    System.out.println(instance.toString());
+    System.out.println(JsonObject.mapFrom(instance).toString());
   }
 }

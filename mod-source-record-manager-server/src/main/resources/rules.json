@@ -1,19 +1,8 @@
 {
   "001": [
     {
-      "target": "identifiers.identifierTypeId",
-      "description": "Type for Control Number (001)",
-      "subfield": [],
-      "rules": [
-        {
-          "conditions": [],
-          "value": "5d164f4b-0b15-4e42-ae75-cfcf85318ad9"
-        }
-      ]
-    },
-    {
-      "target": "identifiers.value",
-      "description": "Control Number (001)",
+      "target": "hrid",
+      "description": "The human readable ID",
       "subfield": [],
       "rules": []
     }
@@ -195,23 +184,6 @@
       ]
     },
     {
-      "target": "identifiers.identifierTypeId",
-      "description": "Type for Control Number (001)",
-      "subfield": [],
-      "rules": [
-        {
-          "conditions": [],
-          "value": "5d164f4b-0b15-4e42-ae75-cfcf85318ad9"
-        }
-      ]
-    },
-    {
-      "target": "identifiers.value",
-      "description": "Control Number (001)",
-      "subfield": [],
-      "rules": []
-    },
-    {
       "target": "source",
       "description": "Source of instance record",
       "subfield": [],
@@ -221,9 +193,7 @@
           "value": "MARC21"
         }
       ]
-    }
-  ],
-  "008": [
+    },
     {
       "target": "languages",
       "description": "Language code",
@@ -273,40 +243,6 @@
           ]
         }
       ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for LCCN",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "c858e4f2-2b6b-4385-842b-60732ee14abb"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "LCCN",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
     }
   ],
   "019": [
@@ -335,15 +271,18 @@
         }
       ]
     }
-  ], //done
+  ],
   "020": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for ISBN",
           "subfield": [
-            "a"
+            "a",
+            "c",
+            "q"
           ],
           "rules": [
             {
@@ -356,7 +295,9 @@
           "target": "identifiers.value",
           "description": "ISBN",
           "subfield": [
-            "a"
+            "a",
+            "c",
+            "q"
           ],
           "rules": [
             {
@@ -376,9 +317,10 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISBN",
+          "description": "Type for Invalid ISBN",
           "subfield": [
-            "z"
+            "z",
+            "q"
           ],
           "rules": [
             {
@@ -389,9 +331,10 @@
         },
         {
           "target": "identifiers.value",
-          "description": "ISBN",
+          "description": "Invalid ISBN",
           "subfield": [
-            "z"
+            "z",
+            "q"
           ],
           "rules": [
             {
@@ -409,12 +352,14 @@
   ],
   "022": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for ISSN",
           "subfield": [
-            "a"
+            "a",
+            "2"
           ],
           "rules": [
             {
@@ -427,7 +372,8 @@
           "target": "identifiers.value",
           "description": "ISSN",
           "subfield": [
-            "a"
+            "a",
+            "2"
           ],
           "rules": [
             {
@@ -446,9 +392,11 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISSN",
+          "description": "Type for Invalid ISSN",
           "subfield": [
-            "y"
+            "y",
+            "z",
+            "m"
           ],
           "rules": [
             {
@@ -459,9 +407,11 @@
         },
         {
           "target": "identifiers.value",
-          "description": "ISSN",
+          "description": "Invalid ISSN",
           "subfield": [
-            "y"
+            "y",
+            "z",
+            "m"
           ],
           "rules": [
             {
@@ -480,9 +430,10 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISSN",
+          "description": "Type for Linking ISSN",
           "subfield": [
-            "z"
+            "l",
+            "2"
           ],
           "rules": [
             {
@@ -493,9 +444,10 @@
         },
         {
           "target": "identifiers.value",
-          "description": "ISSN",
+          "description": "Linking ISSN",
           "subfield": [
-            "z"
+            "l",
+            "2"
           ],
           "rules": [
             {
@@ -512,12 +464,18 @@
   ],
   "024": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Other Standard Identifier",
           "subfield": [
-            "a"
+            "a",
+            "c",
+            "d",
+            "q",
+            "z",
+            "2"
           ],
           "rules": [
             {
@@ -530,110 +488,12 @@
           "target": "identifiers.value",
           "description": "Other Standard Identifier",
           "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Other Standard Identifier",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Other Standard Identifier",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "027": [
-    {
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Standard Technical Report Number",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "8e3dd25e-db82-4b06-8311-90d41998c109"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Standard Technical Report Number",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Standard Technical Report Number",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "8e3dd25e-db82-4b06-8311-90d41998c109"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Standard Technical Report Number",
-          "subfield": [
-            "z"
+            "a",
+            "c",
+            "d",
+            "q",
+            "z",
+            "2"
           ],
           "rules": [
             {
@@ -650,12 +510,15 @@
   ],
   "028": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Publisher Number",
           "subfield": [
-            "a"
+            "a",
+            "b",
+            "q"
           ],
           "rules": [
             {
@@ -668,76 +531,9 @@
           "target": "identifiers.value",
           "description": "Publisher Number",
           "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "030": [
-    {
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for CODEN",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "593b78cb-32f3-44d1-ba8c-63fd5e6989e6"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "CODEN",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for CODEN",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "593b78cb-32f3-44d1-ba8c-63fd5e6989e6"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "CODEN",
-          "subfield": [
-            "z"
+            "a",
+            "b",
+            "q"
           ],
           "rules": [
             {
@@ -776,33 +572,8 @@
           ]
         }
       ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled System Control Number",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Cancelled System Control Number",
-          "subfield": [
-            "z"
-          ]
-        }
-      ]
     }
-  ], //done
+  ],
   "041": [
     {
       "entityPerRepeatedSubfield": true,
@@ -812,118 +583,6 @@
           "description": "Language code",
           "subfield": [
             "a"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "b"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "d"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "e"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "f"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "g"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "j"
-          ],
-          "subFieldSplit": {
-            "type": "split_every",
-            "value": "3"
-          }
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "languages",
-          "description": "Language code",
-          "subfield": [
-            "k"
           ],
           "subFieldSplit": {
             "type": "split_every",
@@ -941,7 +600,8 @@
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ],
           "rules": [
             {
@@ -954,7 +614,8 @@
           "target": "classifications.classificationNumber",
           "description": "LC classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ]
         }
       ]
@@ -968,7 +629,8 @@
           "target": "classifications.classificationTypeId",
           "description": "Type for NLM classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ],
           "rules": [
             {
@@ -981,7 +643,8 @@
           "target": "classifications.classificationNumber",
           "description": "NLM classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ]
         }
       ]
@@ -1026,7 +689,7 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for GPO Item Number",
+          "description": "Type for Cancelled GPO Item Number",
           "subfield": [
             "z"
           ],
@@ -1039,7 +702,7 @@
         },
         {
           "target": "identifiers.value",
-          "description": "GPO Item Number",
+          "description": "Cancelled GPO Item Number",
           "subfield": [
             "z"
           ],
@@ -1059,23 +722,30 @@
   ],
   "080": [
     {
-      "target": "classifications.classificationTypeId",
-      "description": "Type for UDC classification",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entityPerRepeatedSubfield": true,
+      "entity": [
         {
-          "conditions": [],
-          "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+          "target": "classifications.classificationTypeId",
+          "description": "Type for UDC classification",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+            }
+          ]
+        },
+        {
+          "target": "classifications.classificationNumber",
+          "description": "UDC classification",
+          "subfield": [
+            "a",
+            "b"
+          ]
         }
-      ]
-    },
-    {
-      "target": "classifications.classificationNumber",
-      "description": "UDC classification",
-      "subfield": [
-        "a"
       ]
     }
   ],
@@ -1087,7 +757,8 @@
           "target": "classifications.classificationTypeId",
           "description": "Type for Dewey classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ],
           "rules": [
             {
@@ -1100,7 +771,8 @@
           "target": "classifications.classificationNumber",
           "description": "Dewey classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ]
         }
       ]
@@ -1165,7 +837,8 @@
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ],
           "rules": [
             {
@@ -1178,13 +851,13 @@
           "target": "classifications.classificationNumber",
           "description": "LC classification",
           "subfield": [
-            "a"
+            "a",
+            "b"
           ]
         }
       ]
     }
   ],
-
   "100": [
     {
       "entity": [
@@ -1192,7 +865,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "subfield": [
-            "a"
+            "e",
+            "4"
           ],
           "rules": [
             {
@@ -1241,7 +915,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "subfield": [
-            "a"
+            "e",
+            "4l"
           ],
           "rules": [
             {
@@ -1258,8 +933,14 @@
             "b",
             "c",
             "d",
+            "f",
             "g",
-            "n"
+            "k",
+            "l",
+            "n",
+            "p",
+            "t",
+            "u"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -1282,7 +963,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
           "subfield": [
-            "a"
+            "j",
+            "4"
           ],
           "rules": [
             {
@@ -1299,9 +981,14 @@
             "b",
             "c",
             "d",
+            "f",
             "g",
+            "k",
+            "l",
             "n",
-            "q"
+            "p",
+            "t",
+            "u"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -1323,6 +1010,8 @@
       "description": "Alternative Title",
       "subfield": [
         "a",
+        "n",
+        "p",
         "d",
         "f",
         "g",
@@ -1330,9 +1019,7 @@
         "k",
         "l",
         "m",
-        "n",
         "o",
-        "p",
         "r",
         "s",
         "t"
@@ -1355,11 +1042,18 @@
       "description": "Alternative Title",
       "subfield": [
         "a",
+        "n",
+        "p",
         "d",
         "f",
         "g",
+        "h",
         "k",
-        "l"
+        "l",
+        "m",
+        "o",
+        "r",
+        "s"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -1379,14 +1073,14 @@
       "description": "Resource Title",
       "subfield": [
         "a",
+        "n",
+        "p",
         "b",
         "c",
         "f",
         "g",
         "h",
         "k",
-        "n",
-        "p",
         "s"
       ],
       "applyRulesOnConcatenatedData": true,
@@ -1399,6 +1093,23 @@
           ]
         }
       ]
+    },
+    {
+      "target": "indexTitle",
+      "description": "Index title",
+      "subfield": [
+        "a"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "0-4"
+            }
+          ]
+        }
+      ]
     }
   ],
   "246": [
@@ -1407,13 +1118,13 @@
       "description": "Alternative Title",
       "subfield": [
         "a",
+        "n",
+        "p",
         "b",
         "f",
         "g",
         "h",
-        "i",
-        "n",
-        "p"
+        "5"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -1457,7 +1168,6 @@
       ]
     }
   ],
-  //done
   "250": [
     {
       "target": "edition",
@@ -1478,7 +1188,6 @@
       ]
     }
   ],
-  //done
   "255": [
     {
       "target": "notes",
@@ -1503,13 +1212,13 @@
       ]
     }
   ],
-  //done
   "260": [
     {
       "target": "publication.place",
       "description": "Place of publication",
       "subfield": [
-        "a"
+        "a",
+        "3"
       ],
       "rules": [
         {
@@ -1524,7 +1233,8 @@
     {
       "target": "publication.publisher",
       "subfield": [
-        "b"
+        "b",
+        "3"
       ],
       "rules": [
         {
@@ -1557,7 +1267,8 @@
       "target": "publication.place",
       "description": "Place of publication",
       "subfield": [
-        "a"
+        "a",
+        "3"
       ],
       "rules": [
         {
@@ -1572,7 +1283,8 @@
     {
       "target": "publication.publisher",
       "subfield": [
-        "b"
+        "b",
+        "3"
       ],
       "rules": [
         {
@@ -1614,7 +1326,6 @@
       ]
     }
   ],
-  //done
   "310": [
     {
       "target": "publicationFrequency",
@@ -1635,7 +1346,6 @@
       ]
     }
   ],
-  //done
   "321": [
     {
       "target": "publicationFrequency",
@@ -1677,8 +1387,7 @@
         }
       ]
     }
-  ], //done
-  //done
+  ],
   "362": [
     {
       "target": "publicationRange",
@@ -1699,7 +1408,6 @@
       ]
     }
   ],
-  //done
   "500": [
     {
       "target": "notes",
@@ -1720,7 +1428,6 @@
       ]
     }
   ],
-  //done
   "501": [
     {
       "target": "notes",
@@ -1740,7 +1447,6 @@
       ]
     }
   ],
-  //done
   "502": [
     {
       "target": "notes",
@@ -1765,7 +1471,6 @@
       ]
     }
   ],
-  //done
   "504": [
     {
       "target": "notes",
@@ -1785,7 +1490,6 @@
       ]
     }
   ],
-  //done
   "505": [
     {
       "target": "notes",
@@ -1809,7 +1513,6 @@
       ]
     }
   ],
-  //done
   "506": [
     {
       "target": "notes",
@@ -1838,7 +1541,6 @@
       ]
     }
   ],
-  //done
   "507": [
     {
       "target": "notes",
@@ -1859,7 +1561,6 @@
       ]
     }
   ],
-  //done
   "508": [
     {
       "target": "notes",
@@ -1878,7 +1579,6 @@
       ]
     }
   ],
-  //done
   "510": [
     {
       "target": "notes",
@@ -1903,7 +1603,6 @@
       ]
     }
   ],
-  //done
   "511": [
     {
       "target": "notes",
@@ -1922,7 +1621,6 @@
       ]
     }
   ],
-  //done
   "513": [
     {
       "target": "notes",
@@ -1943,7 +1641,6 @@
       ]
     }
   ],
-  //done
   "514": [
     {
       "target": "notes",
@@ -1976,7 +1673,6 @@
       ]
     }
   ],
-  //done
   "515": [
     {
       "target": "notes",
@@ -1995,7 +1691,6 @@
       ]
     }
   ],
-  //done
   "516": [
     {
       "target": "notes",
@@ -2014,7 +1709,6 @@
       ]
     }
   ],
-  //done
   "518": [
     {
       "target": "notes",
@@ -2039,7 +1733,6 @@
       ]
     }
   ],
-  //done
   "520": [
     {
       "target": "notes",
@@ -2064,7 +1757,6 @@
       ]
     }
   ],
-  //done
   "521": [
     {
       "target": "notes",
@@ -2086,7 +1778,6 @@
       ]
     }
   ],
-  //done
   "522": [
     {
       "target": "notes",
@@ -2105,7 +1796,6 @@
       ]
     }
   ],
-  //done
   "524": [
     {
       "target": "notes",
@@ -2127,7 +1817,6 @@
       ]
     }
   ],
-  //done
   "525": [
     {
       "target": "notes",
@@ -2146,7 +1835,6 @@
       ]
     }
   ],
-  //done
   "526": [
     {
       "target": "notes",
@@ -2172,7 +1860,6 @@
       ]
     }
   ],
-  //done
   "530": [
     {
       "target": "notes",
@@ -2197,7 +1884,6 @@
       ]
     }
   ],
-  //done
   "532": [
     {
       "target": "notes",
@@ -2217,7 +1903,6 @@
       ]
     }
   ],
-  //done
   "533": [
     {
       "target": "notes",
@@ -2246,7 +1931,6 @@
       ]
     }
   ],
-  //done
   "534": [
     {
       "target": "notes",
@@ -2280,7 +1964,6 @@
       ]
     }
   ],
-  //done
   "535": [
     {
       "target": "notes",
@@ -2305,7 +1988,6 @@
       ]
     }
   ],
-  //done
   "536": [
     {
       "target": "notes",
@@ -2332,7 +2014,6 @@
       ]
     }
   ],
-  //done
   "538": [
     {
       "target": "notes",
@@ -2354,7 +2035,6 @@
       ]
     }
   ],
-  //done
   "540": [
     {
       "target": "notes",
@@ -2379,7 +2059,6 @@
       ]
     }
   ],
-  //done
   "541": [
     {
       "target": "notes",
@@ -2409,7 +2088,6 @@
       ]
     }
   ],
-  //done
   "542": [
     {
       "target": "notes",
@@ -2449,7 +2127,6 @@
       ]
     }
   ],
-  //done
   "544": [
     {
       "target": "notes",
@@ -2475,7 +2152,6 @@
       ]
     }
   ],
-  //done
   "545": [
     {
       "target": "notes",
@@ -2497,7 +2173,6 @@
       ]
     }
   ],
-  //done
   "546": [
     {
       "target": "notes",
@@ -2519,7 +2194,6 @@
       ]
     }
   ],
-  //done
   "547": [
     {
       "target": "notes",
@@ -2538,7 +2212,6 @@
       ]
     }
   ],
-  //done
   "550": [
     {
       "target": "notes",
@@ -2557,7 +2230,6 @@
       ]
     }
   ],
-  //done
   "552": [
     {
       "target": "notes",
@@ -2594,7 +2266,6 @@
       ]
     }
   ],
-  //done
   "555": [
     {
       "target": "notes",
@@ -2619,7 +2290,6 @@
       ]
     }
   ],
-  //done
   "556": [
     {
       "target": "notes",
@@ -2640,7 +2310,6 @@
       ]
     }
   ],
-  //done
   "561": [
     {
       "target": "notes",
@@ -2663,7 +2332,6 @@
       ]
     }
   ],
-  //done
   "562": [
     {
       "target": "notes",
@@ -2689,7 +2357,6 @@
       ]
     }
   ],
-  //done
   "563": [
     {
       "target": "notes",
@@ -2712,7 +2379,6 @@
       ]
     }
   ],
-  //done
   "565": [
     {
       "target": "notes",
@@ -2737,7 +2403,6 @@
       ]
     }
   ],
-  //done
   "567": [
     {
       "target": "notes",
@@ -2758,7 +2423,6 @@
       ]
     }
   ],
-  //done
   "580": [
     {
       "target": "notes",
@@ -2777,7 +2441,6 @@
       ]
     }
   ],
-  //done
   "581": [
     {
       "target": "notes",
@@ -2799,7 +2462,6 @@
       ]
     }
   ],
-  //done
   "583": [
     {
       "target": "notes",
@@ -2837,7 +2499,6 @@
       ]
     }
   ],
-  //done
   "584": [
     {
       "target": "notes",
@@ -2860,7 +2521,6 @@
       ]
     }
   ],
-  //done
   "585": [
     {
       "target": "notes",
@@ -2882,7 +2542,6 @@
       ]
     }
   ],
-  //done
   "586": [
     {
       "target": "notes",
@@ -2903,7 +2562,6 @@
       ]
     }
   ],
-  //done
   "588": [
     {
       "target": "notes",
@@ -2924,7 +2582,6 @@
       ]
     }
   ],
-  //done
   "590": [
     {
       "target": "notes",
@@ -2944,7 +2601,6 @@
       ]
     }
   ],
-  //done
   "600": [
     {
       "target": "subjects",
@@ -3026,7 +2682,6 @@
       ]
     }
   ],
-  //done
   "610": [
     {
       "target": "subjects",
@@ -3103,7 +2758,6 @@
       ]
     }
   ],
-  //done
   "611": [
     {
       "target": "subjects",
@@ -3180,7 +2834,6 @@
       ]
     }
   ],
-  //done
   "630": [
     {
       "target": "subjects",
@@ -3252,7 +2905,6 @@
       ]
     }
   ],
-  //done
   "647": [
     {
       "target": "subjects",
@@ -3299,7 +2951,6 @@
       ]
     }
   ],
-  //done
   "648": [
     {
       "target": "subjects",
@@ -3339,7 +2990,6 @@
       ]
     }
   ],
-  //done
   "650": [
     {
       "target": "subjects",
@@ -3389,7 +3039,6 @@
       ]
     }
   ],
-  //done
   "651": [
     {
       "target": "subjects",
@@ -3433,53 +3082,6 @@
       ]
     }
   ],
-  //done
-  "655": [
-    {
-      "target": "subjects",
-      "description": "Subject Headings",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "x",
-        "y",
-        "z",
-        "v",
-        "2",
-        "3",
-        "5"
-      ],
-      "subFieldDelimiter": [
-        {
-          "value": "--",
-          "subfields": [
-            "a",
-            "b",
-            "c",
-            "x",
-            "y",
-            "z",
-            "v",
-            "2",
-            "3",
-            "5"
-          ]
-        }
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
-        {
-          "conditions": [
-            {
-              "type": "trim_period, trim"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  //done
   "700": [
     {
       "entity": [
@@ -3487,7 +3089,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "subfield": [
-            "a"
+            "e",
+            "4"
           ],
           "rules": [
             {
@@ -3504,8 +3107,16 @@
             "b",
             "c",
             "d",
+            "f",
+            "g",
             "j",
-            "q"
+            "k",
+            "l",
+            "n",
+            "p",
+            "q",
+            "t",
+            "u"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -3528,7 +3139,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "subfield": [
-            "a"
+            "e",
+            "l"
           ],
           "rules": [
             {
@@ -3545,8 +3157,14 @@
             "b",
             "c",
             "d",
+            "f",
             "g",
-            "n"
+            "k",
+            "l",
+            "n",
+            "p",
+            "t",
+            "u"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -3569,7 +3187,8 @@
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
           "subfield": [
-            "a"
+            "j",
+            "4"
           ],
           "rules": [
             {
@@ -3586,9 +3205,14 @@
             "b",
             "c",
             "d",
+            "f",
             "g",
+            "k",
+            "l",
             "n",
-            "q"
+            "p",
+            "t",
+            "u"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -3647,7 +3271,6 @@
       ]
     }
   ],
-  //done
   "810": [
     {
       "target": "series",
@@ -3689,7 +3312,6 @@
       ]
     }
   ],
-  //done
   "811": [
     {
       "target": "series",
@@ -3729,7 +3351,6 @@
       ]
     }
   ],
-  //done
   "830": [
     {
       "target": "series",
@@ -3767,7 +3388,6 @@
       ]
     }
   ],
-  //done
   "856": [
     {
       "entity": [
@@ -3838,5 +3458,4 @@
       ]
     }
   ]
-  //done
 }
