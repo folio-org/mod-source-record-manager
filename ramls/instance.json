@@ -4,8 +4,8 @@
   "type": "object",
   "properties": {
     "@context": {
-      "type": "string",
-      "description": "context"
+      "description": "Instance context",
+      "type": "string"
     },
     "id": {
       "type": "string",
@@ -20,21 +20,22 @@
       "description": "The metadata source and its format of the underlying record to the instance record. (e.g. FOLIO if it's a record created in Inventory;  MARC if it's a MARC record created in MARCcat or EPKB if it's a record coming from eHoldings)"
     },
     "parentInstances": {
+      "description": "Array of parent instances",
       "type": "array",
-      "description": "parentInstances",
       "items": {
         "type": "object",
         "properties": {
           "id": {
+            "description": "Id of the parent instance",
             "type": "string"
           },
           "superInstanceId": {
-            "type": "string",
-            "description": "superInstanceId"
+            "description": "Id of the super instance",
+            "type": "string"
           },
           "instanceRelationshipTypeId": {
-            "type": "string",
-            "description": "instanceRelationshipTypeId"
+            "description": "Id of the relationship type",
+            "type": "string"
           }
         },
         "additionalProperties": false,
@@ -45,8 +46,8 @@
       }
     },
     "childInstances": {
+      "description": "Child instances",
       "type": "array",
-      "description": "childInstances",
       "items": {
         "type": "object",
         "properties": {
@@ -54,12 +55,12 @@
             "type": "string"
           },
           "subInstanceId": {
-            "type": "string",
-            "description": "subInstanceId"
+            "description": "Id of sub Instance",
+            "type": "string"
           },
           "instanceRelationshipTypeId": {
-            "type": "string",
-            "description": "instanceRelationshipTypeId"
+            "description": "Id of the relationship type",
+            "type": "string"
           }
         },
         "additionalProperties": false,
@@ -250,7 +251,7 @@
         "properties": {
           "uri": {
             "type": "string",
-            "description": "Uniform Resource Identifier (URI) is a string of characters designed for unambiguous identification of resources"
+            "description": "Uniform Resource Identifier (URI) is a string of characters designed for unambiguous identification of resources"
           },
           "linkText": {
             "type": "string",
@@ -355,12 +356,12 @@
       "readonly": true
     },
     "links": {
+      "description": "Links",
       "type": "object",
-      "description": "links",
       "properties": {
         "self": {
-          "type": "string",
-          "description": "self"
+          "description": "self",
+          "type": "string"
         }
       },
       "additionalProperties": false,

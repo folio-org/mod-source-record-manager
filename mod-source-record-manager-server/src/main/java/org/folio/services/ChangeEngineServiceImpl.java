@@ -10,7 +10,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -22,7 +22,6 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
-import org.folio.services.parsers.RecordFormat;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,16 +169,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Get records format for parser from Job Execution
-   *
-   * @param jobExecution - job execution object
-   * @return - Records format for jobExecution's records
-   */
-  private RecordFormat getRecordFormatByJobExecution(JobExecution jobExecution) {
-    return RecordFormat.getByDataType(jobExecution.getJobProfileInfo().getDataType());
-  }
-
-  /**
    * Update records in record-storage
    *
    * @param params        - okapi params for connecting record-storage
@@ -189,11 +178,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
     Future<List<Record>> future = Future.future();
     try {
-      SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+      SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
       RecordCollection recordCollection = new RecordCollection()
         .withRecords(parsedRecords)
         .withTotalRecords(parsedRecords.size());
-      client.postSourceStorageRecordsCollection(recordCollection, response -> {
+      client.postSourceStorageBatchRecords(recordCollection, response -> {
         if (response.statusCode() == HttpStatus.HTTP_CREATED.toInt()) {
           future.complete(parsedRecords);
         } else {
