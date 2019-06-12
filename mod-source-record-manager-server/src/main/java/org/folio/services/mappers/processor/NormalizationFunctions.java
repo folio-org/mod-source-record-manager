@@ -46,7 +46,7 @@ public class NormalizationFunctions {
     if(CHAR_SELECT.equals(funcName)){
       return charSelect(val, param);
     }
-    else if(REMOVE_ENDING_PUNC.equals(funcName)){
+    else if(REMOVE_ENDING_PUNC.equals(funcName) && !val.equals("")){
       return removeEndingPunc(val);
     }
     else if(TRIM.equals(funcName)){

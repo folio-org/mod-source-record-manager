@@ -170,6 +170,30 @@
           "value": "c1e95c2b-4efc-48cf-9e71-edb622cf0c22"
         },
         {
+          "description": "Instance type for serials",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6-7",
+              "value": "as",
+              "LDR": true
+            }
+          ],
+          "value": "a35947c6-795f-41d4-9c34-e5668d925d3f"
+        },
+        {
+          "description": "Instance type for books",
+          "conditions": [
+            {
+              "type": "char_select",
+              "parameter": "6-7",
+              "value": "am",
+              "LDR": true
+            }
+          ],
+          "value": "2b94c631-fca9-a892-c730-03ee529ffe2c"
+        },
+        {
           "description": "Instance type for text",
           "conditions": [
             {
@@ -303,8 +327,8 @@
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim",
-                  "value": ""
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
                 }
               ]
             }
@@ -340,8 +364,8 @@
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim",
-                  "value": ""
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
                 }
               ]
             }
@@ -676,8 +700,8 @@
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim",
-                  "value": ""
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
                 }
               ]
             }
@@ -710,8 +734,8 @@
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim",
-                  "value": ""
+                  "type": "custom, remove_ending_punc, trim",
+                  "value": "DATA.replace(/\\(.*\\)/,'');"
                 }
               ]
             }
@@ -864,14 +888,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
-          "subfield": [
-            "e",
-            "4"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+              "value": "2b94c631-fca9-a892-c730-03ee529ffe2a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
             }
           ]
         },
@@ -914,14 +946,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
-          "subfield": [
-            "e",
-            "4l"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+              "value": "2e48e713-17f3-7c13-09f8-23845bb210aa"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
             }
           ]
         },
@@ -962,14 +1002,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
-          "subfield": [
-            "j",
-            "4"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "e8b311a6-3b21-43f2-a269-dd9310cb2d0a"
+              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "true"
             }
           ]
         },
@@ -3088,14 +3136,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
-          "subfield": [
-            "e",
-            "4"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+              "value": "2b94c631-fca9-a892-c730-03ee529ffe2a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
             }
           ]
         },
@@ -3138,14 +3194,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
-          "subfield": [
-            "e",
-            "l"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+              "value": "2e48e713-17f3-7c13-09f8-23845bb210aa"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
             }
           ]
         },
@@ -3186,14 +3250,22 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
-          "subfield": [
-            "j",
-            "4"
-          ],
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "e8b311a6-3b21-43f2-a269-dd9310cb2d0a"
+              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+            }
+          ]
+        },
+        {
+          "target": "contributors.primary",
+          "description": "Primary contributor",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
             }
           ]
         },

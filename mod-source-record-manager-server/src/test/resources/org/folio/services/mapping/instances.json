@@ -19,21 +19,28 @@
     "contributors": [
       {
         "name": "Burtonwood, Tom, 1974- ,",
-        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+        "contributorNameTypeId": "2b94c631-fca9-a892-c730-03ee529ffe2a",
+        "primary": true
       },
       {
         "name": "Bakutis, Jason, 1969- ,",
-        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+        "contributorNameTypeId": "2b94c631-fca9-a892-c730-03ee529ffe2a",
+        "primary": false
       },
       {
-        "name": "AMinimal Studio"
+        "name": "AMinimal Studio",
+        "contributorNameTypeId": "2e48e713-17f3-7c13-09f8-23845bb210aa",
+        "primary": false
       },
       {
         "name": "Booklyn Artists Alliance,",
-        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+        "contributorNameTypeId": "2e48e713-17f3-7c13-09f8-23845bb210aa",
+        "primary": false
       },
       {
-        "name": "Pretty Small Things"
+        "name": "Pretty Small Things",
+        "contributorNameTypeId": "2e48e713-17f3-7c13-09f8-23845bb210aa",
+        "primary": false
       }
     ],
     "subjects": [
@@ -108,11 +115,9 @@
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
-        "value": "(paperback)",
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
-        "value": "(paperback)",
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
@@ -120,11 +125,9 @@
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
-        "value": "(paperback)",
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
-        "value": "(paperback)",
         "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
@@ -143,19 +146,23 @@
     "contributors": [
       {
         "name": "Melʹnychenko, V. M. (Vasylʹ Mykolaĭovych),",
-        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+        "contributorNameTypeId": "2b94c631-fca9-a892-c730-03ee529ffe2a",
+        "primary": false
       },
       {
         "name": "Holysh, H. M. (Hryhoriĭ Mykhaĭlovych), 1949-",
-        "contributorNameTypeId": "2b94c631-fca9-4892-a730-03ee529ffe2a"
+        "contributorNameTypeId": "2b94c631-fca9-a892-c730-03ee529ffe2a",
+        "primary": false
       },
       {
         "name": "Nat︠s︡ionalʹna spilka krai︠e︡znavt︠s︡iv Ukraïny. Cherkasʹka oblasna orhanizat︠s︡ii︠a︡,",
-        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+        "contributorNameTypeId": "2e48e713-17f3-7c13-09f8-23845bb210aa",
+        "primary": false
       },
       {
         "name": "Cherkasʹkyĭ nat︠s︡ionalʹnyĭ universytet imeni Bohdana Khmelʹnyt︠s︡ʹkoho,",
-        "contributorNameTypeId": "2e48e713-17f3-4c13-a9f8-23845bb210aa"
+        "contributorNameTypeId": "2e48e713-17f3-7c13-09f8-23845bb210aa",
+        "primary": false
       }
     ],
     "subjects": [
