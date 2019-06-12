@@ -1,4 +1,4 @@
-## 2019-06-05 v1.4.0-SNAPSHOT
+## 2019-06-12 v1.4.0
  * Added description for data-import flow
  * Fixed issue with saving ErrorRecords
  * Added batch update of ParsedRecords after assigning Instance id to MARC records
