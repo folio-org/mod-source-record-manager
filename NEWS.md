@@ -10,6 +10,7 @@
  * Applied parallel approach for mapping from records to instances
  * Use batch post to send Instances to the mod-inventory
  * MARC to Instance mapping was updated to the new one version
+ * Changed implementation for Job Execution human-readable id using DB sequence
 
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution

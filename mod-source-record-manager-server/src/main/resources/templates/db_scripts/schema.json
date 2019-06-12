@@ -1,5 +1,4 @@
 {
-  "scripts": [],
   "tables": [
     {
       "tableName": "job_executions",
@@ -37,6 +36,13 @@
           "tOps": "ADD"
         }
       ]
+    }
+  ],
+  "scripts": [
+    {
+      "run": "after",
+      "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;",
+      "fromModuleVersion": "1.0"
     }
   ]
 }
