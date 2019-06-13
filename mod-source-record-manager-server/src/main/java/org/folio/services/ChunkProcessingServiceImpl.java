@@ -114,7 +114,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
-          return jobExecutionSourceChunkDao.isAllChunksCompleted(jobExecutionId, tenantId);
+          return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
         }
         return Future.succeededFuture(false);
       });

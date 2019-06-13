@@ -56,10 +56,13 @@ public interface JobExecutionSourceChunkDao {
   Future<Boolean> delete(String id, String tenantId);
 
   /**
+   * Verifies is all related chunks (to given job execution id) are processed
+   * Each chunk is considered being processed if it has ERROR or COMPLETED state.
+   *
    * @param jobExecutionId - UUID of related JobExecution
    * @param tenantId       - tenantId
    * @return - return boolean value is all {@link JobExecutionSourceChunk} related to one jobExecution have status COMPLETED
    */
-  Future<Boolean> isAllChunksCompleted(String jobExecutionId, String tenantId);
+  Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId);
 
 }
