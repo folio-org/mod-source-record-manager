@@ -107,7 +107,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Boolean> isAllChunksCompleted(String jobExecutionId, String tenantId) {
+  public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
 
     StringBuilder subQuery = new StringBuilder("(SELECT count(_id) FROM ") //NOSONAR
@@ -126,10 +126,8 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       .append(TABLE_NAME)
       .append(" WHERE jsonb->>'jobExecutionId' ='")
       .append(jobExecutionId)
-      .append("' AND jsonb->>'state' ='")
-      .append(JobExecutionSourceChunk.State.COMPLETED.value())
-      .append("';");
-
+      .append("' AND jsonb->>'state' IN ('" + JobExecutionSourceChunk.State.COMPLETED.value() + "', '" + JobExecutionSourceChunk.State.ERROR.value() + "')")
+      .append(";");
     pgClientFactory.createInstance(tenantId).select(selectQuery.toString(), future.completer());
     return future.map(resultSet -> resultSet.getRows().get(0).getBoolean("result"));
   }
