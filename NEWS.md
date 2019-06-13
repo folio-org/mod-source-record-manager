@@ -1,6 +1,10 @@
+## 2019-06-13 v1.5.0-SNAPSHOT
+ * Changed implementation for Job Execution human-readable id using DB sequence
+
 ## 2019-06-12 v1.4.1
-* Fixed mapping from Record to Instances
-* Fixed check whether processing is completed for all chunks
+ * Fixed mapping from Record to Instances
+ * Fixed check whether processing is completed for all chunks
+
 
 ## 2019-06-12 v1.4.0
  * Added description for data-import flow
@@ -9,8 +13,7 @@
  * Added support for records processing in XML format
  * Applied parallel approach for mapping from records to instances
  * Use batch post to send Instances to the mod-inventory
- * MARC to Instance mapping was updated to the new one version
- * Changed implementation for Job Execution human-readable id using DB sequence
+ * MARC to Instance mapping was updated to the new one version 
 
 ## 2019-05-17 v1.3.1
  * Filled complete date and stub HrID for Job Execution
