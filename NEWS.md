@@ -1,3 +1,6 @@
+## 2019-06-12 v1.4.1
+ * Fixed mapping
+
 ## 2019-06-12 v1.4.0
  * Added description for data-import flow
  * Fixed issue with saving ErrorRecords
