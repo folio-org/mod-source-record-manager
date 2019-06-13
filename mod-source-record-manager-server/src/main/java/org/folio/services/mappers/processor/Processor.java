@@ -2,6 +2,8 @@ package org.folio.services.mappers.processor;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.folio.rest.jaxrs.model.Instance;
@@ -12,8 +14,7 @@ import org.marc4j.marc.Leader;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 import org.marc4j.marc.impl.SubfieldImpl;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+
 import javax.script.ScriptException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -260,7 +261,7 @@ public class Processor {
       data = processRules(data);
     }
 
-    if (delimiters != null) {
+    if (delimiters != null && subField2Data.get(String.valueOf(subfield)) != null) {
       //delimiters is not null, meaning we have a string buffer for each set of subfields
       //so populate the appropriate string buffer
       if (subField2Data.get(String.valueOf(subfield)).length() > 0) {

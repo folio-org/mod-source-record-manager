@@ -9,28 +9,40 @@ import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.parsers.RecordFormat;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.marc4j.MarcJsonWriter;
+import org.marc4j.MarcReader;
+import org.marc4j.MarcStreamReader;
+import org.marc4j.marc.Record;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @RunWith(VertxUnitRunner.class)
-@Ignore // will be fixed in (@link https://issues.folio.org/browse/MODSOURMAN-134)
 public class MappingTest {
 
   private RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.MARC);
 
-  protected static final String INSTANCES_PATH = "src/test/resources/org/folio/services/mapping/instances.json";
-  protected static final String MARCS_PATH = "src/test/resources/org/folio/services/mapping/marcs.json";
+  private static final String INSTANCES_PATH = "src/test/resources/org/folio/services/mapping/instances.json";
+  private static final String BIBS_PATH = "src/test/resources/org/folio/services/mapping/CornellFOLIOExemplars_Bibs.mrc";
 
   @Test
   public void testMarcToInstance() throws IOException {
-    JsonArray marcs = new JsonArray(TestUtil.readFileFromPath(MARCS_PATH));
+    MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(TestUtil.readFileFromPath(BIBS_PATH).getBytes(StandardCharsets.UTF_8)));
     JsonArray instances = new JsonArray(TestUtil.readFileFromPath(INSTANCES_PATH));
-    Instance instance = mapper.mapRecord(marcs.getJsonObject(0));
-    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(0).encode());
-    instance = mapper.mapRecord(marcs.getJsonObject(1));
-    Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(1).encode());
+    int i = 0;
+    while (reader.hasNext()) {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      MarcJsonWriter writer = new MarcJsonWriter(os);
+      Record record = reader.next();
+      writer.write(record);
+      JsonObject marc = new JsonObject(new String(os.toByteArray()));
+      Instance instance = mapper.mapRecord(marc);
+      Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(i).encode());
+      i++;
+    }
   }
 }
