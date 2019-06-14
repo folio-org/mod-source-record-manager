@@ -42,6 +42,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final String TABLE_NAME = "job_executions";
   private static final String ID_FIELD = "'id'";
+  public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -119,7 +120,15 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   @Override
   public Future<String> save(JobExecution jobExecution, String tenantId) {
     Future<String> future = Future.future();
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
+    String preparedQuery = String.format(GET_JOB_EXECUTION_HR_ID, PostgresClient.convertToPsqlStandard(tenantId));
+    pgClientFactory.createInstance(tenantId).select(preparedQuery, getHrIdAr -> {
+      if (getHrIdAr.succeeded() && getHrIdAr.result().getResults().get(0) != null) {
+        jobExecution.setHrId(getHrIdAr.result().getResults().get(0).getLong(0).toString());
+        pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
+      } else {
+        future.fail(getHrIdAr.cause());
+      }
+    });
     return future;
   }
 
