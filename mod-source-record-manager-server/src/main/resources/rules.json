@@ -236,6 +236,7 @@
   ],
   "010": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
@@ -327,8 +328,7 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim"
                 }
               ]
             }
@@ -364,8 +364,7 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim"
                 }
               ]
             }
@@ -574,6 +573,7 @@
   ],
   "035": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
@@ -676,6 +676,7 @@
   ],
   "074": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
@@ -700,8 +701,7 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim"
                 }
               ]
             }
@@ -710,6 +710,7 @@
       ]
     },
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
@@ -734,8 +735,7 @@
             {
               "conditions": [
                 {
-                  "type": "custom, remove_ending_punc, trim",
-                  "value": "DATA.replace(/\\(.*\\)/,'');"
+                  "type": "remove_ending_punc, trim"
                 }
               ]
             }
@@ -888,7 +888,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -899,7 +901,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -946,7 +950,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -957,7 +963,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -1002,7 +1010,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -1013,7 +1023,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3136,7 +3148,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3147,7 +3161,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3194,7 +3210,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3205,7 +3223,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3250,7 +3270,9 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],
@@ -3261,7 +3283,9 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": ["a"],
+          "subfield": [
+            "a"
+          ],
           "rules": [
             {
               "conditions": [],

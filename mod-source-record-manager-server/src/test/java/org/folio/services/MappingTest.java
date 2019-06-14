@@ -17,10 +17,15 @@ import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.marc.Record;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 @RunWith(VertxUnitRunner.class)
 @Ignore // will be fixed in (@link https://issues.folio.org/browse/MODSOURMAN-134)
@@ -36,6 +41,7 @@ public class MappingTest {
     MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(TestUtil.readFileFromPath(BIBS_PATH).getBytes(StandardCharsets.UTF_8)));
     JsonArray instances = new JsonArray(TestUtil.readFileFromPath(INSTANCES_PATH));
     int i = 0;
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     while (reader.hasNext()) {
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       MarcJsonWriter writer = new MarcJsonWriter(os);
@@ -43,6 +49,12 @@ public class MappingTest {
       writer.write(record);
       JsonObject marc = new JsonObject(new String(os.toByteArray()));
       Instance instance = mapper.mapRecord(marc);
+      Assert.assertNotNull(instance.getTitle());
+      Assert.assertNotNull(instance.getSource());
+      Assert.assertNotNull(instance.getInstanceTypeId());
+      Validator validator = factory.getValidator();
+      Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
+      Assert.assertTrue(violations.isEmpty());
       Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(i).encode());
       i++;
     }
