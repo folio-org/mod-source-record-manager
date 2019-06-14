@@ -1,4 +1,4 @@
-## 2019-06-12 v1.4.1
+## 2019-06-14 v1.4.1
 * Fixed mapping from Record to Instances
 * Fixed check whether processing is completed for all chunks
 
