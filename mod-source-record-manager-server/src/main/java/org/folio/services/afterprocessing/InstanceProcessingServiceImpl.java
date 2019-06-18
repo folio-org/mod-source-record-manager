@@ -18,7 +18,7 @@ import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -192,8 +192,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     }
     Future<Void> future = Future.future();
     try {
-      new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
-        .putSourceStorageParsedRecordsCollection(buildParsedRecordCollection(records), response -> {
+      new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
+        .putSourceStorageBatchParsedRecords(buildParsedRecordCollection(records), response -> {
           if (HttpStatus.HTTP_OK.toInt() != response.statusCode()) {
             setFail(future, response.statusCode());
           }

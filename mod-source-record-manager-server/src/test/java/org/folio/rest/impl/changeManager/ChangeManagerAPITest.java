@@ -794,7 +794,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.put("/source-storage/parsedRecordsCollection")
+    WireMock.stubFor(WireMock.put("/source-storage/batch/parsed-records")
       .willReturn(WireMock.serverError()));
 
     Async async = testContext.async();
