@@ -35,7 +35,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
-  private static final String GET_PROCESSING_IS_COMPLETED_AND_HAS_ERROR_QUERY = "SELECT get_processing_is_completed_and_has_error('%s');";
+  private static final String GET_PROCESSING_STATE_QUERY = "SELECT get_processing_state('%s');";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -111,7 +111,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Pair<Boolean, Boolean>> isAllChunksProcessed(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
     try {
-      String query = String.format(GET_PROCESSING_IS_COMPLETED_AND_HAS_ERROR_QUERY, jobExecutionId);
+      String query = String.format(GET_PROCESSING_STATE_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while checking if processing is completed or has errors for JobExecution {}", e, jobExecutionId);

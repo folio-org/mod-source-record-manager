@@ -2,7 +2,7 @@
 -- Changes in this file will not result in an update of the function.
 -- To change the function, update this script and copy it to the appropriate scripts.snippet field of the schema.json
 
-CREATE OR REPLACE FUNCTION get_processing_is_completed_and_has_error(jobExecId uuid)
+CREATE OR REPLACE FUNCTION get_processing_state(jobExecId uuid)
 RETURNS TABLE (completed boolean) AS $result$
 BEGIN
 RETURN QUERY
@@ -15,10 +15,10 @@ SELECT count(_id) =
 	WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
 		AND jsonb->>'state' IN ('COMPLETED', 'ERROR')
 UNION ALL
-(SELECT 0 < (SELECT count(_id)
+(SELECT count(_id) > 0
  FROM
    job_execution_source_chunks
     WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
-	 AND jsonb->>'state' = 'ERROR') as error);
+	 AND jsonb->>'state' = 'ERROR');
 END;
 $result$ LANGUAGE plpgsql;

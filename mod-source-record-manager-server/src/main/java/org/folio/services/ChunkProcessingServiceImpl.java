@@ -53,18 +53,9 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         .withState(JobExecutionSourceChunk.State.COMPLETED)
         .withCompletedDate(new Date()), params.getTenantId()))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
-      .compose(processingFinished -> {
-        // if processing completed
-        if (processingFinished.getLeft()) {
-          // if processing contains errors
-          if (processingFinished.getRight()) {
-            return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId,
-              new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR), params)
-              .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
-              .map(result -> true);
-          }
-          // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.COMMITTED), params)
+      .compose(statusDto -> {
+        if (StatusDto.Status.PARSING_IN_PROGRESS != statusDto.getStatus()) {
+          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, statusDto, params)
             .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
             .map(result -> true);
         }
@@ -114,18 +105,30 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * Checks if last chunk exists and if so checks that all chunks are processed
+   * Checks actual status of JobExecution
    *
    * @param jobExecutionId - JobExecution id
-   * @return future with true if processing is completed, false if not
+   * @return future with actual JobExecution status
    */
-  private Future<Pair<Boolean, Boolean>> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
+  private Future<StatusDto> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
           return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
         }
         return Future.succeededFuture(Pair.of(false, false));
+      })
+      .map(processingState -> {
+        boolean completed = processingState.getLeft();
+        boolean hasErrors = processingState.getRight();
+        if (completed) {
+          if (hasErrors) {
+            return new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR);
+          }
+          // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+          return new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+        }
+        return new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
       });
   }
 }
