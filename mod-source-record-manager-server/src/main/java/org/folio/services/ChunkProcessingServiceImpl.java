@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -44,7 +45,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withChunkSize(incomingChunk.getRecords().size())
       .withCreatedDate(new Date());
     return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.PARSING_IN_PROGRESS, params))
+      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
@@ -52,10 +53,18 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         .withState(JobExecutionSourceChunk.State.COMPLETED)
         .withCompletedDate(new Date()), params.getTenantId()))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
-      .compose(completed -> {
-        if (completed) {
+      .compose(processingFinished -> {
+        // if processing completed
+        if (processingFinished.getLeft()) {
+          // if processing contains errors
+          if (processingFinished.getRight()) {
+            return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId,
+              new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR), params)
+              .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
+              .map(result -> true);
+          }
           // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, JobExecution.Status.COMMITTED, params)
+          return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.COMMITTED), params)
             .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
             .map(result -> true);
         }
@@ -67,16 +76,16 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * Checks JobExecution current status and updates it if needed
    *
    * @param jobExecutionId - JobExecution id
-   * @param status         - required status of JobExecution
+   * @param status         - required statusDto of JobExecution
    * @param params         - okapi connection params
    * @return future
    */
-  private Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, JobExecution.Status status, OkapiConnectionParams params) {
+  private Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
-          if (!status.equals(jobExecution.getStatus())) {
-            return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.fromValue(status.name())), params);
+          if (!status.getStatus().value().equals(jobExecution.getStatus().value())) {
+            return jobExecutionService.updateJobExecutionStatus(jobExecutionId, status, params);
           }
           return Future.succeededFuture(jobExecution);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
@@ -110,13 +119,13 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param jobExecutionId - JobExecution id
    * @return future with true if processing is completed, false if not
    */
-  private Future<Boolean> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
+  private Future<Pair<Boolean, Boolean>> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
           return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
         }
-        return Future.succeededFuture(false);
+        return Future.succeededFuture(Pair.of(false, false));
       });
   }
 }

@@ -42,7 +42,12 @@
     {
       "run": "after",
       "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;",
-      "fromModuleVersion": "1.0"
+      "fromModuleVersion": "2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE OR REPLACE FUNCTION get_processing_is_completed_and_has_error(jobExecId uuid) RETURNS TABLE (completed boolean) AS $result$ BEGIN RETURN QUERY SELECT count(_id) = (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) as completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR') UNION ALL (SELECT 0 < (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR') as error); END; $result$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "2.0"
     }
   ]
 }

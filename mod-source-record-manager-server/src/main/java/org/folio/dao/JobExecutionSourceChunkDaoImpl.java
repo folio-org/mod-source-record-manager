@@ -5,11 +5,11 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.UpdateResult;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
-import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +35,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
+  private static final String GET_PROCESSING_IS_COMPLETED_AND_HAS_ERROR_QUERY = "SELECT get_processing_is_completed_and_has_error('%s');";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -107,28 +108,19 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
+  public Future<Pair<Boolean, Boolean>> isAllChunksProcessed(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
-
-    StringBuilder subQuery = new StringBuilder("(SELECT count(_id) FROM ") //NOSONAR
-      .append(PostgresClient.convertToPsqlStandard(tenantId))
-      .append(".")
-      .append(TABLE_NAME)
-      .append(" WHERE jsonb->>'jobExecutionId' ='")
-      .append(jobExecutionId)
-      .append("')");
-
-    StringBuilder selectQuery = new StringBuilder("SELECT count(_id) = ") //NOSONAR
-      .append(subQuery)
-      .append(" as result FROM ")
-      .append(PostgresClient.convertToPsqlStandard(tenantId))
-      .append(".")
-      .append(TABLE_NAME)
-      .append(" WHERE jsonb->>'jobExecutionId' ='")
-      .append(jobExecutionId)
-      .append("' AND jsonb->>'state' IN ('" + JobExecutionSourceChunk.State.COMPLETED.value() + "', '" + JobExecutionSourceChunk.State.ERROR.value() + "')");
-
-    pgClientFactory.createInstance(tenantId).select(selectQuery.toString(), future.completer());
-    return future.map(resultSet -> resultSet.getRows().get(0).getBoolean("result"));
+    try {
+      String query = String.format(GET_PROCESSING_IS_COMPLETED_AND_HAS_ERROR_QUERY, jobExecutionId);
+      pgClientFactory.createInstance(tenantId).select(query, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error while checking if processing is completed or has errors for JobExecution {}", e, jobExecutionId);
+      future.fail(e);
+    }
+    return future.map(resultSet -> {
+      boolean completed = resultSet.getResults().get(0).getBoolean(0);
+      boolean hasErrors = resultSet.getResults().get(1).getBoolean(0);
+      return Pair.of(completed, hasErrors);
+    });
   }
 }
