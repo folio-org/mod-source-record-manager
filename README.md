@@ -193,7 +193,7 @@ curl -w '\n' -X POST -D -   \
 
 To initiate records parsing should send POST request containing RawRecordsDto, wich contains raw records list ("records" field)
 to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. 
-The list of records can contains records in different formats for example:  "MARC_RAW", "MARC_JSON", "MARC_XML". \
+The list of records can contain records in different formats for example:  "MARC_RAW", "MARC_JSON", "MARC_XML". \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of previous request.
 ```
 curl -w '\n' -X POST -D -   \
