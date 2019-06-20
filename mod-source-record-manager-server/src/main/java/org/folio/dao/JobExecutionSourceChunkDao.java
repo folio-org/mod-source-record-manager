@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import org.apache.commons.lang3.tuple.Pair;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 
 import java.util.List;
@@ -61,8 +62,9 @@ public interface JobExecutionSourceChunkDao {
    *
    * @param jobExecutionId - UUID of related JobExecution
    * @param tenantId       - tenantId
-   * @return - return boolean value is all {@link JobExecutionSourceChunk} related to one jobExecution have status COMPLETED
+   * @return - returns a pair of boolean values, first indicates whether processing is completed,
+   * second - if there is any error
    */
-  Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId);
+  Future<Pair<Boolean, Boolean>> isAllChunksProcessed(String jobExecutionId, String tenantId);
 
 }

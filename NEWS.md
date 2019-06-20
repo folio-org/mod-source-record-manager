@@ -1,5 +1,6 @@
 ## 2019-06-13 v1.5.0-SNAPSHOT
  * Changed implementation for Job Execution human-readable id using DB sequence
+ * JobExecution marked as Error if processing of at least one chunk failed
 
 ## 2019-06-12 v1.4.1
  * Fixed mapping from Record to Instances
