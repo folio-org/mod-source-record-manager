@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 @RunWith(VertxUnitRunner.class)
-@Ignore // will be fixed in (@link https://issues.folio.org/browse/MODSOURMAN-134)
 public class MappingTest {
 
   private RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.MARC);
