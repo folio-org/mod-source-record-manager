@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -11,15 +12,7 @@ import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.client.SourceStorageBatchClient;
-import org.folio.rest.jaxrs.model.ErrorRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.ParsedRecord;
-import org.folio.rest.jaxrs.model.RawRecord;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
@@ -33,11 +26,16 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.HttpStatus.HTTP_CREATED;
+import static org.folio.HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
+  private static final String CAN_T_CREATE_NEW_RECORDS_MSG = "Can't create new records with JobExecution id: %s in source-record-storage, response code %s";
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
@@ -169,7 +167,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Update records in record-storage
+   * Saves parsed records in record-storage
    *
    * @param params        - okapi params for connecting record-storage
    * @param jobExecution  - job execution related to records
@@ -179,14 +177,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<List<Record>> future = Future.future();
     try {
       SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+
       RecordCollection recordCollection = new RecordCollection()
         .withRecords(parsedRecords)
         .withTotalRecords(parsedRecords.size());
+
       client.postSourceStorageBatchRecords(recordCollection, response -> {
-        if (response.statusCode() == HttpStatus.HTTP_CREATED.toInt()) {
-          future.complete(parsedRecords);
+        if (isStatus(response, HTTP_CREATED) || isPartialSuccess(response)) {
+          response.bodyHandler(it -> future.complete(it.toJsonObject().mapTo(RecordCollection.class).getRecords()));
         } else {
-          String message = String.format("Can't create new records with JobExecution id: %s in source-record-storage, response code %s", jobExecution.getId(), response.statusCode());
+          String message = String.format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
         }
@@ -196,6 +196,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       future.fail(e);
     }
     return future;
+  }
+
+  private boolean isPartialSuccess(HttpClientResponse response) {
+    return isStatus(response, HTTP_INTERNAL_SERVER_ERROR) && isContentTypeJson(response);
+  }
+
+  private boolean isStatus(HttpClientResponse response, HttpStatus status) {
+    return response.statusCode() == status.toInt();
+  }
+
+  private boolean isContentTypeJson(HttpClientResponse response) {
+    return APPLICATION_JSON.equals(response.getHeader(CONTENT_TYPE));
   }
 
   private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR
