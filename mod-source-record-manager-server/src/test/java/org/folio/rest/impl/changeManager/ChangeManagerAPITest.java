@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -24,8 +25,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.util.Arrays.asList;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -85,10 +90,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
     Assert.assertNotNull(actualParentJobExecutionId);
-    Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+    assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
     JobExecution parentSingle = actualJobExecutions.get(0);
-    Assert.assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
+    assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     assertParent(parentSingle);
   }
 
@@ -117,16 +122,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
     Assert.assertNotNull(actualParentJobExecutionId);
-    Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+    assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
     JobExecution parentSingle = actualJobExecutions.get(0);
     Assert.assertNotNull(parentSingle);
-    Assert.assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
+    assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
     Assert.assertNotNull(parentSingle.getId());
     Assert.assertNotNull(parentSingle.getParentJobId());
     Assert.assertTrue(parentTypes.contains(parentSingle.getSubordinationType()));
-    Assert.assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
-    Assert.assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
+    assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
+    assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
     Assert.assertNotNull(parentSingle.getJobProfileInfo());
   }
 
@@ -146,7 +151,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> actualJobExecutions = response.getJobExecutions();
 
     Assert.assertNotNull(actualParentJobExecutionId);
-    Assert.assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+    assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
 
     int actualParentJobExecutions = 0;
     int actualChildJobExecutions = 0;
@@ -161,8 +166,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       }
     }
 
-    Assert.assertEquals(expectedParentJobExecutions, actualParentJobExecutions);
-    Assert.assertEquals(expectedChildJobExecutions, actualChildJobExecutions);
+    assertEquals(expectedParentJobExecutions, actualParentJobExecutions);
+    assertEquals(expectedChildJobExecutions, actualChildJobExecutions);
   }
 
   @Test
@@ -702,6 +707,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
@@ -747,8 +755,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.post(INVENTORY_URL)
+    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(WireMock.serverError()));
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     RestAssured.given()
       .spec(spec)
@@ -778,8 +788,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.put("/source-storage/batch/parsed-records")
+    WireMock.stubFor(WireMock.put(PARSED_RECORDS_COLLECTION_URL)
       .willReturn(WireMock.serverError()));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -826,8 +839,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.post(INVENTORY_URL)
+    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(WireMock.serverError()));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     RestAssured.given()
       .spec(spec)
@@ -860,6 +876,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
     jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
     jobExec.setStartedDate(new Date());
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -911,11 +933,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(parent.getId());
     Assert.assertNotNull(parent.getParentJobId());
     Assert.assertTrue(parentTypes.contains(parent.getSubordinationType()));
-    Assert.assertEquals(parent.getId(), parent.getParentJobId());
+    assertEquals(parent.getId(), parent.getParentJobId());
     if (JobExecution.SubordinationType.PARENT_SINGLE.equals(parent.getSubordinationType())) {
-      Assert.assertEquals(JobExecution.Status.NEW, parent.getStatus());
+      assertEquals(JobExecution.Status.NEW, parent.getStatus());
     } else {
-      Assert.assertEquals(JobExecution.Status.PARENT, parent.getStatus());
+      assertEquals(JobExecution.Status.PARENT, parent.getStatus());
     }
     if (JobExecution.SubordinationType.PARENT_SINGLE.equals(parent.getSubordinationType())) {
       //TODO assert source path properly
@@ -927,9 +949,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(child);
     Assert.assertNotNull(child.getId());
     Assert.assertNotNull(child.getParentJobId());
-    Assert.assertEquals(child.getParentJobId(), parentJobExecutionId);
-    Assert.assertEquals(JobExecution.Status.NEW, child.getStatus());
-    Assert.assertEquals(JobExecution.SubordinationType.CHILD, child.getSubordinationType());
+    assertEquals(child.getParentJobId(), parentJobExecutionId);
+    assertEquals(JobExecution.Status.NEW, child.getStatus());
+    assertEquals(JobExecution.SubordinationType.CHILD, child.getSubordinationType());
     //TODO assert source path properly
     Assert.assertNotNull(child.getSourcePath());
   }
@@ -976,7 +998,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK);
 
-    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(WireMock.serverError()));
 
     RestAssured.given()
@@ -997,13 +1019,51 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnSavedParsedRecordsOnPostChunkOfRawRecordsWhenRecordsSavedPartially() {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
+  public void shouldReturnSavedParsedRecordsOnPostChunkOfRawRecordsWhenRecordsSavedPartially(TestContext testContext) {
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withLast(false)
+      .withCounter(15)
+      .withRecords(asList("01240cas a2200397   450000100070000000500170000700800410002401000170006" +
+          "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
+          "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
+          "6550042006067000045006488530018006938630023007119020016007349050021007509480037007719500034008083668322014110622" +
+          "1425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)not" +
+          "isABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Jou" +
+          "rnal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [e" +
+          "tc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Ap" +
+          "r. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7" +
+          "aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-" +
+          "1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm" +
+          " a2200361   ",
+        "01240cas a2200397   450000100070000000500170000700800410002401000170006" +
+          "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
+          "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
+          "6550042006067000045006488530018006938630023007119020016007349050021007509480037007719500034008083668322014110622" +
+          "1425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)not" +
+          "isABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Jou" +
+          "rnal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [e" +
+          "tc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Ap" +
+          "r. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7" +
+          "aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-" +
+          "1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm" +
+          " a2200361   ")
+      ).withContentType(RawRecordsDto.ContentType.MARC_RAW);
+    Async async = testContext.async();
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    async.complete();
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(serverError()//simulates partial success
+        .withHeader(CONTENT_TYPE, APPLICATION_JSON)
+        .withTransformers(InstancesBatchResponseTransformer.NAME)
+      )
+    );
+
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1014,7 +1074,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto)
@@ -1022,7 +1084,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1030,11 +1094,18 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
+    async.complete();
+
+    List<LoggedRequest> requests = findAll(putRequestedFor(urlMatching(PARSED_RECORDS_COLLECTION_URL)));
+
+    assertEquals(1, requests.size());
+    String body = requests.get(0).getBodyAsString();
+    assertEquals(1, new JsonObject(body).getJsonArray("parsedRecords").size());
   }
 
   @Test
   public void shouldReturnErrorOnPostJobExecutionWhenFailedPostSnapshotToStorage() throws IOException {
-    WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
+    WireMock.stubFor(post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.serverError()));
 
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
@@ -1076,6 +1147,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
     jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
     jobExec.setStartedDate(new Date());
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1122,6 +1199,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
   }
 
+  //todo some times it's failed. When this test is run alone.
   @Test
   public void shouldMarkJobExecutionAsErrorIfInstancesWereNotCreated(TestContext testContext) {
     RawRecordsDto rawRecordsDtoContainingError = new RawRecordsDto()
@@ -1143,8 +1221,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
     jobExec.setStartedDate(new Date());
 
-    WireMock.stubFor(WireMock.post(INVENTORY_URL)
+    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(WireMock.serverError()));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
     RestAssured.given()

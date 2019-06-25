@@ -83,7 +83,7 @@ public abstract class AbstractRestTest {
     WireMockConfiguration.wireMockConfig()
       .dynamicPort()
       .notifier(new Slf4jNotifier(true))
-      .extensions(new RequestToResponseTransformer())
+      .extensions(new RequestToResponseTransformer(), new InstancesBatchResponseTransformer())
   );
 
 
@@ -244,7 +244,38 @@ public abstract class AbstractRestTest {
 
     @Override
     public boolean applyGlobally() {
-      return true;
+      return false;
+    }
+  }
+
+  /**
+   * It takes a request, remove one instance from it and return it as a response.
+   */
+  public static class InstancesBatchResponseTransformer extends ResponseTransformer {
+
+    public static final String NAME = "instances-batch-response-transformer";
+
+    @Override
+    public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
+      InstancesBatchResponse batchResponse = new JsonObject(request.getBodyAsString()).mapTo(InstancesBatchResponse.class);
+      removeOneInstance(batchResponse);
+      return Response.Builder.like(response).but().body(JsonObject.mapFrom(batchResponse).toString()).build();
+    }
+
+    private void removeOneInstance(InstancesBatchResponse batchResponse) {
+      if (!batchResponse.getInstances().isEmpty()) {
+        batchResponse.getInstances().remove(1);
+      }
+    }
+
+    @Override
+    public String getName() {
+      return NAME;
+    }
+
+    @Override
+    public boolean applyGlobally() {
+      return false;
     }
   }
 }

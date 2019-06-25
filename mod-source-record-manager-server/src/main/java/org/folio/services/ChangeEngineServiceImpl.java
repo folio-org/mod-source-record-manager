@@ -1,6 +1,8 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -39,6 +42,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
+  public static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: {}";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -73,7 +77,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-              .orElseThrow(() -> new NotFoundException(String.format(
+              .orElseThrow(() -> new NotFoundException(format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         } else {
           future.complete(parsedRecords);
@@ -125,7 +129,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
-              .orElseThrow(() -> new NotFoundException(String.format(
+              .orElseThrow(() -> new NotFoundException(format(
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
@@ -184,9 +188,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
       client.postSourceStorageBatchRecords(recordCollection, response -> {
         if (isStatus(response, HTTP_CREATED) || isPartialSuccess(response)) {
-          response.bodyHandler(it -> future.complete(it.toJsonObject().mapTo(RecordCollection.class).getRecords()));
+          response.bodyHandler(retrieveResponseHandler(future));
         } else {
-          String message = String.format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
+          String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
         }
@@ -196,6 +200,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       future.fail(e);
     }
     return future;
+  }
+
+  private Handler<Buffer> retrieveResponseHandler(Future<List<Record>> future) {
+    return it -> {
+      try {
+        future.complete(it.toJsonObject().mapTo(RecordCollection.class).getRecords());
+      } catch (Exception e) {
+        LOGGER.error(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, e, e.getMessage());
+        future.fail(e);
+      }
+    };
   }
 
   private boolean isPartialSuccess(HttpClientResponse response) {
