@@ -49,9 +49,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
-      .compose(ar -> jobExecutionSourceChunkDao.update(sourceChunk
-        .withState(JobExecutionSourceChunk.State.COMPLETED)
-        .withCompletedDate(new Date()), params.getTenantId()))
       .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
       .compose(statusDto -> {
         if (StatusDto.Status.PARSING_IN_PROGRESS != statusDto.getStatus()) {

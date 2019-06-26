@@ -3,6 +3,7 @@ package org.folio.services.afterprocessing;
 import javax.ws.rs.NotFoundException;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,6 +32,9 @@ import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
+import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.ERROR;
+
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
@@ -52,11 +56,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     List<Pair<Record, Instance>> recordToInstanceList = mapRecordsToInstances(records);
     List<Instance> instances = recordToInstanceList.parallelStream().map(Pair::getValue).collect(Collectors.toList());
     postInstances(instances, params).setHandler(ar -> {
-      if (ar.failed()) {
-        updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
-      } else {
+      JobExecutionSourceChunk.State sourceChunkState = ERROR;
+      if (ar.succeeded()) {
         addAdditionalFields(recordToInstanceList, params);
+        sourceChunkState = COMPLETED;
       }
+      updateSourceChunkState(sourceChunkId, sourceChunkState, params)
+        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()));
+
       // Complete future in order to continue the import process regardless of the result of creating Instances
       future.complete();
     });
@@ -155,13 +162,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   /**
    * Updates state of given source chunk
-   *
-   * @param sourceChunkId id of source chunk
+   *  @param sourceChunkId id of source chunk
    * @param state         state of source chunk
    * @param params        okapi connection params
+   * @return future with updated JobExecutionSourceChunk entity
    */
-  private void updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
-    jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+  private Future<JobExecutionSourceChunk> updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
+    return jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
       .compose(optional -> optional
         .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(state), params.getTenantId()))
         .orElseThrow(() ->
