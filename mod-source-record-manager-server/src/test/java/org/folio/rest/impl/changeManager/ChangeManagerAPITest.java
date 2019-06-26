@@ -1166,8 +1166,55 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.ERROR.name()));
+      .body("status", is(JobExecution.Status.ERROR.name()))
+      .body("completedDate", notNullValue(Date.class));
     async.complete();
+  }
+
+  @Test
+  public void shouldMarkJobExecutionAsErrorAndSetCompletedDateWhenFailedPostRecordsToRecordsStorage() {
+    RawRecordsDto lastRawRecordsDto = new RawRecordsDto()
+      .withLast(true)
+      .withCounter(rawRecordsDto.getCounter())
+      .withRecords(rawRecordsDto.getRecords())
+      .withContentType(rawRecordsDto.getContentType());
+
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(lastRawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.ERROR.name()))
+      .body("completedDate", notNullValue(Date.class));
   }
 
 }

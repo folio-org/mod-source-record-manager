@@ -70,13 +70,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               if (r.failed()) {
                 LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
               }
-              future.fail(postAr.cause());
             });
           jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
-                "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+                "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
+            .setHandler(ar ->  future.fail(postAr.cause()));
         } else {
           future.complete(parsedRecords);
         }

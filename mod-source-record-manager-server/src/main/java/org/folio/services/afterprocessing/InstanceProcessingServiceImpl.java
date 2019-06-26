@@ -62,10 +62,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         sourceChunkState = COMPLETED;
       }
       updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()));
-
-      // Complete future in order to continue the import process regardless of the result of creating Instances
-      future.complete();
+        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+        // Complete future in order to continue the import process regardless of the result of creating Instances
+        .setHandler(updateAr -> future.complete());
     });
     return future;
   }
