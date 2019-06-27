@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
+import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.ERROR;
+
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -58,15 +62,17 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     Map<Instance, Record> instanceRecordMap = mapInstanceToRecord(records);
     List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
     postInstances(instances, params).setHandler(ar -> {
-      if (ar.failed()) {
-        updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
-      } else {
+      JobExecutionSourceChunk.State sourceChunkState = ERROR;
+      if (ar.succeeded()) {
         List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
         List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
         addAdditionalFields(recordsToUpdate, params);
+        sourceChunkState = COMPLETED;
       }
-      // Complete future in order to continue the import process regardless of the result of creating Instances
-      future.complete();
+      updateSourceChunkState(sourceChunkId, sourceChunkState, params)
+        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+        // Complete future in order to continue the import process regardless of the result of creating Instances
+        .setHandler(updateAr -> future.complete());
     });
     return future;
   }
@@ -170,13 +176,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   /**
    * Updates state of given source chunk
-   *
-   * @param sourceChunkId id of source chunk
+   *  @param sourceChunkId id of source chunk
    * @param state         state of source chunk
    * @param params        okapi connection params
+   * @return future with updated JobExecutionSourceChunk entity
    */
-  private void updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
-    jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+  private Future<JobExecutionSourceChunk> updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
+    return jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
       .compose(optional -> optional
         .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(state), params.getTenantId()))
         .orElseThrow(() ->

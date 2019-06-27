@@ -37,6 +37,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+    Future<Boolean> future = Future.future();
+
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
@@ -44,22 +46,32 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(incomingChunk.getRecords().size())
       .withCreatedDate(new Date());
-    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+    jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
-      .compose(ar -> jobExecutionSourceChunkDao.update(sourceChunk
-        .withState(JobExecutionSourceChunk.State.COMPLETED)
-        .withCompletedDate(new Date()), params.getTenantId()))
-      .compose(ch -> checkIfProcessingCompleted(jobExecutionId, params.getTenantId()))
+      .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
+        .setHandler(jobUpdateAr -> future.handle(chunkProcessAr.map(true))));
+    return future;
+  }
+
+  /**
+   * Updates jobExecution by its id only when last chunk was processed.
+   *
+   * @param jobExecutionId jobExecution Id
+   * @param params
+   * @return future with true if last chunk was processed and jobExecution updated, otherwise future with false
+   */
+  private Future<Boolean> updateJobExecutionStatusIfAllChunksProcessed(String jobExecutionId, OkapiConnectionParams params) {
+    return checkIfProcessingCompleted(jobExecutionId, params.getTenantId())
       .compose(statusDto -> {
         if (StatusDto.Status.PARSING_IN_PROGRESS != statusDto.getStatus()) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, statusDto, params)
-            .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params))
-            .map(result -> true);
+            .compose(jobExecution -> jobExecutionService.updateJobExecution(jobExecution.withCompletedDate(new Date()), params)
+              .map(true));
         }
-        return Future.succeededFuture(true);
+        return Future.succeededFuture(false);
       });
   }
 
