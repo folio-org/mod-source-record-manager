@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -60,7 +61,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       if (ar.failed()) {
         updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
       } else {
-        List<Instance> result = ar.result();
+        List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
         List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
         addAdditionalFields(recordsToUpdate, params);
       }
