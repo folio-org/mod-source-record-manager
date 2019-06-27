@@ -1,8 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -14,7 +12,15 @@ import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.client.SourceStorageBatchClient;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.RawRecord;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
@@ -42,7 +48,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
-  public static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: {}";
+  private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -178,8 +184,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param parsedRecords - parsed records
    */
   private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
-    Future<List<Record>> future = Future.future();
-    try {
+    return Try.itDo((Future<List<Record>> future) -> {
       SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
       RecordCollection recordCollection = new RecordCollection()
@@ -188,31 +193,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
       client.postSourceStorageBatchRecords(recordCollection, response -> {
         if (isStatus(response, HTTP_CREATED) || isPartialSuccess(response)) {
-          response.bodyHandler(retrieveResponseHandler(future));
+          response.bodyHandler(it ->
+            future.handle(
+              Try.itGet(() -> it.toJsonObject().mapTo(RecordCollection.class).getRecords())
+                .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
+            )
+          );
         } else {
           String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
         }
       });
-    } catch (Exception e) {
-      LOGGER.error("Error during POST new records", e, e.getMessage());
-      future.fail(e);
-    }
-    return future;
+    }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
   }
 
-  private Handler<Buffer> retrieveResponseHandler(Future<List<Record>> future) {
-    return it -> {
-      try {
-        future.complete(it.toJsonObject().mapTo(RecordCollection.class).getRecords());
-      } catch (Exception e) {
-        LOGGER.error(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, e, e.getMessage());
-        future.fail(e);
-      }
-    };
-  }
-
+  //TODO move it to data-import-util
   private boolean isPartialSuccess(HttpClientResponse response) {
     return isStatus(response, HTTP_INTERNAL_SERVER_ERROR) && isContentTypeJson(response);
   }
