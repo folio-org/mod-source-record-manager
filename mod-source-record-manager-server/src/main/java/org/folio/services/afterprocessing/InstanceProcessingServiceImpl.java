@@ -1,12 +1,5 @@
 package org.folio.services.afterprocessing;
 
-import javax.ws.rs.NotFoundException;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -21,6 +14,7 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
+import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordCollection;
@@ -31,11 +25,23 @@ import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances/batch";
+  public static final String CAN_NOT_MAP_RECORD_TO_INSTANCE_MSG = "Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private AdditionalFieldsUtil additionalInstanceFieldsUtil;
@@ -49,18 +55,26 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     Future<Void> future = Future.future();
-    List<Pair<Record, Instance>> recordToInstanceList = mapRecordsToInstances(records);
-    List<Instance> instances = recordToInstanceList.parallelStream().map(Pair::getValue).collect(Collectors.toList());
+    Map<Instance, Record> instanceRecordMap = mapInstanceToRecord(records);
+    List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
     postInstances(instances, params).setHandler(ar -> {
       if (ar.failed()) {
         updateSourceChunkState(sourceChunkId, JobExecutionSourceChunk.State.ERROR, params);
       } else {
-        addAdditionalFields(recordToInstanceList, params);
+        List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
+        List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
+        addAdditionalFields(recordsToUpdate, params);
       }
       // Complete future in order to continue the import process regardless of the result of creating Instances
       future.complete();
     });
     return future;
+  }
+
+  private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> result) {
+    return result.stream()
+      .map(it -> Pair.of(instanceRecordMap.get(it), it))
+      .collect(Collectors.toList());
   }
 
   /**
@@ -69,15 +83,15 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param records given list of records
    * @return association between Records and corresponding Instances
    */
-  private List<Pair<Record, Instance>> mapRecordsToInstances(List<Record> records) {
+  private Map<Instance, Record> mapInstanceToRecord(List<Record> records) {
     if (CollectionUtils.isEmpty(records)) {
-      return Collections.emptyList();
+      return new HashMap<>();
     }
     final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
     return records.parallelStream()
-      .map(record -> mapRecordToInstance(mapper, record))
+      .map(record -> mapInstanceToRecord(mapper, record))
       .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+      .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
 
   /**
@@ -87,14 +101,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param record a record.
    * @return either a pair of record-instance or null.
    */
-  private Pair<Record, Instance> mapRecordToInstance(RecordToInstanceMapper mapper, Record record) {
+  private Pair<Instance, Record> mapInstanceToRecord(RecordToInstanceMapper mapper, Record record) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        return Pair.of(record, instance);
+        return Pair.of(instance, record);
       }
     } catch (Exception exception) {
-      String errorMessage = String.format("Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'", exception.getMessage(), exception);
+      String errorMessage = String.format(CAN_NOT_MAP_RECORD_TO_INSTANCE_MSG, exception.getMessage(), exception);
       LOGGER.error(errorMessage);
     }
     return null;
@@ -107,18 +121,19 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params       Okapi connection params
    * @return future
    */
-  private Future<Void> postInstances(List<Instance> instanceList, OkapiConnectionParams params) {
+  private Future<List<Instance>> postInstances(List<Instance> instanceList, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(instanceList)) {
       return Future.succeededFuture();
     }
-    Future<Void> future = Future.future();
+    Future<List<Instance>> future = Future.future();
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
-        if (!RestUtil.validateAsyncResult(responseResult, future)) {
-          LOGGER.error("Error creating a new collection of Instances", future.cause());
+        if (RestUtil.validateAsyncResult(responseResult, future)) {
+          InstancesBatchResponse response = responseResult.result().getJson().mapTo(InstancesBatchResponse.class);
+          future.complete(response.getInstances());
         } else {
-          future.complete();
+          LOGGER.error("Error creating a new collection of Instances", future.cause());
         }
       } catch (Exception e) {
         LOGGER.error("Error during post for new collection of Instances", e);
@@ -166,7 +181,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(state), params.getTenantId()))
         .orElseThrow(() ->
           new NotFoundException(
-            String.format("Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+            format("Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
   }
 
   /**
@@ -206,7 +221,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   private void setFail(Future<Void> future, int statusCode) {
-    String errorMessage = String.format("Couldn't update parsed records collection - response status code %s, expected 200", statusCode);
+    String errorMessage = format("Couldn't update parsed records collection - response status code %s, expected 200", statusCode);
     LOGGER.error(errorMessage);
     future.fail(errorMessage);
   }
