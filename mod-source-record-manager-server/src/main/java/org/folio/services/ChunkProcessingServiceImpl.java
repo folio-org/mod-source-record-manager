@@ -52,13 +52,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
-        .setHandler(updateAr -> {
-          if (chunkProcessAr.succeeded()) {
-            future.complete(true);
-          } else {
-            future.fail(chunkProcessAr.cause());
-          }
-        }));
+        .setHandler(jobUpdateAr -> future.handle(chunkProcessAr.map(true))));
     return future;
   }
 
