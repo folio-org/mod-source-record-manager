@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -33,14 +34,21 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.HttpStatus.HTTP_CREATED;
+import static org.folio.HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
+  private static final String CAN_T_CREATE_NEW_RECORDS_MSG = "Can't create new records with JobExecution id: %s in source-record-storage, response code %s";
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
+  private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -127,7 +135,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
-              .orElseThrow(() -> new NotFoundException(String.format(
+              .orElseThrow(() -> new NotFoundException(format(
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
@@ -169,33 +177,48 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Update records in record-storage
+   * Saves parsed records in record-storage
    *
    * @param params        - okapi params for connecting record-storage
    * @param jobExecution  - job execution related to records
    * @param parsedRecords - parsed records
    */
   private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
-    Future<List<Record>> future = Future.future();
-    try {
+    return Try.itDo((Future<List<Record>> future) -> {
       SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+
       RecordCollection recordCollection = new RecordCollection()
         .withRecords(parsedRecords)
         .withTotalRecords(parsedRecords.size());
+
       client.postSourceStorageBatchRecords(recordCollection, response -> {
-        if (response.statusCode() == HttpStatus.HTTP_CREATED.toInt()) {
-          future.complete(parsedRecords);
+        if (isStatus(response, HTTP_CREATED) || isPartialSuccess(response)) {
+          response.bodyHandler(it ->
+            future.handle(
+              Try.itGet(() -> it.toJsonObject().mapTo(RecordCollection.class).getRecords())
+                .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
+            )
+          );
         } else {
-          String message = String.format("Can't create new records with JobExecution id: %s in source-record-storage, response code %s", jobExecution.getId(), response.statusCode());
+          String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
         }
       });
-    } catch (Exception e) {
-      LOGGER.error("Error during POST new records", e, e.getMessage());
-      future.fail(e);
-    }
-    return future;
+    }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
+  }
+
+  //TODO move it to data-import-util
+  private boolean isPartialSuccess(HttpClientResponse response) {
+    return isStatus(response, HTTP_INTERNAL_SERVER_ERROR) && isContentTypeJson(response);
+  }
+
+  private boolean isStatus(HttpClientResponse response, HttpStatus status) {
+    return response.statusCode() == status.toInt();
+  }
+
+  private boolean isContentTypeJson(HttpClientResponse response) {
+    return APPLICATION_JSON.equals(response.getHeader(CONTENT_TYPE));
   }
 
   private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR

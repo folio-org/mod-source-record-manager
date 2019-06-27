@@ -3,15 +3,19 @@ package org.folio.rest.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.extension.Parameters;
+import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
+import com.github.tomakehurst.wiremock.http.Request;
+import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -25,6 +29,7 @@ import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
@@ -83,7 +88,10 @@ public abstract class AbstractRestTest {
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
       .dynamicPort()
-      .notifier(new Slf4jNotifier(true)));
+      .notifier(new Slf4jNotifier(true))
+      .extensions(new RequestToResponseTransformer(), new InstancesBatchResponseTransformer())
+  );
+
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
@@ -215,11 +223,65 @@ public abstract class AbstractRestTest {
       .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
   }
 
-  protected Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
+  protected io.restassured.response.Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
     return RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(statusDto).toString())
       .when()
       .put(JOB_EXECUTION_PATH + jobExecution.getId() + "/status");
+  }
+
+  /**
+   * Maps a request body to a response body.
+   */
+  public static class RequestToResponseTransformer extends ResponseTransformer {
+
+    public static final String NAME = "request-to-response-transformer";
+
+    @Override
+    public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
+      return Response.Builder.like(response).but().body(request.getBody()).build();
+    }
+
+    @Override
+    public String getName() {
+      return NAME;
+    }
+
+    @Override
+    public boolean applyGlobally() {
+      return false;
+    }
+  }
+
+  /**
+   * It takes a request, remove one instance from it and return it as a response.
+   */
+  public static class InstancesBatchResponseTransformer extends ResponseTransformer {
+
+    public static final String NAME = "instances-batch-response-transformer";
+
+    @Override
+    public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
+      InstancesBatchResponse batchResponse = new JsonObject(request.getBodyAsString()).mapTo(InstancesBatchResponse.class);
+      removeOneInstance(batchResponse);
+      return Response.Builder.like(response).but().body(JsonObject.mapFrom(batchResponse).toString()).build();
+    }
+
+    private void removeOneInstance(InstancesBatchResponse batchResponse) {
+      if (!batchResponse.getInstances().isEmpty()) {
+        batchResponse.getInstances().remove(1);
+      }
+    }
+
+    @Override
+    public String getName() {
+      return NAME;
+    }
+
+    @Override
+    public boolean applyGlobally() {
+      return false;
+    }
   }
 }
