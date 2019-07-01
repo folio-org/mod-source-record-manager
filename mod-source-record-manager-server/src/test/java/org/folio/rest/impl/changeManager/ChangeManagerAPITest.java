@@ -1199,7 +1199,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
   }
 
-  //todo some times it's failed. When this test is run alone.
   @Test
   public void shouldMarkJobExecutionAsErrorIfInstancesWereNotCreated(TestContext testContext) {
     RawRecordsDto rawRecordsDtoContainingError = new RawRecordsDto()
