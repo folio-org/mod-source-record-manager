@@ -70,7 +70,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         sourceChunkState = COMPLETED;
       }
       updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
         // Complete future in order to continue the import process regardless of the result of creating Instances
         .setHandler(updateAr -> future.complete());
     });
@@ -80,6 +80,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> result) {
     return result.stream()
       .map(it -> Pair.of(instanceRecordMap.get(it), it))
+      .filter(pair -> pair.getKey() != null)
       .collect(Collectors.toList());
   }
 
@@ -156,7 +157,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params               okapi connection params
    */
   private void addAdditionalFields(List<Pair<Record, Instance>> recordToInstanceList, OkapiConnectionParams params) {
-    if (CollectionUtils.isEmpty(recordToInstanceList)) {
+    if (CollectionUtils.isEmpty(recordToInstanceList)
+      || recordToInstanceList.get(0) == null
+      || recordToInstanceList.get(0).getKey() == null) {
       return;
     }
 
@@ -176,7 +179,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   /**
    * Updates state of given source chunk
-   *  @param sourceChunkId id of source chunk
+   *
+   * @param sourceChunkId id of source chunk
    * @param state         state of source chunk
    * @param params        okapi connection params
    * @return future with updated JobExecutionSourceChunk entity
