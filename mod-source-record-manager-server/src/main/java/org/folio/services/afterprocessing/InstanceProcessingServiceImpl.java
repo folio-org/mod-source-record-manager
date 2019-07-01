@@ -36,9 +36,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Objects.nonNull;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.ERROR;
-
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -77,9 +77,19 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     return future;
   }
 
-  private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> result) {
-    return result.stream()
-      .map(it -> Pair.of(instanceRecordMap.get(it), it))
+  private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> instances) {
+    //In performance perspective we creat a map Instance::id -> Record.
+    //In addition, inventory can return an instance with extra fields or changed fields (metadata)
+    //that influences on a hashCode of an Instance.
+    Map<String, Record> instanceToRecordMap = instanceRecordMap.entrySet().stream()
+      .collect(Collectors.toMap(entry -> entry.getKey().getId(), Map.Entry::getValue));
+
+    return instances.stream()
+      .map(it -> {
+        Record record = instanceToRecordMap.get(it.getId());
+        return nonNull(record) ? Pair.of(record, it) : null;
+      })
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
