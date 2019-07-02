@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -60,11 +59,11 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * Updates jobExecution by its id only when last chunk was processed.
    *
    * @param jobExecutionId jobExecution Id
-   * @param params
+   * @param params Okapi connection params
    * @return future with true if last chunk was processed and jobExecution updated, otherwise future with false
    */
   private Future<Boolean> updateJobExecutionStatusIfAllChunksProcessed(String jobExecutionId, OkapiConnectionParams params) {
-    return checkIfProcessingCompleted(jobExecutionId, params.getTenantId())
+    return checkJobExecutionState(jobExecutionId, params.getTenantId())
       .compose(statusDto -> {
         if (StatusDto.Status.PARSING_IN_PROGRESS != statusDto.getStatus()) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, statusDto, params)
@@ -122,25 +121,29 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param jobExecutionId - JobExecution id
    * @return future with actual JobExecution status
    */
-  private Future<StatusDto> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
+  private Future<StatusDto> checkJobExecutionState(String jobExecutionId, String tenantId) {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
       .compose(chunks -> {
         if (chunks != null && !chunks.isEmpty()) {
           return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
         }
-        return Future.succeededFuture(Pair.of(false, false));
+        return Future.succeededFuture(false);
       })
-      .map(processingState -> {
-        boolean completed = processingState.getLeft();
-        boolean hasErrors = processingState.getRight();
+      .compose(completed -> {
+        Future<StatusDto> future = Future.future();
         if (completed) {
-          if (hasErrors) {
-            return new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR);
-          }
-          // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-          return new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+          return jobExecutionSourceChunkDao.hasErrors(jobExecutionId, tenantId)
+            .compose(hasErrors -> {
+              if (hasErrors) {
+                future.complete(new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR));
+              } else {
+                // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+                future.complete(new StatusDto().withStatus(StatusDto.Status.COMMITTED));
+              }
+              return future;
+            });
         }
-        return new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
+        return Future.succeededFuture(new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS));
       });
   }
 }

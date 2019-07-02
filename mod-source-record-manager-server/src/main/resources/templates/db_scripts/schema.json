@@ -46,7 +46,12 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION get_processing_state(jobExecId uuid) RETURNS TABLE (completed boolean) AS $result$ BEGIN RETURN QUERY SELECT count(_id) = (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) as completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR') UNION ALL (SELECT count(_id) > 0 FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'); END; $result$ LANGUAGE plpgsql;",
+      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(_id) = (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE OR REPLACE FUNCTION has_errors(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(_id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
       "fromModuleVersion": "2.0"
     }
   ]
