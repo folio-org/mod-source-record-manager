@@ -132,7 +132,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(completed -> {
         Future<StatusDto> future = Future.future();
         if (completed) {
-          return jobExecutionSourceChunkDao.hasErrors(jobExecutionId, tenantId)
+          return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
             .compose(hasErrors -> {
               if (hasErrors) {
                 future.complete(new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR));

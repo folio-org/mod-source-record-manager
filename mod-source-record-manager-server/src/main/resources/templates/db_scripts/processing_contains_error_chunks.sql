@@ -2,7 +2,7 @@
 -- Changes in this file will not result in an update of the function.
 -- To change the function, update this script and copy it to the appropriate scripts.snippet field of the schema.json
 
-CREATE OR REPLACE FUNCTION has_errors(jobExecId uuid)
+CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid)
 RETURNS boolean AS $has_errors$
 DECLARE
 	has_errors boolean;

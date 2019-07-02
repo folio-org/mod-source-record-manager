@@ -74,6 +74,6 @@ public interface JobExecutionSourceChunkDao {
    * @param tenantId       - tenantId
    * @return - returns a boolean value, which indicates whether there were any errors during processing
    */
-  Future<Boolean> hasErrors(String jobExecutionId, String tenantId);
+  Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId);
 
 }

@@ -34,8 +34,8 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
-  private static final String GET_PROCESSING_STATE_QUERY = "SELECT is_processing_completed('%s');";
-  private static final String HAS_ERRORS_QUERY = "SELECT has_errors('%s');";
+  private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
+  private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -111,7 +111,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
     try {
-      String query = String.format(GET_PROCESSING_STATE_QUERY, jobExecutionId);
+      String query = String.format(IS_PROCESSING_COMPLETED_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while checking if processing is completed for JobExecution {}", e, jobExecutionId);
@@ -121,10 +121,10 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Boolean> hasErrors(String jobExecutionId, String tenantId) {
+  public Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
     try {
-      String query = String.format(HAS_ERRORS_QUERY, jobExecutionId);
+      String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while checking if any errors occurred for JobExecution {}", e, jobExecutionId);
