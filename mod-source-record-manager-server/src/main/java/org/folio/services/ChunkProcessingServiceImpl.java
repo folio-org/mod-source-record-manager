@@ -17,6 +17,8 @@ import javax.ws.rs.NotFoundException;
 import java.util.Date;
 import java.util.UUID;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -123,25 +125,14 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    */
   private Future<StatusDto> checkJobExecutionState(String jobExecutionId, String tenantId) {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
-      .compose(chunks -> {
-        if (chunks != null && !chunks.isEmpty()) {
-          return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
-        }
-        return Future.succeededFuture(false);
-      })
+      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId) : Future.succeededFuture(false))
       .compose(completed -> {
-        Future<StatusDto> future = Future.future();
         if (completed) {
           return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
-            .compose(hasErrors -> {
-              if (hasErrors) {
-                future.complete(new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR));
-              } else {
-                // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-                future.complete(new StatusDto().withStatus(StatusDto.Status.COMMITTED));
-              }
-              return future;
-            });
+            .map(hasErrors ->  Future.succeededFuture(hasErrors ?
+              new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR) :
+              // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+              new StatusDto().withStatus(StatusDto.Status.COMMITTED))).result();
         }
         return Future.succeededFuture(new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS));
       });
