@@ -1,7 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import org.folio.dao.util.JobExecutionMutator;
+import org.folio.dao.util.JobExecutionProgressMutator;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.Progress;
 
@@ -30,7 +30,7 @@ public interface JobExecutionProgressDao {
    * @param mutator        defines necessary changes to be made before save
    * @return future with updated Progress
    */
-  Future<Progress> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
+  Future<Progress> updateBlocking(String jobExecutionId, JobExecutionProgressMutator mutator, String tenantId);
 
   /**
    * Searches for {@link Progress} by id of jobExecution
