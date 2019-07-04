@@ -129,10 +129,10 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(completed -> {
         if (completed) {
           return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
-            .map(hasErrors ->  Future.succeededFuture(hasErrors ?
+            .compose(hasErrors ->  Future.succeededFuture(hasErrors ?
               new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR) :
               // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-              new StatusDto().withStatus(StatusDto.Status.COMMITTED))).result();
+              new StatusDto().withStatus(StatusDto.Status.COMMITTED)));
         }
         return Future.succeededFuture(new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS));
       });
