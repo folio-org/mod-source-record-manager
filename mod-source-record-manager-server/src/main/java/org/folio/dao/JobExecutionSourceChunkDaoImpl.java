@@ -5,7 +5,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.UpdateResult;
-import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -35,7 +34,8 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
-  private static final String GET_PROCESSING_STATE_QUERY = "SELECT get_processing_state('%s');";
+  private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
+  private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -108,19 +108,28 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<Pair<Boolean, Boolean>> isAllChunksProcessed(String jobExecutionId, String tenantId) {
+  public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
     Future<ResultSet> future = Future.future();
     try {
-      String query = String.format(GET_PROCESSING_STATE_QUERY, jobExecutionId);
+      String query = String.format(IS_PROCESSING_COMPLETED_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, future.completer());
     } catch (Exception e) {
-      LOGGER.error("Error while checking if processing is completed or has errors for JobExecution {}", e, jobExecutionId);
+      LOGGER.error("Error while checking if processing is completed for JobExecution {}", e, jobExecutionId);
       future.fail(e);
     }
-    return future.map(resultSet -> {
-      boolean completed = resultSet.getResults().get(0).getBoolean(0);
-      boolean hasErrors = resultSet.getResults().get(1).getBoolean(0);
-      return Pair.of(completed, hasErrors);
-    });
+    return future.map(resultSet -> resultSet.getResults().get(0).getBoolean(0));
+  }
+
+  @Override
+  public Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId) {
+    Future<ResultSet> future = Future.future();
+    try {
+      String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
+      pgClientFactory.createInstance(tenantId).select(query, future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error while checking if any errors occurred for JobExecution {}", e, jobExecutionId);
+      future.fail(e);
+    }
+    return future.map(resultSet -> resultSet.getResults().get(0).getBoolean(0));
   }
 }

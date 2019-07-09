@@ -57,14 +57,23 @@ public interface JobExecutionSourceChunkDao {
   Future<Boolean> delete(String id, String tenantId);
 
   /**
-   * Verifies is all related chunks (to given job execution id) are processed
+   * Checks whether all related chunks (to given job execution id) are processed
    * Each chunk is considered being processed if it has ERROR or COMPLETED state.
    *
    * @param jobExecutionId - UUID of related JobExecution
    * @param tenantId       - tenantId
-   * @return - returns a pair of boolean values, first indicates whether processing is completed,
-   * second - if there is any error
+   * @return - returns a boolean value, which indicates whether processing is completed
    */
-  Future<Pair<Boolean, Boolean>> isAllChunksProcessed(String jobExecutionId, String tenantId);
+  Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId);
+
+  /**
+   * Checks if there are any errors among chunks related to job execution
+   * Error chunks have ERROR status.
+   *
+   * @param jobExecutionId - UUID of related JobExecution
+   * @param tenantId       - tenantId
+   * @return - returns a boolean value, which indicates whether there were any errors during processing
+   */
+  Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId);
 
 }

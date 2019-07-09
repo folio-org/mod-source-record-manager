@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import org.apache.commons.lang3.tuple.Pair;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
 import java.util.UUID;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Service
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
@@ -60,11 +61,11 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * Updates jobExecution by its id only when last chunk was processed.
    *
    * @param jobExecutionId jobExecution Id
-   * @param params
+   * @param params Okapi connection params
    * @return future with true if last chunk was processed and jobExecution updated, otherwise future with false
    */
   private Future<Boolean> updateJobExecutionStatusIfAllChunksProcessed(String jobExecutionId, OkapiConnectionParams params) {
-    return checkIfProcessingCompleted(jobExecutionId, params.getTenantId())
+    return checkJobExecutionState(jobExecutionId, params.getTenantId())
       .compose(statusDto -> {
         if (StatusDto.Status.PARSING_IN_PROGRESS != statusDto.getStatus()) {
           return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, statusDto, params)
@@ -122,25 +123,18 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * @param jobExecutionId - JobExecution id
    * @return future with actual JobExecution status
    */
-  private Future<StatusDto> checkIfProcessingCompleted(String jobExecutionId, String tenantId) {
+  private Future<StatusDto> checkJobExecutionState(String jobExecutionId, String tenantId) {
     return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, tenantId)
-      .compose(chunks -> {
-        if (chunks != null && !chunks.isEmpty()) {
-          return jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId);
-        }
-        return Future.succeededFuture(Pair.of(false, false));
-      })
-      .map(processingState -> {
-        boolean completed = processingState.getLeft();
-        boolean hasErrors = processingState.getRight();
+      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, tenantId) : Future.succeededFuture(false))
+      .compose(completed -> {
         if (completed) {
-          if (hasErrors) {
-            return new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR);
-          }
-          // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-          return new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+          return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
+            .compose(hasErrors ->  Future.succeededFuture(hasErrors ?
+              new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR) :
+              // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
+              new StatusDto().withStatus(StatusDto.Status.COMMITTED)));
         }
-        return new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
+        return Future.succeededFuture(new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS));
       });
   }
 }
