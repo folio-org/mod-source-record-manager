@@ -156,7 +156,10 @@
       "ger"
     ],
     "notes": [
-      "Ser. I. Geistliche Gesangswerke -- Ser. II. Opern -- Ser. III. Lieder, mehrstimmige Gesänge, Kanons -- Ser. IV. Orchesterwerke -- Ser. V. Konzerte -- Ser. VI. Kirchensonaten -- Ser. VII. Ensemblemusik für grössere Solobesetzungen -- Ser. VIII. Kammermusik -- Ser. IX. Klaviermusik -- Ser. X. Supplement"
+      {
+        "note": "Ser. I. Geistliche Gesangswerke -- Ser. II. Opern -- Ser. III. Lieder, mehrstimmige Gesänge, Kanons -- Ser. IV. Orchesterwerke -- Ser. V. Konzerte -- Ser. VI. Kirchensonaten -- Ser. VII. Ensemblemusik für grössere Solobesetzungen -- Ser. VIII. Kammermusik -- Ser. IX. Klaviermusik -- Ser. X. Supplement",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -245,10 +248,22 @@
       "eng"
     ],
     "notes": [
-      "Will consist of approximately 200,000 English titles printed primarily in Great Britain and its colonies from 1701-1800. The collection is based on the Eighteenth Century Short Title Catalogue [ESTC], an online database created by the British Library and ESTC/North America. The series contains first (or earliest available) editions and significant later ones, and all editions of selected major authors. It includes materials printed from moveable type only, omitting engraved items such as maps or woodblock prints, and does not include newspapers",
-      "The guide, entitled The Eighteenth century : guide to the microfilm collection, is compiled annually for use in conjunction with those items released in the  corresponding calendar year: it supersedes the temporary guides which accompany each 35-reel unit of microfilm. There are listings by main entry (usually author), title and subject (each title is entered under one of eight general subject areas). Gives reel and location numbers for each item. The preliminary frames of each reel list sequentially the items contained on it",
-      "Reels <3711-> issued by Primary Source Microfilm",
-      "Also available online with title:  Eighteenth century collections online"
+      {
+        "note": "Will consist of approximately 200,000 English titles printed primarily in Great Britain and its colonies from 1701-1800. The collection is based on the Eighteenth Century Short Title Catalogue [ESTC], an online database created by the British Library and ESTC/North America. The series contains first (or earliest available) editions and significant later ones, and all editions of selected major authors. It includes materials printed from moveable type only, omitting engraved items such as maps or woodblock prints, and does not include newspapers",
+        "staffOnly": false
+      },
+      {
+        "note": "The guide, entitled The Eighteenth century : guide to the microfilm collection, is compiled annually for use in conjunction with those items released in the  corresponding calendar year: it supersedes the temporary guides which accompany each 35-reel unit of microfilm. There are listings by main entry (usually author), title and subject (each title is entered under one of eight general subject areas). Gives reel and location numbers for each item. The preliminary frames of each reel list sequentially the items contained on it",
+        "staffOnly": false
+      },
+      {
+        "note": "Reels <3711-> issued by Primary Source Microfilm",
+        "staffOnly": false
+      },
+      {
+        "note": "Also available online with title:  Eighteenth century collections online",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -337,15 +352,42 @@
       "eng"
     ],
     "notes": [
-      "Some volumes have title: Mertens law of federal income taxation; Mertens the law of federal income taxation",
-      "Originally issued in bound format and kept up to date by pocket supplements and revised volumes",
-      "Published in Chicago, Ill. and Wilmette, Ill. by Callaghan (1942-1991); Deerfield, IL : Clark Boardman Callaghan (1991-1997)",
-      "The service is divided into five parts: Treatise, by Jacob Mertens, Jr. and others (loose-leaf); Code, current volume (loose-leaf) and bound volumes, 1954-1958-- ; Code commentary (loose-leaf); Regulations, 1954-1982 (bound volumes), 1983-1984 (loose-leaf) ; Rulings, current volume (loose-leaf) and bound volumes, 1954-1957--",
-      "Includes unnumbered volumes: Tables, Table of cases, Regulations preambles, Proposed regulations preambles, Current materials, Index, and Rulings",
-      "\\\"Current tax highlights\\\" are periodically transferred from section 3 of the Current materials volume to unnumbered Highlights volume",
-      "Includes separately numbered Regulations volumes (1985- ). Regulations volumes continued by Mertens federal tax regulations which consists of: regulations issued annually in softbound format; Regulations preambles; Proposed regulations preambles; Current developments and status table",
-      "Includes \\\"Complete internal revenue code\\\" issued as soft-bound supplement",
-      "Description based on: T.p., 1997-1998 rulings"
+      {
+        "note": "Some volumes have title: Mertens law of federal income taxation; Mertens the law of federal income taxation",
+        "staffOnly": false
+      },
+      {
+        "note": "Originally issued in bound format and kept up to date by pocket supplements and revised volumes",
+        "staffOnly": false
+      },
+      {
+        "note": "Published in Chicago, Ill. and Wilmette, Ill. by Callaghan (1942-1991); Deerfield, IL : Clark Boardman Callaghan (1991-1997)",
+        "staffOnly": false
+      },
+      {
+        "note": "The service is divided into five parts: Treatise, by Jacob Mertens, Jr. and others (loose-leaf); Code, current volume (loose-leaf) and bound volumes, 1954-1958-- ; Code commentary (loose-leaf); Regulations, 1954-1982 (bound volumes), 1983-1984 (loose-leaf) ; Rulings, current volume (loose-leaf) and bound volumes, 1954-1957--",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes unnumbered volumes: Tables, Table of cases, Regulations preambles, Proposed regulations preambles, Current materials, Index, and Rulings",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"Current tax highlights\\\" are periodically transferred from section 3 of the Current materials volume to unnumbered Highlights volume",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes separately numbered Regulations volumes (1985- ). Regulations volumes continued by Mertens federal tax regulations which consists of: regulations issued annually in softbound format; Regulations preambles; Proposed regulations preambles; Current developments and status table",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes \\\"Complete internal revenue code\\\" issued as soft-bound supplement",
+        "staffOnly": false
+      },
+      {
+        "note": "Description based on: T.p., 1997-1998 rulings",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -434,9 +476,18 @@
       "eng"
     ],
     "notes": [
-      "Includes unnumbered tables and index volumes",
-      "Kept up to date by pocket parts, supplementary pamphlets, interim annotation service, bound supplements, Purdon's Pennsylvania legislative service, and replacement volumes with title: Purdon's Pennsylvania consolidated statutes, annotated ; Purdon's Pennsylvania statutes and consolidated statutes annotated",
-      "Vols. for  published by West Group"
+      {
+        "note": "Includes unnumbered tables and index volumes",
+        "staffOnly": false
+      },
+      {
+        "note": "Kept up to date by pocket parts, supplementary pamphlets, interim annotation service, bound supplements, Purdon's Pennsylvania legislative service, and replacement volumes with title: Purdon's Pennsylvania consolidated statutes, annotated ; Purdon's Pennsylvania statutes and consolidated statutes annotated",
+        "staffOnly": false
+      },
+      {
+        "note": "Vols. for  published by West Group",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -501,8 +552,14 @@
       "eng"
     ],
     "notes": [
-      "Microfilm. Bethlehem, Pa. : Mid-Atlantic Preservation Service, 1989. on part of 1 microfilm reel ; 35 mm. Low reduction",
-      "Microfilm. Bethlehem, Pa. : Mid-Atlantic Preservation Service, 1989. on part of 1 microfilm reel : negative ; 35 mm. Low reduction"
+      {
+        "note": "Microfilm. Bethlehem, Pa. : Mid-Atlantic Preservation Service, 1989. on part of 1 microfilm reel ; 35 mm. Low reduction",
+        "staffOnly": false
+      },
+      {
+        "note": "Microfilm. Bethlehem, Pa. : Mid-Atlantic Preservation Service, 1989. on part of 1 microfilm reel : negative ; 35 mm. Low reduction",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -611,9 +668,18 @@
       "spa"
     ],
     "notes": [
-      "Spanish words; text with English translation included preceding the score",
-      "Duration: about 27 min",
-      "Reproduced from holograph"
+      {
+        "note": "Spanish words; text with English translation included preceding the score",
+        "staffOnly": false
+      },
+      {
+        "note": "Duration: about 27 min",
+        "staffOnly": false
+      },
+      {
+        "note": "Reproduced from holograph",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -677,9 +743,18 @@
       "eng"
     ],
     "notes": [
-      "8 volumes of correspondence, administrative records, and statistics of the Cornell University Graduate School; also, announcements, speeches, reports, catalogs, applications, minutes and department self studies, program reviews, and external reports. Includes Graduate School annual reports for 1975/1976-1986/1987 as well as 2001/2002-2002/2003",
-      "Restricted to permission of office of origin",
-      "Cornell University Graduate School Records, #12-1-1776.   Division of Rare and Manuscript Collections, Cornell University Library"
+      {
+        "note": "8 volumes of correspondence, administrative records, and statistics of the Cornell University Graduate School; also, announcements, speeches, reports, catalogs, applications, minutes and department self studies, program reviews, and external reports. Includes Graduate School annual reports for 1975/1976-1986/1987 as well as 2001/2002-2002/2003",
+        "staffOnly": false
+      },
+      {
+        "note": "Restricted to permission of office of origin",
+        "staffOnly": false
+      },
+      {
+        "note": "Cornell University Graduate School Records, #12-1-1776.   Division of Rare and Manuscript Collections, Cornell University Library",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -767,18 +842,54 @@
       "map"
     ],
     "notes": [
-      "Typed transcripts",
-      "Transcriptions no. 2797-2832 are on microfilm and are housed in the Department of Maps, Microtexts, and Newspapers in Olin Library (Wason\\\\Film\\\\9178)(RLIN ID NYCX85-B28269)",
-      "Originals housed in the Kirtya (formerly Van der Tuuk) archives in Bali",
-      "Five libraries, including the Royal University Library in Leiden, hold copies of the transcriptions",
-      "The collection comprises over three thousand typed transcriptions of Balinese palm leaf manuscripts, representing a portion of the materials housed in the Kirtya (formerly Van der Tuuk) archives in Bali.  The transcriptions were produced between 1972 and 1983 under the auspices of the \\\"Balinese Manuscript Project.\\\"  That project was supervised by Christiaan Hooykaas and later by H.I.R. Hinzler",
-      "The majority of the texts in the collection originate from northern Bali.  The topics of the texts include tales from Hindu epics, folktales, and legends of Balinese kings.  All of these contain moral lessons and religious lessons, and make reference to customary law",
-      "Transcriptions are transliterations into Roman script from the original palm leaf manuscripts in \\\"high\\\" (or court) Balinese",
-      "Correspondence relating to the collection may be found in Cornell University Libraries. John M. Echols Collection. Records, #13\\\\6\\\\1973",
-      "Numerical shipping lists",
-      "Cornell's holdings may number up to 3676 items, if the Echols Collection actually received all of the transcriptions that should have been sent.  An \\\"item\\\" refers to a discrete text ranging in length from one to over one hundred pages.  Items are consecutively numbered.  Information concerning the transcriptions' titles and number of pages appears on eighty shipping lists",
-      "Related although not identical materials from the Van der Tuuk collection are now housed in the Royal University Library and described in:  Hinzler, H.I.R. Catalogue of Balinese Manuscripts.  Two Volumes (Codices Manuscripti Bibliotheca Universitatis Leidensis XXII & XXIII). Leiden: E.J. Brill",
-      "Balinese Manuscript Project.  Balinese Transcripts, #4354.  Division of Rare and Manuscript Collections, Cornell University Library"
+      {
+        "note": "Typed transcripts",
+        "staffOnly": false
+      },
+      {
+        "note": "Transcriptions no. 2797-2832 are on microfilm and are housed in the Department of Maps, Microtexts, and Newspapers in Olin Library (Wason\\\\Film\\\\9178)(RLIN ID NYCX85-B28269)",
+        "staffOnly": false
+      },
+      {
+        "note": "Originals housed in the Kirtya (formerly Van der Tuuk) archives in Bali",
+        "staffOnly": false
+      },
+      {
+        "note": "Five libraries, including the Royal University Library in Leiden, hold copies of the transcriptions",
+        "staffOnly": false
+      },
+      {
+        "note": "The collection comprises over three thousand typed transcriptions of Balinese palm leaf manuscripts, representing a portion of the materials housed in the Kirtya (formerly Van der Tuuk) archives in Bali.  The transcriptions were produced between 1972 and 1983 under the auspices of the \\\"Balinese Manuscript Project.\\\"  That project was supervised by Christiaan Hooykaas and later by H.I.R. Hinzler",
+        "staffOnly": false
+      },
+      {
+        "note": "The majority of the texts in the collection originate from northern Bali.  The topics of the texts include tales from Hindu epics, folktales, and legends of Balinese kings.  All of these contain moral lessons and religious lessons, and make reference to customary law",
+        "staffOnly": false
+      },
+      {
+        "note": "Transcriptions are transliterations into Roman script from the original palm leaf manuscripts in \\\"high\\\" (or court) Balinese",
+        "staffOnly": false
+      },
+      {
+        "note": "Correspondence relating to the collection may be found in Cornell University Libraries. John M. Echols Collection. Records, #13\\\\6\\\\1973",
+        "staffOnly": false
+      },
+      {
+        "note": "Numerical shipping lists",
+        "staffOnly": false
+      },
+      {
+        "note": "Cornell's holdings may number up to 3676 items, if the Echols Collection actually received all of the transcriptions that should have been sent.  An \\\"item\\\" refers to a discrete text ranging in length from one to over one hundred pages.  Items are consecutively numbered.  Information concerning the transcriptions' titles and number of pages appears on eighty shipping lists",
+        "staffOnly": false
+      },
+      {
+        "note": "Related although not identical materials from the Van der Tuuk collection are now housed in the Royal University Library and described in:  Hinzler, H.I.R. Catalogue of Balinese Manuscripts.  Two Volumes (Codices Manuscripti Bibliotheca Universitatis Leidensis XXII & XXIII). Leiden: E.J. Brill",
+        "staffOnly": false
+      },
+      {
+        "note": "Balinese Manuscript Project.  Balinese Transcripts, #4354.  Division of Rare and Manuscript Collections, Cornell University Library",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1075,17 +1186,50 @@
       "eng"
     ],
     "notes": [
-      "City planner, landscape architect. John Nolen attended the University of Pennsylvania, earning a Ph.B. in 1893, and for  the next ten years worked as secretary of the American Society for the Extension of  University Teaching. In 1903 he enrolled in the newly established Harvard School of  Landscape Architecture, receiving an A.M. in 1905. He established an office in  Cambridge, where he and his associates branched out into city planning as well as  landscape architecture. Over the course of his career, Nolen participated in 400 public planning projects and works of landscape architecture, and replanned   50 cities in 20 states. Travel and field work were important aspects of his career. He used visual media, including glass slides, extensively.  He was a frequent lecturer on city and town planning, and  was active in many professional organizations, including the American City Planning  Institute (later called the American Institute of Planners, now known as the American Planners Association), American Civic Association (now  Urban America), American Society of Landscape Architects, American Society of  Planning Officials, International Garden Cities and Town-Planning Federation,  National Conference on City Planning (now Urban America), and the Town Planning  Institute of England",
-      "Collection consists of personal and professional correspondence, letterbooks, addresses, biographical data, diaries, scrapbooks, school notes and textbooks, syllabi, lectures and outlines, typescript papers and articles, printed material, policy directives, card files, sample contracts, projects files and reports, slides, photographs, negatives, plans, blueprints, drawings, charts, and maps relating to Nolen's work in city planning, preservation, survey projects, zoning, and extension programs. Includes records pertaining to Nolen's studies at the University of Pennsylvania and Harvard; his work at the American Society for the Extension of University Teaching; consulting jobs; projects with the United States Housing Corporation, National Resources Committee, National Park Service, National Resources Planning Board, Federal Emergency Relief Administration of Public Works, Resettlement Administration, Department of the Interior, Division of Subsistence Homesteads, and various city and state agencies; and housing, parks, streets, railways, and water systems in Bridgeport, Conn., Charlotte, N.C., Clearwater, Clewiston, Sarasota, and Venice, Fla., Columbus, Ga., Johnson City and Kingsport, Tenn., La Crosse and Madison, Wis., Lancaster and Reading, Pa., Little Rock, Ark., Mariemont, Ohio, Niagara Falls, N.Y., Riverton, N.J., Roanoke, Va., Sacramento and San Diego, Calif., Boston, Mass., Spartanburg, S.C., Dubuque, Iowa; and other places",
-      "Includes correspondence from the Marchioness of Aberdeen, Thomas Adams, Captain S.B. Alexander, Philip R. Allen, Charles B. Ball, Edward M. Bassett, G. Frank Beer, George A. Bellamy, Russell Van Nest Black, Joshua L. Brooks, Helen E. Chase, Charles E. Cheney, Richard S. Childs, Herbert C. Chivers, Carlos Contreras, David Cushman Coyle, Jacob L. Crane, Jr., J. Benjamin Dimmick, Earle Sumner Draper, Mrs. Thomas A. Edison, Richard T. Ely, Robert E. Ely, F.F. Feidler, Edward A. Filene, Henry Ford, James Ford, Philip W. Foster, Kenneth E. Franzheim, George B. Gallup, Patrick Geddes, Edward Howard Griggs, Harry Highland, N.J. Hoggson, B.W. Huebsch, John Ihlder, Mrs. C.B. La Monte, J.E. Latham, Nelson P. Lewis, Arthur MacArthur, George H. Maxwell, Richard Meinig, John Nolen, Jr., Irving C. Root, Mrs. Robert M. Seymour, Clarence Stein, Raymond Unwin, Claude G. Varn, Hale J. Walker, Frank B. Williams, George Zug, American Institute of Architects, Babson Institute, Advisory Committee on Housing (Boston), Boston Metropolitan Planning Commission, Cleveland City Plan Commission, General Federation of Women's Clubs, Guggenheim Foundation, Massachusetts Dept. of Public Welfare, Massachusetts City League, Massachusetts Federation of Planning Boards, New England Council, New England Regional Planning Commission, New York Regional Plan Association, Philadelphia Regional Planning Federation, Russell Sage Foundation, and the Tennessee Valley Authority",
-      "Also, \\\"The Nolen Family Album: A Record of Five Generations 1835-1954,\\\" family history, compiled by John Nolen, Jr. and Barbara Nolen Strong, 1980",
-      "Includes results of projects funded by John Nolen Research Fund, broadsides for Nolen exhibits and symposia, and other Nolen documentation",
-      "John Nolen Papers, #2903.  Division of Rare and Manuscript Collections, Cornell University Library",
-      "\\\"The Nolen Family Album\\\" is for background use only.  No quotations may be made without the consent of the family representative",
-      "Hancock, John Loretz, John Nolen, Landscape Architect, Town, City, and Regional Planner:  A Bibliographical Record of Achievement, Ithaca, N.Y., Program in Urban and Regional Studies, Cornell University, 1976",
-      "Hancock, John Loretz.  \\\"John Nolen:  New Towns in Florida (1922-1929),\\\"  The New City:  Foundations, Vol. 1, Fall 1991",
-      "Related collection: John Nolen pamphlet collection, #6337",
-      "Related collection: Justin Richardson Hartzog papers, #2407"
+      {
+        "note": "City planner, landscape architect. John Nolen attended the University of Pennsylvania, earning a Ph.B. in 1893, and for  the next ten years worked as secretary of the American Society for the Extension of  University Teaching. In 1903 he enrolled in the newly established Harvard School of  Landscape Architecture, receiving an A.M. in 1905. He established an office in  Cambridge, where he and his associates branched out into city planning as well as  landscape architecture. Over the course of his career, Nolen participated in 400 public planning projects and works of landscape architecture, and replanned   50 cities in 20 states. Travel and field work were important aspects of his career. He used visual media, including glass slides, extensively.  He was a frequent lecturer on city and town planning, and  was active in many professional organizations, including the American City Planning  Institute (later called the American Institute of Planners, now known as the American Planners Association), American Civic Association (now  Urban America), American Society of Landscape Architects, American Society of  Planning Officials, International Garden Cities and Town-Planning Federation,  National Conference on City Planning (now Urban America), and the Town Planning  Institute of England",
+        "staffOnly": false
+      },
+      {
+        "note": "Collection consists of personal and professional correspondence, letterbooks, addresses, biographical data, diaries, scrapbooks, school notes and textbooks, syllabi, lectures and outlines, typescript papers and articles, printed material, policy directives, card files, sample contracts, projects files and reports, slides, photographs, negatives, plans, blueprints, drawings, charts, and maps relating to Nolen's work in city planning, preservation, survey projects, zoning, and extension programs. Includes records pertaining to Nolen's studies at the University of Pennsylvania and Harvard; his work at the American Society for the Extension of University Teaching; consulting jobs; projects with the United States Housing Corporation, National Resources Committee, National Park Service, National Resources Planning Board, Federal Emergency Relief Administration of Public Works, Resettlement Administration, Department of the Interior, Division of Subsistence Homesteads, and various city and state agencies; and housing, parks, streets, railways, and water systems in Bridgeport, Conn., Charlotte, N.C., Clearwater, Clewiston, Sarasota, and Venice, Fla., Columbus, Ga., Johnson City and Kingsport, Tenn., La Crosse and Madison, Wis., Lancaster and Reading, Pa., Little Rock, Ark., Mariemont, Ohio, Niagara Falls, N.Y., Riverton, N.J., Roanoke, Va., Sacramento and San Diego, Calif., Boston, Mass., Spartanburg, S.C., Dubuque, Iowa; and other places",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes correspondence from the Marchioness of Aberdeen, Thomas Adams, Captain S.B. Alexander, Philip R. Allen, Charles B. Ball, Edward M. Bassett, G. Frank Beer, George A. Bellamy, Russell Van Nest Black, Joshua L. Brooks, Helen E. Chase, Charles E. Cheney, Richard S. Childs, Herbert C. Chivers, Carlos Contreras, David Cushman Coyle, Jacob L. Crane, Jr., J. Benjamin Dimmick, Earle Sumner Draper, Mrs. Thomas A. Edison, Richard T. Ely, Robert E. Ely, F.F. Feidler, Edward A. Filene, Henry Ford, James Ford, Philip W. Foster, Kenneth E. Franzheim, George B. Gallup, Patrick Geddes, Edward Howard Griggs, Harry Highland, N.J. Hoggson, B.W. Huebsch, John Ihlder, Mrs. C.B. La Monte, J.E. Latham, Nelson P. Lewis, Arthur MacArthur, George H. Maxwell, Richard Meinig, John Nolen, Jr., Irving C. Root, Mrs. Robert M. Seymour, Clarence Stein, Raymond Unwin, Claude G. Varn, Hale J. Walker, Frank B. Williams, George Zug, American Institute of Architects, Babson Institute, Advisory Committee on Housing (Boston), Boston Metropolitan Planning Commission, Cleveland City Plan Commission, General Federation of Women's Clubs, Guggenheim Foundation, Massachusetts Dept. of Public Welfare, Massachusetts City League, Massachusetts Federation of Planning Boards, New England Council, New England Regional Planning Commission, New York Regional Plan Association, Philadelphia Regional Planning Federation, Russell Sage Foundation, and the Tennessee Valley Authority",
+        "staffOnly": false
+      },
+      {
+        "note": "Also, \\\"The Nolen Family Album: A Record of Five Generations 1835-1954,\\\" family history, compiled by John Nolen, Jr. and Barbara Nolen Strong, 1980",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes results of projects funded by John Nolen Research Fund, broadsides for Nolen exhibits and symposia, and other Nolen documentation",
+        "staffOnly": false
+      },
+      {
+        "note": "John Nolen Papers, #2903.  Division of Rare and Manuscript Collections, Cornell University Library",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"The Nolen Family Album\\\" is for background use only.  No quotations may be made without the consent of the family representative",
+        "staffOnly": false
+      },
+      {
+        "note": "Hancock, John Loretz, John Nolen, Landscape Architect, Town, City, and Regional Planner:  A Bibliographical Record of Achievement, Ithaca, N.Y., Program in Urban and Regional Studies, Cornell University, 1976",
+        "staffOnly": false
+      },
+      {
+        "note": "Hancock, John Loretz.  \\\"John Nolen:  New Towns in Florida (1922-1929),\\\"  The New City:  Foundations, Vol. 1, Fall 1991",
+        "staffOnly": false
+      },
+      {
+        "note": "Related collection: John Nolen pamphlet collection, #6337",
+        "staffOnly": false
+      },
+      {
+        "note": "Related collection: Justin Richardson Hartzog papers, #2407",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1153,7 +1297,10 @@
       "   "
     ],
     "notes": [
-      "Program notes by Ernst Heins in French and English with slipcase"
+      {
+        "note": "Program notes by Ernst Heins in French and English with slipcase",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1305,15 +1452,42 @@
       "jav"
     ],
     "notes": [
-      "Accompanying wayang performance on videocassette in Javanese",
-      "Accompanied by: \\\"Abstrak,\\\" \\\"Daftar istilah,\\\" \\\"Penjurus nama,\\\" 3 microfiches (Lampiran A), 2 transparencies (20 x 28 cm.) (Lampiran C), 59 col. slides (Lampiran D), and 1 Beta videocassette (85 min. : sd., col. ; 1/2 in.) (Lampiran B)",
-      "Lampiran A, C and D issued together in case",
-      "Accompanying videocassette has title: Pagelaran wayang beber di Goethe Institut, cerita Panji Kembang Kuning : Jakarta, 6 Juni 1981 / dalang, Sarnen Gunacarita",
-      "Title on handwritten label on spine of videocassette copy: Wayang beber pacitan \\\"Jaka Kembang Kuning.\\\"",
-      "\\\"Abstrak\\\" accompanied by \\\"Ringkasan abstrak\\\" (11 p. ; 22 cm.)",
-      "Doctoral Institut Teknologi Bandung 1991",
-      "Visual language in traditional audiovisual media with reference to Indonesia",
-      "Includes bibliographical references (leaves 1638-1650)"
+      {
+        "note": "Accompanying wayang performance on videocassette in Javanese",
+        "staffOnly": false
+      },
+      {
+        "note": "Accompanied by: \\\"Abstrak,\\\" \\\"Daftar istilah,\\\" \\\"Penjurus nama,\\\" 3 microfiches (Lampiran A), 2 transparencies (20 x 28 cm.) (Lampiran C), 59 col. slides (Lampiran D), and 1 Beta videocassette (85 min. : sd., col. ; 1/2 in.) (Lampiran B)",
+        "staffOnly": false
+      },
+      {
+        "note": "Lampiran A, C and D issued together in case",
+        "staffOnly": false
+      },
+      {
+        "note": "Accompanying videocassette has title: Pagelaran wayang beber di Goethe Institut, cerita Panji Kembang Kuning : Jakarta, 6 Juni 1981 / dalang, Sarnen Gunacarita",
+        "staffOnly": false
+      },
+      {
+        "note": "Title on handwritten label on spine of videocassette copy: Wayang beber pacitan \\\"Jaka Kembang Kuning.\\\"",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"Abstrak\\\" accompanied by \\\"Ringkasan abstrak\\\" (11 p. ; 22 cm.)",
+        "staffOnly": false
+      },
+      {
+        "note": "Doctoral Institut Teknologi Bandung 1991",
+        "staffOnly": false
+      },
+      {
+        "note": "Visual language in traditional audiovisual media with reference to Indonesia",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references (leaves 1638-1650)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1380,12 +1554,30 @@
       "wel"
     ],
     "notes": [
-      "Date of publication suggested by Wing",
-      "Translation of Lewis Bayly's The practice of piety",
-      "Imperfect: pages faded, stained, and tightly bound, with loss of print",
-      "Reproduction of original in the British Library",
-      "Wing B1505",
-      "Microfilm. Ann Arbor, Mich. : University Microfilms International, 1984. 1 microfilm reel ; 35 mm. (Early English books, 1641-1700 : 1560:68)"
+      {
+        "note": "Date of publication suggested by Wing",
+        "staffOnly": false
+      },
+      {
+        "note": "Translation of Lewis Bayly's The practice of piety",
+        "staffOnly": false
+      },
+      {
+        "note": "Imperfect: pages faded, stained, and tightly bound, with loss of print",
+        "staffOnly": false
+      },
+      {
+        "note": "Reproduction of original in the British Library",
+        "staffOnly": false
+      },
+      {
+        "note": "Wing B1505",
+        "staffOnly": false
+      },
+      {
+        "note": "Microfilm. Ann Arbor, Mich. : University Microfilms International, 1984. 1 microfilm reel ; 35 mm. (Early English books, 1641-1700 : 1560:68)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1475,11 +1667,26 @@
       "eng"
     ],
     "notes": [
-      "Includes bibliographical references",
-      "v. 1. The Rwanda tribunal -- v. 1A-1E. The Rwanda Tribunal : the cases <5 v.>  -- v. 1I, pt. 1. The Rwanda tribunal : Ndindabahizi, Emmanuel/Karera, Franco̧is -- v. 1I, pt. 2. The Rwanda tribunal : Jean Bosco Barayagwiza -- v. 1I, pt. 3. The Rwanda tribunal : Renzaho Tharcisse/GAA-Kayishema, Clément -- v. 1I, pt. 4. The Rwanda tribunal : Ngeze, Hassan -- v. 1.1.5. The Rwanda Tribunal : Akayesu, Bagaragaza, Bikindi -- v. 1.1.6.1-v. 1.1.6.3. The Rwanda tribunal : Pauline Nyiramasuhuko case, pts. 1-3. -- v. 1.1.7.1.-v. 1.1.7.3. The Rwanda tribunal : Bagosora et al. Case No.: ICTR-98-41-T, pts. 1-3 -- v. 1.1.8.1.-v. 1.1.8.3. The Rwanda tribunal : Tharcisse Muvunyi (ICTR-00-55) and Jean de Dieu Kamuhanda (ICTR-99-54), pts. 1-3. -- v. 1.1.9.1. The Rwanda tribunal : Nchamihigo, Simeon. (ICTR-01-63) -- v. 1.1.10.1. The Rwanda tribunal : Nshogoza Léonidas. (1ICTR-2007-91, 2ICTR-99-54A -- v. 1.1.11.1.- v. 1.1.11.6. The Rwanda tribunal : Nsengiyumva, Anatole (ICTR-96-12), pts. 1-6 -- v.1.1.12. The Rwanda tribunal : Kanyarukiga, Gaspard (ICTR-02-78); Munyakazi, Yussuf (ICTR-97-36A) -- v.1.1.13. The Rwanda tribunal: Kajelijeli, Juvénal (ICTR-98-44A); Karera, François (ICTR-02-74) --",
-      "v. 2A. The Yugoslav crisis : background information -- v. 2AC. Yugoslav tribunal -- v. 2B. The Yugoslav crisis : documents -- v. 2C. The Yugoslav tribunal : introduction -- v. 2Ca. The Yugoslav tribunal : documents -- v. 2D-2De. The Yugoslav tribunal : Tadic case <6 v.> -- v. 2E. The Yugoslav tribunal : the cases -- v. 2Ea-2Eb. The Yugoslav tribunal : Kupreskie case <2 v.> -- v. 2F. The Yugoslav tribunal : The cases -- 2Fb1-3. The Yugoslav tribunal : Aleksovski : transcripts <3 v.> -- v. 2FC1-6. The Yugoslav tribunal : the Naletilic case : Part 2 : the hearings <6 v.> -- v. 2G-2O. The Yugoslav tribunal : the cases <10 v.> -- v. 2I1. The Yugoslav tribunal : Ramush Haradinaj, Idriz Balaj, Lahi Brahimaj : the judgments -- 2Of-2Op. The Yugoslav tribunal : Korkić & Čerkez <11 v.> -- 2P. The Yugoslav tribunal : the cases -- v. 2Q-2T, 2Ta-2Tr. The Yugoslav tribunal : the Milosevic case <22 v.> -- 2Ts, 2Tu-2Ty, 2Tza, 2Tzc. The Yugoslav tribunal : Slobodan Milosevic : hearings, cases [transcripts] <8 v.> -- v. 2Va The Yugoslav tribunal : Blagoje Simic, et al. : judgments -- v. 2Vb The Yugoslav Tribunal : Simic orders and decisions -- v. 2Vc1-2Vc3. The Yugoslav tribunal : Simic additional transcripts <3 v.> -- v. 2VI-2VP. The Yugoslav tribunal : Simic transcripts -- v. 2X-1 - 2X-2 The Yugoslav tribunal: Enver Hadzihasanovic, Mehmed Alagic, Amir Kubura <2 v.> -- v. 2Xa-2Xg. The Yugoslav tribunal : the Hadzihasanovic case <7 v.> -- v. 2Xh-2Xm. Hadzihasanovic' & Kubura <6 v.> --",
-      "v.2Z-28.4.-v.2Z-28.6. The Yugoslav tribunal : Dordevic (IT-05-87/1) Kosovo, pts. 4-6 <3 v.> -- v. 2ZA1. The Yugoslav tribunal : Pavle Strugar judgement and indictment -- v. 2ZA2-2ZA3. The Yugoslav tribunal : Pavle Strugar transcripts <2 v.> -- v. 2Zb1. The Yugoslav tribunal : Stanislav Galic : judgements -- v. 2Zb2-2Zb7. The Yugoslav tribunal : Stanislav Galic : transcripts <6 v.> -- v. 2Zc1-2Zc7. The Yugoslav tribunal : the case against Brdjanin and Zupljanin <7 v.> -- v. 2Zd1-2Zd3. The Yugoslav tribunal : the case against Milan Martic : transcripts (3 v.) -- v.2Ze1-2Ze5. The Yugoslav tribunal : the case against Vujadin Popovic (5 v.) -- v. 2Zi1-2Zi3. The Yugoslav Tribunal : Boskoski and Tarculovski <3 v.> -- v. 2Zii3-2Zii6. The Yugoslav Tribunal : Haradinaj ... et al. <4 v.> -- v. 2Zii7. The Yugoslav Tribunal : Ramush Haradinaj, Idriz Balaj, Lahi Brahimaj : transcripts -- v. 2Ziii1-2Ziii6. The Yugoslav Tribunal : the case against Miloševic Dragomir : transcripts <6 v.> -- v. 2Ziv1-2Ziv5. The Yugoslav Tribunal: Gotovina, Cermak and Markac ... <5 v.> -- v. 2Zv1-2Zv12; 2Zv15-2Zv21. The Yugoslav tribunal : Karadzic Radovan ... <19 v.> -- v. 2Zvi2-2Zvi5. The Yugoslav Tribunal : Milan Lukic & Sredoje Lukic <4 v.> -- v. 2Zvii1-2Zvii8. The Yugoslav Tribunal : Blagojevic & Jokic <8 v.> -- v. 2Zviii1-2Zviii12. The Yugoslav tribunal : Blaskic ... <12 v.> -- v. 2Zix1-2Zix5. The Yugoslav tribunal : Milutinović ... <7 v.> -- v. 2Zix.6-2Zix.10. The Yugoslav tribunal : Šainovic, et al. ...<5 v.> -- v. 2Zx1-2Zx8. The Yugoslav tribunal : Mrkšić et al. ... (6 v.) -- v. 2Zxi1-2Zxi4. The Yugoslav tribunal: Vujadin Popovic appeal judgment ... (4 v.) -- v. 2Zxii1-2Zxii12. The Yugoslav Tribunal: Perišić ... <7 v.> -- v. 2Zxii.i. The Yugoslav Tribunal: Miroslav Bralo ... -- v. 2Zxx1-2Zxx7; 2Zxx9-2Zxx15. The Yugoslav Tribunal: Zdravko Tolimir ... <14 v.> -- v. 2Zxxi.1-2Zxxi.3; 2Zxxi.5-2Zxxi.7. The Yugoslav Tribunal: Mićo Stanišić, Stojan Zupljanin ... -- v. 2Zxxvii.1-2Zxxvii.5. The Yugoslav Tribunal : Prlić et al. ... <5 v.> -- v. 2ZXXX.1-2ZXXX.17 The Yugoslav tribunal : MLADIC ... <17 v.> -- v.2ZXXX.IA. Mladic pre-trail briefs; trial chamber decisions 2011-2016 -- v.2ZXXX.IB-2ZXXX.ID. Mladic trail chamber decisions part. 2-4 <3v.>",
-      "v.3:1-3. Tribunals of the futue : basic international criminal law documents <3v.> -- v.5-A-1-v.5-A-2  Mechanism for International Criminal Tribunals, pts 1-2 <2v.> -- v.5:I-2. International Criminal Court. Situtation in the Democratic Republic of the Congo .. -- v.7I:pt.1-2. Extraordinary chambers in the courts of Cambodia Kaing Guek Eav"
+      {
+        "note": "Includes bibliographical references",
+        "staffOnly": false
+      },
+      {
+        "note": "v. 1. The Rwanda tribunal -- v. 1A-1E. The Rwanda Tribunal : the cases <5 v.>  -- v. 1I, pt. 1. The Rwanda tribunal : Ndindabahizi, Emmanuel/Karera, Franco̧is -- v. 1I, pt. 2. The Rwanda tribunal : Jean Bosco Barayagwiza -- v. 1I, pt. 3. The Rwanda tribunal : Renzaho Tharcisse/GAA-Kayishema, Clément -- v. 1I, pt. 4. The Rwanda tribunal : Ngeze, Hassan -- v. 1.1.5. The Rwanda Tribunal : Akayesu, Bagaragaza, Bikindi -- v. 1.1.6.1-v. 1.1.6.3. The Rwanda tribunal : Pauline Nyiramasuhuko case, pts. 1-3. -- v. 1.1.7.1.-v. 1.1.7.3. The Rwanda tribunal : Bagosora et al. Case No.: ICTR-98-41-T, pts. 1-3 -- v. 1.1.8.1.-v. 1.1.8.3. The Rwanda tribunal : Tharcisse Muvunyi (ICTR-00-55) and Jean de Dieu Kamuhanda (ICTR-99-54), pts. 1-3. -- v. 1.1.9.1. The Rwanda tribunal : Nchamihigo, Simeon. (ICTR-01-63) -- v. 1.1.10.1. The Rwanda tribunal : Nshogoza Léonidas. (1ICTR-2007-91, 2ICTR-99-54A -- v. 1.1.11.1.- v. 1.1.11.6. The Rwanda tribunal : Nsengiyumva, Anatole (ICTR-96-12), pts. 1-6 -- v.1.1.12. The Rwanda tribunal : Kanyarukiga, Gaspard (ICTR-02-78); Munyakazi, Yussuf (ICTR-97-36A) -- v.1.1.13. The Rwanda tribunal: Kajelijeli, Juvénal (ICTR-98-44A); Karera, François (ICTR-02-74) --",
+        "staffOnly": false
+      },
+      {
+        "note": "v. 2A. The Yugoslav crisis : background information -- v. 2AC. Yugoslav tribunal -- v. 2B. The Yugoslav crisis : documents -- v. 2C. The Yugoslav tribunal : introduction -- v. 2Ca. The Yugoslav tribunal : documents -- v. 2D-2De. The Yugoslav tribunal : Tadic case <6 v.> -- v. 2E. The Yugoslav tribunal : the cases -- v. 2Ea-2Eb. The Yugoslav tribunal : Kupreskie case <2 v.> -- v. 2F. The Yugoslav tribunal : The cases -- 2Fb1-3. The Yugoslav tribunal : Aleksovski : transcripts <3 v.> -- v. 2FC1-6. The Yugoslav tribunal : the Naletilic case : Part 2 : the hearings <6 v.> -- v. 2G-2O. The Yugoslav tribunal : the cases <10 v.> -- v. 2I1. The Yugoslav tribunal : Ramush Haradinaj, Idriz Balaj, Lahi Brahimaj : the judgments -- 2Of-2Op. The Yugoslav tribunal : Korkić & Čerkez <11 v.> -- 2P. The Yugoslav tribunal : the cases -- v. 2Q-2T, 2Ta-2Tr. The Yugoslav tribunal : the Milosevic case <22 v.> -- 2Ts, 2Tu-2Ty, 2Tza, 2Tzc. The Yugoslav tribunal : Slobodan Milosevic : hearings, cases [transcripts] <8 v.> -- v. 2Va The Yugoslav tribunal : Blagoje Simic, et al. : judgments -- v. 2Vb The Yugoslav Tribunal : Simic orders and decisions -- v. 2Vc1-2Vc3. The Yugoslav tribunal : Simic additional transcripts <3 v.> -- v. 2VI-2VP. The Yugoslav tribunal : Simic transcripts -- v. 2X-1 - 2X-2 The Yugoslav tribunal: Enver Hadzihasanovic, Mehmed Alagic, Amir Kubura <2 v.> -- v. 2Xa-2Xg. The Yugoslav tribunal : the Hadzihasanovic case <7 v.> -- v. 2Xh-2Xm. Hadzihasanovic' & Kubura <6 v.> --",
+        "staffOnly": false
+      },
+      {
+        "note": "v.2Z-28.4.-v.2Z-28.6. The Yugoslav tribunal : Dordevic (IT-05-87/1) Kosovo, pts. 4-6 <3 v.> -- v. 2ZA1. The Yugoslav tribunal : Pavle Strugar judgement and indictment -- v. 2ZA2-2ZA3. The Yugoslav tribunal : Pavle Strugar transcripts <2 v.> -- v. 2Zb1. The Yugoslav tribunal : Stanislav Galic : judgements -- v. 2Zb2-2Zb7. The Yugoslav tribunal : Stanislav Galic : transcripts <6 v.> -- v. 2Zc1-2Zc7. The Yugoslav tribunal : the case against Brdjanin and Zupljanin <7 v.> -- v. 2Zd1-2Zd3. The Yugoslav tribunal : the case against Milan Martic : transcripts (3 v.) -- v.2Ze1-2Ze5. The Yugoslav tribunal : the case against Vujadin Popovic (5 v.) -- v. 2Zi1-2Zi3. The Yugoslav Tribunal : Boskoski and Tarculovski <3 v.> -- v. 2Zii3-2Zii6. The Yugoslav Tribunal : Haradinaj ... et al. <4 v.> -- v. 2Zii7. The Yugoslav Tribunal : Ramush Haradinaj, Idriz Balaj, Lahi Brahimaj : transcripts -- v. 2Ziii1-2Ziii6. The Yugoslav Tribunal : the case against Miloševic Dragomir : transcripts <6 v.> -- v. 2Ziv1-2Ziv5. The Yugoslav Tribunal: Gotovina, Cermak and Markac ... <5 v.> -- v. 2Zv1-2Zv12; 2Zv15-2Zv21. The Yugoslav tribunal : Karadzic Radovan ... <19 v.> -- v. 2Zvi2-2Zvi5. The Yugoslav Tribunal : Milan Lukic & Sredoje Lukic <4 v.> -- v. 2Zvii1-2Zvii8. The Yugoslav Tribunal : Blagojevic & Jokic <8 v.> -- v. 2Zviii1-2Zviii12. The Yugoslav tribunal : Blaskic ... <12 v.> -- v. 2Zix1-2Zix5. The Yugoslav tribunal : Milutinović ... <7 v.> -- v. 2Zix.6-2Zix.10. The Yugoslav tribunal : Šainovic, et al. ...<5 v.> -- v. 2Zx1-2Zx8. The Yugoslav tribunal : Mrkšić et al. ... (6 v.) -- v. 2Zxi1-2Zxi4. The Yugoslav tribunal: Vujadin Popovic appeal judgment ... (4 v.) -- v. 2Zxii1-2Zxii12. The Yugoslav Tribunal: Perišić ... <7 v.> -- v. 2Zxii.i. The Yugoslav Tribunal: Miroslav Bralo ... -- v. 2Zxx1-2Zxx7; 2Zxx9-2Zxx15. The Yugoslav Tribunal: Zdravko Tolimir ... <14 v.> -- v. 2Zxxi.1-2Zxxi.3; 2Zxxi.5-2Zxxi.7. The Yugoslav Tribunal: Mićo Stanišić, Stojan Zupljanin ... -- v. 2Zxxvii.1-2Zxxvii.5. The Yugoslav Tribunal : Prlić et al. ... <5 v.> -- v. 2ZXXX.1-2ZXXX.17 The Yugoslav tribunal : MLADIC ... <17 v.> -- v.2ZXXX.IA. Mladic pre-trail briefs; trial chamber decisions 2011-2016 -- v.2ZXXX.IB-2ZXXX.ID. Mladic trail chamber decisions part. 2-4 <3v.>",
+        "staffOnly": false
+      },
+      {
+        "note": "v.3:1-3. Tribunals of the futue : basic international criminal law documents <3v.> -- v.5-A-1-v.5-A-2  Mechanism for International Criminal Tribunals, pts 1-2 <2v.> -- v.5:I-2. International Criminal Court. Situtation in the Democratic Republic of the Congo .. -- v.7I:pt.1-2. Extraordinary chambers in the courts of Cambodia Kaing Guek Eav",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1542,11 +1749,26 @@
       "ind"
     ],
     "notes": [
-      "Some vols. have summary in English",
-      "Issued by various bodies within the university",
-      "Includes bibliographical references",
-      "[1] Tindakan main hakim sendiri sebagai kendala dalam pengakan hukum / oleh tim peneliti, Jurusan Hukum Pidana, Fakultas Hukum Unlam -- [2] Tanggapan guru terhadap kurikulum PKLH di SMA Negeri Kotamadya Banjarmasin / oleh Yustinus Maria Ngadiyana, Eliani Dharmanata -- [3] Elastisitas permintaan ikan basah di Kelurahan Gambut, Kecamatan Gambut Dati II Banjar, Kalimantan Selatan / oleh Achmad Riswandi Bandung, Tarmaji Antowijoyo -- [4] Pengaruh modifikasi alat tangkap bubu (portable traps) terhadap hasil tangkapan udang galah (Macrobrachium rosenbergii de Man) / oleh M.N. Riduan, Iriansyah -- [5] Studi tentang kualitas guru dalam mengelola kelas dan hubungannya dengan prestasi belajar siswa pada SMP Negeri di Kotamadya Banjarmasin / oleh tim peneliti -- [6] Studi korelasi antara minat mahasiswa FKIP Unlam memperlajari agama dengan asal sekolah / oleh Ariati Asnawi -- [7] Studi pelacakan keberhasilan Balai Latihan Kerja (BLK) Banjarbaru sebagai pelatih tenaga siap pakai / oleh tim peneliti -- [8] Minat membaca sastra siswa SMA Negeri di Kotamadya Banjarmasin / oleh Abdurachman Ismail, Rustam Effendi -- [9] Hubungan dan sumbangan asal sekolah dan tingkat pendidikan orang tua terhadap prestasi belajar mahasiswa baru FKIP Unlam tahun ajaran 1989/1990 / oleh Loth Yamin -- [10] Studi tentang peranan PKK dalam penerapan P-4 bagi anggotanya di Kecamatan Pelaihari, Kabupaten Tanah Laut, Propinsi Kalimantan Selatan / oleh H. Etty Rochaeti, Harpani M. -- [11] Minat studi lanjut ke perguruan tinggi Siswa Sekolah Menengah Atas Negeri (SMAN) di Kotamadya Banjarmasin / oleh tim peneliti -- [12] Efisiensi penerapan jalur baru untuk lalu lintas perkotaan di Banjarmasin / oleh Norman Ruslan, dkk. -- [13] Studi tentang persepsi masyarakat terhadap lingkungan hidup menurut tingkat pendidikan di Perumnas Kayu Tangi, Kotamadya Banjarmasin / oleh tim peneliti -- [14] Studi tentang fungsi profit dari usaha perikanan tambak di Kalimantan Selatan / oleh tim peneliti -- [15] Tinjauan terhadap air sungai Martapura sebagai sumber air minum penduduk Kotamadya Banjarmasin / oleh Hilmi Hanafi, H. Nurdiniah -- [16] Hubungan antara kondisi sosial ekonomi orang tua, asal SMTA dengan prestasi akademik mahasiswa Unlam / oleh H. Huda Nur A. Raponggati -- [17] Analisa beberapa faktor yang mempengaruhi pendapatan pedagang ikan kering di pasar Kertak Hanyar, Kabupaten Dati II Banjar, Propinsi Dati I Kalimantan Selatan / oleh Adrias Mashuri, Emmy Sri Mahreda -- [18] Pengaruh penambangan pasir hasil galian C terhadap kualitas air dan kelimpahan plankton di sungai Riam Kiwa, Kabupaten Banjar, Kalimantan Selatan / oleh Yus'a Anward ... [et al.] -- [19] Diversitas dan produktivitas hijauan asli sebagai pakan ruminansia di daerah Rawa Danau Panggang, Kalimantan Selatan / oleh B.M.A. Sitorus ... [et al.] -- [20] Pengaruh iklim terhadap neraca air dan kualitas air di Margasari, Kabupaten Kotabaru, Kalimantan Selatan / oleh Gusti Rusmayadi -- [21] Studi korelasi antara kelas sosial dengan minat beli masyarakat Kotamadya Banjarmasin terhadap produk asuransi / Saladin Ghalib ... [et al.] -- [22] Etos kerja Islami dan perilaku ekonomi, kasus pedagang Muslim di Pasar Ujung Murung Banjarmasin / oleh tim penelitian -- [23] Perilaku politik masyarakat Banjar terhadap Parpol dan Golkar di Kotamadya Banjarmasin / oleh tim peneliti -- [24] Fungsi mengatur & mengurus daerah otonom dalam rangka pembuatan peraturan daerah di Daerah Tk. II Banjarmasin / oleh F.A. Abby -- [25] Pengaruh keragaman umur induk pembibit terhadap fertilitas, daya tetas dan mortalitas embryo telur puyuh (Coturnix coturnix Japonica) / oleh Danang Biyatmoko ... [et al.] -- [26] Kebijakan pemungutan retribusi kebersihan melalui pembayaran rekening listrik evaluasi terhadap partisipasi masyarakat di Kotamadya Banjarmasin / oleh tim peneliti -- [27] Guru dalam pengembangan muatan lokal kurikulum sekolah dasar (SD) / oleh Barkis Basri, Acep Supriadi -- [28] Studi tentang upaya meningkatkan mutu pengajaran pada SMA swasta di Banjarmasin / oleh Harun Utuh, Harpani Matnuh -- [29] Studi tentang pelaksanaan retribusi dan berbagai hambatannya di Daerah Tingkat II Kotamadya Banjarmasin / oleh H. Yasmiah Yoesma, Bainuddin HG -- [30] Analisa manajemen keuangan pada koperasi unit desa di Kabupaten Banjar /oleh H. Saroso Sundoro, Luana N.T. -- [31] Pengaruh investasi dana terhadap rentabilitas ekonomis / oleh H.M. Hadrawie Zairin, M. Kasin -- [32] Penyelenggaraan praktek akuntansi pada perusahaan percetakan di Kotamadya Banjarmasin / oleh Isnawati, Norhikmah -- [33] Studi pengkajian tentang perencanaan sosial dalam pembangunan kota pada Kecamatan Lokpaikat, Kabupaten Tapin, Kalimantan Selatan / oleh Wahyu, H. Suhrah Zoehri -- [34] Analisa modal kerja sektor informal di Kelurahan Pemurus Luar, Kecamatan Banjar Selatan, Kodya Banjarmasin / oleh M. Riza Firdaus, Rismanthoro, Abdullah Siddik -- [35] Karakterisktik dan gaya kepemimpinan ketua KUD mandiri di Kabupaten Banjar / oleh H. Rizali Hadi, Sri Setiti, H. Masriah -- [36] Pengaruh pengembangan industri kecil kerajinan sasirangan terhadap kesempatan kerja di Kotamadya Banjarmasin / oleh S. Mutmainah Z., Rusdiansyah -- [37] Analisis struktur permodalan koperasi unit desa mandiri (KUD) di Propinsi Kalimantan Selatan / oleh tim peneliti Fakultas Ekonomi Unlam -- [38] Perilaku menyimpang remaja Kotamadya Banjarmasin / oleh tim peneliti -- [39] Kajian agribisnis dalam perkembangan dan variasi harga daging ayam ras di Kotamadya Banjarmasin dan Kotib Banjarbaru / oleh tim peneliti -- [40] Prospek pengembangan usaha perikanan rakyat sistem Keramba di Kabupaten Banjar / oleh H.M. Agam ... [et al.] -- [41] Analisis laporan keuangan dalam menilai perkembangan kondisi keuangan pada Koperasi Pegawai Negeri Badan kerjasama Sekolah Lanjutan Hulu Sungai Tengah / oleh Siti Chamidah -- [42] Kendala-kendala yang dihadapi oleh pengusaha kecil dan menengah mitra binaan inkubator bisnis Lembaga Manajemen Fakultas Ekonomi Unlam di Kalimantan Selatan / oleh Nira Hariyatie -- [43] Persepsi, aspirasi dan partisipasi warga yang terkena proyek penataan dan penyiringan Jalan Piere Tendean, Kota Banjarmasin / oleh Bedjo, Zainul Akhyar -- [44] Pengaruh kualitas produk terhadap keputusan konsumen dalam memberli rokok Sampoerna A Mild / oleh Siti Halimatussa'diah -- [45] Perkembangan perumahan permukiman mentaos Banjarbaru / oleh Muhammad Tharziansyah -- [46] Tipologi bangunan ruko di Jalan Braga, Bandung / Tatiana Erlinda",
-      "[47] Nilai anak perempuan dalam masyarakat suku Banjar dan prospek pendidikannya / oleh Ike Hananik -- [48] Rekayasa teknologi fragmentasi vegetatif anemon laut jenis Stichodactyla gigantea untuk restocking dan rehabilitasi kawasan terumbu karang non produktif (tahun ke-2) / oleh Muhammad Ahsin Rifa'i ... [et al.] -- [49] Penggunaan pretreatmen koagulasi untuk meningkatkan kinerja membran ultrafiltrasi (UF) dalam mengolah air gambut menjadi air minum / oleh Mahmad -- [50] Penentuan mekanisme reaksi dan energi aktivasi desorpsi fosfat yang terjerap pada tanah masam oleh HCl, CH₃COOH dan asam humat menggunakan menggunakan [sic] metode semiempirik / oleh Uripto Trisno Santoso, Herdiansyah, Abdullah -- [51] Kecernaan in vitro pakan alami ternak kerbau rawa di Kalimantan Selatan / oleh Nursyam Andi Syarifuddin, Anis Wahdi -- [52] Mekanisme dan laju reaksi pengikatan kadmium (II), timbal (II) dan mangan (II) pada fraksi asam humat/humin batubara / oleh Herdiansyah, Uripto Trisno Santoso -- [53] Efektivitas pupuk fosfat alam dan guano di tanah sulfat masam pada pertanaman padi sawah / oleh Joko Purnomo -- [54] Pemberdayaan politik perempuan / oleh Sarbaini"
+      {
+        "note": "Some vols. have summary in English",
+        "staffOnly": false
+      },
+      {
+        "note": "Issued by various bodies within the university",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references",
+        "staffOnly": false
+      },
+      {
+        "note": "[1] Tindakan main hakim sendiri sebagai kendala dalam pengakan hukum / oleh tim peneliti, Jurusan Hukum Pidana, Fakultas Hukum Unlam -- [2] Tanggapan guru terhadap kurikulum PKLH di SMA Negeri Kotamadya Banjarmasin / oleh Yustinus Maria Ngadiyana, Eliani Dharmanata -- [3] Elastisitas permintaan ikan basah di Kelurahan Gambut, Kecamatan Gambut Dati II Banjar, Kalimantan Selatan / oleh Achmad Riswandi Bandung, Tarmaji Antowijoyo -- [4] Pengaruh modifikasi alat tangkap bubu (portable traps) terhadap hasil tangkapan udang galah (Macrobrachium rosenbergii de Man) / oleh M.N. Riduan, Iriansyah -- [5] Studi tentang kualitas guru dalam mengelola kelas dan hubungannya dengan prestasi belajar siswa pada SMP Negeri di Kotamadya Banjarmasin / oleh tim peneliti -- [6] Studi korelasi antara minat mahasiswa FKIP Unlam memperlajari agama dengan asal sekolah / oleh Ariati Asnawi -- [7] Studi pelacakan keberhasilan Balai Latihan Kerja (BLK) Banjarbaru sebagai pelatih tenaga siap pakai / oleh tim peneliti -- [8] Minat membaca sastra siswa SMA Negeri di Kotamadya Banjarmasin / oleh Abdurachman Ismail, Rustam Effendi -- [9] Hubungan dan sumbangan asal sekolah dan tingkat pendidikan orang tua terhadap prestasi belajar mahasiswa baru FKIP Unlam tahun ajaran 1989/1990 / oleh Loth Yamin -- [10] Studi tentang peranan PKK dalam penerapan P-4 bagi anggotanya di Kecamatan Pelaihari, Kabupaten Tanah Laut, Propinsi Kalimantan Selatan / oleh H. Etty Rochaeti, Harpani M. -- [11] Minat studi lanjut ke perguruan tinggi Siswa Sekolah Menengah Atas Negeri (SMAN) di Kotamadya Banjarmasin / oleh tim peneliti -- [12] Efisiensi penerapan jalur baru untuk lalu lintas perkotaan di Banjarmasin / oleh Norman Ruslan, dkk. -- [13] Studi tentang persepsi masyarakat terhadap lingkungan hidup menurut tingkat pendidikan di Perumnas Kayu Tangi, Kotamadya Banjarmasin / oleh tim peneliti -- [14] Studi tentang fungsi profit dari usaha perikanan tambak di Kalimantan Selatan / oleh tim peneliti -- [15] Tinjauan terhadap air sungai Martapura sebagai sumber air minum penduduk Kotamadya Banjarmasin / oleh Hilmi Hanafi, H. Nurdiniah -- [16] Hubungan antara kondisi sosial ekonomi orang tua, asal SMTA dengan prestasi akademik mahasiswa Unlam / oleh H. Huda Nur A. Raponggati -- [17] Analisa beberapa faktor yang mempengaruhi pendapatan pedagang ikan kering di pasar Kertak Hanyar, Kabupaten Dati II Banjar, Propinsi Dati I Kalimantan Selatan / oleh Adrias Mashuri, Emmy Sri Mahreda -- [18] Pengaruh penambangan pasir hasil galian C terhadap kualitas air dan kelimpahan plankton di sungai Riam Kiwa, Kabupaten Banjar, Kalimantan Selatan / oleh Yus'a Anward ... [et al.] -- [19] Diversitas dan produktivitas hijauan asli sebagai pakan ruminansia di daerah Rawa Danau Panggang, Kalimantan Selatan / oleh B.M.A. Sitorus ... [et al.] -- [20] Pengaruh iklim terhadap neraca air dan kualitas air di Margasari, Kabupaten Kotabaru, Kalimantan Selatan / oleh Gusti Rusmayadi -- [21] Studi korelasi antara kelas sosial dengan minat beli masyarakat Kotamadya Banjarmasin terhadap produk asuransi / Saladin Ghalib ... [et al.] -- [22] Etos kerja Islami dan perilaku ekonomi, kasus pedagang Muslim di Pasar Ujung Murung Banjarmasin / oleh tim penelitian -- [23] Perilaku politik masyarakat Banjar terhadap Parpol dan Golkar di Kotamadya Banjarmasin / oleh tim peneliti -- [24] Fungsi mengatur & mengurus daerah otonom dalam rangka pembuatan peraturan daerah di Daerah Tk. II Banjarmasin / oleh F.A. Abby -- [25] Pengaruh keragaman umur induk pembibit terhadap fertilitas, daya tetas dan mortalitas embryo telur puyuh (Coturnix coturnix Japonica) / oleh Danang Biyatmoko ... [et al.] -- [26] Kebijakan pemungutan retribusi kebersihan melalui pembayaran rekening listrik evaluasi terhadap partisipasi masyarakat di Kotamadya Banjarmasin / oleh tim peneliti -- [27] Guru dalam pengembangan muatan lokal kurikulum sekolah dasar (SD) / oleh Barkis Basri, Acep Supriadi -- [28] Studi tentang upaya meningkatkan mutu pengajaran pada SMA swasta di Banjarmasin / oleh Harun Utuh, Harpani Matnuh -- [29] Studi tentang pelaksanaan retribusi dan berbagai hambatannya di Daerah Tingkat II Kotamadya Banjarmasin / oleh H. Yasmiah Yoesma, Bainuddin HG -- [30] Analisa manajemen keuangan pada koperasi unit desa di Kabupaten Banjar /oleh H. Saroso Sundoro, Luana N.T. -- [31] Pengaruh investasi dana terhadap rentabilitas ekonomis / oleh H.M. Hadrawie Zairin, M. Kasin -- [32] Penyelenggaraan praktek akuntansi pada perusahaan percetakan di Kotamadya Banjarmasin / oleh Isnawati, Norhikmah -- [33] Studi pengkajian tentang perencanaan sosial dalam pembangunan kota pada Kecamatan Lokpaikat, Kabupaten Tapin, Kalimantan Selatan / oleh Wahyu, H. Suhrah Zoehri -- [34] Analisa modal kerja sektor informal di Kelurahan Pemurus Luar, Kecamatan Banjar Selatan, Kodya Banjarmasin / oleh M. Riza Firdaus, Rismanthoro, Abdullah Siddik -- [35] Karakterisktik dan gaya kepemimpinan ketua KUD mandiri di Kabupaten Banjar / oleh H. Rizali Hadi, Sri Setiti, H. Masriah -- [36] Pengaruh pengembangan industri kecil kerajinan sasirangan terhadap kesempatan kerja di Kotamadya Banjarmasin / oleh S. Mutmainah Z., Rusdiansyah -- [37] Analisis struktur permodalan koperasi unit desa mandiri (KUD) di Propinsi Kalimantan Selatan / oleh tim peneliti Fakultas Ekonomi Unlam -- [38] Perilaku menyimpang remaja Kotamadya Banjarmasin / oleh tim peneliti -- [39] Kajian agribisnis dalam perkembangan dan variasi harga daging ayam ras di Kotamadya Banjarmasin dan Kotib Banjarbaru / oleh tim peneliti -- [40] Prospek pengembangan usaha perikanan rakyat sistem Keramba di Kabupaten Banjar / oleh H.M. Agam ... [et al.] -- [41] Analisis laporan keuangan dalam menilai perkembangan kondisi keuangan pada Koperasi Pegawai Negeri Badan kerjasama Sekolah Lanjutan Hulu Sungai Tengah / oleh Siti Chamidah -- [42] Kendala-kendala yang dihadapi oleh pengusaha kecil dan menengah mitra binaan inkubator bisnis Lembaga Manajemen Fakultas Ekonomi Unlam di Kalimantan Selatan / oleh Nira Hariyatie -- [43] Persepsi, aspirasi dan partisipasi warga yang terkena proyek penataan dan penyiringan Jalan Piere Tendean, Kota Banjarmasin / oleh Bedjo, Zainul Akhyar -- [44] Pengaruh kualitas produk terhadap keputusan konsumen dalam memberli rokok Sampoerna A Mild / oleh Siti Halimatussa'diah -- [45] Perkembangan perumahan permukiman mentaos Banjarbaru / oleh Muhammad Tharziansyah -- [46] Tipologi bangunan ruko di Jalan Braga, Bandung / Tatiana Erlinda",
+        "staffOnly": false
+      },
+      {
+        "note": "[47] Nilai anak perempuan dalam masyarakat suku Banjar dan prospek pendidikannya / oleh Ike Hananik -- [48] Rekayasa teknologi fragmentasi vegetatif anemon laut jenis Stichodactyla gigantea untuk restocking dan rehabilitasi kawasan terumbu karang non produktif (tahun ke-2) / oleh Muhammad Ahsin Rifa'i ... [et al.] -- [49] Penggunaan pretreatmen koagulasi untuk meningkatkan kinerja membran ultrafiltrasi (UF) dalam mengolah air gambut menjadi air minum / oleh Mahmad -- [50] Penentuan mekanisme reaksi dan energi aktivasi desorpsi fosfat yang terjerap pada tanah masam oleh HCl, CH₃COOH dan asam humat menggunakan menggunakan [sic] metode semiempirik / oleh Uripto Trisno Santoso, Herdiansyah, Abdullah -- [51] Kecernaan in vitro pakan alami ternak kerbau rawa di Kalimantan Selatan / oleh Nursyam Andi Syarifuddin, Anis Wahdi -- [52] Mekanisme dan laju reaksi pengikatan kadmium (II), timbal (II) dan mangan (II) pada fraksi asam humat/humin batubara / oleh Herdiansyah, Uripto Trisno Santoso -- [53] Efektivitas pupuk fosfat alam dan guano di tanah sulfat masam pada pertanaman padi sawah / oleh Joko Purnomo -- [54] Pemberdayaan politik perempuan / oleh Sarbaini",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1624,7 +1846,10 @@
       "eng"
     ],
     "notes": [
-      "\\\"A Del Rey book.\\\""
+      {
+        "note": "\\\"A Del Rey book.\\\"",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1713,9 +1938,18 @@
       "eng"
     ],
     "notes": [
-      "Includes bibliographical references (p. 147-162) and index",
-      "Electronic reproduction. Boulder, Colo. : NetLibrary, 1999. Available via the World Wide Web. Available in multiple electronic file formats. Access may be limited to NetLibrary affiliated libraries",
-      "Technical requirements: Browser must be set to accept third party cookies. Safari (Mac) browser not supported by NetLibrary"
+      {
+        "note": "Includes bibliographical references (p. 147-162) and index",
+        "staffOnly": false
+      },
+      {
+        "note": "Electronic reproduction. Boulder, Colo. : NetLibrary, 1999. Available via the World Wide Web. Available in multiple electronic file formats. Access may be limited to NetLibrary affiliated libraries",
+        "staffOnly": false
+      },
+      {
+        "note": "Technical requirements: Browser must be set to accept third party cookies. Safari (Mac) browser not supported by NetLibrary",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1837,16 +2071,46 @@
       "eng"
     ],
     "notes": [
-      "Editors: 1923-<24> B. Hadden, H.R. Luce",
-      "License restrictions may limit access",
-      "Issue for Dec. 16, 1996 called v. 149, no. 1 but constitutes v. 148, no. 27; double issue for Dec. 30, 1996/Jan. 6, 1997 called v. 148, no. 29; issue for Jan. 13, 1997 called v. 149, no. 2",
-      "Master and use copy. Digital master created according to Benchmark for Faithful Digital Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://purl.oclc.org/DLF/benchrepro0212",
-      "Mode of access: World Wide Web",
-      "Vols. for 1989- also available on CD-ROM with titles: Time magazine compact almanac; Time almanac (Multimedia ed.); and: Time magazine compact almanac (Multimedia ed. for Macintosh)",
-      "Shares only limited selected articles with the daily online publication: Time.com, October 7, 2013-",
-      "digitized 2010 HathiTrust Digital Library committed to preserve MiAaHDL pda",
-      "Description based on: Vol. 137, issue 1 (Jan. 7, 1991); title from issue table of contents (EbscoHost, viewed Nov. 14, 2006)",
-      "Latest issue consulted: Vol. 168, issue 20 (Nov. 13, 2006) (viewed Nov. 14, 2006)"
+      {
+        "note": "Editors: 1923-<24> B. Hadden, H.R. Luce",
+        "staffOnly": false
+      },
+      {
+        "note": "License restrictions may limit access",
+        "staffOnly": false
+      },
+      {
+        "note": "Issue for Dec. 16, 1996 called v. 149, no. 1 but constitutes v. 148, no. 27; double issue for Dec. 30, 1996/Jan. 6, 1997 called v. 148, no. 29; issue for Jan. 13, 1997 called v. 149, no. 2",
+        "staffOnly": false
+      },
+      {
+        "note": "Master and use copy. Digital master created according to Benchmark for Faithful Digital Reproductions of Monographs and Serials, Version 1. Digital Library Federation, December 2002. http://purl.oclc.org/DLF/benchrepro0212",
+        "staffOnly": false
+      },
+      {
+        "note": "Mode of access: World Wide Web",
+        "staffOnly": false
+      },
+      {
+        "note": "Vols. for 1989- also available on CD-ROM with titles: Time magazine compact almanac; Time almanac (Multimedia ed.); and: Time magazine compact almanac (Multimedia ed. for Macintosh)",
+        "staffOnly": false
+      },
+      {
+        "note": "Shares only limited selected articles with the daily online publication: Time.com, October 7, 2013-",
+        "staffOnly": false
+      },
+      {
+        "note": "digitized 2010 HathiTrust Digital Library committed to preserve MiAaHDL pda",
+        "staffOnly": false
+      },
+      {
+        "note": "Description based on: Vol. 137, issue 1 (Jan. 7, 1991); title from issue table of contents (EbscoHost, viewed Nov. 14, 2006)",
+        "staffOnly": false
+      },
+      {
+        "note": "Latest issue consulted: Vol. 168, issue 20 (Nov. 13, 2006) (viewed Nov. 14, 2006)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -1996,7 +2260,10 @@
       "eng"
     ],
     "notes": [
-      "Reproduction of a drawing of the church on cover by Frank Bramley, R.A"
+      {
+        "note": "Reproduction of a drawing of the church on cover by Frank Bramley, R.A",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -2077,11 +2344,26 @@
       "eng"
     ],
     "notes": [
-      "Mode of access: World Wide Web",
-      "System requirements: Internet connectivity and WWW browser",
-      "Title from home page (viewed Aug. 22, 2007)",
-      "The Knight Visual Resources Collection contains digital images that support instruction at Cornell University. It includes a broad range of images of art including art history, architecture, landscape architecture, planning, material culture, maps, and other documentary material",
-      "The KVRF digital image collection is restricted to Cornell University faculty, staff, and students for educational purposes (instruction, study, research, and scholarship) only. This includes classroom projection, display on computer monitors, and use in class assignments. These images may not be downloaded for use in electronic or print publications (including scholarly publication and websites), exhibitions, or broadcasts without prior written permission from any and all applicable rights holders"
+      {
+        "note": "Mode of access: World Wide Web",
+        "staffOnly": false
+      },
+      {
+        "note": "System requirements: Internet connectivity and WWW browser",
+        "staffOnly": false
+      },
+      {
+        "note": "Title from home page (viewed Aug. 22, 2007)",
+        "staffOnly": false
+      },
+      {
+        "note": "The Knight Visual Resources Collection contains digital images that support instruction at Cornell University. It includes a broad range of images of art including art history, architecture, landscape architecture, planning, material culture, maps, and other documentary material",
+        "staffOnly": false
+      },
+      {
+        "note": "The KVRF digital image collection is restricted to Cornell University faculty, staff, and students for educational purposes (instruction, study, research, and scholarship) only. This includes classroom projection, display on computer monitors, and use in class assignments. These images may not be downloaded for use in electronic or print publications (including scholarly publication and websites), exhibitions, or broadcasts without prior written permission from any and all applicable rights holders",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -2141,7 +2423,10 @@
       "eng"
     ],
     "notes": [
-      "At head of title: Church Temperance Society"
+      {
+        "note": "At head of title: Church Temperance Society",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -2202,8 +2487,14 @@
       "eng"
     ],
     "notes": [
-      "Cover title",
-      "\\\"January 2003.\\\""
+      {
+        "note": "Cover title",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"January 2003.\\\"",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -2290,10 +2581,22 @@
       "eng"
     ],
     "notes": [
-      "5th ed. volumes gradually replaces the 4th ed. reissue volumes",
-      "Kept up to date by current service bulletins: Monthly review, and Noter-up",
-      "\\\"Consolidated index\\\" to 4th and 5th eds. published in three vols. 2008- ",
-      "\\\"Consolidated table of statutes\\\" and \\\"Consolidated table of statutory instruments\\\" published 2010"
+      {
+        "note": "5th ed. volumes gradually replaces the 4th ed. reissue volumes",
+        "staffOnly": false
+      },
+      {
+        "note": "Kept up to date by current service bulletins: Monthly review, and Noter-up",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"Consolidated index\\\" to 4th and 5th eds. published in three vols. 2008- ",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"Consolidated table of statutes\\\" and \\\"Consolidated table of statutory instruments\\\" published 2010",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3079,15 +3382,42 @@
       "eng"
     ],
     "notes": [
-      "Found also in the House Miscellaneous documents of the 52d to the 56th Congress",
-      "Each number has special index. Inserted in each volume: Additons and corrections ... Washington, Govt. Print. Off., 1902",
-      "Series 1, v. 1-53, series 3, v. 1-5, and series 4, v. 1-3 include \\\"Alternate designations of organizations mentioned.\\\"",
-      "Vol. 54-55 of series 1 [serial no. 112-113]\\\" have not been published, and no material for them is in hand.\\\" cf. General index, p. xl. Series 2, v. 1 [serial no. 114] with imprint 1894, was not issued until 1898",
-      "Edited in the War Records Office, 1880-July 1899; in the Record and Pension Office, July 1899-1901",
-      "Robert N. Scott compiled and edited v. 1-18, 1880-87, and also collected the greater part of the material for v. 19-36, 1887-91. After his death in 1887 the work was continued by Henry M. Lazelle, 1887-89, and by a board of publication, 1889-99, consisting of George B. Davis, 1889-97, Leslie J. Perry, 1889-99, Joseph W. Kirkley, 1889-99, and Fred C. Ainsworth, 1898-99; from 1899-1901 edited by Fred C. Ainsworth and Joseph W. Kirkley",
-      "ser. I. v. 1-53 [serial no. 1-111] Formal reports, both Union and Confederate, of the first seizures of United States property in the southern states, and of all military operations in the field, with the correspondence, orders and returns relating specially thereto. 1880-98. 111 v.--ser. II. v. 1-8 [serial no. 114-121] Correspondence, orders, reports and returns, Union and Confederate, relating to prisoners of war ... and to state or political prisoners. 1894 [i. e. 1898]-1899. 8 v.--ser. III. v. 1-5 [serial no. 122-126] Correspondence, orders, reports and return of the Union authorities (embracing their correspondence with the Confederate officials) not relating specially to the subjects of the first and second series. It embraces the reports of the secretary of war, of the general-in-chief and of the chiefs of the several staff corps and departments ... 1899-1900. 5 v.--ser. IV. v. 1-3 [serial no. 127-129] Correspondence, orders, reports and returns of the Confederate authoriites, similar to that indicated for the Union officials, as of the third series, but includeing the correspondence between the Union and Confederate authorities, given in that series. 1900. 3 v.--[serial no. 130] General index and additions and corrections. Mr. John S. Moodey, indexer. Preface [by Elihu Root, secretary of war] Explanations. Synopsis of the contents of volumes. Special index for the principal armies, army corps, military divisions and departments. General index. Additions and corrections ... 1901",
-      "Also available in print",
-      "Electronic reproduction. Ithaca, N.Y.: Cornell University Library, 2008. Available via world wide web"
+      {
+        "note": "Found also in the House Miscellaneous documents of the 52d to the 56th Congress",
+        "staffOnly": false
+      },
+      {
+        "note": "Each number has special index. Inserted in each volume: Additons and corrections ... Washington, Govt. Print. Off., 1902",
+        "staffOnly": false
+      },
+      {
+        "note": "Series 1, v. 1-53, series 3, v. 1-5, and series 4, v. 1-3 include \\\"Alternate designations of organizations mentioned.\\\"",
+        "staffOnly": false
+      },
+      {
+        "note": "Vol. 54-55 of series 1 [serial no. 112-113]\\\" have not been published, and no material for them is in hand.\\\" cf. General index, p. xl. Series 2, v. 1 [serial no. 114] with imprint 1894, was not issued until 1898",
+        "staffOnly": false
+      },
+      {
+        "note": "Edited in the War Records Office, 1880-July 1899; in the Record and Pension Office, July 1899-1901",
+        "staffOnly": false
+      },
+      {
+        "note": "Robert N. Scott compiled and edited v. 1-18, 1880-87, and also collected the greater part of the material for v. 19-36, 1887-91. After his death in 1887 the work was continued by Henry M. Lazelle, 1887-89, and by a board of publication, 1889-99, consisting of George B. Davis, 1889-97, Leslie J. Perry, 1889-99, Joseph W. Kirkley, 1889-99, and Fred C. Ainsworth, 1898-99; from 1899-1901 edited by Fred C. Ainsworth and Joseph W. Kirkley",
+        "staffOnly": false
+      },
+      {
+        "note": "ser. I. v. 1-53 [serial no. 1-111] Formal reports, both Union and Confederate, of the first seizures of United States property in the southern states, and of all military operations in the field, with the correspondence, orders and returns relating specially thereto. 1880-98. 111 v.--ser. II. v. 1-8 [serial no. 114-121] Correspondence, orders, reports and returns, Union and Confederate, relating to prisoners of war ... and to state or political prisoners. 1894 [i. e. 1898]-1899. 8 v.--ser. III. v. 1-5 [serial no. 122-126] Correspondence, orders, reports and return of the Union authorities (embracing their correspondence with the Confederate officials) not relating specially to the subjects of the first and second series. It embraces the reports of the secretary of war, of the general-in-chief and of the chiefs of the several staff corps and departments ... 1899-1900. 5 v.--ser. IV. v. 1-3 [serial no. 127-129] Correspondence, orders, reports and returns of the Confederate authoriites, similar to that indicated for the Union officials, as of the third series, but includeing the correspondence between the Union and Confederate authorities, given in that series. 1900. 3 v.--[serial no. 130] General index and additions and corrections. Mr. John S. Moodey, indexer. Preface [by Elihu Root, secretary of war] Explanations. Synopsis of the contents of volumes. Special index for the principal armies, army corps, military divisions and departments. General index. Additions and corrections ... 1901",
+        "staffOnly": false
+      },
+      {
+        "note": "Also available in print",
+        "staffOnly": false
+      },
+      {
+        "note": "Electronic reproduction. Ithaca, N.Y.: Cornell University Library, 2008. Available via world wide web",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3570,28 +3900,91 @@
     "languages": [
       "eng"
     ],
-    "notes": [
-      "Apple Corps Ltd.: 5099969945120 (5099969945229--5099969945922, 5099969946028, 5099968495725 (5099969946127--5099969946226), 5099968495824 (5099969946325--5099969946424))",
-      "Rock music",
-      "Title from container",
-      "\\\"The complete mono recordings. 185 songs ... all 10 original mono albums ... packaged in miniature vinyl sleeves that faithfully recreate the original LP releases down to the finest detail ... also includes a double-CD collection of all The Beatles non-album and EP tracks ... in mono including four mixes unique to this package\\\"--Insert",
-      "The Beatles (John Lennon, George Harrison, Paul McCartney, Ringo Starr)",
-      "Recorded 1962-1970",
-      "Reissues 1963-1970",
-      "Compact discs",
-      "Discs 5-6 include the mono. mix and original 1965 stereo. mix of each song",
-      "Program notes by Kevin Howlett ([44] p. : ill.) inserted in container; some individual slipcases reproduce original container notes and lyrics",
-      "Disc 1, Please please me. I saw her standing there / Paul McCartney, John Lennon (2:55) ; Misery / Paul McCartney, John Lennon (1:50) ; Anna (Go to him) / Arthur Alexander (2:57) ; Chains / Gerry Goffin, Carole King (2:26) ; Boys / Luther Dixon, Wes Farrell (2:27) ; Ask me why / Paul McCartney, John Lennon (2:27) ; Please please me / Paul McCartney, John Lennon (2:03) ; Love me do / Paul McCartney, John Lennon (2:22) ; P.S.I love you / Paul McCartney, John Lennon (2:05) ; Baby it's you / Mack David, Barney Williams, Burt Bacharach (2:38) ; Do you want to know a secret / Paul McCartney, John Lennon (1:59) ; A taste of honey / Bobby Scott, Ric Marlow (2:05) ; There's a place / Paul McCartney, John Lennon (1:52) ; Twist and shout / Phil Medley, Bert Russell (2:33)",
-      "Disc 2, With the Beatles. It won't be long / John Lennon, Paul McCartney (2:13) ; All I've got to do / John Lennon, Paul McCartney (2:04) ; All my loving / John Lennon, Paul McCartney (2:09) ; Don't bother me / George Harrison (2:29) ; Little child / John Lennon, Paul McCartney (1:48) ; Till there was you / Meredith Wilson (2:16) ; Please Mr. Postman / Georgia Dobbin, William Garrett, Fred Garman, Brianbert (2:36) ; Roll over Beethoven / Chuck Berry (2:47) ; Hold me tight / John Lennon, Paul McCartney (2:32) ; You really got a hold on me / Smokey Robinson (3:02) ; I wanna be your man / John Lennon, Paul McCartney (1:58) ; Devil in her heart / Richard Drapkin (2:27) ; Not a second time / John Lennon, Paul McCartney (2:08) ; Money (that's what I want) / Janie Bradford, Berry Gordy (2:47)",
-      "Disc 3, A hard day's night. A hard day's night / John Lennon, Paul McCartney (2:32) ; I should have known better / John Lennon, Paul McCartney (2:44) ; If I fell / John Lennon, Paul McCartney (2:22) ; I'm happy just to dance with you / John Lennon, Paul McCartney (1:58) ; And I love her / John Lennon, Paul McCartney (2:31) ; Tell me why / John Lennon, Paul McCartney (2:10) ; Can't buy me love / John Lennon, Paul McCartney (2:14) ; Any time at all / John Lennon, Paul McCartney (2:13) ; I'll cry instead / John Lennon, Paul McCartney (1:47) ; Things we said today / John Lennon, Paul McCartney (2:38) ; When I get home / John Lennon, Paul McCartney (2:18) ; You can't do that / John Lennon, Paul McCartney (2:37) ; I'll be back / John Lennon, Paul McCartney (2:20)",
-      "Disc 4, Beatles for sale. No reply / John Lennon, Paul McCartney (2:17) ; I'm a loser / John Lennon, Paul McCartney (2:33) ; Baby's in black / John Lennon, Paul McCartney (2:07) ; Rock and roll music / Chuck Berry (2:33) ; I'll follow the sun / John Lennon, Paul McCartney (1:51) ; Mr. Moonlight / Roy Lee Johnson (2:37) ; Kansas City / Jerry Leiber, Mike Stoller/ Hey-Hey-Hey-Hey! / Richard Penniman (2:33) ; Eight days a week / John Lennon, Paul McCartney (2:45) ; Words of love / Buddy Holly (2:14) ; Honey don't / Carl Perkins (2:59) ; Every little thing / John Lennon, Paul McCartney (2:04) ; I don't want to spoil the party / John Lennon, Paul McCartney (2:36) ; What you're doing / John Lennon, Paul McCartney (2:34) ; Everybody's trying to be my baby / Carl Perkins (2:23)",
-      "Disc 5, Help! Help! / John Lennon, Paul McCartney (2:21) ; The night before / John Lennon, Paul McCartney (2:36) ; You've got to hide your love away / John Lennon, Paul McCartney (2:11) ; I need you / George Harrison (2:31) ; Another girl / John Lennon, Paul McCartney (2:08) ; You're going to lose that girl / John Lennon, Paul McCartney (2:20) ; Ticket to ride / John Lennon, Paul McCartney (3:12) ; Act naturally / Voni Morrison, Johnny Russell (2:33) ; It's only love / John Lennon, Paul McCartney (1:58) ; You like me too much / George Harrison (2:38) ; Tell me what you see / John Lennon, Paul McCartney (2:39) ; I've just seen a face / John Lennon, Paul McCartney (2:07) ; Yesterday / John Lennon, Paul McCartney (2:07) ; Dizzy Miss Lizzy / Larry Williams (2:54)",
-      "Disc 6, Rubber soul. Drive my car / John Lennon, Paul McCartney (2:30) ; Norwegian wood (This bird has flown) / John Lennon, Paul McCartney (2:05) ; You won't see me / John Lennon, Paul McCartney (3:22) ; Nowhere man / John Lennon, Paul McCartney (2:44) ; Think for yourself / George Harrison (2:19) ; The word / John Lennon, Paul McCartney (2:43) ; Michelle / John Lennon, Paul McCartney (2:42) ; What goes on / John Lennon, Paul McCartney, Richard Starkey (2:50) ; Girl / John Lennon, Paul McCartney (2:33) ; I'm looking through you / John Lennon, Paul McCartney (2:27) ; In my life / John Lennon, Paul McCartney (2:27) ; Wait / John Lennon, Paul McCartney (2:16) ; If I needed someone / George Harrison (2:23) ; Run for your life / John Lennon, Paul McCartney (2:18)",
-      "Disc 7, Revolver. Taxman / George Harrison (2:39) ; Eleanor Rigby / John Lennon, Paul McCartney (2:07) ; I'm only sleeping / John Lennon, Paul McCartney (3:01) ; Love you to / George Harrison (3:01) ; Here, there, and everywhere / John Lennon, Paul McCartney (2:25) ; Yellow submarine / John Lennon, Paul McCartney (2:40) ; She said she said / John Lennon, Paul McCartney (2:37) ; Good day sunshine / John Lennon, Paul McCartney (2:09) ; And your bird can sing / John Lennon, Paul McCartney (2:01) ; For no one / John Lennon, Paul McCartney (2:01) ; Doctor Robert / John Lennon, Paul McCartney (2:01) ; I want to tell you / George Harrison (2:29) ; Got to get you into my life / John Lennon, Paul McCartney (2:37) ; Tomorrow never knows / John Lennon, Paul McCartney (2:57)",
-      "Disc 8, Sgt. Pepper's Lonely Hearts Club Band. Sgt. Pepper's Lonely Hearts Club Band / Paul McCartney (2:02) ; With a little help from my friends / John Lennon, Paul McCartney (2:44) ; Lucy in the sky with diamonds / John Lennon (3:28) ; Getting better / Paul McCartney (2:47) ; Fixing a hole / Paul McCartney (2:36) ; She's leaving home / Paul McCartney, John Lennon (3:35) ; Being for the benefit of Mr. Kite! / John Lennon (2:37) ; Within you without you / George Harrison (5:05) ; When I'm sixty-four / Paul McCartney (2:37) ; Lovely Rita / Paul McCartney (2:42) ; Good morning good morning / John Lennon (2:41) ; Sgt. Pepper's Lonely Hearts Club Band (reprise) / Paul McCartney (1:18) ; A day in the life / John Lennon, Paul McCartney (5:33)",
-      "Disc 9, Magical mystery tour. Magical mystery tour / John Lennon, Paul McCartney (2:48) ; The fool on the hill / John Lennon, Paul McCartney (3:00) ; Flying / John Lennon, Paul McCartney, George Harrison, Ringo Starr (2:16) ; Blue Jay Way / George Harrison (3:50) ; Your mother should know / John Lennon, Paul McCartney (2:33) ; I am the walrus / John Lennon, Paul McCartney (4:35) ; Hello, goodbye / John Lennon, Paul McCartney (3:24) ; Strawberry fields forever / John Lennon, Paul McCartney (4:05) ; Penny Lane / John Lennon, Paul McCartney (2:57) ; Baby, you're a rich man / John Lennon, Paul McCartney (3:07) ; All you need is love / John Lennon, Paul McCartney (3:57)",
-      "Discs 10-11, The Beatles. Back in the U.S.S.R. / John Lennon, Paul McCartney (2:43) ; Dear Prudence / John Lennon, Paul McCartney (3:56) ; Glass onion / John Lennon, Paul McCartney (2:17) ; Ob-la-di, ob-la-da / John Lennon, Paul McCartney (3:08) ; Wild honey pie / John Lennon, Paul McCartney (0:52) ; The continuing story of Bungalow Bill / John Lennon, Paul McCartney (3:14) ; While my guitar gently weeps / George Harrison (4:45) ; Happiness is a warm gun / John Lennon, Paul McCartney (2:43) ; Martha my dear / John Lennon, Paul McCartney (2:28) ; I'm so tired / John Lennon, Paul McCartney (2:03) ; Blackbird / John Lennon, Paul McCartney (2:18) ; Piggies / George Harrison (2:04) ; Rocky Raccoon / John Lennon, Paul McCartney (3:32) ; Don't pass me by / Ringo Starr (3:50) ; Why don't we do it in the road? / John Lennon, Paul McCartney (1:41) ; I will / John Lennon, Paul McCartney (1:46) ; Julia / John Lennon, Paul McCartney (2:54) ; Birthday / John Lennon, Paul McCartney (2:42) ; Yer blues / John Lennon, Paul McCartney (4:01) ; Mother Nature's son / John Lennon, Paul McCartney (2:48) ; Everybody's got something to hide except me and my monkey / John Lennon, Paul McCartney (2:24) ; Sexy Sadie / John Lennon, Paul McCartney (3:15) ; Helter skelter / John Lennon, Paul McCartney (4:29) ; Long, long, long / George Harrison (3:04) ; Revolution 1 / John Lennon, Paul McCartney (4:15) ; Honey pie / John Lennon, Paul McCartney (2:41) ; Savoy truffle / George Harrison (2:54) ; Cry baby cry / John Lennon, Paul McCartney (3:01) ; Revolution 9 / John Lennon, Paul McCartney (8:22) ; Good night / John Lennon, Paul McCartney (3:11)",
-      "Discs 12-13, Mono masters. Love me do (original single version) / John Lennon, Paul McCartney (2:23) ; From me to you / John Lennon, Paul McCartney (1:57) ; Thank you girl / John Lennon, Paul McCartney (2:05) ; She loves you / John Lennon, Paul McCartney (2:21) ; I'll get you / John Lennon, Paul McCartney (2:05) ; I want to hold your hand / John Lennon, Paul McCartney (2:26) ; This boy / John Lennon, Paul McCartney (2:16) ; Komm, gib mir deine Hand / John Lennon, Paul McCartney (2:26) ; Sie liebt dich / John Lennon, Paul McCartney (2:19) ; Long tall Sally / Robert Blackwell, Etotris Johnson, Little Richard (2:03) ; I call your name / John Lennon, Paul McCartney (2:09) ; Slow down / Larry Williams (2:56) ; Matchbox / Carl Perkins (1:58) ; I feel fine / John Lennon, Paul McCartney (2:19) ; She's a woman / John Lennon, Paul McCartney (3:03) ; Bad boy / Larry Williams (2:20) ; Yes it is / John Lennon, Paul McCartney (2:42) ; I'm down / John Lennon, Paul McCartney (2:31) ; Day tripper / John Lennon, Paul McCartney (2:49) ; We can work it out / John Lennon, Paul McCartney (2:15) ; Paperback writer / John Lennon, Paul McCartney (2:18) ; Rain / John Lennon, Paul McCartney (3:02) ; Lady Madonna / John Lennon, Paul McCartney (2:17) ; The inner light / George Harrison (2:36) ; Hey Jude / John Lennon, Paul McCartney (7:08) ; Revolution / John Lennon, Paul McCartney (3:24) ; Only a northern song / George Harrison (3:11) ; All together now / John Lennon, Paul McCartney (3:35) ; Hey bulldog / John Lennon, Paul McCartney (2:59) ; It's all too much / George Harrison (3:18) ; Get back (with Billy Preston) / John Lennon, Paul McCartney (3:49) ; Don't let me down (with Billy Preston) / John Lennon, Paul McCartney (3:51) ; Across the universe / John Lennon, Paul McCartney (4:19) ; You know my name (Look up the number) / John Lennon, Paul McCartney (4:24)"
+    "notes":[
+      {
+        "note": "Apple Corps Ltd.: 5099969945120 (5099969945229--5099969945922, 5099969946028, 5099968495725 (5099969946127--5099969946226), 5099968495824 (5099969946325--5099969946424))",
+        "staffOnly": false
+      },
+      {
+        "note": "Rock music",
+        "staffOnly": false
+      },
+      {
+        "note": "Title from container",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"The complete mono recordings. 185 songs ... all 10 original mono albums ... packaged in miniature vinyl sleeves that faithfully recreate the original LP releases down to the finest detail ... also includes a double-CD collection of all The Beatles non-album and EP tracks ... in mono including four mixes unique to this package\\\"--Insert",
+        "staffOnly": false
+      },
+      {
+        "note": "The Beatles (John Lennon, George Harrison, Paul McCartney, Ringo Starr)",
+        "staffOnly": false
+      },
+      {
+        "note": "Recorded 1962-1970",
+        "staffOnly": false
+      },
+      {
+        "note": "Reissues 1963-1970",
+        "staffOnly": false
+      },
+      {
+        "note": "Compact discs",
+        "staffOnly": false
+      },
+      {
+        "note": "Discs 5-6 include the mono. mix and original 1965 stereo. mix of each song",
+        "staffOnly": false
+      },
+      {
+        "note": "Program notes by Kevin Howlett ([44] p. : ill.) inserted in container; some individual slipcases reproduce original container notes and lyrics",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 1, Please please me. I saw her standing there / Paul McCartney, John Lennon (2:55) ; Misery / Paul McCartney, John Lennon (1:50) ; Anna (Go to him) / Arthur Alexander (2:57) ; Chains / Gerry Goffin, Carole King (2:26) ; Boys / Luther Dixon, Wes Farrell (2:27) ; Ask me why / Paul McCartney, John Lennon (2:27) ; Please please me / Paul McCartney, John Lennon (2:03) ; Love me do / Paul McCartney, John Lennon (2:22) ; P.S.I love you / Paul McCartney, John Lennon (2:05) ; Baby it's you / Mack David, Barney Williams, Burt Bacharach (2:38) ; Do you want to know a secret / Paul McCartney, John Lennon (1:59) ; A taste of honey / Bobby Scott, Ric Marlow (2:05) ; There's a place / Paul McCartney, John Lennon (1:52) ; Twist and shout / Phil Medley, Bert Russell (2:33)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 2, With the Beatles. It won't be long / John Lennon, Paul McCartney (2:13) ; All I've got to do / John Lennon, Paul McCartney (2:04) ; All my loving / John Lennon, Paul McCartney (2:09) ; Don't bother me / George Harrison (2:29) ; Little child / John Lennon, Paul McCartney (1:48) ; Till there was you / Meredith Wilson (2:16) ; Please Mr. Postman / Georgia Dobbin, William Garrett, Fred Garman, Brianbert (2:36) ; Roll over Beethoven / Chuck Berry (2:47) ; Hold me tight / John Lennon, Paul McCartney (2:32) ; You really got a hold on me / Smokey Robinson (3:02) ; I wanna be your man / John Lennon, Paul McCartney (1:58) ; Devil in her heart / Richard Drapkin (2:27) ; Not a second time / John Lennon, Paul McCartney (2:08) ; Money (that's what I want) / Janie Bradford, Berry Gordy (2:47)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 3, A hard day's night. A hard day's night / John Lennon, Paul McCartney (2:32) ; I should have known better / John Lennon, Paul McCartney (2:44) ; If I fell / John Lennon, Paul McCartney (2:22) ; I'm happy just to dance with you / John Lennon, Paul McCartney (1:58) ; And I love her / John Lennon, Paul McCartney (2:31) ; Tell me why / John Lennon, Paul McCartney (2:10) ; Can't buy me love / John Lennon, Paul McCartney (2:14) ; Any time at all / John Lennon, Paul McCartney (2:13) ; I'll cry instead / John Lennon, Paul McCartney (1:47) ; Things we said today / John Lennon, Paul McCartney (2:38) ; When I get home / John Lennon, Paul McCartney (2:18) ; You can't do that / John Lennon, Paul McCartney (2:37) ; I'll be back / John Lennon, Paul McCartney (2:20)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 4, Beatles for sale. No reply / John Lennon, Paul McCartney (2:17) ; I'm a loser / John Lennon, Paul McCartney (2:33) ; Baby's in black / John Lennon, Paul McCartney (2:07) ; Rock and roll music / Chuck Berry (2:33) ; I'll follow the sun / John Lennon, Paul McCartney (1:51) ; Mr. Moonlight / Roy Lee Johnson (2:37) ; Kansas City / Jerry Leiber, Mike Stoller/ Hey-Hey-Hey-Hey! / Richard Penniman (2:33) ; Eight days a week / John Lennon, Paul McCartney (2:45) ; Words of love / Buddy Holly (2:14) ; Honey don't / Carl Perkins (2:59) ; Every little thing / John Lennon, Paul McCartney (2:04) ; I don't want to spoil the party / John Lennon, Paul McCartney (2:36) ; What you're doing / John Lennon, Paul McCartney (2:34) ; Everybody's trying to be my baby / Carl Perkins (2:23)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 5, Help! Help! / John Lennon, Paul McCartney (2:21) ; The night before / John Lennon, Paul McCartney (2:36) ; You've got to hide your love away / John Lennon, Paul McCartney (2:11) ; I need you / George Harrison (2:31) ; Another girl / John Lennon, Paul McCartney (2:08) ; You're going to lose that girl / John Lennon, Paul McCartney (2:20) ; Ticket to ride / John Lennon, Paul McCartney (3:12) ; Act naturally / Voni Morrison, Johnny Russell (2:33) ; It's only love / John Lennon, Paul McCartney (1:58) ; You like me too much / George Harrison (2:38) ; Tell me what you see / John Lennon, Paul McCartney (2:39) ; I've just seen a face / John Lennon, Paul McCartney (2:07) ; Yesterday / John Lennon, Paul McCartney (2:07) ; Dizzy Miss Lizzy / Larry Williams (2:54)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 6, Rubber soul. Drive my car / John Lennon, Paul McCartney (2:30) ; Norwegian wood (This bird has flown) / John Lennon, Paul McCartney (2:05) ; You won't see me / John Lennon, Paul McCartney (3:22) ; Nowhere man / John Lennon, Paul McCartney (2:44) ; Think for yourself / George Harrison (2:19) ; The word / John Lennon, Paul McCartney (2:43) ; Michelle / John Lennon, Paul McCartney (2:42) ; What goes on / John Lennon, Paul McCartney, Richard Starkey (2:50) ; Girl / John Lennon, Paul McCartney (2:33) ; I'm looking through you / John Lennon, Paul McCartney (2:27) ; In my life / John Lennon, Paul McCartney (2:27) ; Wait / John Lennon, Paul McCartney (2:16) ; If I needed someone / George Harrison (2:23) ; Run for your life / John Lennon, Paul McCartney (2:18)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 7, Revolver. Taxman / George Harrison (2:39) ; Eleanor Rigby / John Lennon, Paul McCartney (2:07) ; I'm only sleeping / John Lennon, Paul McCartney (3:01) ; Love you to / George Harrison (3:01) ; Here, there, and everywhere / John Lennon, Paul McCartney (2:25) ; Yellow submarine / John Lennon, Paul McCartney (2:40) ; She said she said / John Lennon, Paul McCartney (2:37) ; Good day sunshine / John Lennon, Paul McCartney (2:09) ; And your bird can sing / John Lennon, Paul McCartney (2:01) ; For no one / John Lennon, Paul McCartney (2:01) ; Doctor Robert / John Lennon, Paul McCartney (2:01) ; I want to tell you / George Harrison (2:29) ; Got to get you into my life / John Lennon, Paul McCartney (2:37) ; Tomorrow never knows / John Lennon, Paul McCartney (2:57)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 8, Sgt. Pepper's Lonely Hearts Club Band. Sgt. Pepper's Lonely Hearts Club Band / Paul McCartney (2:02) ; With a little help from my friends / John Lennon, Paul McCartney (2:44) ; Lucy in the sky with diamonds / John Lennon (3:28) ; Getting better / Paul McCartney (2:47) ; Fixing a hole / Paul McCartney (2:36) ; She's leaving home / Paul McCartney, John Lennon (3:35) ; Being for the benefit of Mr. Kite! / John Lennon (2:37) ; Within you without you / George Harrison (5:05) ; When I'm sixty-four / Paul McCartney (2:37) ; Lovely Rita / Paul McCartney (2:42) ; Good morning good morning / John Lennon (2:41) ; Sgt. Pepper's Lonely Hearts Club Band (reprise) / Paul McCartney (1:18) ; A day in the life / John Lennon, Paul McCartney (5:33)",
+        "staffOnly": false
+      },
+      {
+        "note": "Disc 9, Magical mystery tour. Magical mystery tour / John Lennon, Paul McCartney (2:48) ; The fool on the hill / John Lennon, Paul McCartney (3:00) ; Flying / John Lennon, Paul McCartney, George Harrison, Ringo Starr (2:16) ; Blue Jay Way / George Harrison (3:50) ; Your mother should know / John Lennon, Paul McCartney (2:33) ; I am the walrus / John Lennon, Paul McCartney (4:35) ; Hello, goodbye / John Lennon, Paul McCartney (3:24) ; Strawberry fields forever / John Lennon, Paul McCartney (4:05) ; Penny Lane / John Lennon, Paul McCartney (2:57) ; Baby, you're a rich man / John Lennon, Paul McCartney (3:07) ; All you need is love / John Lennon, Paul McCartney (3:57)",
+        "staffOnly": false
+      },
+      {
+        "note": "Discs 10-11, The Beatles. Back in the U.S.S.R. / John Lennon, Paul McCartney (2:43) ; Dear Prudence / John Lennon, Paul McCartney (3:56) ; Glass onion / John Lennon, Paul McCartney (2:17) ; Ob-la-di, ob-la-da / John Lennon, Paul McCartney (3:08) ; Wild honey pie / John Lennon, Paul McCartney (0:52) ; The continuing story of Bungalow Bill / John Lennon, Paul McCartney (3:14) ; While my guitar gently weeps / George Harrison (4:45) ; Happiness is a warm gun / John Lennon, Paul McCartney (2:43) ; Martha my dear / John Lennon, Paul McCartney (2:28) ; I'm so tired / John Lennon, Paul McCartney (2:03) ; Blackbird / John Lennon, Paul McCartney (2:18) ; Piggies / George Harrison (2:04) ; Rocky Raccoon / John Lennon, Paul McCartney (3:32) ; Don't pass me by / Ringo Starr (3:50) ; Why don't we do it in the road? / John Lennon, Paul McCartney (1:41) ; I will / John Lennon, Paul McCartney (1:46) ; Julia / John Lennon, Paul McCartney (2:54) ; Birthday / John Lennon, Paul McCartney (2:42) ; Yer blues / John Lennon, Paul McCartney (4:01) ; Mother Nature's son / John Lennon, Paul McCartney (2:48) ; Everybody's got something to hide except me and my monkey / John Lennon, Paul McCartney (2:24) ; Sexy Sadie / John Lennon, Paul McCartney (3:15) ; Helter skelter / John Lennon, Paul McCartney (4:29) ; Long, long, long / George Harrison (3:04) ; Revolution 1 / John Lennon, Paul McCartney (4:15) ; Honey pie / John Lennon, Paul McCartney (2:41) ; Savoy truffle / George Harrison (2:54) ; Cry baby cry / John Lennon, Paul McCartney (3:01) ; Revolution 9 / John Lennon, Paul McCartney (8:22) ; Good night / John Lennon, Paul McCartney (3:11)",
+        "staffOnly": false
+      },
+      {
+        "note": "Discs 12-13, Mono masters. Love me do (original single version) / John Lennon, Paul McCartney (2:23) ; From me to you / John Lennon, Paul McCartney (1:57) ; Thank you girl / John Lennon, Paul McCartney (2:05) ; She loves you / John Lennon, Paul McCartney (2:21) ; I'll get you / John Lennon, Paul McCartney (2:05) ; I want to hold your hand / John Lennon, Paul McCartney (2:26) ; This boy / John Lennon, Paul McCartney (2:16) ; Komm, gib mir deine Hand / John Lennon, Paul McCartney (2:26) ; Sie liebt dich / John Lennon, Paul McCartney (2:19) ; Long tall Sally / Robert Blackwell, Etotris Johnson, Little Richard (2:03) ; I call your name / John Lennon, Paul McCartney (2:09) ; Slow down / Larry Williams (2:56) ; Matchbox / Carl Perkins (1:58) ; I feel fine / John Lennon, Paul McCartney (2:19) ; She's a woman / John Lennon, Paul McCartney (3:03) ; Bad boy / Larry Williams (2:20) ; Yes it is / John Lennon, Paul McCartney (2:42) ; I'm down / John Lennon, Paul McCartney (2:31) ; Day tripper / John Lennon, Paul McCartney (2:49) ; We can work it out / John Lennon, Paul McCartney (2:15) ; Paperback writer / John Lennon, Paul McCartney (2:18) ; Rain / John Lennon, Paul McCartney (3:02) ; Lady Madonna / John Lennon, Paul McCartney (2:17) ; The inner light / George Harrison (2:36) ; Hey Jude / John Lennon, Paul McCartney (7:08) ; Revolution / John Lennon, Paul McCartney (3:24) ; Only a northern song / George Harrison (3:11) ; All together now / John Lennon, Paul McCartney (3:35) ; Hey bulldog / John Lennon, Paul McCartney (2:59) ; It's all too much / George Harrison (3:18) ; Get back (with Billy Preston) / John Lennon, Paul McCartney (3:49) ; Don't let me down (with Billy Preston) / John Lennon, Paul McCartney (3:51) ; Across the universe / John Lennon, Paul McCartney (4:19) ; You know my name (Look up the number) / John Lennon, Paul McCartney (4:24)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3653,11 +4046,26 @@
       "akk"
     ],
     "notes": [
-      "Cuneiform tablets (tablets made of clay, stone, metal, or wax, and inscribed with a wedge-shaped stylus) from the Old Babylonian period in ancient Mesopotamia, roughly the site of modern Iraq. Most are records of business transactions",
-      "Digital images of the tablets are in the Cuneiform Digital Library Initiative database",
-      "By appointment only",
-      "In Akkadian and Sumerian",
-      "Cuneiform Tablets, #6906. Division of Rare and Manuscript Collections, Cornell University Library"
+      {
+        "note": "Cuneiform tablets (tablets made of clay, stone, metal, or wax, and inscribed with a wedge-shaped stylus) from the Old Babylonian period in ancient Mesopotamia, roughly the site of modern Iraq. Most are records of business transactions",
+        "staffOnly": false
+      },
+      {
+        "note": "Digital images of the tablets are in the Cuneiform Digital Library Initiative database",
+        "staffOnly": false
+      },
+      {
+        "note": "By appointment only",
+        "staffOnly": false
+      },
+      {
+        "note": "In Akkadian and Sumerian",
+        "staffOnly": false
+      },
+      {
+        "note": "Cuneiform Tablets, #6906. Division of Rare and Manuscript Collections, Cornell University Library",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3744,13 +4152,34 @@
       "spa"
     ],
     "notes": [
-      "Story of Joan Soriano, a Bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life",
-      "DVD-R",
-      "In Spanish with English subtitles; Spanish subtitles when English spoken",
-      "Joan Soriano",
-      "Camera/editor, Adam Taub ; music, Joan Soriano",
-      "Bonus features: Mi ultimo llanto; Joan sings in NY; Cande dances; Palos; Colmado dance; El Chivo & Joan",
-      "Story of Joan (Yoan) Soriano, a bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life"
+      {
+        "note": "Story of Joan Soriano, a Bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life",
+        "staffOnly": false
+      },
+      {
+        "note": "DVD-R",
+        "staffOnly": false
+      },
+      {
+        "note": "In Spanish with English subtitles; Spanish subtitles when English spoken",
+        "staffOnly": false
+      },
+      {
+        "note": "Joan Soriano",
+        "staffOnly": false
+      },
+      {
+        "note": "Camera/editor, Adam Taub ; music, Joan Soriano",
+        "staffOnly": false
+      },
+      {
+        "note": "Bonus features: Mi ultimo llanto; Joan sings in NY; Cande dances; Palos; Colmado dance; El Chivo & Joan",
+        "staffOnly": false
+      },
+      {
+        "note": "Story of Joan (Yoan) Soriano, a bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3853,16 +4282,46 @@
       "spa"
     ],
     "notes": [
-      "Sung in Spanish (CD)",
-      "In Spanish with English subtitles; Spanish subtitles when English spoken (DVD)",
-      "Joan Soriano, lead vocal, lead guitar ; with assisting musicians",
-      "Produced by Benjamin de Ménil (CD)",
-      "Camera/editor, Adam Taub ; music, Joan Soriano (DVD)",
-      "Compact disc",
-      "Program notes in English with Spanish translation ([14] p. : ill. (some col.)) inserted in container",
-      "Bonus features on DVD: Mi último llanto; Joan sings in NY; Cande dances; Palos; Colmado dance; El Chivo & Joan",
-      "DVD: Story of Joan Soriano, a Bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life",
-      "CD: Mi último llanto -- María Elena -- Su lada de cama -- Solo tú -- Cal y arena -- Amor de niño -- Mal pensado -- La mamandela -- Mujeres ajenas -- ¿Qué pasará mañana? -- Lo que se da no se quita -- Aye Belie"
+      {
+        "note": "Sung in Spanish (CD)",
+        "staffOnly": false
+      },
+      {
+        "note": "In Spanish with English subtitles; Spanish subtitles when English spoken (DVD)",
+        "staffOnly": false
+      },
+      {
+        "note": "Joan Soriano, lead vocal, lead guitar ; with assisting musicians",
+        "staffOnly": false
+      },
+      {
+        "note": "Produced by Benjamin de Ménil (CD)",
+        "staffOnly": false
+      },
+      {
+        "note": "Camera/editor, Adam Taub ; music, Joan Soriano (DVD)",
+        "staffOnly": false
+      },
+      {
+        "note": "Compact disc",
+        "staffOnly": false
+      },
+      {
+        "note": "Program notes in English with Spanish translation ([14] p. : ill. (some col.)) inserted in container",
+        "staffOnly": false
+      },
+      {
+        "note":"Bonus features on DVD: Mi último llanto; Joan sings in NY; Cande dances; Palos; Colmado dance; El Chivo & Joan",
+        "staffOnly":false
+      },
+      {
+        "note": "DVD: Story of Joan Soriano, a Bachata musician from the Dominican Republic, as he struggles to reach his goal of a hit CD and success as a musician. It is also the story of his large extended family living in the rural countryside of Monte Plata as they dream along with him, hoping that his success will improve their economic situation and quality of life",
+        "staffOnly": false
+      },
+      {
+        "note": "CD: Mi último llanto -- María Elena -- Su lada de cama -- Solo tú -- Cal y arena -- Amor de niño -- Mal pensado -- La mamandela -- Mujeres ajenas -- ¿Qué pasará mañana? -- Lo que se da no se quita -- Aye Belie",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3924,10 +4383,22 @@
       "zxx"
     ],
     "notes": [
-      "Electronic components, wire, and battery inserted into transparent CD jewel case",
-      "Requires headphones",
-      "A 5-movement symphony for electronic sounds has been programmed onto a computer chip. When a user turns on the device a processor transforms the program into sounds that can be heard through headphones",
-      "Includes computer program of symphony, printed on folded page"
+      {
+        "note": "Electronic components, wire, and battery inserted into transparent CD jewel case",
+        "staffOnly": false
+      },
+      {
+        "note": "Requires headphones",
+        "staffOnly": false
+      },
+      {
+        "note": "A 5-movement symphony for electronic sounds has been programmed onto a computer chip. When a user turns on the device a processor transforms the program into sounds that can be heard through headphones",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes computer program of symphony, printed on folded page",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -3998,7 +4469,10 @@
       "chi"
     ],
     "notes": [
-      "Includes bibliographical references (p. [275]-290)"
+      {
+        "note": "Includes bibliographical references (p. [275]-290)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4070,14 +4544,38 @@
       "sai"
     ],
     "notes": [
-      "Music of the Huarani, Colorado, Cayapa, Cofan, Siona, and Secoya tribes of Ecuador",
-      "Originally issued as analog disc on Folkways Records: FE 4375,1986",
-      "Previously issued as compact disc",
-      "Program notes with bibliography (5 p. : 2 maps, 11 ports.) inserted in and detailed contents and durations on original container",
-      "Recorded by David Blair Stiffler",
-      "Smithsonian Folkways: FE 4375; F-4375 on original container",
-      "Narrative song (3:14) -- Marimba instrumental (1: 28 ; 1:35 ; 2:10) -- Leaf bundle healing technique (3: 43) -- Festive song (1:41) -- Harmonica \\\"Song of ourselves\\\" (1:18) -- Harmonica \\\"Caramba\\\" (1:03) -- Cerro colorado (1:40) -- Healing segment (1:44) -- Leaf bundle on baby (1:40) -- Spirit intrusion removal (7:10) -- Wire bow instrumental (3:57) -- Wire bow (Hernando & Luis) (2:47) -- Spirit manifestation (wire bow, boots, see pod necklace) (1: 20) -- Yage ceremony (opening oration) (3:47) -- Festive (Chicha?) song : women singing (4:06) -- Festive song (1:29)",
-      "Electronic reproduction. Alexandria, VA : Alexander Street Press, 2009. (Smithsonian global sound for libraries). Available via World Wide Web"
+      {
+        "note": "Music of the Huarani, Colorado, Cayapa, Cofan, Siona, and Secoya tribes of Ecuador",
+        "staffOnly": false
+      },
+      {
+        "note": "Originally issued as analog disc on Folkways Records: FE 4375,1986",
+        "staffOnly": false
+      },
+      {
+        "note": "Previously issued as compact disc",
+        "staffOnly": false
+      },
+      {
+        "note": "Program notes with bibliography (5 p. : 2 maps, 11 ports.) inserted in and detailed contents and durations on original container",
+        "staffOnly": false
+      },
+      {
+        "note": "Recorded by David Blair Stiffler",
+        "staffOnly": false
+      },
+      {
+        "note": "Smithsonian Folkways: FE 4375; F-4375 on original container",
+        "staffOnly": false
+      },
+      {
+        "note": "Narrative song (3:14) -- Marimba instrumental (1: 28 ; 1:35 ; 2:10) -- Leaf bundle healing technique (3: 43) -- Festive song (1:41) -- Harmonica \\\"Song of ourselves\\\" (1:18) -- Harmonica \\\"Caramba\\\" (1:03) -- Cerro colorado (1:40) -- Healing segment (1:44) -- Leaf bundle on baby (1:40) -- Spirit intrusion removal (7:10) -- Wire bow instrumental (3:57) -- Wire bow (Hernando & Luis) (2:47) -- Spirit manifestation (wire bow, boots, see pod necklace) (1: 20) -- Yage ceremony (opening oration) (3:47) -- Festive (Chicha?) song : women singing (4:06) -- Festive song (1:29)",
+        "staffOnly": false
+      },
+      {
+        "note": "Electronic reproduction. Alexandria, VA : Alexander Street Press, 2009. (Smithsonian global sound for libraries). Available via World Wide Web",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4141,10 +4639,22 @@
       "zxx"
     ],
     "notes": [
-      "Title from protective sleeve",
-      "Composed and performed by FM3 (Zhang Jian and Christiaan Virant)",
-      "Two AA batteries required for playback; earphones optional",
-      "The Buddha Machine is a small musical loop player the size of a cigarette pack, with one button, an on-off/volume dial and a speaker. Inside is a chip containing digitally-encoded loops. The name and idea derived from a popular Chinese device that intones repeating loops of Buddhist chanting. The Buddha Machine III, or Chan Fang, contains four extended classical music loops performed on the qin, and is available in black, blue, clear, green, or red"
+      {
+        "note": "Title from protective sleeve",
+        "staffOnly": false
+      },
+      {
+        "note": "Composed and performed by FM3 (Zhang Jian and Christiaan Virant)",
+        "staffOnly": false
+      },
+      {
+        "note": "Two AA batteries required for playback; earphones optional",
+        "staffOnly": false
+      },
+      {
+        "note": "The Buddha Machine is a small musical loop player the size of a cigarette pack, with one button, an on-off/volume dial and a speaker. Inside is a chip containing digitally-encoded loops. The name and idea derived from a popular Chinese device that intones repeating loops of Buddhist chanting. The Buddha Machine III, or Chan Fang, contains four extended classical music loops performed on the qin, and is available in black, blue, clear, green, or red",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4238,7 +4748,10 @@
       "eng"
     ],
     "notes": [
-      "Includes index"
+      {
+        "note": "Includes index",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4354,11 +4867,26 @@
       "lat"
     ],
     "notes": [
-      "Sung in Latin",
-      "Anja Harteros, soprano ; Elīna Garanča, mezzo-soprano ; Jonas Kaufmann, tenor ; René Pape, bass ; Orchestra e coro del Teatro alla Scala ; Bruno Casoni, chorus master ; Daniel Barenboim, conductor",
-      "Recorded live on Aug. 27-28, 2012 at Teatro alla Scala",
-      "Compact discs",
-      "Historical notes in English and Latin text with English translation (18 p.) inserted in container"
+      {
+        "note": "Sung in Latin",
+        "staffOnly": false
+      },
+      {
+        "note": "Anja Harteros, soprano ; Elīna Garanča, mezzo-soprano ; Jonas Kaufmann, tenor ; René Pape, bass ; Orchestra e coro del Teatro alla Scala ; Bruno Casoni, chorus master ; Daniel Barenboim, conductor",
+        "staffOnly": false
+      },
+      {
+        "note": "Recorded live on Aug. 27-28, 2012 at Teatro alla Scala",
+        "staffOnly": false
+      },
+      {
+        "note": "Compact discs",
+        "staffOnly": false
+      },
+      {
+        "note":"Historical notes in English and Latin text with English translation (18 p.) inserted in container",
+        "staffOnly":false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4493,9 +5021,18 @@
       "eng"
     ],
     "notes": [
-      "Description based on contents viewed Dec. 18, 2013; title from advanced search page",
-      "A full-text searchable suite of collections sourced from the National Archives, Kew. Includes The Nixon years, Confidential print Africa, Confidential print Latin America, Confidential print, North America, Confidential print Middle East, Foreign Office Files China, amongst others",
-      "Access limited to subscribers"
+      {
+        "note": "Description based on contents viewed Dec. 18, 2013; title from advanced search page",
+        "staffOnly": false
+      },
+      {
+        "note": "A full-text searchable suite of collections sourced from the National Archives, Kew. Includes The Nixon years, Confidential print Africa, Confidential print Latin America, Confidential print, North America, Confidential print Middle East, Foreign Office Files China, amongst others",
+        "staffOnly": false
+      },
+      {
+        "note": "Access limited to subscribers",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4671,11 +5208,26 @@
       "eng"
     ],
     "notes": [
-      "Naxos Digital Services electronic collection",
-      "Streaming audio",
-      "O come, o come, Emmanuel (arr. A. Pitts) ( 05 min., 58 sec. ) /  -- Of the Father's heart begotten (arr. A. Pitts) ( 04 min., 37 sec. ) /  -- O quickly come ( 02 min., 52 sec. ) / Pitts -- Verbum Patris umanatur, O, O (arr. A. Pitts) ( 01 min., 16 sec. ) /  -- Lo! He comes (arr. A. Pitts) ( 04 min., 24 sec. ) / Madan -- The holly and the ivy (arr. A. Pitts) ( 02 min., 45 sec. ) / Pitts -- Lo, there a Rose is blooming (arr. A. Pitts) ( 02 min., 23 sec. ) / Praetorius -- Alleluya - a new work (arr. A. Pitts) ( 06 min., 04 sec. ) /  -- Ding! dong! merrily on high (arr. A. Pitts) ( 01 min., 39 sec. ) / Tabourot -- While shepherds watched (arr. A. Pitts) ( 02 min., 31 sec. ) / Kirbye -- The Song of Angels (arr. A. Pitts) ( 01 min., 16 sec. ) / Gibbons -- Festgesang, MWV D4, \\\"Gutenberg-Kantate\\\": No. 2. (adap. W.H. Cummings as Hark! The Herald Angels Sing) (arr. A. Pitts) ( 02 min., 45 sec. ) / Mendelssohn -- Silent Night (arr. A. Pitts) ( 03 min., 56 sec. ) / Gruber -- Away in a manger (arr. A. Pitts) ( 02 min., 20 sec. ) / Kirkpatrick -- Baby Jesus, hush! now sleep (arr. A. Pitts) ( 03 min., 30 sec. ) /  -- O Little Town of Bethlehem (arr. A. Pitts) ( 05 min., 02 sec. ) / Pitts -- Jesu, the very thought is sweet (arr. A. Pitts) ( 04 min., 49 sec. ) /  -- O come, all ye faithful (arr. A. Pitts) ( 03 min., 56 sec. ) / Wade -- Personent hodie (arr. A. Pitts) ( 02 min., 10 sec. ) /  -- In dulci jubilo (arr. A. Pitts) ( 02 min., 45 sec. ) / Bach -- Good King Wenceslas (arr. A. Pitts) ( 01 min., 49 sec. ) /  -- We three kings of Orient are (arr. A. Pitts) ( 03 min., 07 sec. ) / Hopkins -- I saw three ships come sailing in (arr. A. Pitts) ( 01 min., 22 sec. ) /  -- Hail to the Lord's Anointed (arr. A. Pitts) ( 05 min., 41 sec. ) / Pitts",
-      "Tonus Peregrinus, Choir -- Pitts, Antony, Conductor -- Traditional, Composer -- Madan, Martin, Composer -- Olivers, Thomas, Composer -- Sharp, C. J., Composer -- Praetorius, Michael, Composer -- Anonymous, Lyricist -- Tabourot, Jehan, Composer -- Kirbye, George, Composer -- Tye, Christopher, Composer -- Mendelssohn, Felix, Composer -- Mohr, Josef, Lyricist -- Gruber, Franz Xaver, Composer -- Kirkpatrick, William J., Composer -- Pitts, John Michael, Composer -- Wade, John Francis, Composer -- Bach, Johann Sebastian, Composer -- Stainer, John, Composer -- Neale, John Mason, Lyricist -- Hopkins, Jr., John Henry, Composer -- Gibbons, Orlando, Composer",
-      "Mode of access: Available online"
+      {
+        "note": "Naxos Digital Services electronic collection",
+        "staffOnly": false
+      },
+      {
+        "note": "Streaming audio",
+        "staffOnly": false
+      },
+      {
+        "note": "O come, o come, Emmanuel (arr. A. Pitts) ( 05 min., 58 sec. ) /  -- Of the Father's heart begotten (arr. A. Pitts) ( 04 min., 37 sec. ) /  -- O quickly come ( 02 min., 52 sec. ) / Pitts -- Verbum Patris umanatur, O, O (arr. A. Pitts) ( 01 min., 16 sec. ) /  -- Lo! He comes (arr. A. Pitts) ( 04 min., 24 sec. ) / Madan -- The holly and the ivy (arr. A. Pitts) ( 02 min., 45 sec. ) / Pitts -- Lo, there a Rose is blooming (arr. A. Pitts) ( 02 min., 23 sec. ) / Praetorius -- Alleluya - a new work (arr. A. Pitts) ( 06 min., 04 sec. ) /  -- Ding! dong! merrily on high (arr. A. Pitts) ( 01 min., 39 sec. ) / Tabourot -- While shepherds watched (arr. A. Pitts) ( 02 min., 31 sec. ) / Kirbye -- The Song of Angels (arr. A. Pitts) ( 01 min., 16 sec. ) / Gibbons -- Festgesang, MWV D4, \\\"Gutenberg-Kantate\\\": No. 2. (adap. W.H. Cummings as Hark! The Herald Angels Sing) (arr. A. Pitts) ( 02 min., 45 sec. ) / Mendelssohn -- Silent Night (arr. A. Pitts) ( 03 min., 56 sec. ) / Gruber -- Away in a manger (arr. A. Pitts) ( 02 min., 20 sec. ) / Kirkpatrick -- Baby Jesus, hush! now sleep (arr. A. Pitts) ( 03 min., 30 sec. ) /  -- O Little Town of Bethlehem (arr. A. Pitts) ( 05 min., 02 sec. ) / Pitts -- Jesu, the very thought is sweet (arr. A. Pitts) ( 04 min., 49 sec. ) /  -- O come, all ye faithful (arr. A. Pitts) ( 03 min., 56 sec. ) / Wade -- Personent hodie (arr. A. Pitts) ( 02 min., 10 sec. ) /  -- In dulci jubilo (arr. A. Pitts) ( 02 min., 45 sec. ) / Bach -- Good King Wenceslas (arr. A. Pitts) ( 01 min., 49 sec. ) /  -- We three kings of Orient are (arr. A. Pitts) ( 03 min., 07 sec. ) / Hopkins -- I saw three ships come sailing in (arr. A. Pitts) ( 01 min., 22 sec. ) /  -- Hail to the Lord's Anointed (arr. A. Pitts) ( 05 min., 41 sec. ) / Pitts",
+        "staffOnly": false
+      },
+      {
+        "note": "Tonus Peregrinus, Choir -- Pitts, Antony, Conductor -- Traditional, Composer -- Madan, Martin, Composer -- Olivers, Thomas, Composer -- Sharp, C. J., Composer -- Praetorius, Michael, Composer -- Anonymous, Lyricist -- Tabourot, Jehan, Composer -- Kirbye, George, Composer -- Tye, Christopher, Composer -- Mendelssohn, Felix, Composer -- Mohr, Josef, Lyricist -- Gruber, Franz Xaver, Composer -- Kirkpatrick, William J., Composer -- Pitts, John Michael, Composer -- Wade, John Francis, Composer -- Bach, Johann Sebastian, Composer -- Stainer, John, Composer -- Neale, John Mason, Lyricist -- Hopkins, Jr., John Henry, Composer -- Gibbons, Orlando, Composer",
+        "staffOnly": false
+      },
+      {
+        "note":"Mode of access: Available online",
+        "staffOnly":false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4756,11 +5308,26 @@
       "eng"
     ],
     "notes": [
-      "Naxos Digital Services electronic collection",
-      "Streaming audio",
-      "The Prologue: Overture ( 02 min., 27 sec. ) / Strauss -- The Prologue: Mein Herr Haushofmeister! (Music Teacher, Major Domo, Lackey, Officer) ( 03 min., 15 sec. ) / Strauss -- The Prologue: Lieber Freund! Verschaffen Sie mir die Geigen (Composer, Lackey) ( 01 min., 47 sec. ) / Strauss -- The Prologue: O, ich mocht' vieles andern (Composer) ( 01 min., 24 sec. ) / Strauss -- The Prologue: Das! Fur einen Bacchus! (Tenor, Composer, Peruckenmacher) ( 41 sec. ) / Strauss -- The Prologue: Erst nach der Oper kommen wir daran (Zerbinetta, Prima Donna, Music Teacher, Composer, Dancing Master) ( 01 min., 08 sec. ) / Strauss -- The Prologue: Nach meiner Oper? (Composer, Music Teacher) ( 03 min., 14 sec. ) / Strauss -- The Prologue: Meine Partner! Meine erprobten Freunde! (Zerbinetta, Composer, Music Teacher, Prima Donna, Dancing Master) ( 03 min., 07 sec. ) / Strauss -- The Prologue: Die Herrschaften stehen vom Tisch auf! (Lakai, Musiklehrer, Haushofmeister, Primadonna, Tanzmeister, Tenor, Zerbinetta, Komponist) ( 04 min., 47 sec. ) / Strauss -- The Prologue: Ich weiss nicht, wo mir der Kopf steht (Music Teacher, Composer, Dancing Master, Prima Donna, Tenor, Zerbinetta) ( 03 min., 20 sec. ) / Strauss -- The Prologue: Kindskopf! Merkt auf, wir spielen mit in dem Stuck Ariadne auf Naxos (Zerbinetta, Composer) ( 06 min., 50 sec. ) / Strauss -- The Prologue: An Ihre Platze, meine Damen und Herrn! (Music Teacher, Prima Donna, Composer) ( 04 min., 16 sec. ) / Strauss -- The Prologue: Nein, Herr, so kommt es nicht (Composer, Zerbinetta, Musiklehrer) ( 02 min., 07 sec. ) / Strauss -- The Opera: Overture ( 03 min., 30 sec. ) / Strauss -- The Opera: Schlaft sie! (Naiad, Dryad, Echo) ( 03 min., 52 sec. ) / Strauss -- The Opera: Ach! Wo war ich? (Ariadne, Echo, Harlequin, Zerbinetta, Truffaldino) ( 03 min., 14 sec. ) / Strauss -- The Opera: Ein Schones war, hiess Theseus – Ariadne (Ariadne, Naiad, Dryad, Echo, Harlequin, Zerbinetta, Scaramuccio, Truffaldino) ( 06 min., 53 sec. ) / Strauss -- The Opera: Ach, so versuchet doch ein kleines Lied! (Zerbinetta, Harlequin) ( 02 min., 21 sec. ) / Strauss -- The Opera: Es gibt ein Reich, wo alles rein ist (Ariadne) ( 06 min., 05 sec. ) / Strauss -- The Opera: Die Dame gibt mit truben Sinn: (Brighella, Scaramuccio, Harlequin, Truffaldino, Zerbinetta) ( 04 min., 46 sec. ) / Strauss -- The Opera: Grossmachtige Prinzessin, wer verstunde nicht (Zerbinetta) ( 10 min., 26 sec. ) / Strauss -- The Opera: Hubsch gepredigt! Aber tauber Ohren! (Harlequin, Zerbinetta, Brighella, Scaramuccio, Truffaldino) ( 07 min., 45 sec. ) / Strauss -- The Opera: Ein schones Wunder! (Dryad, Naiad, Echo) ( 04 min., 18 sec. ) / Strauss -- The Opera: Circe, Circe, kannst du mich horen? (Bacchus, Ariadne, Naiad, Dryad, Echo) ( 06 min., 58 sec. ) / Strauss -- The Opera: Du schones Wesen! (Bacchus, Ariadne) ( 07 min., 14 sec. ) / Strauss -- The Opera: Bin ich ein Gott, schuf mich ein Gott (Bacchus, Ariadne) ( 04 min., 31 sec. ) / Strauss -- The Opera: Gibt es kein Hinuber? (Ariadne, Bacchus, Naiad, Dryad, Echo, Zerbinetta) ( 07 min., 50 sec. ) / Strauss",
-      "Schreier, Peter, Artist -- Prey, Hermann, Artist -- Adam, Theo, Artist -- King, James, Artist -- Kempe, Rudolf, Conductor -- Dresden Staatskapelle, Orchestra -- Janowitz, Gundula, Artist -- Geszty, Sylvia, Artist -- Zylis-Gara, Teresa, Artist -- Wings, Erich-Alexander, Artist -- Hofmannsthal, Hugo von, Lyricist -- Strauss, Richard, Composer",
-      "Mode of access: Available online"
+      {
+        "note": "Naxos Digital Services electronic collection",
+        "staffOnly": false
+      },
+      {
+        "note": "Streaming audio",
+        "staffOnly": false
+      },
+      {
+        "note": "The Prologue: Overture ( 02 min., 27 sec. ) / Strauss -- The Prologue: Mein Herr Haushofmeister! (Music Teacher, Major Domo, Lackey, Officer) ( 03 min., 15 sec. ) / Strauss -- The Prologue: Lieber Freund! Verschaffen Sie mir die Geigen (Composer, Lackey) ( 01 min., 47 sec. ) / Strauss -- The Prologue: O, ich mocht' vieles andern (Composer) ( 01 min., 24 sec. ) / Strauss -- The Prologue: Das! Fur einen Bacchus! (Tenor, Composer, Peruckenmacher) ( 41 sec. ) / Strauss -- The Prologue: Erst nach der Oper kommen wir daran (Zerbinetta, Prima Donna, Music Teacher, Composer, Dancing Master) ( 01 min., 08 sec. ) / Strauss -- The Prologue: Nach meiner Oper? (Composer, Music Teacher) ( 03 min., 14 sec. ) / Strauss -- The Prologue: Meine Partner! Meine erprobten Freunde! (Zerbinetta, Composer, Music Teacher, Prima Donna, Dancing Master) ( 03 min., 07 sec. ) / Strauss -- The Prologue: Die Herrschaften stehen vom Tisch auf! (Lakai, Musiklehrer, Haushofmeister, Primadonna, Tanzmeister, Tenor, Zerbinetta, Komponist) ( 04 min., 47 sec. ) / Strauss -- The Prologue: Ich weiss nicht, wo mir der Kopf steht (Music Teacher, Composer, Dancing Master, Prima Donna, Tenor, Zerbinetta) ( 03 min., 20 sec. ) / Strauss -- The Prologue: Kindskopf! Merkt auf, wir spielen mit in dem Stuck Ariadne auf Naxos (Zerbinetta, Composer) ( 06 min., 50 sec. ) / Strauss -- The Prologue: An Ihre Platze, meine Damen und Herrn! (Music Teacher, Prima Donna, Composer) ( 04 min., 16 sec. ) / Strauss -- The Prologue: Nein, Herr, so kommt es nicht (Composer, Zerbinetta, Musiklehrer) ( 02 min., 07 sec. ) / Strauss -- The Opera: Overture ( 03 min., 30 sec. ) / Strauss -- The Opera: Schlaft sie! (Naiad, Dryad, Echo) ( 03 min., 52 sec. ) / Strauss -- The Opera: Ach! Wo war ich? (Ariadne, Echo, Harlequin, Zerbinetta, Truffaldino) ( 03 min., 14 sec. ) / Strauss -- The Opera: Ein Schones war, hiess Theseus – Ariadne (Ariadne, Naiad, Dryad, Echo, Harlequin, Zerbinetta, Scaramuccio, Truffaldino) ( 06 min., 53 sec. ) / Strauss -- The Opera: Ach, so versuchet doch ein kleines Lied! (Zerbinetta, Harlequin) ( 02 min., 21 sec. ) / Strauss -- The Opera: Es gibt ein Reich, wo alles rein ist (Ariadne) ( 06 min., 05 sec. ) / Strauss -- The Opera: Die Dame gibt mit truben Sinn: (Brighella, Scaramuccio, Harlequin, Truffaldino, Zerbinetta) ( 04 min., 46 sec. ) / Strauss -- The Opera: Grossmachtige Prinzessin, wer verstunde nicht (Zerbinetta) ( 10 min., 26 sec. ) / Strauss -- The Opera: Hubsch gepredigt! Aber tauber Ohren! (Harlequin, Zerbinetta, Brighella, Scaramuccio, Truffaldino) ( 07 min., 45 sec. ) / Strauss -- The Opera: Ein schones Wunder! (Dryad, Naiad, Echo) ( 04 min., 18 sec. ) / Strauss -- The Opera: Circe, Circe, kannst du mich horen? (Bacchus, Ariadne, Naiad, Dryad, Echo) ( 06 min., 58 sec. ) / Strauss -- The Opera: Du schones Wesen! (Bacchus, Ariadne) ( 07 min., 14 sec. ) / Strauss -- The Opera: Bin ich ein Gott, schuf mich ein Gott (Bacchus, Ariadne) ( 04 min., 31 sec. ) / Strauss -- The Opera: Gibt es kein Hinuber? (Ariadne, Bacchus, Naiad, Dryad, Echo, Zerbinetta) ( 07 min., 50 sec. ) / Strauss",
+        "staffOnly": false
+      },
+      {
+        "note": "Schreier, Peter, Artist -- Prey, Hermann, Artist -- Adam, Theo, Artist -- King, James, Artist -- Kempe, Rudolf, Conductor -- Dresden Staatskapelle, Orchestra -- Janowitz, Gundula, Artist -- Geszty, Sylvia, Artist -- Zylis-Gara, Teresa, Artist -- Wings, Erich-Alexander, Artist -- Hofmannsthal, Hugo von, Lyricist -- Strauss, Richard, Composer",
+        "staffOnly": false
+      },
+      {
+        "note":"Mode of access: Available online",
+        "staffOnly":false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4849,8 +5416,14 @@
       "ger"
     ],
     "notes": [
-      "Complete in 43 volumes with 12 volume supplement of sketches, drafts and fragments",
-      "Series 1. Sacred music -- Series 2. Secular choral music -- Series 3. Orchestral music -- Series 4. Smaller instrumental works. -- Series 5. Supplement of fragments and sketches"
+      {
+        "note": "Complete in 43 volumes with 12 volume supplement of sketches, drafts and fragments",
+        "staffOnly": false
+      },
+      {
+        "note": "Series 1. Sacred music -- Series 2. Secular choral music -- Series 3. Orchestral music -- Series 4. Smaller instrumental works. -- Series 5. Supplement of fragments and sketches",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -4935,9 +5508,18 @@
       "tha"
     ],
     "notes": [
-      "In Thai",
-      "Strategic planning on the prevention of child sex tourism in Thailand for 2014 to 2017",
-      "Includes bibliographical references (page 74)"
+      {
+        "note": "In Thai",
+        "staffOnly": false
+      },
+      {
+        "note": "Strategic planning on the prevention of child sex tourism in Thailand for 2014 to 2017",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references (page 74)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5011,8 +5593,14 @@
       "vie"
     ],
     "notes": [
-      "At head of title: Học viện Báo chí và tuyên truyền",
-      "Includes bibliographical references (pages 273-276)"
+      {
+        "note": "At head of title: Học viện Báo chí và tuyên truyền",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references (pages 273-276)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5170,20 +5758,62 @@
       "eng"
     ],
     "notes": [
-      "Blues and jazz music",
-      "Sung in English",
-      "Blues songbook: staff notation",
-      "Title from hardcover book title page",
-      "Housed in a wooden box (Cabinet of wonder)",
-      "Sound discs contain selections from Paramount's catalog",
-      "USB flash drive (The jobber-luxe) contains 800 remastered tracks from Paramount's catalog and 200 1920s ads and images",
-      "Hardcover book by Alex van der Tuuk with narrative by Scott Blackwood and illustrations and hand-lettering by Katie Deedy",
-      "Softcover book titled: Field manual : Paramount Records and associated labels. Volume 1 (1917-1927). Contains notes on and discographies of Paramount artists",
-      "Booklets comprise a blues songbook and a catalog of 1924 Paramount recordings",
-      "Sheet comprises instructions for the Cabinet of wonder",
-      "Complete track listing (LPs and USB drive) available as PDF on the publisher's website",
-      "Producers, Alex van der Tuuk, Jack White, Dean Blackwood",
-      "\\\"How did a Wisconsin chair company, producing records on the cheap and run by men with little knowledge of their audience or the music business, build one of the greatest musical rosters ever assembled under one roof? The answer lies in 'The Rise and Fall of Paramount Records 1917-1932,' this epic, two-volume omnibus of art, words and music housed in a limited-edition, hand-sculpted cabinet-of-wonder ...\\\"--Publisher's website"
+      {
+        "note": "Blues and jazz music",
+        "staffOnly": false
+      },
+      {
+        "note": "Sung in English",
+        "staffOnly": false
+      },
+      {
+        "note": "Blues songbook: staff notation",
+        "staffOnly": false
+      },
+      {
+        "note": "Title from hardcover book title page",
+        "staffOnly": false
+      },
+      {
+        "note": "Housed in a wooden box (Cabinet of wonder)",
+        "staffOnly": false
+      },
+      {
+        "note": "Sound discs contain selections from Paramount's catalog",
+        "staffOnly": false
+      },
+      {
+        "note": "USB flash drive (The jobber-luxe) contains 800 remastered tracks from Paramount's catalog and 200 1920s ads and images",
+        "staffOnly": false
+      },
+      {
+        "note": "Hardcover book by Alex van der Tuuk with narrative by Scott Blackwood and illustrations and hand-lettering by Katie Deedy",
+        "staffOnly": false
+      },
+      {
+        "note": "Softcover book titled: Field manual : Paramount Records and associated labels. Volume 1 (1917-1927). Contains notes on and discographies of Paramount artists",
+        "staffOnly": false
+      },
+      {
+        "note": "Booklets comprise a blues songbook and a catalog of 1924 Paramount recordings",
+        "staffOnly": false
+      },
+      {
+        "note": "Sheet comprises instructions for the Cabinet of wonder",
+        "staffOnly": false
+      },
+      {
+        "note": "Complete track listing (LPs and USB drive) available as PDF on the publisher's website",
+        "staffOnly": false
+      },
+      {
+        "note": "Producers, Alex van der Tuuk, Jack White, Dean Blackwood",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"How did a Wisconsin chair company, producing records on the cheap and run by men with little knowledge of their audience or the music business, build one of the greatest musical rosters ever assembled under one roof? The answer lies in 'The Rise and Fall of Paramount Records 1917-1932,' this epic, two-volume omnibus of art, words and music housed in a limited-edition, hand-sculpted cabinet-of-wonder ...\\\"--Publisher's website",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5255,12 +5885,30 @@
       "eng"
     ],
     "notes": [
-      "Scale 1:65,000 (W 76°41ʹ47ʺ--W 76°14ʹ15ʺ/N 42°37ʹ38ʺ--N 42°15ʹ46ʺ)",
-      "Relief shown by contours and shading",
-      "Routes marked for on-road bicycle suitability",
-      "Includes inset location map and inset map of Village of Cayuga Heights",
-      "Text, suggested itineraries, and color illustrations on verso",
-      "Maps on verso: City of Ithaca -- Two gorges -- Cass Park to Taughannock Overlook -- The Long Valley -- Cayuga Waterfront Trail"
+      {
+        "note": "Scale 1:65,000 (W 76°41ʹ47ʺ--W 76°14ʹ15ʺ/N 42°37ʹ38ʺ--N 42°15ʹ46ʺ)",
+        "staffOnly": false
+      },
+      {
+        "note": "Relief shown by contours and shading",
+        "staffOnly": false
+      },
+      {
+        "note": "Routes marked for on-road bicycle suitability",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes inset location map and inset map of Village of Cayuga Heights",
+        "staffOnly": false
+      },
+      {
+        "note": "Text, suggested itineraries, and color illustrations on verso",
+        "staffOnly": false
+      },
+      {
+        "note": "Maps on verso: City of Ithaca -- Two gorges -- Cass Park to Taughannock Overlook -- The Long Valley -- Cayuga Waterfront Trail",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5339,9 +5987,18 @@
       "eng"
     ],
     "notes": [
-      "Translation of Histoire d'une bouch©Øee de pain: les animaux",
-      "Postscript by Margaret Gatty follows text",
-      "Reproduction of the original from the Baldwin Library of Historical Children's Literature, George A. Smathers Libraries, University of Florida"
+      {
+        "note": "Translation of Histoire d'une bouch©Øee de pain: les animaux",
+        "staffOnly": false
+      },
+      {
+        "note": "Postscript by Margaret Gatty follows text",
+        "staffOnly": false
+      },
+      {
+        "note": "Reproduction of the original from the Baldwin Library of Historical Children's Literature, George A. Smathers Libraries, University of Florida",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5422,7 +6079,10 @@
       "jpn"
     ],
     "notes": [
-      "Reprint. Edited by Nishihara Kazumi, with new introduction and notes. Bound with \\\"Kaitakuchi no hoken jōkyō\\\""
+      {
+        "note": "Reprint. Edited by Nishihara Kazumi, with new introduction and notes. Bound with \\\"Kaitakuchi no hoken jōkyō\\\"",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5452,7 +6112,10 @@
       "   "
     ],
     "notes": [
-      "BORROW DIRECT"
+      {
+        "note": "BORROW DIRECT",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5595,15 +6258,42 @@
       "mul"
     ],
     "notes": [
-      "Title from disc label",
-      "Three heavyweight translucent gold vinyl LPs reproducing the audio content of the Voyager Interstellar Record and one hardcover book reproducing the images included on the Voyager Interstellar Record. Accompanied by a turntable slipmat with NASA/JPL-Caltech's heliocentric view of the Voyager spacecrafts' trajectories across the solar system and a lithograph of the record's gold-plated aluminum covering with a diagram illustrating the record's origin and playing instructions. Book includes an introduction by David Pescovitz, Tim Daly, and Lawrence Azerrad and an essay by Timothy Ferris",
-      "Producers, David Pescovitz, Timothy Daly, and Lawrence Azerrad; consulting producer, Timothy Ferris",
-      "Voyager Interstellar Record committee (1977): Carl Sagan, chairman, executive director ; Frank Drake, technical director ; Ann Druyan, creative director ; Timothy Ferris, producer ; Jon Lomberg, designer ; Linda Salzman Sagan, greetings organizer",
-      "Audio: Greetings from Earth -- The sounds of Earth",
-      "Book: Voyagers in space & time -- Pictures from Earth -- Greetings from Earth -- The sounds of Earth -- Postcards from Voyager",
-      "In 1977, NASA launched two spacecraft, Voyager 1 and 2, on a grand tour of the solar system and into the mysteries of interstellar space. Attached to each of these probes is a beautiful golden record containing a message for any extraterrestrial intelligence that might encounter it, perhaps billions of years from now. This enchanting artifact, officially called the Voyager Interstellar Record, may be the last vestige of our civilization after we are gone forever. The Golden Record tells a story of our planet expressed in sounds, images, and science: Earth's greatest music from myriad peoples and eras, from Bach and Beethoven to Blind Willie Johnson and Chuck Berry, Benin percussion to Solomon Island panpipes. Natural sounds--birds, a train, a baby's cry, a kiss--are collaged into a lovely audio poem called \\\"Sounds of Earth.\\\" There are spoken greetings in dozens of human languages--and one whale language--and more than 100 images encoded in analog that depict who, and what, we are. Astronomer and science educator Carl Sagan chaired the Voyager Interstellar Record Committee that created this object, which is both an inspired scientific effort and a compelling piece of conceptual art. Astronomer Frank Drake, father of the scientific Search for Extraterrestrial Intelligence (SETI), was the technical director, writer and novelist Ann Druyan was the creative director, science journalist and author Timothy Ferris produced the record, space artist Jon Lomberg was the designer, and artist Linda Salzman Sagan organized the greetings. As we embarked on our own Kickstarter project to make the golden record available on vinyl for the first time, in celebration of Voyager's 40th anniversary, we realized that we saw the original artifact through three different lenses. As an exquisitely curated music compilation, the Voyager record is an inviting port of entry to unfamiliar yet entrancing sounds from other cultures and other times. As an objet d'art and design, it represents deep insights about communication, context, and the power of media. In the realm of science, it raises fundamental questions about who we are and our place in the universe. At the intersection of those three perspectives, the Voyager record is a testament to the potential of science and art to ignite humanity's sense of curiosity and wonder. Voyager 1 entered interstellar space in 2012. As of this writing, it's almost 21 billion kilometers away from Earth. Speeding along at 17 kilometers per second, it will take another 40,000 years before the spacecraft passes within 1.6 light-years of a star in the constellation Camelopardalis. The slightly slower Voyager 2 is at the outermost edge of our solar system, where the sun's plasma wind blows against cosmic dust and gas. Soon, it too will venture into interstellar space. We may never know whether an extraterrestrial civilization ever listens to the golden record. It was a gift from humanity to the cosmos. But it is also a gift to humanity. The record embodies a sense of possibility and hope. And it's as relevant now as it was in 1977. Perhaps even more so... The Voyager Interstellar Record is a reminder of what we can achieve when we are at our best--and that our future really is up to all of us.-- Publisher's website",
-      "Rare copy: Gift of David Pescovitz and Timothy Daly",
-      "Murmurs of Earth : the Voyager interstellar record / Carl Sagan [and others]. 1st ed. New York : Random House, ©1978. 9780394410470"
+      {
+        "note": "Title from disc label",
+        "staffOnly": false
+      },
+      {
+        "note": "Three heavyweight translucent gold vinyl LPs reproducing the audio content of the Voyager Interstellar Record and one hardcover book reproducing the images included on the Voyager Interstellar Record. Accompanied by a turntable slipmat with NASA/JPL-Caltech's heliocentric view of the Voyager spacecrafts' trajectories across the solar system and a lithograph of the record's gold-plated aluminum covering with a diagram illustrating the record's origin and playing instructions. Book includes an introduction by David Pescovitz, Tim Daly, and Lawrence Azerrad and an essay by Timothy Ferris",
+        "staffOnly": false
+      },
+      {
+        "note": "Producers, David Pescovitz, Timothy Daly, and Lawrence Azerrad; consulting producer, Timothy Ferris",
+        "staffOnly": false
+      },
+      {
+        "note": "Voyager Interstellar Record committee (1977): Carl Sagan, chairman, executive director ; Frank Drake, technical director ; Ann Druyan, creative director ; Timothy Ferris, producer ; Jon Lomberg, designer ; Linda Salzman Sagan, greetings organizer",
+        "staffOnly": false
+      },
+      {
+        "note": "Audio: Greetings from Earth -- The sounds of Earth",
+        "staffOnly": false
+      },
+      {
+        "note": "Book: Voyagers in space & time -- Pictures from Earth -- Greetings from Earth -- The sounds of Earth -- Postcards from Voyager",
+        "staffOnly": false
+      },
+      {
+        "note": "In 1977, NASA launched two spacecraft, Voyager 1 and 2, on a grand tour of the solar system and into the mysteries of interstellar space. Attached to each of these probes is a beautiful golden record containing a message for any extraterrestrial intelligence that might encounter it, perhaps billions of years from now. This enchanting artifact, officially called the Voyager Interstellar Record, may be the last vestige of our civilization after we are gone forever. The Golden Record tells a story of our planet expressed in sounds, images, and science: Earth's greatest music from myriad peoples and eras, from Bach and Beethoven to Blind Willie Johnson and Chuck Berry, Benin percussion to Solomon Island panpipes. Natural sounds--birds, a train, a baby's cry, a kiss--are collaged into a lovely audio poem called \\\"Sounds of Earth.\\\" There are spoken greetings in dozens of human languages--and one whale language--and more than 100 images encoded in analog that depict who, and what, we are. Astronomer and science educator Carl Sagan chaired the Voyager Interstellar Record Committee that created this object, which is both an inspired scientific effort and a compelling piece of conceptual art. Astronomer Frank Drake, father of the scientific Search for Extraterrestrial Intelligence (SETI), was the technical director, writer and novelist Ann Druyan was the creative director, science journalist and author Timothy Ferris produced the record, space artist Jon Lomberg was the designer, and artist Linda Salzman Sagan organized the greetings. As we embarked on our own Kickstarter project to make the golden record available on vinyl for the first time, in celebration of Voyager's 40th anniversary, we realized that we saw the original artifact through three different lenses. As an exquisitely curated music compilation, the Voyager record is an inviting port of entry to unfamiliar yet entrancing sounds from other cultures and other times. As an objet d'art and design, it represents deep insights about communication, context, and the power of media. In the realm of science, it raises fundamental questions about who we are and our place in the universe. At the intersection of those three perspectives, the Voyager record is a testament to the potential of science and art to ignite humanity's sense of curiosity and wonder. Voyager 1 entered interstellar space in 2012. As of this writing, it's almost 21 billion kilometers away from Earth. Speeding along at 17 kilometers per second, it will take another 40,000 years before the spacecraft passes within 1.6 light-years of a star in the constellation Camelopardalis. The slightly slower Voyager 2 is at the outermost edge of our solar system, where the sun's plasma wind blows against cosmic dust and gas. Soon, it too will venture into interstellar space. We may never know whether an extraterrestrial civilization ever listens to the golden record. It was a gift from humanity to the cosmos. But it is also a gift to humanity. The record embodies a sense of possibility and hope. And it's as relevant now as it was in 1977. Perhaps even more so... The Voyager Interstellar Record is a reminder of what we can achieve when we are at our best--and that our future really is up to all of us.-- Publisher's website",
+        "staffOnly": false
+      },
+      {
+        "note": "Rare copy: Gift of David Pescovitz and Timothy Daly",
+        "staffOnly": false
+      },
+      {
+        "note": "Murmurs of Earth : the Voyager interstellar record / Carl Sagan [and others]. 1st ed. New York : Random House, ©1978. 9780394410470",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5722,7 +6412,10 @@
       "eng"
     ],
     "notes": [
-      "part 1. Financial reporting, planning, performance, and control (330 flash cards) -- part 2. Financial decision making (191 flash cards)"
+      {
+        "note": "part 1. Financial reporting, planning, performance, and control (330 flash cards) -- part 2. Financial decision making (191 flash cards)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5838,10 +6531,22 @@
       "ukr"
     ],
     "notes": [
-      "At head of title: Cherkasʹka oblasna orhanizat͡sii͡a Nat͡sionalʹnoï spilky krai͡eznavt͡siv Ukraïny, Cherkasʹkyĭ nat͡sionalʹnyĭ universytet imeni Bohdana Khmelʹnyt͡sʹkoho",
-      "\\\"25-richchi͡u Nezalez͡hnosti Ukraïny prysvi͡achui͡etʹsi͡a.\\\"",
-      "In Ukrainian with summary in English",
-      "Includes bibliographical references"
+      {
+        "note": "At head of title: Cherkasʹka oblasna orhanizat͡sii͡a Nat͡sionalʹnoï spilky krai͡eznavt͡siv Ukraïny, Cherkasʹkyĭ nat͡sionalʹnyĭ universytet imeni Bohdana Khmelʹnyt͡sʹkoho",
+        "staffOnly": false
+      },
+      {
+        "note": "\\\"25-richchi͡u Nezalez͡hnosti Ukraïny prysvi͡achui͡etʹsi͡a.\\\"",
+        "staffOnly": false
+      },
+      {
+        "note": "In Ukrainian with summary in English",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -5918,9 +6623,18 @@
       "eng"
     ],
     "notes": [
-      "Issued in case",
-      "Supplement in English and Japanese with English title: Kumagusu Minakata's the choices 100 of fungus pictures",
-      "Cataloged from colophon label mounted on case"
+      {
+        "note": "Issued in case",
+        "staffOnly": false
+      },
+      {
+        "note": "Supplement in English and Japanese with English title: Kumagusu Minakata's the choices 100 of fungus pictures",
+        "staffOnly": false
+      },
+      {
+        "note": "Cataloged from colophon label mounted on case",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6002,10 +6716,22 @@
       "zxx"
     ],
     "notes": [
-      "Staff notation",
-      "Haiku texts displayed visually on page before score",
-      "Dedicated to the ensemble Loadbang",
-      "I. Love -- II. (~*~) -- III. Lost -- IV. Lust -- V. (. .) -- VI. Lone"
+      {
+        "note": "Staff notation",
+        "staffOnly": false
+      },
+      {
+        "note": "Haiku texts displayed visually on page before score",
+        "staffOnly": false
+      },
+      {
+        "note": "Dedicated to the ensemble Loadbang",
+        "staffOnly": false
+      },
+      {
+        "note": "I. Love -- II. (~*~) -- III. Lost -- IV. Lust -- V. (. .) -- VI. Lone",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6111,9 +6837,18 @@
       "zxx"
     ],
     "notes": [
-      "Reproduced from holograph",
-      "Duration: approximately 7 min",
-      "Staff notation"
+      {
+        "note": "Reproduced from holograph",
+        "staffOnly": false
+      },
+      {
+        "note": "Duration: approximately 7 min",
+        "staffOnly": false
+      },
+      {
+        "note": "Staff notation",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6184,15 +6919,42 @@
       "zxx"
     ],
     "notes": [
-      "For eleven steel pan players and a drum set consisting of found scrap metals--Program notes",
-      "All the steel pan players play a variety of scrap metals with a foot pedal, which include satellite dishes, trashcan tops, metal buckets, and unidentifiable metal objects that were found in old, abandoned warehouses in Brooklyn and Queens--Program notes",
-      "In one movement",
-      "Staff notation",
-      "Includes program notes and instructions for performance with black & white photos",
-      "Premiered at the Bang On A Can marathon concert at Winter Garden in New York, NY, May 31, 2009",
-      "Commissioned by Bang On a Can, Arts Brookfield, & The River to River Festival",
-      "A rhythmic and challenging work",
-      "Dedicated to the Foundry Steel Pan Ensemble"
+      {
+        "note": "For eleven steel pan players and a drum set consisting of found scrap metals--Program notes",
+        "staffOnly": false
+      },
+      {
+        "note": "All the steel pan players play a variety of scrap metals with a foot pedal, which include satellite dishes, trashcan tops, metal buckets, and unidentifiable metal objects that were found in old, abandoned warehouses in Brooklyn and Queens--Program notes",
+        "staffOnly": false
+      },
+      {
+        "note": "In one movement",
+        "staffOnly": false
+      },
+      {
+        "note": "Staff notation",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes program notes and instructions for performance with black & white photos",
+        "staffOnly": false
+      },
+      {
+        "note": "Premiered at the Bang On A Can marathon concert at Winter Garden in New York, NY, May 31, 2009",
+        "staffOnly": false
+      },
+      {
+        "note": "Commissioned by Bang On a Can, Arts Brookfield, & The River to River Festival",
+        "staffOnly": false
+      },
+      {
+        "note": "A rhythmic and challenging work",
+        "staffOnly": false
+      },
+      {
+        "note": "Dedicated to the Foundry Steel Pan Ensemble",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6339,8 +7101,14 @@
       "eng"
     ],
     "notes": [
-      "Includes bibliographical references",
-      "Articles in Hebrew and English; table of contents also in English"
+      {
+        "note": "Includes bibliographical references",
+        "staffOnly": false
+      },
+      {
+        "note": "Articles in Hebrew and English; table of contents also in English",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6436,10 +7204,22 @@
       "eng"
     ],
     "notes": [
-      "\\\"Released under the Creative Commons Attribution-ShareAlike 3.0 unported (CC BY-SA 3.0) license\\\"--First leaf",
-      "Head of an ogre / by Tom Burtonwood -- Boddhisattva / by Jason Bakutis -- Olmec colossal head / by Pretty Small Things -- Mayan head / by Tom Burtonwood -- Torso of an emperor, Roman Imperial / by AMinimal Studio -- Art Institute of Chicago lion / by Tom Burtonwood",
-      "A 3D-printed, book-like object consisting of eight leaves, with six relief illustrations, each created using photogrammetric scans of a sculpture. Leaves are connected by hinges and folded accordion style. The accompanying USB flash drive contains all data files used to create the object with a 3D printer. Six of the leaves feature scans of a sculpture found at the Art Institute of Chicago and the Metropolitan Museum of Art in New York",
-      "Title from publisher's website (viewed March 26, 2014)"
+      {
+        "note": "\\\"Released under the Creative Commons Attribution-ShareAlike 3.0 unported (CC BY-SA 3.0) license\\\"--First leaf",
+        "staffOnly": false
+      },
+      {
+        "note": "Head of an ogre / by Tom Burtonwood -- Boddhisattva / by Jason Bakutis -- Olmec colossal head / by Pretty Small Things -- Mayan head / by Tom Burtonwood -- Torso of an emperor, Roman Imperial / by AMinimal Studio -- Art Institute of Chicago lion / by Tom Burtonwood",
+        "staffOnly": false
+      },
+      {
+        "note": "A 3D-printed, book-like object consisting of eight leaves, with six relief illustrations, each created using photogrammetric scans of a sculpture. Leaves are connected by hinges and folded accordion style. The accompanying USB flash drive contains all data files used to create the object with a 3D printer. Six of the leaves feature scans of a sculpture found at the Art Institute of Chicago and the Metropolitan Museum of Art in New York",
+        "staffOnly": false
+      },
+      {
+        "note": "Title from publisher's website (viewed March 26, 2014)",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6503,16 +7283,46 @@
       "ara"
     ],
     "notes": [
-      "Ms. codex",
-      "Title from title page (fol. 1a)",
-      "Treatise on what is lawful and what is unlawful to eat of animals",
-      "Physical description: Number of lines per page varies. Written in very casual medium small to medium large naskh in black ink, with scarce use of red. Biscuit paper, hardly translucid, friable, with fibers and laid lines visible. First leaf damaged. Worm-eaten",
-      "Origin: Copy completed on Tuesday 17 Rajab 852 [Sept. 16, 1448] (colophon, fol. 61b)",
-      "Acquired by Robert Garrett from Brill, Leyden, 1900",
-      "Red leather over paper pasteboards for upper and lower covers, fore-edge flap and envelope flap. Both covers are similarly blind stamped, with a panel consisting of a large lozenge stamp with two pendants on the vertical axis and corner pieces, and an outer border consisting of fillets and a running-pattern of impressions of a s-shaped stamp. Blue and brown marbled paper pastedowns",
-      "Hitti, P. Garrett coll., 1820",
-      "Gift ; Robert Garrett, Class of 1897 ; 1942",
-      "Microfilm negative available for reproduction"
+      {
+        "note": "Ms. codex",
+        "staffOnly": false
+      },
+      {
+        "note": "Title from title page (fol. 1a)",
+        "staffOnly": false
+      },
+      {
+        "note": "Treatise on what is lawful and what is unlawful to eat of animals",
+        "staffOnly": false
+      },
+      {
+        "note": "Physical description: Number of lines per page varies. Written in very casual medium small to medium large naskh in black ink, with scarce use of red. Biscuit paper, hardly translucid, friable, with fibers and laid lines visible. First leaf damaged. Worm-eaten",
+        "staffOnly": false
+      },
+      {
+        "note": "Origin: Copy completed on Tuesday 17 Rajab 852 [Sept. 16, 1448] (colophon, fol. 61b)",
+        "staffOnly": false
+      },
+      {
+        "note": "Acquired by Robert Garrett from Brill, Leyden, 1900",
+        "staffOnly": false
+      },
+      {
+        "note": "Red leather over paper pasteboards for upper and lower covers, fore-edge flap and envelope flap. Both covers are similarly blind stamped, with a panel consisting of a large lozenge stamp with two pendants on the vertical axis and corner pieces, and an outer border consisting of fillets and a running-pattern of impressions of a s-shaped stamp. Blue and brown marbled paper pastedowns",
+        "staffOnly": false
+      },
+      {
+        "note": "Hitti, P. Garrett coll., 1820",
+        "staffOnly": false
+      },
+      {
+        "note": "Gift ; Robert Garrett, Class of 1897 ; 1942",
+        "staffOnly": false
+      },
+      {
+        "note": "Microfilm negative available for reproduction",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6599,11 +7409,26 @@
       "eng"
     ],
     "notes": [
-      "Julieanna L. Richardson, interviewer",
-      "Videographer, Matthew Hickey",
-      "Recorded Teaneck, New Jersey 2013 July 12",
-      "Music director Ray Chew was born in 1958, in Harlem, New York. Chew studied music education at the Julliard School Children's Program, and at the High School of Music and Arts in New York City. As a music arranger and multi-instrumentalist, Chew has worked with noted artists such as Gladys Knight, Quincy Jones, Diana Ross and Aretha Franklin. In 1974, Chew went on tour with recording artist and Broadway star Melba Moore. For more than twenty years, he was the music arranger on seven albums with the legendary duo Nick Ashford & Valerie Simpson. In 2008, he served as the bandleader for the Democratic National Convention; and, in 2009, he was selected by President Barack Obama to direct the Neighborhood Inaugural Ball. Chew has been recruited as a musical director on a number of television shows including Saturday Night Live, Showtime at the Apollo, American Idol, and Dancing with the Stars",
-      "Vendor-supplied metadata"
+      {
+        "note": "Julieanna L. Richardson, interviewer",
+        "staffOnly": false
+      },
+      {
+        "note": "Videographer, Matthew Hickey",
+        "staffOnly": false
+      },
+      {
+        "note": "Recorded Teaneck, New Jersey 2013 July 12",
+        "staffOnly": false
+      },
+      {
+        "note": "Music director Ray Chew was born in 1958, in Harlem, New York. Chew studied music education at the Julliard School Children's Program, and at the High School of Music and Arts in New York City. As a music arranger and multi-instrumentalist, Chew has worked with noted artists such as Gladys Knight, Quincy Jones, Diana Ross and Aretha Franklin. In 1974, Chew went on tour with recording artist and Broadway star Melba Moore. For more than twenty years, he was the music arranger on seven albums with the legendary duo Nick Ashford & Valerie Simpson. In 2008, he served as the bandleader for the Democratic National Convention; and, in 2009, he was selected by President Barack Obama to direct the Neighborhood Inaugural Ball. Chew has been recruited as a musical director on a number of television shows including Saturday Night Live, Showtime at the Apollo, American Idol, and Dancing with the Stars",
+        "staffOnly": false
+      },
+      {
+        "note": "Vendor-supplied metadata",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6733,9 +7558,18 @@
       "eng"
     ],
     "notes": [
-      "\\\"When Philip V prevailed over his rival Archduke Charles of Austria in 1713, the Spanish Bourbon dynasty attempted to create a new power elite, based on a more professionalized, modern, and educated military officer corps. At the same time, the Bourbons wanted to govern by relying on 'men of letters, ' who were well educated in a modern, enlightened curriculum. Both the military and the men of letters were often drawn from the provincial elite, not the traditional aristocracy, and they would form the core of the centralized Bourbon state, replacing the 'composite monarchy.' These groups emerged first in Spain and later the empire to defend and govern the Spanish Atlantic world. In the years after the French invasion of the Iberian Peninsula, a struggle in Spain and America developed over who would rule. Writers and lawyers produced new legislation to radically transform the Spanish world. Military officers would defend the monarchy in this new era of imperial competition. Additionally, they would govern. From the start, the rise of these political actors in the Spanish world was an uneven process. Military officers came to being as a new and somewhat solid corps. In contrast, the rise of men of letters confronted constant opposition. Rooted elites in both Spain and Peru resisted any attempts to curtail their power and prerogatives and undermined reform. As a consequence, men of letters found limited spaces in which to exercise their new authority, but they aimed for more, paving the way for decades of unrest. Monica Ricketts emphasizes the continuities and connections between the Spanish worlds on both sides of the Atlantic and the ways in which liberal men of letters failed to create a new institutional order in which the military would be subjected to civilian rule\\\"--Provided by publisher",
-      "Includes bibliographical references and index",
-      "Imperial reform: contentious consequences, 1760-1808 -- Towards a new imperial elite -- Merit and its subversive new roles -- The king's most loyal subjects -- From men of letters to political actors -- Imperial turmoil: conflicts old and new, 1805-1830 -- Liberalism and war, 1805-1814 -- Abascal and the problem of letters in Peru, 1806-1816 -- Pens, politics, and swords: a path to pervasive unrest, 1820-1830"
+      {
+        "note": "\\\"When Philip V prevailed over his rival Archduke Charles of Austria in 1713, the Spanish Bourbon dynasty attempted to create a new power elite, based on a more professionalized, modern, and educated military officer corps. At the same time, the Bourbons wanted to govern by relying on 'men of letters, ' who were well educated in a modern, enlightened curriculum. Both the military and the men of letters were often drawn from the provincial elite, not the traditional aristocracy, and they would form the core of the centralized Bourbon state, replacing the 'composite monarchy.' These groups emerged first in Spain and later the empire to defend and govern the Spanish Atlantic world. In the years after the French invasion of the Iberian Peninsula, a struggle in Spain and America developed over who would rule. Writers and lawyers produced new legislation to radically transform the Spanish world. Military officers would defend the monarchy in this new era of imperial competition. Additionally, they would govern. From the start, the rise of these political actors in the Spanish world was an uneven process. Military officers came to being as a new and somewhat solid corps. In contrast, the rise of men of letters confronted constant opposition. Rooted elites in both Spain and Peru resisted any attempts to curtail their power and prerogatives and undermined reform. As a consequence, men of letters found limited spaces in which to exercise their new authority, but they aimed for more, paving the way for decades of unrest. Monica Ricketts emphasizes the continuities and connections between the Spanish worlds on both sides of the Atlantic and the ways in which liberal men of letters failed to create a new institutional order in which the military would be subjected to civilian rule\\\"--Provided by publisher",
+        "staffOnly": false
+      },
+      {
+        "note": "Includes bibliographical references and index",
+        "staffOnly": false
+      },
+      {
+        "note": "Imperial reform: contentious consequences, 1760-1808 -- Towards a new imperial elite -- Merit and its subversive new roles -- The king's most loyal subjects -- From men of letters to political actors -- Imperial turmoil: conflicts old and new, 1805-1830 -- Liberalism and war, 1805-1814 -- Abascal and the problem of letters in Peru, 1806-1816 -- Pens, politics, and swords: a path to pervasive unrest, 1820-1830",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
@@ -6850,9 +7684,18 @@
       "san"
     ],
     "notes": [
-      "Includes bibliographical references",
-      "Contributed articles on the Hindu religious and cultural perspective of human ecology and environmental protection in India",
-      "In Hindi; includes passages in Sanskrit"
+      {
+        "note": "Includes bibliographical references",
+        "staffOnly": false
+      },
+      {
+        "note": "Contributed articles on the Hindu religious and cultural perspective of human ecology and environmental protection in India",
+        "staffOnly": false
+      },
+      {
+        "note": "In Hindi; includes passages in Sanskrit",
+        "staffOnly": false
+      }
     ],
     "statisticalCodeIds": []
   },
