@@ -1250,43 +1250,47 @@
   ],
   "255": [
     {
-      "target": "notes.note",
-      "description": "Cartographic Mathematical Data",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Cartographic Mathematical Data",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
@@ -1489,2087 +1493,2295 @@
   ],
   "500": [
     {
-      "target": "notes.note",
-      "description": "General Note",
-      "subfield": [
-        "a",
-        "3",
-        "5"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "General Note",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "501": [
     {
-      "target": "notes.note",
-      "description": "With Note",
-      "subfield": [
-        "a",
-        "5"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "With Note",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "502": [
     {
-      "target": "notes.note",
-      "description": "Dissertation Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "g",
-        "o"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Dissertation Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "o"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "g",
-        "o"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "o"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "504": [
     {
-      "target": "notes.note",
-      "description": "Bibliography, etc. Note",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Bibliography, etc. Note",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "505": [
     {
-      "target": "notes.note",
-      "description": "Formatted Contents Note",
-      "subfield": [
-        "a",
-        "g",
-        "r",
-        "t",
-        "u"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Formatted Contents Note",
+          "subfield": [
+            "a",
+            "g",
+            "r",
+            "t",
+            "u"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "g",
-        "r",
-        "t",
-        "u"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "g",
+            "r",
+            "t",
+            "u"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "506": [
     {
-      "target": "notes.note",
-      "description": "Restrictions on Access Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "u",
-        "2",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Restrictions on Access Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "u",
+            "2",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "u",
-        "2",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "u",
+            "2",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "507": [
     {
-      "target": "notes.note",
-      "description": "Scale Note for Graphic Material",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Scale Note for Graphic Material",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "508": [
     {
-      "target": "notes.note",
-      "description": "Creation/Production Credits Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Creation/Production Credits Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "510": [
     {
-      "target": "notes.note",
-      "description": "Citation/References Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "u",
-        "x",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Citation/References Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "x",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "u",
-        "x",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "x",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "511": [
     {
-      "target": "notes.note",
-      "description": "Participant or Performer Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Participant or Performer Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "513": [
     {
-      "target": "notes.note",
-      "description": "Type of Report and Period Covered Note",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Type of Report and Period Covered Note",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "514": [
     {
-      "target": "notes.note",
-      "description": "Data Quality Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "m",
-        "u",
-        "z"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Data Quality Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "m",
+            "u",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "m",
-        "u",
-        "z"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "m",
+            "u",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "515": [
     {
-      "target": "notes.note",
-      "description": "Numbering Peculiarities Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Numbering Peculiarities Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "516": [
     {
-      "target": "notes.note",
-      "description": "Type of Computer File or Data Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Type of Computer File or Data Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "518": [
     {
-      "target": "notes.note",
-      "description": "Date/Time and Place of an Event Note",
-      "subfield": [
-        "a",
-        "d",
-        "o",
-        "p",
-        "2",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Date/Time and Place of an Event Note",
+          "subfield": [
+            "a",
+            "d",
+            "o",
+            "p",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "d",
-        "o",
-        "p",
-        "2",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "d",
+            "o",
+            "p",
+            "2",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "520": [
     {
-      "target": "notes.note",
-      "description": "Summary, Etc.",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "u",
-        "2",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Summary, Etc.",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "u",
-        "2",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "2",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "521": [
     {
-      "target": "notes.note",
-      "description": "Target Audience Note",
-      "subfield": [
-        "a",
-        "b",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Target Audience Note",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "522": [
     {
-      "target": "notes.note",
-      "description": "Geographic Coverage Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Geographic Coverage Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "524": [
     {
-      "target": "notes.note",
-      "description": "Preferred Citation of Described Materials Note",
-      "subfield": [
-        "a",
-        "2",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Preferred Citation of Described Materials Note",
+          "subfield": [
+            "a",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "2",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "2",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "525": [
     {
-      "target": "notes.note",
-      "description": "Supplement Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Supplement Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "526": [
     {
-      "target": "notes.note",
-      "description": "Study Program Information Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "5",
-        "x",
-        "z"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Study Program Information Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "5",
+            "x",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "5",
-        "x",
-        "z"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "5",
+            "x",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "530": [
     {
-      "target": "notes.note",
-      "description": "Additional Physical Form Available Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Additional Physical Form Available Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "532": [
     {
-      "target": "notes.note",
-      "description": "Accessibility note",
-      "subfield": [
-        "a"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Accessibility note",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "533": [
     {
-      "target": "notes.note",
-      "description": "Reproduction Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "m",
-        "n",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Reproduction Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "m",
+            "n",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "m",
-        "n",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "m",
+            "n",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "534": [
     {
-      "target": "notes.note",
-      "description": "Original Version Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "e",
-        "f",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "t",
-        "x",
-        "z",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Original Version Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "e",
+            "f",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "t",
+            "x",
+            "z",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "e",
-        "f",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "t",
-        "x",
-        "z",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "e",
+            "f",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "t",
+            "x",
+            "z",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "535": [
     {
-      "target": "notes.note",
-      "description": "Location of Originals/Duplicates Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "g",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Location of Originals/Duplicates Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "g",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "536": [
     {
-      "target": "notes.note",
-      "description": "Funding Information Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Funding Information Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "538": [
     {
-      "target": "notes.note",
-      "description": "System Details Note",
-      "subfield": [
-        "a",
-        "u",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "System Details Note",
+          "subfield": [
+            "a",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "u",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "u",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "540": [
     {
-      "target": "notes.note",
-      "description": "Terms Governing Use and Reproduction Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Terms Governing Use and Reproduction Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "541": [
     {
-      "target": "notes.note",
-      "description": "Immediate Source of Acquisition Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "h",
-        "n",
-        "o",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Immediate Source of Acquisition Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "n",
+            "o",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "h",
-        "n",
-        "o",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "n",
+            "o",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "542": [
     {
-      "target": "notes.note",
-      "description": "Information Relating to Copyright Status",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "u",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Information Relating to Copyright Status",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "u",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "u",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "544": [
     {
-      "target": "notes.note",
-      "description": "Location of Other Archival Materials Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "n",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Location of Other Archival Materials Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "n",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "n",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "n",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "545": [
     {
-      "target": "notes.note",
-      "description": "Biographical or Historical Data",
-      "subfield": [
-        "a",
-        "b",
-        "u"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Biographical or Historical Data",
+          "subfield": [
+            "a",
+            "b",
+            "u"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "u"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "u"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "546": [
     {
-      "target": "notes.note",
-      "description": "Language Note",
-      "subfield": [
-        "a",
-        "b",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Language Note",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "547": [
     {
-      "target": "notes.note",
-      "description": "Former Title Complexity Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Former Title Complexity Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "550": [
     {
-      "target": "notes.note",
-      "description": "Issuing Body Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Issuing Body Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "552": [
     {
-      "target": "notes.note",
-      "description": "Entity and Attribute Information Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "u",
-        "z"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Entity and Attribute Information Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "u",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "u",
-        "z"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "u",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "555": [
     {
-      "target": "notes.note",
-      "description": "Cumulative Index/Finding Aids Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Cumulative Index/Finding Aids Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "u",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "556": [
     {
-      "target": "notes.note",
-      "description": "Information About Documentation Note",
-      "subfield": [
-        "a",
-        "z"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Information About Documentation Note",
+          "subfield": [
+            "a",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "z"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "561": [
     {
-      "target": "notes.note",
-      "description": "Ownership and Custodial History",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Ownership and Custodial History",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "562": [
     {
-      "target": "notes.note",
-      "description": "Copy and Version Identification Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Copy and Version Identification Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "563": [
     {
-      "target": "notes.note",
-      "description": "Binding Information",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Binding Information",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "565": [
     {
-      "target": "notes.note",
-      "description": "Case File Characteristics Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Case File Characteristics Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "567": [
     {
-      "target": "notes.note",
-      "description": "Methodology Note",
-      "subfield": [
-        "a",
-        "b",
-        "2"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Methodology Note",
+          "subfield": [
+            "a",
+            "b",
+            "2"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "2"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "2"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "580": [
     {
-      "target": "notes.note",
-      "description": "Linking Entry Complexity Note",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Linking Entry Complexity Note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "581": [
     {
-      "target": "notes.note",
-      "description": "Publications About Described Materials Note",
-      "subfield": [
-        "a",
-        "z",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Publications About Described Materials Note",
+          "subfield": [
+            "a",
+            "z",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "z",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "z",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "583": [
     {
-      "target": "notes.note",
-      "description": "Action Note",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "n",
-        "o",
-        "u",
-        "x",
-        "z",
-        "2",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Action Note",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "n",
+            "o",
+            "u",
+            "x",
+            "z",
+            "2",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "n",
-        "o",
-        "u",
-        "x",
-        "z",
-        "2",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "n",
+            "o",
+            "u",
+            "x",
+            "z",
+            "2",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "584": [
     {
-      "target": "notes.note",
-      "description": "Accumulation and Frequency of Use Note",
-      "subfield": [
-        "a",
-        "b",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Accumulation and Frequency of Use Note",
+          "subfield": [
+            "a",
+            "b",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "b",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "585": [
     {
-      "target": "notes.note",
-      "description": "Exhibitions Note",
-      "subfield": [
-        "a",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Exhibitions Note",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "3",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "586": [
     {
-      "target": "notes.note",
-      "description": "Awards Note",
-      "subfield": [
-        "a",
-        "3"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Awards Note",
+          "subfield": [
+            "a",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "3"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "588": [
     {
-      "target": "notes.note",
-      "description": "Source of Description Note",
-      "subfield": [
-        "a",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Source of Description Note",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a",
-        "5"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
   ],
   "590": [
     {
-      "target": "notes.note",
-      "description": "Local notes",
-      "subfield": [
-        "a"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.note",
+          "description": "Local notes",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "trim_period"
+              "conditions": [
+                {
+                  "type": "trim_period"
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "notes.staffOnly",
-      "description": "If true, determines that the note should not be visible for others than staff",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
+        },
         {
-          "conditions": [],
-          "value": "false"
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
         }
       ]
     }
