@@ -61,7 +61,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * Updates jobExecution by its id only when last chunk was processed.
    *
    * @param jobExecutionId jobExecution Id
-   * @param params Okapi connection params
+   * @param params         Okapi connection params
    * @return future with true if last chunk was processed and jobExecution updated, otherwise future with false
    */
   private Future<Boolean> updateJobExecutionStatusIfAllChunksProcessed(String jobExecutionId, OkapiConnectionParams params) {
@@ -132,7 +132,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(completed -> {
         if (completed) {
           return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
-            .compose(hasErrors ->  Future.succeededFuture(hasErrors ?
+            .compose(hasErrors -> Future.succeededFuture(hasErrors ?
               new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR) :
               // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
               new StatusDto().withStatus(StatusDto.Status.COMMITTED)));
