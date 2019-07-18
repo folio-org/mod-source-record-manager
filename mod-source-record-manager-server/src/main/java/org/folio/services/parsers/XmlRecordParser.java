@@ -3,7 +3,7 @@ package org.folio.services.parsers;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.rest.jaxrs.model.RawRecordsDto.ContentType;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcXmlReader;
 import org.marc4j.marc.Record;
@@ -43,7 +43,7 @@ public class XmlRecordParser implements RecordParser {
   }
 
   @Override
-  public ContentType getParserFormat() {
-    return ContentType.MARC_XML;
+  public RecordsMetadata.ContentType getParserFormat() {
+    return RecordsMetadata.ContentType.MARC_XML;
   }
 }
