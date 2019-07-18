@@ -30,6 +30,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -153,7 +154,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
             jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
             if (status.getStatus().equals(StatusDto.Status.ERROR)) {
-              jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+              jobExecution.withErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()))
+                .withCompletedDate(new Date());
             }
             future.complete(jobExecution);
           }
