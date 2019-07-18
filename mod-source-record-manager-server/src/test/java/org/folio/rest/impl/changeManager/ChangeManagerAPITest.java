@@ -133,6 +133,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
     assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
     Assert.assertNotNull(parentSingle.getJobProfileInfo());
+    Assert.assertNotNull(parentSingle.getRunBy().getFirstName());
+    Assert.assertNotNull(parentSingle.getRunBy().getLastName());
   }
 
   @Test
@@ -267,7 +269,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(createdJobExecutions.get(0).getId()))
-      .body("hrId", MatchesPattern.matchesPattern("\\d+"));
+      .body("hrId", MatchesPattern.matchesPattern("\\d+"))
+      .body("runBy.firstName", notNullValue())
+      .body("runBy.lastName", notNullValue());
   }
 
   @Test

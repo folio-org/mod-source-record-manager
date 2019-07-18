@@ -109,7 +109,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         .map(jobExecution -> {
           if (jobExecution.getRunBy() == null || jobExecution.getProgress() == null || jobExecution.getStartedDate() == null) {
             return jobExecutionService.updateJobExecution(jobExecution
-              .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"))
               .withProgress(new Progress().withCurrent(1000).withTotal(1000))
               .withStartedDate(new Date()), params);
           }
