@@ -7,6 +7,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
@@ -111,6 +112,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       }
       return future;
     }, params.getTenantId()).compose(jobExec -> updateSnapshotStatus(jobExecution, params));
+  }
+
+  @Override
+  public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
+    return jobExecutionDao.updateBlocking(jobExecutionId, mutator, tenantId);
   }
 
   @Override
