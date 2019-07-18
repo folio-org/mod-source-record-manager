@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -61,6 +62,15 @@ public interface JobExecutionService {
    * @return updated entity
    */
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
+
+  /**
+   * Updates {@link JobExecution} in the db with row blocking
+   *
+   * @param jobExecutionId JobExecution id
+   * @param mutator        defines necessary changes to be made before save
+   * @return future with updated JobExecution
+   */
+  Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
   /**
    * Searches for JobExecution by id
