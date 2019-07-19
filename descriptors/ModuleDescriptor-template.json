@@ -13,6 +13,10 @@
     {
       "id": "users",
       "version": "15.0"
+    },
+    {
+      "id": "users",
+      "version": "15.0"
     }],
   "provides": [
     {
@@ -73,7 +77,8 @@
             "source-storage.records.get",
             "source-storage.records.post",
             "source-storage.records.put",
-            "inventory.instances.batch.post"
+            "inventory.instances.batch.post",
+            "users.collection.get"
           ]
         }
       ]

@@ -64,15 +64,6 @@ public interface JobExecutionService {
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
 
   /**
-   * Updates {@link JobExecution} in the db with row blocking
-   *
-   * @param jobExecutionId JobExecution id
-   * @param mutator        defines necessary changes to be made before save
-   * @return future with updated JobExecution
-   */
-  Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
-
-  /**
    * Searches for JobExecution by id
    *
    * @param id JobExecution id

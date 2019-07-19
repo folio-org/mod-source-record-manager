@@ -36,25 +36,6 @@
           "tOps": "ADD"
         }
       ]
-    },
-    {
-      "tableName": "job_execution_progress",
-      "withMetadata": false,
-      "pkColumnName": "_id",
-      "generateId": false,
-      "withAuditing": false,
-      "uniqueIndex": [
-        {
-          "fieldName": "jobExecutionId",
-          "tOps": "ADD"
-        }
-      ],
-      "index": [
-        {
-          "fieldName": "jobExecutionId",
-          "tOps": "ADD"
-        }
-      ]
     }
   ],
   "scripts": [

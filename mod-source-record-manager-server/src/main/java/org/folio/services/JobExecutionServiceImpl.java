@@ -115,11 +115,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
-    return jobExecutionDao.updateBlocking(jobExecutionId, mutator, tenantId);
-  }
-
-  @Override
   public Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId) {
     return jobExecutionDao.getJobExecutionById(id, tenantId);
   }

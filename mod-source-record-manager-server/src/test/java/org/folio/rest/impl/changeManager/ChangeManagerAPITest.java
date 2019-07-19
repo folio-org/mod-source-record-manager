@@ -767,7 +767,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(1000))
+      .body("progress.total", is(15))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
@@ -851,7 +851,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(1000))
+      .body("progress.total", is(15))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
