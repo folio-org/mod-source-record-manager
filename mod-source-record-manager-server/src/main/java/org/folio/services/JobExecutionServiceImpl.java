@@ -227,7 +227,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
-      .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"))
+      .withRunBy(new RunBy()
+        .withFirstName("DIKU")
+        .withLastName("ADMINISTRATOR"))
       .withUserId(userId);
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)
