@@ -2,13 +2,15 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
-import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -18,8 +20,10 @@ import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
+import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.services.converters.Status;
@@ -30,6 +34,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -46,6 +51,7 @@ import java.util.UUID;
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
+  private static final String GET_USER_URL = "/users?query=id==";
   @Autowired
   private JobExecutionDao jobExecutionDao;
   @Autowired
@@ -53,6 +59,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   @Autowired
   private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
   private Random random = new Random();
+
 
   @Override
   public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
@@ -153,7 +160,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
             jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
             if (status.getStatus().equals(StatusDto.Status.ERROR)) {
-              jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+              jobExecution.withErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()))
+                .withCompletedDate(new Date());
             }
             future.complete(jobExecution);
           }
@@ -225,6 +233,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
+      .withRunBy(new RunBy()
+        .withFirstName("DIKU")
+        .withLastName("ADMINISTRATOR"))
       .withUserId(userId);
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)
@@ -239,6 +250,47 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
     return job;
   }
+
+  /**
+   * Finds user by user id and returns UserInfo
+   *
+   * @param userId user id
+   * @param params Okapi connection params
+   * @return Future with found UserInfo
+   */
+  private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
+    Future<UserInfo> future = Future.future();
+    RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
+      .setHandler(getUserResult -> {
+        if (RestUtil.validateAsyncResult(getUserResult, future)) {
+          JsonObject response = getUserResult.result().getJson();
+          if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
+            future.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
+          } else {
+            int recordCount = response.getInteger("totalRecords");
+            if (recordCount > 1) {
+              String errorMessage = "There are more then one user by requested user id : " + userId;
+              LOGGER.error(errorMessage);
+              future.fail(errorMessage);
+            } else if (recordCount == 0) {
+              String errorMessage = "No user found by user id :" + userId;
+              LOGGER.error(errorMessage);
+              future.fail(errorMessage);
+            } else {
+              JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
+              JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
+              UserInfo userInfo = new UserInfo()
+                .withFirstName(userPersonalInfo.getString("firstName"))
+                .withLastName(userPersonalInfo.getString("lastName"))
+                .withUserName(jsonUser.getString("username"));
+              future.complete(userInfo);
+            }
+          }
+        }
+      });
+    return future;
+  }
+
 
   /**
    * Creates and returns list of Snapshot entities depending on received JobExecution entities.

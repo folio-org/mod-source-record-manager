@@ -1,21 +1,15 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.RestUtil;
-import org.folio.rest.RestVerticle;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.afterprocessing.AfterProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,9 +26,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private JobExecutionService jobExecutionService;
   private ChangeEngineService changeEngineService;
   private AfterProcessingService instanceProcessingService;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessingServiceImpl.class);
-  private static final String GET_USER_URL = "/users?query=id==";
 
   public ChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                     @Autowired JobExecutionService jobExecutionService,
@@ -59,7 +50,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withCreatedDate(new Date());
     jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(progress -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, incomingChunk, params))
+      .compose(progress -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
@@ -106,14 +97,13 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * STUB implementation
-   * Checks JobExecution runBy, progress and startedDate fields and updates them if needed
+   * Updates JobExecution progress
    *
    * @param jobExecutionId - JobExecution id
    * @param params         - okapi connection params
    * @return future
    */
-  private Future<JobExecution> checkAndUpdateJobExecutionFieldsIfNecessary(String jobExecutionId, RawRecordsDto incomingChunk, OkapiConnectionParams params) {
+  private Future<JobExecution> updateJobExecutionProgress(String jobExecutionId, RawRecordsDto incomingChunk, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
@@ -124,65 +114,12 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
             .withCurrent(incomingChunk.getRecordsMetadata().getCounter())
             .withTotal(totalValue != null ? totalValue : counterValue);
           jobExecution.setProgress(progress);
-
-          if (jobExecution.getRunBy() == null) {
-            String userId = params.getHeaders().get(RestVerticle.OKAPI_USERID_HEADER);
-            lookupUser(userId, params)
-              .setHandler(userResult -> {
-                if(userResult.succeeded()){
-                  UserInfo userInfo = userResult.result();
-                  jobExecution.setRunBy(new RunBy());
-                }
-              });
-            jobExecution
-              .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"))
-              .withStartedDate(new Date());
+          if (jobExecution.getStartedDate() == null) {
+            jobExecution.setStartedDate(new Date());
           }
-
           return jobExecutionService.updateJobExecution(jobExecution, params);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
-
-  /**
-   * Finds user by user id and returns UserInfo
-   *
-   * @param userId user id
-   * @param params Okapi connection params
-   * @return Future with found UserInfo
-   */
-  private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
-    Future<UserInfo> future = Future.future();
-    RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
-      .setHandler(getUserResult -> {
-        if (RestUtil.validateAsyncResult(getUserResult, future)) {
-          JsonObject response = getUserResult.result().getJson();
-          if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-            future.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
-          } else {
-            int recordCount = response.getInteger("totalRecords");
-            if (recordCount > 1) {
-              String errorMessage = "There are more then one user by requested user id : " + userId;
-              LOGGER.error(errorMessage);
-              future.fail(errorMessage);
-            } else if (recordCount == 0) {
-              String errorMessage = "No user found by user id :" + userId;
-              LOGGER.error(errorMessage);
-              future.fail(errorMessage);
-            } else {
-              JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
-              JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
-              UserInfo userInfo = new UserInfo()
-                .withFirstName(userPersonalInfo.getString("firstName"))
-                .withLastName(userPersonalInfo.getString("lastName"))
-                .withUserName(jsonUser.getString("username"));
-              future.complete(userInfo);
-            }
-          }
-        }
-      });
-    return future;
-  }
-
 
   /**
    * Checks actual status of JobExecution
