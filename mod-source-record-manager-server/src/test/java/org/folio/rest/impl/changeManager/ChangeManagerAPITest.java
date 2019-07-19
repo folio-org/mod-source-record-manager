@@ -14,7 +14,15 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.converters.Status;
 import org.hamcrest.text.MatchesPattern;
 import org.junit.Assert;
@@ -22,14 +30,28 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -133,6 +155,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
     assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
     Assert.assertNotNull(parentSingle.getJobProfileInfo());
+    Assert.assertNotNull(parentSingle.getRunBy().getFirstName());
+    Assert.assertNotNull(parentSingle.getRunBy().getLastName());
   }
 
   @Test
@@ -267,7 +291,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(createdJobExecutions.get(0).getId()))
-      .body("hrId", MatchesPattern.matchesPattern("\\d+"));
+      .body("hrId", MatchesPattern.matchesPattern("\\d+"))
+      .body("runBy.firstName", notNullValue())
+      .body("runBy.lastName", notNullValue());
   }
 
   @Test
@@ -483,6 +509,42 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(status.getStatus().name()))
       .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()));
+  }
+
+  @Test
+  public void shouldSetCompletedDateToJobExecutionOnUpdateStatusToError() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExecution = createdJobExecutions.get(0);
+    Assert.assertThat(jobExecution.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
+    Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
+    Assert.assertNotNull(jobExecution.getRunBy().getLastName());
+
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExecution.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(status.getStatus().name()))
+      .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()))
+      .body("errorStatus", is(status.getErrorStatus().toString()))
+      .body("completedDate", notNullValue(Date.class));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(status.getStatus().name()))
+      .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()))
+      .body("errorStatus", is(status.getErrorStatus().toString()))
+      .body("completedDate", notNullValue(Date.class));
   }
 
   @Test
