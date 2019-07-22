@@ -95,6 +95,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           UserInfo userInfo = null;
           if (userInfoAsyncResult.succeeded()) {
             userInfo = userInfoAsyncResult.result();
+          } else {
+            LOGGER.error("Error during get user information", userInfoAsyncResult.cause());
           }
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
