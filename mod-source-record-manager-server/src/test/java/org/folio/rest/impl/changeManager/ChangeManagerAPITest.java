@@ -129,7 +129,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     // when
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
     requestDto.setJobProfileInfo(new JobProfileInfo()
       .withId(UUID.randomUUID().toString())
