@@ -49,7 +49,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withCreatedDate(new Date());
     jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
+      .compose(job -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
@@ -96,23 +96,27 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * STUB implementation
-   * Checks JobExecution runBy, progress and startedDate fields and updates them if needed
+   * Updates JobExecution progress
    *
    * @param jobExecutionId - JobExecution id
    * @param params         - okapi connection params
    * @return future
    */
-  private Future<JobExecution> checkAndUpdateJobExecutionFieldsIfNecessary(String jobExecutionId, OkapiConnectionParams params) {
+  private Future<JobExecution> updateJobExecutionProgress(String jobExecutionId, RawRecordsDto incomingChunk, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
-          if (jobExecution.getRunBy() == null || jobExecution.getProgress() == null || jobExecution.getStartedDate() == null) {
-            return jobExecutionService.updateJobExecution(jobExecution
-              .withProgress(new Progress().withCurrent(1000).withTotal(1000))
-              .withStartedDate(new Date()), params);
+          Integer totalValue = incomingChunk.getRecordsMetadata().getTotal();
+          Integer counterValue = incomingChunk.getRecordsMetadata().getCounter();
+          Progress progress = new Progress()
+            .withJobExecutionId(jobExecutionId)
+            .withCurrent(incomingChunk.getRecordsMetadata().getCounter())
+            .withTotal(totalValue != null ? totalValue : counterValue);
+          jobExecution.setProgress(progress);
+          if (jobExecution.getStartedDate() == null) {
+            jobExecution.setStartedDate(new Date());
           }
-          return Future.succeededFuture(jobExecution);
+          return jobExecutionService.updateJobExecution(jobExecution, params);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 

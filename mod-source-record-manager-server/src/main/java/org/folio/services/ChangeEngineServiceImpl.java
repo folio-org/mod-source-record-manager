@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
@@ -63,7 +64,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Record>> future = Future.future();
-    List<Record> parsedRecords = parseRecords(chunk.getRecords(), chunk.getContentType(), jobExecution, sourceChunkId, params.getTenantId());
+    List<Record> parsedRecords = parseRecords(chunk.getRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
       .setHandler(postAr -> {
@@ -82,7 +83,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
-            .setHandler(ar ->  future.fail(postAr.cause()));
+            .setHandler(ar -> future.fail(postAr.cause()));
         } else {
           future.complete(parsedRecords);
         }
@@ -99,7 +100,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
    */
-  private List<Record> parseRecords(List<String> rawRecords, RawRecordsDto.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
+  private List<Record> parseRecords(List<String> rawRecords, RecordsMetadata.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
