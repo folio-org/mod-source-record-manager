@@ -1,6 +1,6 @@
 package org.folio.services.parsers;
 
-import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +21,7 @@ public final class RecordParserBuilder {
    * @param recordContentType - record content type
    * @return - RecordParser for chosen record content type
    */
-  public static RecordParser buildParser(RawRecordsDto.ContentType recordContentType) {
+  public static RecordParser buildParser(RecordsMetadata.ContentType recordContentType) {
     return rawRecordParsers.stream()
       .filter(parser -> parser.getParserFormat().equals(recordContentType))
       .findFirst()

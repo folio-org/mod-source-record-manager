@@ -43,7 +43,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
-      .withLast(incomingChunk.getLast())
+      .withLast(incomingChunk.getRecordsMetadata().getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(incomingChunk.getRecords().size())
       .withCreatedDate(new Date());

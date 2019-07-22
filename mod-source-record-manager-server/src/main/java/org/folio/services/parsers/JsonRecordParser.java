@@ -3,8 +3,8 @@ package org.folio.services.parsers;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.RawRecordsDto.ContentType;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+
 
 /**
  * Json record parser implementation
@@ -29,7 +29,7 @@ public class JsonRecordParser implements RecordParser {
   }
 
   @Override
-  public ContentType getParserFormat() {
-    return ContentType.MARC_JSON;
+  public RecordsMetadata.ContentType getParserFormat() {
+    return RecordsMetadata.ContentType.MARC_JSON;
   }
 }
