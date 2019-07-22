@@ -89,18 +89,24 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
-
-      List<JobExecution> jobExecutions =
-        prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId(), jobExecutionsRqDto);
-      List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
-
-      Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
-      Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
-
-      return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
-        .map(new InitJobExecutionsRsDto()
-          .withParentJobExecutionId(parentJobExecutionId)
-          .withJobExecutions(jobExecutions));
+      Future<InitJobExecutionsRsDto> future = Future.succeededFuture();
+      lookupUser(jobExecutionsRqDto.getUserId(), params)
+        .setHandler(userInfoAsyncResult -> {
+          UserInfo userInfo = null;
+          if (userInfoAsyncResult.succeeded()) {
+            userInfo = userInfoAsyncResult.result();
+          }
+          List<JobExecution> jobExecutions =
+            prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
+          List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
+          Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
+          Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
+          future.compose(r -> CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
+            .map(new InitJobExecutionsRsDto()
+              .withParentJobExecutionId(parentJobExecutionId)
+              .withJobExecutions(jobExecutions)));
+        });
+      return future;
     }
   }
 
@@ -201,11 +207,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    *
    * @param parentJobExecutionId id of the parent JobExecution entity
    * @param files                Representations of the Files user uploads
-   * @param userId               id of the user creating JobExecution
+   * @param userInfo             The user creating JobExecution
    * @param dto                  {@link InitJobExecutionsRqDto}
    * @return list of JobExecution entities
    */
-  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, String userId, InitJobExecutionsRqDto dto) {
+  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
+    String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
         .withJobProfileInfo(dto.getJobProfileInfo()));
@@ -220,6 +227,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       File file = files.get(0);
       result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
     }
+    if (userInfo != null) {
+      result.forEach(job -> job.setRunBy(new RunBy()
+        .withFirstName(userInfo.getFirstName())
+        .withLastName(userInfo.getLastName())));
+    }
     return result;
   }
 
@@ -233,9 +245,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
-      .withRunBy(new RunBy()
-        .withFirstName("DIKU")
-        .withLastName("ADMINISTRATOR"))
       .withUserId(userId);
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)

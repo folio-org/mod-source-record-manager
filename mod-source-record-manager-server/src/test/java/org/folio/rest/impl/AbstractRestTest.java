@@ -76,6 +76,7 @@ public abstract class AbstractRestTest {
   protected static final String RECORD_SERVICE_URL = "/source-storage/records";
   protected static final String INVENTORY_URL = "/inventory/instances/batch";
   protected static final String PARSED_RECORDS_COLLECTION_URL = "/source-storage/batch/parsed-records";
+  protected static final String okapiUserIdHeader = UUID.randomUUID().toString();
 
   private JsonObject userResponse = new JsonObject()
     .put("users",
@@ -155,7 +156,6 @@ public abstract class AbstractRestTest {
   @Before
   public void setUp(TestContext context) throws IOException {
     clearTable(context);
-    String okapiUserIdHeader = UUID.randomUUID().toString();
     spec = new RequestSpecBuilder()
       .setContentType(ContentType.JSON)
       .addHeader(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port())
@@ -215,7 +215,7 @@ public abstract class AbstractRestTest {
     }
     List<File> limitedFilesList = filesList.stream().limit(filesNumber).collect(Collectors.toList());
     requestDto.getFiles().addAll(limitedFilesList);
-    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
     return RestAssured.given()
       .spec(spec)
