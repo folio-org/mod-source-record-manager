@@ -1,16 +1,15 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.Try;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -35,10 +34,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.HttpStatus.HTTP_CREATED;
-import static org.folio.HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
+import static org.folio.dataimport.util.RestUtil.isPartialSuccess;
+import static org.folio.dataimport.util.RestUtil.isStatus;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
 @Service
@@ -206,19 +204,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
       });
     }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
-  }
-
-  //TODO move it to data-import-util
-  private boolean isPartialSuccess(HttpClientResponse response) {
-    return isStatus(response, HTTP_INTERNAL_SERVER_ERROR) && isContentTypeJson(response);
-  }
-
-  private boolean isStatus(HttpClientResponse response, HttpStatus status) {
-    return response.statusCode() == status.toInt();
-  }
-
-  private boolean isContentTypeJson(HttpClientResponse response) {
-    return APPLICATION_JSON.equals(response.getHeader(CONTENT_TYPE));
   }
 
   private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR
