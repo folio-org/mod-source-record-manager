@@ -1188,7 +1188,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     });
 
     requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
-    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
     RestAssured.given()
       .spec(spec)
