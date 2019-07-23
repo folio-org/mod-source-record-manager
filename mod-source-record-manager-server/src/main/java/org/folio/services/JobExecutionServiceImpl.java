@@ -89,24 +89,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
-      Future<InitJobExecutionsRsDto> future = Future.succeededFuture();
-      lookupUser(jobExecutionsRqDto.getUserId(), params)
-        .setHandler(userInfoAsyncResult -> {
-          UserInfo userInfo = null;
-          if (userInfoAsyncResult.succeeded()) {
-            userInfo = userInfoAsyncResult.result();
-          }
+      return lookupUser(jobExecutionsRqDto.getUserId(), params)
+        .compose(userInfo -> {
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
           Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
           Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
-          future.compose(r -> CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
+          return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
             .map(new InitJobExecutionsRsDto()
               .withParentJobExecutionId(parentJobExecutionId)
-              .withJobExecutions(jobExecutions)));
+              .withJobExecutions(jobExecutions));
         });
-      return future;
     }
   }
 
@@ -216,7 +210,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
-        .withJobProfileInfo(dto.getJobProfileInfo()));
+        .withJobProfileInfo(dto.getJobProfileInfo())
+        .withRunBy(buildRunByFromUserInfo(userInfo)));
     }
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
@@ -228,10 +223,15 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       File file = files.get(0);
       result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
     }
-    if (userInfo != null) {
-      result.forEach(job -> job.setRunBy(new RunBy()
-        .withFirstName(userInfo.getFirstName())
-        .withLastName(userInfo.getLastName())));
+    result.forEach(job -> job.setRunBy(buildRunByFromUserInfo(userInfo)));
+    return result;
+  }
+
+  private RunBy buildRunByFromUserInfo(UserInfo info) {
+    RunBy result = new RunBy();
+    if (info != null) {
+      result.setFirstName(info.getFirstName());
+      result.setLastName(info.getLastName());
     }
     return result;
   }
