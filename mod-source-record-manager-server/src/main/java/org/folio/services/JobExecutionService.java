@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;

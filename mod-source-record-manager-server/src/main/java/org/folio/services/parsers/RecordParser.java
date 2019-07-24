@@ -1,6 +1,6 @@
 package org.folio.services.parsers;
 
-import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
 
 /**
  * Common interface for Record Parser. Parsers for each format should implement it
@@ -19,5 +19,5 @@ public interface RecordParser {
   /**
    * @return - format which RecordParser can parse
    */
-  RawRecordsDto.ContentType getParserFormat();
+  RecordsMetadata.ContentType getParserFormat();
 }

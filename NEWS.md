@@ -1,17 +1,18 @@
-## 2019-07-23 v1.5.0
- * Removed stub data for 'Landing page'
- * Changed logic for selective update of parsed records. Now only successfully saved MARC records
- get updates for additional fields
- * Added 'completedRunning' date for ERROR jobs
+## 2019-08-24 v1.6.0-SNAPSHOT
+ * Progress mechanism was updated
+ * Changed RawRecordsDto schema with extended metadata information
+ 
+## 2019-06-13 v1.5.0
  * Changed implementation for Job Execution human-readable id using DB sequence
  * JobExecution marked as Error if processing of at least one chunk failed
  * Updated Record-to-Instance mapping rules and Instance schema in accordance with breaking changes in mod-inventory
+ * Progress mechanism was updated
+ * Changed RawRecordsDto schema with extended metadata information
  * Optimized Record-to-Instance mapping (framed rules into 'entity')
 
 ## 2019-06-12 v1.4.1
  * Fixed mapping from Record to Instances
  * Fixed check whether processing is completed for all chunks
-
 
 ## 2019-06-12 v1.4.0
  * Added description for data-import flow

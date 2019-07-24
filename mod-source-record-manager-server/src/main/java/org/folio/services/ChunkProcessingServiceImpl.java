@@ -43,13 +43,13 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
-      .withLast(incomingChunk.getLast())
+      .withLast(incomingChunk.getRecordsMetadata().getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
       .withChunkSize(incomingChunk.getRecords().size())
       .withCreatedDate(new Date());
     jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(e -> checkAndUpdateJobExecutionFieldsIfNecessary(jobExecutionId, params))
+      .compose(job -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
@@ -61,7 +61,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
    * Updates jobExecution by its id only when last chunk was processed.
    *
    * @param jobExecutionId jobExecution Id
-   * @param params Okapi connection params
+   * @param params         Okapi connection params
    * @return future with true if last chunk was processed and jobExecution updated, otherwise future with false
    */
   private Future<Boolean> updateJobExecutionStatusIfAllChunksProcessed(String jobExecutionId, OkapiConnectionParams params) {
@@ -96,23 +96,27 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   }
 
   /**
-   * STUB implementation
-   * Checks JobExecution runBy, progress and startedDate fields and updates them if needed
+   * Updates JobExecution progress
    *
    * @param jobExecutionId - JobExecution id
    * @param params         - okapi connection params
    * @return future
    */
-  private Future<JobExecution> checkAndUpdateJobExecutionFieldsIfNecessary(String jobExecutionId, OkapiConnectionParams params) {
+  private Future<JobExecution> updateJobExecutionProgress(String jobExecutionId, RawRecordsDto incomingChunk, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
-          if (jobExecution.getRunBy() == null || jobExecution.getProgress() == null || jobExecution.getStartedDate() == null) {
-            return jobExecutionService.updateJobExecution(jobExecution
-              .withProgress(new Progress().withCurrent(1000).withTotal(1000))
-              .withStartedDate(new Date()), params);
+          Integer totalValue = incomingChunk.getRecordsMetadata().getTotal();
+          Integer counterValue = incomingChunk.getRecordsMetadata().getCounter();
+          Progress progress = new Progress()
+            .withJobExecutionId(jobExecutionId)
+            .withCurrent(incomingChunk.getRecordsMetadata().getCounter())
+            .withTotal(totalValue != null ? totalValue : counterValue);
+          jobExecution.setProgress(progress);
+          if (jobExecution.getStartedDate() == null) {
+            jobExecution.setStartedDate(new Date());
           }
-          return Future.succeededFuture(jobExecution);
+          return jobExecutionService.updateJobExecution(jobExecution, params);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
@@ -128,7 +132,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(completed -> {
         if (completed) {
           return jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, tenantId)
-            .compose(hasErrors ->  Future.succeededFuture(hasErrors ?
+            .compose(hasErrors -> Future.succeededFuture(hasErrors ?
               new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.INSTANCE_CREATING_ERROR) :
               // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
               new StatusDto().withStatus(StatusDto.Status.COMMITTED)));

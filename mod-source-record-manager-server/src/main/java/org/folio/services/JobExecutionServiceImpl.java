@@ -2,12 +2,16 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -20,6 +24,7 @@ import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.converters.JobExecutionToDtoConverter;
 import org.folio.services.converters.JobExecutionToLogDtoConverter;
 import org.folio.services.converters.Status;
@@ -47,6 +52,8 @@ import java.util.UUID;
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
+  private static final String GET_USER_URL = "/users?query=id==";
+
   @Autowired
   private JobExecutionDao jobExecutionDao;
   @Autowired
@@ -83,20 +90,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       String parentJobExecutionId = UUID.randomUUID().toString();
-
-      List<JobExecution> jobExecutions =
-        prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), jobExecutionsRqDto.getUserId(), jobExecutionsRqDto);
-      List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
-
-      Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
-      Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
-
-      return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
-        .map(new InitJobExecutionsRsDto()
-          .withParentJobExecutionId(parentJobExecutionId)
-          .withJobExecutions(jobExecutions));
+      return lookupUser(jobExecutionsRqDto.getUserId(), params)
+        .compose(userInfo -> {
+          List<JobExecution> jobExecutions =
+            prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
+          List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
+          Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
+          Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
+          return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
+            .map(new InitJobExecutionsRsDto()
+              .withParentJobExecutionId(parentJobExecutionId)
+              .withJobExecutions(jobExecutions));
+        });
     }
   }
+
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
@@ -195,14 +203,16 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    *
    * @param parentJobExecutionId id of the parent JobExecution entity
    * @param files                Representations of the Files user uploads
-   * @param userId               id of the user creating JobExecution
+   * @param userInfo             The user creating JobExecution
    * @param dto                  {@link InitJobExecutionsRqDto}
    * @return list of JobExecution entities
    */
-  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, String userId, InitJobExecutionsRqDto dto) {
+  private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
+    String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
-        .withJobProfileInfo(dto.getJobProfileInfo()));
+        .withJobProfileInfo(dto.getJobProfileInfo())
+        .withRunBy(buildRunByFromUserInfo(userInfo)));
     }
     List<JobExecution> result = new ArrayList<>();
     if (files.size() > 1) {
@@ -214,7 +224,57 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       File file = files.get(0);
       result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
     }
+    result.forEach(job -> job.setRunBy(buildRunByFromUserInfo(userInfo)));
     return result;
+  }
+
+  private RunBy buildRunByFromUserInfo(UserInfo info) {
+    RunBy result = new RunBy();
+    if (info != null) {
+      result.setFirstName(info.getFirstName());
+      result.setLastName(info.getLastName());
+    }
+    return result;
+  }
+
+  /**
+   * Finds user by user id and returns UserInfo
+   *
+   * @param userId user id
+   * @param params Okapi connection params
+   * @return Future with found UserInfo
+   */
+  private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
+    Future<UserInfo> future = Future.future();
+    RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
+      .setHandler(getUserResult -> {
+        if (RestUtil.validateAsyncResult(getUserResult, future)) {
+          JsonObject response = getUserResult.result().getJson();
+          if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
+            future.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
+          } else {
+            int recordCount = response.getInteger("totalRecords");
+            if (recordCount > 1) {
+              String errorMessage = "There are more then one user by requested user id : " + userId;
+              LOGGER.error(errorMessage);
+              future.fail(errorMessage);
+            } else if (recordCount == 0) {
+              String errorMessage = "No user found by user id :" + userId;
+              LOGGER.error(errorMessage);
+              future.fail(errorMessage);
+            } else {
+              JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
+              JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
+              UserInfo userInfo = new UserInfo()
+                .withFirstName(userPersonalInfo.getString("firstName"))
+                .withLastName(userPersonalInfo.getString("lastName"))
+                .withUserName(jsonUser.getString("username"));
+              future.complete(userInfo);
+            }
+          }
+        }
+      });
+    return future;
   }
 
   /**
@@ -227,9 +287,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
-      .withRunBy(new RunBy()
-        .withFirstName("DIKU")
-        .withLastName("ADMINISTRATOR"))
       .withUserId(userId);
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)
