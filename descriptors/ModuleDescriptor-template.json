@@ -13,10 +13,6 @@
     {
       "id": "users",
       "version": "15.0"
-    },
-    {
-      "id": "users",
-      "version": "15.0"
     }],
   "provides": [
     {
