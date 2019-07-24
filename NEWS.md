@@ -1,14 +1,15 @@
+## 2019-08-24 v1.6.0-SNAPSHOT
+ * Progress mechanism was updated
+ * Changed RawRecordsDto schema with extended metadata information
+ 
 ## 2019-06-13 v1.5.0-SNAPSHOT
  * Changed implementation for Job Execution human-readable id using DB sequence
  * JobExecution marked as Error if processing of at least one chunk failed
  * Updated Record-to-Instance mapping rules and Instance schema in accordance with breaking changes in mod-inventory
- * Progress mechanism was updated
- * Changed RawRecordsDto schema with extended metadata information
 
 ## 2019-06-12 v1.4.1
  * Fixed mapping from Record to Instances
  * Fixed check whether processing is completed for all chunks
-
 
 ## 2019-06-12 v1.4.0
  * Added description for data-import flow
