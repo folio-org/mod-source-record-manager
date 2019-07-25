@@ -1,6 +1,8 @@
 ## 2019-08-24 v1.6.0-SNAPSHOT
  * Progress mechanism was updated
  * Changed RawRecordsDto schema with extended metadata information
+ * Changed relations between UI and Backend statuses for job executions
+ * Deleted stub data for job executions
  
 ## 2019-06-13 v1.5.0
  * Changed implementation for Job Execution human-readable id using DB sequence
