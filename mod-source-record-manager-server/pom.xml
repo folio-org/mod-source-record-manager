@@ -12,6 +12,8 @@
     <basedir>${project.parent.basedir}</basedir>
     <ramlfiles_path>${project.parent.basedir}/ramls</ramlfiles_path>
     <sonar.exclusions>src/main/java/org/folio/services/mappers/processor/*</sonar.exclusions>
+    <jackson.version>2.9.9.2</jackson.version>
+    <jackson.jaxb.version>2.9.9</jackson.jaxb.version>
   </properties>
 
   <dependencies>
@@ -89,7 +91,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-jaxb-annotations</artifactId>
-      <version>${jackson.version}</version>
+      <version>${jackson.jaxb.version}</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
