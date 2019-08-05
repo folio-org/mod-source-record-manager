@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AdditionalFieldsConfig;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
-import static org.folio.dataimport.util.RestUtil.isPartialSuccess;
 import static org.folio.dataimport.util.RestUtil.isStatus;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
@@ -183,6 +183,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param parsedRecords - parsed records
    */
   private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
+    if (CollectionUtils.isEmpty(parsedRecords)) {
+      return Future.succeededFuture();
+    }
+
     return Try.itDo((Future<List<Record>> future) -> {
       SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
@@ -191,10 +195,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withTotalRecords(parsedRecords.size());
 
       client.postSourceStorageBatchRecords(recordCollection, response -> {
-        if (isStatus(response, HTTP_CREATED) || isPartialSuccess(response)) {
+        if (isStatus(response, HTTP_CREATED)) {
           response.bodyHandler(it ->
             future.handle(
-              Try.itGet(() -> it.toJsonObject().mapTo(RecordCollection.class).getRecords())
+              Try.itGet(() -> it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords())
                 .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
             )
           );
