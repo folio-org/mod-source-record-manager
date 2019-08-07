@@ -114,8 +114,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     return records.parallelStream()
-      .map(record -> mapRecordToInstance(record, mapper, validator, params))
+      .map(record -> mapRecordToInstance(record, mapper))
       .filter(Objects::nonNull)
+      .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair.getKey(), instanceRecordPair.getValue(), validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
 
@@ -124,19 +125,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param record Record
    * @param mapper Record to Instance mapper
-   * @param validator Validator
-   * @param params OkapiConnectionParams to interact with external services
    * @return either a pair of record-instance or null
    */
-  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, Validator validator,
-                                                     OkapiConnectionParams params) {
+  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        boolean valid = validateInstanceAndUpdateRecordIfInvalid(instance, record, validator, params);
-        if (valid) {
-          return Pair.of(instance, record);
-        }
+        return Pair.of(instance, record);
       }
     } catch (Exception e) {
       LOGGER.error("Error mapping Record to Instance", e);
