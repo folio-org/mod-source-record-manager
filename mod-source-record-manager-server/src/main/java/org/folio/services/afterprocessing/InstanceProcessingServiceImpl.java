@@ -12,6 +12,8 @@ import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageBatchClient;
+import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
@@ -25,6 +27,10 @@ import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -45,7 +53,6 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances/batch";
-  public static final String CAN_NOT_MAP_RECORD_TO_INSTANCE_MSG = "Can not map a given Record to Instance. Cause: '%s'. Exception: '%s'";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private AdditionalFieldsUtil additionalInstanceFieldsUtil;
@@ -59,7 +66,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     Future<Void> future = Future.future();
-    Map<Instance, Record> instanceRecordMap = mapInstanceToRecord(records);
+    Map<Instance, Record> instanceRecordMap = mapRecords(records, params);
     List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
     postInstances(instances, params).setHandler(ar -> {
       JobExecutionSourceChunk.State sourceChunkState = ERROR;
@@ -70,7 +77,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         sourceChunkState = COMPLETED;
       }
       updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-        .compose(updatedChunk ->  jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
         // Complete future in order to continue the import process regardless of the result of creating Instances
         .setHandler(updateAr -> future.complete());
     });
@@ -94,40 +101,62 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Performs mapping a given Records to Instances.
+   * Maps list of Records to Instances
    *
    * @param records given list of records
    * @return association between Records and corresponding Instances
    */
-  private Map<Instance, Record> mapInstanceToRecord(List<Record> records) {
+  private Map<Instance, Record> mapRecords(List<Record> records, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
       return new HashMap<>();
     }
     final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
     return records.parallelStream()
-      .map(record -> mapInstanceToRecord(mapper, record))
+      .map(record -> mapRecordToInstance(record, mapper))
       .filter(Objects::nonNull)
+      .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
 
   /**
-   * Maps a record to an instance record.
+   * Maps Record to an Instance
    *
-   * @param mapper a record to instance record mapper.
-   * @param record a record.
-   * @return either a pair of record-instance or null.
+   * @param record Record
+   * @param mapper Record to Instance mapper
+   * @return either a pair of record-instance or null
    */
-  private Pair<Instance, Record> mapInstanceToRecord(RecordToInstanceMapper mapper, Record record) {
+  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
         return Pair.of(instance, record);
       }
-    } catch (Exception exception) {
-      String errorMessage = String.format(CAN_NOT_MAP_RECORD_TO_INSTANCE_MSG, exception.getMessage(), exception);
-      LOGGER.error(errorMessage);
+    } catch (Exception e) {
+      LOGGER.error("Error mapping Record to Instance", e);
     }
     return null;
+  }
+
+  /**
+   * Validates mapped Instance, updates Record if Instance is invalid
+   *
+   * @param instanceRecordPair  pair containing Instance entity as a key that needs to be validated and Record entity as value
+   * @param validator Validator
+   * @param params    OkapiConnectionParams to interact with external services
+   * @return true if Instance is valid, false if invalid
+   */
+  private boolean validateInstanceAndUpdateRecordIfInvalid(Pair<Instance, Record> instanceRecordPair, Validator validator, OkapiConnectionParams params) {
+    Set<ConstraintViolation<Instance>> violations = validator.validate(instanceRecordPair.getKey());
+    if (!violations.isEmpty()) {
+      Record record = instanceRecordPair.getValue().withErrorRecord(new ErrorRecord().withId(UUID.randomUUID().toString())
+        .withDescription(String.format("Mapped Instance is invalid: %s", violations.toString()))
+        .withContent(instanceRecordPair.getKey()));
+      updateRecord(record, params);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -186,7 +215,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   /**
    * Updates state of given source chunk
-   *  @param sourceChunkId id of source chunk
+   *
+   * @param sourceChunkId id of source chunk
    * @param state         state of source chunk
    * @param params        okapi connection params
    * @return future with updated JobExecutionSourceChunk entity
@@ -252,5 +282,31 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       .withParsedRecords(parsedRecords)
       .withTotalRecords(parsedRecords.size())
       .withRecordType(ParsedRecordCollection.RecordType.valueOf(getRecordsType(records).value()));
+  }
+
+  /**
+   * Sends request to update Record
+   *
+   * @param record Record to update
+   * @param params OkapiConnectionParams to interact with external services
+   * @return future with true if Record was updated, false otherwise
+   */
+  private Future<Boolean> updateRecord(Record record, OkapiConnectionParams params) {
+    Future<Boolean> future = Future.future();
+    try {
+      SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+      client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
+        if (HttpStatus.HTTP_OK.toInt() == response.statusCode()) {
+          future.complete(true);
+        } else {
+          LOGGER.error("Record {} was not updated", record.getId());
+          future.complete(false);
+        }
+      });
+    } catch (Exception e) {
+      LOGGER.error("Error updating Record", e);
+      future.fail(e);
+    }
+    return future;
   }
 }

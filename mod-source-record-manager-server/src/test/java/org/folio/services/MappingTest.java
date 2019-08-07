@@ -9,7 +9,6 @@ import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.parsers.RecordFormat;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.marc4j.MarcJsonWriter;
