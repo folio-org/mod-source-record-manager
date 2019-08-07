@@ -66,7 +66,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     Future<Void> future = Future.future();
-    Map<Instance, Record> instanceRecordMap = mapInstanceToRecord(records, params);
+    Map<Instance, Record> instanceRecordMap = mapRecords(records, params);
     List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
     postInstances(instances, params).setHandler(ar -> {
       JobExecutionSourceChunk.State sourceChunkState = ERROR;
@@ -101,12 +101,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Performs mapping a given Records to Instances.
+   * Maps list of Records to Instances
    *
    * @param records given list of records
    * @return association between Records and corresponding Instances
    */
-  private Map<Instance, Record> mapInstanceToRecord(List<Record> records, OkapiConnectionParams params) {
+  private Map<Instance, Record> mapRecords(List<Record> records, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
       return new HashMap<>();
     }
@@ -114,7 +114,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     return records.parallelStream()
-      .map(record -> mapInstanceToRecord(record, mapper, validator, params))
+      .map(record -> mapRecordToInstance(record, mapper, validator, params))
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
@@ -128,12 +128,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params OkapiConnectionParams to interact with external services
    * @return either a pair of record-instance or null
    */
-  private Pair<Instance, Record> mapInstanceToRecord(Record record, RecordToInstanceMapper mapper, Validator validator,
+  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, Validator validator,
                                                      OkapiConnectionParams params) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
-        if (isValid(instance, record, validator, params)) {
+        boolean valid = validateInstanceAndUpdateRecordIfInvalid(instance, record, validator, params);
+        if (valid) {
           return Pair.of(instance, record);
         }
       }
@@ -152,7 +153,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params    OkapiConnectionParams to interact with external services
    * @return true if Instance is valid, false if invalid
    */
-  private boolean isValid(Instance instance, Record record, Validator validator, OkapiConnectionParams params) {
+  private boolean validateInstanceAndUpdateRecordIfInvalid(Instance instance, Record record, Validator validator, OkapiConnectionParams params) {
     Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
     if (!violations.isEmpty()) {
       record.setErrorRecord(new ErrorRecord().withId(UUID.randomUUID().toString())
@@ -291,6 +292,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   /**
    * Sends request to update Record
+   *
    * @param record Record to update
    * @param params OkapiConnectionParams to interact with external services
    * @return future with true if Record was updated, false otherwise
