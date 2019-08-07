@@ -116,7 +116,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     return records.parallelStream()
       .map(record -> mapRecordToInstance(record, mapper))
       .filter(Objects::nonNull)
-      .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair.getKey(), instanceRecordPair.getValue(), validator, params))
+      .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
 
@@ -142,18 +142,17 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Validates mapped Instance, updates Record if Instance is invalid
    *
-   * @param instance  Instance entity to validate
-   * @param record    Record that was mapped to Instance
+   * @param instanceRecordPair  pair containing Instance entity as a key that needs to be validated and Record entity as value
    * @param validator Validator
    * @param params    OkapiConnectionParams to interact with external services
    * @return true if Instance is valid, false if invalid
    */
-  private boolean validateInstanceAndUpdateRecordIfInvalid(Instance instance, Record record, Validator validator, OkapiConnectionParams params) {
-    Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
+  private boolean validateInstanceAndUpdateRecordIfInvalid(Pair<Instance, Record> instanceRecordPair, Validator validator, OkapiConnectionParams params) {
+    Set<ConstraintViolation<Instance>> violations = validator.validate(instanceRecordPair.getKey());
     if (!violations.isEmpty()) {
-      record.setErrorRecord(new ErrorRecord().withId(UUID.randomUUID().toString())
+      Record record = instanceRecordPair.getValue().withErrorRecord(new ErrorRecord().withId(UUID.randomUUID().toString())
         .withDescription(String.format("Mapped Instance is invalid: %s", violations.toString()))
-        .withContent(instance));
+        .withContent(instanceRecordPair.getKey()));
       updateRecord(record, params);
       return false;
     }
