@@ -1102,7 +1102,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
     WireMock.stubFor(post(INVENTORY_URL)
-      .willReturn(serverError()//simulates partial success
+      .willReturn(created()//simulates partial success
         .withHeader(CONTENT_TYPE, APPLICATION_JSON)
         .withTransformers(InstancesBatchResponseTransformer.NAME)
       )
