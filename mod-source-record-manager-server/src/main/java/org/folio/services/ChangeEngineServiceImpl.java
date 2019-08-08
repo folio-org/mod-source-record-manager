@@ -1,12 +1,14 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
@@ -37,7 +39,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
-import static org.folio.dataimport.util.RestUtil.isStatus;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
 @Service
@@ -214,5 +215,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR
     // STUB implementation
     return UUID.randomUUID().toString();
+  }
+
+  public static boolean isStatus(HttpClientResponse response, HttpStatus status) {
+    return response.statusCode() == status.toInt();
   }
 }
