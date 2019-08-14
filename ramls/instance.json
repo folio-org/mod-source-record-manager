@@ -310,7 +310,7 @@
         "properties": {
           "instanceNoteTypeId": {
             "description": "ID of the type of note",
-            "$ref": "uuid.json"
+            "$ref": "raml-storage/schemas/common/uuid.json"
           },
           "note": {
             "type": "string",
