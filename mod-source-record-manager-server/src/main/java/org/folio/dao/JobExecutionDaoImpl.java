@@ -218,4 +218,11 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return future;
   }
 
+  @Override
+  public Future<Boolean> deleteJobExecutionById(String jobExecutionId, String tenantId) {
+    Future<UpdateResult> future = Future.future();
+    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, jobExecutionId, future.completer());
+    return future.map(updateResult -> updateResult.getUpdated() == 1);
+  }
+
 }

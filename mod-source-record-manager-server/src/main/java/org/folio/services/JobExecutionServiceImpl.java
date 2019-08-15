@@ -9,7 +9,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
-import org.folio.dao.util.JobExecutionMutator;
+import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageClient;
@@ -41,6 +41,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
+import static java.lang.String.format;
+
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
  *
@@ -56,6 +58,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
+  @Autowired
+  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   @Autowired
   private JobExecutionToDtoConverter jobExecutionToDtoConverter;
   @Autowired
@@ -111,7 +115,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
       Future<JobExecution> future = Future.future();
       if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
-        String errorMessage = String.format("JobExecution %s current status is %s and cannot be updated to %s",
+        String errorMessage = format("JobExecution %s current status is %s and cannot be updated to %s",
           currentJobExec.getId(), currentJobExec.getStatus(), jobExecution.getStatus());
         LOGGER.error(errorMessage);
         future.fail(new BadRequestException(errorMessage));
@@ -140,7 +144,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           }
         })
         .orElse(Future.failedFuture(new NotFoundException(
-          String.format("JobExecution with id '%s' was not found", parentId))))
+          format("JobExecution with id '%s' was not found", parentId))))
       );
   }
 
@@ -155,7 +159,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         Future<JobExecution> future = Future.future();
         try {
           if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
-            String message = String.format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
+            String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
             LOGGER.error(message);
             future.fail(new BadRequestException(message));
           } else {
@@ -192,6 +196,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       }
       return future;
     }, tenantId);
+  }
+
+  @Override
+  public Future<Boolean> deleteJobExecutionAndSRSRecords(String jobExecutionId, OkapiConnectionParams params) {
+    return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExec -> deleteRecordsFromSRS(jobExecutionId, params)
+          .compose(v -> jobExecutionSourceChunkDao.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
+          .compose(v -> jobExecutionDao.deleteJobExecutionById(jobExecutionId, params.getTenantId())))
+        .orElse(Future.failedFuture(new NotFoundException(
+          format("JobExecution with id '%s' was not found", jobExecutionId))))
+      );
   }
 
   /**
@@ -374,7 +390,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error during post for new Snapshot", e, e.getMessage());
+      LOGGER.error("Error during post for new Snapshot", e);
       future.fail(e);
     }
     return future;
@@ -407,10 +423,29 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error during update for Snapshot with id " + jobExecution.getId(), e, e.getMessage());
+      LOGGER.error("Error during update for Snapshot with id {}", e, jobExecution.getId());
       future.fail(e);
     }
     return future;
   }
 
+  private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
+    Future<Boolean> future = Future.future();
+    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.deleteSourceStorageSnapshotsRecordsByJobExecutionId(jobExecutionId, response -> {
+        if (response.statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
+          future.complete(true);
+        } else {
+          String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
+          LOGGER.error(message);
+          future.fail(new HttpStatusException(response.statusCode(), message));
+        }
+      });
+    } catch (Exception e) {
+      LOGGER.error("Error deleting records from SRS for Job Execution {}", e, jobExecutionId);
+      future.fail(e);
+    }
+    return future;
+  }
 }

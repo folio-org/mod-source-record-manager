@@ -34,6 +34,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
+  private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
   private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
   private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
 
@@ -131,5 +132,18 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       future.fail(e);
     }
     return future.map(resultSet -> resultSet.getResults().get(0).getBoolean(0));
+  }
+
+  @Override
+  public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
+    Future<UpdateResult> future = Future.future();
+    try {
+      Criteria idCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
+      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), future.completer());
+    } catch (Exception e) {
+      LOGGER.error("Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
+      future.fail(e);
+    }
+    return future.map(updateResult -> updateResult.getUpdated() != 0);
   }
 }

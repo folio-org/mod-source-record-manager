@@ -188,6 +188,8 @@ public abstract class AbstractRestTest {
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(WireMock.okJson(userResponse.toString())));
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
+      .willReturn(WireMock.noContent()));
   }
 
   private void clearTable(TestContext context) {

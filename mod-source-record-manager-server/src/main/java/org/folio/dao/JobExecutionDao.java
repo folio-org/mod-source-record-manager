@@ -82,4 +82,13 @@ public interface JobExecutionDao {
    */
   Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
+  /**
+   * Deletes {@link JobExecution} by id
+   *
+   * @param jobExecutionId jobExecution id
+   * @param tenantId       tenant id
+   * @return future with true if succeeded
+   */
+  Future<Boolean> deleteJobExecutionById(String jobExecutionId, String tenantId);
+
 }
