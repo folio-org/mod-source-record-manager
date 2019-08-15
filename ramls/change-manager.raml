@@ -186,3 +186,24 @@ resourceTypes:
               body:
                 text/plain:
                   example: "Internal server error"
+        delete:
+          description: "Delete JobExecution and associated records in SRS"
+          responses:
+            204:
+              body:
+                text/plain: !!null
+            400:
+              description: "Bad request"
+              body:
+                text/plain:
+                  example: "Bad request"
+            404:
+              description: "Not found"
+              body:
+                text/plain:
+                  example: "Not found"
+            500:
+              description: "Internal server error"
+              body:
+                text/plain:
+                  example: "Internal server error"

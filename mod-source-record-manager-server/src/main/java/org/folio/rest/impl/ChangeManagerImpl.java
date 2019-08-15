@@ -20,9 +20,12 @@ import org.folio.spring.SpringContextUtil;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
+
+import static java.lang.String.format;
 
 public class ChangeManagerImpl implements ChangeManager {
 
@@ -82,7 +85,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         jobExecutionService.getJobExecutionById(id, tenantId)
           .map(optionalJobExecution -> optionalJobExecution.orElseThrow(() ->
-            new NotFoundException(String.format("JobExecution with id '%s' was not found", id))))
+            new NotFoundException(format("JobExecution with id '%s' was not found", id))))
           .map(GetChangeManagerJobExecutionsByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -161,12 +164,31 @@ public class ChangeManagerImpl implements ChangeManager {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         chunkProcessingService.processChunk(entity, id, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
-            String.format("Chunk of RawRecords with JobExecution id %s was successfully processed", id)))
+            format("Chunk of RawRecords with JobExecution id %s was successfully processed", id)))
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", id, e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
+  @Override
+  public void deleteChangeManagerJobExecutionsRecordsById(String id, Map<String, String> okapiHeaders,
+                                                          Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        jobExecutionService.deleteJobExecutionAndSRSRecords(id, params)
+          .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
+            format("Records associated with JobExecution %s were successfully deleted", id)))
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to delete records for JobExecution id {}", id, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

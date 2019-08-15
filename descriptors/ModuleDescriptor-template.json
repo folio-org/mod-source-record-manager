@@ -76,6 +76,14 @@
             "inventory.instances.batch.post",
             "users.collection.get"
           ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/change-manager/jobExecutions/{id}/records",
+          "permissionsRequired" : [ "change-manager.records.delete" ],
+          "modulePermissions": [
+            "source-storage.snapshots.records.delete"
+          ]
         }
       ]
     },
@@ -131,6 +139,11 @@
       "description": "Post chunk of raw records"
     },
     {
+      "permissionName": "change-manager.records.delete",
+      "displayName": "Change Manager - delete jobExecution and all associated records from SRS",
+      "description": "Delete JobExecution and all associated records from SRS"
+    },
+    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -140,7 +153,8 @@
         "change-manager.jobexecutions.post",
         "change-manager.jobexecutions.put",
         "change-manager.jobexecutions.get",
-        "change-manager.records.post"
+        "change-manager.records.post",
+        "change-manager.records.delete"
       ],
       "visible": false
     }

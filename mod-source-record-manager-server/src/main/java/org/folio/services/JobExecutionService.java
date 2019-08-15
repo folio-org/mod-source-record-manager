@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dao.JobExecutionDao;
-import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -102,5 +101,14 @@ public interface JobExecutionService {
    * @return future with updated JobExecution
    */
   Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, String tenantId);
+
+  /**
+   * Delete JobExecution and all associated records from SRS
+   *
+   * @param jobExecutionId JobExecution id
+   * @param params         connection parameters
+   * @return future with true if succeeded
+   */
+  Future<Boolean> deleteJobExecutionAndSRSRecords(String jobExecutionId, OkapiConnectionParams params);
 
 }

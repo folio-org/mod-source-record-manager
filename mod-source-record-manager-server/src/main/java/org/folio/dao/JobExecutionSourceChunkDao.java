@@ -1,7 +1,6 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import org.apache.commons.lang3.tuple.Pair;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 
 import java.util.List;
@@ -75,5 +74,14 @@ public interface JobExecutionSourceChunkDao {
    * @return - returns a boolean value, which indicates whether there were any errors during processing
    */
   Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId);
+
+  /**
+   * Deletes all JobExecutionSourceChunks associated with specified jobExecution
+   *
+   * @param jobExecutionId jobExecution id
+   * @param tenantId       tenant id
+   * @return future with true if succeeded
+   */
+  Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
 
 }

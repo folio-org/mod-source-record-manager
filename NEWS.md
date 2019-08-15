@@ -6,6 +6,12 @@
  * Updated Instance schema
  * Removed partial success handling from SRS batch responses
  * Filtered out invalid Instances before saving to inventory
+ * Added delete endpoint for job execution and all associated records from SRS
+ 
+ | METHOD |             URL                              | DESCRIPTION                                              |
+ |--------|----------------------------------------------|----------------------------------------------------------|
+ | DELETE | /change-manager/jobExecutions/{id}/records   | Delete Job Execution and all associated records from SRS |
+
  
 ## 2019-06-13 v1.5.0
  * Changed implementation for Job Execution human-readable id using DB sequence

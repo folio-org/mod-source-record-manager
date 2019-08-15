@@ -45,7 +45,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
@@ -62,7 +61,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerAPITest extends AbstractRestTest {
 
-  private static final String POST_RAW_RECORDS_PATH = "/records";
+  private static final String RECORDS_PATH = "/records";
   private static final String CHILDREN_PATH = "/children";
   private static final String STATUS_PATH = "/status";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
@@ -744,7 +743,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JsonObject().toString())
       .when()
-      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -755,7 +754,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
   }
@@ -789,7 +788,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -836,7 +835,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
   }
@@ -873,7 +872,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -925,7 +924,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
           .withLast(false)
           .withCounter(1)))
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
   }
@@ -977,7 +976,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1071,7 +1070,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
@@ -1126,7 +1125,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1227,7 +1226,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDtoContainingError)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1299,7 +1298,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDtoContainingError)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1349,7 +1348,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(lastRawRecordsDto)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
@@ -1418,7 +1417,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDtoContainingError)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1499,7 +1498,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rawRecordsDtoContainingError)
       .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + POST_RAW_RECORDS_PATH)
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
@@ -1520,6 +1519,166 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(1, requestsToInventory.size());
     String requestBody = requestsToInventory.get(0).getBodyAsString();
     assertEquals(2, new JsonObject(requestBody).getJsonArray("instances").size());
+  }
+
+  @Test
+  public void shouldDeleteJobExecutionAndAllAssociatedRecords(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnDeleteRecordsIfJobExecutionDoesNotExist(TestContext testContext) {
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldNotDeleteJobExecutionIfRecordsWereNotDeleted(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
+      .willReturn(WireMock.serverError()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+  }
+
+  @Test
+  public void shouldDeleteJobExecutionIfNoSourceChunksExist(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
   }
 
 }
