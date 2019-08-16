@@ -347,3 +347,18 @@ JobExecution entity will be have following changed state
   "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
 }
 ```
+
+### Delete records associated with JobExecution
+
+To delete JobExecution and all associated records send a delete request on /change-manager/jobExecutions/{jobExecutionId}/records.
+
+```
+curl -w '\n' -X DELETE -D -   \
+   -H "Content-type: application/json"   \
+   -H "Accept: */*"   \
+   -H "x-okapi-tenant: diku"  \
+   -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+```
+
+Successful response contains no content (HTTP status 204).
