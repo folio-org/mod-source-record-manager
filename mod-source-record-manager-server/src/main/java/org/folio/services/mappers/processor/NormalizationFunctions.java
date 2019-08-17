@@ -1,6 +1,7 @@
 package org.folio.services.mappers.processor;
 
 import com.google.common.base.Splitter;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Iterator;
 
@@ -39,21 +40,21 @@ public class NormalizationFunctions {
    * Run the function funcName on val and param.
    * @return the function's result
    */
-  public static String runFunction(String funcName, String val, String param){
-    if(val == null){
+  public static String runFunction(String functionName, String fieldValue, JsonObject parameter){
+    if(fieldValue == null){
       return "";
     }
-    if(CHAR_SELECT.equals(funcName)){
-      return charSelect(val, param);
+    if(CHAR_SELECT.equals(functionName)){
+      return charSelect(fieldValue, parameter);
     }
-    else if(REMOVE_ENDING_PUNC.equals(funcName) && !val.equals("")){
-      return removeEndingPunc(val);
+    else if(REMOVE_ENDING_PUNC.equals(functionName) && !fieldValue.equals("")){
+      return removeEndingPunc(fieldValue);
     }
-    else if(TRIM.equals(funcName)){
-      return val.trim();
+    else if(TRIM.equals(functionName)){
+      return fieldValue.trim();
     }
-    else if(TRIM_PERIOD.equals(funcName)){
-      return trimPeriod(val);
+    else if(TRIM_PERIOD.equals(functionName)){
+      return trimPeriod(fieldValue);
     }
     return "";
   }
@@ -62,18 +63,22 @@ public class NormalizationFunctions {
     return Splitter.fixedLength(Integer.parseInt(param)).split(val).iterator();
   }
 
-  private static String charSelect(String val, String pos){
-    try{
-      if(pos.contains("-")){
-        String []range = pos.split("-");
-        return val.substring(Integer.parseInt(range[0]), Integer.parseInt(range[1])+1);
-      }
-      int p = Integer.parseInt(pos);
-      return val.substring(p,p+1);
-    }
-    catch(Exception e){
-      return val;
-    }
+  private static String charSelect(String fieldValue, JsonObject parameter){
+//    try{
+//
+//      if(pos.contains("-")){
+//        String []range = pos.split("-");
+//        return fieldValue.substring(Integer.parseInt(range[0]), Integer.parseInt(range[1])+1);
+//      }
+//      int p = Integer.parseInt(pos);
+//      return fieldValue.substring(p,p+1);
+//    }
+//    catch(Exception e){
+//      return fieldValue;
+//    }
+    Integer from = parameter.getInteger("from");
+    Integer to = parameter.getInteger("to");
+    return fieldValue.substring(from, to);
   }
 
   private static String trimPeriod(final String input) {

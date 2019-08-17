@@ -18,7 +18,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "a",
               "LDR": true
             }
@@ -30,7 +33,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "c",
               "LDR": true
             }
@@ -42,7 +48,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "d",
               "LDR": true
             }
@@ -54,7 +63,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "e",
               "LDR": true
             }
@@ -66,7 +78,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "f",
               "LDR": true
             }
@@ -78,7 +93,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "g",
               "LDR": true
             }
@@ -90,7 +108,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "i",
               "LDR": true
             }
@@ -102,7 +123,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "j",
               "LDR": true
             }
@@ -114,7 +138,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "k",
               "LDR": true
             }
@@ -126,7 +153,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "m",
               "LDR": true
             }
@@ -138,7 +168,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "o",
               "LDR": true
             }
@@ -150,7 +183,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "p",
               "LDR": true
             }
@@ -162,7 +198,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "r",
               "LDR": true
             }
@@ -174,7 +213,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6-7",
+              "parameter": {
+                "from": 6,
+                "to": 8
+              },
               "value": "as",
               "LDR": true
             }
@@ -186,7 +228,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6-7",
+              "parameter": {
+                "from": 6,
+                "to": 8
+              },
               "value": "am",
               "LDR": true
             }
@@ -198,7 +243,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "t",
               "LDR": true
             }
@@ -227,7 +275,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "35-37"
+              "parameter": {
+                "from": 35,
+                "to": 38
+              }
             }
           ]
         }
@@ -1165,7 +1216,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "0-3"
+              "parameter": {
+                "from": 0,
+                "to": 4
+              }
             }
           ]
         }
