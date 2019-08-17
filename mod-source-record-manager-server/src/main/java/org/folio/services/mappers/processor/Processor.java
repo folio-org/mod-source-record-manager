@@ -129,7 +129,7 @@ public class Processor {
     throws IllegalAccessException, InstantiationException, ScriptException {
 
     //a single mapping entry can also map multiple subfields to a specific field in the instance
-    JsonArray instanceField = subFieldMapping.getJsonArray("entity");
+    JsonArray mappingRuleEntry = subFieldMapping.getJsonArray("entity");
 
     //entity field indicates that the subfields within the entity definition should be
     //a single instance, anything outside the entity definition will be placed in another
@@ -147,22 +147,45 @@ public class Processor {
 
     //if no "entity" is defined , then all rules contents of the field getting mapped to the same type
     //will be placed in a single instance of that type.
-    if (instanceField == null) {
-      instanceField = new JsonArray();
-      instanceField.add(subFieldMapping);
+    if (mappingRuleEntry == null) {
+      mappingRuleEntry = new JsonArray();
+      mappingRuleEntry.add(subFieldMapping);
     } else {
       entityRequested = true;
     }
 
     List<Object[]> arraysOfObjects = new ArrayList<>();
-    for (int i = 0; i < instanceField.size(); i++) {
-      JsonObject jObj = instanceField.getJsonObject(i);
-      handleInstanceFields(jObj, arraysOfObjects, dataField, rememberComplexObj);
+    for (int i = 0; i < mappingRuleEntry.size(); i++) {
+      JsonObject fieldRule = mappingRuleEntry.getJsonObject(i);
+      if (!recordHasAllRequiredSubfields(dataField, fieldRule)) {
+        return;
+      }
+      handleInstanceFields(fieldRule, arraysOfObjects, dataField, rememberComplexObj);
     }
 
     if (entityRequested) {
       createNewComplexObj = true;
     }
+  }
+
+  /**
+   * Method checks if record field contains all required sub-fields (that come from mapping rules).
+   *
+   * @param recordDataField data field from record
+   * @param fieldRule       mapping configuration rule for specific field
+   * @return If there is required sub-fields in mapping rules, then method checks if record field contains all of them.
+   * If there is no required sub-fields in mapping rules, method just returns true
+   */
+  private boolean recordHasAllRequiredSubfields(DataField recordDataField, JsonObject fieldRule) {
+    if (fieldRule.containsKey("requiredSubfield")) {
+      List<String> requiredSubFieldsFromMapping = fieldRule.getJsonArray("requiredSubfield").getList();
+      Set<String> subFieldsFromRecord = recordDataField.getSubfields()
+        .stream()
+        .map(subField -> String.valueOf(subField.getCode()))
+        .collect(Collectors.toSet());
+      return subFieldsFromRecord.containsAll(requiredSubFieldsFromMapping);
+    }
+    return true;
   }
 
   private void handleInstanceFields(JsonObject jObj, List<Object[]> arraysOfObjects,

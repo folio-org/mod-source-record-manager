@@ -64,18 +64,6 @@ public class NormalizationFunctions {
   }
 
   private static String charSelect(String fieldValue, JsonObject parameter){
-//    try{
-//
-//      if(pos.contains("-")){
-//        String []range = pos.split("-");
-//        return fieldValue.substring(Integer.parseInt(range[0]), Integer.parseInt(range[1])+1);
-//      }
-//      int p = Integer.parseInt(pos);
-//      return fieldValue.substring(p,p+1);
-//    }
-//    catch(Exception e){
-//      return fieldValue;
-//    }
     Integer from = parameter.getInteger("from");
     Integer to = parameter.getInteger("to");
     return fieldValue.substring(from, to);
