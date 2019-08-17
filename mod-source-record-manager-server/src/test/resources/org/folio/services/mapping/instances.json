@@ -26,8 +26,8 @@
         "identifierTypeId":"c858e4f2-2b6b-4385-842b-60732ee14abb"
       },
       {
-        "value":"0022-0469",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "value":"[Valid] ISSN 0022-0469",
+        "identifierTypeId":"6179201a-e153-4780-aa6d-26dc74b7589b"
       },
       {
         "value":"(CStRLIN)NYCX1604275S",
@@ -2348,15 +2348,15 @@
     ],
     "identifiers":[
       {
-        "value":"2169-1665",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "value":"[Valid] ISSN 2169-1665",
+        "identifierTypeId":"6179201a-e153-4780-aa6d-26dc74b7589b"
       },
       {
-        "value":"0040-781X",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "value":"Invalid ISSN 0040-781X",
+        "identifierTypeId":"d6841468-8648-4fb3-9a78-5484bd575483"
       },
       {
-        "value":"0040-781X",
+        "value":"Linking ISSN 0040-781X",
         "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
       },
       {

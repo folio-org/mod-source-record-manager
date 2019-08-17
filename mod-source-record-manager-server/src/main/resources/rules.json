@@ -418,30 +418,27 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISSN",
-          "subfield": [
-            "a",
-            "2"
-          ],
+          "description": "Valid ISSN id",
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "6179201a-e153-4780-aa6d-26dc74b7589b"
             }
           ]
         },
         {
           "target": "identifiers.value",
-          "description": "ISSN",
-          "subfield": [
-            "a",
-            "2"
-          ],
+          "description": "Valid ISSN value",
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "trim"
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "[Valid] ISSN "
+                  }
                 }
               ]
             }
@@ -454,32 +451,27 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for Invalid ISSN",
-          "subfield": [
-            "y",
-            "z",
-            "m"
-          ],
+          "description": "Invalid ISSN id",
+          "subfield": ["y","z","m"],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "d6841468-8648-4fb3-9a78-5484bd575483"
             }
           ]
         },
         {
           "target": "identifiers.value",
-          "description": "Invalid ISSN",
-          "subfield": [
-            "y",
-            "z",
-            "m"
-          ],
+          "description": "Invalid ISSN value",
+          "subfield": ["y","z","m"],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "trim"
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "Invalid ISSN "
+                  }
                 }
               ]
             }
@@ -492,11 +484,8 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for Linking ISSN",
-          "subfield": [
-            "l",
-            "2"
-          ],
+          "description": "Linking ISSN id",
+          "subfield": ["l"],
           "rules": [
             {
               "conditions": [],
@@ -506,16 +495,16 @@
         },
         {
           "target": "identifiers.value",
-          "description": "Linking ISSN",
-          "subfield": [
-            "l",
-            "2"
-          ],
+          "description": "Linking ISSN value",
+          "subfield": ["l"],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "trim"
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "Linking ISSN "
+                  }
                 }
               ]
             }

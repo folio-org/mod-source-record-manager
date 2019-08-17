@@ -15,6 +15,7 @@ public class NormalizationFunctions {
   private static final String TRIM = "trim";
   private static final String TRIM_PERIOD = "trim_period";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
+  private static final String ADD_PREFIX = "add_prefix";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {
@@ -55,6 +56,8 @@ public class NormalizationFunctions {
     }
     else if(TRIM_PERIOD.equals(functionName)){
       return trimPeriod(fieldValue);
+    } else if (ADD_PREFIX.equals(functionName)) {
+      return addPrefix(fieldValue, parameter);
     }
     return "";
   }
@@ -102,5 +105,10 @@ public class NormalizationFunctions {
       }
     }
     return input;
+  }
+
+  private static String addPrefix(String fieldValue, JsonObject parameter) {
+    String prefix = parameter.getString("prefix");
+    return prefix + fieldValue;
   }
 }
