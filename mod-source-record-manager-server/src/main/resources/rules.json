@@ -637,7 +637,7 @@
             {
               "conditions": [
                 {
-                  "type": "add_prefix_if_record_starts_with",
+                  "type": "add_prefix_if_subfield_starts_with",
                   "parameter": {
                     "startsWith": ["(OCoLC)", "ocm", "ocn"],
                     "prefixTrue": "OCLC ",

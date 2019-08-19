@@ -1,12 +1,10 @@
 package org.folio.services.mappers.processor;
 
 import com.google.common.base.Splitter;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Run a splitter on a string or run a function.
@@ -19,7 +17,7 @@ public class NormalizationFunctions {
   private static final String TRIM_PERIOD = "trim_period";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
   private static final String ADD_PREFIX = "add_prefix";
-  private static final String ADD_PREFIX_IF_RECORD_STARTS_WITH = "add_prefix_if_record_starts_with";
+  private static final String ADD_PREFIX_IF_SUBFIELD_STARTS_WITH = "add_prefix_if_subfield_starts_with";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {
@@ -29,13 +27,14 @@ public class NormalizationFunctions {
   /**
    * Split val into chunks of param characters if funcName is "split_every".
    * Return null if val is null or funcName is not "split_every".
+   *
    * @return the chunks
    */
-  public static Iterator<String> runSplitFunction(String funcName, String val, String param){
-    if(val == null){
+  public static Iterator<String> runSplitFunction(String funcName, String val, String param) {
+    if (val == null) {
       return null;
     }
-    if(SPLIT_FUNCTION_SPLIT_EVERY.equals(funcName)){
+    if (SPLIT_FUNCTION_SPLIT_EVERY.equals(funcName)) {
       return splitEvery(val, param);
     }
     return null;
@@ -43,27 +42,25 @@ public class NormalizationFunctions {
 
   /**
    * Run the function funcName on val and param.
+   *
    * @return the function's result
    */
-  public static String runFunction(String functionName, String record, JsonObject parameter){
-    if(record == null){
+  public static String runFunction(String functionName, String subField, JsonObject parameter) {
+    if (subField == null) {
       return "";
     }
-    if(CHAR_SELECT.equals(functionName)){
-      return charSelect(record, parameter);
-    }
-    else if(REMOVE_ENDING_PUNC.equals(functionName) && !record.equals("")){
-      return removeEndingPunc(record);
-    }
-    else if(TRIM.equals(functionName)){
-      return record.trim();
-    }
-    else if(TRIM_PERIOD.equals(functionName)){
-      return trimPeriod(record);
+    if (CHAR_SELECT.equals(functionName)) {
+      return charSelect(subField, parameter);
+    } else if (REMOVE_ENDING_PUNC.equals(functionName) && !subField.equals("")) {
+      return removeEndingPunc(subField);
+    } else if (TRIM.equals(functionName)) {
+      return subField.trim();
+    } else if (TRIM_PERIOD.equals(functionName)) {
+      return trimPeriod(subField);
     } else if (ADD_PREFIX.equals(functionName)) {
-      return addPrefix(record, parameter);
-    } else if (ADD_PREFIX_IF_RECORD_STARTS_WITH.equals(functionName)) {
-      return addPrefixIfRecordStartsWith(record, parameter);
+      return addPrefix(subField, parameter);
+    } else if (ADD_PREFIX_IF_SUBFIELD_STARTS_WITH.equals(functionName)) {
+      return addPrefixIfSubfieldStartsWith(subField, parameter);
     }
     return "";
   }
@@ -72,60 +69,56 @@ public class NormalizationFunctions {
     return Splitter.fixedLength(Integer.parseInt(param)).split(val).iterator();
   }
 
-  private static String charSelect(String record, JsonObject parameter){
+  private static String charSelect(String subField, JsonObject parameter) {
     Integer from = parameter.getInteger("from");
     Integer to = parameter.getInteger("to");
-    return record.substring(from, to);
+    return subField.substring(from, to);
   }
 
-  private static String trimPeriod(final String input) {
-    if (input.endsWith(".")) {
-      return input.substring(0, input.length()-1);
+  private static String trimPeriod(final String subField) {
+    if (subField.endsWith(".")) {
+      return subField.substring(0, subField.length() - 1);
     }
-    return input;
+    return subField;
   }
 
-  private static String removeEndingPunc(String val){
-    return modified(val, (val.length()-1));
+  private static String removeEndingPunc(String subField) {
+    return modified(subField, (subField.length() - 1));
   }
 
-  private static String modified(final String input, int pos){
-    if(PUNCT_2_REMOVE.contains(String.valueOf(input.charAt(pos)))){
-      return input.substring(0, input.length()-1);
-    }
-    else if(input.charAt(pos) == '.'){
-      try{
-        if(input.substring(input.length()-4).equals("....")){
-          return input.substring(0, input.length()-1);
-        }
-        else if(input.substring(input.length()-3).equals("...")){
-          return input;
-        }
-        else {
+  private static String modified(final String subField, int pos) {
+    if (PUNCT_2_REMOVE.contains(String.valueOf(subField.charAt(pos)))) {
+      return subField.substring(0, subField.length() - 1);
+    } else if (subField.charAt(pos) == '.') {
+      try {
+        if (subField.substring(subField.length() - 4).equals("....")) {
+          return subField.substring(0, subField.length() - 1);
+        } else if (subField.substring(subField.length() - 3).equals("...")) {
+          return subField;
+        } else {
           //if ends with .. or . remove just one .
-          return input.substring(0, input.length()-1);
+          return subField.substring(0, subField.length() - 1);
         }
-      }
-      catch(IndexOutOfBoundsException ioob){
-        return input;
+      } catch (IndexOutOfBoundsException ioob) {
+        return subField;
       }
     }
-    return input;
+    return subField;
   }
 
-  private static String addPrefix(String record, JsonObject parameter) {
-      String prefix = parameter.getString("prefix");
-      return prefix + record;
+  private static String addPrefix(String subField, JsonObject parameter) {
+    String prefix = parameter.getString("prefix");
+    return prefix + subField;
   }
 
-  private static String addPrefixIfRecordStartsWith(String record, JsonObject parameter) {
+  private static String addPrefixIfSubfieldStartsWith(String subField, JsonObject parameter) {
     List<String> startsWith = parameter.getJsonArray("startsWith").getList();
     String prefixTrue = parameter.getString("prefixTrue");
     String prefixFalse = parameter.getString("prefixFalse");
-    if (startsWith.stream().anyMatch(startsWithPrefix -> record.startsWith(startsWithPrefix))) {
-      return prefixTrue + record;
+    if (startsWith.stream().anyMatch(prefix -> subField.startsWith(prefix))) {
+      return prefixTrue + subField;
     } else {
-      return prefixFalse + record;
+      return prefixFalse + subField;
     }
   }
 }
