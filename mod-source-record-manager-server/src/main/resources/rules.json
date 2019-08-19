@@ -750,10 +750,8 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for GPO Item Number",
-          "subfield": [
-            "a"
-          ],
+          "description": "Valid GPO Item Number id",
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [],
@@ -763,15 +761,16 @@
         },
         {
           "target": "identifiers.value",
-          "description": "GPO Item Number",
-          "subfield": [
-            "a"
-          ],
+          "description": "Valid GPO Item Number value",
+          "subfield": ["a"],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim"
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "[Valid] GPO item number "
+                  }
                 }
               ]
             }
@@ -784,10 +783,8 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled GPO Item Number",
-          "subfield": [
-            "z"
-          ],
+          "description": "Cancelled GPO Item Number id",
+          "subfield": ["z"],
           "rules": [
             {
               "conditions": [],
@@ -797,15 +794,16 @@
         },
         {
           "target": "identifiers.value",
-          "description": "Cancelled GPO Item Number",
-          "subfield": [
-            "z"
-          ],
+          "description": "Cancelled GPO Item Number value",
+          "subfield": ["z"],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "remove_ending_punc, trim"
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "Cancelled GPO item number "
+                  }
                 }
               ]
             }
