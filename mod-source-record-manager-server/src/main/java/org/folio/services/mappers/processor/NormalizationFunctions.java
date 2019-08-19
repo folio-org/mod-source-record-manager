@@ -1,9 +1,12 @@
 package org.folio.services.mappers.processor;
 
 import com.google.common.base.Splitter;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Run a splitter on a string or run a function.
@@ -41,23 +44,23 @@ public class NormalizationFunctions {
    * Run the function funcName on val and param.
    * @return the function's result
    */
-  public static String runFunction(String functionName, String fieldValue, JsonObject parameter){
-    if(fieldValue == null){
+  public static String runFunction(String functionName, String record, JsonObject parameter){
+    if(record == null){
       return "";
     }
     if(CHAR_SELECT.equals(functionName)){
-      return charSelect(fieldValue, parameter);
+      return charSelect(record, parameter);
     }
-    else if(REMOVE_ENDING_PUNC.equals(functionName) && !fieldValue.equals("")){
-      return removeEndingPunc(fieldValue);
+    else if(REMOVE_ENDING_PUNC.equals(functionName) && !record.equals("")){
+      return removeEndingPunc(record);
     }
     else if(TRIM.equals(functionName)){
-      return fieldValue.trim();
+      return record.trim();
     }
     else if(TRIM_PERIOD.equals(functionName)){
-      return trimPeriod(fieldValue);
+      return trimPeriod(record);
     } else if (ADD_PREFIX.equals(functionName)) {
-      return addPrefix(fieldValue, parameter);
+      return addPrefix(record, parameter);
     }
     return "";
   }
@@ -66,10 +69,10 @@ public class NormalizationFunctions {
     return Splitter.fixedLength(Integer.parseInt(param)).split(val).iterator();
   }
 
-  private static String charSelect(String fieldValue, JsonObject parameter){
+  private static String charSelect(String record, JsonObject parameter){
     Integer from = parameter.getInteger("from");
     Integer to = parameter.getInteger("to");
-    return fieldValue.substring(from, to);
+    return record.substring(from, to);
   }
 
   private static String trimPeriod(final String input) {
@@ -107,8 +110,8 @@ public class NormalizationFunctions {
     return input;
   }
 
-  private static String addPrefix(String fieldValue, JsonObject parameter) {
-    String prefix = parameter.getString("prefix");
-    return prefix + fieldValue;
+  private static String addPrefix(String record, JsonObject parameter) {
+      String prefix = parameter.getString("prefix");
+      return prefix + record;
   }
 }
