@@ -19,6 +19,7 @@ public class NormalizationFunctions {
   private static final String TRIM_PERIOD = "trim_period";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
   private static final String ADD_PREFIX = "add_prefix";
+  private static final String ADD_PREFIX_IF_RECORD_STARTS_WITH = "add_prefix_if_record_starts_with";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {
@@ -61,6 +62,8 @@ public class NormalizationFunctions {
       return trimPeriod(record);
     } else if (ADD_PREFIX.equals(functionName)) {
       return addPrefix(record, parameter);
+    } else if (ADD_PREFIX_IF_RECORD_STARTS_WITH.equals(functionName)) {
+      return addPrefixIfRecordStartsWith(record, parameter);
     }
     return "";
   }
@@ -113,5 +116,16 @@ public class NormalizationFunctions {
   private static String addPrefix(String record, JsonObject parameter) {
       String prefix = parameter.getString("prefix");
       return prefix + record;
+  }
+
+  private static String addPrefixIfRecordStartsWith(String record, JsonObject parameter) {
+    List<String> startsWith = parameter.getJsonArray("startsWith").getList();
+    String prefixTrue = parameter.getString("prefixTrue");
+    String prefixFalse = parameter.getString("prefixFalse");
+    if (startsWith.stream().anyMatch(startsWithPrefix -> record.startsWith(startsWithPrefix))) {
+      return prefixTrue + record;
+    } else {
+      return prefixFalse + record;
+    }
   }
 }

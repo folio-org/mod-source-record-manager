@@ -327,20 +327,35 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled System Control Number",
-          "subfield": [
-            "z"
-          ],
+          "description": "Cancelled system control number id",
+          "subfield": ["a", "z"],
           "rules": [
             {
               "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "value": "6ae96120-bf05-4490-8b8d-9e6a388624b8"
             }
           ]
         },
         {
           "target": "identifiers.value",
-          "description": "Cancelled System Control Number",
+          "description": "Cancelled system control number value",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "Cancelled system control number "
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled system control number value",
           "subfield": [
             "z"
           ]
@@ -605,10 +620,8 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for System Control Number",
-          "subfield": [
-            "a"
-          ],
+          "description": "System Control Number id",
+          "subfield": ["a", "z"],
           "rules": [
             {
               "conditions": [],
@@ -618,9 +631,38 @@
         },
         {
           "target": "identifiers.value",
-          "description": "System Control Number",
-          "subfield": [
-            "a"
+          "description": "System Control Number value",
+          "subfield": ["a"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "add_prefix_if_record_starts_with",
+                  "parameter": {
+                    "startsWith": ["(OCoLC)", "ocm", "ocn"],
+                    "prefixTrue": "OCLC ",
+                    "prefixFalse": "System control number "
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "System Control Number value",
+          "subfield": ["z"],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "add_prefix",
+                  "parameter": {
+                    "prefix": "Cancelled system control number "
+                  }
+                }
+              ]
+            }
           ]
         }
       ]
