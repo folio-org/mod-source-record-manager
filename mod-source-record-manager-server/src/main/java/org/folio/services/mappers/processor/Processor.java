@@ -477,7 +477,7 @@ public class Processor {
         LOGGER.error(e.getMessage(), e);
       }
     } else {
-      String c = NormalizationFunctions.runFunction(function.trim(), data, condition.getString("parameter"));
+      String c = NormalizationFunctions.runFunction(function.trim(), data, condition.getJsonObject("parameter"));
       if (valueParam != null && !c.equals(valueParam) && !isCustom) {
 
         //still allow a condition to compare the output of a function on the data to a constant value

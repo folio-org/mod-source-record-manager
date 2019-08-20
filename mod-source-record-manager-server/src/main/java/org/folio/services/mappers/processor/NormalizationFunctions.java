@@ -1,8 +1,11 @@
 package org.folio.services.mappers.processor;
 
 import com.google.common.base.Splitter;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Iterator;
+
+import static org.drools.core.util.StringUtils.EMPTY;
 
 /**
  * Run a splitter on a string or run a function.
@@ -23,91 +26,78 @@ public class NormalizationFunctions {
   /**
    * Split val into chunks of param characters if funcName is "split_every".
    * Return null if val is null or funcName is not "split_every".
+   *
    * @return the chunks
    */
-  public static Iterator<String> runSplitFunction(String funcName, String val, String param){
-    if(val == null){
+  public static Iterator<String> runSplitFunction(String funcName, String subFieldData, String param) {
+    if (subFieldData == null) {
       return null;
     }
-    if(SPLIT_FUNCTION_SPLIT_EVERY.equals(funcName)){
-      return splitEvery(val, param);
+    if (SPLIT_FUNCTION_SPLIT_EVERY.equals(funcName)) {
+      return splitEvery(subFieldData, param);
     }
     return null;
   }
 
   /**
    * Run the function funcName on val and param.
+   *
    * @return the function's result
    */
-  public static String runFunction(String funcName, String val, String param){
-    if(val == null){
-      return "";
+  public static String runFunction(String functionName, String subFieldData, JsonObject parameter) {
+    if (subFieldData == null) {
+      return EMPTY;
     }
-    if(CHAR_SELECT.equals(funcName)){
-      return charSelect(val, param);
+    if (CHAR_SELECT.equals(functionName)) {
+      return charSelect(subFieldData, parameter);
+    } else if (REMOVE_ENDING_PUNC.equals(functionName) && !subFieldData.equals("")) {
+      return removeEndingPunc(subFieldData);
+    } else if (TRIM.equals(functionName)) {
+      return subFieldData.trim();
+    } else if (TRIM_PERIOD.equals(functionName)) {
+      return trimPeriod(subFieldData);
     }
-    else if(REMOVE_ENDING_PUNC.equals(funcName) && !val.equals("")){
-      return removeEndingPunc(val);
-    }
-    else if(TRIM.equals(funcName)){
-      return val.trim();
-    }
-    else if(TRIM_PERIOD.equals(funcName)){
-      return trimPeriod(val);
-    }
-    return "";
+    return EMPTY;
   }
 
-  private static Iterator<String> splitEvery(String val, String param) {
-    return Splitter.fixedLength(Integer.parseInt(param)).split(val).iterator();
+  private static Iterator<String> splitEvery(String subFieldData, String param) {
+    return Splitter.fixedLength(Integer.parseInt(param)).split(subFieldData).iterator();
   }
 
-  private static String charSelect(String val, String pos){
-    try{
-      if(pos.contains("-")){
-        String []range = pos.split("-");
-        return val.substring(Integer.parseInt(range[0]), Integer.parseInt(range[1])+1);
-      }
-      int p = Integer.parseInt(pos);
-      return val.substring(p,p+1);
-    }
-    catch(Exception e){
-      return val;
-    }
+  private static String charSelect(String subFieldData, JsonObject parameter) {
+    Integer from = parameter.getInteger("from");
+    Integer to = parameter.getInteger("to");
+    return subFieldData.substring(from, to);
   }
 
-  private static String trimPeriod(final String input) {
-    if (input.endsWith(".")) {
-      return input.substring(0, input.length()-1);
+  private static String trimPeriod(final String subFieldData) {
+    if (subFieldData.endsWith(".")) {
+      return subFieldData.substring(0, subFieldData.length() - 1);
     }
-    return input;
+    return subFieldData;
   }
 
-  private static String removeEndingPunc(String val){
-    return modified(val, (val.length()-1));
+  private static String removeEndingPunc(String subFieldData) {
+    return modified(subFieldData, (subFieldData.length() - 1));
   }
 
-  private static String modified(final String input, int pos){
-    if(PUNCT_2_REMOVE.contains(String.valueOf(input.charAt(pos)))){
-      return input.substring(0, input.length()-1);
-    }
-    else if(input.charAt(pos) == '.'){
-      try{
-        if(input.substring(input.length()-4).equals("....")){
-          return input.substring(0, input.length()-1);
-        }
-        else if(input.substring(input.length()-3).equals("...")){
-          return input;
-        }
-        else {
+  private static String modified(final String subFieldData, int pos) {
+    if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldData.charAt(pos)))) {
+      return subFieldData.substring(0, subFieldData.length() - 1);
+    } else if (subFieldData.charAt(pos) == '.') {
+      try {
+        if (subFieldData.substring(subFieldData.length() - 4).equals("....")) {
+          return subFieldData.substring(0, subFieldData.length() - 1);
+        } else if (subFieldData.substring(subFieldData.length() - 3).equals("...")) {
+          return subFieldData;
+        } else {
           //if ends with .. or . remove just one .
-          return input.substring(0, input.length()-1);
+          return subFieldData.substring(0, subFieldData.length() - 1);
         }
-      }
-      catch(IndexOutOfBoundsException ioob){
-        return input;
+      } catch (IndexOutOfBoundsException ioob) {
+        return subFieldData;
       }
     }
-    return input;
+    return subFieldData;
   }
 }
