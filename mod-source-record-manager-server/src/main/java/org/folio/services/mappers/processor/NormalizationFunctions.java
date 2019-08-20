@@ -6,6 +6,8 @@ import io.vertx.core.json.JsonObject;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 /**
  * Run a splitter on a string or run a function.
  */
@@ -18,6 +20,7 @@ public class NormalizationFunctions {
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
   private static final String ADD_PREFIX = "add_prefix";
   private static final String ADD_PREFIX_IF_SUBFIELD_STARTS_WITH = "add_prefix_if_subfield_starts_with";
+  private static final String TRIM_SYMBOL = "trim_symbol";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {
@@ -61,6 +64,8 @@ public class NormalizationFunctions {
       return addPrefix(subField, parameter);
     } else if (ADD_PREFIX_IF_SUBFIELD_STARTS_WITH.equals(functionName)) {
       return addPrefixIfSubfieldStartsWith(subField, parameter);
+    } else if (TRIM_SYMBOL.equals(functionName)) {
+      return trimSymbol(subField, parameter);
     }
     return "";
   }
@@ -121,4 +126,10 @@ public class NormalizationFunctions {
       return prefixFalse + subField;
     }
   }
+
+  private static String trimSymbol(String subField, JsonObject parameter) {
+    String symbolToTrim = parameter.getString("symbol");
+    return subField.replace(symbolToTrim, EMPTY);
+  }
+
 }

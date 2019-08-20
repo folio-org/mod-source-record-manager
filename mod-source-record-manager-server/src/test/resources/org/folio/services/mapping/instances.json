@@ -1,6 +1,6 @@
 [
   {
-    "id":"ec252116-bbd4-4b3e-9b6e-ce24b25abaac",
+    "id":"1ce018c9-2fe8-44f3-9611-cf3155a08f83",
     "hrid":"366832",
     "source":"MARC",
     "parentInstances":[
@@ -59,16 +59,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BR140",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".J6",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BR140 .J6",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"270.05",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -105,7 +101,7 @@
     ]
   },
   {
-    "id":"89178b20-0820-4c0b-b806-995a90b6aad4",
+    "id":"b4a4e695-37bb-45cf-b09b-a3d1f4e13aa3",
     "hrid":"393893",
     "source":"MARC",
     "parentInstances":[
@@ -154,12 +150,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M896",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M3 .M896",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -202,7 +194,7 @@
     ]
   },
   {
-    "id":"e775c484-40f3-4057-a69e-f4971a8ba83a",
+    "id":"b9fa645b-5f6d-4fce-a337-142790dc228a",
     "hrid":"788038",
     "source":"MARC",
     "parentInstances":[
@@ -358,7 +350,7 @@
     ]
   },
   {
-    "id":"b82ad8d8-59fc-409d-a6c0-536290985d7d",
+    "id":"d611115a-ba41-4524-979d-9109c70ab4b0",
     "hrid":"1567726",
     "source":"MARC",
     "parentInstances":[
@@ -421,16 +413,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KF6365",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M4",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KF6365 .M4",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"336.2402673",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -502,7 +490,7 @@
     ]
   },
   {
-    "id":"9b19a9ca-e23e-4100-8365-a4b7a24d2e72",
+    "id":"921f00f4-d0b6-4c07-be85-1a3c19d39454",
     "hrid":"1579067",
     "source":"MARC",
     "parentInstances":[
@@ -569,12 +557,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KFP30 1930",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".A44",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KFP30 1930 .A44",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -622,7 +606,7 @@
     ]
   },
   {
-    "id":"3183e6f2-ce51-493b-9df9-311208cccc8d",
+    "id":"c1923ea7-8fd4-40be-95b3-6df76985a0ee",
     "hrid":"1735560",
     "source":"MARC",
     "parentInstances":[
@@ -716,7 +700,7 @@
     ]
   },
   {
-    "id":"ce785f98-b769-490a-a01e-88a536b2f67c",
+    "id":"6046ebb3-984d-49f0-8bf4-291c5792322c",
     "hrid":"1913668",
     "source":"MARC",
     "parentInstances":[
@@ -789,24 +773,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1613.3.C92",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"A5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M1528",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M1619.5.G33",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"ML96.5.C865",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1613.3.C92 A5 M1528 M1619.5.G33 ML96.5.C865",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -856,7 +824,7 @@
     ]
   },
   {
-    "id":"fce29ab2-a860-44b4-a0e7-c38161470152",
+    "id":"f88a6d71-3535-49db-97aa-6dcc42045c97",
     "hrid":"2074805",
     "source":"MARC",
     "parentInstances":[
@@ -953,7 +921,7 @@
     ]
   },
   {
-    "id":"78882f43-a8ec-476a-8faa-4a63a3859dec",
+    "id":"4b7bdab3-6b05-4940-8e0e-3379f824e33f",
     "hrid":"2087008",
     "source":"MARC",
     "parentInstances":[
@@ -1110,7 +1078,7 @@
     ]
   },
   {
-    "id":"e8cbe564-744d-4dfa-afef-182987c2c113",
+    "id":"eb547700-32b6-4e4d-b3ca-33fc91c6cc18",
     "hrid":"2139224",
     "source":"MARC",
     "parentInstances":[
@@ -1472,7 +1440,7 @@
     ]
   },
   {
-    "id":"f2d5a25b-dd9d-4e22-a8d2-8e4749095198",
+    "id":"2420158e-5d01-4c43-a307-1535fe11b306",
     "hrid":"2395240",
     "source":"MARC",
     "parentInstances":[
@@ -1567,7 +1535,7 @@
     ]
   },
   {
-    "id":"725e55fc-564f-4128-90ae-295d3083ff26",
+    "id":"5a6935be-8189-48df-8a48-e73c687c9559",
     "hrid":"2536831",
     "source":"MARC",
     "parentInstances":[
@@ -1659,7 +1627,7 @@
     ]
   },
   {
-    "id":"d3c56aa5-cfb3-4ebf-8fbe-9f6d2ba53c3b",
+    "id":"6d6e609d-5d21-4e56-892f-f7df38ef32d7",
     "hrid":"2824702",
     "source":"MARC",
     "parentInstances":[
@@ -1719,12 +1687,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N7326",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".T12 1991",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N7326 .T12 1991",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -1798,7 +1762,7 @@
     ]
   },
   {
-    "id":"2cb745a1-d743-455d-ad18-425479bffded",
+    "id":"5341d33b-53c9-4e43-ad8f-a9d64866183a",
     "hrid":"3247314",
     "source":"MARC",
     "parentInstances":[
@@ -1908,7 +1872,7 @@
     ]
   },
   {
-    "id":"d4127071-bb8e-41fe-beab-eb18628f36d2",
+    "id":"c353f24d-0355-4f29-ba88-6badf446c57d",
     "hrid":"3298956",
     "source":"MARC",
     "parentInstances":[
@@ -1976,12 +1940,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KZ1190",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".G56 1997",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KZ1190 .G56 1997",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2037,7 +1997,7 @@
     ]
   },
   {
-    "id":"104357a9-7b57-445d-b84c-7cf9b3113bc6",
+    "id":"51518f69-f5fd-420d-9344-4f3ba05b5a43",
     "hrid":"4215849",
     "source":"MARC",
     "parentInstances":[
@@ -2079,12 +2039,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"LG181.B155",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"L37 1990",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"LG181.B155 L37 1990",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2141,7 +2097,7 @@
     ]
   },
   {
-    "id":"ddd6a6bd-3178-4d5f-919f-1427f773fd5f",
+    "id":"6436ab7d-a6ff-430e-95a3-11a0466260c9",
     "hrid":"4442869",
     "source":"MARC",
     "parentInstances":[
@@ -2240,7 +2196,7 @@
     ]
   },
   {
-    "id":"29211b25-b4dc-494a-a8f6-d48e5d0aa0f5",
+    "id":"345736dd-e77b-4cd6-9dc6-4d21743c0050",
     "hrid":"4986243",
     "source":"MARC",
     "parentInstances":[
@@ -2297,16 +2253,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HV5292",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HV5292 .F56 1988eb",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".F56 1988eb",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"362.2/928",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"362.2928",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -2358,7 +2310,7 @@
     ]
   },
   {
-    "id":"a3fd36ac-3e3e-4589-81fc-f901a830f541",
+    "id":"5553d7cc-41fd-4f40-a4ef-c794abaf2c0e",
     "hrid":"5383976",
     "source":"MARC",
     "parentInstances":[
@@ -2429,20 +2381,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"AP2",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"AP2 .T37",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".T37",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"W1",
-        "classificationTypeId":"a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
-      },
-      {
-        "classificationNumber":"TI796G",
-        "classificationTypeId":"a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+        "classificationNumber":"W1 TI796G",
+        "classificationTypeId":"NLM"
       }
     ],
     "publication":[
@@ -2531,7 +2475,7 @@
     ]
   },
   {
-    "id":"4c473806-5591-41c9-af5b-a5d2b56adc89",
+    "id":"d52fb6cc-c05c-46f6-8a68-ca0238bb89c2",
     "hrid":"5442502",
     "source":"MARC",
     "parentInstances":[
@@ -2584,12 +2528,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"AC901",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M5 vol. 1093, no. 4",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"AC901 .M5 vol. 1093, no. 4",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2626,7 +2566,7 @@
     ]
   },
   {
-    "id":"9661dbe9-461d-433f-9816-e11233da601d",
+    "id":"da21e960-0518-4919-bb63-4616a77b76ad",
     "hrid":"6086303",
     "source":"MARC",
     "parentInstances":[
@@ -2681,12 +2621,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BX5195.G76",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"S141 1930",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BX5195.G76 S141 1930",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2726,7 +2662,7 @@
     ]
   },
   {
-    "id":"82a7c942-f06e-4586-9049-36b3336b95d6",
+    "id":"e9ad9f66-f38e-420e-a45a-9d4598f4b20a",
     "hrid":"6093806",
     "source":"MARC",
     "parentInstances":[
@@ -2782,12 +2718,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N346.N72",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"I84",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N346.N72 I84",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2846,7 +2778,7 @@
     ]
   },
   {
-    "id":"b94bd2d8-a034-4a95-bf54-cbfe3be147b4",
+    "id":"ed220336-ba8a-4d10-af6d-5257b94d3136",
     "hrid":"6190220",
     "source":"MARC",
     "parentInstances":[
@@ -2931,7 +2863,7 @@
     ]
   },
   {
-    "id":"35447000-bb94-4e6c-929f-9059450aa476",
+    "id":"1d952f7f-e808-499a-bdb1-d3406f214e9a",
     "hrid":"6216570",
     "source":"MARC",
     "parentInstances":[
@@ -3021,7 +2953,7 @@
     ]
   },
   {
-    "id":"cb6a504e-b4e0-45eb-b969-1bbf2b15da8c",
+    "id":"c6d01bde-e885-4262-85cc-366a0c056088",
     "hrid":"6268723",
     "source":"MARC",
     "parentInstances":[
@@ -3086,12 +3018,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KD310",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".H35",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KD310 .H35",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -3143,7 +3071,7 @@
     ]
   },
   {
-    "id":"c2a04d64-7210-461a-9653-b90e24986f4c",
+    "id":"b648b2a3-c524-4b2f-9bb9-670e2f145a8b",
     "hrid":"6769537",
     "source":"MARC",
     "parentInstances":[
@@ -3243,12 +3171,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"E491",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".U6",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"E491 .U6",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -3982,7 +3906,7 @@
     ]
   },
   {
-    "id":"075a91c4-c8c0-46db-8158-af0b40fd20cf",
+    "id":"f3dea700-e95b-4629-9935-e4942ea5ebf2",
     "hrid":"6881317",
     "source":"MARC",
     "parentInstances":[
@@ -4438,16 +4362,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1741.18.B42",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"B436 2009",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1741.18.B42 B436 2009",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"782.42166",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -4567,7 +4487,7 @@
     ]
   },
   {
-    "id":"9c47a2d1-b9bc-450c-a53f-8f7d85f52539",
+    "id":"4279eb2d-ddbe-4e9b-8909-4ec466469cbe",
     "hrid":"6942105",
     "source":"MARC",
     "parentInstances":[
@@ -4672,7 +4592,7 @@
     ]
   },
   {
-    "id":"8044b4ad-3ae1-4aad-84cf-99218deb4a13",
+    "id":"20a1d83f-0722-4ffd-bd49-0bd88bd680bd",
     "hrid":"6970336",
     "source":"MARC",
     "parentInstances":[
@@ -4808,7 +4728,7 @@
     ]
   },
   {
-    "id":"ce6a47d5-212b-4c44-aca5-cf21d1079e33",
+    "id":"27d1b578-c873-4c7d-80f0-f94b3fc2bbdb",
     "hrid":"7025902",
     "source":"MARC",
     "parentInstances":[
@@ -4972,7 +4892,7 @@
     ]
   },
   {
-    "id":"31ad0fc6-8d39-472e-900a-01c93d266343",
+    "id":"b27ba069-27b0-4dcb-a9d5-e9292e2358b5",
     "hrid":"7063543",
     "source":"MARC",
     "parentInstances":[
@@ -5071,7 +4991,7 @@
     ]
   },
   {
-    "id":"fe2813d4-e785-4e00-91bb-4d8b2d0d4620",
+    "id":"efaeb604-9191-4d58-94ff-7e9df95bf9b1",
     "hrid":"7196443",
     "source":"MARC",
     "parentInstances":[
@@ -5167,7 +5087,7 @@
     ]
   },
   {
-    "id":"ca66ab9f-9a0c-49cf-a08f-fca6a7b631b5",
+    "id":"67c56a16-c263-4594-b637-71472604b76d",
     "hrid":"7280974",
     "source":"MARC",
     "parentInstances":[
@@ -5288,7 +5208,7 @@
     ]
   },
   {
-    "id":"cfb390ac-81c0-4de3-9fa2-4562dcc06fa4",
+    "id":"3073953a-b5de-4385-bd4f-021bfcb506e9",
     "hrid":"7311468",
     "source":"MARC",
     "parentInstances":[
@@ -5389,7 +5309,7 @@
     ]
   },
   {
-    "id":"62dcaf47-33e9-4270-a64b-b8c871c6f47f",
+    "id":"de0e848b-28b7-469d-b594-11c77a07bf97",
     "hrid":"7720373",
     "source":"MARC",
     "parentInstances":[
@@ -5457,16 +5377,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HQ792.P5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M33 2010",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HQ792.P5 M33 2010",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"305.2309599",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -5506,7 +5422,7 @@
     ]
   },
   {
-    "id":"d51b32fc-aa30-4933-a6b9-1229fe3dc421",
+    "id":"78473d65-52d3-4f75-a023-ad13674eacfe",
     "hrid":"8246009",
     "source":"MARC",
     "parentInstances":[
@@ -5596,16 +5512,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M2010.V47",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M2010.V47 M47 2013",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":"M47 2013",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"782.5/3238",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"782.53238",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -5661,7 +5573,7 @@
     ]
   },
   {
-    "id":"95528856-703f-4cce-8070-107771371fb6",
+    "id":"6368c08c-79cf-498c-bdec-32dc4f53a9b4",
     "hrid":"8256521",
     "source":"MARC",
     "parentInstances":[
@@ -5744,7 +5656,7 @@
     ]
   },
   {
-    "id":"fad47f7e-6b56-4e3d-b4bf-54197a794f38",
+    "id":"984c2e56-3e5d-4277-a70e-647a79667e2f",
     "hrid":"8306272",
     "source":"MARC",
     "parentInstances":[
@@ -5793,12 +5705,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DA530",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".A73",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DA530 .A73",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -5849,7 +5757,7 @@
     ]
   },
   {
-    "id":"82edfb1f-bf85-42d3-b22a-c438daf2b024",
+    "id":"a16215ad-0ed5-4921-b0a6-7a1f497f0256",
     "hrid":"8536818",
     "source":"MARC",
     "parentInstances":[
@@ -6062,7 +5970,7 @@
     ]
   },
   {
-    "id":"3fa3736a-51f9-486c-bc3a-41aaea17f4c2",
+    "id":"e314bd5b-63ff-4be5-a285-2147cf989e62",
     "hrid":"8579052",
     "source":"MARC",
     "parentInstances":[
@@ -6180,7 +6088,7 @@
     ]
   },
   {
-    "id":"ebcdbcfc-6c03-4246-80f1-ccf936b84141",
+    "id":"ef4e56de-60eb-42e8-8fe2-437a75d96510",
     "hrid":"8854522",
     "source":"MARC",
     "parentInstances":[
@@ -6245,12 +6153,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".B88 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M3 .B88 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6296,7 +6200,7 @@
     ]
   },
   {
-    "id":"22eebac8-3715-4fea-b08b-5dae58b66747",
+    "id":"f0438df9-8928-4690-bf40-c2edc189c40c",
     "hrid":"9134222",
     "source":"MARC",
     "parentInstances":[
@@ -6357,12 +6261,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HQ242.55.A5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"P42 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HQ242.55.A5 P42 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6410,7 +6310,7 @@
     ]
   },
   {
-    "id":"1880eefa-a3b1-4bb3-b00e-17310d478a69",
+    "id":"29fb27da-e40b-4b3b-ac48-7882708d6b6e",
     "hrid":"9220704",
     "source":"MARC",
     "parentInstances":[
@@ -6460,12 +6360,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"PN4781",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".N594 2015",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"PN4781 .N594 2015",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6509,7 +6405,7 @@
     ]
   },
   {
-    "id":"71f0fc0b-ff89-4fb8-b386-0cc39f1d4896",
+    "id":"12a6a18e-66c2-45a3-991f-c7818aa77fc8",
     "hrid":"9520682",
     "source":"MARC",
     "parentInstances":[
@@ -6625,12 +6521,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1630.18",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".P3516 2013",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1630.18 .P3516 2013",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6738,7 +6630,7 @@
     ]
   },
   {
-    "id":"664e0567-4ac8-4696-841b-3510a9bd7aec",
+    "id":"c0bce702-0157-4991-bd37-d6fef3c22580",
     "hrid":"9629391",
     "source":"MARC",
     "parentInstances":[
@@ -6786,12 +6678,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"G3803.T6E63 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"I8",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"G3803.T6E63 2016 I8",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6851,7 +6739,7 @@
     ]
   },
   {
-    "id":"51700371-f249-4e96-8f04-d0349b52b114",
+    "id":"da3fff19-2812-4e4f-a7a5-cff120c86725",
     "hrid":"9630194",
     "source":"MARC",
     "parentInstances":[
@@ -6957,7 +6845,7 @@
     ]
   },
   {
-    "id":"5ce52089-bd5b-4fe1-824e-10a981adf3cb",
+    "id":"96d568f5-10f5-4e86-8ae3-d2a85b5400ee",
     "hrid":"9668145",
     "source":"MARC",
     "parentInstances":[
@@ -7014,12 +6902,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DS782",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M36 2016 v.5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DS782 .M36 2016 v.5",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7059,7 +6943,7 @@
     ]
   },
   {
-    "id":"c4aa5e28-a767-4519-a10b-b95eb8ae3333",
+    "id":"64a161b2-4346-435e-a27b-90815df7e768",
     "hrid":"9674387",
     "source":"MARC",
     "parentInstances":[
@@ -7124,7 +7008,7 @@
     ]
   },
   {
-    "id":"0a9ab3a5-086b-4c60-aaf4-ad2327965c16",
+    "id":"d02ff71e-8a34-4847-abaa-af8c10aa11ce",
     "hrid":"9691888",
     "source":"MARC",
     "parentInstances":[
@@ -7320,7 +7204,7 @@
     ]
   },
   {
-    "id":"c547252d-4022-4fe3-a0ad-87c835d98ebc",
+    "id":"23a1d876-30d8-43b6-810f-88eb159d3bfa",
     "hrid":"9729229",
     "source":"MARC",
     "parentInstances":[
@@ -7388,12 +7272,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HF5661",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".W55 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HF5661 .W55 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7436,7 +7316,7 @@
     ]
   },
   {
-    "id":"280b7d28-e1ed-4238-b6f1-b098688113ad",
+    "id":"742ce4f5-87ce-4bef-9a1b-c106ba3be192",
     "hrid":"9766936",
     "source":"MARC",
     "parentInstances":[
@@ -7508,12 +7388,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DK508.465",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".K725 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DK508.465 .K725 2016",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7569,7 +7445,7 @@
     ]
   },
   {
-    "id":"1c98a3eb-1c39-439c-a1cc-f50e466c5b56",
+    "id":"7682aa44-3007-4db8-8b8f-2da9743c3af9",
     "hrid":"9860927",
     "source":"MARC",
     "parentInstances":[
@@ -7620,12 +7496,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"QK604",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M56 1989",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"QK604 .M56 1989",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7675,7 +7547,7 @@
     ]
   },
   {
-    "id":"29794e0b-ec54-455f-9ea4-b8c9f76dbdea",
+    "id":"7999c945-6547-4344-b14e-048f322e5600",
     "hrid":"9900811",
     "source":"MARC",
     "parentInstances":[
@@ -7730,12 +7602,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1613.3.A306",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"H3 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1613.3.A306 H3 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7790,7 +7658,7 @@
     ]
   },
   {
-    "id":"a4e3995f-964e-4f38-98d8-fae02b077b4a",
+    "id":"e9b03643-1b28-46cd-93ea-f37279d7028d",
     "hrid":"9904545",
     "source":"MARC",
     "parentInstances":[
@@ -7865,12 +7733,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M127.R767",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"S6 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M127.R767 S6 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7925,7 +7789,7 @@
     ]
   },
   {
-    "id":"604a2a16-e4e1-489f-bb29-0f63db62febd",
+    "id":"df52e987-fb8a-4465-a750-60ac40542f1e",
     "hrid":"9905184",
     "source":"MARC",
     "parentInstances":[
@@ -7968,12 +7832,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1363.A306",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"A66 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1363.A306 A66 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8049,7 +7909,7 @@
     ]
   },
   {
-    "id":"ea3505ab-c532-4fc3-9285-5f50c9ee3c42",
+    "id":"4d00ebdd-ea5c-4092-8d2b-84fcbf838384",
     "hrid":"9916898",
     "source":"MARC",
     "parentInstances":[
@@ -8138,20 +7998,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"B755",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"B755 .A43 2016",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".A43 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"BM42",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".H37 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BM42 .H37 2016",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8197,7 +8049,7 @@
     ]
   },
   {
-    "id":"fb89e823-b554-44c2-806d-e2a8f8500b41",
+    "id":"7241adf8-23d8-4fd6-9492-8c6f07c4b04e",
     "hrid":"9928371",
     "source":"MARC",
     "parentInstances":[
@@ -8259,12 +8111,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N7433.3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".B87 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N7433.3 .B87 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8324,7 +8172,7 @@
     ]
   },
   {
-    "id":"ee051b56-a3d0-426d-a91d-9bee554c5c64",
+    "id":"f82cdbd0-6789-4449-b3d8-8e1180a13b0c",
     "hrid":"9952035",
     "source":"MARC",
     "parentInstances":[
@@ -8447,7 +8295,7 @@
     ]
   },
   {
-    "id":"0e2b84f2-735a-4ea1-9764-edad72c3c6c7",
+    "id":"3c18fcae-97e4-4a59-a60e-9304b565bd3c",
     "hrid":"10002020",
     "source":"MARC",
     "parentInstances":[
@@ -8506,11 +8354,11 @@
     "classifications":[
       {
         "classificationNumber":"E185.97",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"973.04960730092",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -8569,7 +8417,7 @@
     ]
   },
   {
-    "id":"9c37f674-a3e6-4f54-be79-978fb90cf622",
+    "id":"fbc6c1ee-6c55-43bb-a787-1678834483b9",
     "hrid":"10004464",
     "source":"MARC",
     "parentInstances":[
@@ -8639,16 +8487,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DP192",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DP192 .R53 2017",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".R53 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"946/.054",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"946.054",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -8696,7 +8540,7 @@
     ]
   },
   {
-    "id":"f6785113-7367-4f06-aa27-a68efd290c98",
+    "id":"4d64510c-89fe-42ea-8826-f5053436c09a",
     "hrid":"10059966",
     "source":"MARC",
     "parentInstances":[
@@ -8763,16 +8607,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BL1215.N34",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"B43 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BL1215.N34 B43 2016",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"363.70954",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -8822,7 +8662,7 @@
     ]
   },
   {
-    "id":"9421beb6-e183-460d-bc12-295fdb8e6f9c",
+    "id":"7b5b8fd6-f328-48b1-87f0-4578d35a35d7",
     "hrid":"10062588",
     "source":"MARC",
     "parentInstances":[
