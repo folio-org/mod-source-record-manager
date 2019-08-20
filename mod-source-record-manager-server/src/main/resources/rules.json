@@ -353,20 +353,20 @@
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISBN",
+          "description": "Type for Valid ISBN",
           "subfield": [
             "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "[Valid] ISBN"
+              "value": "ISBN"
             }
           ]
         },
         {
           "target": "identifiers.value",
-          "description": "ISBN",
+          "description": "Valid ISBN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
@@ -436,13 +436,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for ISSN",
           "subfield": [
-            "a",
-            "2"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "ISSN"
             }
           ]
         },
@@ -450,8 +449,7 @@
           "target": "identifiers.value",
           "description": "ISSN",
           "subfield": [
-            "a",
-            "2"
+            "a"
           ],
           "rules": [
             {
@@ -479,7 +477,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "Invalid ISSN"
             }
           ]
         },
@@ -510,13 +508,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for Linking ISSN",
           "subfield": [
-            "l",
-            "2"
+            "l"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "Linking ISSN"
             }
           ]
         },
@@ -524,8 +521,7 @@
           "target": "identifiers.value",
           "description": "Linking ISSN",
           "subfield": [
-            "l",
-            "2"
+            "l"
           ],
           "rules": [
             {

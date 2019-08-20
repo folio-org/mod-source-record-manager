@@ -27,7 +27,7 @@
       },
       {
         "value":"0022-0469",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "identifierTypeId":"ISSN"
       },
       {
         "value":"(CStRLIN)NYCX1604275S",
@@ -2136,7 +2136,7 @@
       },
       {
         "value":"0345404475 (pbk.) : $11.00",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"4442869",
@@ -2231,7 +2231,7 @@
     "identifiers":[
       {
         "value":"0585098646 (electronic bk.)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"4986243",
@@ -2349,15 +2349,15 @@
     "identifiers":[
       {
         "value":"2169-1665",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "identifierTypeId":"ISSN"
       },
       {
         "value":"0040-781X",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "identifierTypeId":"Invalid ISSN"
       },
       {
         "value":"0040-781X",
-        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
+        "identifierTypeId":"Linking ISSN"
       },
       {
         "value":"(WaSeSS)OCM1ssj0000060",
@@ -3012,19 +3012,19 @@
     "identifiers":[
       {
         "value":"9781405734240 (v.1)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"1405734248 (v.1)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9780406047762 (set)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"0406047766 (set)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"6268723",
@@ -5062,11 +5062,11 @@
     "identifiers":[
       {
         "value":"9787310035694",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"7310035690",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)698070011",
@@ -5384,19 +5384,19 @@
       },
       {
         "value":"9789719429265 (pbk.)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9719429267 (pbk.)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9789719429272 (hard)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9719429275 (hard)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)648766901",
@@ -5652,11 +5652,11 @@
     "identifiers":[
       {
         "value":"9789400001435",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9400001436",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)870426828",
@@ -6291,11 +6291,11 @@
       },
       {
         "value":"9786162971280",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"6162971287",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)913573026",
@@ -6948,11 +6948,11 @@
     "identifiers":[
       {
         "value":"9784843349250",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"4843349259",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)958840466",
@@ -7311,15 +7311,15 @@
     "identifiers":[
       {
         "value":"9781119056348 (flashcards : part 1)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9781119056836 (flashcards : part 2)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9781119056775 (flashcards : complete set)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)966701167",
@@ -7427,11 +7427,11 @@
     "identifiers":[
       {
         "value":"9789662783858 (paperback)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9662783857 (paperback)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)987797440",
@@ -8040,11 +8040,11 @@
     "identifiers":[
       {
         "value":"9789654938860 (print)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9654938863 (print)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9789654938877 (ebook)",
@@ -8564,11 +8564,11 @@
       },
       {
         "value":"9780190494889 hardcover ; alkaline paper",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"0190494883 hardcover ; alkaline paper",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)979534062",
@@ -8691,11 +8691,11 @@
       },
       {
         "value":"9789351137634 (hardback)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"9351137635 (hardback)",
-        "identifierTypeId":"[Valid] ISBN"
+        "identifierTypeId":"ISBN"
       },
       {
         "value":"(OCoLC)951929685",
