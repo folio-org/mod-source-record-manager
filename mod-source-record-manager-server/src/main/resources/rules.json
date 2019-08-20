@@ -350,30 +350,31 @@
   ],
   "020": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for ISBN",
           "subfield": [
-            "a",
-            "c",
-            "q"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "value": "[Valid] ISBN"
             }
           ]
         },
         {
           "target": "identifiers.value",
           "description": "ISBN",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
             "q"
+          ],
+          "requiredSubfield": [
+            "a"
           ],
           "rules": [
             {
@@ -388,28 +389,31 @@
       ]
     },
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Invalid ISBN",
           "subfield": [
-            "z",
-            "q"
+            "z"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "value": "Invalid ISBN"
             }
           ]
         },
         {
           "target": "identifiers.value",
           "description": "Invalid ISBN",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "z",
-            "q"
+            "q",
+            "c"
+          ],
+          "requiredSubfield": [
+            "z"
           ],
           "rules": [
             {
