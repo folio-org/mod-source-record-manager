@@ -16,6 +16,7 @@ public class NormalizationFunctions {
   private static final String REMOVE_ENDING_PUNC = "remove_ending_punc";
   private static final String TRIM = "trim";
   private static final String TRIM_PERIOD = "trim_period";
+  private static final String REMOVE_SUBSTRING = "remove_substring";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
@@ -56,6 +57,8 @@ public class NormalizationFunctions {
       return subFieldData.trim();
     } else if (TRIM_PERIOD.equals(functionName)) {
       return trimPeriod(subFieldData);
+    } else if (REMOVE_SUBSTRING.equals(functionName)) {
+      return removeSubstring(subFieldData, parameter);
     }
     return EMPTY;
   }
@@ -99,5 +102,14 @@ public class NormalizationFunctions {
       }
     }
     return subFieldData;
+  }
+
+  private static String removeSubstring(String subFieldData, JsonObject parameter) {
+    if (parameter.containsKey("substring")) {
+      String substring = parameter.getString("substring");
+      return subFieldData.replace(substring, EMPTY);
+    } else {
+      return subFieldData;
+    }
   }
 }

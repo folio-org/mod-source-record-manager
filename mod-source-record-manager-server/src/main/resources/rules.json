@@ -669,11 +669,11 @@
   ],
   "050": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -681,13 +681,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "value": "LC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -698,11 +699,11 @@
   ],
   "060": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for NLM classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -710,13 +711,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+              "value": "NLM"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "NLM classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -797,11 +799,11 @@
   ],
   "080": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for UDC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -809,13 +811,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+              "value": "UDC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "UDC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -826,11 +829,11 @@
   ],
   "082": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for Dewey classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -838,16 +841,29 @@
           "rules": [
             {
               "conditions": [],
-              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
+              "value": "Dewey"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "Dewey classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_substring",
+                  "parameter": {
+                    "substring": "/"
+                  }
+                }
+              ]
+            }
           ]
         }
       ]
@@ -855,6 +871,7 @@
   ],
   "086": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
@@ -865,7 +882,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+              "value": "GDC"
             }
           ]
         },
@@ -890,7 +907,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+              "value": "GDC"
             }
           ]
         },
@@ -906,11 +923,11 @@
   ],
   "090": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -918,13 +935,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "value": "LC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"

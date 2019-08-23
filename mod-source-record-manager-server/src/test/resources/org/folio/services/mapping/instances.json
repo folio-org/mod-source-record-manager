@@ -59,16 +59,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BR140",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".J6",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BR140 .J6",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"270.05",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -154,12 +150,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M896",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M3 .M896",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -389,16 +381,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KF6365",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M4",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KF6365 .M4",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"336.2402673",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -537,12 +525,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KFP30 1930",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".A44",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KFP30 1930 .A44",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -757,24 +741,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1613.3.C92",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"A5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M1528",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M1619.5.G33",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"ML96.5.C865",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1613.3.C92 A5 M1528 M1619.5.G33 ML96.5.C865",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -1687,12 +1655,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N7326",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".T12 1991",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N7326 .T12 1991",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -1944,12 +1908,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KZ1190",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".G56 1997",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KZ1190 .G56 1997",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2047,12 +2007,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"LG181.B155",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"L37 1990",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"LG181.B155 L37 1990",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2265,16 +2221,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HV5292",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HV5292 .F56 1988eb",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".F56 1988eb",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"362.2/928",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"362.2928",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -2397,20 +2349,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"AP2",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"AP2 .T37",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".T37",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"W1",
-        "classificationTypeId":"a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
-      },
-      {
-        "classificationNumber":"TI796G",
-        "classificationTypeId":"a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+        "classificationNumber":"W1 TI796G",
+        "classificationTypeId":"NLM"
       }
     ],
     "publication":[
@@ -2552,12 +2496,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"AC901",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M5 vol. 1093, no. 4",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"AC901 .M5 vol. 1093, no. 4",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2649,12 +2589,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BX5195.G76",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"S141 1930",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BX5195.G76 S141 1930",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -2750,12 +2686,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N346.N72",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"I84",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N346.N72 I84",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -3054,12 +2986,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"KD310",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".H35",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"KD310 .H35",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -3211,12 +3139,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"E491",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".U6",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"E491 .U6",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -4406,16 +4330,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1741.18.B42",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"B436 2009",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1741.18.B42 B436 2009",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"782.42166",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -5425,16 +5345,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HQ792.P5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"M33 2010",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HQ792.P5 M33 2010",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"305.2309599",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -5564,16 +5480,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M2010.V47",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M2010.V47 M47 2013",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":"M47 2013",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"782.5/3238",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"782.53238",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -5761,12 +5673,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DA530",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".A73",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DA530 .A73",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6213,12 +6121,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".B88 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M3 .B88 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6325,12 +6229,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HQ242.55.A5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"P42 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HQ242.55.A5 P42 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6428,12 +6328,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"PN4781",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".N594 2015",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"PN4781 .N594 2015",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6593,12 +6489,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1630.18",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".P3516 2013",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1630.18 .P3516 2013",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6754,12 +6646,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"G3803.T6E63 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"I8",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"G3803.T6E63 2016 I8",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -6982,12 +6870,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DS782",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M36 2016 v.5",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DS782 .M36 2016 v.5",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7356,12 +7240,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"HF5661",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".W55 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"HF5661 .W55 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7476,12 +7356,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DK508.465",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".K725 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DK508.465 .K725 2016",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7588,12 +7464,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"QK604",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".M56 1989",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"QK604 .M56 1989",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7698,12 +7570,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1613.3.A306",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"H3 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1613.3.A306 H3 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7833,12 +7701,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M127.R767",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"S6 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M127.R767 S6 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -7936,12 +7800,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"M1363.A306",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"A66 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"M1363.A306 A66 2017",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8106,20 +7966,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"B755",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"B755 .A43 2016",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".A43 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"BM42",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".H37 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BM42 .H37 2016",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8227,12 +8079,8 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"N7433.3",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":".B87 2014",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"N7433.3 .B87 2014",
+        "classificationTypeId":"LC"
       }
     ],
     "publication":[
@@ -8474,11 +8322,11 @@
     "classifications":[
       {
         "classificationNumber":"E185.97",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"973.04960730092",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -8607,16 +8455,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"DP192",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"DP192 .R53 2017",
+        "classificationTypeId":"LC"
       },
       {
-        "classificationNumber":".R53 2017",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"946/.054",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationNumber":"946.054",
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
@@ -8731,16 +8575,12 @@
     ],
     "classifications":[
       {
-        "classificationNumber":"BL1215.N34",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
-      },
-      {
-        "classificationNumber":"B43 2016",
-        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+        "classificationNumber":"BL1215.N34 B43 2016",
+        "classificationTypeId":"LC"
       },
       {
         "classificationNumber":"363.70954",
-        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
+        "classificationTypeId":"Dewey"
       }
     ],
     "publication":[
