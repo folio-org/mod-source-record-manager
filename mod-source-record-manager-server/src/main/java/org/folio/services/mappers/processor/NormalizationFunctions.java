@@ -2,6 +2,10 @@ package org.folio.services.mappers.processor;
 
 import com.google.common.base.Splitter;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang.StringUtils;
+import org.marc4j.marc.DataField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
@@ -11,12 +15,14 @@ import static org.drools.core.util.StringUtils.EMPTY;
  * Run a splitter on a string or run a function.
  */
 public class NormalizationFunctions {
+  private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationFunctions.class);
 
   private static final String CHAR_SELECT = "char_select";
   private static final String REMOVE_ENDING_PUNC = "remove_ending_punc";
   private static final String TRIM = "trim";
   private static final String TRIM_PERIOD = "trim_period";
   private static final String REMOVE_SUBSTRING = "remove_substring";
+  private static final String REMOVE_PREFIX_BY_INDICATOR = "remove_prefix_by_indicator";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
@@ -47,19 +53,26 @@ public class NormalizationFunctions {
    */
   public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext, JsonObject parameter) {
     String subFieldData = ruleExecutionContext.getData();
-    if (subFieldData == null) {
-      return EMPTY;
-    }
-    if (CHAR_SELECT.equals(functionName)) {
-      return charSelect(subFieldData, parameter);
-    } else if (REMOVE_ENDING_PUNC.equals(functionName) && !subFieldData.equals("")) {
-      return removeEndingPunc(subFieldData);
-    } else if (TRIM.equals(functionName)) {
-      return subFieldData.trim();
-    } else if (TRIM_PERIOD.equals(functionName)) {
-      return trimPeriod(subFieldData);
-    } else if (REMOVE_SUBSTRING.equals(functionName)) {
-      return removeSubstring(subFieldData, parameter);
+    try {
+      if (subFieldData == null) {
+        return EMPTY;
+      }
+      if (CHAR_SELECT.equals(functionName)) {
+        return charSelect(subFieldData, parameter);
+      } else if (REMOVE_ENDING_PUNC.equals(functionName) && !subFieldData.equals("")) {
+        return removeEndingPunc(subFieldData);
+      } else if (TRIM.equals(functionName)) {
+        return subFieldData.trim();
+      } else if (TRIM_PERIOD.equals(functionName)) {
+        return trimPeriod(subFieldData);
+      } else if (REMOVE_SUBSTRING.equals(functionName)) {
+        return removeSubstring(subFieldData, parameter);
+      } else if (REMOVE_PREFIX_BY_INDICATOR.equals(functionName)) {
+        return removePrefixByIndicator(ruleExecutionContext);
+      }
+    } catch (Exception e) {
+      LOGGER.error("Error while running normalization functions, cause: {}", e.getLocalizedMessage());
+      return subFieldData;
     }
     return EMPTY;
   }
@@ -108,9 +121,19 @@ public class NormalizationFunctions {
   private static String removeSubstring(String subFieldData, JsonObject parameter) {
     if (parameter.containsKey("substring")) {
       String substring = parameter.getString("substring");
-      return subFieldData.replace(substring, EMPTY);
+      return StringUtils.remove(subFieldData, substring);
     } else {
       return subFieldData;
     }
+  }
+
+  private static String removePrefixByIndicator(RuleExecutionContext ruleExecutionContext) {
+    String subFieldData = ruleExecutionContext.getData();
+    DataField dataField = ruleExecutionContext.getDataField();
+    int from = 0;
+    int to = Character.getNumericValue(dataField.getIndicator2());
+    String prefixToRemove = subFieldData.substring(from, to);
+    String result = StringUtils.remove(subFieldData, prefixToRemove);
+    return StringUtils.capitalize(result);
   }
 }

@@ -1200,6 +1200,24 @@
     {
       "target": "title",
       "description": "Resource Title",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "n",
+        "p",
+        "b",
+        "c",
+        "f",
+        "g",
+        "h",
+        "k",
+        "s"
+      ]
+    },
+    {
+      "target": "indexTitle",
+      "description": "Index title",
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
         "a",
         "n",
@@ -1212,32 +1230,11 @@
         "k",
         "s"
       ],
-      "applyRulesOnConcatenatedData": true,
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "target": "indexTitle",
-      "description": "Index title",
-      "subfield": [
-        "a"
-      ],
-      "rules": [
-        {
-          "conditions": [
-            {
-              "type": "char_select",
-              "parameter": {
-                "from": 0,
-                "to": 4
-              }
+              "type": "remove_prefix_by_indicator"
             }
           ]
         }
