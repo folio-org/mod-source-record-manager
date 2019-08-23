@@ -45,7 +45,8 @@ public class NormalizationFunctions {
    *
    * @return the function's result
    */
-  public static String runFunction(String functionName, String subFieldData, JsonObject parameter) {
+  public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext, JsonObject parameter) {
+    String subFieldData = ruleExecutionContext.getData();
     if (subFieldData == null) {
       return EMPTY;
     }

@@ -244,14 +244,17 @@ public class Processor {
     }
 
     for (int i = 0; i < subFields.size(); i++) {
-      handleSubFields(subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
+      handleSubFields(dataField, subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
     }
 
     if (!(entityRequestedPerRepeatedSubfield && entityRequested)) {
 
       String completeData = generateDataString();
       if (applyPost) {
-        completeData = processRules(completeData);
+        RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
+        ruleExecutionContext.setData(completeData);
+        ruleExecutionContext.setDataField(dataField);
+        completeData = processRules(ruleExecutionContext);
       }
       if (createNewObject(embeddedFields, completeData, rememberComplexObj)) {
         createNewComplexObj = false;
@@ -260,7 +263,7 @@ public class Processor {
     instance.setId(UUID.randomUUID().toString());
   }
 
-  private void handleSubFields(List<Subfield> subFields, int subFieldsIndex, Set<String> subFieldsSet,
+  private void handleSubFields(DataField dataField, List<Subfield> subFields, int subFieldsIndex, Set<String> subFieldsSet,
                                List<Object[]> arraysOfObjects, boolean applyPost, String[] embeddedFields) {
 
     String data = subFields.get(subFieldsIndex).getData();
@@ -281,7 +284,10 @@ public class Processor {
       //to wait and run this after all the data associated with this target has been
       //concatenated , therefore this can only be done in the createNewObject function
       //which has the full set of subfield data
-      data = processRules(data);
+      RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
+      ruleExecutionContext.setData(data);
+      ruleExecutionContext.setDataField(dataField);
+      data = processRules(ruleExecutionContext);
     }
 
     if (delimiters != null && subField2Data.get(String.valueOf(subfield)) != null) {
@@ -375,7 +381,9 @@ public class Processor {
       rules = cfRule.getJsonArray("rules");
 
       //the content of the Marc control field
-      String data = processRules(controlField.getData());
+      RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
+      ruleExecutionContext.setData(controlField.getData());
+      String data = processRules(ruleExecutionContext);
       if ((data != null) && data.isEmpty()) {
         continue;
       }
@@ -395,24 +403,24 @@ public class Processor {
     }
   }
 
-  private String processRules(String data) {
+  private String processRules(RuleExecutionContext ruleExecutionContext) {
     if (rules == null) {
-      return Escaper.escape(data);
+      return Escaper.escape(ruleExecutionContext.getData());
     }
 
     //there are rules associated with this subfield / control field - to instance field mapping
-    String originalData = data;
+    String originalData = ruleExecutionContext.getData();
     for (int i = 0; i < rules.size(); i++) {
-      ProcessedSingleItem psi = processRule(rules.getJsonObject(i), data, originalData);
-      data = psi.getData();
+      ProcessedSingleItem psi = processRule(rules.getJsonObject(i), ruleExecutionContext, originalData);
+      ruleExecutionContext.setData(psi.getData());
       if (psi.doBreak()) {
         break;
       }
     }
-    return Escaper.escape(data);
+    return Escaper.escape(ruleExecutionContext.getData());
   }
 
-  private ProcessedSingleItem processRule(JsonObject rule, String data, String originalData) {
+  private ProcessedSingleItem processRule(JsonObject rule, RuleExecutionContext ruleExecutionContext, String originalData) {
 
 
     //get the conditions associated with each rule
@@ -426,7 +434,6 @@ public class Processor {
     //continue processing the next condition, if all conditions are met
     //set the target to the value of the rule
     boolean isCustom = false;
-
     for (int m = 0; m < conditions.size(); m++) {
       JsonObject condition = conditions.getJsonObject(m);
 
@@ -435,8 +442,8 @@ public class Processor {
       isCustom = checkIfAnyFunctionIsCustom(functions, isCustom);
 
       ProcessedSinglePlusConditionCheck processedCondition =
-        processCondition(condition, data, originalData, conditionsMet, ruleConstVal, isCustom);
-      data = processedCondition.getData();
+        processCondition(condition, ruleExecutionContext, originalData, conditionsMet, ruleConstVal, isCustom);
+      ruleExecutionContext.setData(processedCondition.getData());
       conditionsMet = processedCondition.isConditionsMet();
     }
 
@@ -446,13 +453,12 @@ public class Processor {
       //is a constant value associated with the rule, and this is
       //not a custom rule, then set the data to the const value
       //no need to continue processing other rules for this subfield
-      data = ruleConstVal;
-      return new ProcessedSingleItem(data, true);
+      return new ProcessedSingleItem(ruleConstVal, true);
     }
-    return new ProcessedSingleItem(data, false);
+    return new ProcessedSingleItem(ruleExecutionContext.getData(), false);
   }
 
-  private ProcessedSinglePlusConditionCheck processCondition(JsonObject condition, String data, String originalData,
+  private ProcessedSinglePlusConditionCheck processCondition(JsonObject condition, RuleExecutionContext ruleExecutionContext, String originalData,
                                                              boolean conditionsMet, String ruleConstVal,
                                                              boolean isCustom) {
 
@@ -460,15 +466,15 @@ public class Processor {
 
       //the rule also has a condition on the leader field
       //whose value also needs to be passed into any declared function
-      data = leader.toString();
+      ruleExecutionContext.setData(leader.toString());
     }
 
     String valueParam = condition.getString(VALUE);
     for (String function : ProcessorHelper.getFunctionsFromCondition(condition)) {
-      ProcessedSinglePlusConditionCheck processedFunction = processFunction(function, data, isCustom, valueParam, condition,
+      ProcessedSinglePlusConditionCheck processedFunction = processFunction(function, ruleExecutionContext, isCustom, valueParam, condition,
         conditionsMet, ruleConstVal);
       conditionsMet = processedFunction.isConditionsMet();
-      data = processedFunction.getData();
+      ruleExecutionContext.setData(processedFunction.getData());
       if (processedFunction.doBreak()) {
         break;
       }
@@ -479,10 +485,10 @@ public class Processor {
       //all conditions for this rule we not met, revert data to the originalData passed in.
       return new ProcessedSinglePlusConditionCheck(originalData, true, false);
     }
-    return new ProcessedSinglePlusConditionCheck(data, false, true);
+    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), false, true);
   }
 
-  private ProcessedSinglePlusConditionCheck processFunction(String function, String data, boolean isCustom,
+  private ProcessedSinglePlusConditionCheck processFunction(String function, RuleExecutionContext ruleExecutionContext, boolean isCustom,
                                                             String valueParam, JsonObject condition,
                                                             boolean conditionsMet, String ruleConstVal) {
 
@@ -491,7 +497,8 @@ public class Processor {
         if (valueParam == null) {
           throw new NullPointerException("valueParam == null");
         }
-        data = (String) JSManager.runJScript(valueParam, data);
+        String data = (String) JSManager.runJScript(valueParam, ruleExecutionContext.getData());
+        ruleExecutionContext.setData(data);
       } catch (Exception e) {
 
         //the function has thrown an exception meaning this condition has failed,
@@ -500,21 +507,21 @@ public class Processor {
         LOGGER.error(e.getMessage(), e);
       }
     } else {
-      String c = NormalizationFunctions.runFunction(function.trim(), data, condition.getJsonObject("parameter"));
+      String c = NormalizationFunctions.runFunction(function.trim(), ruleExecutionContext, condition.getJsonObject("parameter"));
       if (valueParam != null && !c.equals(valueParam) && !isCustom) {
 
         //still allow a condition to compare the output of a function on the data to a constant value
         //unless this is a custom javascript function in which case, the value holds the custom function
-        return new ProcessedSinglePlusConditionCheck(data, true, false);
+        return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), true, false);
 
       } else if (ruleConstVal == null) {
 
         //if there is no val to use as a replacement , then assume the function
         //is doing generating the needed value and set the data to the returned value
-        data = c;
+        ruleExecutionContext.setData(c);
       }
     }
-    return new ProcessedSinglePlusConditionCheck(data, false, conditionsMet);
+    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), false, conditionsMet);
   }
 
   private boolean checkIfAnyFunctionIsCustom(String[] functions, boolean isCustom) {
