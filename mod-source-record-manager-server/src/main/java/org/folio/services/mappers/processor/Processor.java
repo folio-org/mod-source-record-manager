@@ -58,6 +58,7 @@ public class Processor {
   private final List<StringBuilder> buffers2concat = new ArrayList<>();
   private final Map<String, StringBuilder> subField2Data = new HashMap<>();
   private final Map<String, String> subField2Delimiter = new HashMap<>();
+  private final Set<String> ignoredSubsequentFields = new HashSet<>();
   private static final String MAPPING_RULES = "rules.json";
 
   public Processor() {
@@ -100,16 +101,15 @@ public class Processor {
     InstantiationException {
 
     while (dfIter.hasNext()) {
-      handleRecordDataFieldByField(dfIter);
+      handleRecordDataFieldByField(dfIter.next());
     }
   }
 
-  private void handleRecordDataFieldByField(Iterator<DataField> dfIter) throws ScriptException, IllegalAccessException,
+  private void handleRecordDataFieldByField(DataField dataField) throws ScriptException, IllegalAccessException,
     InstantiationException {
 
     createNewComplexObj = true; // each rule will generate a new instance in an array , for an array data member
     Object[] rememberComplexObj = new Object[]{null};
-    DataField dataField = dfIter.next();
     JsonArray mappingEntry = rulesFile.getJsonArray(dataField.getTag());
     if (mappingEntry == null) {
       return;
@@ -117,12 +117,27 @@ public class Processor {
 
     //there is a mapping associated with this marc field
     for (int i = 0; i < mappingEntry.size(); i++) {
-
       //there could be multiple mapping entries, specifically different mappings
       //per subfield in the marc field
       JsonObject subFieldMapping = mappingEntry.getJsonObject(i);
-      processSubFieldMapping(subFieldMapping, rememberComplexObj, dataField);
+      if (canProcessSubFieldMapping(subFieldMapping, dataField)) {
+        processSubFieldMapping(subFieldMapping, rememberComplexObj, dataField);
+      }
     }
+  }
+
+  private boolean canProcessSubFieldMapping(JsonObject subFieldMapping, DataField dataField) {
+    if (subFieldMapping.containsKey("ignoreSubsequentFields")) {
+      boolean mapFirstFieldOccurrence = subFieldMapping.getBoolean("ignoreSubsequentFields");
+      if (mapFirstFieldOccurrence) {
+        if (ignoredSubsequentFields.contains(dataField.getTag())) {
+          return false;
+        } else {
+          ignoredSubsequentFields.add(dataField.getTag());
+        }
+      }
+    }
+    return true;
   }
 
   private void processSubFieldMapping(JsonObject subFieldMapping, Object[] rememberComplexObj, DataField dataField)
