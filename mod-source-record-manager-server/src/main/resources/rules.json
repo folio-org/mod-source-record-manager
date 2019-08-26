@@ -329,12 +329,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for Cancelled System Control Number",
           "subfield": [
-            "z"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "value": "Cancelled system control number"
             }
           ]
         },
@@ -342,7 +342,7 @@
           "target": "identifiers.value",
           "description": "Cancelled System Control Number",
           "subfield": [
-            "z"
+            "a"
           ]
         }
       ]
@@ -634,8 +634,29 @@
           ],
           "rules": [
             {
+              "conditions": [
+                {
+                  "type": "setValueIfSubfieldHasPrefix",
+                  "parameter": {
+                    "prefixes": ["(OCoLC)", "ocn", "ocm"],
+                    "valueIfConditionIsTrue": "OCLC",
+                    "valueIfConditionIsFalse": "System control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for System Control Number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
               "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "value": "Cancelled system control number"
             }
           ]
         },
@@ -643,7 +664,7 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a"
+            "a", "z"
           ]
         }
       ]

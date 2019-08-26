@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static org.drools.core.util.StringUtils.EMPTY;
 
@@ -24,6 +25,7 @@ public class NormalizationFunctions {
   private static final String REMOVE_SUBSTRING = "remove_substring";
   private static final String REMOVE_PREFIX_BY_INDICATOR = "remove_prefix_by_indicator";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
+  private static final String SET_VALUE_IF_SUBFIELD_HAS_PREFIX = "setValueIfSubfieldHasPrefix";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {
@@ -51,14 +53,14 @@ public class NormalizationFunctions {
    *
    * @return the function's result
    */
-  public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext, JsonObject parameter) {
+  public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext, JsonObject parameters) {
     String subFieldData = ruleExecutionContext.getData();
     try {
       if (subFieldData == null) {
         return EMPTY;
       }
       if (CHAR_SELECT.equals(functionName)) {
-        return charSelect(subFieldData, parameter);
+        return charSelect(subFieldData, parameters);
       } else if (REMOVE_ENDING_PUNC.equals(functionName) && !subFieldData.equals("")) {
         return removeEndingPunc(subFieldData);
       } else if (TRIM.equals(functionName)) {
@@ -66,15 +68,28 @@ public class NormalizationFunctions {
       } else if (TRIM_PERIOD.equals(functionName)) {
         return trimPeriod(subFieldData);
       } else if (REMOVE_SUBSTRING.equals(functionName)) {
-        return removeSubstring(subFieldData, parameter);
+        return removeSubstring(subFieldData, parameters);
       } else if (REMOVE_PREFIX_BY_INDICATOR.equals(functionName)) {
         return removePrefixByIndicator(ruleExecutionContext);
+      } else if (SET_VALUE_IF_SUBFIELD_HAS_PREFIX.equals(functionName)) {
+        return setValueIfSubfieldHasPrefix(subFieldData, parameters);
       }
     } catch (Exception e) {
       LOGGER.error("Error while running normalization functions, cause: {}", e.getLocalizedMessage());
       return subFieldData;
     }
     return EMPTY;
+  }
+
+  private static String setValueIfSubfieldHasPrefix(String subFieldData, JsonObject parameters) {
+    List<String> prefixes = parameters.getJsonArray("prefixes").getList();
+    String valueIfConditionIsTrue = parameters.getString("valueIfConditionIsTrue");
+    String valueIfConditionIsFalse = parameters.getString("valueIfConditionIsFalse");
+    if (prefixes.stream().anyMatch(subFieldData::startsWith)) {
+      return valueIfConditionIsTrue;
+    } else {
+      return valueIfConditionIsFalse;
+    }
   }
 
   private static Iterator<String> splitEvery(String subFieldData, String param) {
