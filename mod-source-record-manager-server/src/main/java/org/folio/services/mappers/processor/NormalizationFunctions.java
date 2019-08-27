@@ -25,7 +25,7 @@ public class NormalizationFunctions {
   private static final String REMOVE_SUBSTRING = "remove_substring";
   private static final String REMOVE_PREFIX_BY_INDICATOR = "remove_prefix_by_indicator";
   private static final String SPLIT_FUNCTION_SPLIT_EVERY = "split_every";
-  private static final String SET_VALUE_IF_SUBFIELD_HAS_PREFIX = "setValueIfSubfieldHasPrefix";
+  private static final String SET_VALUE_IF_SUBFIELD_HAS_PREFIX = "set_value_if_subfield_has_prefix";
   private static final String PUNCT_2_REMOVE = ";:,/+= ";
 
   private NormalizationFunctions() {

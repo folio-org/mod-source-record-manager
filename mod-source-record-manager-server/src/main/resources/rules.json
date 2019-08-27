@@ -636,7 +636,7 @@
             {
               "conditions": [
                 {
-                  "type": "setValueIfSubfieldHasPrefix",
+                  "type": "set_value_if_subfield_has_prefix",
                   "parameter": {
                     "prefixes": ["(OCoLC)", "ocn", "ocm"],
                     "valueIfConditionIsTrue": "OCLC",
