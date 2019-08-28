@@ -21,6 +21,7 @@ public class JobExecutionToLogDtoConverter extends AbstractGenericConverter<JobE
       .withJobProfileName(source.getJobProfileInfo() == null ? null : source.getJobProfileInfo().getName())
       .withCompletedDate(source.getCompletedDate())
       .withFileName(source.getSourcePath())
+      .withTotalRecords(source.getProgress().getTotal())
       .withRunBy(source.getRunBy())
       .withStatus(LogDto.Status.valueOf(source.getStatus().value()))
       .withUiStatus(LogDto.UiStatus.valueOf(source.getUiStatus().value()));
