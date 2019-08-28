@@ -1249,7 +1249,7 @@
         {
           "conditions": [
             {
-              "type": "remove_prefix_by_indicator"
+              "type": "remove_prefix_by_indicator, capitalize"
             }
           ]
         }

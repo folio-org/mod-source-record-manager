@@ -105,7 +105,14 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       int to = Character.getNumericValue(dataField.getIndicator2());
       String prefixToRemove = subFieldData.substring(from, to);
       String result = StringUtils.remove(subFieldData, prefixToRemove);
-      return StringUtils.capitalize(result);
+      return result;
+    }
+  },
+
+  CAPITALIZE() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      return StringUtils.capitalize(context.getSubFieldValue());
     }
   },
 
