@@ -37,9 +37,6 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      if (subFieldValue.isEmpty()) {
-        return EMPTY;
-      }
       int pos = subFieldValue.length() - 1;
       if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldValue.charAt(pos)))) {
         return subFieldValue.substring(0, subFieldValue.length() - 1);
