@@ -18,7 +18,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "a",
               "LDR": true
             }
@@ -30,7 +33,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "c",
               "LDR": true
             }
@@ -42,7 +48,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "d",
               "LDR": true
             }
@@ -54,7 +63,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "e",
               "LDR": true
             }
@@ -66,7 +78,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "f",
               "LDR": true
             }
@@ -78,7 +93,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "g",
               "LDR": true
             }
@@ -90,7 +108,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "i",
               "LDR": true
             }
@@ -102,7 +123,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "j",
               "LDR": true
             }
@@ -114,7 +138,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "k",
               "LDR": true
             }
@@ -126,7 +153,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "m",
               "LDR": true
             }
@@ -138,7 +168,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "o",
               "LDR": true
             }
@@ -150,7 +183,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "p",
               "LDR": true
             }
@@ -162,7 +198,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "r",
               "LDR": true
             }
@@ -174,7 +213,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6-7",
+              "parameter": {
+                "from": 6,
+                "to": 8
+              },
               "value": "as",
               "LDR": true
             }
@@ -186,7 +228,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6-7",
+              "parameter": {
+                "from": 6,
+                "to": 8
+              },
               "value": "am",
               "LDR": true
             }
@@ -198,7 +243,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "6",
+              "parameter": {
+                "from": 6,
+                "to": 7
+              },
               "value": "t",
               "LDR": true
             }
@@ -227,7 +275,10 @@
           "conditions": [
             {
               "type": "char_select",
-              "parameter": "35-37"
+              "parameter": {
+                "from": 35,
+                "to": 38
+              }
             }
           ]
         }
@@ -278,12 +329,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for Cancelled System Control Number",
           "subfield": [
-            "z"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "value": "Cancelled system control number"
             }
           ]
         },
@@ -291,7 +342,7 @@
           "target": "identifiers.value",
           "description": "Cancelled System Control Number",
           "subfield": [
-            "z"
+            "a"
           ]
         }
       ]
@@ -299,30 +350,31 @@
   ],
   "020": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Type for ISBN",
+          "description": "Type for Valid ISBN",
           "subfield": [
-            "a",
-            "c",
-            "q"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "value": "ISBN"
             }
           ]
         },
         {
           "target": "identifiers.value",
-          "description": "ISBN",
+          "description": "Valid ISBN",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
             "q"
+          ],
+          "requiredSubfield": [
+            "a"
           ],
           "rules": [
             {
@@ -337,28 +389,31 @@
       ]
     },
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Invalid ISBN",
           "subfield": [
-            "z",
-            "q"
+            "z"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "value": "Invalid ISBN"
             }
           ]
         },
         {
           "target": "identifiers.value",
           "description": "Invalid ISBN",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "z",
-            "q"
+            "q",
+            "c"
+          ],
+          "requiredSubfield": [
+            "z"
           ],
           "rules": [
             {
@@ -381,13 +436,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for ISSN",
           "subfield": [
-            "a",
-            "2"
+            "a"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "ISSN"
             }
           ]
         },
@@ -395,8 +449,7 @@
           "target": "identifiers.value",
           "description": "ISSN",
           "subfield": [
-            "a",
-            "2"
+            "a"
           ],
           "rules": [
             {
@@ -424,7 +477,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "Invalid ISSN"
             }
           ]
         },
@@ -455,13 +508,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for Linking ISSN",
           "subfield": [
-            "l",
-            "2"
+            "l"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "value": "Linking ISSN"
             }
           ]
         },
@@ -469,8 +521,7 @@
           "target": "identifiers.value",
           "description": "Linking ISSN",
           "subfield": [
-            "l",
-            "2"
+            "l"
           ],
           "rules": [
             {
@@ -583,8 +634,29 @@
           ],
           "rules": [
             {
+              "conditions": [
+                {
+                  "type": "set_value_if_subfield_has_prefix",
+                  "parameter": {
+                    "prefixes": ["(OCoLC)", "ocn", "ocm"],
+                    "valueIfConditionIsTrue": "OCLC",
+                    "valueIfConditionIsFalse": "System control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for System Control Number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
               "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "value": "Cancelled system control number"
             }
           ]
         },
@@ -592,7 +664,7 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a"
+            "a", "z"
           ]
         }
       ]
@@ -618,11 +690,11 @@
   ],
   "050": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -630,13 +702,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "value": "LC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -647,11 +720,11 @@
   ],
   "060": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for NLM classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -659,13 +732,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+              "value": "NLM"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "NLM classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -687,7 +761,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "value": "GPO item number"
             }
           ]
         },
@@ -721,7 +795,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "value": "Cancelled GPO item number"
             }
           ]
         },
@@ -746,11 +820,11 @@
   ],
   "080": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for UDC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -758,13 +832,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+              "value": "UDC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "UDC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -775,11 +850,11 @@
   ],
   "082": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for Dewey classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -787,16 +862,29 @@
           "rules": [
             {
               "conditions": [],
-              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
+              "value": "Dewey"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "Dewey classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_substring",
+                  "parameter": {
+                    "substring": "/"
+                  }
+                }
+              ]
+            }
           ]
         }
       ]
@@ -804,6 +892,7 @@
   ],
   "086": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
@@ -814,7 +903,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+              "value": "GDC"
             }
           ]
         },
@@ -839,7 +928,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+              "value": "GDC"
             }
           ]
         },
@@ -855,11 +944,11 @@
   ],
   "090": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -867,13 +956,14 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "value": "LC"
             }
           ]
         },
         {
           "target": "classifications.classificationNumber",
           "description": "LC classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b"
@@ -1131,6 +1221,7 @@
     {
       "target": "title",
       "description": "Resource Title",
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
         "a",
         "n",
@@ -1142,30 +1233,23 @@
         "h",
         "k",
         "s"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
-        {
-          "conditions": [
-            {
-              "type": "remove_ending_punc, trim"
-            }
-          ]
-        }
       ]
     },
     {
       "target": "indexTitle",
       "description": "Index title",
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
-        "a"
+        "a",
+        "n",
+        "p",
+        "b"
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "char_select",
-              "parameter": "0-3"
+              "type": "remove_prefix_by_indicator, capitalize"
             }
           ]
         }
