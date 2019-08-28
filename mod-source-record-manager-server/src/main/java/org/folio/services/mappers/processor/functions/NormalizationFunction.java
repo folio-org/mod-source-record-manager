@@ -31,8 +31,8 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
   REMOVE_ENDING_PUNC() {
     private static final String PUNCT_2_REMOVE = ";:,/+= ";
     private static final char DOT = '.';
-    private static final String DOTs3 = "...";
-    private static final String DOTs4 = "....";
+    private static final String DOTsTHREE = "...";
+    private static final String DOTsFOUR = "....";
 
     @Override
     public String apply(RuleExecutionContext context) {
@@ -45,9 +45,9 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return subFieldValue.substring(0, subFieldValue.length() - 1);
       } else if (subFieldValue.charAt(pos) == DOT) {
         try {
-          if (subFieldValue.substring(subFieldValue.length() - 4).equals(DOTs4)) {
+          if (subFieldValue.substring(subFieldValue.length() - 4).equals(DOTsFOUR)) {
             return subFieldValue.substring(0, subFieldValue.length() - 1);
-          } else if (subFieldValue.substring(subFieldValue.length() - 3).equals(DOTs3)) {
+          } else if (subFieldValue.substring(subFieldValue.length() - 3).equals(DOTsTHREE)) {
             return subFieldValue;
           } else {
             //if ends with .. or . remove just one .

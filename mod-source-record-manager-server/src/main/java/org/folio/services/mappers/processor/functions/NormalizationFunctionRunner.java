@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
-import static org.drools.core.util.StringUtils.EMPTY;
-
 /**
  * Run a splitter on a string or run a function.
  */
