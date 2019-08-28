@@ -7,6 +7,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.folio.rest.jaxrs.model.Instance;
+import org.folio.services.mappers.processor.functions.NormalizationFunctionRunner;
 import org.marc4j.MarcJsonReader;
 import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
@@ -267,7 +268,7 @@ public class Processor {
       String completeData = generateDataString();
       if (applyPost) {
         RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
-        ruleExecutionContext.setData(completeData);
+        ruleExecutionContext.setSubFieldValue(completeData);
         ruleExecutionContext.setDataField(dataField);
         completeData = processRules(ruleExecutionContext);
       }
@@ -300,7 +301,7 @@ public class Processor {
       //concatenated , therefore this can only be done in the createNewObject function
       //which has the full set of subfield data
       RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
-      ruleExecutionContext.setData(data);
+      ruleExecutionContext.setSubFieldValue(data);
       ruleExecutionContext.setDataField(dataField);
       data = processRules(ruleExecutionContext);
     }
@@ -397,7 +398,7 @@ public class Processor {
 
       //the content of the Marc control field
       RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
-      ruleExecutionContext.setData(controlField.getData());
+      ruleExecutionContext.setSubFieldValue(controlField.getData());
       String data = processRules(ruleExecutionContext);
       if ((data != null) && data.isEmpty()) {
         continue;
@@ -420,19 +421,19 @@ public class Processor {
 
   private String processRules(RuleExecutionContext ruleExecutionContext) {
     if (rules == null) {
-      return Escaper.escape(ruleExecutionContext.getData());
+      return Escaper.escape(ruleExecutionContext.getSubFieldValue());
     }
 
     //there are rules associated with this subfield / control field - to instance field mapping
-    String originalData = ruleExecutionContext.getData();
+    String originalData = ruleExecutionContext.getSubFieldValue();
     for (int i = 0; i < rules.size(); i++) {
       ProcessedSingleItem psi = processRule(rules.getJsonObject(i), ruleExecutionContext, originalData);
-      ruleExecutionContext.setData(psi.getData());
+      ruleExecutionContext.setSubFieldValue(psi.getData());
       if (psi.doBreak()) {
         break;
       }
     }
-    return Escaper.escape(ruleExecutionContext.getData());
+    return Escaper.escape(ruleExecutionContext.getSubFieldValue());
   }
 
   private ProcessedSingleItem processRule(JsonObject rule, RuleExecutionContext ruleExecutionContext, String originalData) {
@@ -458,7 +459,7 @@ public class Processor {
 
       ProcessedSinglePlusConditionCheck processedCondition =
         processCondition(condition, ruleExecutionContext, originalData, conditionsMet, ruleConstVal, isCustom);
-      ruleExecutionContext.setData(processedCondition.getData());
+      ruleExecutionContext.setSubFieldValue(processedCondition.getData());
       conditionsMet = processedCondition.isConditionsMet();
     }
 
@@ -470,7 +471,7 @@ public class Processor {
       //no need to continue processing other rules for this subfield
       return new ProcessedSingleItem(ruleConstVal, true);
     }
-    return new ProcessedSingleItem(ruleExecutionContext.getData(), false);
+    return new ProcessedSingleItem(ruleExecutionContext.getSubFieldValue(), false);
   }
 
   private ProcessedSinglePlusConditionCheck processCondition(JsonObject condition, RuleExecutionContext ruleExecutionContext, String originalData,
@@ -481,7 +482,7 @@ public class Processor {
 
       //the rule also has a condition on the leader field
       //whose value also needs to be passed into any declared function
-      ruleExecutionContext.setData(leader.toString());
+      ruleExecutionContext.setSubFieldValue(leader.toString());
     }
 
     String valueParam = condition.getString(VALUE);
@@ -489,7 +490,7 @@ public class Processor {
       ProcessedSinglePlusConditionCheck processedFunction = processFunction(function, ruleExecutionContext, isCustom, valueParam, condition,
         conditionsMet, ruleConstVal);
       conditionsMet = processedFunction.isConditionsMet();
-      ruleExecutionContext.setData(processedFunction.getData());
+      ruleExecutionContext.setSubFieldValue(processedFunction.getData());
       if (processedFunction.doBreak()) {
         break;
       }
@@ -500,20 +501,20 @@ public class Processor {
       //all conditions for this rule we not met, revert data to the originalData passed in.
       return new ProcessedSinglePlusConditionCheck(originalData, true, false);
     }
-    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), false, true);
+    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getSubFieldValue(), false, true);
   }
 
   private ProcessedSinglePlusConditionCheck processFunction(String function, RuleExecutionContext ruleExecutionContext, boolean isCustom,
                                                             String valueParam, JsonObject condition,
                                                             boolean conditionsMet, String ruleConstVal) {
-
+    ruleExecutionContext.setRuleParameter(condition.getJsonObject("parameter"));
     if (CUSTOM.equals(function.trim())) {
       try {
         if (valueParam == null) {
           throw new NullPointerException("valueParam == null");
         }
-        String data = (String) JSManager.runJScript(valueParam, ruleExecutionContext.getData());
-        ruleExecutionContext.setData(data);
+        String data = (String) JSManager.runJScript(valueParam, ruleExecutionContext.getSubFieldValue());
+        ruleExecutionContext.setSubFieldValue(data);
       } catch (Exception e) {
 
         //the function has thrown an exception meaning this condition has failed,
@@ -522,21 +523,21 @@ public class Processor {
         LOGGER.error(e.getMessage(), e);
       }
     } else {
-      String c = NormalizationFunctions.runFunction(function.trim(), ruleExecutionContext, condition.getJsonObject("parameter"));
+      String c = NormalizationFunctionRunner.runFunction(function, ruleExecutionContext);
       if (valueParam != null && !c.equals(valueParam) && !isCustom) {
 
         //still allow a condition to compare the output of a function on the data to a constant value
         //unless this is a custom javascript function in which case, the value holds the custom function
-        return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), true, false);
+        return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getSubFieldValue(), true, false);
 
       } else if (ruleConstVal == null) {
 
         //if there is no val to use as a replacement , then assume the function
         //is doing generating the needed value and set the data to the returned value
-        ruleExecutionContext.setData(c);
+        ruleExecutionContext.setSubFieldValue(c);
       }
     }
-    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getData(), false, conditionsMet);
+    return new ProcessedSinglePlusConditionCheck(ruleExecutionContext.getSubFieldValue(), false, conditionsMet);
   }
 
   private boolean checkIfAnyFunctionIsCustom(String[] functions, boolean isCustom) {
@@ -636,7 +637,7 @@ public class Processor {
           throw e;
         }
       } else {
-        splitData = NormalizationFunctions.runSplitFunction(func, data, param);
+        splitData = NormalizationFunctionRunner.runSplitFunction(func, data, param);
       }
 
       while (splitData.hasNext()) {
