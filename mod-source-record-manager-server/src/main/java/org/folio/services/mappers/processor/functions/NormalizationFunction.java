@@ -31,8 +31,8 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
   REMOVE_ENDING_PUNC() {
     private static final String PUNCT_2_REMOVE = ";:,/+= ";
     private static final char DOT = '.';
-    private static final String DOTsTHREE = "...";
-    private static final String DOTsFOUR = "....";
+    private static final String DOTS_THREE = "...";
+    private static final String DOTS_FOUR = "....";
 
     @Override
     public String apply(RuleExecutionContext context) {
@@ -45,9 +45,9 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return subFieldValue.substring(0, subFieldValue.length() - 1);
       } else if (subFieldValue.charAt(pos) == DOT) {
         try {
-          if (subFieldValue.substring(subFieldValue.length() - 4).equals(DOTsFOUR)) {
+          if (subFieldValue.substring(subFieldValue.length() - 4).equals(DOTS_FOUR)) {
             return subFieldValue.substring(0, subFieldValue.length() - 1);
-          } else if (subFieldValue.substring(subFieldValue.length() - 3).equals(DOTsTHREE)) {
+          } else if (subFieldValue.substring(subFieldValue.length() - 3).equals(DOTS_THREE)) {
             return subFieldValue;
           } else {
             //if ends with .. or . remove just one .
@@ -104,8 +104,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       int from = 0;
       int to = Character.getNumericValue(dataField.getIndicator2());
       String prefixToRemove = subFieldData.substring(from, to);
-      String result = StringUtils.remove(subFieldData, prefixToRemove);
-      return result;
+      return StringUtils.remove(subFieldData, prefixToRemove);
     }
   },
 
