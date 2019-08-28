@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
+import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -303,6 +304,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
+      .withProgress(new Progress())
       .withUserId(userId);
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)

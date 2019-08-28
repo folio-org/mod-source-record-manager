@@ -15,6 +15,11 @@
         "firstName": "JOHN",
         "lastName": "DOE"
       },
+      "progress":{
+        "jobExecutionId":"rr5bnm8q-1caf-4470-9ad1-d533f6360bdd",
+        "current":50,
+        "total":50
+      },
       "startedDate": "2018-09-11T10:06:25.000",
       "completedDate": "",
       "status": "FILE_UPLOADED",
