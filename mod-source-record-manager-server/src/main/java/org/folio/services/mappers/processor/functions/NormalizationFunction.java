@@ -8,8 +8,6 @@ import org.marc4j.marc.DataField;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.apache.commons.lang.StringUtils.EMPTY;
-
 /**
  * Enumeration to store normalization functions
  */
