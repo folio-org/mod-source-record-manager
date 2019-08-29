@@ -334,7 +334,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Cancelled system control number"
+              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
             }
           ]
         },
@@ -360,7 +360,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ISBN"
+              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
             }
           ]
         },
@@ -399,7 +399,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Invalid ISBN"
+              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
             }
           ]
         },
@@ -441,7 +441,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "ISSN"
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
             }
           ]
         },
@@ -477,7 +477,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Invalid ISSN"
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
             }
           ]
         },
@@ -513,7 +513,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Linking ISSN"
+              "value": "913300b2-03ed-469a-8179-c1092c991227"
             }
           ]
         },
@@ -630,33 +630,12 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for System Control Number",
           "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_value_if_subfield_has_prefix",
-                  "parameter": {
-                    "prefixes": ["(OCoLC)", "ocn", "ocm"],
-                    "valueIfConditionIsTrue": "OCLC",
-                    "valueIfConditionIsFalse": "System control number"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for System Control Number",
-          "subfield": [
-            "z"
+            "a", "z"
           ],
           "rules": [
             {
               "conditions": [],
-              "value": "Cancelled system control number"
+              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
             }
           ]
         },
@@ -702,7 +681,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "LC"
+              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
             }
           ]
         },
@@ -732,7 +711,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "NLM"
+              "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
             }
           ]
         },
@@ -761,7 +740,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "GPO item number"
+              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
             }
           ]
         },
@@ -795,7 +774,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Cancelled GPO item number"
+              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
             }
           ]
         },
@@ -832,7 +811,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "UDC"
+              "value": "e8662436-75a8-4984-bebc-531e38c774a0"
             }
           ]
         },
@@ -862,7 +841,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "Dewey"
+              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
             }
           ]
         },
@@ -903,7 +882,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "GDC"
+              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
             }
           ]
         },
@@ -928,7 +907,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "GDC"
+              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
             }
           ]
         },
@@ -956,7 +935,7 @@
           "rules": [
             {
               "conditions": [],
-              "value": "LC"
+              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
             }
           ]
         },
