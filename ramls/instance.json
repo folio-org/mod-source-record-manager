@@ -391,7 +391,7 @@
       ]
     }
   },
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "source",
     "title",
