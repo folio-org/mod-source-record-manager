@@ -27,23 +27,23 @@
       },
       {
         "value":"0022-0469",
-        "identifierTypeId":"ISSN"
+        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
       },
       {
         "value":"(CStRLIN)NYCX1604275S",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisABP6388",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"366832",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)1604275",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -60,11 +60,11 @@
     "classifications":[
       {
         "classificationNumber":"BR140 .J6",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"270.05",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -128,11 +128,11 @@
       },
       {
         "value":"(OCoLC)63611770",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"393893",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -151,7 +151,7 @@
     "classifications":[
       {
         "classificationNumber":"M3 .M896",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -221,51 +221,51 @@
       },
       {
         "value":"(OCoLC)9198532",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)10110074",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)10244202",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)10783351",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)13815315",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)15380354",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)19554478",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)22099324",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)22675561",
-        "identifierTypeId":"Cancelled system control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(CStRLIN)NYCX83B57",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisADJ8405",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"788038",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -373,15 +373,15 @@
     "identifiers":[
       {
         "value":"(OCoLC)10724092",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAHJ5096",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"1567726",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -414,11 +414,11 @@
     "classifications":[
       {
         "classificationNumber":"KF6365 .M4",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"336.2402673",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -517,15 +517,15 @@
       },
       {
         "value":"(NIC)notisAHK7689",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)3289989",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"1579067",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -558,7 +558,7 @@
     "classifications":[
       {
         "classificationNumber":"KFP30 1930 .A44",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -629,19 +629,19 @@
     "identifiers":[
       {
         "value":"(CStRLIN)NYCX89B13682",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAJC6081",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)20036158",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"1735560",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -735,19 +735,19 @@
       },
       {
         "value":"(CStRLIN)NYCX91C2172",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAJX6816",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)526872",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"1913668",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -774,7 +774,7 @@
     "classifications":[
       {
         "classificationNumber":"M1613.3.C92 A5 M1528 M1619.5.G33 ML96.5.C865",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -847,19 +847,19 @@
     "identifiers":[
       {
         "value":"(CStRLIN)NYCV84A1595",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(CStRLIN)NYCV84-A1595",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)64073323",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2074805",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -944,23 +944,23 @@
     "identifiers":[
       {
         "value":"(CStRLIN)NYCV88A235",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(CStRLIN)NYCV88-A235",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAKS5183",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)63934641",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2087008",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1101,23 +1101,23 @@
     "identifiers":[
       {
         "value":"(CStRLIN)NYCV85A227",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(CStRLIN)NYCV85-A227",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAKY0509",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)63945058",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2139224",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1471,19 +1471,19 @@
       },
       {
         "value":"(CStRLIN)NYCX92R2055",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAMA8780",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)27328814",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2395240",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1562,19 +1562,19 @@
       },
       {
         "value":"(CStRLIN)NYCX93B21842",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(NIC)notisAMR4493",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)10462561",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2536831",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1654,15 +1654,15 @@
       },
       {
         "value":"(NIC)notisANX3362",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)29565042",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"2824702",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1688,7 +1688,7 @@
     "classifications":[
       {
         "classificationNumber":"N7326 .T12 1991",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -1785,15 +1785,15 @@
     "identifiers":[
       {
         "value":"(NIC)notisAQT5075",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"3247314",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)13959794",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1899,15 +1899,15 @@
       },
       {
         "value":"(NIC)notisAQY8394",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)38553572",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"3298956",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -1941,7 +1941,7 @@
     "classifications":[
       {
         "classificationNumber":"KZ1190 .G56 1997",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -2020,11 +2020,11 @@
     "identifiers":[
       {
         "value":"4215849",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)166375848",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2040,7 +2040,7 @@
     "classifications":[
       {
         "classificationNumber":"LG181.B155 L37 1990",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -2124,15 +2124,15 @@
       },
       {
         "value":"0345404475 (pbk.) : $11.00",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"4442869",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)34818133",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2219,15 +2219,15 @@
     "identifiers":[
       {
         "value":"0585098646 (electronic bk.)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"4986243",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)42856539",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2254,11 +2254,11 @@
     "classifications":[
       {
         "classificationNumber":"HV5292 .F56 1988eb",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"362.2928",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -2333,27 +2333,27 @@
     "identifiers":[
       {
         "value":"2169-1665",
-        "identifierTypeId":"ISSN"
+        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
       },
       {
         "value":"0040-781X",
-        "identifierTypeId":"Invalid ISSN"
+        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
       },
       {
         "value":"0040-781X",
-        "identifierTypeId":"Linking ISSN"
+        "identifierTypeId":"913300b2-03ed-469a-8179-c1092c991227"
       },
       {
         "value":"(WaSeSS)OCM1ssj0000060",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)61523343",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"5383976",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2382,11 +2382,11 @@
     "classifications":[
       {
         "classificationNumber":"AP2 .T37",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"W1 TI796G",
-        "classificationTypeId":"NLM"
+        "classificationTypeId":"a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
       }
     ],
     "publication":[
@@ -2502,11 +2502,11 @@
       },
       {
         "value":"(OCoLC)34116891",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"5442502",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2529,7 +2529,7 @@
     "classifications":[
       {
         "classificationNumber":"AC901 .M5 vol. 1093, no. 4",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -2589,11 +2589,11 @@
     "identifiers":[
       {
         "value":"6086303",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)56430919",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2622,7 +2622,7 @@
     "classifications":[
       {
         "classificationNumber":"BX5195.G76 S141 1930",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -2685,11 +2685,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)166334683",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"6093806",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2719,7 +2719,7 @@
     "classifications":[
       {
         "classificationNumber":"N346.N72 I84",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -2801,11 +2801,11 @@
     "identifiers":[
       {
         "value":"6190220",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)11883822",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2886,15 +2886,15 @@
     "identifiers":[
       {
         "value":"(OCoLC)ocm62784216",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"6216570",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)62784216",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -2976,27 +2976,27 @@
     "identifiers":[
       {
         "value":"9781405734240 (v.1)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"1405734248 (v.1)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9780406047762 (set)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"0406047766 (set)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"6268723",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)226859466",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -3019,7 +3019,7 @@
     "classifications":[
       {
         "classificationNumber":"KD310 .H35",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -3094,15 +3094,15 @@
     "identifiers":[
       {
         "value":"(LSDIArch)2796995",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)468797681",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"6769537",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -3172,7 +3172,7 @@
     "classifications":[
       {
         "classificationNumber":"E491 .U6",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -4073,11 +4073,11 @@
       },
       {
         "value":"(OCoLC)436228315",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"6881317",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -4363,11 +4363,11 @@
     "classifications":[
       {
         "classificationNumber":"M1741.18.B42 B436 2009",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"782.42166",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -4510,11 +4510,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)659310846",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"6942105",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -4619,11 +4619,11 @@
       },
       {
         "value":"6970336",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)653119755",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -4771,11 +4771,11 @@
       },
       {
         "value":"7025902",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)656507721",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -4919,11 +4919,11 @@
       },
       {
         "value":"7063543",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)669625356",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5014,19 +5014,19 @@
     "identifiers":[
       {
         "value":"9787310035694",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"7310035690",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)698070011",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"7196443",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5110,15 +5110,15 @@
     "identifiers":[
       {
         "value":"(VaAlASP)ASP71782/glmu",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"7280974",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)689536878",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5235,11 +5235,11 @@
       },
       {
         "value":"(OCoLC)743321427",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"7311468",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5336,27 +5336,27 @@
       },
       {
         "value":"9789719429265 (pbk.)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9719429267 (pbk.)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9789719429272 (hard)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9719429275 (hard)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)648766901",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"7720373",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5378,11 +5378,11 @@
     "classifications":[
       {
         "classificationNumber":"HQ792.P5 M33 2010",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"305.2309599",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -5457,11 +5457,11 @@
       },
       {
         "value":"(OCoLC)855219292",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"8246009",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5513,11 +5513,11 @@
     "classifications":[
       {
         "classificationNumber":"M2010.V47 M47 2013",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"782.53238",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -5596,19 +5596,19 @@
     "identifiers":[
       {
         "value":"9789400001435",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9400001436",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)870426828",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"8256521",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5679,11 +5679,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)690107024",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"8306272",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5706,7 +5706,7 @@
     "classifications":[
       {
         "classificationNumber":"DA530 .A73",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -5784,15 +5784,15 @@
       },
       {
         "value":"(Naxos)8.557330",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"8536818",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)884180198",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -5997,15 +5997,15 @@
       },
       {
         "value":"(Naxos)5099920882457",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)885043143",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"8579052",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6154,7 +6154,7 @@
     "classifications":[
       {
         "classificationNumber":"M3 .B88 2014",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -6227,19 +6227,19 @@
       },
       {
         "value":"9786162971280",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"6162971287",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)913573026",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9134222",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6262,7 +6262,7 @@
     "classifications":[
       {
         "classificationNumber":"HQ242.55.A5 P42 2014",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -6333,11 +6333,11 @@
     "identifiers":[
       {
         "value":"9220704",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(OCoLC)965475081",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6361,7 +6361,7 @@
     "classifications":[
       {
         "classificationNumber":"PN4781 .N594 2015",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -6464,11 +6464,11 @@
       },
       {
         "value":"(OCoLC)863715403",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9520682",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6522,7 +6522,7 @@
     "classifications":[
       {
         "classificationNumber":"M1630.18 .P3516 2013",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -6653,11 +6653,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)959661050",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9629391",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6679,7 +6679,7 @@
     "classifications":[
       {
         "classificationNumber":"G3803.T6E63 2016 I8",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -6762,15 +6762,15 @@
     "identifiers":[
       {
         "value":"(OCoLC)905337733",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(MiFhGG)NCCO3020461",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9630194",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6868,19 +6868,19 @@
     "identifiers":[
       {
         "value":"9784843349250",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"4843349259",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)958840466",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9668145",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -6903,7 +6903,7 @@
     "classifications":[
       {
         "classificationNumber":"DS782 .M36 2016 v.5",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7031,11 +7031,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)1004424910",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9691888",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7227,27 +7227,27 @@
     "identifiers":[
       {
         "value":"9781119056348 (flashcards : part 1)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9781119056836 (flashcards : part 2)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9781119056775 (flashcards : complete set)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)966701167",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(POOF)1790",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9729229",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7273,7 +7273,7 @@
     "classifications":[
       {
         "classificationNumber":"HF5661 .W55 2014",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7339,23 +7339,23 @@
     "identifiers":[
       {
         "value":"9789662783858 (paperback)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9662783857 (paperback)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)987797440",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(RuMoEVIS)5135521B",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9766936",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7389,7 +7389,7 @@
     "classifications":[
       {
         "classificationNumber":"DK508.465 .K725 2016",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7472,15 +7472,15 @@
       },
       {
         "value":"(OCoLC)26218343",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"(POOF2)4476",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9860927",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7497,7 +7497,7 @@
     "classifications":[
       {
         "classificationNumber":"QK604 .M56 1989",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7578,11 +7578,11 @@
       },
       {
         "value":"(OCoLC)974393208",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9900811",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7603,7 +7603,7 @@
     "classifications":[
       {
         "classificationNumber":"M1613.3.A306 H3 2017",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7709,11 +7709,11 @@
       },
       {
         "value":"(OCoLC)999728261",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9904545",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7734,7 +7734,7 @@
     "classifications":[
       {
         "classificationNumber":"M127.R767 S6 2017",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7812,11 +7812,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)981898654",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9905184",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7833,7 +7833,7 @@
     "classifications":[
       {
         "classificationNumber":"M1363.A306 A66 2017",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -7932,15 +7932,15 @@
     "identifiers":[
       {
         "value":"9789654938860 (print)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9654938863 (print)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9789654938877 (ebook)",
-        "identifierTypeId":"Invalid ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"0004501710611",
@@ -7952,11 +7952,11 @@
       },
       {
         "value":"(OCoLC)962186145",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9916898",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -7999,11 +7999,11 @@
     "classifications":[
       {
         "classificationNumber":"B755 .A43 2016",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"BM42 .H37 2016",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -8072,7 +8072,7 @@
     "identifiers":[
       {
         "value":"(OCoLC)874849566",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -8112,7 +8112,7 @@
     "classifications":[
       {
         "classificationNumber":"N7433.3 .B87 2014",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       }
     ],
     "publication":[
@@ -8195,11 +8195,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)168535137",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"9952035",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -8318,11 +8318,11 @@
     "identifiers":[
       {
         "value":"(OCoLC)1000519306",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"10002020",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -8354,11 +8354,11 @@
     "classifications":[
       {
         "classificationNumber":"E185.97",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"973.04960730092",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -8444,19 +8444,19 @@
       },
       {
         "value":"9780190494889 hardcover ; alkaline paper",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"0190494883 hardcover ; alkaline paper",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)979534062",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"10004464",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -8488,11 +8488,11 @@
     "classifications":[
       {
         "classificationNumber":"DP192 .R53 2017",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"946.054",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -8567,15 +8567,15 @@
       },
       {
         "value":"9789351137634 (hardback)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"9351137635 (hardback)",
-        "identifierTypeId":"ISBN"
+        "identifierTypeId":"8261054f-be78-422d-bd51-4ed9f33c3422"
       },
       {
         "value":"(OCoLC)951929685",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
@@ -8608,11 +8608,11 @@
     "classifications":[
       {
         "classificationNumber":"BL1215.N34 B43 2016",
-        "classificationTypeId":"LC"
+        "classificationTypeId":"ce176ace-a53e-4b4d-aa89-725ed7b2edac"
       },
       {
         "classificationNumber":"363.70954",
-        "classificationTypeId":"Dewey"
+        "classificationTypeId":"42471af9-7d25-4f3a-bf78-60d29dcf463b"
       }
     ],
     "publication":[
@@ -8697,11 +8697,11 @@
       },
       {
         "value":"(OCoLC)1002130878",
-        "identifierTypeId":"OCLC"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       },
       {
         "value":"10062588",
-        "identifierTypeId":"System control number"
+        "identifierTypeId":"7e591197-f335-4afb-bc6d-a6d76ca3bace"
       }
     ],
     "contributors":[
