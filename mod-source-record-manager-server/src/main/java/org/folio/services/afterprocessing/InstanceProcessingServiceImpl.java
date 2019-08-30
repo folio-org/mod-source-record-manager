@@ -47,6 +47,8 @@ import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.ERROR;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
 @Service
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
@@ -55,12 +57,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private static final String INVENTORY_URL = "/inventory/instances/batch";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  private AdditionalFieldsUtil additionalInstanceFieldsUtil;
 
-  public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                       @Autowired AdditionalFieldsUtil additionalInstanceFieldsUtil) {
+  public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
-    this.additionalInstanceFieldsUtil = additionalInstanceFieldsUtil;
   }
 
   @Override
@@ -201,7 +200,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
     if (Record.RecordType.MARC == recordToInstanceList.get(0).getKey().getRecordType()) {
       List<Record> records = recordToInstanceList.parallelStream()
-        .peek(it -> additionalInstanceFieldsUtil.addInstanceIdToMarcRecord(it.getKey(), it.getValue().getId()))
+        .peek(recordInstancePair -> addFieldToMarcRecord(recordInstancePair.getKey(), TAG_999, 'i', recordInstancePair.getValue().getId()))
         .map(Pair::getKey)
         .collect(Collectors.toList());
 

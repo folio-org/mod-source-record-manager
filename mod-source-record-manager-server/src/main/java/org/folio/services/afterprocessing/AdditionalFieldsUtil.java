@@ -1,54 +1,74 @@
 package org.folio.services.afterprocessing;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.rest.jaxrs.model.Record;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.folio.rest.jaxrs.model.Record;
+import org.marc4j.MarcJsonReader;
+import org.marc4j.MarcJsonWriter;
+import org.marc4j.MarcReader;
+import org.marc4j.MarcStreamWriter;
+import org.marc4j.MarcWriter;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.MarcFactory;
+import org.marc4j.marc.VariableField;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Util to work with additional fields
  */
-@Component
-public class AdditionalFieldsUtil {
+public final class AdditionalFieldsUtil {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldsUtil.class);
 
+  public static final String TAG_999 = "999";
+
+  private AdditionalFieldsUtil() {
+  }
+
   /**
-   * Adds inventory instance id into MARC record
+   * Adds field if it does not exist and a subfield with a value to that field
    *
-   * @param record     record
-   * @param instanceId UUID of Instance entity
-   * @return true if instanceId is added to parsed record, else returns false
+   * @param record   record that needs to be updated
+   * @param field    field that should contain new subfield
+   * @param subfield new subfield to add
+   * @param value    value of the subfield to add
+   * @return true if succeeded, false otherwise
    */
-  public boolean addInstanceIdToMarcRecord(Record record, String instanceId) {
-    if (record.getParsedRecord() != null) {
-      Object content = record.getParsedRecord().getContent();
-      if (content != null) {
-        String stringContent = content.toString();
-        if (StringUtils.isNotEmpty(stringContent)) {
-          try {
-            JsonObject jsonContent = new JsonObject(stringContent);
-            if (jsonContent.containsKey("fields")) {
-              JsonArray fields = jsonContent.getJsonArray("fields");
-              for (int i = fields.size(); i-- > 0; ) {
-                JsonObject targetField = fields.getJsonObject(i);
-                if (targetField.containsKey(AdditionalFieldsConfig.TAG_999)) {
-                  JsonObject instanceIdSubField = new JsonObject().put("i", instanceId);
-                  targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(instanceIdSubField);
-                  record.getParsedRecord().setContent(jsonContent.toString());
-                  return true;
-                }
-              }
-            }
-          } catch (Exception exception) {
-            LOGGER.error("Can not convert parsed record content to JsonObject. Cause:{}", exception.getMessage(), exception);
-            return false;
+  public static boolean addFieldToMarcRecord(Record record, String field, char subfield, String value) {
+    boolean result = false;
+    try {
+      if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+        MarcReader reader = new MarcJsonReader(new ByteArrayInputStream(record.getParsedRecord().getContent().toString().getBytes(StandardCharsets.UTF_8)));
+        MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
+        MarcFactory factory = MarcFactory.newInstance();
+        if (reader.hasNext()) {
+          org.marc4j.marc.Record marcRecord = reader.next();
+          VariableField variableField = marcRecord.getVariableField(field);
+          DataField dataField;
+          if (variableField != null) {
+            dataField = (DataField) variableField;
+            marcRecord.removeVariableField(variableField);
+          } else {
+            dataField = factory.newDataField(field, 'f', 'f');
           }
+          dataField.addSubfield(factory.newSubfield(subfield, value));
+          marcRecord.addVariableField(dataField);
+          // use stream writer to recalculate leader
+          streamWriter.write(marcRecord);
+          jsonWriter.write(marcRecord);
+          record.setParsedRecord(record.getParsedRecord().withContent(new JsonObject(new String(os.toByteArray())).encode()));
+          result = true;
         }
       }
+    } catch (Exception e) {
+      LOGGER.error("Failed to add additional subfield {} for field {} to record {}", e, subfield, field, record.getId());
     }
-    return false;
+    return result;
   }
 }

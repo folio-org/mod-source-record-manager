@@ -2,8 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,7 +22,6 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterprocessing.AdditionalFieldsConfig;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
@@ -40,6 +37,8 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -52,14 +51,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
-  private AdditionalFieldsConfig additionalFieldsConfig;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                 @Autowired JobExecutionService jobExecutionService,
-                                 @Autowired AdditionalFieldsConfig additionalFieldsConfig) {
+                                 @Autowired JobExecutionService jobExecutionService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
-    this.additionalFieldsConfig = additionalFieldsConfig;
   }
 
   @Override
@@ -96,7 +92,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * Parse list of source records
    *
    * @param rawRecords    - list of raw records for parsing
-   * @param jobExecution  - job execution of record's parsing addAdditionalFields
+   * @param jobExecution  - job execution of record's parsing
    * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
@@ -151,27 +147,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (Record.RecordType.MARC.equals(recordType)) {
         for (Record record : records) {
-          addAdditionalFieldsToMarcRecord(record);
+          addFieldToMarcRecord(record, TAG_999, 's', record.getId());
         }
-      }
-    }
-  }
-
-  /**
-   * Adds additional fields to MARC record
-   *
-   * @param record MARC Record
-   */
-  private void addAdditionalFieldsToMarcRecord(Record record) {
-    if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-      JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-      if (parsedRecordContent.containsKey("fields")) {
-        JsonArray fields = parsedRecordContent.getJsonArray("fields");
-        JsonObject targetField = additionalFieldsConfig.getFieldByTag(AdditionalFieldsConfig.TAG_999);
-        JsonObject srsIdSubfield = new JsonObject().put("s", record.getId());
-        targetField.getJsonObject(AdditionalFieldsConfig.TAG_999).getJsonArray("subfields").add(srsIdSubfield);
-        fields.add(targetField);
-        record.getParsedRecord().setContent(parsedRecordContent.toString());
       }
     }
   }

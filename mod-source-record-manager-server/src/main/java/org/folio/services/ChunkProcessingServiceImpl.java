@@ -7,7 +7,6 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AfterProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;

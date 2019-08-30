@@ -11,6 +11,6 @@ import java.io.IOException;
 public final class TestUtil {
 
   public static String readFileFromPath(String path) throws IOException {
-    return FileUtils.readFileToString(new File(path));
+    return new String(FileUtils.readFileToByteArray(new File(path)));
   }
 }
