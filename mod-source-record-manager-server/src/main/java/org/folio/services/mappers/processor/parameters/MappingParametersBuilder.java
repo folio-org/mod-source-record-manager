@@ -23,6 +23,9 @@ public class MappingParametersBuilder {
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
 
+  private MappingParametersBuilder() {
+  }
+
   public static Future<MappingParameters> build(OkapiConnectionParams params) {
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(params);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(params);
