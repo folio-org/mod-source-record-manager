@@ -68,23 +68,24 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
     Future<Void> future = Future.future();
-    MappingParametersBuilder.build(params).compose(mappingParameters -> {
-      Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParameters, params);
-      List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-      return postInstances(instances, params).setHandler(ar -> {
-        JobExecutionSourceChunk.State sourceChunkState = ERROR;
-        if (ar.succeeded()) {
-          List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
-          List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
-          addAdditionalFields(recordsToUpdate, params);
-          sourceChunkState = COMPLETED;
-        }
-        updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-          .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
-          // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> future.complete());
+    MappingParametersBuilder.build(params)
+      .compose(mappingParameters -> {
+        Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParameters, params);
+        List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
+        return postInstances(instances, params).setHandler(ar -> {
+          JobExecutionSourceChunk.State sourceChunkState = ERROR;
+          if (ar.succeeded()) {
+            List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
+            List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
+            addAdditionalFields(recordsToUpdate, params);
+            sourceChunkState = COMPLETED;
+          }
+          updateSourceChunkState(sourceChunkId, sourceChunkState, params)
+            .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+            // Complete future in order to continue the import process regardless of the result of creating Instances
+            .setHandler(updateAr -> future.complete());
+        });
       });
-    });
     return future;
   }
 
