@@ -72,7 +72,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       .compose(mappingParameters -> {
         Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParameters, params);
         List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-        return postInstances(instances, params).setHandler(ar -> {
+        postInstances(instances, params).setHandler(ar -> {
           JobExecutionSourceChunk.State sourceChunkState = ERROR;
           if (ar.succeeded()) {
             List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
@@ -85,6 +85,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
             // Complete future in order to continue the import process regardless of the result of creating Instances
             .setHandler(updateAr -> future.complete());
         });
+        return Future.succeededFuture();
       });
     return future;
   }
