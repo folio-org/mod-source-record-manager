@@ -110,6 +110,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Maps list of Records to Instances
    *
    * @param records given list of records
+   * @param mappingParameters parameters needed for mapping rules
    * @return association between Records and corresponding Instances
    */
   private Map<Instance, Record> mapRecords(List<Record> records, MappingParameters mappingParameters, OkapiConnectionParams params) {
