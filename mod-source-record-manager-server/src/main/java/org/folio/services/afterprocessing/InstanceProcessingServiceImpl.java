@@ -131,6 +131,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param record Record
    * @param mapper Record to Instance mapper
+   * @param mappingParameters parameters needed for mapping rules
    * @return either a pair of record-instance or null
    */
   private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, MappingParameters mappingParameters) {
