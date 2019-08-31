@@ -13,7 +13,16 @@
     {
       "id": "users",
       "version": "15.0"
-    }],
+    },
+    {
+      "id": "identifier-types",
+      "version": "1.2"
+    },
+    {
+      "id": "classification-types",
+      "version": "1.2"
+    }
+  ],
   "provides": [
     {
       "id": "source-record-manager",
@@ -74,7 +83,9 @@
             "source-storage.records.post",
             "source-storage.records.put",
             "inventory.instances.batch.post",
-            "users.collection.get"
+            "users.collection.get",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.classification-types.collection.get"
           ]
         },
         {

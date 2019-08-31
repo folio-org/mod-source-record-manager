@@ -8,6 +8,7 @@
  * Filtered out invalid Instances before saving to inventory
  * Added delete endpoint for job execution and all associated records from SRS
  * Added total records number to logDto
+ * Rule Processor integrated with Settings (mod-inventory-storage)
  
  | METHOD |             URL                              | DESCRIPTION                                              |
  |--------|----------------------------------------------|----------------------------------------------------------|

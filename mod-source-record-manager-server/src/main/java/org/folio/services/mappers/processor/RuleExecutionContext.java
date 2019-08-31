@@ -1,6 +1,7 @@
 package org.folio.services.mappers.processor;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.marc4j.marc.DataField;
 
 /**
@@ -10,6 +11,7 @@ public class RuleExecutionContext {
 
   private DataField dataField;
   private String subFieldValue;
+  private MappingParameters mappingParameters;
   private JsonObject ruleParameter;
 
   public DataField getDataField() {
@@ -34,5 +36,13 @@ public class RuleExecutionContext {
 
   public void setRuleParameter(JsonObject ruleParameter) {
     this.ruleParameter = ruleParameter;
+  }
+
+  public MappingParameters getMappingParameters() {
+    return mappingParameters;
+  }
+
+  public void setMappingParameters(MappingParameters mappingParameters) {
+    this.mappingParameters = mappingParameters;
   }
 }

@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.services.mappers.processor.functions.NormalizationFunctionRunner;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.marc4j.MarcJsonReader;
 import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
@@ -71,13 +72,13 @@ public class Processor {
     }
   }
 
-  public Instance process(JsonObject record) {
+  public Instance process(JsonObject record, MappingParameters mappingParameters) {
     instance = null;
     try {
       final MarcJsonReader reader = new MarcJsonReader(new ByteArrayInputStream(record.toString().getBytes(UTF_8)));
       if (reader.hasNext()) {
         Record marcRecord = reader.next();
-        instance = processSingleEntry(marcRecord);
+        instance = processSingleEntry(marcRecord, mappingParameters);
       }
     } catch (Exception e) {
       LOGGER.error("Error mapping Marc record");
@@ -85,12 +86,12 @@ public class Processor {
     return instance;
   }
 
-  private Instance processSingleEntry(Record record) {
+  private Instance processSingleEntry(Record record, MappingParameters mappingParameters) {
     try {
       instance = new Instance();
       leader = record.getLeader();
-      processControlFieldSection(record.getControlFields().iterator());
-      processDataFieldSection(record.getDataFields().iterator());
+      processControlFieldSection(record.getControlFields().iterator(), mappingParameters);
+      processDataFieldSection(record.getDataFields().iterator(), mappingParameters);
       return instance;
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
@@ -98,17 +99,21 @@ public class Processor {
     }
   }
 
-  private void processDataFieldSection(Iterator<DataField> dfIter) throws IllegalAccessException, ScriptException,
+  private void processDataFieldSection(Iterator<DataField> dfIter, MappingParameters mappingParameters) throws IllegalAccessException, ScriptException,
     InstantiationException {
 
     while (dfIter.hasNext()) {
-      handleRecordDataFieldByField(dfIter.next());
+      DataField dataField = dfIter.next();
+      RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
+      ruleExecutionContext.setMappingParameters(mappingParameters);
+      ruleExecutionContext.setDataField(dataField);
+      handleRecordDataFieldByField(ruleExecutionContext);
     }
   }
 
-  private void handleRecordDataFieldByField(DataField dataField) throws ScriptException, IllegalAccessException,
+  private void handleRecordDataFieldByField(RuleExecutionContext ruleExecutionContext) throws ScriptException, IllegalAccessException,
     InstantiationException {
-
+    DataField dataField = ruleExecutionContext.getDataField();
     createNewComplexObj = true; // each rule will generate a new instance in an array , for an array data member
     Object[] rememberComplexObj = new Object[]{null};
     JsonArray mappingEntry = rulesFile.getJsonArray(dataField.getTag());
@@ -122,7 +127,7 @@ public class Processor {
       //per subfield in the marc field
       JsonObject subFieldMapping = mappingEntry.getJsonObject(i);
       if (canProcessSubFieldMapping(subFieldMapping, dataField)) {
-        processSubFieldMapping(subFieldMapping, rememberComplexObj, dataField);
+        processSubFieldMapping(subFieldMapping, rememberComplexObj, ruleExecutionContext);
       }
     }
   }
@@ -141,7 +146,7 @@ public class Processor {
     return true;
   }
 
-  private void processSubFieldMapping(JsonObject subFieldMapping, Object[] rememberComplexObj, DataField dataField)
+  private void processSubFieldMapping(JsonObject subFieldMapping, Object[] rememberComplexObj, RuleExecutionContext ruleExecutionContext)
     throws IllegalAccessException, InstantiationException, ScriptException {
 
     //a single mapping entry can also map multiple subfields to a specific field in the instance
@@ -173,10 +178,10 @@ public class Processor {
     List<Object[]> arraysOfObjects = new ArrayList<>();
     for (int i = 0; i < mappingRuleEntry.size(); i++) {
       JsonObject fieldRule = mappingRuleEntry.getJsonObject(i);
-      if (!recordHasAllRequiredSubfields(dataField, fieldRule)) {
+      if (!recordHasAllRequiredSubfields(ruleExecutionContext.getDataField(), fieldRule)) {
         return;
       }
-      handleInstanceFields(fieldRule, arraysOfObjects, dataField, rememberComplexObj);
+      handleInstanceFields(fieldRule, arraysOfObjects, rememberComplexObj, ruleExecutionContext);
     }
 
     if (entityRequested) {
@@ -204,8 +209,10 @@ public class Processor {
     return true;
   }
 
-  private void handleInstanceFields(JsonObject jObj, List<Object[]> arraysOfObjects,
-                                    DataField dataField, Object[] rememberComplexObj)
+  private void handleInstanceFields(JsonObject jObj,
+                                    List<Object[]> arraysOfObjects,
+                                    Object[] rememberComplexObj,
+                                    RuleExecutionContext ruleExecutionContext)
     throws ScriptException, IllegalAccessException, InstantiationException {
 
     //push into a set so that we can do a lookup for each subfield in the marc instead
@@ -251,7 +258,7 @@ public class Processor {
     }
 
     //iterate over the subfields in the mapping entry
-    List<Subfield> subFields = dataField.getSubfields();
+    List<Subfield> subFields = ruleExecutionContext.getDataField().getSubfields();
 
     //check if we need to expand the subfields into additional subfields
     JsonObject splitter = jObj.getJsonObject("subFieldSplit");
@@ -260,16 +267,14 @@ public class Processor {
     }
 
     for (int i = 0; i < subFields.size(); i++) {
-      handleSubFields(dataField, subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
+      handleSubFields(ruleExecutionContext.getDataField(), subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
     }
 
     if (!(entityRequestedPerRepeatedSubfield && entityRequested)) {
 
       String completeData = generateDataString();
       if (applyPost) {
-        RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
         ruleExecutionContext.setSubFieldValue(completeData);
-        ruleExecutionContext.setDataField(dataField);
         completeData = processRules(ruleExecutionContext);
       }
       if (createNewObject(embeddedFields, completeData, rememberComplexObj)) {
@@ -366,7 +371,7 @@ public class Processor {
     }
   }
 
-  private void processControlFieldSection(Iterator<ControlField> ctrlIter)
+  private void processControlFieldSection(Iterator<ControlField> ctrlIter, MappingParameters context)
     throws IllegalAccessException, InstantiationException {
 
     //iterate over all the control fields in the marc record
@@ -376,12 +381,12 @@ public class Processor {
       //get entry for this control field in the rules.json file
       JsonArray controlFieldRules = rulesFile.getJsonArray(controlField.getTag());
       if (controlFieldRules != null) {
-        handleControlFieldRules(controlFieldRules, controlField);
+        handleControlFieldRules(controlFieldRules, controlField, context);
       }
     }
   }
 
-  private void handleControlFieldRules(JsonArray controlFieldRules, ControlField controlField)
+  private void handleControlFieldRules(JsonArray controlFieldRules, ControlField controlField, MappingParameters mappingParameters)
     throws IllegalAccessException, InstantiationException {
 
     //when populating an instance with multiple fields from the same marc field
@@ -398,6 +403,7 @@ public class Processor {
 
       //the content of the Marc control field
       RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
+      ruleExecutionContext.setMappingParameters(mappingParameters);
       ruleExecutionContext.setSubFieldValue(controlField.getData());
       String data = processRules(ruleExecutionContext);
       if ((data != null) && data.isEmpty()) {
