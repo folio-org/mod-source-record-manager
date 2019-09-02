@@ -75,8 +75,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Maps list of given Records on Instances,
    * Sends Instances to inventory,
    * Adds additional fields into parsed records and sends affected records to update,
-   * Updates state for source chunk,
-   * Updates completed data for job execution source chunk.
+   * Updates 'state' for source chunk,
+   * Updates 'completed date' for job execution source chunk.
    *
    * @param records       - parsed records for processing
    * @param sourceChunkId - id of the JobExecutionSourceChunk
