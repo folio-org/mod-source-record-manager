@@ -66,27 +66,37 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   @Override
-  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
-    Future<Void> future = Future.future();
-    MappingParametersBuilder.build(params)
-      .compose(mappingParameters -> {
-        Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParameters, params);
-        List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-        postInstances(instances, params).setHandler(ar -> {
-          JobExecutionSourceChunk.State sourceChunkState = ERROR;
-          if (ar.succeeded()) {
-            List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
-            List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
-            addAdditionalFields(recordsToUpdate, params);
-            sourceChunkState = COMPLETED;
-          }
-          updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-            .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
-            // Complete future in order to continue the import process regardless of the result of creating Instances
-            .setHandler(updateAr -> future.complete());
-        });
-        return Future.succeededFuture();
-      });
+  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
+    return Future.succeededFuture()
+      .compose(ar -> MappingParametersBuilder.build(okapiParams))
+      .compose(mappingParameters -> mapRecords(records, sourceChunkId, mappingParameters, okapiParams));
+  }
+
+  /**
+   *
+   * @param records       - parsed records for processing
+   * @param sourceChunkId - id of the JobExecutionSourceChunk
+   * @param mappingParams - external parameters needed for mapping functions
+   * @param okapiParams   - OkapiConnectionParams to interact with external services
+   * @return future
+   */
+  private Future<Void> mapRecords(List<Record> records, String sourceChunkId, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    Future future = Future.future();
+    Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, okapiParams);
+    List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
+    postInstances(instances, okapiParams).setHandler(ar -> {
+      JobExecutionSourceChunk.State sourceChunkState = ERROR;
+      if (ar.succeeded()) {
+        List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
+        List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
+        addAdditionalFields(recordsToUpdate, okapiParams);
+        sourceChunkState = COMPLETED;
+      }
+      updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
+        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
+        // Complete future in order to continue the import process regardless of the result of creating Instances
+        .setHandler(updateAr -> future.complete());
+    });
     return future;
   }
 

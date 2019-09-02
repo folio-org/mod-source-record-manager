@@ -11,10 +11,10 @@ public interface AfterProcessingService {
   /**
    * Provides further processing of Parsed Records
    *
-   * @param record       -  parsed records for processing
+   * @param records       - parsed records for processing
    * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param params        - OkapiConnectionParams to interact with external services
    * @return future
    */
-  Future<Void> process(List<Record> record, String sourceChunkId, OkapiConnectionParams params);
+  Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params);
 }
