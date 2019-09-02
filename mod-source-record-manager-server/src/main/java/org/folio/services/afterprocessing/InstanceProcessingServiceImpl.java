@@ -23,6 +23,8 @@ import org.folio.rest.jaxrs.model.ParsedRecordCollection;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
+import org.folio.services.mappers.processor.parameters.MappingParametersBuilder;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,20 +65,39 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   @Override
-  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params) {
-    Future<Void> future = Future.future();
-    Map<Instance, Record> instanceRecordMap = mapRecords(records, params);
+  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
+    return Future.succeededFuture()
+      .compose(ar -> MappingParametersBuilder.build(okapiParams))
+      .compose(mappingParameters -> mapRecords(records, sourceChunkId, mappingParameters, okapiParams));
+  }
+
+  /**
+   * Maps list of given Records on Instances,
+   * Sends Instances to inventory,
+   * Adds additional fields into parsed records and sends affected records to update,
+   * Updates 'state' for source chunk,
+   * Updates 'completed date' for job execution source chunk.
+   *
+   * @param records       - parsed records for processing
+   * @param sourceChunkId - id of the JobExecutionSourceChunk
+   * @param mappingParams - external parameters needed for mapping functions
+   * @param okapiParams   - OkapiConnectionParams to interact with external services
+   * @return future
+   */
+  private Future<Void> mapRecords(List<Record> records, String sourceChunkId, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    Future future = Future.future();
+    Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, okapiParams);
     List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-    postInstances(instances, params).setHandler(ar -> {
+    postInstances(instances, okapiParams).setHandler(ar -> {
       JobExecutionSourceChunk.State sourceChunkState = ERROR;
       if (ar.succeeded()) {
         List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
         List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
-        addAdditionalFields(recordsToUpdate, params);
+        addAdditionalFields(recordsToUpdate, okapiParams);
         sourceChunkState = COMPLETED;
       }
-      updateSourceChunkState(sourceChunkId, sourceChunkState, params)
-        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), params.getTenantId()))
+      updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
+        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
         // Complete future in order to continue the import process regardless of the result of creating Instances
         .setHandler(updateAr -> future.complete());
     });
@@ -103,9 +124,10 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Maps list of Records to Instances
    *
    * @param records given list of records
+   * @param mappingParameters parameters needed for mapping rules
    * @return association between Records and corresponding Instances
    */
-  private Map<Instance, Record> mapRecords(List<Record> records, OkapiConnectionParams params) {
+  private Map<Instance, Record> mapRecords(List<Record> records, MappingParameters mappingParameters, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
       return new HashMap<>();
     }
@@ -113,7 +135,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     return records.parallelStream()
-      .map(record -> mapRecordToInstance(record, mapper))
+      .map(record -> mapRecordToInstance(record, mapper, mappingParameters))
       .filter(Objects::nonNull)
       .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
@@ -124,12 +146,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param record Record
    * @param mapper Record to Instance mapper
+   * @param mappingParameters parameters needed for mapping rules
    * @return either a pair of record-instance or null
    */
-  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper) {
+  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, MappingParameters mappingParameters) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
-        Instance instance = mapper.mapRecord(new JsonObject(record.getParsedRecord().getContent().toString()));
+        JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
+        Instance instance = mapper.mapRecord(parsedRecordContent, mappingParameters);
         return Pair.of(instance, record);
       }
     } catch (Exception e) {
@@ -141,9 +165,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Validates mapped Instance, updates Record if Instance is invalid
    *
-   * @param instanceRecordPair  pair containing Instance entity as a key that needs to be validated and Record entity as value
-   * @param validator Validator
-   * @param params    OkapiConnectionParams to interact with external services
+   * @param instanceRecordPair pair containing Instance entity as a key that needs to be validated and Record entity as value
+   * @param validator          Validator
+   * @param params             OkapiConnectionParams to interact with external services
    * @return true if Instance is valid, false if invalid
    */
   private boolean validateInstanceAndUpdateRecordIfInvalid(Pair<Instance, Record> instanceRecordPair, Validator validator, OkapiConnectionParams params) {

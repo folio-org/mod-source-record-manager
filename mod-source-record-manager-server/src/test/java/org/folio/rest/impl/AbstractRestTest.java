@@ -69,6 +69,8 @@ public abstract class AbstractRestTest {
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
+  private static final String IDENTIFIER_TYPES_URL = "/identifier-types";
+  private static final String CLASSIFICATION_TYPES_URL = "/classification-types";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
@@ -188,6 +190,10 @@ public abstract class AbstractRestTest {
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(WireMock.okJson(userResponse.toString())));
+    WireMock.stubFor(WireMock.get(IDENTIFIER_TYPES_URL)
+      .willReturn(WireMock.okJson(new JsonObject().toString())));
+    WireMock.stubFor(WireMock.get(CLASSIFICATION_TYPES_URL)
+      .willReturn(WireMock.okJson(new JsonObject().toString())));
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
   }

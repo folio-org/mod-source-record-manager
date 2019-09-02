@@ -7,6 +7,7 @@ import org.folio.TestUtil;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.folio.services.parsers.RecordFormat;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class MappingTest {
       Record record = reader.next();
       writer.write(record);
       JsonObject marc = new JsonObject(new String(os.toByteArray()));
-      Instance instance = mapper.mapRecord(marc);
+      Instance instance = mapper.mapRecord(marc, new MappingParameters());
       Assert.assertNotNull(instance.getTitle());
       Assert.assertNotNull(instance.getSource());
       Assert.assertNotNull(instance.getInstanceTypeId());

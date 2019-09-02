@@ -2,6 +2,7 @@ package org.folio.services.mappers;
 
 import io.vertx.core.json.JsonObject;
 import org.folio.rest.jaxrs.model.Instance;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.folio.services.parsers.RecordFormat;
 
 /**
@@ -13,10 +14,11 @@ public interface RecordToInstanceMapper {
    * Maps Parsed Record to Instance Record
    *
    * @param parsedRecord - JsonObject containing Parsed Record
+   * @param mappingParameters - parameters needed for mapping functions
    * @return - Wrapper for parsed record in json format.
    * Can contains errors descriptions if parsing was failed
    */
-  Instance mapRecord(JsonObject parsedRecord);
+  Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters);
 
   /**
    * Provides access to the MapperFormat
