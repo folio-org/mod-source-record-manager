@@ -70,7 +70,7 @@
     "publication":[
       {
         "publisher":"Cambridge University Press [etc.]",
-        "place":"London"
+        "place":"London,"
       }
     ],
     "publicationFrequency":[
@@ -157,7 +157,7 @@
     "publication":[
       {
         "publisher":"Bärenreiter",
-        "place":"Kassel",
+        "place":"Kassel,",
         "dateOfPublication":"c1955-"
       }
     ],
@@ -563,8 +563,8 @@
     ],
     "publication":[
       {
-        "publisher":"George T. Bisel Co. West Publishing Co.",
-        "place":"Philadelphia, Pa. St. Paul, Minn.",
+        "publisher":"George T. Bisel Co. ; ; West Publishing Co.",
+        "place":"Philadelphia, Pa. ; St. Paul, Minn.",
         "dateOfPublication":"1930-"
       }
     ],
@@ -662,7 +662,7 @@
     "publication":[
       {
         "publisher":"Hodder & Stoughton",
-        "place":"London",
+        "place":"London,",
         "dateOfPublication":"[1960]"
       }
     ],
@@ -779,8 +779,8 @@
     ],
     "publication":[
       {
-        "publisher":"C. F. Peters Corp",
-        "place":"New York",
+        "publisher":"C. F. Peters Corp.",
+        "place":"New York,",
         "dateOfPublication":"[c1970]"
       }
     ],
@@ -1946,8 +1946,8 @@
     ],
     "publication":[
       {
-        "publisher":"Global Law Association Gaunt",
-        "place":"Nijmegen, the Netherlands Holmes Beach, Fla.",
+        "publisher":"Global Law Association ; ; Gaunt",
+        "place":"Nijmegen, the Netherlands ; Holmes Beach, Fla.",
         "dateOfPublication":"c1997-"
       }
     ],
@@ -2829,7 +2829,7 @@
     ],
     "publication":[
       {
-        "place":"New York",
+        "place":"New York,",
         "dateOfPublication":"1883"
       }
     ],
@@ -3178,7 +3178,7 @@
     "publication":[
       {
         "publisher":"Govt. Print. Off.",
-        "place":"Washington",
+        "place":"Washington,",
         "dateOfPublication":"1880-1901"
       }
     ],
@@ -4372,7 +4372,7 @@
     ],
     "publication":[
       {
-        "publisher":"Apple Corps Ltd. EMI Records",
+        "publisher":"Apple Corps Ltd. : ; EMI Records",
         "place":"[London]",
         "dateOfPublication":"℗2009"
       }
@@ -5713,7 +5713,8 @@
       {
         "publisher":"AM, Adam Matthew",
         "place":"Marlborough, Wiltshire, UK",
-        "dateOfPublication":"[2010?]-"
+        "dateOfPublication":"[2010?]-",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -5915,7 +5916,7 @@
     ],
     "publication":[
       {
-        "publisher":"Naxos Digital Services US Inc",
+        "publisher":"Naxos Digital Services US Inc.",
         "place":"Hong Kong",
         "dateOfPublication":"2003"
       }
@@ -6033,7 +6034,7 @@
     ],
     "publication":[
       {
-        "publisher":"Naxos Digital Services US Inc",
+        "publisher":"Naxos Digital Services US Inc.",
         "place":"Hong Kong",
         "dateOfPublication":"2008"
       }
@@ -6160,8 +6161,9 @@
     "publication":[
       {
         "publisher":"Musikwissenschaftlicher Verlag Wien",
-        "place":"Wien",
-        "dateOfPublication":"2015-"
+        "place":"Wien,",
+        "dateOfPublication":"2015-",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -6269,7 +6271,8 @@
       {
         "publisher":"Krom Kānthō̜ngthīeo, Krasūang Kānthō̜ngthīeo læ Kīlā",
         "place":"Krung Thēp",
-        "dateOfPublication":"2557 [2014]"
+        "dateOfPublication":"2557 [2014]",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -6368,7 +6371,8 @@
       {
         "publisher":"Nhà xuất bản Thông tin và truyền thông",
         "place":"Hà Nội",
-        "dateOfPublication":"2015"
+        "dateOfPublication":"2015",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -6527,9 +6531,10 @@
     ],
     "publication":[
       {
-        "publisher":"Third Man Records Revenant Records",
-        "place":"Nashville, Tennessee Austin Texas",
-        "dateOfPublication":"[2013]"
+        "publisher":"Third Man Records ; ; Revenant Records",
+        "place":"Nashville, Tennessee ; Austin Texas",
+        "dateOfPublication":"[2013]",
+        "role":"Publication"
       },
       {
         "dateOfPublication":"©2013"
@@ -6686,7 +6691,8 @@
       {
         "publisher":"Ithaca-Tompkins County Transportation Council",
         "place":"Ithaca, New York",
-        "dateOfPublication":"2016"
+        "dateOfPublication":"2016",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -6799,7 +6805,8 @@
       {
         "publisher":"Saunders, Otley, and Company",
         "place":"London",
-        "dateOfPublication":"1866"
+        "dateOfPublication":"1866",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -6910,7 +6917,8 @@
       {
         "publisher":"Yumani Shobō",
         "place":"Tōkyō",
-        "dateOfPublication":"2016"
+        "dateOfPublication":"2016",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -7122,7 +7130,8 @@
       {
         "publisher":"Ozma Records",
         "place":"Mill Valley, California",
-        "dateOfPublication":"2017"
+        "dateOfPublication":"2017",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -7280,7 +7289,8 @@
       {
         "publisher":"John Wiley & Sons Inc.",
         "place":"Hoboken, New Jersey",
-        "dateOfPublication":"[2014?]"
+        "dateOfPublication":"[2014?]",
+        "role":"Publication"
       },
       {
         "dateOfPublication":"©2014"
@@ -7396,7 +7406,8 @@
       {
         "publisher":"Vertykalʹ",
         "place":"Cherkasy",
-        "dateOfPublication":"2016"
+        "dateOfPublication":"2016",
+        "role":"Publication"
       },
       {
         "dateOfPublication":"©2016"
@@ -7502,8 +7513,8 @@
     ],
     "publication":[
       {
-        "publisher":"Entapuraizu Hatsubaijo Gakushinsha Entapuraizu Jigyōbu",
-        "place":"Tōkyō Urawa-shi",
+        "publisher":"Entapuraizu ; ; Hatsubaijo Gakushinsha Entapuraizu Jigyōbu",
+        "place":"Tōkyō ; Urawa-shi",
         "dateOfPublication":"1989"
       }
     ],
@@ -7610,7 +7621,8 @@
       {
         "publisher":"Aki Rhythm Press",
         "place":"[New York, NY?]",
-        "dateOfPublication":"[2017]"
+        "dateOfPublication":"[2017]",
+        "role":"Publication"
       },
       {
         "dateOfPublication":"©2017"
@@ -7741,11 +7753,13 @@
       {
         "publisher":"Ricordi",
         "place":"Milano",
-        "dateOfPublication":"[2017]"
+        "dateOfPublication":"[2017]",
+        "role":"Publication"
       },
       {
         "publisher":"Exclusively distributed by Hal Leonard MGB",
-        "place":"[Netherlands]"
+        "place":"[Netherlands]",
+        "role":"Distribution"
       },
       {
         "dateOfPublication":"©2012"
@@ -7840,7 +7854,8 @@
       {
         "publisher":"Aki Rhythm Press",
         "place":"New York, NY",
-        "dateOfPublication":"[2017]"
+        "dateOfPublication":"[2017]",
+        "role":"Publication"
       },
       {
         "dateOfPublication":"©2013"
@@ -8010,7 +8025,8 @@
       {
         "publisher":"Hotsaʼat sefarim ʻa. sh. Y.L. Magnes, ha-Universiṭah ha-ʻIvrit",
         "place":"Yerushalayim",
-        "dateOfPublication":"2016"
+        "dateOfPublication":"2016",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -8119,7 +8135,8 @@
       {
         "publisher":"Booklyn Artists Alliance",
         "place":"Brooklyn, New York",
-        "dateOfPublication":"2014"
+        "dateOfPublication":"2014",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -8365,7 +8382,8 @@
       {
         "publisher":"The HistoryMakers",
         "place":"Chicago, Illinois",
-        "dateOfPublication":"[2016]"
+        "dateOfPublication":"[2016]",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -8499,7 +8517,8 @@
       {
         "publisher":"Oxford University Press",
         "place":"New York, NY",
-        "dateOfPublication":"[2017]"
+        "dateOfPublication":"[2017]",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[
@@ -8619,7 +8638,8 @@
       {
         "publisher":"Unistar Books Pvt. Ltd.",
         "place":"Mohali, Chandigarh, India",
-        "dateOfPublication":"2016"
+        "dateOfPublication":"2016",
+        "role":"Publication"
       }
     ],
     "publicationFrequency":[

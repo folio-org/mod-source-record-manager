@@ -1363,14 +1363,22 @@
       "target": "publication.place",
       "description": "Place of publication",
       "subfield": [
-        "a",
-        "3"
+        "a"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["a"]
+        }
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": " :"
+              }
             }
           ]
         }
@@ -1379,14 +1387,22 @@
     {
       "target": "publication.publisher",
       "subfield": [
-        "b",
-        "3"
+        "b"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["b"]
+        }
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": ","
+              }
             }
           ]
         }
@@ -1401,7 +1417,10 @@
         {
           "conditions": [
             {
-              "type": "trim_period"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": "."
+              }
             }
           ]
         }
@@ -1413,14 +1432,22 @@
       "target": "publication.place",
       "description": "Place of publication",
       "subfield": [
-        "a",
-        "3"
+        "a"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["a"]
+        }
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": " :"
+              }
             }
           ]
         }
@@ -1428,15 +1455,24 @@
     },
     {
       "target": "publication.publisher",
+      "description": "Publisher of publication",
       "subfield": [
-        "b",
-        "3"
+        "b"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["b"]
+        }
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": ","
+              }
             }
           ]
         }
@@ -1444,6 +1480,7 @@
     },
     {
       "target": "publication.dateOfPublication",
+      "description": "Date of publication",
       "subfield": [
         "c"
       ],
@@ -1451,7 +1488,29 @@
         {
           "conditions": [
             {
-              "type": "trim_period"
+              "type": "remove_ending_string",
+              "parameter": {
+                "string": "."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "publication.role",
+      "description": "Role of publication, defined by 2nd indicator",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_publication_role"
             }
           ]
         }

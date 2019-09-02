@@ -3,6 +3,7 @@ package org.folio.services.mappers.processor.functions;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
 import java.util.List;
@@ -126,6 +127,31 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       } else {
         return valueIfConditionIsFalse;
       }
+    }
+  },
+
+  SET_PUBLICATION_ROLE() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      DataField dataField = context.getDataField();
+      int indicator = Character.getNumericValue(dataField.getIndicator2());
+      PublisherRole publisherRole = PublisherRole.getByIndicator(indicator);
+      if (publisherRole == null) {
+        return StringUtils.EMPTY;
+      } else {
+        return publisherRole.getCaption();
+      }
+    }
+  },
+
+  REMOVE_ENDING_STRING() {
+    private static final String PARAM = "string";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String suffix = context.getRuleParameter().getString(PARAM);
+      String subFieldValue = context.getSubFieldValue();
+      return StringUtils.removeEnd(subFieldValue, suffix);
     }
   }
 }
