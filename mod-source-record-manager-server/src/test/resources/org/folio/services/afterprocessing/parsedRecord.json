@@ -1,20 +1,29 @@
 {
-  "leader":"01240cas a2200397   4500",
+  "leader":"01314nam  22003851a 4500",
   "fields":[
     {
-      "001":"366832"
+      "001":"ybp7406411"
     },
     {
-      "005":"20141106221425.0"
+      "003":"NhCcYBP"
     },
     {
-      "008":"750907c19509999enkqr p       0   a0eng d"
+      "005":"20120404100627.6"
     },
     {
-      "010":{
+      "006":"m||||||||d|||||||"
+    },
+    {
+      "007":"cr||n|||||||||"
+    },
+    {
+      "008":"120329s2011    sz a    ob    001 0 eng d"
+    },
+    {
+      "020":{
         "subfields":[
           {
-            "a":"   58020553 "
+            "a":"2940447241 (electronic bk.)"
           }
         ],
         "ind1":" ",
@@ -22,54 +31,10 @@
       }
     },
     {
-      "022":{
+      "020":{
         "subfields":[
           {
-            "a":"0022-0469"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "035":{
-        "subfields":[
-          {
-            "a":"(CStRLIN)NYCX1604275S"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "035":{
-        "subfields":[
-          {
-            "a":"(NIC)notisABP6388"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "035":{
-        "subfields":[
-          {
-            "a":"366832"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "035":{
-        "subfields":[
-          {
-            "a":"(OCoLC)1604275"
+            "a":"9782940447244 (electronic bk.)"
           }
         ],
         "ind1":" ",
@@ -80,25 +45,10 @@
       "040":{
         "subfields":[
           {
-            "d":"CtY"
+            "a":"NhCcYBP"
           },
           {
-            "d":"MBTI"
-          },
-          {
-            "d":"CtY"
-          },
-          {
-            "d":"MBTI"
-          },
-          {
-            "d":"NIC"
-          },
-          {
-            "d":"CStRLIN"
-          },
-          {
-            "d":"NIC"
+            "c":"NhCcYBP"
           }
         ],
         "ind1":" ",
@@ -109,57 +59,63 @@
       "050":{
         "subfields":[
           {
-            "a":"BR140"
+            "a":"Z246"
           },
           {
-            "b":".J6"
+            "b":".A43 2011"
           }
         ],
-        "ind1":"0",
-        "ind2":" "
+        "ind1":" ",
+        "ind2":"4"
       }
     },
     {
       "082":{
         "subfields":[
           {
-            "a":"270.05"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "222":{
-        "subfields":[
+            "a":"686.22"
+          },
           {
-            "a":"The Journal of ecclesiastical history"
+            "2":"22"
           }
         ],
         "ind1":"0",
         "ind2":"4"
+      }
+    },
+    {
+      "100":{
+        "subfields":[
+          {
+            "a":"Ambrose, Gavin."
+          }
+        ],
+        "ind1":"1",
+        "ind2":" "
       }
     },
     {
       "245":{
         "subfields":[
           {
-            "a":"The Journal of ecclesiastical history."
+            "a":"The fundamentals of typography"
+          },
+          {
+            "h":"[electronic resource] /"
+          },
+          {
+            "c":"Gavin Ambrose, Paul Harris."
           }
         ],
-        "ind1":"0",
+        "ind1":"1",
         "ind2":"4"
       }
     },
     {
-      "260":{
+      "250":{
         "subfields":[
           {
-            "a":"London,"
-          },
-          {
-            "b":"Cambridge University Press [etc.]"
+            "a":"2nd ed."
           }
         ],
         "ind1":" ",
@@ -167,10 +123,19 @@
       }
     },
     {
-      "265":{
+      "260":{
         "subfields":[
           {
-            "a":"32 East 57th St., New York, 10022"
+            "a":"Lausanne ;"
+          },
+          {
+            "a":"Worthing :"
+          },
+          {
+            "b":"AVA Academia,"
+          },
+          {
+            "c":"2011."
           }
         ],
         "ind1":" ",
@@ -181,10 +146,7 @@
       "300":{
         "subfields":[
           {
-            "a":"v."
-          },
-          {
-            "b":"25 cm."
+            "a":"1 online resource."
           }
         ],
         "ind1":" ",
@@ -192,114 +154,10 @@
       }
     },
     {
-      "310":{
+      "490":{
         "subfields":[
           {
-            "a":"Quarterly,"
-          },
-          {
-            "b":"1970-"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "321":{
-        "subfields":[
-          {
-            "a":"Semiannual,"
-          },
-          {
-            "b":"1950-69"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "362":{
-        "subfields":[
-          {
-            "a":"v. 1-   Apr. 1950-"
-          }
-        ],
-        "ind1":"0",
-        "ind2":" "
-      }
-    },
-    {
-      "570":{
-        "subfields":[
-          {
-            "a":"Editor:   C. W. Dugmore."
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "650":{
-        "subfields":[
-          {
-            "a":"Church history"
-          },
-          {
-            "x":"Periodicals."
-          }
-        ],
-        "ind1":" ",
-        "ind2":"0"
-      }
-    },
-    {
-      "650":{
-        "subfields":[
-          {
-            "a":"Church history"
-          },
-          {
-            "2":"fast"
-          },
-          {
-            "0":"(OCoLC)fst00860740"
-          }
-        ],
-        "ind1":" ",
-        "ind2":"7"
-      }
-    },
-    {
-      "655":{
-        "subfields":[
-          {
-            "a":"Periodicals"
-          },
-          {
-            "2":"fast"
-          },
-          {
-            "0":"(OCoLC)fst01411641"
-          }
-        ],
-        "ind1":" ",
-        "ind2":"7"
-      }
-    },
-    {
-      "700":{
-        "subfields":[
-          {
-            "a":"Dugmore, C. W."
-          },
-          {
-            "q":"(Clifford William),"
-          },
-          {
-            "e":"ed."
+            "a":"AVA Academia series"
           }
         ],
         "ind1":"1",
@@ -307,81 +165,79 @@
       }
     },
     {
-      "853":{
+      "500":{
         "subfields":[
           {
-            "8":"1"
-          },
-          {
-            "a":"v."
-          },
-          {
-            "i":"(year)"
+            "a":"Previous ed.: 2006."
           }
         ],
-        "ind1":"0",
-        "ind2":"3"
+        "ind1":" ",
+        "ind2":" "
       }
     },
     {
-      "863":{
+      "504":{
         "subfields":[
           {
-            "8":"1"
-          },
-          {
-            "a":"1-49"
-          },
-          {
-            "i":"1950-1998"
+            "a":"Includes bibliographical references (p. [200]) and index."
           }
         ],
-        "ind1":"4",
+        "ind1":" ",
+        "ind2":" "
+      }
+    },
+    {
+      "505":{
+        "subfields":[
+          {
+            "a":"Type and language -- A few basics -- Letterforms -- Words and paragraphs -- Using type."
+          }
+        ],
+        "ind1":"0",
+        "ind2":" "
+      }
+    },
+    {
+      "650":{
+        "subfields":[
+          {
+            "a":"Graphic design (Typography)"
+          }
+        ],
+        "ind1":" ",
         "ind2":"0"
       }
     },
     {
-      "902":{
+      "650":{
         "subfields":[
           {
-            "a":"pfnd"
-          },
-          {
-            "b":"Lintz"
+            "a":"Printing."
           }
         ],
         "ind1":" ",
+        "ind2":"0"
+      }
+    },
+    {
+      "700":{
+        "subfields":[
+          {
+            "a":"Harris, Paul,"
+          },
+          {
+            "d":"1971-"
+          }
+        ],
+        "ind1":"1",
         "ind2":" "
       }
     },
     {
-      "905":{
+      "710":{
         "subfields":[
           {
-            "a":"19890510120000.0"
-          }
-        ],
-        "ind1":" ",
-        "ind2":" "
-      }
-    },
-    {
-      "948":{
-        "subfields":[
-          {
-            "a":"20141106"
-          },
-          {
-            "b":"m"
-          },
-          {
-            "d":"batch"
-          },
-          {
-            "e":"lts"
-          },
-          {
-            "x":"addfast"
+            "a":"EBSCOhost"
           }
         ],
         "ind1":"2",
@@ -389,19 +245,16 @@
       }
     },
     {
-      "950":{
+      "776":{
         "subfields":[
           {
-            "l":"OLIN"
+            "c":"Original"
           },
           {
-            "a":"BR140"
+            "z":"9782940411764"
           },
           {
-            "b":".J86"
-          },
-          {
-            "h":"01/01/01 N"
+            "z":"294041176X"
           }
         ],
         "ind1":" ",
@@ -409,14 +262,73 @@
       }
     },
     {
-      "999":{
-        "ind1":"f",
-        "ind2":"f",
+      "830":{
         "subfields":[
           {
-            "s":"4eee3666-5a18-4d15-9dbb-4220edae71b8"
+            "a":"AVA academia."
           }
-        ]
+        ],
+        "ind1":" ",
+        "ind2":"0"
+      }
+    },
+    {
+      "856":{
+        "subfields":[
+          {
+            "u":"http://search.ebscohost.com/login.aspx?direct=true&scope=site&db=nlebk&db=nlabk&AN=430135"
+          }
+        ],
+        "ind1":"4",
+        "ind2":"0"
+      }
+    },
+    {
+      "935":{
+        "subfields":[
+          {
+            "a":".o13465259"
+          }
+        ],
+        "ind1":" ",
+        "ind2":" "
+      }
+    },
+    {
+      "980":{
+        "subfields":[
+          {
+            "a":"130307"
+          },
+          {
+            "b":"7107"
+          },
+          {
+            "e":"7107"
+          },
+          {
+            "f":"243965"
+          },
+          {
+            "g":"1"
+          }
+        ],
+        "ind1":" ",
+        "ind2":" "
+      }
+    },
+    {
+      "981":{
+        "subfields":[
+          {
+            "b":"OM"
+          },
+          {
+            "c":"nlnet"
+          }
+        ],
+        "ind1":" ",
+        "ind2":" "
       }
     }
   ]
