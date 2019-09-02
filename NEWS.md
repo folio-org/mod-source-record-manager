@@ -8,8 +8,9 @@
  * Filtered out invalid Instances before saving to inventory
  * Added delete endpoint for job execution and all associated records from SRS
  * Added total records number to logDto
+ * Changed logic of adding fields to MARC record resulting in update of leader value
  * Rule Processor integrated with Settings (mod-inventory-storage)
- 
+
  | METHOD |             URL                              | DESCRIPTION                                              |
  |--------|----------------------------------------------|----------------------------------------------------------|
  | DELETE | /change-manager/jobExecutions/{id}/records   | Delete Job Execution and all associated records from SRS |
