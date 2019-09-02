@@ -70,7 +70,7 @@
     "publication":[
       {
         "publisher":"Cambridge University Press [etc.]",
-        "place":"London,"
+        "place":"London"
       }
     ],
     "publicationFrequency":[
@@ -157,7 +157,7 @@
     "publication":[
       {
         "publisher":"Bärenreiter",
-        "place":"Kassel,",
+        "place":"Kassel",
         "dateOfPublication":"c1955-"
       }
     ],
@@ -563,7 +563,7 @@
     ],
     "publication":[
       {
-        "publisher":"George T. Bisel Co. ; ; West Publishing Co.",
+        "publisher":"George T. Bisel Co. ; West Publishing Co.",
         "place":"Philadelphia, Pa. ; St. Paul, Minn.",
         "dateOfPublication":"1930-"
       }
@@ -662,7 +662,7 @@
     "publication":[
       {
         "publisher":"Hodder & Stoughton",
-        "place":"London,",
+        "place":"London",
         "dateOfPublication":"[1960]"
       }
     ],
@@ -780,7 +780,7 @@
     "publication":[
       {
         "publisher":"C. F. Peters Corp.",
-        "place":"New York,",
+        "place":"New York",
         "dateOfPublication":"[c1970]"
       }
     ],
@@ -1597,7 +1597,7 @@
       {
         "publisher":"Aula",
         "place":"[Bandung]",
-        "dateOfPublication":"1965"
+        "dateOfPublication":"1965."
       }
     ],
     "publicationFrequency":[
@@ -1780,7 +1780,7 @@
 
     ],
     "series":[
-      "Early English books, 1641-1700 ; 1560:68"
+      "Early English books, 1641-1700 ; 1560:68."
     ],
     "identifiers":[
       {
@@ -1946,7 +1946,7 @@
     ],
     "publication":[
       {
-        "publisher":"Global Law Association ; ; Gaunt",
+        "publisher":"Global Law Association ; Gaunt",
         "place":"Nijmegen, the Netherlands ; Holmes Beach, Fla.",
         "dateOfPublication":"c1997-"
       }
@@ -2163,7 +2163,7 @@
       {
         "publisher":"Ballantine Books",
         "place":"New York",
-        "dateOfPublication":"1996, c1968"
+        "dateOfPublication":"1996, c1968."
       }
     ],
     "publicationFrequency":[
@@ -2265,7 +2265,7 @@
       {
         "publisher":"University of California Press",
         "place":"Berkeley",
-        "dateOfPublication":"c1988"
+        "dateOfPublication":"c1988."
       }
     ],
     "publicationFrequency":[
@@ -2278,7 +2278,7 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://search.ebscohost.com/login.aspx?direct=true&scope=site&db=nlebk&db=nlabk&AN=4619",
         "materialsSpecification":"Available at NetLibrary",
-        "publicNote":"Connect to full text"
+        "publicNote":"Connect to full text."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -2405,17 +2405,17 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://search.ebscohost.com/direct.asp?db=aph&jid=TIM&scope=site",
         "materialsSpecification":"Full text available from Academic Search Premier: 03/03/1923 to present",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://search.ebscohost.com/direct.asp?db=bth&jid=TIM&scope=site",
         "materialsSpecification":"Full text available from Business Source Complete: 05/07/1990 to present",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://search.ebscohost.com/direct.asp?db=mth&jid=TIM&scope=site",
         "materialsSpecification":"Full text available from Military & Government Collection: 05/07/1990 to present",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -2536,7 +2536,7 @@
       {
         "publisher":"[Record Commission]",
         "place":"London",
-        "dateOfPublication":"1836"
+        "dateOfPublication":"1836."
       }
     ],
     "publicationFrequency":[
@@ -2738,7 +2738,7 @@
     "electronicAccess":[
       {
         "uri":"http://resolver.library.cornell.edu/collection/1901",
-        "publicNote":"View image database"
+        "publicNote":"View image database."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -2829,8 +2829,8 @@
     ],
     "publication":[
       {
-        "place":"New York,",
-        "dateOfPublication":"1883"
+        "place":"New York",
+        "dateOfPublication":"1883."
       }
     ],
     "publicationFrequency":[
@@ -2916,7 +2916,7 @@
       {
         "publisher":"Pambansang Lupon sa Ugnayang pang-Estadistika",
         "place":"Makati City, Philippines",
-        "dateOfPublication":"2003"
+        "dateOfPublication":"2003."
       }
     ],
     "publicationFrequency":[
@@ -3178,8 +3178,8 @@
     "publication":[
       {
         "publisher":"Govt. Print. Off.",
-        "place":"Washington,",
-        "dateOfPublication":"1880-1901"
+        "place":"Washington",
+        "dateOfPublication":"1880-1901."
       }
     ],
     "publicationFrequency":[
@@ -3195,662 +3195,662 @@
       {
         "uri":"http://www.archive.org/details/cu31924079622159",
         "materialsSpecification":"Index:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079622167",
         "materialsSpecification":"Index:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725913",
         "materialsSpecification":"ser.1:v.1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730186",
         "materialsSpecification":"ser.1:v.2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079597021",
         "materialsSpecification":"ser.1:v.3",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079601088",
         "materialsSpecification":"ser.1:v.4",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730194",
         "materialsSpecification":"ser.1:v.5",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730178",
         "materialsSpecification":"ser.1:v.6",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609545",
         "materialsSpecification":"ser.1:v.7",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079893719",
         "materialsSpecification":"ser.1:v.8",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730160",
         "materialsSpecification":"ser.1:v.10:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728230",
         "materialsSpecification":"ser.1:v.10:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609560",
         "materialsSpecification":"ser.1:v.11:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730152",
         "materialsSpecification":"ser.1:v.11:pt.2:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730137",
         "materialsSpecification":"ser.1:v.11:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725921",
         "materialsSpecification":"ser.1:v.12:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079893701",
         "materialsSpecification":"ser.1:v.12:pt.2:Supplement",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730145",
         "materialsSpecification":"ser.1:v.12:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728222",
         "materialsSpecification":"ser.1:v.12:pt.2:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609578",
         "materialsSpecification":"ser.1:v.13",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080782182",
         "materialsSpecification":"ser.1:v.14",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609586",
         "materialsSpecification":"ser.1:v.15",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609594",
         "materialsSpecification":"ser.1:v.16:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730228",
         "materialsSpecification":"ser.1:v.16:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728248",
         "materialsSpecification":"ser.1:v.17:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730236",
         "materialsSpecification":"ser.1:v.17:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079571554",
         "materialsSpecification":"ser.1:v.18",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609610",
         "materialsSpecification":"ser.1:v.19:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080772233",
         "materialsSpecification":"ser.1:v.19:pt.2:Reports Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699696",
         "materialsSpecification":"ser.1:v.20:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699704",
         "materialsSpecification":"ser.1:v.22:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699712",
         "materialsSpecification":"ser.1:v.22:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699720",
         "materialsSpecification":"ser.1:v.23:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077722985",
         "materialsSpecification":"ser.1:v.23:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699738",
         "materialsSpecification":"ser.1:v.24:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077723033",
         "materialsSpecification":"ser.1:v.24:pt.2:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699746",
         "materialsSpecification":"ser.1:v.24:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730244",
         "materialsSpecification":"ser.1:v.25:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924085376626",
-        "materialsSpecification":"Ser.1:v.25:pt.2:Correspondence etc",
-        "publicNote":"Connect to text"
+        "materialsSpecification":"Ser.1:v.25:pt.2:Correspondence etc.",
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077743049",
         "materialsSpecification":"ser.1:v.26:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699753",
         "materialsSpecification":"ser.1:v.26:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699761",
         "materialsSpecification":"ser.1:v.27:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728255",
         "materialsSpecification":"ser.1:v.27:pt.2:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077700262",
         "materialsSpecification":"ser.1:v.27:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699779",
         "materialsSpecification":"ser.1:v.28:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699787",
         "materialsSpecification":"ser.1:v.28:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699886",
         "materialsSpecification":"ser.1:v.29:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728263",
         "materialsSpecification":"ser.1:v.29:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699860",
         "materialsSpecification":"ser.1:v.30:pt.4:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699852",
         "materialsSpecification":"ser.1:v.31:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699845",
         "materialsSpecification":"ser.1:v.31:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077700270",
         "materialsSpecification":"ser.1:v.31:pt.2:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080787462",
         "materialsSpecification":"ser.1:v.32:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699837",
         "materialsSpecification":"ser.1:v.32:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699829",
         "materialsSpecification":"ser.1:v.32:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699811",
         "materialsSpecification":"ser.1:v.33:Operations",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077700288",
         "materialsSpecification":"ser.1:v.34:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730251",
         "materialsSpecification":"ser.1:v.34:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699803",
         "materialsSpecification":"ser.1:v.34:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730277",
         "materialsSpecification":"ser.1:v.34:pt.4:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079618793",
         "materialsSpecification":"ser.1:v.35:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077699795",
         "materialsSpecification":"ser.1:v.35:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924097311744",
         "materialsSpecification":"ser.1:v.36:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728271",
         "materialsSpecification":"ser.1:v.36:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728289",
-        "materialsSpecification":"ser.1:v.37:pt.1:Reports & Corr",
-        "publicNote":"Connect to text"
+        "materialsSpecification":"ser.1:v.37:pt.1:Reports & Corr.",
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077723041",
         "materialsSpecification":"ser.1:v.37:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077722977",
         "materialsSpecification":"ser.1:v.38:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924097311751",
         "materialsSpecification":"ser.1:v.38:pt.2.:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077722993",
         "materialsSpecification":"ser.1:v.38:pt.3:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730202",
         "materialsSpecification":"ser.1:v.38:pt.4:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079597013",
         "materialsSpecification":"ser.1:v.38:pt.5:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077728297",
         "materialsSpecification":"ser.1:v.39:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730210",
         "materialsSpecification":"ser.1:v.39:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575357",
         "materialsSpecification":"ser.1:v.39:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079621052",
         "materialsSpecification":"ser.1:v.40:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730269",
         "materialsSpecification":"ser.1:v.40:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077729006",
         "materialsSpecification":"ser.1:v.40:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730046",
         "materialsSpecification":"ser.1:v.41:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730053",
         "materialsSpecification":"ser.1:v.41:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730079",
         "materialsSpecification":"ser.1:v.41:pt.4:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725905",
         "materialsSpecification":"ser.1:v.42:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730087",
         "materialsSpecification":"ser.1:v.42:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730095",
         "materialsSpecification":"ser.1:v.42:pt.3:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080776929",
         "materialsSpecification":"ser.1:v.43:pt.1:Reports Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079601096",
         "materialsSpecification":"ser.1:v.43:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725939",
         "materialsSpecification":"ser.1:v.44:Operations",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077743031",
         "materialsSpecification":"ser.1:v.45:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077723009",
         "materialsSpecification":"ser.1:v.45:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575332",
         "materialsSpecification":"ser.1:v.46:pt.1:Reports:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575340",
         "materialsSpecification":"ser.1:v.46:pt.1:Reports:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077729014",
         "materialsSpecification":"ser.1:v.46:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079618777",
         "materialsSpecification":"ser.1:v.46:pt.3:Correspondence:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079618785",
         "materialsSpecification":"ser.1:v.46:pt.3:Correspondence:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725947",
         "materialsSpecification":"ser.1:v.47:pt.1:Reports",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924085376618",
         "materialsSpecification":"Ser.1:v.47:pt.2:Correspondence etc. Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924085376600",
         "materialsSpecification":"Ser.1:v.47:pt.2:Correspondence etc. Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575324",
-        "materialsSpecification":"ser.1:v.47:pt.3:Correspondence etc",
-        "publicNote":"Connect to text"
+        "materialsSpecification":"ser.1:v.47:pt.3:Correspondence etc.",
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575316",
         "materialsSpecification":"ser.1:v.48:pt.1:Reports etc.:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575308",
         "materialsSpecification":"ser.1:v.48:pt.1:Reports etc.:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077723025",
         "materialsSpecification":"ser.1:v.48:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730103",
-        "materialsSpecification":"ser.1:v.49:pt.1:Reports & Corr",
-        "publicNote":"Connect to text"
+        "materialsSpecification":"ser.1:v.49:pt.1:Reports & Corr.",
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077743023",
         "materialsSpecification":"ser.1:v.49:pt.2:Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077730129",
         "materialsSpecification":"ser.1:v.50:pt.1:Reports & Correspondence",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575290",
         "materialsSpecification":"ser.1:v.50:pt.2:Correspondence:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575282",
         "materialsSpecification":"ser.1:v.50:pt.2:Correspondence:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609628",
         "materialsSpecification":"ser.1:v.51:pt.1:Reports:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609636",
         "materialsSpecification":"ser.1:v.51:pt.1:Reports:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080772241",
-        "materialsSpecification":"ser.1:v.51:pt.2:Supplement Confed. Corr",
-        "publicNote":"Connect to text"
+        "materialsSpecification":"ser.1:v.51:pt.2:Supplement Confed. Corr.",
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077729022",
         "materialsSpecification":"ser.1:v.52:pt.1:Reports &",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077725954",
         "materialsSpecification":"ser.1:v.52:pt.2:Confederate",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080779543",
         "materialsSpecification":"ser.1:v.53",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079618736",
         "materialsSpecification":"ser.2:v.1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079570242",
         "materialsSpecification":"ser.2:v.2:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079570259",
         "materialsSpecification":"ser.2:v.2:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079618769",
         "materialsSpecification":"ser.2:v.3",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924077743015",
         "materialsSpecification":"ser.2:v.4",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079609644",
         "materialsSpecification":"ser.2:v.5",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575274",
         "materialsSpecification":"ser.2:v.6",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575266",
         "materialsSpecification":"ser.2:v.7:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575258",
         "materialsSpecification":"ser.2:v.7:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575233",
         "materialsSpecification":"ser.2:v.8",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079622175",
         "materialsSpecification":"ser.3:v.1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575241",
         "materialsSpecification":"ser.3:v.2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575225",
         "materialsSpecification":"ser.3:v.3",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575373",
         "materialsSpecification":"ser.3:v.4:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575365",
         "materialsSpecification":"ser.3:v.4:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079575381",
         "materialsSpecification":"ser.3:v.5",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079579524",
         "materialsSpecification":"ser.4:v.1:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079579532",
         "materialsSpecification":"ser.4:v.1:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924080778909",
         "materialsSpecification":"ser.4:v.2:Confederate",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079622191",
         "materialsSpecification":"ser.4:v.3:Section 1",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       },
       {
         "uri":"http://www.archive.org/details/cu31924079622183",
         "materialsSpecification":"ser.4:v.3:Section 2",
-        "publicNote":"Connect to text"
+        "publicNote":"Connect to text."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -4372,9 +4372,9 @@
     ],
     "publication":[
       {
-        "publisher":"Apple Corps Ltd. : ; EMI Records",
+        "publisher":"Apple Corps Ltd. ; EMI Records",
         "place":"[London]",
-        "dateOfPublication":"℗2009"
+        "dateOfPublication":"℗2009."
       }
     ],
     "publicationFrequency":[
@@ -4669,7 +4669,7 @@
       {
         "publisher":"Horizon Line Documentary",
         "place":"[Colorado]",
-        "dateOfPublication":"c2009"
+        "dateOfPublication":"c2009."
       }
     ],
     "publicationFrequency":[
@@ -5054,7 +5054,7 @@
       {
         "publisher":"Nan kai da xue chu ban she",
         "place":"Tianjin",
-        "dateOfPublication":"2010"
+        "dateOfPublication":"2010."
       }
     ],
     "publicationFrequency":[
@@ -5105,7 +5105,7 @@
 
     ],
     "series":[
-      "Smithsonian global sound for libraries"
+      "Smithsonian global sound for libraries."
     ],
     "identifiers":[
       {
@@ -5143,7 +5143,7 @@
       {
         "publisher":"Smithsonian Folkways",
         "place":"[Washington, D.C.]",
-        "dateOfPublication":"p2001"
+        "dateOfPublication":"p2001."
       }
     ],
     "publicationFrequency":[
@@ -5156,7 +5156,7 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://www.aspresolver.com/aspresolver.asp?GLMU;71782",
         "materialsSpecification":"Available at Alexander Street Press Music Online: Smithsonian Global Sound for Libraries",
-        "publicNote":"Connect to online resource"
+        "publicNote":"Connect to online resource."
       }
     ],
     "instanceTypeId":"3be24c14-3551-4180-9292-26a786649c8b",
@@ -5389,7 +5389,7 @@
       {
         "publisher":"Produced and designed by ArtPostAsia",
         "place":"[Manila]",
-        "dateOfPublication":"c2010"
+        "dateOfPublication":"c2010."
       }
     ],
     "publicationFrequency":[
@@ -5524,7 +5524,7 @@
       {
         "publisher":"Decca",
         "place":"London, England",
-        "dateOfPublication":"p2013"
+        "dateOfPublication":"p2013."
       }
     ],
     "publicationFrequency":[
@@ -5626,7 +5626,7 @@
     "publication":[
       {
         "publisher":"Intersentia Uitgevers N V",
-        "dateOfPublication":"2013"
+        "dateOfPublication":"2013."
       }
     ],
     "publicationFrequency":[
@@ -5726,7 +5726,7 @@
     "electronicAccess":[
       {
         "uri":"http://resolver.library.cornell.edu/misc/8306272",
-        "publicNote":"Connect to full text"
+        "publicNote":"Connect to full text."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -5931,7 +5931,7 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://univportal.naxosmusiclibrary.com/catalogue/item.asp?cid=8.557330",
         "materialsSpecification":"Available at Naxos Music Library",
-        "publicNote":"Connect to full text. Access limited to authorized subscribers"
+        "publicNote":"Connect to full text. Access limited to authorized subscribers."
       }
     ],
     "instanceTypeId":"3be24c14-3551-4180-9292-26a786649c8b",
@@ -6049,7 +6049,7 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://univportal.naxosmusiclibrary.com/catalogue/item.asp?cid=5099920882457",
         "materialsSpecification":"Available at Naxos Music Library",
-        "publicNote":"Connect to full text. Access limited to authorized subscribers"
+        "publicNote":"Connect to full text. Access limited to authorized subscribers."
       }
     ],
     "instanceTypeId":"3be24c14-3551-4180-9292-26a786649c8b",
@@ -6107,7 +6107,7 @@
 
     ],
     "series":[
-      "Bruckner, Anton, 1824-1896. Works. 2015"
+      "Bruckner, Anton, 1824-1896. Works. 2015."
     ],
     "identifiers":[
 
@@ -6161,7 +6161,7 @@
     "publication":[
       {
         "publisher":"Musikwissenschaftlicher Verlag Wien",
-        "place":"Wien,",
+        "place":"Wien",
         "dateOfPublication":"2015-",
         "role":"Publication"
       }
@@ -6371,7 +6371,7 @@
       {
         "publisher":"Nhà xuất bản Thông tin và truyền thông",
         "place":"Hà Nội",
-        "dateOfPublication":"2015",
+        "dateOfPublication":"2015.",
         "role":"Publication"
       }
     ],
@@ -6531,7 +6531,7 @@
     ],
     "publication":[
       {
-        "publisher":"Third Man Records ; ; Revenant Records",
+        "publisher":"Third Man Records ; Revenant Records",
         "place":"Nashville, Tennessee ; Austin Texas",
         "dateOfPublication":"[2013]",
         "role":"Publication"
@@ -6691,7 +6691,7 @@
       {
         "publisher":"Ithaca-Tompkins County Transportation Council",
         "place":"Ithaca, New York",
-        "dateOfPublication":"2016",
+        "dateOfPublication":"2016.",
         "role":"Publication"
       }
     ],
@@ -6763,7 +6763,7 @@
 
     ],
     "series":[
-      "Nineteenth Century Collections Online: Children's Literature and Childhood"
+      "Nineteenth Century Collections Online: Children's Literature and Childhood."
     ],
     "identifiers":[
       {
@@ -6805,7 +6805,7 @@
       {
         "publisher":"Saunders, Otley, and Company",
         "place":"London",
-        "dateOfPublication":"1866",
+        "dateOfPublication":"1866.",
         "role":"Publication"
       }
     ],
@@ -6819,7 +6819,7 @@
       {
         "uri":"http://proxy.library.cornell.edu/login?url=http://find.galegroup.com/openurl/openurl?url_ver=Z39.88-2004&url_ctx_fmt=info:ofi/fmt:kev:mtx:ctx&res_id=info:sid/gale:NCCO&ctx_enc=info:ofi:enc:UTF-8&rft_val_fmt=info:ofi/fmt:kev:mtx:unknown&rft.artnum=CCSCCV321017046&req_dat=info:sid/gale:ugnid:cornell",
         "materialsSpecification":"Nineteenth Century Collections Online: Childrens Literature and Childhood",
-        "publicNote":"Connect to online resource"
+        "publicNote":"Connect to online resource."
       }
     ],
     "instanceTypeId":"6312d172-f0cf-40f6-b27d-9fa8feaf332f",
@@ -6917,7 +6917,7 @@
       {
         "publisher":"Yumani Shobō",
         "place":"Tōkyō",
-        "dateOfPublication":"2016",
+        "dateOfPublication":"2016.",
         "role":"Publication"
       }
     ],
@@ -7130,7 +7130,7 @@
       {
         "publisher":"Ozma Records",
         "place":"Mill Valley, California",
-        "dateOfPublication":"2017",
+        "dateOfPublication":"2017.",
         "role":"Publication"
       }
     ],
@@ -7406,7 +7406,7 @@
       {
         "publisher":"Vertykalʹ",
         "place":"Cherkasy",
-        "dateOfPublication":"2016",
+        "dateOfPublication":"2016.",
         "role":"Publication"
       },
       {
@@ -7513,9 +7513,9 @@
     ],
     "publication":[
       {
-        "publisher":"Entapuraizu ; ; Hatsubaijo Gakushinsha Entapuraizu Jigyōbu",
+        "publisher":"Entapuraizu ; Hatsubaijo Gakushinsha Entapuraizu Jigyōbu",
         "place":"Tōkyō ; Urawa-shi",
-        "dateOfPublication":"1989"
+        "dateOfPublication":"1989."
       }
     ],
     "publicationFrequency":[
@@ -8025,7 +8025,7 @@
       {
         "publisher":"Hotsaʼat sefarim ʻa. sh. Y.L. Magnes, ha-Universiṭah ha-ʻIvrit",
         "place":"Yerushalayim",
-        "dateOfPublication":"2016",
+        "dateOfPublication":"2016.",
         "role":"Publication"
       }
     ],
@@ -8135,7 +8135,7 @@
       {
         "publisher":"Booklyn Artists Alliance",
         "place":"Brooklyn, New York",
-        "dateOfPublication":"2014",
+        "dateOfPublication":"2014.",
         "role":"Publication"
       }
     ],
@@ -8577,7 +8577,7 @@
 
     ],
     "series":[
-      "Forever learning"
+      "Forever learning."
     ],
     "identifiers":[
       {
@@ -8638,7 +8638,7 @@
       {
         "publisher":"Unistar Books Pvt. Ltd.",
         "place":"Mohali, Chandigarh, India",
-        "dateOfPublication":"2016",
+        "dateOfPublication":"2016.",
         "role":"Publication"
       }
     ],
@@ -8740,7 +8740,7 @@
     "publication":[
       {
         "publisher":"Wea Corp",
-        "dateOfPublication":"2017"
+        "dateOfPublication":"2017."
       }
     ],
     "publicationFrequency":[

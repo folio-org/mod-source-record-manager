@@ -1375,10 +1375,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": " :"
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }
@@ -1399,10 +1396,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": ","
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }
@@ -1413,14 +1407,17 @@
       "subfield": [
         "c"
       ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["c"]
+        }
+      ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": "."
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }
@@ -1444,10 +1441,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": " :"
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }
@@ -1469,10 +1463,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": ","
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }
@@ -1484,14 +1475,17 @@
       "subfield": [
         "c"
       ],
+      "subFieldDelimiter": [
+        {
+          "value": " ; ",
+          "subfields": ["c"]
+        }
+      ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "remove_ending_string",
-              "parameter": {
-                "string": "."
-              }
+              "type": "remove_ending_punc, trim"
             }
           ]
         }

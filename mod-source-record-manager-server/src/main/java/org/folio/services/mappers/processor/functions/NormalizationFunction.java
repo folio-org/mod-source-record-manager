@@ -9,6 +9,8 @@ import org.marc4j.marc.DataField;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.apache.commons.lang3.math.NumberUtils.INTEGER_ZERO;
+
 /**
  * Enumeration to store normalization functions
  */
@@ -29,31 +31,16 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
 
   REMOVE_ENDING_PUNC() {
     private static final String PUNCT_2_REMOVE = ";:,/+= ";
-    private static final char DOT = '.';
-    private static final String DOTS_THREE = "...";
-    private static final String DOTS_FOUR = "....";
 
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      int pos = subFieldValue.length() - 1;
-      if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldValue.charAt(pos)))) {
-        return subFieldValue.substring(0, subFieldValue.length() - 1);
-      } else if (subFieldValue.charAt(pos) == DOT) {
-        try {
-          if (subFieldValue.substring(subFieldValue.length() - 4).equals(DOTS_FOUR)) {
-            return subFieldValue.substring(0, subFieldValue.length() - 1);
-          } else if (subFieldValue.substring(subFieldValue.length() - 3).equals(DOTS_THREE)) {
-            return subFieldValue;
-          } else {
-            //if ends with .. or . remove just one .
-            return subFieldValue.substring(0, subFieldValue.length() - 1);
-          }
-        } catch (IndexOutOfBoundsException ioob) {
-          return subFieldValue;
-        }
+      int lastPosition = subFieldValue.length() - 1;
+      if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldValue.charAt(lastPosition)))) {
+        return subFieldValue.substring(INTEGER_ZERO, lastPosition);
+      } else {
+        return subFieldValue;
       }
-      return subFieldValue;
     }
   },
 
@@ -65,13 +52,13 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
   },
 
   TRIM_PERIOD() {
-    private static final String DOT = ".";
+    private static final String PERIOD = ".";
 
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldData = context.getSubFieldValue();
-      if (subFieldData.endsWith(DOT)) {
-        return subFieldData.substring(0, subFieldData.length() - 1);
+      if (subFieldData.endsWith(PERIOD)) {
+        return subFieldData.substring(INTEGER_ZERO, subFieldData.length() - 1);
       }
       return subFieldData;
     }
@@ -97,7 +84,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     public String apply(RuleExecutionContext context) {
       String subFieldData = context.getSubFieldValue();
       DataField dataField = context.getDataField();
-      int from = 0;
+      int from = INTEGER_ZERO;
       int to = Character.getNumericValue(dataField.getIndicator2());
       String prefixToRemove = subFieldData.substring(from, to);
       return StringUtils.remove(subFieldData, prefixToRemove);
