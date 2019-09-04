@@ -1504,7 +1504,7 @@
         {
           "conditions": [
             {
-              "type": "set_publication_role"
+              "type": "set_publisher_role"
             }
           ]
         }

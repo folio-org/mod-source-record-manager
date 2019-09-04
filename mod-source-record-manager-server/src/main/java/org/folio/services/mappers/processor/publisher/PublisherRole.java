@@ -2,6 +2,9 @@ package org.folio.services.mappers.processor.publisher;
 
 import java.util.Arrays;
 
+/**
+ * Publisher role
+ */
 public enum PublisherRole {
 
   PRODUCTION(0, "Production"),

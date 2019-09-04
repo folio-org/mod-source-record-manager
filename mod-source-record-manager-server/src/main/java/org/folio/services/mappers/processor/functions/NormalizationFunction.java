@@ -117,7 +117,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     }
   },
 
-  SET_PUBLICATION_ROLE() {
+  SET_PUBLISHER_ROLE() {
     @Override
     public String apply(RuleExecutionContext context) {
       DataField dataField = context.getDataField();
