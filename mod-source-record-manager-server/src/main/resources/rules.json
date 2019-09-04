@@ -3930,9 +3930,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -4009,9 +4007,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -4083,9 +4079,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -4158,9 +4152,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "applyRulesOnConcatenatedData": true,
       "rules": [
@@ -4211,8 +4203,6 @@
       "target": "subjects",
       "description": "Subject Headings",
       "subfield": [
-        "3",
-        "2",
         "x",
         "y",
         "z",
@@ -4229,13 +4219,6 @@
         }
       ],
       "subFieldDelimiter": [
-        {
-          "value": " ",
-          "subfields": [
-            "2",
-            "3"
-          ]
-        },
         {
           "value": "--",
           "subfields": [
@@ -4261,9 +4244,7 @@
         "x",
         "y",
         "z",
-        "v",
-        "2",
-        "3"
+        "v"
       ],
       "subFieldDelimiter": [
         {
@@ -4273,9 +4254,7 @@
             "x",
             "y",
             "z",
-            "v",
-            "2",
-            "3"
+            "v"
           ]
         }
       ],
@@ -4305,9 +4284,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "subFieldDelimiter": [
         {
@@ -4322,9 +4299,7 @@
             "v",
             "x",
             "y",
-            "z",
-            "2",
-            "3"
+            "z"
           ]
         }
       ],
@@ -4351,9 +4326,7 @@
         "v",
         "x",
         "y",
-        "z",
-        "2",
-        "3"
+        "z"
       ],
       "subFieldDelimiter": [
         {
@@ -4365,9 +4338,7 @@
             "v",
             "x",
             "y",
-            "z",
-            "2",
-            "3"
+            "z"
           ]
         }
       ],

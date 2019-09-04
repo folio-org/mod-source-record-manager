@@ -55,7 +55,7 @@
     ],
     "subjects":[
       "Church history--Periodicals",
-      "Church history--fast"
+      "Church history"
     ],
     "classifications":[
       {
@@ -144,9 +144,7 @@
     ],
     "subjects":[
       "Vocal music",
-      "Instrumental music",
-      "Instrumental music--fast",
-      "Vocal music--fast"
+      "Instrumental music"
     ],
     "classifications":[
       {
@@ -290,12 +288,10 @@
       "Great Britain--History--18th century",
       "English literature--18th century",
       "Eighteenth century",
-      "Great Britain.--fast",
-      "Civilization.--fast",
-      "1700 - 1799--fast",
-      "English literature.--fast",
-      "Eighteenth century--fast",
-      "English literature--fast"
+      "Great Britain",
+      "Civilization",
+      "1700 - 1799",
+      "English literature"
     ],
     "classifications":[
 
@@ -408,8 +404,8 @@
     ],
     "subjects":[
       "Income tax--Law and legislation--United States",
-      "Income tax--Law and legislation.--fast",
-      "United States.--fast"
+      "Income tax--Law and legislation",
+      "United States"
     ],
     "classifications":[
       {
@@ -552,8 +548,8 @@
     ],
     "subjects":[
       "Law--Pennsylvania",
-      "Law--fast",
-      "Pennsylvania--fast"
+      "Law",
+      "Pennsylvania"
     ],
     "classifications":[
       {
@@ -653,8 +649,8 @@
     ],
     "subjects":[
       "Cambodia--Description and travel",
-      "Travel--fast",
-      "Cambodia--fast"
+      "Travel",
+      "Cambodia"
     ],
     "classifications":[
 
@@ -767,9 +763,7 @@
       "Song cycles",
       "Songs (High voice) with instrumental ensemble--Scores",
       "Vocal duets with instrumental ensemble--Scores",
-      "García Lorca, Federico, 1898-1936 fast",
-      "Song cycles--fast",
-      "Vocal duets with instrumental ensemble--Scores--fast"
+      "García Lorca, Federico, 1898-1936"
     ],
     "classifications":[
       {
@@ -871,8 +865,8 @@
     ],
     "subjects":[
       "Cornell University--Administration",
-      "Cornell University fast",
-      "Management--fast"
+      "Cornell University",
+      "Management"
     ],
     "classifications":[
 
@@ -985,15 +979,8 @@
       "Hindu literature",
       "Hindu law",
       "Bali Island (Indonesia)--Religious life and customs",
-      "Balinese literature--fast",
-      "Ethics, Balinese--fast",
-      "Hindu law--fast",
-      "Hindu legends--fast",
-      "Hindu literature--fast",
-      "Hinduism--fast",
-      "Manuscripts, Balinese--fast",
-      "Mythology, Balinese--fast",
-      "Indonesia--Bali Island--fast"
+      "Hinduism",
+      "Indonesia--Bali Island"
     ],
     "classifications":[
 
@@ -1252,114 +1239,35 @@
       "John Nolen Research Fund",
       "La Monte, C. B., Mrs",
       "Seymour, Robert M., Mrs",
-      "Adams, Thomas, 1871-1940 fast",
-      "Bassett, Edward M. (Edward Murray), 1863-1948 fast",
-      "Bellamy, George Albert, 1872-1960 fast",
-      "Black, Russell Van Nest, 1893-1969 fast",
-      "Childs, Richard S. (Richard Spencer), 1882-1978 fast",
-      "Contreras, Carlos fast",
-      "Coyle, David Cushman, 1887-1969 fast",
-      "Crane, Jacob L. (Jacob Leslie), 1892-1988 fast",
-      "Draper, E. S. (Earle Sumner), 1893-1994 fast",
-      "Ely, Richard T. (Richard Theodore), 1854-1943 fast",
-      "Ely, Robert Erskine, 1861- fast",
-      "Ford, Henry, 1863-1947 fast",
-      "Ford, James, 1884-1944 fast",
-      "Franzheim, Kenneth, 1890-1959 fast",
-      "Geddes, Patrick, Sir, 1854-1932 fast",
-      "Huebsch, B. W. (Benjamin W.), 1876-1964 fast",
-      "Ihlder, John, 1876-1958 fast",
-      "Lewis, Nelson Peter, 1856-1924 fast",
-      "Nolen, John, 1898-1986 fast",
-      "Root, Irving C. fast",
-      "Stein, Clarence S. fast",
-      "Unwin, Raymond, Sir, 1863-1940 fast",
-      "Zug, George R., 1938- fast",
-      "American Civic Association fast",
-      "American Institute of Architects fast",
-      "American Institute of Planners fast",
-      "American Society of Landscape Architects fast",
-      "American Society of Planning Officials fast",
-      "Babson Institute fast",
-      "General Federation of Women's Clubs fast",
-      "Harvard University fast",
-      "International Federation for Housing and Planning fast",
-      "International Garden Cities and Town-Planning Federation fast",
-      "Massachusetts Civic League fast",
-      "Massachusetts. Department of Public Welfare fast",
-      "Massachusetts Federation of Planning Boards fast",
-      "New England Council fast",
-      "Regional Plan Association (New York, N.Y.) fast",
-      "Russell Sage Foundation fast",
-      "Tennessee Valley Authority fast",
-      "Town Planning Institute (London, England) fast",
-      "United States. Department of the Interior fast",
-      "United States. Division of Subsistence Homesteads fast",
-      "United States Housing Corporation fast",
-      "United States. National Resources Committee fast",
-      "United States. National Resources Planning Board fast",
-      "United States. Resettlement Administration fast",
-      "University of Pennsylvania fast",
-      "City planners--fast",
-      "City planning--fast",
-      "Community development, Urban--fast",
-      "Highway planning--fast",
-      "Housing--fast",
-      "Inland water transportation--fast",
-      "Landscape architects--fast",
-      "Landscape architecture--fast",
-      "Parks--fast",
-      "Railroads--fast",
-      "Regional planning--fast",
-      "Students--fast",
-      "Zoning--fast",
-      "Arkansas--Little Rock--fast",
-      "California--Sacramento--fast",
-      "California--San Diego--fast",
-      "Connecticut--Bridgeport--fast",
-      "Florida--Clearwater--fast",
-      "Florida--Clewiston--fast",
-      "Florida--Sarasota--fast",
-      "Florida--Venice--fast",
-      "Georgia--Columbus--fast",
-      "Iowa--Dubuque--fast",
-      "Massachusetts--Boston--fast",
-      "New Jersey--Riverton--fast",
-      "New York (State)--Niagara Falls--fast",
-      "North Carolina--Charlotte--fast",
-      "Ohio--Mariemont--fast",
-      "Pennsylvania--Lancaster--fast",
-      "Pennsylvania--Reading--fast",
-      "South Carolina--Spartanburg--fast",
-      "Tennessee--Johnson City--fast",
-      "Tennessee--Kingsport--fast",
-      "United States--fast",
-      "Virginia--Roanoke--fast",
-      "Wisconsin--La Crosse--fast",
-      "Wisconsin--Madison--fast",
-      "Alexander, S. B. fast/NIC/NAC",
-      "Allen, Philip R. fast/NIC/NAC",
-      "Ball, Charles B. fast/NIC/NAC",
-      "Beer, G. Frank fast/NIC/NAC",
-      "Brooks, Joshua L. fast/NIC/NAC",
-      "Chase, Helen E. fast/NIC/NAC",
-      "Cheney, Charles E. fast/NIC/NAC",
-      "Chivers, Herbert C. fast/NIC/NAC",
-      "Dimmick, J. Benjamin fast/NIC/NAC",
-      "Feidler, F. F. fast/NIC/NAC",
-      "Filene, Edward A. fast/NIC/NAC",
-      "Foster, Philip W. fast/NIC/NAC",
-      "Gallup, George B. fast/NIC/NAC",
-      "Griggs, Edward Howard fast/NIC/NAC",
-      "Highland, Harry fast/NIC/NAC",
-      "Hoggson, N. J. fast/NIC/NAC",
-      "Latham, J. E. fast/NIC/NAC",
-      "MacArthur, Arthur fast/NIC/NAC",
-      "Maxwell, George H. fast/NIC/NAC",
-      "Meinig, Richard fast/NIC/NAC",
-      "Varn, Claude G. fast/NIC/NAC",
-      "Walker, Hale J. fast/NIC/NAC",
-      "Williams, Frank B. (Frank Backus), 1864-1954 fast/NIC/NAC"
+      "Harvard University",
+      "University of Pennsylvania",
+      "City planners",
+      "Landscape architects",
+      "Students",
+      "Arkansas--Little Rock",
+      "California--Sacramento",
+      "California--San Diego",
+      "Connecticut--Bridgeport",
+      "Florida--Clearwater",
+      "Florida--Clewiston",
+      "Florida--Sarasota",
+      "Florida--Venice",
+      "Georgia--Columbus",
+      "Iowa--Dubuque",
+      "Massachusetts--Boston",
+      "New Jersey--Riverton",
+      "New York (State)--Niagara Falls",
+      "North Carolina--Charlotte",
+      "Ohio--Mariemont",
+      "Pennsylvania--Lancaster",
+      "Pennsylvania--Reading",
+      "South Carolina--Spartanburg",
+      "Tennessee--Johnson City",
+      "Tennessee--Kingsport",
+      "United States",
+      "Virginia--Roanoke",
+      "Wisconsin--La Crosse",
+      "Wisconsin--Madison"
     ],
     "classifications":[
 
@@ -1496,8 +1404,8 @@
     "subjects":[
       "Folk music--Java",
       "Folk music--Indonesia",
-      "Folk music--fast",
-      "Indonesia--fast"
+      "Folk music",
+      "Indonesia"
     ],
     "classifications":[
 
@@ -1587,8 +1495,7 @@
     "subjects":[
       "Taxation--Law and legislation",
       "Taxation--Indonesia--Law",
-      "Taxation--Law and legislation--fast",
-      "Indonesia--fast"
+      "Indonesia"
     ],
     "classifications":[
 
@@ -1678,12 +1585,8 @@
       "Visual communication--Indonesia",
       "Wayang",
       "Borobudur (Temple : Magelang, Indonesia)",
-      "Borobudur (Temple : Magelang, Indonesia) fast",
-      "Art, Indonesian--fast",
-      "Art--Themes, motives--fast",
-      "Visual communication--fast",
-      "Wayang--fast",
-      "Indonesia--fast"
+      "Visual communication",
+      "Indonesia"
     ],
     "classifications":[
       {
@@ -1809,8 +1712,7 @@
       }
     ],
     "subjects":[
-      "Christian life--Anglican authors",
-      "Christian life--Anglican authors--fast"
+      "Christian life--Anglican authors"
     ],
     "classifications":[
 
@@ -1932,11 +1834,9 @@
       "Yugoslav War Crime Trials, Hague, Netherlands, 1994-",
       "International Criminal Tribunal for Rwanda",
       "War crime trials--Rwanda",
-      "International Criminal Tribunal for Rwanda fast",
-      "Yugoslav War Crime Trials (Hague, Netherlands : 1994-) fast",
-      "War crime trials--fast",
-      "Netherlands--Hague--fast",
-      "Rwanda--fast"
+      "Yugoslav War Crime Trials (Hague, Netherlands : 1994-)",
+      "Netherlands--Hague",
+      "Rwanda"
     ],
     "classifications":[
       {
@@ -2154,7 +2054,7 @@
     ],
     "subjects":[
       "Androids--Fiction",
-      "Androids--fast"
+      "Androids"
     ],
     "classifications":[
 
@@ -2247,9 +2147,8 @@
       "Alcoholism--United States--Prevention",
       "Alcoholism",
       "Alcoholism--prevention & control--United States",
-      "Alcoholism--fast",
-      "Alcoholism--Prevention--fast",
-      "United States--fast"
+      "Alcoholism--Prevention",
+      "United States"
     ],
     "classifications":[
       {
@@ -2375,9 +2274,7 @@
     ],
     "subjects":[
       "Periodicals",
-      "Periodicals.--fast",
-      "CURRENT EVENTS.--unbist",
-      "Periodicals--fast"
+      "CURRENT EVENTS"
     ],
     "classifications":[
       {
@@ -2523,8 +2420,8 @@
     ],
     "subjects":[
       "Great Britain--Archival resources",
-      "Archival resources--fast",
-      "Great Britain--fast"
+      "Archival resources",
+      "Great Britain"
     ],
     "classifications":[
       {
@@ -2614,10 +2511,10 @@
       "Anglican church buildings--England--Grasmere--Guidebooks",
       "Grasmere (England)--Church history",
       "Cumbria (England)--Church history",
-      "Church of England fast",
-      "Anglican church buildings--fast",
-      "England--Cumbria--fast",
-      "England--Grasmere--fast"
+      "Church of England",
+      "Anglican church buildings",
+      "England--Cumbria",
+      "England--Grasmere"
     ],
     "classifications":[
       {
@@ -2712,9 +2609,9 @@
     "subjects":[
       "Art--Catalogs",
       "Art--Study and teaching (Higher)--New York (State)--Ithaca",
-      "Art--fast",
-      "Art--Study and teaching (Higher)--fast",
-      "New York (State)--Ithaca--fast"
+      "Art",
+      "Art--Study and teaching (Higher)",
+      "New York (State)--Ithaca"
     ],
     "classifications":[
       {
@@ -2822,7 +2719,7 @@
     ],
     "subjects":[
       "Liquor traffic--New York (State)--New York",
-      "New York (State)--New York--fast"
+      "New York (State)--New York"
     ],
     "classifications":[
 
@@ -3013,8 +2910,8 @@
     ],
     "subjects":[
       "Law--Great Britain",
-      "Law--fast",
-      "Great Britain--fast"
+      "Law",
+      "Great Britain"
     ],
     "classifications":[
       {
@@ -3165,9 +3062,9 @@
     "subjects":[
       "United States--History--Civil War, 1861-1865--Sources",
       "Confederate States of America--History--Sources",
-      "American Civil War (1861-1865) fast",
-      "1861 - 1865--fast",
-      "United States--fast"
+      "American Civil War (1861-1865)",
+      "1861 - 1865",
+      "United States"
     ],
     "classifications":[
       {
@@ -4356,9 +4253,8 @@
       "Rock music--1961-1970",
       "Popular music--1961-1970",
       "Motion picture music--Excerpts",
-      "Motion picture music--Excerpts.--fast",
-      "Rock music.--fast",
-      "1961-1970--fast"
+      "Rock music",
+      "1961-1970"
     ],
     "classifications":[
       {
@@ -4525,9 +4421,7 @@
       "Cuneiform inscriptions",
       "Akkadian language--Texts",
       "Sumerians--Economic conditions",
-      "Akkadian language--fast",
-      "Cuneiform inscriptions--fast",
-      "Cuneiform tablets--fast"
+      "Akkadian language"
     ],
     "classifications":[
 
@@ -4652,15 +4546,13 @@
       "Dominican Republic--Music",
       "Monte Plata (Dominican Republic)--Social conditions",
       "Monte Plata (Dominican Republic)--Economic conditions",
-      "Soriano, Yoan fast/NIC/NAC",
-      "Bachata--fast",
-      "Economic history--fast",
-      "Manners and customs--fast",
-      "Musicians--fast",
-      "Popular music--fast",
-      "Social history--fast",
-      "Dominican Republic--fast",
-      "Dominican Republic--Monte Plata--fast"
+      "Economic history",
+      "Manners and customs",
+      "Musicians",
+      "Popular music",
+      "Social history",
+      "Dominican Republic",
+      "Dominican Republic--Monte Plata"
     ],
     "classifications":[
 
@@ -4804,15 +4696,13 @@
       "Dominican Republic--Music",
       "Monte Plata (Dominican Republic)--Social conditions",
       "Monte Plata (Dominican Republic)--Economic conditions",
-      "Soriano, Yoan fast/NIC/NAC",
-      "Bachata--fast",
-      "Economic history--fast",
-      "Manners and customs--fast",
-      "Musicians--fast",
-      "Popular music--fast",
-      "Social history--fast",
-      "Dominican Republic--fast",
-      "Dominican Republic--Monte Plata--fast"
+      "Economic history",
+      "Manners and customs",
+      "Musicians",
+      "Popular music",
+      "Social history",
+      "Dominican Republic",
+      "Dominican Republic--Monte Plata"
     ],
     "classifications":[
 
@@ -4935,9 +4825,7 @@
     ],
     "subjects":[
       "Digital music players",
-      "Symphonies (Electronics)",
-      "Digital music players--fast",
-      "Symphonies (Electronics)--fast"
+      "Symphonies (Electronics)"
     ],
     "classifications":[
 
@@ -5040,12 +4928,12 @@
       "Hu, Shi, 1891-1962--Political and social views",
       "Liberalism--China--History--20th century",
       "Political science--China--Philosophy--History--20th century",
-      "Hu, Shi, 1891-1962 fast",
-      "1900 - 1999--fast",
-      "Liberalism--fast",
-      "Political and social views--fast",
-      "Political science--Philosophy--fast",
-      "China--fast"
+      "Hu, Shi, 1891-1962",
+      "1900 - 1999",
+      "Liberalism",
+      "Political and social views",
+      "Political science--Philosophy",
+      "China"
     ],
     "classifications":[
 
@@ -5252,10 +5140,7 @@
     "subjects":[
       "Qin music",
       "Ambient music",
-      "Digital music players",
-      "Ambient music--fast",
-      "Digital music players--fast",
-      "Qin music--fast"
+      "Digital music players"
     ],
     "classifications":[
 
@@ -5370,10 +5255,10 @@
       "Children--Philippines--Social conditions",
       "Child labor--Philippines",
       "Child welfare--Philippines",
-      "Child labor--fast",
-      "Child welfare--fast",
-      "Children--Social conditions--fast",
-      "Philippines--fast"
+      "Child labor",
+      "Child welfare",
+      "Children--Social conditions",
+      "Philippines"
     ],
     "classifications":[
       {
@@ -5507,8 +5392,7 @@
       }
     ],
     "subjects":[
-      "Requiems",
-      "Requiems--fast"
+      "Requiems"
     ],
     "classifications":[
       {
@@ -5615,10 +5499,10 @@
 
     ],
     "subjects":[
-      "Child welfare.--fast",
-      "Children's rights.--fast",
-      "Intercountry adoption.--fast",
-      "Africa.--fast"
+      "Child welfare",
+      "Children's rights",
+      "Intercountry adoption",
+      "Africa"
     ],
     "classifications":[
 
@@ -5698,10 +5582,10 @@
       "Great Britain--Foreign relations--Sources",
       "Great Britain--Politics and government--Sources",
       "United States--Politics and government--Sources",
-      "Diplomatic relations--fast",
-      "Political science--fast",
-      "Great Britain--fast",
-      "United States--fast"
+      "Diplomatic relations",
+      "Political science",
+      "Great Britain",
+      "United States"
     ],
     "classifications":[
       {
@@ -6147,10 +6031,7 @@
     "subjects":[
       "Instrumental music",
       "Vocal music",
-      "Symphonies",
-      "Instrumental music--fast",
-      "Symphonies--fast",
-      "Vocal music--fast"
+      "Symphonies"
     ],
     "classifications":[
       {
@@ -6256,10 +6137,10 @@
       "Child prostitution--Government policy--Thailand",
       "Sex tourism--Thailand",
       "Social work with children--Thailand",
-      "Sex tourism--fast",
-      "Child prostitution--Prevention--fast",
-      "Social work with children--fast",
-      "Thailand--fast"
+      "Sex tourism",
+      "Child prostitution--Prevention",
+      "Social work with children",
+      "Thailand"
     ],
     "classifications":[
       {
@@ -6357,9 +6238,7 @@
     ],
     "subjects":[
       "Reporters and reporting",
-      "Journalism--Authorship",
-      "Journalism--Authorship.--fast",
-      "Reporters and reporting.--fast"
+      "Journalism--Authorship"
     ],
     "classifications":[
       {
@@ -6512,16 +6391,16 @@
       "Sound recordings--United States--Catalogs",
       "New York Recording Laboratories--Discography",
       "Paramount (Sound recording label)--Discography",
-      "New York Recording Laboratories. fast",
-      "Paramount (Sound recording label) fast",
-      "Blues (Music)--fast",
-      "Jazz.--fast",
-      "Record labels.--fast",
-      "Sound recording industry.--fast",
-      "Sound recordings.--fast",
-      "United States.--fast",
-      "Wisconsin.--fast",
-      "To 1931--fast"
+      "New York Recording Laboratories",
+      "Paramount (Sound recording label)",
+      "Blues (Music)",
+      "Jazz",
+      "Record labels",
+      "Sound recording industry",
+      "Sound recordings",
+      "United States",
+      "Wisconsin",
+      "To 1931"
     ],
     "classifications":[
       {
@@ -6677,9 +6556,9 @@
       "Bicycle trails--New York (State)--Ithaca--Maps",
       "Tompkins County (N.Y.)--Maps",
       "Ithaca (N.Y.)--Maps",
-      "Bicycle trails--fast",
-      "New York (State)--Ithaca--fast",
-      "New York (State)--Tompkins County--fast"
+      "Bicycle trails",
+      "New York (State)--Ithaca",
+      "New York (State)--Tompkins County"
     ],
     "classifications":[
       {
@@ -6904,8 +6783,8 @@
     ],
     "subjects":[
       "Agricultural colonies--China--Manchuria",
-      "Agricultural colonies.--fast",
-      "China--Manchuria.--fast"
+      "Agricultural colonies",
+      "China--Manchuria"
     ],
     "classifications":[
       {
@@ -7276,8 +7155,8 @@
       "Accounting--Examinations, questions, etc",
       "Decision making--Examinations--Study guides",
       "Decision making--Examinations, questions, etc",
-      "Accounting--Examinations--fast",
-      "Decision making--fast"
+      "Accounting--Examinations",
+      "Decision making"
     ],
     "classifications":[
       {
@@ -7393,8 +7272,8 @@
     "subjects":[
       "Historians--Ukraine--Cherkasʹka oblastʹ--Bio-bibliography--Dictionaries--Ukrainian",
       "Cherkasʹka oblastʹ (Ukraine)--Bio-bibliography--Dictionaries--Ukrainian",
-      "Historians.--fast",
-      "Ukraine--Cherkasʹka oblastʹ.--fast"
+      "Historians",
+      "Ukraine--Cherkasʹka oblastʹ"
     ],
     "classifications":[
       {
@@ -7502,7 +7381,7 @@
       }
     ],
     "subjects":[
-      "Fungi.--fast",
+      "Fungi",
       "Fungi--Pictorial works"
     ],
     "classifications":[
@@ -7738,10 +7617,9 @@
     "subjects":[
       "Guitar music",
       "Romitelli, Fausto, 1963-2004--Manuscripts--Facsimiles",
-      "Romitelli, Fausto, 1963-2004. fast",
+      "Romitelli, Fausto, 1963-2004",
       "Music--Manuscripts--Facsimiles",
-      "Guitar music.--fast",
-      "Music.--fast"
+      "Music"
     ],
     "classifications":[
       {
@@ -8006,10 +7884,7 @@
       "Maimonides, Moses, 1135-1204",
       "Crescas, Ḥasdai, 1340-approximately 1410",
       "Jewish philosophy",
-      "Crescas, Ḥasdai, 1340-approximately 1410. fast",
-      "Maimonides, Moses, 1135-1204. fast",
-      "Jewish philosophy.--fast",
-      "To 1500--fast"
+      "To 1500"
     ],
     "classifications":[
       {
@@ -8121,9 +7996,8 @@
     "subjects":[
       "Artists' books--United States",
       "Three-dimensional printing",
-      "Artists' books.--fast",
-      "Three-dimensional printing.--fast",
-      "United States.--fast"
+      "Artists' books",
+      "United States"
     ],
     "classifications":[
       {
@@ -8231,12 +8105,12 @@
       "Muslims--Dietary laws--14th century",
       "Islam--Customs and practices--Early works to 1800",
       "Manuscripts, Arabic--New Jersey--Princeton",
-      "Animals--Religious aspects--Islam.--fast",
-      "Islam--Customs and practices.--fast",
-      "Manuscripts, Arabic.--fast",
-      "Muslims--Dietary laws.--fast",
-      "New Jersey--Princeton.--fast",
-      "1300-1399--fast"
+      "Animals--Religious aspects--Islam",
+      "Islam--Customs and practices",
+      "Manuscripts, Arabic",
+      "Muslims--Dietary laws",
+      "New Jersey--Princeton",
+      "1300-1399"
     ],
     "classifications":[
 
@@ -8494,14 +8368,14 @@
       "Elite (Social sciences)--Spain--History--19th century",
       "Political culture--Spain--History--18th century",
       "Political culture--Spain--History--19th century",
-      "Elite (Social sciences)--fast",
-      "Management.--fast",
-      "Political culture.--fast",
-      "Politics and government.--fast",
-      "Spanish colonies.--fast",
-      "America.--fast",
-      "Spain.--fast",
-      "1700-1899--fast"
+      "Elite (Social sciences)",
+      "Management",
+      "Political culture",
+      "Politics and government",
+      "Spanish colonies",
+      "America",
+      "Spain",
+      "1700-1899"
     ],
     "classifications":[
       {
@@ -8619,10 +8493,10 @@
       "Environmental protection--Religious aspects--Hinduism",
       "Human ecology--India",
       "India--Civilization",
-      "Civilization.--fast",
-      "Ecology.--fast",
-      "Environmental protection--Religious aspects.--fast",
-      "India.--fast"
+      "Civilization",
+      "Ecology",
+      "Environmental protection--Religious aspects",
+      "India"
     ],
     "classifications":[
       {
