@@ -6,6 +6,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.services.mappers.processor.functions.NormalizationFunctionRunner;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -46,6 +47,7 @@ public class Processor {
   private static final String VALUE = "value";
   private static final String CUSTOM = "custom";
   private static final String TYPE = "type";
+  private static final String REPEATABLE_SUBFIELD_SEPARATOR = StringUtils.SPACE;
 
   private JsonObject rulesFile;
 
@@ -327,7 +329,7 @@ public class Processor {
         sb.delete(0, sb.length());
       }
       if (sb.length() > 0) {
-        sb.append(" ");
+        sb.append(REPEATABLE_SUBFIELD_SEPARATOR);
       }
       sb.append(data);
     }
