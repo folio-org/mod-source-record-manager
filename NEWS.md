@@ -10,7 +10,8 @@
  * Added total records number to logDto
  * Changed logic of adding fields to MARC record resulting in update of leader value
  * Rule Processor integrated with Settings (mod-inventory-storage)
-
+ * Filled in "fromModuleVersion" value for each "tables" and "scripts" section in schema.json
+ 
  | METHOD |             URL                              | DESCRIPTION                                              |
  |--------|----------------------------------------------|----------------------------------------------------------|
  | DELETE | /change-manager/jobExecutions/{id}/records   | Delete Job Execution and all associated records from SRS |

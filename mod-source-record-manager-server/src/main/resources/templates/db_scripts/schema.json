@@ -3,7 +3,7 @@
     {
       "tableName": "job_executions",
       "generateId": false,
-      "fromModuleVersion": "1.0",
+      "fromModuleVersion": "mod-source-record-manager-0.1.0",
       "withMetadata": false,
       "pkColumnName": "_id",
       "index": [
@@ -16,7 +16,7 @@
     {
       "tableName": "job_execution_source_chunks",
       "generateId": false,
-      "fromModuleVersion": "1.0",
+      "fromModuleVersion": "mod-source-record-manager-1.2.0",
       "withMetadata": false,
       "pkColumnName": "_id",
       "index": [
@@ -42,17 +42,17 @@
     {
       "run": "after",
       "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;",
-      "fromModuleVersion": "2.0"
+      "fromModuleVersion": "mod-source-record-manager-1.5.0"
     },
     {
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(_id) = (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "2.0"
+      "fromModuleVersion": "mod-source-record-manager-1.5.0"
     },
     {
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(_id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "2.0"
+      "fromModuleVersion": "mod-source-record-manager-1.5.0"
     }
   ]
 }
