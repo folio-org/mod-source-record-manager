@@ -129,16 +129,5 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return publisherRole.getCaption();
       }
     }
-  },
-
-  REMOVE_ENDING_STRING() {
-    private static final String PARAM = "string";
-
-    @Override
-    public String apply(RuleExecutionContext context) {
-      String suffix = context.getRuleParameter().getString(PARAM);
-      String subFieldValue = context.getSubFieldValue();
-      return StringUtils.removeEnd(subFieldValue, suffix);
-    }
   }
 }
