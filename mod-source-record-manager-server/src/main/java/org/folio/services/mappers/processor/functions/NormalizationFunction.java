@@ -6,9 +6,9 @@ import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
-import java.util.List;
 import java.util.function.Function;
 
+import static io.netty.util.internal.StringUtil.EMPTY_STRING;
 import static org.apache.commons.lang3.math.NumberUtils.INTEGER_ZERO;
 
 /**
@@ -23,9 +23,14 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      Integer from = context.getRuleParameter().getInteger(FROM_PARAMETER);
-      Integer to = context.getRuleParameter().getInteger(TO_PARAMETER);
-      return subFieldValue.substring(from, to);
+      JsonObject ruleParameter = context.getRuleParameter();
+      if (ruleParameter != null && ruleParameter.containsKey(FROM_PARAMETER) && ruleParameter.containsKey(TO_PARAMETER)) {
+        Integer from = context.getRuleParameter().getInteger(FROM_PARAMETER);
+        Integer to = context.getRuleParameter().getInteger(TO_PARAMETER);
+        return subFieldValue.substring(from, to);
+      } else {
+        return subFieldValue;
+      }
     }
   },
 
@@ -35,12 +40,13 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      int lastPosition = subFieldValue.length() - 1;
-      if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldValue.charAt(lastPosition)))) {
-        return subFieldValue.substring(INTEGER_ZERO, lastPosition);
-      } else {
-        return subFieldValue;
+      if (!StringUtils.isEmpty(subFieldValue)) {
+        int lastPosition = subFieldValue.length() - 1;
+        if (PUNCT_2_REMOVE.contains(String.valueOf(subFieldValue.charAt(lastPosition)))) {
+          return subFieldValue.substring(INTEGER_ZERO, lastPosition);
+        }
       }
+      return subFieldValue;
     }
   },
 
@@ -70,7 +76,8 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      if (context.getRuleParameter().containsKey(SUBSTRING_PARAMETER)) {
+      JsonObject ruleParameter = context.getRuleParameter();
+      if (ruleParameter != null && ruleParameter.containsKey(SUBSTRING_PARAMETER)) {
         String substring = context.getRuleParameter().getString(SUBSTRING_PARAMETER);
         return StringUtils.remove(subFieldValue, substring);
       } else {
@@ -86,8 +93,12 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       DataField dataField = context.getDataField();
       int from = INTEGER_ZERO;
       int to = Character.getNumericValue(dataField.getIndicator2());
-      String prefixToRemove = subFieldData.substring(from, to);
-      return StringUtils.remove(subFieldData, prefixToRemove);
+      if (to < subFieldData.length()) {
+        String prefixToRemove = subFieldData.substring(from, to);
+        return StringUtils.remove(subFieldData, prefixToRemove);
+      } else {
+        return subFieldData;
+      }
     }
   },
 
@@ -98,25 +109,6 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     }
   },
 
-  SET_VALUE_IF_SUBFIELD_HAS_PREFIX() {
-    private static final String PREFIXES_PARAMETER = "prefixes";
-    private static final String VALUE_CONDITION_IS_TRUE_PARAMETER = "valueIfConditionIsTrue";
-    private static final String VALUE_CONDITION_IS_FALSE_PARAMETER = "valueIfConditionIsFalse";
-
-    @Override
-    public String apply(RuleExecutionContext context) {
-      JsonObject parameters = context.getRuleParameter();
-      List<String> prefixes = parameters.getJsonArray(PREFIXES_PARAMETER).getList();
-      String valueIfConditionIsTrue = parameters.getString(VALUE_CONDITION_IS_TRUE_PARAMETER);
-      String valueIfConditionIsFalse = parameters.getString(VALUE_CONDITION_IS_FALSE_PARAMETER);
-      if (prefixes.stream().anyMatch(context.getSubFieldValue()::startsWith)) {
-        return valueIfConditionIsTrue;
-      } else {
-        return valueIfConditionIsFalse;
-      }
-    }
-  },
-
   SET_PUBLISHER_ROLE() {
     @Override
     public String apply(RuleExecutionContext context) {
@@ -124,7 +116,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       int indicator = Character.getNumericValue(dataField.getIndicator2());
       PublisherRole publisherRole = PublisherRole.getByIndicator(indicator);
       if (publisherRole == null) {
-        return StringUtils.EMPTY;
+        return EMPTY_STRING;
       } else {
         return publisherRole.getCaption();
       }
