@@ -39,8 +39,8 @@ public class NormalizationFunctionRunner {
   public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext) {
     try {
       return NormalizationFunction.valueOf(functionName.trim().toUpperCase()).apply(ruleExecutionContext);
-    } catch (Exception e) {
-      LOGGER.error("Error while running normalization functions, cause: {}", e.getLocalizedMessage());
+    } catch (RuntimeException e) {
+      LOGGER.error("Error while running normalization functions", e);
       return ruleExecutionContext.getSubFieldValue();
     }
   }
