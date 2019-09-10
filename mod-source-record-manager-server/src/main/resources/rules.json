@@ -630,7 +630,8 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for System Control Number",
           "subfield": [
-            "a", "z"
+            "a",
+            "z"
           ],
           "rules": [
             {
@@ -643,7 +644,8 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a", "z"
+            "a",
+            "z"
           ]
         }
       ]
@@ -1368,7 +1370,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["a"]
+          "subfields": [
+            "a"
+          ]
         }
       ],
       "rules": [
@@ -1389,7 +1393,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["b"]
+          "subfields": [
+            "b"
+          ]
         }
       ],
       "rules": [
@@ -1410,7 +1416,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["c"]
+          "subfields": [
+            "c"
+          ]
         }
       ],
       "rules": [
@@ -1434,7 +1442,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["a"]
+          "subfields": [
+            "a"
+          ]
         }
       ],
       "rules": [
@@ -1456,7 +1466,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["b"]
+          "subfields": [
+            "b"
+          ]
         }
       ],
       "rules": [
@@ -1478,7 +1490,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["c"]
+          "subfields": [
+            "c"
+          ]
         }
       ],
       "rules": [
@@ -1559,6 +1573,26 @@
           "conditions": [
             {
               "type": "trim_period"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "336": [
+    {
+      "target": "instanceTypeId",
+      "description": "Instance type ID",
+      "ignoreSubsequentFields": true,
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "b"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_instance_type_id"
             }
           ]
         }

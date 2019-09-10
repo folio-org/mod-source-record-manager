@@ -2,10 +2,12 @@ package org.folio.services.mappers.processor.functions;
 
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
+import java.util.List;
 import java.util.function.Function;
 
 import static io.netty.util.internal.StringUtil.EMPTY_STRING;
@@ -121,5 +123,22 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return publisherRole.getCaption();
       }
     }
-  }
+  },
+
+  SET_INSTANCE_TYPE_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<InstanceType> types = context.getMappingParameters().getInstanceTypes();
+      if (types == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return types.stream()
+        .filter(instanceType -> instanceType.getCode().equals(context.getSubFieldValue()))
+        .findFirst()
+        .map(InstanceType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  };
+
+  private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 }
