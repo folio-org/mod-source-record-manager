@@ -25,6 +25,10 @@
     {
       "id": "classification-types",
       "version": "1.2"
+    },
+    {
+      "id": "instance-types",
+      "version": "2.0"
     }
   ],
   "provides": [
@@ -89,7 +93,8 @@
             "inventory.instances.batch.post",
             "users.collection.get",
             "inventory-storage.identifier-types.collection.get",
-            "inventory-storage.classification-types.collection.get"
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.instance-types.collection.get"
           ]
         },
         {
