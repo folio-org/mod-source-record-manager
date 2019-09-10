@@ -1,4 +1,4 @@
-## 2019-08-24 v1.6.0-SNAPSHOT
+## 2019-09-09 v1.6.0
  * Progress mechanism was updated
  * Changed RawRecordsDto schema with extended metadata information
  * Changed relations between UI and Backend statuses for job executions
