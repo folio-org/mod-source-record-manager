@@ -7,6 +7,10 @@
       "version": "2.0"
     },
     {
+      "id": "source-record-storage-batch",
+      "version": "0.1"
+    },
+    {
       "id": "inventory-batch",
       "version": "0.3"
     },
