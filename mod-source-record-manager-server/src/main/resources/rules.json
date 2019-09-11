@@ -895,43 +895,13 @@
   ],
   "086": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for gov doc classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_classification_type_id",
-                  "parameter": {
-                    "name": "GDC"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "target": "classifications.classificationNumber",
-          "description": "Gov doc classification",
-          "subfield": [
-            "a"
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "classifications.classificationTypeId",
-          "description": "Type for gov doc classification",
-          "subfield": [
+            "a",
             "z"
           ],
           "rules": [
@@ -950,7 +920,9 @@
         {
           "target": "classifications.classificationNumber",
           "description": "Gov doc classification",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
+            "a",
             "z"
           ]
         }
