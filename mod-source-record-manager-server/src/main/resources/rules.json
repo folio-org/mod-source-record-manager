@@ -895,11 +895,11 @@
   ],
   "086": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "classifications.classificationTypeId",
           "description": "Type for gov doc classification",
-          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "z"
@@ -920,7 +920,6 @@
         {
           "target": "classifications.classificationNumber",
           "description": "Gov doc classification",
-          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "z"

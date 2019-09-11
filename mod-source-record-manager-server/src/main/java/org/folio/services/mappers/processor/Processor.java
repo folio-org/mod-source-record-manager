@@ -269,7 +269,7 @@ public class Processor {
     }
 
     for (int i = 0; i < subFields.size(); i++) {
-      handleSubFields(ruleExecutionContext.getDataField(), subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
+      handleSubFields(ruleExecutionContext, subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
     }
 
     if (!(entityRequestedPerRepeatedSubfield && entityRequested)) {
@@ -286,7 +286,7 @@ public class Processor {
     instance.setId(UUID.randomUUID().toString());
   }
 
-  private void handleSubFields(DataField dataField, List<Subfield> subFields, int subFieldsIndex, Set<String> subFieldsSet,
+  private void handleSubFields(RuleExecutionContext ruleExecutionContext, List<Subfield> subFields, int subFieldsIndex, Set<String> subFieldsSet,
                                List<Object[]> arraysOfObjects, boolean applyPost, String[] embeddedFields) {
 
     String data = subFields.get(subFieldsIndex).getData();
@@ -307,9 +307,7 @@ public class Processor {
       //to wait and run this after all the data associated with this target has been
       //concatenated , therefore this can only be done in the createNewObject function
       //which has the full set of subfield data
-      RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
       ruleExecutionContext.setSubFieldValue(data);
-      ruleExecutionContext.setDataField(dataField);
       data = processRules(ruleExecutionContext);
     }
 
