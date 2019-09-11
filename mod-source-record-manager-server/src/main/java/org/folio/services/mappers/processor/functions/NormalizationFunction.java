@@ -142,7 +142,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .map(ClassificationType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
-  };
+  },
 
   SET_INSTANCE_TYPE_ID() {
     @Override
