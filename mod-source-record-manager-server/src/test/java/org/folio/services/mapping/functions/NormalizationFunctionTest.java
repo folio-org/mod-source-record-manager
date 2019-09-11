@@ -1,15 +1,19 @@
 package org.folio.services.mapping.functions;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.impl.DataFieldImpl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.netty.util.internal.StringUtil.EMPTY_STRING;
 import static org.folio.services.mappers.processor.functions.NormalizationFunctionRunner.runFunction;
@@ -17,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)
 public class NormalizationFunctionTest {
+  private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 
   @Test
   public void CHAR_SELECT_shouldReturnExpectedResult() {
@@ -224,6 +229,7 @@ public class NormalizationFunctionTest {
 
   @Test
   public void SET_PUBLISHER_ROLE_shouldReturnExpectedResult() {
+    // given
     Map<Character, String> givenIndicatorToExpectedRoleMap = new HashMap<>();
     givenIndicatorToExpectedRoleMap.put('0', "Production");
     givenIndicatorToExpectedRoleMap.put('1', "Publication");
@@ -242,4 +248,36 @@ public class NormalizationFunctionTest {
       assertEquals(expectedSubField, actualSubField);
     }
   }
+
+  @Test
+  public void SET_CLASSIFICATION_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedClassificationTypeId = UUID.randomUUID().toString();
+    ClassificationType givenClassificationType = new ClassificationType()
+      .withId(expectedClassificationTypeId)
+      .withName("LC")
+      .withSource("folio");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withClassificationTypes(Collections.singletonList(givenClassificationType)));
+    context.setRuleParameter(new JsonObject().put("name", "LC"));
+    // when
+    String actualClassificationTypeId = runFunction("set_classification_type_id", context);
+    // then
+    assertEquals(expectedClassificationTypeId, actualClassificationTypeId);
+  }
+
+  @Test
+  public void SET_CLASSIFICATION_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "LC"));
+    // when
+    String actualClassificationTypeId = runFunction("set_classification_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualClassificationTypeId);
+  }
+
+
+
 }
