@@ -2,6 +2,7 @@ package org.folio.services.mappers.processor.functions;
 
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
@@ -139,6 +140,21 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .filter(classificationType -> classificationType.getName().equals(typeName))
         .findFirst()
         .map(ClassificationType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_INSTANCE_TYPE_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<InstanceType> types = context.getMappingParameters().getInstanceTypes();
+      if (types == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return types.stream()
+        .filter(instanceType -> instanceType.getCode().equals(context.getSubFieldValue()))
+        .findFirst()
+        .map(InstanceType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
   };

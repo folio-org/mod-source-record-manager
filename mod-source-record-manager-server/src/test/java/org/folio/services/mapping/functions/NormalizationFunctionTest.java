@@ -2,6 +2,7 @@ package org.folio.services.mapping.functions;
 
 import io.vertx.core.json.JsonObject;
 import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.junit.Test;
@@ -278,6 +279,35 @@ public class NormalizationFunctionTest {
     assertEquals(STUB_FIELD_TYPE_ID, actualClassificationTypeId);
   }
 
+  @Test
+  public void SET_INSTANCE_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceTypeId = UUID.randomUUID().toString();
+    InstanceType instanceType = new InstanceType()
+      .withId(expectedInstanceTypeId)
+      .withCode("txt");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    // when
+    String actualTypeId = runFunction("set_instance_type_id", context);
+    // then
+    assertEquals(expectedInstanceTypeId, actualTypeId);
+  }
 
+  @Test
+  public void SET_INSTANCE_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    InstanceType instanceType = new InstanceType()
+      .withId(UUID.randomUUID().toString())
+      .withCode("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    // when
+    String actualTypeId = runFunction("set_instance_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
 
 }
