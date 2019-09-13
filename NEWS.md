@@ -1,5 +1,7 @@
-## 2019-09-09 v1.7.0-SNAPSHOT
+## 2019-09-09 v1.7.1
  * Added instance-type settings loading for mapping
+ * Added classification settings loading for mapping
+ * Added instance-format settings loading for mapping
 
 ## 2019-09-09 v1.6.0
  * Progress mechanism was updated

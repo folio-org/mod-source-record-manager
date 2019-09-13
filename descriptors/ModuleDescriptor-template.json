@@ -29,6 +29,10 @@
     {
       "id": "instance-types",
       "version": "2.0"
+    },
+    {
+      "id": "instance-formats",
+      "version": "2.0"
     }
   ],
   "provides": [
@@ -94,7 +98,8 @@
             "users.collection.get",
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
-            "inventory-storage.instance-types.collection.get"
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.instance-formats.collection.get"
           ]
         },
         {

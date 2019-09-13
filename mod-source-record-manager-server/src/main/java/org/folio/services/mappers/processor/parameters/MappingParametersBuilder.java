@@ -12,6 +12,8 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.IdentifierTypes;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceTypes;
+import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceFormats;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,9 +25,11 @@ public class MappingParametersBuilder {
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types";
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types";
   private static final String INSTANCE_TYPES_URL = "/instance-types";
+  private static final String INSTANCE_FORMATS_URL = "/instance-formats";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
   private static final String INSTANCE_TYPES_RESPONSE_PARAM = "instanceTypes";
+  private static final String INSTANCE_FORMATS_RESPONSE_PARAM = "instanceFormats";
 
   private MappingParametersBuilder() {
   }
@@ -34,12 +38,14 @@ public class MappingParametersBuilder {
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(params);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(params);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(params);
-    return CompositeFuture.all(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture)
+    Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(params);
+    return CompositeFuture.all(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture)
       .map(ar ->
         new MappingParameters()
           .withIdentifierTypes(identifierTypesFuture.result())
           .withClassificationTypes(classificationTypesFuture.result())
           .withInstanceTypes(instanceTypesFuture.result())
+          .withInstanceFormats(instanceFormatsFuture.result())
       );
   }
 
@@ -101,6 +107,28 @@ public class MappingParametersBuilder {
         if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
           List<InstanceType> instanceTypeList = response.mapTo(InstanceTypes.class).getInstanceTypes();
           future.complete(instanceTypeList);
+        } else {
+          future.complete(Collections.emptyList());
+        }
+      }
+    });
+    return future;
+  }
+
+  /**
+   * Requests for Instance formats from application Settings (mod-inventory-storage)
+   *
+   * @param params Okapi connection parameters
+   * @return List of Instance formats
+   */
+  private static Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
+    Future<List<InstanceFormat>> future = Future.future();
+    RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).setHandler(ar -> {
+      if (RestUtil.validateAsyncResult(ar, future)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
+          List<InstanceFormat> instanceFormatList = response.mapTo(InstanceFormats.class).getInstanceFormats();
+          future.complete(instanceFormatList);
         } else {
           future.complete(Collections.emptyList());
         }
