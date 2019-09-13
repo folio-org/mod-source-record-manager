@@ -1615,18 +1615,14 @@
     {
       "target": "instanceFormatIds",
       "description": "Instance Format ID",
-      "applyRulesOnConcatenatedData": true,
       "subfield": [
-        "a",
-        "b",
-        "2",
-        "3"
+        "b"
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "trim_period"
+              "type": "set_instance_format_id"
             }
           ]
         }

@@ -4,6 +4,7 @@ import org.apache.commons.collections4.list.UnmodifiableList;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class MappingParameters {
   private UnmodifiableList<IdentifierType> identifierTypes;
   private UnmodifiableList<ClassificationType> classificationTypes;
   private UnmodifiableList<InstanceType> instanceTypes;
+  private UnmodifiableList<InstanceFormat> instanceFormats;
 
   public List<IdentifierType> getIdentifierTypes() {
     return identifierTypes;
@@ -40,6 +42,15 @@ public class MappingParameters {
 
   public MappingParameters withInstanceTypes(List<InstanceType> instanceTypes) {
     this.instanceTypes = new UnmodifiableList<>(instanceTypes);
+    return this;
+  }
+
+  public List<InstanceFormat> getInstanceFormats() {
+    return instanceFormats;
+  }
+
+  public MappingParameters withInstanceFormats(List<InstanceFormat> instanceFormats) {
+    this.instanceFormats = new UnmodifiableList<>(instanceFormats);
     return this;
   }
 }

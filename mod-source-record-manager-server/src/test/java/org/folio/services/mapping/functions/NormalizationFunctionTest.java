@@ -1,7 +1,9 @@
 package org.folio.services.mapping.functions;
 
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -308,6 +310,37 @@ public class NormalizationFunctionTest {
     String actualTypeId = runFunction("set_instance_type_id", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceFormatId = UUID.randomUUID().toString();
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(expectedInstanceFormatId)
+      .withCode("nc");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(expectedInstanceFormatId, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnEmptyStringIfNoSettingsSpecified() {
+    // given
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(UUID.randomUUID().toString())
+      .withCode("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualTypeId);
   }
 
 }

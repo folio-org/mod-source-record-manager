@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
@@ -123,6 +124,21 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       } else {
         return publisherRole.getCaption();
       }
+    }
+  },
+
+  SET_INSTANCE_FORMAT_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<InstanceFormat> instanceFormats = context.getMappingParameters().getInstanceFormats();
+      if (instanceFormats == null) {
+        return StringUtils.EMPTY;
+      }
+      return instanceFormats.stream()
+        .filter(instanceFormat -> instanceFormat.getCode().equals(context.getSubFieldValue()))
+        .findFirst()
+        .map(InstanceFormat::getId)
+        .orElse(StringUtils.EMPTY);
     }
   },
 
