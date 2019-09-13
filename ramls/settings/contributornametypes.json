@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A collection of contributor name types (controlled vocabulary)",
+  "type": "object",
+  "properties": {
+    "contributorNameTypes": {
+      "description": "List of contributor name types",
+      "id": "contributorNameType",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "contributornametype.json"
+      }
+    },
+    "totalRecords": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "contributorNameTypes",
+    "totalRecords"
+  ]
+}

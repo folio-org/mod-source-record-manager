@@ -2,6 +2,7 @@ package org.folio.services.mappers.processor.functions;
 
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
@@ -156,6 +157,24 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .filter(classificationType -> classificationType.getName().equals(typeName))
         .findFirst()
         .map(ClassificationType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_CONTRIBUTOR_NAME_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String typeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<ContributorNameType> typeNames = context.getMappingParameters().getContributorNameTypes();
+      if (typeNames == null || typeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return typeNames.stream()
+        .filter(contributorTypeName -> contributorTypeName.getName().equals(typeName))
+        .findFirst()
+        .map(ContributorNameType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
   },

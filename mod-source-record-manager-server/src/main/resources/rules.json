@@ -972,13 +972,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1034,13 +1040,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "d376e36c-b759-4fed-8502-7130d1eeff39"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1094,13 +1106,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -4402,13 +4420,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -4464,13 +4488,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "d376e36c-b759-4fed-8502-7130d1eeff39"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -4524,13 +4554,19 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
             }
           ]
         },
