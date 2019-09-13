@@ -2,6 +2,7 @@ package org.folio.services.mappers.processor.parameters;
 
 import org.apache.commons.collections4.list.UnmodifiableList;
 import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
@@ -17,6 +18,7 @@ public class MappingParameters {
   private UnmodifiableList<ClassificationType> classificationTypes;
   private UnmodifiableList<InstanceType> instanceTypes;
   private UnmodifiableList<InstanceFormat> instanceFormats;
+  private UnmodifiableList<ContributorNameType> contributorNameTypes;
 
   public List<IdentifierType> getIdentifierTypes() {
     return identifierTypes;
@@ -51,6 +53,15 @@ public class MappingParameters {
 
   public MappingParameters withInstanceFormats(List<InstanceFormat> instanceFormats) {
     this.instanceFormats = new UnmodifiableList<>(instanceFormats);
+    return this;
+  }
+
+  public List<ContributorNameType> getContributorNameTypes() {
+    return contributorNameTypes;
+  }
+
+  public MappingParameters withContributorNameTypes(List<ContributorNameType> contributorNameTypes) {
+    this.contributorNameTypes = new UnmodifiableList<ContributorNameType>(contributorNameTypes);
     return this;
   }
 }
