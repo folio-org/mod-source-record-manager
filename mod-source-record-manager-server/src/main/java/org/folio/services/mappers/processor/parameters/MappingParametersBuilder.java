@@ -39,7 +39,7 @@ public class MappingParametersBuilder {
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(params);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(params);
     Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(params);
-    return CompositeFuture.all(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture)
+    return CompositeFuture.all(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, electronicAccessRelationshipsFuture)
       .map(ar ->
         new MappingParameters()
           .withIdentifierTypes(identifierTypesFuture.result())
