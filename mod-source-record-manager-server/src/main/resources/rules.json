@@ -991,9 +991,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
@@ -1059,9 +1057,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
@@ -1125,9 +1121,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
@@ -4439,9 +4433,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
@@ -4507,9 +4499,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
@@ -4573,9 +4563,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
-          "subfield": [
-            "a"
-          ],
+          "subfield": [],
           "rules": [
             {
               "conditions": [],
