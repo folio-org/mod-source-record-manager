@@ -3,6 +3,7 @@ package org.folio.services.mappers.processor.parameters;
 import org.apache.commons.collections4.list.UnmodifiableList;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ContributorType;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
@@ -18,6 +19,7 @@ public class MappingParameters {
   private UnmodifiableList<ClassificationType> classificationTypes;
   private UnmodifiableList<InstanceType> instanceTypes;
   private UnmodifiableList<InstanceFormat> instanceFormats;
+  private UnmodifiableList<ContributorType> contributorTypes;
   private UnmodifiableList<ContributorNameType> contributorNameTypes;
 
   public List<IdentifierType> getIdentifierTypes() {
@@ -56,12 +58,21 @@ public class MappingParameters {
     return this;
   }
 
+  public List<ContributorType> getContributorTypes() {
+    return contributorTypes;
+  }
+
+  public MappingParameters withContributorTypes(List<ContributorType> contributorTypes) {
+    this.contributorTypes = new UnmodifiableList<>(contributorTypes);
+    return this;
+  }
+
   public List<ContributorNameType> getContributorNameTypes() {
     return contributorNameTypes;
   }
 
   public MappingParameters withContributorNameTypes(List<ContributorNameType> contributorNameTypes) {
-    this.contributorNameTypes = new UnmodifiableList<ContributorNameType>(contributorNameTypes);
+    this.contributorNameTypes = new UnmodifiableList<>(contributorNameTypes);
     return this;
   }
 }
