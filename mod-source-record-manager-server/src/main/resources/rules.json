@@ -1008,6 +1008,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
@@ -1092,6 +1093,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
@@ -1174,6 +1176,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
@@ -4504,6 +4507,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
@@ -4588,6 +4592,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
@@ -4670,6 +4675,7 @@
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
           ],
           "rules": [
