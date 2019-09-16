@@ -9,10 +9,19 @@ import org.marc4j.marc.DataField;
  */
 public class RuleExecutionContext {
 
+  private Object targetField;
   private DataField dataField;
   private String subFieldValue;
   private MappingParameters mappingParameters;
   private JsonObject ruleParameter;
+
+  public Object getTargetField() {
+    return targetField;
+  }
+
+  public void setTargetField(Object targetField) {
+    this.targetField = targetField;
+  }
 
   public DataField getDataField() {
     return dataField;
