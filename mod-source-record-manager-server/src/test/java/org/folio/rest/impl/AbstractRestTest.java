@@ -72,7 +72,7 @@ public abstract class AbstractRestTest {
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types";
   private static final String INSTANCE_TYPES_URL = "/instance-types";
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types";
-  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships";
+  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
   private static final String INSTANCE_FORMATS_URL = "/instance-formats";
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";

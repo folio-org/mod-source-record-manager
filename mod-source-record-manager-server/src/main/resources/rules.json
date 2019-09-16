@@ -4779,6 +4779,7 @@
       "entity": [
         {
           "target": "electronicAccess.relationshipId",
+          "applyRulesOnConcatenatedData": true,
           "description": "Relationship between the electronic resource at the location identified and the item described in the record as a whole",
           "subfield": [
             "3",
