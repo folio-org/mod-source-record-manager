@@ -39,7 +39,7 @@
     "contributors": [
       {
         "name": "Dugmore, C. W. (Clifford William),",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -110,7 +110,7 @@
     "contributors": [
       {
         "name": "Mozart, Wolfgang Amadeus, 1756-1791",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -221,17 +221,17 @@
     "contributors": [
       {
         "name": "Research Publications, inc",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "ESTC (Project)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "ESTC/NA (Project)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -257,10 +257,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier",
-      "microfilm reel hd rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "microfilm reels : illustrations ; 35 mm + 1 guide (8 v.)"
     ],
@@ -315,22 +312,22 @@
     "contributors": [
       {
         "name": "Mertens, Jacob, 1896-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "West Group",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Clark Boardman Callaghan",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Callaghan and Company",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -439,22 +436,22 @@
     "contributors": [
       {
         "name": "Pennsylvania",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Purdon, John, 1784-1835",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "George T. Bisel Company",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "West Publishing Company",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -535,7 +532,7 @@
     "contributors": [
       {
         "name": "Pym, Christopher, 1929-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -619,12 +616,12 @@
     "contributors": [
       {
         "name": "Crumb, George",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "García Lorca, Federico, 1898-1936",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -709,7 +706,7 @@
     "contributors": [
       {
         "name": "Cornell University. Graduate School",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -789,12 +786,12 @@
     "contributors": [
       {
         "name": "Balinese Manuscript Project",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Rijksuniversiteit te leiden. Bibliotheek",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -918,12 +915,12 @@
     "contributors": [
       {
         "name": "Nolen, John, 1869-1937",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Hancock, John L",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1184,7 +1181,7 @@
     "contributors": [
       {
         "name": "Heins, Ernst",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1251,7 +1248,7 @@
     "contributors": [
       {
         "name": "Rattu, K. E",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -1314,7 +1311,7 @@
     "contributors": [
       {
         "name": "Tabrani, Primadi, 1935-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -1423,12 +1420,12 @@
     "contributors": [
       {
         "name": "Bayly, Lewis, -1631",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Vaughan, Rowland, active 1629-1658",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1514,17 +1511,17 @@
     "contributors": [
       {
         "name": "Oppenheim, J. (John)",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Wolf, Willem-Jan van der",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Global Law Association",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1609,7 +1606,7 @@
     "contributors": [
       {
         "name": "Universitas Lambung Mangkurat",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1695,17 +1692,17 @@
     "contributors": [
       {
         "name": "Dick, Philip K",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Zelazny, Roger",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Cassidy, Joanna, 1945-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1768,12 +1765,12 @@
     "contributors": [
       {
         "name": "Fingarette, Herbert",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "NetLibrary, Inc",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1876,17 +1873,17 @@
     "contributors": [
       {
         "name": "Hadden, Briton, 1898-1929",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Luce, Henry Robinson, 1898-1967",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "EBSCO Publishing (Firm)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -1937,9 +1934,7 @@
       }
     ],
     "instanceTypeId": "6312d172-f0cf-40f6-b27d-9fa8feaf332f",
-    "instanceFormatIds": [
-      "online resource rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource."
     ],
@@ -2018,12 +2013,12 @@
     "contributors": [
       {
         "name": "Great Britain. Record Commission",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Miscellaneous Pamphlet Collection (Library of Congress)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2083,12 +2078,12 @@
     "contributors": [
       {
         "name": "Peterson, M. F",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Church of Grasmere (Grasmere, England)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2159,17 +2154,17 @@
     "contributors": [
       {
         "name": "Cornell University. Department of Architecture. Knight Visual Resources Facility",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Cornell University. Library",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Cornell University. Fine Arts Library",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2256,12 +2251,12 @@
     "contributors": [
       {
         "name": "Graham, Robert",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Church Temperance Society (U.S.)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2323,7 +2318,7 @@
     "contributors": [
       {
         "name": "Philippines. National Statistical Coordination Board",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2403,12 +2398,12 @@
     "contributors": [
       {
         "name": "Halsbury, Hardinge Stanley Giffard, Earl of, 1823-1921",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Mackay of Clashfern, James Peter Hymers, Baron, 1927-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -2489,57 +2484,57 @@
     "contributors": [
       {
         "name": "United States. War Department",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Cowles, Calvin D. (Calvin Duvall), 1849-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ainsworth, Fred C. (Fred Crayton), 1852-1934",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Scott, Robert N. (Robert Nicholson), 1838-1887",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Lazelle, Henry Martyn, 1832-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Davis, George B. (George Breckenridge), 1847-1914",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Perry, Leslie J",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kirkley, Joseph W. (Joseph William), 1841-1912",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "United States. Record and Pension Office",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "United States. War Records Office",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Moodey, John Sheldon, 1842-",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -3579,272 +3574,272 @@
     "contributors": [
       {
         "name": "Beatles",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Alexander, Arthur, 1940-1993",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Bacharach, Burt",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Bateman, Robert, 1936-2016",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Berry, Chuck",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Blackwell, Bumps",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Bradford, Janie, 1939-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "David, Mack, 1912-1993",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Dixon, Luther, 1931-2009",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Dobbins, Georgia",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Dropkin, Richard",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Farrell, Wes, 1939-1996",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Garrett, William",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Goffin, Gerry",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gordy, Berry",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gorman, Fred",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Harrison, George, 1943-2001",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Holland, Brian",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Holly, Buddy, 1936-1959",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Johnson, Enotris",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Johnson, Roy Lee",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "King, Carole, 1942-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Lennon, John, 1940-1980",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Leiber, Jerry",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Little Richard, 1932-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Marlow, Ric",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "McCartney, Paul",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Medley, Phil",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Morrison, Voni",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Perkins, Carl, 1932-1998",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Preston, Billy",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Robinson, Smokey, 1940-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Berns, Bert",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Russell, Johnny",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Scott, Bobby",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Starr, Ringo",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Stoller, Mike",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Williams, Barney",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Williams, Larry, 1935-1980",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Willson, Meredith, 1902-1984",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "EMI Records Ltd",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Apple Corps Limited",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Capitol Records, Inc",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Parlophone Company",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Please please me",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. With the Beatles",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Hard day's night",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Beatles for sale",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Help!",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Rubber soul",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Revolver",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Sgt. Pepper's Lonely Hearts Club Band",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Magical mystery tour",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Beatles. Beatles",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -3876,9 +3871,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "audio disc sd rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "13 audio discs : digital, mono, stereo ; 4 3/4 in."
     ],
@@ -4083,17 +4076,17 @@
     "contributors": [
       {
         "name": "Taub, Adam",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Soriano, Yoan",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Horizon Line Documentary (Firm)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -4211,17 +4204,17 @@
     "contributors": [
       {
         "name": "Soriano, Yoan",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Taub, Adam",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Horizon Line Documentary (Firm)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -4335,7 +4328,7 @@
     "contributors": [
       {
         "name": "Perich, Tristan",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -4414,7 +4407,7 @@
     "contributors": [
       {
         "name": "Gao, Zhiyong",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -4486,12 +4479,12 @@
     "contributors": [
       {
         "name": "Stiffler, David Blair",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Smithsonian/Folkways Recordings",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -4588,7 +4581,7 @@
     "contributors": [
       {
         "name": "FM3 (Musical group)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -4680,7 +4673,7 @@
     "contributors": [
       {
         "name": "Madrigal Gonzalez, Gizela",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -4765,42 +4758,42 @@
     "contributors": [
       {
         "name": "Verdi, Giuseppe, 1813-1901",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Harteros, Anja",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Garanča, Elīna, 1976-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kaufmann, Jonas",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pape, René",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Casoni, Bruno",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Barenboim, Daniel, 1942-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Teatro alla Scala",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -4940,7 +4933,7 @@
     "contributors": [
       {
         "name": "National Archives (Great Britain)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -4978,9 +4971,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "online resource cr rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource."
     ],
@@ -5037,112 +5028,112 @@
     "contributors": [
       {
         "name": "Pitts, Antony",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Traditional",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Madan, Martin",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Olivers, Thomas",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Sharp, C. J",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Praetorius, Michael",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Anonymous",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Tabourot, Jehan",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kirbye, George",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Tye, Christopher",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Mendelssohn, Felix",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Mohr, Josef",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gruber, Franz Xaver",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kirkpatrick, William J",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pitts, John Michael",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Wade, John Francis",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Bach, Johann Sebastian",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Stainer, John",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Neale, John Mason",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Hopkins, Jr., John Henry",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gibbons, Orlando",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Naxos Digital Services US",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5233,17 +5224,17 @@
     "contributors": [
       {
         "name": "Hofmannsthal, Hugo von",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Strauss, Richard",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Naxos Digital Services US",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5317,32 +5308,32 @@
     "contributors": [
       {
         "name": "Bruckner, Anton, 1824-1896,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Hawkshaw, Paul, 1950-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Leibnitz, Thomas,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Lindner, Andreas,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pachovsky, Angela,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Röder, Thomas, 1950-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5426,7 +5417,7 @@
     "contributors": [
       {
         "name": "Thailand. Krasūang Kānthō̜ngthīeo læ Kīlā. Krom Kānthō̜ngthīeo,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5458,9 +5449,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "74 pages ; 21 cm"
     ],
@@ -5507,12 +5496,12 @@
     "contributors": [
       {
         "name": "Nguyễn, Quang Hòa,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Học viện Báo chí và tuyên truyền,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5538,9 +5527,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "276 pages : illustrations ; 21 cm"
     ],
@@ -5619,27 +5606,27 @@
     "contributors": [
       {
         "name": "Tuuk, Alex van der,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "White, Jack, 1975-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Blackwood, Dean,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "New York Recording Laboratories",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Paramount (Sound recording label)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5701,11 +5688,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "audio disc sd rdacarrier",
-      "computer chip cartridge cb rdacarrier",
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "6 audio discs : analog, mono ; 12 in + 1 USB flash drive (7.6 GB ; 6 x 5 cm) + 1 volume (255 pages ; 34 cm) + 1 volume (360 pages ; 28 cm) + 2 booklets (24 cm) + 1 unnumbered sheet (22 x 28 cm) ; in box (14 x 41 x 47 cm)"
     ],
@@ -5796,7 +5779,7 @@
     "contributors": [
       {
         "name": "Ithaca-Tompkins County Transportation Council,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -5827,9 +5810,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "79a09d3a-bae8-433f-af70-9db9e134c662",
-    "instanceFormatIds": [
-      "sheet rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 map : color, plastic-coated ; sheet 71 x 61 cm, folded to 18 x 11 cm"
     ],
@@ -5894,12 +5875,12 @@
     "contributors": [
       {
         "name": "Mac©Øe, Jean, 1815-1894,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Gatty, Alfred, Mrs., 1809-1873,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -5930,9 +5911,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "online resource cr rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource (174 pages)."
     ],
@@ -5988,12 +5967,12 @@
     "contributors": [
       {
         "name": "Inooka, Kikuko,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Nishihara, Kazumi, 1942-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6020,9 +5999,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "2, 6, 225 pages : illustrations ; 22 cm"
     ],
@@ -6094,62 +6071,62 @@
     "contributors": [
       {
         "name": "Sagan, Carl, 1934-1996",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Drake, Frank D",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Druyan, Ann, 1949-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ferris, Timothy",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Lomberg, Jon, 1948-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Sagan, Linda Salzman",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pescovitz, David",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Daly, Timothy",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Azerrad, Lawrence",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "United States. National Aeronautics and Space Administration",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Jet Propulsion Laboratory (U.S.)",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Voyager Project",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6202,10 +6179,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "audio disc sd rdacarrier",
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "3 audio discs ; 12 in.",
       "92 pages : color illustrations ; 32 cm"
@@ -6293,12 +6267,12 @@
     "contributors": [
       {
         "name": "Institute of Management Accountants,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "John Wiley & Sons,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6331,9 +6305,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "9eeda240-e773-4643-b037-06db69553b74",
-    "instanceFormatIds": [
-      "card rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "521 flash cards ; each 8 x 13 cm, in containers 9 x 14 x 9 cm and 9 x 14 x 6 cm"
     ],
@@ -6384,22 +6356,22 @@
     "contributors": [
       {
         "name": "Melʹnychenko, V. M. (Vasylʹ Mykolaĭovych),",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Holysh, H. M. (Hryhoriĭ Mykhaĭlovych), 1949-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Nat︠s︡ionalʹna spilka krai︠e︡znavt︠s︡iv Ukraïny. Cherkasʹka oblasna orhanizat︠s︡ii︠a︡,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Cherkasʹkyĭ nat︠s︡ionalʹnyĭ universytet imeni Bohdana Khmelʹnyt︠s︡ʹkoho,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6430,9 +6402,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "219 pages : illustrations ; 20 cm"
     ],
@@ -6492,7 +6462,7 @@
     "contributors": [
       {
         "name": "Minakata, Kumagusu, 1867-1941",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -6517,9 +6487,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "100 loose-leaf : chiefly color illustrations ; 37 cm + 1 suppl. (158 pages ; 26 cm)"
     ],
@@ -6576,12 +6544,12 @@
     "contributors": [
       {
         "name": "Akiho, Andy,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "loadbang (Musical group),",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6609,9 +6577,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 score (42 pages) + 4 parts ; 28 cm"
     ],
@@ -6690,7 +6656,7 @@
     "contributors": [
       {
         "name": "Romitelli, Fausto, 1963-2004,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -6727,9 +6693,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 score (6 pages) ; 30 x 42 cm"
     ],
@@ -6776,7 +6740,7 @@
     "contributors": [
       {
         "name": "Akiho, Andy,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -6805,9 +6769,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 score (55 pages) : illustrations ; 22 x 28 cm",
       "6 parts ; 28 cm"
@@ -6899,27 +6861,27 @@
     "contributors": [
       {
         "name": "Harvey, Warren, 1943-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ṿigodah, Shemuʼel,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ackerman, Ari,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Eisenmann, Esther,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ravitsky, Aviram, 1971-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -6952,9 +6914,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "14, 539, 173 pages : portrait ; 25 cm"
     ],
@@ -6995,27 +6955,27 @@
     "contributors": [
       {
         "name": "Burtonwood, Tom, 1974- ,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Bakutis, Jason, 1969- ,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "AMinimal Studio",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Booklyn Artists Alliance,",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pretty Small Things",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -7054,10 +7014,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "object nr rdacarrier",
-      "other cz rdacarrier accompanying USB flash drive"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 object : plastic ; 13 x 20 x 20 cm + 1 USB flash drive."
     ],
@@ -7108,7 +7065,7 @@
     "contributors": [
       {
         "name": "Ibn al-ʻImād al-Aqfahsī, Aḥmad, approximately 1349-1405",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -7134,9 +7091,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "61 leaves : paper ; 230 x 140 (200 x 120) mm"
     ],
@@ -7211,22 +7166,22 @@
     "contributors": [
       {
         "name": "Chew, Raymond,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Richardson, Julieanna L.,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Hickey, Matthew,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "HistoryMakers (Video oral history collection),",
-        "contributorNameTypeId": "d376e36c-b759-4fed-8502-7130d1eeff39",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -7262,9 +7217,7 @@
       }
     ],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "online resource cr rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource (10 video files (4 hr., 46 min., 42 sec.)) : sound, color."
     ],
@@ -7331,7 +7284,7 @@
     "contributors": [
       {
         "name": "Ricketts, Mónica,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],
@@ -7376,9 +7329,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "xii, 314 pages ; 25 cm"
     ],
@@ -7435,17 +7386,17 @@
     "contributors": [
       {
         "name": "Biśnoī, Kiśanārāma, 1963-",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Suhāga, Madhulikā,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Suhāga, Indubālā,",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
     ],
@@ -7481,9 +7432,7 @@
     "publicationRange": [],
     "electronicAccess": [],
     "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
-    "instanceFormatIds": [
-      "volume nc rdacarrier"
-    ],
+    "instanceFormatIds": [],
     "physicalDescriptions": [
       "ix, 306 pages ; 23 cm."
     ],
@@ -7544,7 +7493,7 @@
     "contributors": [
       {
         "name": "Rossi, Daniele",
-        "contributorNameTypeId": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17",
+        "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
     ],

@@ -1,8 +1,11 @@
 package org.folio.services.mapping.functions;
 
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -359,6 +362,65 @@ public class NormalizationFunctionTest {
     String actualTypeId = runFunction("set_electronic_access_relations_id", context);
     // then
     assertEquals(uuid, actualTypeId);
+  }
+  
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceFormatId = UUID.randomUUID().toString();
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(expectedInstanceFormatId)
+      .withCode("nc");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(expectedInstanceFormatId, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnEmptyStringIfNoSettingsSpecified() {
+    // given
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(UUID.randomUUID().toString())
+      .withCode("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_NAME_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorNameTypeId = UUID.randomUUID().toString();
+    ContributorNameType givenContributorNameType = new ContributorNameType()
+      .withId(expectedContributorNameTypeId)
+      .withName("Personal name");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withContributorNameTypes(Collections.singletonList(givenContributorNameType)));
+    context.setRuleParameter(new JsonObject().put("name", "Personal name"));
+    // when
+    String actualContributorNameTypeId = runFunction("set_contributor_name_type_id", context);
+    // then
+    assertEquals(expectedContributorNameTypeId, actualContributorNameTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_NAME_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "Personal name"));
+    // when
+    String actualContributorNameTypeId = runFunction("set_contributor_name_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualContributorNameTypeId);
   }
 
 }
