@@ -3,8 +3,8 @@ package org.folio.services.mapping.functions;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
@@ -363,7 +363,7 @@ public class NormalizationFunctionTest {
     // then
     assertEquals(uuid, actualTypeId);
   }
-  
+
   @Test
   public void SET_INSTANCE_FORMAT_ID_shouldReturnExpectedResult() {
     // given

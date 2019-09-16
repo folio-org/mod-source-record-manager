@@ -8,16 +8,16 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ClassificationTypes;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationships;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorNameTypes;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationships;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.IdentifierTypes;
-import org.folio.rest.jaxrs.model.InstanceType;
-import org.folio.rest.jaxrs.model.InstanceTypes;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceFormats;
+import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.InstanceTypes;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +30,6 @@ public class MappingParametersBuilder {
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types";
   private static final String INSTANCE_TYPES_URL = "/instance-types";
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships";
-  private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
-  private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
-  private static final String INSTANCE_TYPES_RESPONSE_PARAM = "instanceTypes";
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String INSTANCE_FORMATS_URL = "/instance-formats";
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types";
@@ -145,13 +142,15 @@ public class MappingParametersBuilder {
         if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
           List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(ElectronicAccessRelationships.class).getElectronicAccessRelationships();
           future.complete(electronicAccessRelationshipList);
-         } else {
+        } else {
           future.complete(Collections.emptyList());
         }
       }
     });
     return future;
+  }
 
+  /**
    * Requests for Instance formats from application Settings (mod-inventory-storage)
    *
    * @param params Okapi connection parameters

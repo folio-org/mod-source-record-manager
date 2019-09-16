@@ -2,11 +2,11 @@ package org.folio.services.mappers.processor.parameters;
 
 import org.apache.commons.collections4.list.UnmodifiableList;
 import org.folio.rest.jaxrs.model.ClassificationType;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.IdentifierType;
-import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceType;
 
 import java.util.List;
 
@@ -55,8 +55,9 @@ public class MappingParameters {
 
   public MappingParameters withElectronicAccessRelationships(List<ElectronicAccessRelationship> electronicAccessRelationship) {
     this.electronicAccessRelationship = new UnmodifiableList<>(electronicAccessRelationship);
+    return this;
   }
-  
+
   public List<InstanceFormat> getInstanceFormats() {
     return instanceFormats;
   }
@@ -71,7 +72,7 @@ public class MappingParameters {
   }
 
   public MappingParameters withContributorNameTypes(List<ContributorNameType> contributorNameTypes) {
-    this.contributorNameTypes = new UnmodifiableList<ContributorNameType>(contributorNameTypes);
+    this.contributorNameTypes = new UnmodifiableList<>(contributorNameTypes);
     return this;
   }
 }
