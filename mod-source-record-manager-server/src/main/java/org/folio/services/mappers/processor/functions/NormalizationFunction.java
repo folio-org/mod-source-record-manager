@@ -8,6 +8,7 @@ import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
@@ -212,30 +213,6 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .orElse(STUB_FIELD_TYPE_ID);
     }
   };
-
-  protected enum ElectronicAccessRelationshipEnum {
-    RESOURCE('0', "resource"),
-    VERSION_OF_RESOURCE('1', "version of resource"),
-    RELATED_RESOURCE('2', "related resource"),
-    NO_INFORMATION_PROVIDED('3', "no information provided");
-
-    ElectronicAccessRelationshipEnum(char indicator2value, String name) {
-      this.indicator2value = indicator2value;
-      this.name = name;
-    }
-
-    private char indicator2value;
-    private String name;
-
-    public static String getNameByIndicator(char indicatorValue) {
-      for (ElectronicAccessRelationshipEnum enumValue : values()) {
-        if (indicatorValue == enumValue.indicator2value) {
-          return enumValue.name;
-        }
-      }
-      return NO_INFORMATION_PROVIDED.name;
-    }
-  }
 
   private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 }
