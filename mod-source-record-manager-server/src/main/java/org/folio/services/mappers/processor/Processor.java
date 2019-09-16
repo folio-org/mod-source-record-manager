@@ -277,7 +277,6 @@ public class Processor {
       String completeData = generateDataString();
       if (applyPost) {
         ruleExecutionContext.setSubFieldValue(completeData);
-        ruleExecutionContext.setTargetField(rememberComplexObj[0]);
         completeData = processRules(ruleExecutionContext);
       }
       if (createNewObject(embeddedFields, completeData, rememberComplexObj)) {
@@ -406,7 +405,6 @@ public class Processor {
       RuleExecutionContext ruleExecutionContext = new RuleExecutionContext();
       ruleExecutionContext.setMappingParameters(mappingParameters);
       ruleExecutionContext.setSubFieldValue(controlField.getData());
-      ruleExecutionContext.setTargetField(rememberComplexObj[0]);
       String data = processRules(ruleExecutionContext);
       if ((data != null) && data.isEmpty()) {
         continue;
