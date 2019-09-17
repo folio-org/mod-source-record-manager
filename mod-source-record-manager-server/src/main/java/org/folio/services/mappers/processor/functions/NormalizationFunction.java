@@ -172,10 +172,25 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return StringUtils.EMPTY;
       }
       return types.stream()
-        .filter(instanceType -> instanceType.getCode().equals(context.getSubFieldValue()))
+        .filter(type -> type.getCode().equals(context.getSubFieldValue()))
         .findFirst()
         .map(ContributorType::getId)
         .orElse(StringUtils.EMPTY);
+    }
+  },
+
+  SET_CONTRIBUTOR_TYPE_TEXT() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<ContributorType> types = context.getMappingParameters().getContributorTypes();
+      if (types == null) {
+        return context.getSubFieldValue();
+      }
+      return types.stream()
+        .filter(type -> type.getCode().equals(context.getSubFieldValue()))
+        .findFirst()
+        .map(ContributorType::getName)
+        .orElse(context.getSubFieldValue());
     }
   },
 

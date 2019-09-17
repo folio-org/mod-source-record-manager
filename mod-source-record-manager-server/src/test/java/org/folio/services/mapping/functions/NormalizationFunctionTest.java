@@ -425,6 +425,53 @@ public class NormalizationFunctionTest {
   }
 
   @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorTypeText = "Arranger";
+    ContributorType givenContributorType = new ContributorType()
+      .withId(UUID.randomUUID().toString())
+      .withName("Arranger")
+      .withCode("arr");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("arr");
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedContributorTypeText, actualContributorTypeText);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnGivenSubFieldIfNoSettingsSpecified() {
+    // given
+    String expectedSubField = "arr";
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("arr");
+    context.setMappingParameters(new MappingParameters());
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedSubField, actualContributorTypeText);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnGivenSubFieldIfNoMatchInSettings() {
+    // given
+    String expectedContributorTypeText = "arr";
+    ContributorType givenContributorType = new ContributorType()
+      .withId(UUID.randomUUID().toString())
+      .withName("Animator")
+      .withCode("anm");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    context.setSubFieldValue("arr");
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedContributorTypeText, actualContributorTypeText);
+  }
+
+  @Test
   public void SET_CONTRIBUTOR_NAME_TYPE_ID_shouldReturnExpectedResult() {
     // given
     String expectedContributorNameTypeId = UUID.randomUUID().toString();
