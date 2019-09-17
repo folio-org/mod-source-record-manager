@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
@@ -312,6 +313,56 @@ public class NormalizationFunctionTest {
     String actualTypeId = runFunction("set_instance_type_id", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(UUID.randomUUID().toString())
+      .withName("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnValidId() {
+    // given
+    String uuid = UUID.randomUUID().toString();
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(uuid)
+      .withName("Related resource");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setDataField(new DataFieldImpl("856", '1', '2'));
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(uuid, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnValidIdForUnfounded() {
+    // given
+    String uuid = UUID.randomUUID().toString();
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(uuid)
+      .withName("No information provided");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setDataField(new DataFieldImpl("856", '1', '5'));
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(uuid, actualTypeId);
   }
 
   @Test
