@@ -24,7 +24,7 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
-import org.folio.services.mappers.processor.parameters.MappingParametersBuilder;
+import org.folio.services.mappers.processor.parameters.MappingParametersProvider;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,16 +59,34 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private static final String INVENTORY_URL = "/inventory/instances/batch";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
+  private MappingParametersProvider mappingParametersProvider;
 
-  public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao) {
+  public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
+                                       @Autowired MappingParametersProvider mappingParametersProvider) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
   }
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
     return Future.succeededFuture()
-      .compose(ar -> MappingParametersBuilder.build(okapiParams))
+      .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, sourceChunkId, mappingParameters, okapiParams));
+  }
+
+  /**
+   * Provides external parameters for the MARC-to-Instance mapping process
+   *
+   * @param records list of incoming records
+   * @param okapiParams okapi connection parameters
+   * @return mapping parameters
+   */
+  private Future<MappingParameters> getMappingParameters(List<Record> records, OkapiConnectionParams okapiParams) {
+    if (records.isEmpty()) {
+      return Future.succeededFuture(new MappingParameters());
+    } else {
+      String key = records.get(0).getSnapshotId();
+      return mappingParametersProvider.get(key, okapiParams);
+    }
   }
 
   /**
