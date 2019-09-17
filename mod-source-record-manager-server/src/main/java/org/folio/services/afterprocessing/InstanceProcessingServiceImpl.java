@@ -64,6 +64,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
+    this.mappingParametersProvider = mappingParametersProvider;
   }
 
   @Override
