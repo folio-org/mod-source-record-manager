@@ -26,12 +26,13 @@ import java.util.List;
  * Builder for mapping parameters.
  */
 public class MappingParametersBuilder {
-  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=500";
-  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=500";
-  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=500";
-  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=500";
-  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=500";
-  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
+  private static final Integer SETTING_LIMIT = 500;
+  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
+  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=" + SETTING_LIMIT;
+  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
+  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
   private static final String INSTANCE_TYPES_RESPONSE_PARAM = "instanceTypes";
