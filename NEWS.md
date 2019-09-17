@@ -4,6 +4,7 @@
  * Added instance-format settings loading for mapping
  * Added contributor name types setting loading for mapping
  * Added contributor types setting loading for mapping, simple mapping for primary sign and name
+ * Added mapping for contributor type free text
  
 ## 2019-09-09 v1.6.0
  * Progress mechanism was updated
