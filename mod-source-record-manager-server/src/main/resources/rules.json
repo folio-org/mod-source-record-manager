@@ -1006,6 +1006,23 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
           "applyRulesOnConcatenatedData": true,
@@ -1068,6 +1085,23 @@
                   "parameter": {
                     "name": "Corporate name"
                   }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
                 }
               ]
             }
@@ -1168,6 +1202,23 @@
               "conditions": [
                 {
                   "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "j"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
                 }
               ]
             }
@@ -4505,6 +4556,23 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
           "applyRulesOnConcatenatedData": true,
@@ -4590,6 +4658,23 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
           "applyRulesOnConcatenatedData": true,
@@ -4667,6 +4752,23 @@
               "conditions": [
                 {
                   "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "j"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
                 }
               ]
             }

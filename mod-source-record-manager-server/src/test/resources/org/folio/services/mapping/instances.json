@@ -39,6 +39,7 @@
     "contributors": [
       {
         "name": "Dugmore, C. W. (Clifford William),",
+        "contributorTypeText": "ed.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -2157,6 +2158,7 @@
       },
       {
         "name": "Cornell University. Fine Arts Library",
+        "contributorTypeText": "Curator",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -4882,106 +4884,127 @@
     "contributors": [
       {
         "name": "Pitts, Antony",
+        "contributorTypeText": "Arranger",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Traditional",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Madan, Martin",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Olivers, Thomas",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Sharp, C. J",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Praetorius, Michael",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Anonymous",
+        "contributorTypeText": "Lyricist",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Tabourot, Jehan",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kirbye, George",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Tye, Christopher",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Mendelssohn, Felix",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Mohr, Josef",
+        "contributorTypeText": "Lyricist",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gruber, Franz Xaver",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Kirkpatrick, William J",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pitts, John Michael",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Wade, John Francis",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Bach, Johann Sebastian",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Stainer, John",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Neale, John Mason",
+        "contributorTypeText": "Lyricist",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Hopkins, Jr., John Henry",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Gibbons, Orlando",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
@@ -5077,11 +5100,13 @@
     "contributors": [
       {
         "name": "Hofmannsthal, Hugo von",
+        "contributorTypeText": "Lyricist",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Strauss, Richard",
+        "contributorTypeText": "Composer",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
@@ -5160,31 +5185,37 @@
     "contributors": [
       {
         "name": "Bruckner, Anton, 1824-1896,",
+        "contributorTypeText": "composer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Hawkshaw, Paul, 1950-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Leibnitz, Thomas,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Lindner, Andreas,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Pachovsky, Angela,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Röder, Thomas, 1950-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -5269,6 +5300,7 @@
     "contributors": [
       {
         "name": "Thailand. Krasūang Kānthō̜ngthīeo læ Kīlā. Krom Kānthō̜ngthīeo,",
+        "contributorTypeText": "issuing body.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -5348,11 +5380,13 @@
     "contributors": [
       {
         "name": "Nguyễn, Quang Hòa,",
+        "contributorTypeText": "author.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Học viện Báo chí và tuyên truyền,",
+        "contributorTypeText": "sponsoring body.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -5458,16 +5492,19 @@
     "contributors": [
       {
         "name": "Tuuk, Alex van der,",
+        "contributorTypeText": "author, producer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "White, Jack, 1975-",
+        "contributorTypeText": "producer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Blackwood, Dean,",
+        "contributorTypeText": "producer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
@@ -5628,6 +5665,7 @@
     "contributors": [
       {
         "name": "Ithaca-Tompkins County Transportation Council,",
+        "contributorTypeText": "cartographer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
@@ -5724,11 +5762,13 @@
     "contributors": [
       {
         "name": "Mac©Øe, Jean, 1815-1894,",
+        "contributorTypeText": "author.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Gatty, Alfred, Mrs., 1809-1873,",
+        "contributorTypeText": "editor and translator.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -5815,11 +5855,13 @@
     "contributors": [
       {
         "name": "Inooka, Kikuko,",
+        "contributorTypeText": "author.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Nishihara, Kazumi, 1942-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -6111,11 +6153,13 @@
     "contributors": [
       {
         "name": "Institute of Management Accountants,",
+        "contributorTypeText": "sponsoring body.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "John Wiley & Sons,",
+        "contributorTypeText": "publisher.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -6200,21 +6244,25 @@
     "contributors": [
       {
         "name": "Melʹnychenko, V. M. (Vasylʹ Mykolaĭovych),",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Holysh, H. M. (Hryhoriĭ Mykhaĭlovych), 1949-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Nat︠s︡ionalʹna spilka krai︠e︡znavt︠s︡iv Ukraïny. Cherkasʹka oblasna orhanizat︠s︡ii︠a︡,",
+        "contributorTypeText": "issuing body.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Cherkasʹkyĭ nat︠s︡ionalʹnyĭ universytet imeni Bohdana Khmelʹnyt︠s︡ʹkoho,",
+        "contributorTypeText": "issuing body.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -6388,11 +6436,13 @@
     "contributors": [
       {
         "name": "Akiho, Andy,",
+        "contributorTypeText": "composer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "loadbang (Musical group),",
+        "contributorTypeText": "dedicatee.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -6500,6 +6550,7 @@
     "contributors": [
       {
         "name": "Romitelli, Fausto, 1963-2004,",
+        "contributorTypeText": "composer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
@@ -6584,6 +6635,7 @@
     "contributors": [
       {
         "name": "Akiho, Andy,",
+        "contributorTypeText": "composer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
@@ -6705,26 +6757,31 @@
     "contributors": [
       {
         "name": "Harvey, Warren, 1943-",
+        "contributorTypeText": "honoree.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ṿigodah, Shemuʼel,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ackerman, Ari,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Eisenmann, Esther,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Ravitsky, Aviram, 1971-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -6799,11 +6856,13 @@
     "contributors": [
       {
         "name": "Burtonwood, Tom, 1974- ,",
+        "contributorTypeText": "artist.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       },
       {
         "name": "Bakutis, Jason, 1969- ,",
+        "contributorTypeText": "artist.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
@@ -6814,6 +6873,7 @@
       },
       {
         "name": "Booklyn Artists Alliance,",
+        "contributorTypeText": "publisher.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
@@ -7008,21 +7068,25 @@
     "contributors": [
       {
         "name": "Chew, Raymond,",
+        "contributorTypeText": "interviewee.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Richardson, Julieanna L.,",
+        "contributorTypeText": "interviewer.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Hickey, Matthew,",
+        "contributorTypeText": "director of photography.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "HistoryMakers (Video oral history collection),",
+        "contributorTypeText": "production company.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
@@ -7125,6 +7189,7 @@
     "contributors": [
       {
         "name": "Ricketts, Mónica,",
+        "contributorTypeText": "author.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": true
       }
@@ -7227,16 +7292,19 @@
     "contributors": [
       {
         "name": "Biśnoī, Kiśanārāma, 1963-",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Suhāga, Madhulikā,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       },
       {
         "name": "Suhāga, Indubālā,",
+        "contributorTypeText": "editor.",
         "contributorNameTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
         "primary": false
       }
