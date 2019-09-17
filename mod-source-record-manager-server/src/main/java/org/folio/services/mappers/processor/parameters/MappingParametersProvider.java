@@ -38,12 +38,14 @@ import java.util.concurrent.TimeUnit;
 public class MappingParametersProvider {
   private static final int SETTING_LIMIT = 500;
   private static final int CACHE_EXPIRE_AFTER_ACCESS_MINUTES = 1;
+
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=" + SETTING_LIMIT;
   private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
+
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -52,6 +54,7 @@ public class MappingParametersProvider {
   private static final String INSTANCE_FORMATS_RESPONSE_PARAM = "instanceFormats";
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
+
   private AsyncLoadingCache<String, MappingParameters> cache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
