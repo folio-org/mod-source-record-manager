@@ -59,7 +59,10 @@ public class MappingParametersProvider {
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
     this.cache = Caffeine.newBuilder()
-      /* In order to do not break Vert.x threading model we need to delegate cache activities to event-loop thread. */
+      /*
+          In order to do not break Vert.x threading model
+          we need to delegate cache internal activities to the event-loop thread.
+      */
       .executor((serviceExecutor) -> vertx.runOnContext(ar -> serviceExecutor.run()))
       .expireAfterAccess(CACHE_EXPIRE_AFTER_ACCESS_MINUTES, TimeUnit.MINUTES)
       .buildAsync((key) -> new MappingParameters().withInitializedState(false));
