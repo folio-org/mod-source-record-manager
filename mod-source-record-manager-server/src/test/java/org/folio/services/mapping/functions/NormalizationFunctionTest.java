@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ContributorType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
@@ -342,6 +343,34 @@ public class NormalizationFunctionTest {
     String actualTypeId = runFunction("set_instance_format_id", context);
     // then
     assertEquals(StringUtils.EMPTY, actualTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorTypeId = UUID.randomUUID().toString();
+    ContributorType givenContributorType = new ContributorType()
+      .withId(expectedContributorTypeId)
+      .withName("Animator")
+      .withCode("anm");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("anm");
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    // when
+    String actualContributorTypeId = runFunction("set_contributor_type_id", context);
+    // then
+    assertEquals(expectedContributorTypeId, actualContributorTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    // when
+    String actualContributorTypeId = runFunction("set_contributor_type_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualContributorTypeId);
   }
 
   @Test

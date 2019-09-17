@@ -989,10 +989,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -1057,10 +1074,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -1123,10 +1157,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4437,10 +4488,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4505,10 +4573,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4571,10 +4656,27 @@
           ]
         },
         {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
