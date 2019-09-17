@@ -12,6 +12,8 @@ import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorNameTypes;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationships;
+import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.ContributorTypes;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.IdentifierTypes;
 import org.folio.rest.jaxrs.model.InstanceFormat;
@@ -26,17 +28,22 @@ import java.util.List;
  * Builder for mapping parameters.
  */
 public class MappingParametersBuilder {
-  private static final String IDENTIFIER_TYPES_URL = "/identifier-types";
-  private static final String CLASSIFICATION_TYPES_URL = "/classification-types";
-  private static final String INSTANCE_TYPES_URL = "/instance-types";
-  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
+
+  private static final Integer SETTING_LIMIT = 500;
+  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
+  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=" + SETTING_LIMIT;
+  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
+  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
+  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
+  
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
-  private static final String INSTANCE_FORMATS_URL = "/instance-formats";
-  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
   private static final String INSTANCE_TYPES_RESPONSE_PARAM = "instanceTypes";
   private static final String INSTANCE_FORMATS_RESPONSE_PARAM = "instanceFormats";
+  private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
 
   private MappingParametersBuilder() {
@@ -48,9 +55,10 @@ public class MappingParametersBuilder {
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(params);
     Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(params);
     Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(params);
+    Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(params);
     Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(params);
     return CompositeFuture.all(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture,
-      instanceFormatsFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture)
+      instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture)
       .map(ar ->
         new MappingParameters()
           .withIdentifierTypes(identifierTypesFuture.result())
@@ -58,6 +66,7 @@ public class MappingParametersBuilder {
           .withInstanceTypes(instanceTypesFuture.result())
           .withElectronicAccessRelationships(electronicAccessRelationshipsFuture.result())
           .withInstanceFormats(instanceFormatsFuture.result())
+          .withContributorTypes(contributorTypesFuture.result())
           .withContributorNameTypes(contributorNameTypesFuture.result())
       );
   }
@@ -164,6 +173,28 @@ public class MappingParametersBuilder {
         if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
           List<InstanceFormat> instanceFormatList = response.mapTo(InstanceFormats.class).getInstanceFormats();
           future.complete(instanceFormatList);
+        } else {
+          future.complete(Collections.emptyList());
+        }
+      }
+    });
+    return future;
+  }
+
+  /**
+   * Requests for Contributor types from application Settings (mod-inventory-storage)
+   *
+   * @param params Okapi connection parameters
+   * @return List of Contributor types
+   */
+  private static Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
+    Future<List<ContributorType>> future = Future.future();
+    RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+      if (RestUtil.validateAsyncResult(ar, future)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
+          List<ContributorType> contributorTypes = response.mapTo(ContributorTypes.class).getContributorTypes();
+          future.complete(contributorTypes);
         } else {
           future.complete(Collections.emptyList());
         }
