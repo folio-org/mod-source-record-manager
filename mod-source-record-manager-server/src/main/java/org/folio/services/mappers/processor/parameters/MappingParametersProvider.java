@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Builder for mapping parameters.
+ * Provider for mapping parameters.
  */
 @Component
 public class MappingParametersProvider {
-
   private static final int SETTING_LIMIT = 500;
   private static final int CACHE_EXPIRE_AFTER_ACCESS_MINUTES = 1;
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
@@ -46,7 +45,6 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
-
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
@@ -54,7 +52,6 @@ public class MappingParametersProvider {
   private static final String INSTANCE_FORMATS_RESPONSE_PARAM = "instanceFormats";
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
-
   private AsyncLoadingCache<String, MappingParameters> cache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
@@ -65,6 +62,13 @@ public class MappingParametersProvider {
       .buildAsync((key) -> new MappingParameters().withInitializedState(false));
   }
 
+  /**
+   * Provides mapping parameters by given key; uses in-memory cache in order to reduce number of requests
+   *
+   * @param key    key with which the specified MappingParameters are associated
+   * @param params okapi connection params
+   * @return mapping params for given key
+   */
   public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
     Future<MappingParameters> future = Future.future();
     this.cache.get(key).thenAccept(mappingParameters -> {
@@ -77,18 +81,25 @@ public class MappingParametersProvider {
     return future;
   }
 
-  private Future<MappingParameters> initializeParameters(MappingParameters mappingParameters, OkapiConnectionParams params) {
-    Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(params);
-    Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(params);
-    Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(params);
-    Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(params);
-    Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(params);
-    Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(params);
-    Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(params);
+  /**
+   * Performs initialization for mapping parameters
+   *
+   * @param mappingParams given params to initialize
+   * @param okapiParams   okapi connection params
+   * @return initialized mapping params
+   */
+  private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
+    Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
+    Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);
+    Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(okapiParams);
+    Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(okapiParams);
+    Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(okapiParams);
+    Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(okapiParams);
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture,
       instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture))
       .map(ar ->
-        mappingParameters
+        mappingParams
           .withInitializedState(true)
           .withIdentifierTypes(identifierTypesFuture.result())
           .withClassificationTypes(classificationTypesFuture.result())
