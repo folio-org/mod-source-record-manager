@@ -7,7 +7,9 @@ import org.folio.rest.jaxrs.model.ContributorType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
@@ -206,6 +208,24 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .filter(instanceType -> instanceType.getCode().equals(context.getSubFieldValue()))
         .findFirst()
         .map(InstanceType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+  SET_ELECTRONIC_ACCESS_RELATIONS_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<ElectronicAccessRelationship> electronicAccessRelationships = context.getMappingParameters().getElectronicAccessRelationships();
+      if (electronicAccessRelationships == null || context.getDataField() == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      char ind2 = context.getDataField().getIndicator2();
+      String name = ElectronicAccessRelationshipEnum.getNameByIndicator(ind2);
+      return electronicAccessRelationships
+        .stream()
+        .filter(electronicAccessRelationship -> electronicAccessRelationship
+          .getName().toLowerCase().equals(name)
+        ).findFirst()
+        .map(ElectronicAccessRelationship::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
   };

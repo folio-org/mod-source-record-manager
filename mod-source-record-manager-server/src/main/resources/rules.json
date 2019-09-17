@@ -4880,6 +4880,26 @@
     {
       "entity": [
         {
+          "target": "electronicAccess.relationshipId",
+          "applyRulesOnConcatenatedData": true,
+          "description": "Relationship between the electronic resource at the location identified and the item described in the record as a whole",
+          "subfield": [
+            "3",
+            "y",
+            "u",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_electronic_access_relations_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "electronicAccess.uri",
           "description": "URI",
           "subfield": [

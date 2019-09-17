@@ -23,6 +23,10 @@
       "version": "1.2"
     },
     {
+      "id": "electronic-access-relationships",
+      "version": "1.0"
+    },
+    {
       "id": "classification-types",
       "version": "1.2"
     },
@@ -107,6 +111,7 @@
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
             "inventory-storage.instance-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
             "inventory-storage.instance-formats.collection.get",
             "inventory-storage.contributor-types.collection.get",
             "inventory-storage.contributor-name-types.collection.get"
