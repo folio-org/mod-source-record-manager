@@ -25,7 +25,7 @@ public class MappingParameters {
   private UnmodifiableList<ContributorType> contributorTypes;
   private UnmodifiableList<ContributorNameType> contributorNameTypes;
 
-  public boolean isInitializedState() {
+  public boolean isInitialized() {
     return initializedState;
   }
 

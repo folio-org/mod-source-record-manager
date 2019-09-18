@@ -32,13 +32,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Provider for mapping parameters.
+ * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
 @Component
 public class MappingParametersProvider {
   private static final int SETTING_LIMIT = 500;
-  private static final int CACHE_EXPIRE_AFTER_ACCESS_MINUTES = 1;
-
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
@@ -55,21 +53,22 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
 
+  private static final int CACHE_EXPIRE_AFTER_ACCESS_SECONDS = 60;
   private AsyncLoadingCache<String, MappingParameters> cache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
     this.cache = Caffeine.newBuilder()
       /*
-          In order to do not break Vert.x threading model
+          In order to do not break down Vert.x threading model
           we need to delegate cache internal activities to the event-loop thread.
       */
       .executor((serviceExecutor) -> vertx.runOnContext(ar -> serviceExecutor.run()))
-      .expireAfterAccess(CACHE_EXPIRE_AFTER_ACCESS_MINUTES, TimeUnit.MINUTES)
+      .expireAfterAccess(CACHE_EXPIRE_AFTER_ACCESS_SECONDS, TimeUnit.SECONDS)
       .buildAsync((key) -> new MappingParameters().withInitializedState(false));
   }
 
   /**
-   * Provides mapping parameters by given key; uses in-memory cache in order to reduce number of requests
+   * Provides mapping parameters by given key.
    *
    * @param key    key with which the specified MappingParameters are associated
    * @param params okapi connection params
@@ -77,11 +76,15 @@ public class MappingParametersProvider {
    */
   public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
     Future<MappingParameters> future = Future.future();
-    this.cache.get(key).thenAccept(mappingParameters -> {
-      if (mappingParameters.isInitializedState()) {
-        future.complete(mappingParameters);
+    this.cache.get(key).whenComplete((mappingParameters, exception) -> {
+      if (exception != null) {
+        future.fail(exception);
       } else {
-        future.complete(initializeParameters(mappingParameters, params).result());
+        if (mappingParameters.isInitialized()) {
+          future.complete(mappingParameters);
+        } else {
+          initializeParameters(mappingParameters, params).setHandler(future);
+        }
       }
     });
     return future;

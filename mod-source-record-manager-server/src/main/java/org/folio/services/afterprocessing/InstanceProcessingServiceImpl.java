@@ -85,8 +85,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (records.isEmpty()) {
       return Future.succeededFuture(new MappingParameters());
     } else {
-      String key = records.get(0).getSnapshotId();
-      return mappingParametersProvider.get(key, okapiParams);
+      String snapshotId = records.get(0).getSnapshotId();
+      return mappingParametersProvider.get(snapshotId, okapiParams);
     }
   }
 
