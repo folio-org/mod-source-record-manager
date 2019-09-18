@@ -62,9 +62,9 @@ public class MappingParametersProvider {
           In order to do not break down Vert.x threading model
           we need to delegate cache internal activities to the event-loop thread.
       */
-      .executor((serviceExecutor) -> vertx.runOnContext(ar -> serviceExecutor.run()))
+      .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
       .expireAfterAccess(CACHE_EXPIRE_AFTER_ACCESS_SECONDS, TimeUnit.SECONDS)
-      .buildAsync((key) -> new MappingParameters().withInitializedState(false));
+      .buildAsync(key -> new MappingParameters().withInitializedState(false));
   }
 
   /**
