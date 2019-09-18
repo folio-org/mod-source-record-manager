@@ -53,7 +53,7 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
 
-  private static final int CACHE_EXPIRE_AFTER_ACCESS_SECONDS = 60;
+  private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
   private AsyncLoadingCache<String, MappingParameters> cache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
@@ -63,7 +63,7 @@ public class MappingParametersProvider {
           we need to delegate cache internal activities to the event-loop thread.
       */
       .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
-      .expireAfterAccess(CACHE_EXPIRE_AFTER_ACCESS_SECONDS, TimeUnit.SECONDS)
+      .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
       .buildAsync(key -> new MappingParameters().withInitializedState(false));
   }
 
