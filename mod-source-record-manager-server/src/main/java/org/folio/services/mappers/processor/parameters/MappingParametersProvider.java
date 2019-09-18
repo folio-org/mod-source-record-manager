@@ -68,11 +68,11 @@ public class MappingParametersProvider {
   }
 
   /**
-   * Provides mapping parameters by given key.
+   * Provides mapping parameters by the given key.
    *
    * @param key    key with which the specified MappingParameters are associated
    * @param params okapi connection params
-   * @return mapping params for given key
+   * @return mapping params for the given key
    */
   public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
     Future<MappingParameters> future = Future.future();
