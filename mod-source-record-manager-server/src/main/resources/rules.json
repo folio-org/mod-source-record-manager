@@ -333,8 +333,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -642,13 +648,19 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for System Control Number",
           "subfield": [
-            "a",
-            "z"
+            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_value",
+                  "parameter": {
+                    "names": ["System control number", "OCLC"],
+                    "oclc_regex": "(\\(OCoLC\\)|ocm|ocn|on).*"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -656,7 +668,37 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a",
+            "a"
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for System Control Number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "System Control Number",
+          "subfield": [
             "z"
           ]
         }
