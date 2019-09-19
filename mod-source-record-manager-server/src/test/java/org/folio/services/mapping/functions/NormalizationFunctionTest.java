@@ -6,6 +6,7 @@ import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
@@ -497,6 +498,34 @@ public class NormalizationFunctionTest {
     String actualContributorNameTypeId = runFunction("set_contributor_name_type_id", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualContributorNameTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_NAME_shouldReturnExpectedResult() {
+    // given
+    String expectedIdentifierTypeId = UUID.randomUUID().toString();
+    IdentifierType identifierType = new IdentifierType()
+      .withId(expectedIdentifierTypeId)
+      .withName("GPO item number");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(identifierType)));
+    context.setRuleParameter(new JsonObject().put("name", "GPO item number"));
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_name", context);
+    // then
+    assertEquals(expectedIdentifierTypeId, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_NAME_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "GPO item number"));
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_name", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
   }
 
 }

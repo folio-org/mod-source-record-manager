@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
@@ -226,6 +227,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .orElse(STUB_FIELD_TYPE_ID);
     }
   },
+
   SET_ELECTRONIC_ACCESS_RELATIONS_ID() {
     @Override
     public String apply(RuleExecutionContext context) {
@@ -237,10 +239,27 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
       String name = ElectronicAccessRelationshipEnum.getNameByIndicator(ind2);
       return electronicAccessRelationships
         .stream()
-        .filter(electronicAccessRelationship -> electronicAccessRelationship
-          .getName().toLowerCase().equals(name)
-        ).findFirst()
+        .filter(electronicAccessRelationship -> electronicAccessRelationship.getName().equalsIgnoreCase(name))
+        .findFirst()
         .map(ElectronicAccessRelationship::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_IDENTIFIER_TYPE_ID_BY_NAME() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String typeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<IdentifierType> identifierTypes = context.getMappingParameters().getIdentifierTypes();
+      if (identifierTypes == null || typeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return identifierTypes.stream()
+        .filter(identifierType -> identifierType.getName().equals(typeName))
+        .findFirst()
+        .map(IdentifierType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
   };
