@@ -753,8 +753,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "GPO item number"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -787,8 +793,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled GPO item number"
+                  }
+                }
+              ]
             }
           ]
         },
