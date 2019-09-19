@@ -21,6 +21,8 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.IdentifierTypes;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceFormats;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
+import org.folio.rest.jaxrs.model.InstanceNoteTypes;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,7 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=" + SETTING_LIMIT;
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -53,6 +56,7 @@ public class MappingParametersProvider {
   private static final String INSTANCE_FORMATS_RESPONSE_PARAM = "instanceFormats";
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
+  private static final String INSTANCE_NOTE_TYPES_RESPONSE_PARAM = "instanceNoteTypes";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
   private InternalCache internalCache;
@@ -86,8 +90,9 @@ public class MappingParametersProvider {
     Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(okapiParams);
     Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(okapiParams);
     Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(okapiParams);
+    Future<List<InstanceNoteType>> instanceNoteTypesFuture = getInstanceNoteTypes(okapiParams);
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture,
-      instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture))
+      instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -98,6 +103,7 @@ public class MappingParametersProvider {
           .withInstanceFormats(instanceFormatsFuture.result())
           .withContributorTypes(contributorTypesFuture.result())
           .withContributorNameTypes(contributorNameTypesFuture.result())
+          .withInstanceNoteTypes(instanceNoteTypesFuture.result())
       );
   }
 
@@ -254,6 +260,28 @@ public class MappingParametersProvider {
     });
     return future;
   }
+
+  /**
+   * Requests for Instance note types from application Settings (mod-inventory-storage)
+   * *
+   * @param params Okapi connection parameters
+   * @return List of Contributor name types
+   */
+    private static Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
+      Future<List<InstanceNoteType>> future = Future.future();
+      RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+        if (RestUtil.validateAsyncResult(ar, future)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
+            List<InstanceNoteType> contributorNameTypes = response.mapTo(InstanceNoteTypes.class).getInstanceNoteTypes();
+            future.complete(contributorNameTypes);
+          } else {
+            future.complete(Collections.emptyList());
+          }
+        }
+      });
+      return future;
+    }
 
   /**
    * In-memory cache to store mapping params

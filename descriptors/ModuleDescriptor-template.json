@@ -45,6 +45,10 @@
     {
       "id": "contributor-types",
       "version": "2.0"
+    },
+    {
+      "id": "instance-note-types",
+      "version": "1.0"
     }
   ],
   "provides": [
@@ -114,7 +118,8 @@
             "inventory-storage.electronic-access-relationships.collection.get",
             "inventory-storage.instance-formats.collection.get",
             "inventory-storage.contributor-types.collection.get",
-            "inventory-storage.contributor-name-types.collection.get"
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.instance-note-types.collection.get"
           ]
         },
         {
