@@ -188,7 +188,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return context.getSubFieldValue();
       }
       return types.stream()
-        .filter(type -> type.getCode().equals(context.getSubFieldValue()))
+        .filter(type -> type.getCode().equalsIgnoreCase(context.getSubFieldValue()))
         .findFirst()
         .map(ContributorType::getName)
         .orElse(context.getSubFieldValue());
