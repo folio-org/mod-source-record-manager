@@ -57,7 +57,7 @@ public class MappingParametersProvider {
   private InternalCache internalCache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
-    this.internalCache = new InternalCache(vertx);
+    this.internalCache = new InternalCache(vertx, this);
   }
 
   /**
@@ -260,7 +260,9 @@ public class MappingParametersProvider {
    */
   private class InternalCache {
     private AsyncLoadingCache<String, MappingParameters> cache;
-    public InternalCache(Vertx vertx) {
+    private MappingParametersProvider provider;
+    public InternalCache(Vertx vertx, MappingParametersProvider provider) {
+      this.provider = provider;
       this.cache = Caffeine.newBuilder()
         /*
             In order to do not break down Vert.x threading model
@@ -287,7 +289,7 @@ public class MappingParametersProvider {
           if (mappingParameters.isInitialized()) {
             future.complete(mappingParameters);
           } else {
-            initializeParameters(mappingParameters, params).setHandler(future);
+            this.provider.initializeParameters(mappingParameters, params).setHandler(future);
           }
         }
       });
