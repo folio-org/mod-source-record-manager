@@ -140,7 +140,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return StringUtils.EMPTY;
       }
       return instanceFormats.stream()
-        .filter(instanceFormat -> instanceFormat.getCode().equals(context.getSubFieldValue()))
+        .filter(instanceFormat -> instanceFormat.getCode().equalsIgnoreCase(context.getSubFieldValue()))
         .findFirst()
         .map(InstanceFormat::getId)
         .orElse(StringUtils.EMPTY);
@@ -158,7 +158,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return STUB_FIELD_TYPE_ID;
       }
       return types.stream()
-        .filter(classificationType -> classificationType.getName().equals(typeName))
+        .filter(classificationType -> classificationType.getName().equalsIgnoreCase(typeName))
         .findFirst()
         .map(ClassificationType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
@@ -173,7 +173,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return StringUtils.EMPTY;
       }
       return types.stream()
-        .filter(type -> type.getCode().equals(context.getSubFieldValue()))
+        .filter(type -> type.getCode().equalsIgnoreCase(context.getSubFieldValue()))
         .findFirst()
         .map(ContributorType::getId)
         .orElse(StringUtils.EMPTY);
@@ -206,7 +206,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return STUB_FIELD_TYPE_ID;
       }
       return typeNames.stream()
-        .filter(contributorTypeName -> contributorTypeName.getName().equals(typeName))
+        .filter(contributorTypeName -> contributorTypeName.getName().equalsIgnoreCase(typeName))
         .findFirst()
         .map(ContributorNameType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
@@ -221,7 +221,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return STUB_FIELD_TYPE_ID;
       }
       return types.stream()
-        .filter(instanceType -> instanceType.getCode().equals(context.getSubFieldValue()))
+        .filter(instanceType -> instanceType.getCode().equalsIgnoreCase(context.getSubFieldValue()))
         .findFirst()
         .map(InstanceType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
@@ -257,7 +257,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return STUB_FIELD_TYPE_ID;
       }
       return identifierTypes.stream()
-        .filter(identifierType -> identifierType.getName().equals(typeName))
+        .filter(identifierType -> identifierType.getName().trim().equalsIgnoreCase(typeName))
         .findFirst()
         .map(IdentifierType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
