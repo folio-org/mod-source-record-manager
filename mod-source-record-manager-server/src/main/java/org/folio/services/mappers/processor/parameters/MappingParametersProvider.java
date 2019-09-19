@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
@@ -57,18 +58,17 @@ public class MappingParametersProvider {
   private InternalCache internalCache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
-    this.internalCache = new InternalCache(vertx, this);
+    this.internalCache = new InternalCache(vertx);
   }
 
   /**
    * Provides mapping parameters by the given key.
    *
-   * @param key    key with which the specified MappingParameters are associated
-   * @param params okapi connection params
+   * @param key key with which the specified MappingParameters are associated
    * @return mapping params for the given key
    */
-  public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
-    return this.internalCache.get(key, params);
+  public Future<MappingParameters> get(String key, OkapiConnectionParams okapiParams) {
+    return this.internalCache.get(key, mappingParameters -> initializeParameters(mappingParameters, okapiParams));
   }
 
   /**
@@ -260,9 +260,8 @@ public class MappingParametersProvider {
    */
   private class InternalCache {
     private AsyncLoadingCache<String, MappingParameters> cache;
-    private MappingParametersProvider provider;
-    public InternalCache(Vertx vertx, MappingParametersProvider provider) {
-      this.provider = provider;
+
+    public InternalCache(Vertx vertx) {
       this.cache = Caffeine.newBuilder()
         /*
             In order to do not break down Vert.x threading model
@@ -276,11 +275,11 @@ public class MappingParametersProvider {
     /**
      * Provides mapping parameters by the given key.
      *
-     * @param key    key with which the specified MappingParameters are associated
-     * @param params okapi connection params
+     * @param key        key with which the specified MappingParameters are associated
+     * @param initAction action to initialize mapping params
      * @return mapping params for the given key
      */
-    public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
+    public Future<MappingParameters> get(String key, Function<MappingParameters, Future<MappingParameters>> initAction) {
       Future<MappingParameters> future = Future.future();
       this.cache.get(key).whenComplete((mappingParameters, exception) -> {
         if (exception != null) {
@@ -289,7 +288,7 @@ public class MappingParametersProvider {
           if (mappingParameters.isInitialized()) {
             future.complete(mappingParameters);
           } else {
-            this.provider.initializeParameters(mappingParameters, params).setHandler(future);
+            initAction.apply(mappingParameters).setHandler(future);
           }
         }
       });
