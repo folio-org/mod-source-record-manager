@@ -54,17 +54,10 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
-  private AsyncLoadingCache<String, MappingParameters> cache;
+  private InternalCache internalCache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
-    this.cache = Caffeine.newBuilder()
-      /*
-          In order to do not break down Vert.x threading model
-          we need to delegate cache internal activities to the event-loop thread.
-      */
-      .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
-      .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
-      .buildAsync(key -> new MappingParameters().withInitializedState(false));
+    this.internalCache = new InternalCache(vertx);
   }
 
   /**
@@ -75,19 +68,7 @@ public class MappingParametersProvider {
    * @return mapping params for the given key
    */
   public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
-    Future<MappingParameters> future = Future.future();
-    this.cache.get(key).whenComplete((mappingParameters, exception) -> {
-      if (exception != null) {
-        future.fail(exception);
-      } else {
-        if (mappingParameters.isInitialized()) {
-          future.complete(mappingParameters);
-        } else {
-          initializeParameters(mappingParameters, params).setHandler(future);
-        }
-      }
-    });
-    return future;
+    return this.internalCache.get(key, params);
   }
 
   /**
@@ -272,5 +253,46 @@ public class MappingParametersProvider {
       }
     });
     return future;
+  }
+
+  /**
+   * In-memory cache to store mapping params
+   */
+  private class InternalCache {
+    private AsyncLoadingCache<String, MappingParameters> cache;
+    public InternalCache(Vertx vertx) {
+      this.cache = Caffeine.newBuilder()
+        /*
+            In order to do not break down Vert.x threading model
+            we need to delegate internalCache internal activities to the event-loop thread.
+        */
+        .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
+        .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
+        .buildAsync(key -> new MappingParameters().withInitializedState(false));
+    }
+
+    /**
+     * Provides mapping parameters by the given key.
+     *
+     * @param key    key with which the specified MappingParameters are associated
+     * @param params okapi connection params
+     * @return mapping params for the given key
+     */
+    public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
+      Future<MappingParameters> future = Future.future();
+
+      this.cache.get(key).whenComplete((mappingParameters, exception) -> {
+        if (exception != null) {
+          future.fail(exception);
+        } else {
+          if (mappingParameters.isInitialized()) {
+            future.complete(mappingParameters);
+          } else {
+            initializeParameters(mappingParameters, params).setHandler(future);
+          }
+        }
+      });
+      return future;
+    }
   }
 }
