@@ -1679,7 +1679,7 @@
       },
       {
         "value": "0345404475 (pbk.) : $11.00",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "4442869",
@@ -1752,7 +1752,7 @@
     "identifiers": [
       {
         "value": "0585098646 (electronic bk.)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "4986243",
@@ -2374,19 +2374,19 @@
     "identifiers": [
       {
         "value": "9781405734240 (v.1)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "1405734248 (v.1)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9780406047762 (set)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "0406047766 (set)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "6268723",
@@ -4391,11 +4391,11 @@
     "identifiers": [
       {
         "value": "9787310035694",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "7310035690",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)698070011",
@@ -4649,19 +4649,19 @@
       },
       {
         "value": "9789719429265 (pbk.)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9719429267 (pbk.)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9789719429272 (hard)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9719429275 (hard)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)648766901",
@@ -4868,11 +4868,11 @@
     "identifiers": [
       {
         "value": "9789400001435",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9400001436",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)870426828",
@@ -5430,11 +5430,11 @@
       },
       {
         "value": "9786162971280",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "6162971287",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)913573026",
@@ -5989,11 +5989,11 @@
     "identifiers": [
       {
         "value": "9784843349250",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "4843349259",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)958840466",
@@ -6283,15 +6283,15 @@
     "identifiers": [
       {
         "value": "9781119056348 (flashcards : part 1)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9781119056836 (flashcards : part 2)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9781119056775 (flashcards : complete set)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)966701167",
@@ -6378,11 +6378,11 @@
     "identifiers": [
       {
         "value": "9789662783858 (paperback)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9662783857 (paperback)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)987797440",
@@ -6883,15 +6883,15 @@
     "identifiers": [
       {
         "value": "9789654938860 (print)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9654938863 (print)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9789654938877 (ebook)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "0004501710611",
@@ -7330,11 +7330,11 @@
       },
       {
         "value": "9780190494889 hardcover ; alkaline paper",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "0190494883 hardcover ; alkaline paper",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)979534062",
@@ -7437,11 +7437,11 @@
       },
       {
         "value": "9789351137634 (hardback)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9351137635 (hardback)",
-        "identifierTypeId": "8261054f-be78-422d-bd51-4ed9f33c3422"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)951929685",

@@ -359,8 +359,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISBN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -398,8 +404,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid ISBN"
+                  }
+                }
+              ]
             }
           ]
         },
