@@ -280,7 +280,6 @@ public class MappingParametersProvider {
      */
     public Future<MappingParameters> get(String key, OkapiConnectionParams params) {
       Future<MappingParameters> future = Future.future();
-
       this.cache.get(key).whenComplete((mappingParameters, exception) -> {
         if (exception != null) {
           future.fail(exception);
