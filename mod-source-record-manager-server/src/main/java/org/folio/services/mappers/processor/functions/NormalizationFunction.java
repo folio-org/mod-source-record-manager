@@ -318,7 +318,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     private Optional<InstanceNoteType> getNoteTypeByName(String noteTypeName, List<InstanceNoteType> noteTypes) {
       return noteTypes
         .stream()
-        .filter(instanceNoteType -> instanceNoteType.getName().equals(noteTypeName))
+        .filter(instanceNoteType -> instanceNoteType.getName().equalsIgnoreCase(noteTypeName))
         .findFirst();
     }
   };
