@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
+import static com.github.tomakehurst.wiremock.client.WireMock.getAllServeEvents;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
@@ -804,6 +805,73 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(15))
       .body("startedDate", notNullValue(Date.class)).log().all();
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessChunkOf3RawRecordsAndRequestMappingParams1Time(TestContext testContext) {
+    // given
+    int expectedSystemRequests =
+      + 1  /*    /users?query=id==                   */
+      + 3  /*    /source-storage/snapshots           */
+      + 1  /*    /source-storage/batch/records       */
+      + 1  /*    /identifier-types                   */
+      + 1  /*    /classification-types               */
+      + 1  /*    /instance-types                     */
+      + 1  /*    /electronic-access-relationships    */
+      + 1  /*    /contributor-types                  */
+      + 1  /*    /instance-formats                   */
+      + 1  /*    /contributor-name-types             */
+      + 1; /*    /inventory/instances/batch          */
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata().withLast(false).withCounter(2).withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withRecords(Arrays.asList(CORRECT_RAW_RECORD_1, CORRECT_RAW_RECORD_2, CORRECT_RAW_RECORD_3));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("runBy.firstName", is("DIKU"))
+      .body("progress.total", is(2))
+      .body("startedDate", notNullValue(Date.class)).log().all();
+
+    assertEquals(expectedSystemRequests, getAllServeEvents().size());
+
     async.complete();
   }
 
@@ -1680,5 +1748,4 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NOT_FOUND);
     async.complete();
   }
-
 }

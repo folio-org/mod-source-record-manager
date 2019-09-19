@@ -69,13 +69,13 @@ public abstract class AbstractRestTest {
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
-  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=500";
-  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=500";
-  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=500";
-  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=500";
-  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=500";
-  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
-  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
+  protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=500";
+  protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=500";
+  protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=500";
+  protected static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=500";
+  protected static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=500";
+  protected static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
+  protected static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
