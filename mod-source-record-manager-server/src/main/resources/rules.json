@@ -452,8 +452,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -488,8 +494,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -524,8 +536,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Linking ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
