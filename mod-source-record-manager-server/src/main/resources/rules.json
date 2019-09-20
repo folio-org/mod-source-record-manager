@@ -321,39 +321,6 @@
       ]
     }
   ],
-  "019": [
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_identifier_type_id_by_name",
-                  "parameter": {
-                    "name": "Cancelled system control number"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ]
-        }
-      ]
-    }
-  ],
   "020": [
     {
       "entity": [
@@ -669,37 +636,6 @@
           "description": "System Control Number",
           "subfield": [
             "a"
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for System Control Number",
-          "subfield": [
-            "z"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_identifier_type_id_by_name",
-                  "parameter": {
-                    "name": "Cancelled system control number"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "System Control Number",
-          "subfield": [
-            "z"
           ]
         }
       ]
