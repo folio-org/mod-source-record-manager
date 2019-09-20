@@ -321,33 +321,6 @@
       ]
     }
   ],
-  "019": [
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ]
-        }
-      ]
-    }
-  ],
   "020": [
     {
       "entity": [
@@ -660,13 +633,19 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for System Control Number",
           "subfield": [
-            "a",
-            "z"
+            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_value",
+                  "parameter": {
+                    "names": ["System control number", "OCLC"],
+                    "oclc_regex": "(\\(OCoLC\\)|ocm|ocn|on).*"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -674,8 +653,7 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a",
-            "z"
+            "a"
           ]
         }
       ]

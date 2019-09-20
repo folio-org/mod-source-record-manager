@@ -1,5 +1,6 @@
 package org.folio.services.mapping.functions;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
@@ -524,6 +525,49 @@ public class NormalizationFunctionTest {
     context.setRuleParameter(new JsonObject().put("name", "GPO item number"));
     // when
     String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_name", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_VALUE_shouldReturnExpectedResult() {
+    // given
+    String identifierTypeId = UUID.randomUUID().toString();
+    String oclcIdentifierTypeId = UUID.randomUUID().toString();
+    IdentifierType oclcIdentifierType = new IdentifierType()
+      .withId(oclcIdentifierTypeId)
+      .withName("OCLC");
+    IdentifierType identifierType = new IdentifierType()
+      .withId(identifierTypeId)
+      .withName("System control number");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(identifierType)));
+    context.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("oclc_regex", "(\\(OCoLC\\)|ocm|ocn|on).*"));
+    context.setSubFieldValue("910504526");
+    RuleExecutionContext oclcContext = new RuleExecutionContext();
+    oclcContext.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(oclcIdentifierType)));
+    oclcContext.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("oclc_regex", "(\\(OCoLC\\)|ocm|ocn|on).*"));
+    oclcContext.setSubFieldValue("(OCoLC)910504526");
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_value", context);
+    String actualOclcIdentifierTypeId = runFunction("set_identifier_type_id_by_value", oclcContext);
+    // then
+    assertEquals(identifierTypeId, actualIdentifierTypeId);
+    assertEquals(oclcIdentifierTypeId, actualOclcIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_VALUE_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("identifiers", new JsonArray().add("(OCoLC)")));
+    context.setSubFieldValue("(OCoLC)910504526");
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_value", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
   }
