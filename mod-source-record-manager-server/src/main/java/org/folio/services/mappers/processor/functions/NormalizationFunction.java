@@ -1,5 +1,6 @@
 package org.folio.services.mappers.processor.functions;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.jaxrs.model.ContributorNameType;
@@ -261,6 +262,36 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .findFirst()
         .map(IdentifierType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_IDENTIFIER_TYPE_ID_BY_VALUE() {
+    private static final String NAMES_PARAMETER = "names";
+    private static final String OCLC_REGEX = "oclc_regex";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      JsonArray typeNames = context.getRuleParameter().getJsonArray(NAMES_PARAMETER);
+      List<IdentifierType> identifierTypes = context.getMappingParameters().getIdentifierTypes();
+      if (identifierTypes == null || typeNames == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      String type = getIdentifierTypeName(context);
+      return identifierTypes.stream()
+        .filter(identifierType -> identifierType.getName().equalsIgnoreCase(type))
+        .findFirst()
+        .map(IdentifierType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+
+    private String getIdentifierTypeName(RuleExecutionContext context) {
+      JsonArray typeNames = context.getRuleParameter().getJsonArray(NAMES_PARAMETER);
+      String oclcRegex = context.getRuleParameter().getString(OCLC_REGEX);
+      String type = typeNames.getString(0);
+      if (oclcRegex != null && context.getSubFieldValue().matches(oclcRegex)) {
+        type = typeNames.getString(1);
+      }
+      return type;
     }
   };
 
