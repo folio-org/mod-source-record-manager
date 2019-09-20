@@ -49,6 +49,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 
@@ -195,14 +196,14 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
     WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
-      .willReturn(WireMock.okJson(userResponse.toString())));
-    WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(INSTANCE_TYPES_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(CLASSIFICATION_TYPES_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(ELECTRONIC_ACCESS_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(INSTANCE_FORMATS_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(WireMock.okJson(new JsonObject().toString())));
+      .willReturn(okJson(userResponse.toString())));
+    WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(CLASSIFICATION_TYPES_URL).willReturn(okJson(new JsonObject().put("classificationTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(ELECTRONIC_ACCESS_URL).willReturn(okJson(new JsonObject().put("electronicAccessRelationships", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_FORMATS_URL).willReturn(okJson(new JsonObject().put("instanceFormats", new JsonArray()).toString())));
+    WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorNameTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorTypes", new JsonArray()).toString())));
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
   }
