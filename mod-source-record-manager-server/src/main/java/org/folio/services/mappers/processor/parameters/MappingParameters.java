@@ -7,6 +7,7 @@ import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorType;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class MappingParameters {
   private UnmodifiableList<InstanceFormat> instanceFormats;
   private UnmodifiableList<ContributorType> contributorTypes;
   private UnmodifiableList<ContributorNameType> contributorNameTypes;
+  private UnmodifiableList<InstanceNoteType> instanceNoteTypes;
 
   public boolean isInitialized() {
     return initializedState;
@@ -94,6 +96,15 @@ public class MappingParameters {
 
   public MappingParameters withContributorNameTypes(List<ContributorNameType> contributorNameTypes) {
     this.contributorNameTypes = new UnmodifiableList<>(contributorNameTypes);
+    return this;
+  }
+
+  public List<InstanceNoteType> getInstanceNoteTypes() {
+    return instanceNoteTypes;
+  }
+
+  public MappingParameters withInstanceNoteTypes(List<InstanceNoteType> instanceNoteTypes) {
+    this.instanceNoteTypes = new UnmodifiableList<>(instanceNoteTypes);
     return this;
   }
 }

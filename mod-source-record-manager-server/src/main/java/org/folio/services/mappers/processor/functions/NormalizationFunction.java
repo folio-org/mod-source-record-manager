@@ -3,19 +3,21 @@ package org.folio.services.mappers.processor.functions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorType;
-import org.folio.rest.jaxrs.model.IdentifierType;
-import org.folio.rest.jaxrs.model.InstanceType;
-import org.folio.rest.jaxrs.model.ClassificationType;
-import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.IdentifierType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static io.netty.util.internal.StringUtil.EMPTY_STRING;
@@ -292,6 +294,32 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         type = typeNames.getString(1);
       }
       return type;
+    }
+  },
+
+  SET_NOTE_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+    private static final String DEFAULT_NOTE_TYPE_NAME = "General note";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String noteTypeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<InstanceNoteType> instanceNoteTypes = context.getMappingParameters().getInstanceNoteTypes();
+      if (instanceNoteTypes == null || noteTypeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return getNoteTypeByName(noteTypeName, instanceNoteTypes)
+        .map(InstanceNoteType::getId)
+        .orElseGet(() -> getNoteTypeByName(DEFAULT_NOTE_TYPE_NAME, instanceNoteTypes)
+          .map(InstanceNoteType::getId)
+          .orElse(STUB_FIELD_TYPE_ID));
+    }
+
+    private Optional<InstanceNoteType> getNoteTypeByName(String noteTypeName, List<InstanceNoteType> noteTypes) {
+      return noteTypes
+        .stream()
+        .filter(instanceNoteType -> instanceNoteType.getName().equalsIgnoreCase(noteTypeName))
+        .findFirst();
     }
   };
 

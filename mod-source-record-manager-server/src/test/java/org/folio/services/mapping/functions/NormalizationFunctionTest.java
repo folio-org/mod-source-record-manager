@@ -5,10 +5,11 @@ import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
 import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -570,6 +571,50 @@ public class NormalizationFunctionTest {
     String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_value", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceNoteTypeId = UUID.randomUUID().toString();
+    InstanceNoteType instanceNoteType = new InstanceNoteType()
+      .withId(expectedInstanceNoteTypeId)
+      .withName("Summary");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withInstanceNoteTypes(Collections.singletonList(instanceNoteType)));
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(expectedInstanceNoteTypeId, actualInstanceNoteTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnDefaultNoteTypeResultIfNoSettingsSpecified() {
+    // given
+    String expectedInstanceNoteTypeId = UUID.randomUUID().toString();
+    InstanceNoteType defaultNoteType = new InstanceNoteType()
+      .withId(expectedInstanceNoteTypeId)
+      .withName("General note");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withInstanceNoteTypes(Collections.singletonList(defaultNoteType)));
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(expectedInstanceNoteTypeId, actualInstanceNoteTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualInstanceNoteTypeId);
   }
 
 }

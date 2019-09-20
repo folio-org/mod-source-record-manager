@@ -8,6 +8,7 @@
  * Added mapping for contributor type free text
  * Added instance-type identifiers settings loading for mapping
  * Applied caching for external mapping parameters
+ * Added instance note types settings loading for mapping
  
 ## 2019-09-09 v1.6.0
  * Progress mechanism was updated
