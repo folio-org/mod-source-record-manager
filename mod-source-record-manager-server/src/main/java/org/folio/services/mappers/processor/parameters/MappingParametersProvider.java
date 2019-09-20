@@ -1,7 +1,10 @@
 package org.folio.services.mappers.processor.parameters;
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -20,17 +23,21 @@ import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceFormats;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceTypes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
- * Builder for mapping parameters.
+ * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
-public class MappingParametersBuilder {
-
-  private static final Integer SETTING_LIMIT = 500;
+@Component
+public class MappingParametersProvider {
+  private static final int SETTING_LIMIT = 500;
   private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
   private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
@@ -47,21 +54,43 @@ public class MappingParametersBuilder {
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
 
-  private MappingParametersBuilder() {
+  private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
+  private InternalCache internalCache;
+
+  public MappingParametersProvider(@Autowired Vertx vertx) {
+    this.internalCache = new InternalCache(vertx);
   }
 
-  public static Future<MappingParameters> build(OkapiConnectionParams params) {
-    Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(params);
-    Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(params);
-    Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(params);
-    Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(params);
-    Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(params);
-    Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(params);
-    Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(params);
+  /**
+   * Provides mapping parameters by the given key.
+   *
+   * @param key key with which the specified MappingParameters are associated
+   * @return mapping params for the given key
+   */
+  public Future<MappingParameters> get(String key, OkapiConnectionParams okapiParams) {
+    return this.internalCache.get(key, mappingParameters -> initializeParameters(mappingParameters, okapiParams));
+  }
+
+  /**
+   * Performs initialization for mapping parameters
+   *
+   * @param mappingParams given params to initialize
+   * @param okapiParams   okapi connection params
+   * @return initialized mapping params
+   */
+  private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
+    Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
+    Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);
+    Future<List<ElectronicAccessRelationship>> electronicAccessRelationshipsFuture = getElectronicAccessRelationships(okapiParams);
+    Future<List<InstanceFormat>> instanceFormatsFuture = getInstanceFormats(okapiParams);
+    Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(okapiParams);
+    Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(okapiParams);
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture,
       instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture))
       .map(ar ->
-        new MappingParameters()
+        mappingParams
+          .withInitializedState(true)
           .withIdentifierTypes(identifierTypesFuture.result())
           .withClassificationTypes(classificationTypesFuture.result())
           .withInstanceTypes(instanceTypesFuture.result())
@@ -78,7 +107,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Identifier types
    */
-  private static Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
+  private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
     Future<List<IdentifierType>> future = Future.future();
     RestUtil.doRequest(params, IDENTIFIER_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -100,7 +129,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Classification types
    */
-  private static Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
+  private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
     Future<List<ClassificationType>> future = Future.future();
     RestUtil.doRequest(params, CLASSIFICATION_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -122,7 +151,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Instance types
    */
-  private static Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
+  private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
     Future<List<InstanceType>> future = Future.future();
     RestUtil.doRequest(params, INSTANCE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -144,7 +173,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Electronic Access Relationships
    */
-  private static Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
+  private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
     Future<List<ElectronicAccessRelationship>> future = Future.future();
     RestUtil.doRequest(params, ELECTRONIC_ACCESS_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -166,7 +195,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Instance formats
    */
-  private static Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
+  private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
     Future<List<InstanceFormat>> future = Future.future();
     RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -188,7 +217,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Contributor types
    */
-  private static Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
+  private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
     Future<List<ContributorType>> future = Future.future();
     RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -210,7 +239,7 @@ public class MappingParametersBuilder {
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-  private static Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
+  private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
     Future<List<ContributorNameType>> future = Future.future();
     RestUtil.doRequest(params, CONTRIBUTOR_NAME_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
@@ -224,5 +253,47 @@ public class MappingParametersBuilder {
       }
     });
     return future;
+  }
+
+  /**
+   * In-memory cache to store mapping params
+   */
+  private class InternalCache {
+    private AsyncLoadingCache<String, MappingParameters> cache;
+
+    public InternalCache(Vertx vertx) {
+      this.cache = Caffeine.newBuilder()
+        /*
+            In order to do not break down Vert.x threading model
+            we need to delegate cache internal activities to the event-loop thread.
+        */
+        .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
+        .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
+        .buildAsync(key -> new MappingParameters().withInitializedState(false));
+    }
+
+    /**
+     * Provides mapping parameters by the given key.
+     *
+     * @param key        key with which the specified MappingParameters are associated
+     * @param initAction action to initialize mapping params
+     * @return mapping params for the given key
+     */
+    public Future<MappingParameters> get(String key, Function<MappingParameters, Future<MappingParameters>> initAction) {
+      Future<MappingParameters> future = Future.future();
+      this.cache.get(key).whenComplete((mappingParameters, exception) -> {
+        if (exception != null) {
+          future.fail(exception);
+        } else {
+          if (mappingParameters.isInitialized()) {
+            future.complete(mappingParameters);
+          } else {
+            // Complete future to continue with mapping even if request for MappingParameters is failed
+            initAction.apply(mappingParameters).setHandler(ar -> future.complete(mappingParameters));
+          }
+        }
+      });
+      return future;
+    }
   }
 }

@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 
@@ -69,13 +71,13 @@ public abstract class AbstractRestTest {
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
   private static final String GET_USER_URL = "/users?query=id==";
-  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=500";
-  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=500";
-  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=500";
-  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=500";
-  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=500";
-  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
-  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
+  protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=500";
+  protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=500";
+  protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=500";
+  protected static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=500";
+  protected static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=500";
+  protected static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
+  protected static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
@@ -187,28 +189,21 @@ public abstract class AbstractRestTest {
       .willReturn(WireMock.ok()));
     WireMock.stubFor(WireMock.put(PARSED_RECORDS_COLLECTION_URL)
       .willReturn(WireMock.ok()));
-    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok().withBody(record)));
     WireMock.stubFor(WireMock.post(INVENTORY_URL)
       .willReturn(WireMock.created().withHeader("location", UUID.randomUUID().toString())));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
-    WireMock.stubFor(WireMock.get(GET_USER_URL + okapiUserIdHeader)
-      .willReturn(WireMock.okJson(userResponse.toString())));
-    WireMock.stubFor(WireMock.get(IDENTIFIER_TYPES_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(INSTANCE_TYPES_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(CLASSIFICATION_TYPES_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(ELECTRONIC_ACCESS_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(INSTANCE_FORMATS_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(CONTRIBUTOR_NAME_TYPES_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
-    WireMock.stubFor(WireMock.get(CONTRIBUTOR_TYPES_URL)
-      .willReturn(WireMock.okJson(new JsonObject().toString())));
+    WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
+      .willReturn(okJson(userResponse.toString())));
+    WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(CLASSIFICATION_TYPES_URL).willReturn(okJson(new JsonObject().put("classificationTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(ELECTRONIC_ACCESS_URL).willReturn(okJson(new JsonObject().put("electronicAccessRelationships", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_FORMATS_URL).willReturn(okJson(new JsonObject().put("instanceFormats", new JsonArray()).toString())));
+    WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorNameTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorTypes", new JsonArray()).toString())));
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
   }

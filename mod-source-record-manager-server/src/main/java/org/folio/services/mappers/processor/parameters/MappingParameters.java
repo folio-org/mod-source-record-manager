@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class MappingParameters {
 
+  private boolean initializedState = false;
   private UnmodifiableList<IdentifierType> identifierTypes;
   private UnmodifiableList<ClassificationType> classificationTypes;
   private UnmodifiableList<InstanceType> instanceTypes;
@@ -23,6 +24,15 @@ public class MappingParameters {
   private UnmodifiableList<InstanceFormat> instanceFormats;
   private UnmodifiableList<ContributorType> contributorTypes;
   private UnmodifiableList<ContributorNameType> contributorNameTypes;
+
+  public boolean isInitialized() {
+    return initializedState;
+  }
+
+  public MappingParameters withInitializedState(boolean initializedState) {
+    this.initializedState = initializedState;
+    return this;
+  }
 
   public List<IdentifierType> getIdentifierTypes() {
     return identifierTypes;
