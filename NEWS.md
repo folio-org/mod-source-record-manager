@@ -1,3 +1,15 @@
+## 2019-09-09 v1.7.1
+ * Added instance-type settings loading for mapping
+ * Added electronic access relationships loading for mapping
+ * Added classification settings loading for mapping
+ * Added instance-format settings loading for mapping
+ * Added contributor name types setting loading for mapping
+ * Added contributor types setting loading for mapping, simple mapping for primary sign and name
+ * Added mapping for contributor type free text
+ * Added instance-type identifiers settings loading for mapping
+ * Applied caching for external mapping parameters
+ * Added instance note types settings loading for mapping
+ 
 ## 2019-09-09 v1.6.0
  * Progress mechanism was updated
  * Changed RawRecordsDto schema with extended metadata information

@@ -321,33 +321,6 @@
       ]
     }
   ],
-  "019": [
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "identifiers.identifierTypeId",
-          "description": "Type for Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
-            }
-          ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Cancelled System Control Number",
-          "subfield": [
-            "a"
-          ]
-        }
-      ]
-    }
-  ],
   "020": [
     {
       "entity": [
@@ -359,8 +332,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISBN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -398,8 +377,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "8261054f-be78-422d-bd51-4ed9f33c3422"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid ISBN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -440,8 +425,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -476,8 +467,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -512,8 +509,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "913300b2-03ed-469a-8179-c1092c991227"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Linking ISSN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -630,12 +633,19 @@
           "target": "identifiers.identifierTypeId",
           "description": "Type for System Control Number",
           "subfield": [
-            "a", "z"
+            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "7e591197-f335-4afb-bc6d-a6d76ca3bace"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_value",
+                  "parameter": {
+                    "names": ["System control number", "OCLC"],
+                    "oclc_regex": "(\\(OCoLC\\)|ocm|ocn|on).*"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -643,7 +653,7 @@
           "target": "identifiers.value",
           "description": "System Control Number",
           "subfield": [
-            "a", "z"
+            "a"
           ]
         }
       ]
@@ -680,8 +690,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "LC"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -710,8 +726,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "a7f4d03f-b0d8-496c-aebf-4e9cdb678200"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "NLM"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -739,8 +761,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "GPO item number"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -773,8 +801,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "351ebc1c-3aae-4825-8765-c6d50dbf011f"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled GPO item number"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -810,8 +844,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "e8662436-75a8-4984-bebc-531e38c774a0"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "UDC"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -840,8 +880,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "42471af9-7d25-4f3a-bf78-60d29dcf463b"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "Dewey"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -877,37 +923,19 @@
           "target": "classifications.classificationTypeId",
           "description": "Type for gov doc classification",
           "subfield": [
-            "a"
-          ],
-          "rules": [
-            {
-              "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
-            }
-          ]
-        },
-        {
-          "target": "classifications.classificationNumber",
-          "description": "Gov doc classification",
-          "subfield": [
-            "a"
-          ]
-        }
-      ]
-    },
-    {
-      "entityPerRepeatedSubfield": true,
-      "entity": [
-        {
-          "target": "classifications.classificationTypeId",
-          "description": "Type for gov doc classification",
-          "subfield": [
+            "a",
             "z"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "fb12264c-ff3b-47e0-8e09-b0aa074361f1"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "GDC"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -915,6 +943,7 @@
           "target": "classifications.classificationNumber",
           "description": "Gov doc classification",
           "subfield": [
+            "a",
             "z"
           ]
         }
@@ -934,8 +963,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "ce176ace-a53e-4b4d-aa89-725ed7b2edac"
+              "conditions": [
+                {
+                  "type": "set_classification_type_id",
+                  "parameter": {
+                    "name": "LC"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -957,21 +992,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -1019,21 +1094,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "d376e36c-b759-4fed-8502-7130d1eeff39"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -1079,21 +1194,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "j"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -1315,6 +1470,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Cartographic Mathematical Data"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Cartographic Mathematical Data",
           "subfield": [
@@ -1326,6 +1507,7 @@
             "f",
             "g"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -1368,7 +1550,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["a"]
+          "subfields": [
+            "a"
+          ]
         }
       ],
       "rules": [
@@ -1389,7 +1573,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["b"]
+          "subfields": [
+            "b"
+          ]
         }
       ],
       "rules": [
@@ -1410,7 +1596,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["c"]
+          "subfields": [
+            "c"
+          ]
         }
       ],
       "rules": [
@@ -1434,7 +1622,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["a"]
+          "subfields": [
+            "a"
+          ]
         }
       ],
       "rules": [
@@ -1456,7 +1646,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["b"]
+          "subfields": [
+            "b"
+          ]
         }
       ],
       "rules": [
@@ -1478,7 +1670,9 @@
       "subFieldDelimiter": [
         {
           "value": " ; ",
-          "subfields": ["c"]
+          "subfields": [
+            "c"
+          ]
         }
       ],
       "rules": [
@@ -1565,22 +1759,37 @@
       ]
     }
   ],
-  "338": [
+  "336": [
     {
-      "target": "instanceFormatIds",
-      "description": "Instance Format ID",
-      "applyRulesOnConcatenatedData": true,
+      "target": "instanceTypeId",
+      "description": "Instance type ID",
+      "ignoreSubsequentFields": true,
       "subfield": [
-        "a",
-        "b",
-        "2",
-        "3"
+        "b"
       ],
       "rules": [
         {
           "conditions": [
             {
-              "type": "trim_period"
+              "type": "set_instance_type_id"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "338": [
+    {
+      "target": "instanceFormatIds",
+      "description": "Instance Format ID",
+      "subfield": [
+        "b"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_instance_format_id"
             }
           ]
         }
@@ -1611,6 +1820,28 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "General note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "General Note",
           "subfield": [
@@ -1618,6 +1849,7 @@
             "3",
             "5"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -1650,12 +1882,34 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "With note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "With Note",
           "subfield": [
             "a",
             "5"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -1686,6 +1940,31 @@
   "502": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "o"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Dissertation note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Dissertation Note",
@@ -1733,12 +2012,34 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Bibliography note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Bibliography, etc. Note",
           "subfield": [
             "a",
             "b"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -1769,6 +2070,30 @@
   "505": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "g",
+            "r",
+            "t",
+            "u"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Formatted Contents Note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Formatted Contents Note",
@@ -1813,6 +2138,35 @@
   "506": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "u",
+            "2",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Restrictions on Access note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Restrictions on Access Note",
@@ -1868,6 +2222,27 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Scale note for graphic material"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Scale Note for Graphic Material",
           "subfield": [
@@ -1906,11 +2281,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Creation / Production Credits note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Creation/Production Credits Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -1940,6 +2336,31 @@
   "510": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "x",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Citation / References note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Citation/References Note",
@@ -1987,11 +2408,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Participant or Performer note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Participant or Performer Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -2021,6 +2463,27 @@
   "513": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Type of report and period covered note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Type of Report and Period Covered Note",
@@ -2059,6 +2522,39 @@
   "514": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "m",
+            "u",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Data quality note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Data Quality Note",
@@ -2122,11 +2618,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Numbering peculiarities note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Numbering Peculiarities Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -2157,11 +2674,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Type of computer file or data note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Type of Computer File or Data Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -2191,6 +2729,31 @@
   "518": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "d",
+            "o",
+            "p",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Date / time and place of an event note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Date/Time and Place of an Event Note",
@@ -2238,6 +2801,31 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "u",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Summary"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Summary, Etc.",
           "subfield": [
@@ -2284,6 +2872,28 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Target Audience note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Target Audience Note",
           "subfield": [
@@ -2324,11 +2934,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Geographic Coverage note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Geographic Coverage Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -2358,6 +2989,28 @@
   "524": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "2",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Preferred Citation of Described Materials note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Preferred Citation of Described Materials Note",
@@ -2399,11 +3052,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Supplement note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Supplement Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -2433,6 +3107,33 @@
   "526": [
     {
       "entity": [
+
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "5",
+            "x",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Study Program Information note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Study Program Information Note",
@@ -2482,6 +3183,31 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Additional Physical Form Available note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Additional Physical Form Available Note",
           "subfield": [
@@ -2528,6 +3254,26 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Accessibility note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Accessibility note",
           "subfield": [
@@ -2563,6 +3309,35 @@
   "533": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "m",
+            "n",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Reproduction note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Reproduction Note",
@@ -2617,6 +3392,40 @@
   "534": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "e",
+            "f",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "t",
+            "x",
+            "z",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Original Version note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Original Version Note",
@@ -2682,6 +3491,31 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "g",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Location of Originals / Duplicates note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Location of Originals/Duplicates Note",
           "subfield": [
@@ -2727,6 +3561,33 @@
   "536": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Funding Information Note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Funding Information Note",
@@ -2778,12 +3639,36 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "System Details note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "System Details Note",
           "subfield": [
             "a",
             "u",
-            "3"
+            "3",
+            "5"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -2802,7 +3687,8 @@
           "subfield": [
             "a",
             "u",
-            "3"
+            "3",
+            "5"
           ],
           "rules": [
             {
@@ -2818,6 +3704,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Terms Governing Use and Reproduction note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Terms Governing Use and Reproduction Note",
           "subfield": [
@@ -2826,7 +3738,8 @@
             "c",
             "d",
             "u",
-            "3"
+            "3",
+            "5"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
@@ -2848,7 +3761,8 @@
             "c",
             "d",
             "u",
-            "3"
+            "3",
+            "5"
           ],
           "rules": [
             {
@@ -2863,6 +3777,36 @@
   "541": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "n",
+            "o",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Immediate Source of Acquisition note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Immediate Source of Acquisition Note",
@@ -2919,6 +3863,46 @@
   "542": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Information related to Copyright Status"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Information Relating to Copyright Status",
@@ -2996,6 +3980,33 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "n",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Location of Other Archival Materials note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+
+        {
           "target": "notes.note",
           "description": "Location of Other Archival Materials Note",
           "subfield": [
@@ -3044,6 +4055,28 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "u"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Biographical or Historical Data"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Biographical or Historical Data",
           "subfield": [
@@ -3083,6 +4116,28 @@
   "546": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Language note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Language Note",
@@ -3124,11 +4179,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Former Title Complexity note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Former Title Complexity Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -3159,11 +4235,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Issuing Body note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Issuing Body Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -3193,6 +4290,43 @@
   "552": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "u",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Entity and Attribute Information note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Entity and Attribute Information Note",
@@ -3264,6 +4398,31 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "u",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Cumulative Index / Finding Aides notes"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Cumulative Index/Finding Aids Note",
           "subfield": [
@@ -3310,6 +4469,27 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Information About Documentation note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Information About Documentation Note",
           "subfield": [
@@ -3345,6 +4525,29 @@
     }
   ],
   "561": [
+    {
+      "target": "notes.instanceNoteTypeId",
+      "description": "Instance note type id",
+      "subfield": [
+        "a",
+        "u",
+        "3",
+        "5"
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_note_type_id",
+              "parameter": {
+                "name": "Ownership and Custodial History note"
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "entity": [
         {
@@ -3389,6 +4592,32 @@
   "562": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Copy and Version Identification note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Copy and Version Identification Note",
@@ -3438,6 +4667,29 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Binding Information note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Binding Information",
           "subfield": [
@@ -3479,6 +4731,31 @@
   "565": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Case File Characteristics note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Case File Characteristics Note",
@@ -3526,6 +4803,28 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "2"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Methodology note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Methodology Note",
           "subfield": [
@@ -3533,6 +4832,7 @@
             "b",
             "2"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -3565,11 +4865,32 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Linking Entry Complexity note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Linking Entry Complexity Note",
           "subfield": [
             "a"
           ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
@@ -3599,6 +4920,28 @@
   "581": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "z",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Publications About Described Materials note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Publications About Described Materials Note",
@@ -3639,6 +4982,44 @@
   "583": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "n",
+            "o",
+            "u",
+            "x",
+            "z",
+            "2",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Action note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Action Note",
@@ -3712,6 +5093,29 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "b",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Accumulation and Frequency of Use note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Accumulation and Frequency of Use Note",
           "subfield": [
@@ -3754,6 +5158,28 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Exhibitions note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Exhibitions Note",
           "subfield": [
@@ -3794,6 +5220,27 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "3"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Awards note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Awards Note",
           "subfield": [
@@ -3832,6 +5279,27 @@
     {
       "entity": [
         {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Source of Description note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "notes.note",
           "description": "Source of Description Note",
           "subfield": [
@@ -3869,6 +5337,26 @@
   "590": [
     {
       "entity": [
+        {
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Local notes"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "notes.note",
           "description": "Local notes",
@@ -4360,21 +5848,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "fcdfeefb-4d51-4702-bc3a-af6f5b7a4e17"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4422,21 +5950,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "d376e36c-b759-4fed-8502-7130d1eeff39"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "e"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4482,21 +6050,61 @@
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "e8b311a6-3b21-03f2-2269-dd9310cb2d0a"
+              "conditions": [
+                {
+                  "type": "set_contributor_name_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeId",
+          "description": "Type of contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "4"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "contributors.contributorTypeText",
+          "description": "Contributor type free text",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "j"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_text"
+                }
+              ]
             }
           ]
         },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
-            "a"
           ],
           "rules": [
             {
@@ -4699,6 +6307,26 @@
   "856": [
     {
       "entity": [
+        {
+          "target": "electronicAccess.relationshipId",
+          "applyRulesOnConcatenatedData": true,
+          "description": "Relationship between the electronic resource at the location identified and the item described in the record as a whole",
+          "subfield": [
+            "3",
+            "y",
+            "u",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_electronic_access_relations_id"
+                }
+              ]
+            }
+          ]
+        },
         {
           "target": "electronicAccess.uri",
           "description": "URI",

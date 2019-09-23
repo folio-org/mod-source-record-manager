@@ -1,15 +1,28 @@
 package org.folio.services.mapping.functions;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.IdentifierType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.impl.DataFieldImpl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.netty.util.internal.StringUtil.EMPTY_STRING;
 import static org.folio.services.mappers.processor.functions.NormalizationFunctionRunner.runFunction;
@@ -17,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)
 public class NormalizationFunctionTest {
+  private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 
   @Test
   public void CHAR_SELECT_shouldReturnExpectedResult() {
@@ -224,6 +238,7 @@ public class NormalizationFunctionTest {
 
   @Test
   public void SET_PUBLISHER_ROLE_shouldReturnExpectedResult() {
+    // given
     Map<Character, String> givenIndicatorToExpectedRoleMap = new HashMap<>();
     givenIndicatorToExpectedRoleMap.put('0', "Production");
     givenIndicatorToExpectedRoleMap.put('1', "Publication");
@@ -242,4 +257,364 @@ public class NormalizationFunctionTest {
       assertEquals(expectedSubField, actualSubField);
     }
   }
+
+  @Test
+  public void SET_CLASSIFICATION_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedClassificationTypeId = UUID.randomUUID().toString();
+    ClassificationType givenClassificationType = new ClassificationType()
+      .withId(expectedClassificationTypeId)
+      .withName("LC")
+      .withSource("folio");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withClassificationTypes(Collections.singletonList(givenClassificationType)));
+    context.setRuleParameter(new JsonObject().put("name", "LC"));
+    // when
+    String actualClassificationTypeId = runFunction("set_classification_type_id", context);
+    // then
+    assertEquals(expectedClassificationTypeId, actualClassificationTypeId);
+  }
+
+  @Test
+  public void SET_CLASSIFICATION_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "LC"));
+    // when
+    String actualClassificationTypeId = runFunction("set_classification_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualClassificationTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceTypeId = UUID.randomUUID().toString();
+    InstanceType instanceType = new InstanceType()
+      .withId(expectedInstanceTypeId)
+      .withCode("txt");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    // when
+    String actualTypeId = runFunction("set_instance_type_id", context);
+    // then
+    assertEquals(expectedInstanceTypeId, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    InstanceType instanceType = new InstanceType()
+      .withId(UUID.randomUUID().toString())
+      .withCode("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    // when
+    String actualTypeId = runFunction("set_instance_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(UUID.randomUUID().toString())
+      .withName("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("txt");
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnValidId() {
+    // given
+    String uuid = UUID.randomUUID().toString();
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(uuid)
+      .withName("Related resource");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setDataField(new DataFieldImpl("856", '1', '2'));
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(uuid, actualTypeId);
+  }
+
+  @Test
+  public void SET_ELECTRONIC_ACCESS_RELATIONS_ID_shouldReturnValidIdForUnfounded() {
+    // given
+    String uuid = UUID.randomUUID().toString();
+    ElectronicAccessRelationship electronicAccessRelationship = new ElectronicAccessRelationship()
+      .withId(uuid)
+      .withName("No information provided");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setDataField(new DataFieldImpl("856", '1', '5'));
+    context.setMappingParameters(new MappingParameters()
+      .withElectronicAccessRelationships(Collections.singletonList(electronicAccessRelationship)));
+    // when
+    String actualTypeId = runFunction("set_electronic_access_relations_id", context);
+    // then
+    assertEquals(uuid, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceFormatId = UUID.randomUUID().toString();
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(expectedInstanceFormatId)
+      .withCode("nc");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(expectedInstanceFormatId, actualTypeId);
+  }
+
+  @Test
+  public void SET_INSTANCE_FORMAT_ID_shouldReturnEmptyStringIfNoSettingsSpecified() {
+    // given
+    InstanceFormat instanceFormat = new InstanceFormat()
+      .withId(UUID.randomUUID().toString())
+      .withCode("fail");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("nc");
+    context.setMappingParameters(new MappingParameters().withInstanceFormats(Collections.singletonList(instanceFormat)));
+    // when
+    String actualTypeId = runFunction("set_instance_format_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorTypeId = UUID.randomUUID().toString();
+    ContributorType givenContributorType = new ContributorType()
+      .withId(expectedContributorTypeId)
+      .withName("Animator")
+      .withCode("anm");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("anm");
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    // when
+    String actualContributorTypeId = runFunction("set_contributor_type_id", context);
+    // then
+    assertEquals(expectedContributorTypeId, actualContributorTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    // when
+    String actualContributorTypeId = runFunction("set_contributor_type_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualContributorTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorTypeText = "Arranger";
+    ContributorType givenContributorType = new ContributorType()
+      .withId(UUID.randomUUID().toString())
+      .withName("Arranger")
+      .withCode("arr");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("arr");
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedContributorTypeText, actualContributorTypeText);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnGivenSubFieldIfNoSettingsSpecified() {
+    // given
+    String expectedSubField = "arr";
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("arr");
+    context.setMappingParameters(new MappingParameters());
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedSubField, actualContributorTypeText);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_TYPE_TEXT_shouldReturnGivenSubFieldIfNoMatchInSettings() {
+    // given
+    String expectedContributorTypeText = "arr";
+    ContributorType givenContributorType = new ContributorType()
+      .withId(UUID.randomUUID().toString())
+      .withName("Animator")
+      .withCode("anm");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withContributorTypes(Collections.singletonList(givenContributorType)));
+    context.setSubFieldValue("arr");
+    // when
+    String actualContributorTypeText = runFunction("set_contributor_type_text", context);
+    // then
+    assertEquals(expectedContributorTypeText, actualContributorTypeText);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_NAME_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedContributorNameTypeId = UUID.randomUUID().toString();
+    ContributorNameType givenContributorNameType = new ContributorNameType()
+      .withId(expectedContributorNameTypeId)
+      .withName("Personal name");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withContributorNameTypes(Collections.singletonList(givenContributorNameType)));
+    context.setRuleParameter(new JsonObject().put("name", "Personal name"));
+    // when
+    String actualContributorNameTypeId = runFunction("set_contributor_name_type_id", context);
+    // then
+    assertEquals(expectedContributorNameTypeId, actualContributorNameTypeId);
+  }
+
+  @Test
+  public void SET_CONTRIBUTOR_NAME_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "Personal name"));
+    // when
+    String actualContributorNameTypeId = runFunction("set_contributor_name_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualContributorNameTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_NAME_shouldReturnExpectedResult() {
+    // given
+    String expectedIdentifierTypeId = UUID.randomUUID().toString();
+    IdentifierType identifierType = new IdentifierType()
+      .withId(expectedIdentifierTypeId)
+      .withName("GPO item number");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(identifierType)));
+    context.setRuleParameter(new JsonObject().put("name", "GPO item number"));
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_name", context);
+    // then
+    assertEquals(expectedIdentifierTypeId, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_NAME_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "GPO item number"));
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_name", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_VALUE_shouldReturnExpectedResult() {
+    // given
+    String identifierTypeId = UUID.randomUUID().toString();
+    String oclcIdentifierTypeId = UUID.randomUUID().toString();
+    IdentifierType oclcIdentifierType = new IdentifierType()
+      .withId(oclcIdentifierTypeId)
+      .withName("OCLC");
+    IdentifierType identifierType = new IdentifierType()
+      .withId(identifierTypeId)
+      .withName("System control number");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(identifierType)));
+    context.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("oclc_regex", "(\\(OCoLC\\)|ocm|ocn|on).*"));
+    context.setSubFieldValue("910504526");
+    RuleExecutionContext oclcContext = new RuleExecutionContext();
+    oclcContext.setMappingParameters(new MappingParameters().withIdentifierTypes(Collections.singletonList(oclcIdentifierType)));
+    oclcContext.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("oclc_regex", "(\\(OCoLC\\)|ocm|ocn|on).*"));
+    oclcContext.setSubFieldValue("(OCoLC)910504526");
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_value", context);
+    String actualOclcIdentifierTypeId = runFunction("set_identifier_type_id_by_value", oclcContext);
+    // then
+    assertEquals(identifierTypeId, actualIdentifierTypeId);
+    assertEquals(oclcIdentifierTypeId, actualOclcIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_IDENTIFIER_TYPE_ID_BY_VALUE_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("names", new JsonArray().add("System control number").add("OCLC"))
+      .put("identifiers", new JsonArray().add("(OCoLC)")));
+    context.setSubFieldValue("(OCoLC)910504526");
+    // when
+    String actualIdentifierTypeId = runFunction("set_identifier_type_id_by_value", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualIdentifierTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedInstanceNoteTypeId = UUID.randomUUID().toString();
+    InstanceNoteType instanceNoteType = new InstanceNoteType()
+      .withId(expectedInstanceNoteTypeId)
+      .withName("Summary");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withInstanceNoteTypes(Collections.singletonList(instanceNoteType)));
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(expectedInstanceNoteTypeId, actualInstanceNoteTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnDefaultNoteTypeResultIfNoSettingsSpecified() {
+    // given
+    String expectedInstanceNoteTypeId = UUID.randomUUID().toString();
+    InstanceNoteType defaultNoteType = new InstanceNoteType()
+      .withId(expectedInstanceNoteTypeId)
+      .withName("General note");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withInstanceNoteTypes(Collections.singletonList(defaultNoteType)));
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(expectedInstanceNoteTypeId, actualInstanceNoteTypeId);
+  }
+
+  @Test
+  public void SET_NOTE_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "Summary"));
+    // when
+    String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualInstanceNoteTypeId);
+  }
+
 }

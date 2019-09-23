@@ -42,10 +42,15 @@ import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -806,6 +811,125 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
+
+  @Test
+  public void shouldProcess3ChunksAndRequestForMappingParameters1Time(TestContext testContext) {
+    // given
+    final int NUMBER_OF_CHUNKS = 3;
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    // when
+    for (int i = 0; i< NUMBER_OF_CHUNKS; i++) {
+      async = testContext.async();
+      RestAssured.given()
+        .spec(spec)
+        .body(rawRecordsDto)
+        .when()
+        .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_NO_CONTENT);
+      async.complete();
+    }
+
+    // then
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("runBy.firstName", is("DIKU"))
+      .body("progress.total", is(15))
+      .body("startedDate", notNullValue(Date.class)).log().all();
+
+    verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(CLASSIFICATION_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_FORMATS_URL)));
+    verify(1, getRequestedFor(urlEqualTo(CONTRIBUTOR_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(CONTRIBUTOR_NAME_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(ELECTRONIC_ACCESS_URL)));
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessChunkIfRequestForMappingParametersFails(TestContext testContext) {
+    // given
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    // Do mock services to return failed response
+    WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(CLASSIFICATION_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(ELECTRONIC_ACCESS_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_FORMATS_URL).willReturn(serverError()));
+    WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(serverError()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    // when
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    // then
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("runBy.firstName", is("DIKU"))
+      .body("progress.total", is(15))
+      .body("startedDate", notNullValue(Date.class)).log().all();
+
+    async.complete();
+  }
+
 
   @Test
   public void shouldParseChunkOfRawRecordsIfInstancesAreNotCreated() {
@@ -1680,5 +1804,4 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NOT_FOUND);
     async.complete();
   }
-
 }

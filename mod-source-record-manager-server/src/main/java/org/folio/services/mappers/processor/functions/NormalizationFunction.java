@@ -1,11 +1,23 @@
 package org.folio.services.mappers.processor.functions;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.ClassificationType;
+import org.folio.rest.jaxrs.model.ContributorNameType;
+import org.folio.rest.jaxrs.model.ContributorType;
+import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
+import org.folio.rest.jaxrs.model.IdentifierType;
+import org.folio.rest.jaxrs.model.InstanceFormat;
+import org.folio.rest.jaxrs.model.InstanceNoteType;
+import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.services.mappers.processor.RuleExecutionContext;
+import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static io.netty.util.internal.StringUtil.EMPTY_STRING;
@@ -121,5 +133,195 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         return publisherRole.getCaption();
       }
     }
-  }
+  },
+
+  SET_INSTANCE_FORMAT_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<InstanceFormat> instanceFormats = context.getMappingParameters().getInstanceFormats();
+      if (instanceFormats == null) {
+        return StringUtils.EMPTY;
+      }
+      return instanceFormats.stream()
+        .filter(instanceFormat -> instanceFormat.getCode().equalsIgnoreCase(context.getSubFieldValue()))
+        .findFirst()
+        .map(InstanceFormat::getId)
+        .orElse(StringUtils.EMPTY);
+    }
+  },
+
+  SET_CLASSIFICATION_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String typeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<ClassificationType> types = context.getMappingParameters().getClassificationTypes();
+      if (types == null || typeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return types.stream()
+        .filter(classificationType -> classificationType.getName().equalsIgnoreCase(typeName))
+        .findFirst()
+        .map(ClassificationType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_CONTRIBUTOR_TYPE_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<ContributorType> types = context.getMappingParameters().getContributorTypes();
+      if (types == null) {
+        return StringUtils.EMPTY;
+      }
+      return types.stream()
+        .filter(type -> type.getCode().equalsIgnoreCase(context.getSubFieldValue()))
+        .findFirst()
+        .map(ContributorType::getId)
+        .orElse(StringUtils.EMPTY);
+    }
+  },
+
+  SET_CONTRIBUTOR_TYPE_TEXT() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<ContributorType> types = context.getMappingParameters().getContributorTypes();
+      if (types == null) {
+        return context.getSubFieldValue();
+      }
+      return types.stream()
+        .filter(type -> type.getCode().equalsIgnoreCase(context.getSubFieldValue()))
+        .findFirst()
+        .map(ContributorType::getName)
+        .orElse(context.getSubFieldValue());
+    }
+  },
+
+  SET_CONTRIBUTOR_NAME_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String typeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<ContributorNameType> typeNames = context.getMappingParameters().getContributorNameTypes();
+      if (typeNames == null || typeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return typeNames.stream()
+        .filter(contributorTypeName -> contributorTypeName.getName().equalsIgnoreCase(typeName))
+        .findFirst()
+        .map(ContributorNameType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_INSTANCE_TYPE_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<InstanceType> types = context.getMappingParameters().getInstanceTypes();
+      if (types == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return types.stream()
+        .filter(instanceType -> instanceType.getCode().equalsIgnoreCase(context.getSubFieldValue()))
+        .findFirst()
+        .map(InstanceType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_ELECTRONIC_ACCESS_RELATIONS_ID() {
+    @Override
+    public String apply(RuleExecutionContext context) {
+      List<ElectronicAccessRelationship> electronicAccessRelationships = context.getMappingParameters().getElectronicAccessRelationships();
+      if (electronicAccessRelationships == null || context.getDataField() == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      char ind2 = context.getDataField().getIndicator2();
+      String name = ElectronicAccessRelationshipEnum.getNameByIndicator(ind2);
+      return electronicAccessRelationships
+        .stream()
+        .filter(electronicAccessRelationship -> electronicAccessRelationship.getName().equalsIgnoreCase(name))
+        .findFirst()
+        .map(ElectronicAccessRelationship::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_IDENTIFIER_TYPE_ID_BY_NAME() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String typeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<IdentifierType> identifierTypes = context.getMappingParameters().getIdentifierTypes();
+      if (identifierTypes == null || typeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return identifierTypes.stream()
+        .filter(identifierType -> identifierType.getName().trim().equalsIgnoreCase(typeName))
+        .findFirst()
+        .map(IdentifierType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_IDENTIFIER_TYPE_ID_BY_VALUE() {
+    private static final String NAMES_PARAMETER = "names";
+    private static final String OCLC_REGEX = "oclc_regex";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      JsonArray typeNames = context.getRuleParameter().getJsonArray(NAMES_PARAMETER);
+      List<IdentifierType> identifierTypes = context.getMappingParameters().getIdentifierTypes();
+      if (identifierTypes == null || typeNames == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      String type = getIdentifierTypeName(context);
+      return identifierTypes.stream()
+        .filter(identifierType -> identifierType.getName().equalsIgnoreCase(type))
+        .findFirst()
+        .map(IdentifierType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
+    }
+
+    private String getIdentifierTypeName(RuleExecutionContext context) {
+      JsonArray typeNames = context.getRuleParameter().getJsonArray(NAMES_PARAMETER);
+      String oclcRegex = context.getRuleParameter().getString(OCLC_REGEX);
+      String type = typeNames.getString(0);
+      if (oclcRegex != null && context.getSubFieldValue().matches(oclcRegex)) {
+        type = typeNames.getString(1);
+      }
+      return type;
+    }
+  },
+
+  SET_NOTE_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+    private static final String DEFAULT_NOTE_TYPE_NAME = "General note";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String noteTypeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<InstanceNoteType> instanceNoteTypes = context.getMappingParameters().getInstanceNoteTypes();
+      if (instanceNoteTypes == null || noteTypeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return getNoteTypeByName(noteTypeName, instanceNoteTypes)
+        .map(InstanceNoteType::getId)
+        .orElseGet(() -> getNoteTypeByName(DEFAULT_NOTE_TYPE_NAME, instanceNoteTypes)
+          .map(InstanceNoteType::getId)
+          .orElse(STUB_FIELD_TYPE_ID));
+    }
+
+    private Optional<InstanceNoteType> getNoteTypeByName(String noteTypeName, List<InstanceNoteType> noteTypes) {
+      return noteTypes
+        .stream()
+        .filter(instanceNoteType -> instanceNoteType.getName().equalsIgnoreCase(noteTypeName))
+        .findFirst();
+    }
+  };
+
+  private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 }
