@@ -1,3 +1,7 @@
+## 2019-09-26 v1.6.2
+ * Adjusted memory settings
+ * Fixed progress
+
 ## 2019-09-23 v1.6.1
  * Added instance-type settings loading for mapping
  * Added electronic access relationships loading for mapping
