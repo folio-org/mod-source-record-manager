@@ -47,8 +47,8 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withChunkSize(incomingChunk.getRecords().size())
       .withCreatedDate(new Date());
     jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(job -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))
+      .compose(s -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
@@ -106,10 +106,10 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           Integer totalValue = incomingChunk.getRecordsMetadata().getTotal();
-          Integer counterValue = incomingChunk.getRecordsMetadata().getCounter();
+          Integer counterValue = incomingChunk.getRecordsMetadata().getCounter() != null ? incomingChunk.getRecordsMetadata().getCounter() : 1;
           Progress progress = new Progress()
             .withJobExecutionId(jobExecutionId)
-            .withCurrent(incomingChunk.getRecordsMetadata().getCounter())
+            .withCurrent(counterValue)
             .withTotal(totalValue != null ? totalValue : counterValue);
           jobExecution.setProgress(progress);
           if (jobExecution.getStartedDate() == null) {
