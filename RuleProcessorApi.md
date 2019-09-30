@@ -81,7 +81,7 @@ This rule takes only "a" and "b" sub-fields and calls normalization functions fo
 ```json
 Instance:
 {
-	"edition": "Fifth ed. Editor in chief Lord Mackay of Clashfern."
+  "edition": "Fifth ed. Editor in chief Lord Mackay of Clashfern."
 }
 ```
 #### Mapping for complex fields
