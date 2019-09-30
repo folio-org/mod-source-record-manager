@@ -405,8 +405,8 @@ Rule:
   ]
 ```
 "z" sub-field is required for mapping "identifiers.value". 
-If no "z" in record sub-fields, then "identifiers.value" remains empty(null).
-If "z" exists among record sub-fields, then "identifiers.value" get filled by all the `["z","q","c"].`
+- If no "z" in record sub-fields, then "identifiers.value" remains empty(null).
+- If "z" exists among record sub-fields, then "identifiers.value" gets filled by all the `["z","q","c"].`
 
 ### REST API
 This section is not done yet.
