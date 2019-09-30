@@ -2,7 +2,7 @@
 The source-record-manager(SRM) converts MARC records to Inventory instances while handling incoming data. The process of converting MARC record into Instance object is usually called **MARC-to-Instance mapping**. 
 
 Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rule basically has functions for data normalization(trim leading whitespaces, remove slashes, remove ending punctuation) and the target Instance field, where to put result of mapping.
-#### *This document describes a structure of rules, flags, real use cases and REST API to work with.*
+#### *This document describes structure of rules, flags, real use cases and REST API to work with.*
 ### What is mapping rule
 Basically, rule is a simple key-value JSON element. The key serves a MARC record's field(tag). The value itself is a rule.
 ```json
@@ -24,23 +24,24 @@ MARC Record: "001": "393/89/3"
 ```
 ```json
 Rule:
-     "001": [
-         {
-           "target": "hrid",
-           "description": "The human readable ID",
-           "rules": [
+  "001":[
+    {
+      "target":"hrid",
+      "description":"The human readable ID",
+      "rules":[
+        {
+          "conditions":[
             {
-              "conditions": [
-                {
-                  "type": "remove_substring",
-                  "parameter": {
-                    "substring": "/"
-                  }
-                }
-              ]
+              "type":"remove_substring",
+              "parameter":{
+                "substring":"/"
+              }
             }
-         }
-     ]
+          ]
+        }
+      ]
+    }
+  ]
 ```
 `remove_substring` is normalization function, that removes given substring from field's value. The function just doing a job and returns string that gets into Instance "hrid" field.
 An outcome Instance looks like this in Json:
