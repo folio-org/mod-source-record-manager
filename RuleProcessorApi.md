@@ -16,7 +16,7 @@ Rule:
   ]
 }
 ```
-This rule belongs to the "001" field and handle all the "001" fields from incoming record. It just takes a value from "001" field and put it to Instance "hrid" field. The "hrid" field is a string and such rules are usual for **Control field**.
+This rule belongs to the "001" field and handles all the "001" fields from incoming record. It just takes a value from "001" field and put it to Instance "hrid" field. The "hrid" field is a string and such rules are usual for **Control field**.
 #### Normalization functions
 In most cases the record value needs to be normalized before getting into Instance field, because of record data is often raw and mixed . For this purpose we have to use such structure:
  ```json
