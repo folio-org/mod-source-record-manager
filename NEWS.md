@@ -1,4 +1,7 @@
-## 2019-09-09 v1.7.1
+## 2019-09-30 v1.7.0-SNAPSHOT
+* Wrote documentation for Marc-to-Instance mapping processor
+
+## 2019-09-09 v1.6.1
  * Added instance-type settings loading for mapping
  * Added electronic access relationships loading for mapping
  * Added classification settings loading for mapping

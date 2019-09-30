@@ -132,9 +132,13 @@ at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker/).
 
 
 ## Data import workflow
-In order importing data to folio system without using mod-data-import file uploading functional, mod-source-record-manager
-provides such ability in appropriate endpoints.
-In this case should follow this steps:
+There are 2 ways to import records into source-record-storage based on source-record-manager.
+* The first way is basically used by UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
+* The second way is intended to import records using CLI tools - Postman, curl, SoapUI. This option is preferred if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
+
+In both 2 ways mod-source-record-manager does mapping from MARC records to Inventory instances and sends instances to the mod-inventory. For more details see [RuleProcessorApi](RuleProcessorApi.md).
+
+Next up listed  details of how to import records using second way. In this case user has to follow steps below:
 1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
 2. Send RawRecordsDto containing records list and field last=false.
 3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total amount sent field in field "counter".
@@ -287,7 +291,7 @@ JobExecution entity will be have following changed state
 ```
 
 ### Finishing raw records parsing
-To indicate end of raw records transfering for parsing should send POST request containing last RawRecordsDto
+To indicate end of raw records transferring for parsing should send POST request containing last RawRecordsDto
 to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of JobExecution creation request.
 The last RawRecordsDto should contains empty records list ("records" field), appropriate record format value 
