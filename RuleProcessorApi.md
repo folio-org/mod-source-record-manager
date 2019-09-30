@@ -324,7 +324,7 @@ Rule:
     }
 ]
 ```
-####Delimiting sub-fields
+#### Delimiting sub-fields
 Grouping sub-fields `"subfield": [ "a", "f"]` will concatenate (space delimited) the values in those sub-fields and place the result in the target. However, if there is a need to declare different delimiters per set of sub-fields, the following can be declared using the `subFieldDelimiter` array:
 ```json
 MARC Record:
@@ -366,7 +366,7 @@ Instance:
   ]
 }
 ```
-####Required sub-fields
+#### Required sub-fields
 Sometimes there is a need to map target field depending on existence of some sub-field. We use `requiredSubfield`  to define sub-field required to map target field:
 ```json
 MARC Record:
