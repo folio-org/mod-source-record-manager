@@ -48,7 +48,7 @@ An outcome Instance looks like this in Json:
 ```json
 Instance: 
 {
-	"hrid": "393893"
+  "hrid": "393893"
 }
 ```
 
@@ -56,7 +56,7 @@ Instance:
 
  In most cases there are sub-fields present in field, that is important for mapping. Example for "250" field with `a, b, 6` sub-fields comes below: 
  ```json
-MARC Record: ""250":{"ind1":"", "ind2":"", "subfields":[ { "a":" fifth ed." }, { "b":"Editor in chief Lord Mackay of Clashfern. " } , {"6":"880-02"}]}"
+MARC Record: "250":{"ind1":"", "ind2":"", "subfields":[ { "a":" fifth ed." }, { "b":"Editor in chief Lord Mackay of Clashfern. " } , {"6":"880-02"}]}
 ```
 ```json
 Rule:
