@@ -1,8 +1,8 @@
 ### Introduction
 The source-record-manager(SRM) converts MARC records to Inventory instances while handling incoming data. The process of converting MARC record into Instance object is usually called **MARC-to-Instance mapping**. 
 
-Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rule basically has functions for data normalization(trim leading whitespaces, remove slashes, remove ending punctuation) and name of the target Instance field, where to put result of mapping. 
-*This document describes a structure of rules, flags, real use cases and REST API to work with.*
+Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rule basically has functions for data normalization(trim leading whitespaces, remove slashes, remove ending punctuation) and the target Instance field, where to put result of mapping.
+#### *This document describes a structure of rules, flags, real use cases and REST API to work with.*
 ### What is mapping rule
 Basically, rule is a simple key-value JSON element. The key serves a MARC record's field(tag). The value itself is a rule.
 ```json
@@ -402,10 +402,9 @@ Rule:
     }
   ]
 ```
-
-'z' sub-field is required for mapping "identifiers.value". 
-If no 'z' in record sub-fields, then "identifiers.value" remains empty(null).
-If 'z' exists among record sub-fields, then "identifiers.value" get filled by all the ["z","q","c"].
+"z" sub-field is required for mapping "identifiers.value". 
+If no "z" in record sub-fields, then "identifiers.value" remains empty(null).
+If "z" exists among record sub-fields, then "identifiers.value" get filled by all the `["z","q","c"].`
 
 ### REST API
 This section is not done yet.
