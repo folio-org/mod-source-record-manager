@@ -36,6 +36,19 @@
           "tOps": "ADD"
         }
       ]
+    },
+    {
+      "tableName": "mapping_rules",
+      "generateId": false,
+      "fromModuleVersion": "mod-source-record-manager-1.7.0",
+      "withMetadata": false,
+      "pkColumnName": "_id",
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        }
+      ]
     }
   ],
   "scripts": [
