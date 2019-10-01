@@ -132,7 +132,7 @@ at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker/).
 
 
 ## Data import workflow
-There are 2 ways to import records into source-record-storage based on source-record-manager.
+There are two ways to import records into source-record-storage via source-record-manager.
 * The first way is basically used by UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
 * The second way is intended to import records using CLI tools - Postman, curl, SoapUI. This option is preferred if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
 
