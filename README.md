@@ -136,7 +136,7 @@ There are two ways to import records into source-record-storage via source-recor
 * The first way is basically used by UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
 * The second way is intended to import records using CLI tools - Postman, curl, SoapUI. This option is preferred if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
 
-In both 2 ways mod-source-record-manager does mapping from MARC records to Inventory instances and sends instances to the mod-inventory. For more details see [RuleProcessorApi](RuleProcessorApi.md).
+In both ways mod-source-record-manager maps MARC records to Inventory instances and sends instances to mod-inventory. For more details see [RuleProcessorApi](RuleProcessorApi.md).
 
 Next up listed  details of how to import records using second way. In this case user has to follow steps below:
 1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
