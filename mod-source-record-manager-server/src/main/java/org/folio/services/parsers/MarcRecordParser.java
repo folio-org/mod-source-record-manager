@@ -10,8 +10,10 @@ import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.marc.Record;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,12 +24,13 @@ import java.util.List;
  */
 public final class MarcRecordParser implements RecordParser {
   private static final Logger LOGGER = LoggerFactory.getLogger(MarcRecordParser.class);
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
     ParsedResult result = new ParsedResult();
     try {
-      MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(rawRecord.getBytes(StandardCharsets.UTF_8)));
+      MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(rawRecord.getBytes(DEFAULT_CHARSET)), DEFAULT_CHARSET.name());
       if (reader.hasNext()) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         MarcJsonWriter writer = new MarcJsonWriter(os);
