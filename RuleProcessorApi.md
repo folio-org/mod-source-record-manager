@@ -240,7 +240,7 @@ Instance:
 }
 ```
 ##### New object per repeated sub-fields
-If there are several repeated sub-fields in one single record, then `entity` will concatenate them. To create a new object per each sub-field even they are repeated, we can use `entityPerRepeatedSubfield` flag:
+If there are several repeated sub-fields in one single record, then `entity` will concatenate them. To create a new object per each sub-field even if they are repeated, we can use `entityPerRepeatedSubfield` flag:
  ```json
 MARC Record:
   "264": {
