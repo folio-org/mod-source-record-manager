@@ -14,6 +14,7 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
@@ -112,6 +113,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       if (ar.succeeded()) {
         List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
         List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
+        addExternalIds(recordsToUpdate);
         addAdditionalFields(recordsToUpdate, okapiParams);
         sourceChunkState = COMPLETED;
       }
@@ -228,6 +230,21 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       }
     });
     return future;
+  }
+
+  /**
+   * Adds instances ids to every correspond record
+   *
+   * @param recordToInstanceList list of record and instance pairs
+   */
+  private void addExternalIds(List<Pair<Record, Instance>> recordToInstanceList) {
+    recordToInstanceList.parallelStream().forEach(recordInstancePair -> {
+      Record record = recordInstancePair.getKey();
+      if (record.getExternalIdsHolder() == null) {
+        record.setExternalIdsHolder(new ExternalIdsHolder());
+      }
+      record.getExternalIdsHolder().setInstanceId(recordInstancePair.getValue().getId());
+    });
   }
 
   /**
