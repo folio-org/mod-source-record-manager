@@ -1,5 +1,6 @@
 ## 2019-09-30 v1.7.0-SNAPSHOT
 * Wrote documentation for Marc-to-Instance mapping processor
+* Added order of the record in importing file
 
 ## 2019-09-09 v1.6.1
  * Added instance-type settings loading for mapping
