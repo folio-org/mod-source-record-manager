@@ -19,9 +19,8 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.ParsedRecord;
-import org.folio.rest.jaxrs.model.ParsedRecordCollection;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -312,8 +311,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     }
     Future<Void> future = Future.future();
     try {
+      RecordCollection recordCollection = new RecordCollection()
+        .withRecords(records)
+        .withTotalRecords(records.size());
+
       new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
-        .putSourceStorageBatchParsedRecords(buildParsedRecordCollection(records), response -> {
+        .putSourceStorageBatchParsedRecords(recordCollection, response -> {
           if (HttpStatus.HTTP_OK.toInt() != response.statusCode()) {
             setFail(future, response.statusCode());
           }
@@ -329,18 +332,6 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     String errorMessage = format("Couldn't update parsed records collection - response status code %s, expected 200", statusCode);
     LOGGER.error(errorMessage);
     future.fail(errorMessage);
-  }
-
-  private ParsedRecordCollection buildParsedRecordCollection(List<Record> records) {
-    List<ParsedRecord> parsedRecords = records.stream()
-      .filter(record -> record.getParsedRecord() != null)
-      .map(Record::getParsedRecord)
-      .collect(Collectors.toList());
-
-    return new ParsedRecordCollection()
-      .withParsedRecords(parsedRecords)
-      .withTotalRecords(parsedRecords.size())
-      .withRecordType(ParsedRecordCollection.RecordType.valueOf(getRecordsType(records).value()));
   }
 
   /**
