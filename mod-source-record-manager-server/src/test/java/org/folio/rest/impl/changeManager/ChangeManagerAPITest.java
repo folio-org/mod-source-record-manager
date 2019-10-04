@@ -17,6 +17,7 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.Progress;
@@ -101,7 +102,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withRecords(Collections.singletonList(CORRECT_RAW_RECORD_1)
+    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
 
   @Test
@@ -1229,7 +1230,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(false)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(CORRECT_RAW_RECORD_1, CORRECT_RAW_RECORD_1)
+      .withInitialRecords(asList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1), new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
       );
     Async async = testContext.async();
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
@@ -1317,10 +1318,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_PARSING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1389,10 +1390,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(Arrays.asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_PARSING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(Arrays.asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1461,7 +1462,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(rawRecordsDto.getRecordsMetadata().getCounter())
         .withContentType(rawRecordsDto.getRecordsMetadata().getContentType()))
-      .withRecords(rawRecordsDto.getRecords());
+      .withInitialRecords(rawRecordsDto.getInitialRecords());
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1508,10 +1509,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1586,10 +1587,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);

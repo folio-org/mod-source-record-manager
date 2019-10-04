@@ -12,6 +12,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -61,7 +62,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
     Future<List<Record>> future = Future.future();
-    List<Record> parsedRecords = parseRecords(chunk.getRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
+    List<Record> parsedRecords = parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
       .setHandler(postAr -> {
@@ -97,7 +98,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
    */
-  private List<Record> parseRecords(List<String> rawRecords, RecordsMetadata.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
+  private List<Record> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
@@ -108,13 +109,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
     return rawRecords.stream()
       .map(rawRecord -> {
-        ParsedResult parsedResult = parser.parseRecord(rawRecord);
+        ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
         Record record = new Record()
           .withId(UUID.randomUUID().toString())
           .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
           .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
-          .withRawRecord(new RawRecord().withId(UUID.randomUUID().toString()).withContent(rawRecord));
+          .withOrder(rawRecord.getOrder())
+          .withRawRecord(new RawRecord().withId(UUID.randomUUID().toString()).withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
           record.setErrorRecord(new ErrorRecord()
             .withId(UUID.randomUUID().toString())
