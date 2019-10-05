@@ -39,16 +39,10 @@
     },
     {
       "tableName": "mapping_rules",
-      "generateId": false,
+      "generateId": true,
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
       "withMetadata": false,
-      "pkColumnName": "_id",
-      "index": [
-        {
-          "fieldName": "id",
-          "tOps": "ADD"
-        }
-      ]
+      "pkColumnName": "_id"
     }
   ],
   "scripts": [

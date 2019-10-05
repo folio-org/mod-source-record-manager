@@ -133,6 +133,27 @@
       ]
     },
     {
+      "id": "mapping-rules-provider",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/mapping-rules",
+          "permissionsRequired": [ "mapping.rules.get" ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/mapping-rules/update",
+          "permissionsRequired": [ "mapping.rules.put.update" ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/mapping-rules/restore",
+          "permissionsRequired": [ "mapping.rules.put.restore" ]
+        }
+      ]
+    },
+    {
       "id": "_tenant",
       "version": "1.2",
       "interfaceType": "system",

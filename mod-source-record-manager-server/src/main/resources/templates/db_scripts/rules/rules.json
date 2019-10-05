@@ -1,0 +1,10 @@
+{
+  "001": [
+    {
+      "target": "hrid",
+      "description": "The human readable ID",
+      "subfield": [],
+      "rules": []
+    }
+  ]
+}

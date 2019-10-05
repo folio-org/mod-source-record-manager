@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.UpdateResult;
@@ -13,6 +14,9 @@ import org.folio.rest.annotations.Validate;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.TenantTool;
+import org.folio.services.MappingRuleService;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -35,16 +39,24 @@ public class ModTenantAPI extends TenantAPI {
   public static final String MODULE_PLACEHOLDER = "${mymodule}";
 
 
+  @Autowired
+  private MappingRuleService mappingRuleService;
+
+  public ModTenantAPI() {
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+  }
+
   @Validate
   @Override
-  public void postTenant(TenantAttributes entity, Map<String, String> headers, Handler<AsyncResult<Response>> handlers, Context context) {
-    super.postTenant(entity, headers, ar -> {
-      if (ar.failed()) {
-        handlers.handle(ar);
+  public void postTenant(TenantAttributes entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context context) {
+    super.postTenant(entity, headers, postTenantAr -> {
+      if (postTenantAr.failed()) {
+        handler.handle(postTenantAr);
       } else {
         setSequencesPermissionForDbUser(headers, context)
-          .compose(permissionAr ->  setupTestData(headers, context))
-          .setHandler(event -> handlers.handle(ar));
+          .compose(permissionAr -> setupTestData(headers, context))
+          .compose(ar -> mappingRuleService.saveDefaultRules(TenantTool.calculateTenantId(headers.get("x-okapi-tenant"))))
+          .setHandler(event -> handler.handle(postTenantAr));
       }
     }, context);
   }
