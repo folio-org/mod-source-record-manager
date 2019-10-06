@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.LogCollectionDto;
@@ -361,7 +362,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
         .withCounter(1)
         .withTotal(expectedTotalRecords)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(Collections.singletonList(RAW_RECORD));
+      .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(RAW_RECORD)));
 
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(2).getJobExecutions();
     JobExecution jobExecution = createdJobExecutions.get(0);
@@ -415,7 +416,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     }
 
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
-      .withRecords(Collections.singletonList(RAW_RECORD));
+      .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(RAW_RECORD)));
 
     RecordsMetadata recordsMetadata = new RecordsMetadata()
       .withLast(true)
