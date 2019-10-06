@@ -4,7 +4,6 @@ import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
 import org.junit.Assert;

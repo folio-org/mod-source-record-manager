@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.services.MappingRuleService;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -45,6 +46,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
@@ -60,18 +62,35 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private MappingParametersProvider mappingParametersProvider;
+  private MappingRuleService mappingRuleService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                       @Autowired MappingParametersProvider mappingParametersProvider) {
+                                       @Autowired MappingParametersProvider mappingParametersProvider,
+                                       @Autowired MappingRuleService mappingRuleService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
+    this.mappingRuleService = mappingRuleService;
   }
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
-    return Future.succeededFuture()
+    return succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
-      .compose(mappingParameters -> mapRecords(records, sourceChunkId, mappingParameters, okapiParams));
+      .compose(mappingParameters -> {
+          String tenantId = okapiParams.getTenantId();
+          mappingRuleService.get(tenantId)
+            .compose(optionalMappingRules -> {
+              if (optionalMappingRules.isPresent()) {
+                JsonObject mappingRules = optionalMappingRules.get();
+                return mapRecords(records, sourceChunkId, mappingParameters, mappingRules, okapiParams);
+              } else {
+                LOGGER.error(format("Can not map Record to Instance, no mapping rules found for tenant %s"), tenantId);
+                // Complete future in order to continue the import process regardless of the result of creating Instances
+                return succeededFuture();
+              }
+            });
+        return succeededFuture();
+      });
   }
 
   /**
@@ -83,7 +102,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private Future<MappingParameters> getMappingParameters(List<Record> records, OkapiConnectionParams okapiParams) {
     if (records.isEmpty()) {
-      return Future.succeededFuture(new MappingParameters());
+      return succeededFuture(new MappingParameters());
     } else {
       String snapshotId = records.get(0).getSnapshotId();
       return mappingParametersProvider.get(snapshotId, okapiParams);
@@ -103,9 +122,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param okapiParams   - OkapiConnectionParams to interact with external services
    * @return future
    */
-  private Future<Void> mapRecords(List<Record> records, String sourceChunkId, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+  private Future<Void> mapRecords(List<Record> records, String sourceChunkId, MappingParameters mappingParams, JsonObject mappingRules, OkapiConnectionParams okapiParams) {
     Future future = Future.future();
-    Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, okapiParams);
+    Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, mappingRules, okapiParams);
     List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
     postInstances(instances, okapiParams).setHandler(ar -> {
       JobExecutionSourceChunk.State sourceChunkState = ERROR;
@@ -145,9 +164,10 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    *
    * @param records given list of records
    * @param mappingParameters parameters needed for mapping rules
+   * @param mappingRules mapping rules needed for mapping processor
    * @return association between Records and corresponding Instances
    */
-  private Map<Instance, Record> mapRecords(List<Record> records, MappingParameters mappingParameters, OkapiConnectionParams params) {
+  private Map<Instance, Record> mapRecords(List<Record> records, MappingParameters mappingParameters, JsonObject mappingRules, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
       return new HashMap<>();
     }
@@ -155,7 +175,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     return records.parallelStream()
-      .map(record -> mapRecordToInstance(record, mapper, mappingParameters))
+      .map(record -> mapRecordToInstance(record, mapper, mappingParameters, mappingRules))
       .filter(Objects::nonNull)
       .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
@@ -167,13 +187,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param record Record
    * @param mapper Record to Instance mapper
    * @param mappingParameters parameters needed for mapping rules
+   * @param mappingRules mapping rules needed for mapping processor
    * @return either a pair of record-instance or null
    */
-  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, MappingParameters mappingParameters) {
+  private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, MappingParameters mappingParameters, JsonObject mappingRules) {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-        Instance instance = mapper.mapRecord(parsedRecordContent, mappingParameters);
+        Instance instance = mapper.mapRecord(parsedRecordContent, mappingParameters, mappingRules);
         return Pair.of(instance, record);
       }
     } catch (Exception e) {
@@ -211,7 +232,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private Future<List<Instance>> postInstances(List<Instance> instanceList, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(instanceList)) {
-      return Future.succeededFuture();
+      return succeededFuture();
     }
     Future<List<Instance>> future = Future.future();
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
@@ -307,7 +328,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private Future<Void> updateParsedRecords(List<Record> records, OkapiConnectionParams params) {
     if (CollectionUtils.isEmpty(records)) {
-      return Future.succeededFuture();
+      return succeededFuture();
     }
     Future<Void> future = Future.future();
     try {
@@ -325,7 +346,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       LOGGER.error("Failed to update parsed records collection", e);
       future.fail(e);
     }
-    return future.isComplete() ? future : Future.succeededFuture();
+    return future.isComplete() ? future : succeededFuture();
   }
 
   private void setFail(Future<Void> future, int statusCode) {

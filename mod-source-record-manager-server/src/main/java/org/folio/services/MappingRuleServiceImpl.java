@@ -21,7 +21,7 @@ import java.util.Optional;
 public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleServiceImpl.class);
   private static final Charset DEFAULT_RULES_ENCODING = Charsets.UTF_8;
-  private static final String DEFAULT_RULES_PATH = "templates/db_scripts/rules/rules.json";
+  private static final String DEFAULT_RULES_PATH = "rules/rules.json";
   private MappingRuleDao mappingRuleDao;
 
   public MappingRuleServiceImpl(@Autowired MappingRuleDao mappingRuleDao) {
@@ -49,7 +49,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           }
         });
       } else {
-        String errorMessage = "Can not save rules in non-JSON format";
+        String errorMessage = "Can not work with rules in non-JSON format";
         LOGGER.error(errorMessage);
         future.fail(new BadRequestException(errorMessage));
       }
