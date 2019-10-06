@@ -5,25 +5,33 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;
 
+/**
+ * Mapping rules DAO
+ */
 public interface MappingRuleDao {
   /**
+   * Returns default rules represented in JsonObject for given tenant
    *
-   * @return
+   * @param tenantId tenant
+   * @return optional of rules
    */
   Future<Optional<JsonObject>> get(String tenantId);
 
   /**
+   * Saves rules
    *
-   * @param rule
-   * @param tenantId
-   * @return
+   * @param rules    rules
+   * @param tenantId tenant
+   * @return rules id
    */
-  Future<String> save(JsonObject rule, String tenantId);
+  Future<String> save(JsonObject rules, String tenantId);
 
   /**
+   * Updates rules if exist
    *
-   * @param rule
-   * @return
+   * @param rules rules
+   * @param tenantId tenant
+   * @return updated rules
    */
-  Future<JsonObject> update(JsonObject rule, String tenantId);
+  Future<JsonObject> update(JsonObject rules, String tenantId);
 }

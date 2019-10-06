@@ -34,24 +34,30 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<Void> saveDefaultRules(String tenantId) {
     Future<Void> future = Future.future();
-    String rules = readResourceFromPath(DEFAULT_RULES_PATH);
-    if (isValidJson(rules)) {
-      mappingRuleDao.save(new JsonObject(rules), tenantId).setHandler(ar -> {
-        if (ar.failed()) {
-          LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
-          future.fail(ar.cause());
-        } else {
-          future.complete();
-        }
-      });
+    Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
+    if (optionalRules.isPresent()) {
+      String rules = optionalRules.get();
+      if (isValidJson(rules)) {
+        mappingRuleDao.save(new JsonObject(rules), tenantId).setHandler(ar -> {
+          if (ar.failed()) {
+            LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
+            future.fail(ar.cause());
+          } else {
+            future.complete();
+          }
+        });
+      } else {
+        String errorMessage = "Can not save default rules in non-JSON format";
+        LOGGER.error(errorMessage);
+        future.fail(errorMessage);
+      }
     } else {
-      String errorMessage = "Can not save default rules in non-JSON format";
+      String errorMessage = "Can not find default rules in resources";
       LOGGER.error(errorMessage);
       future.fail(errorMessage);
     }
     return future;
   }
-
 
   @Override
   public Future<JsonObject> update(String rules, String tenantId) {
@@ -68,10 +74,25 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<JsonObject> restore(String tenantId) {
-    String rules = readResourceFromPath(DEFAULT_RULES_PATH);
-    return update(rules, tenantId);
+    Future<JsonObject> future = Future.future();
+    Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
+    if (optionalRules.isPresent()) {
+      String rules = optionalRules.get();
+      update(rules, tenantId).setHandler(future);
+    } else {
+      String errorMessage = "No rules found in resources";
+      LOGGER.error(errorMessage);
+      future.fail(errorMessage);
+    }
+    return future;
   }
 
+  /**
+   * Returns true if given String is valid JSON
+   *
+   * @param json given string
+   * @return true if given String is valid JSON, false if non-valid
+   */
   private boolean isValidJson(String json) {
     try {
       new JsonObject(json);
@@ -82,13 +103,19 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     }
   }
 
-  private String readResourceFromPath(String path) {
+  /**
+   * Returns Optional with found resource
+   *
+   * @param path path to file from resources
+   * @return optional with resource, empty if no file in resources
+   */
+  private Optional<String> readResourceFromPath(String path) {
     URL url = Resources.getResource(path);
     try {
-      return Resources.toString(url, DEFAULT_RULES_ENCODING);
+      return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
     } catch (IOException e) {
       LOGGER.error(e.getMessage());
-      return null;
+      return Optional.empty();
     }
   }
 }
