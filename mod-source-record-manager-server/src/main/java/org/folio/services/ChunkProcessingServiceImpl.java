@@ -44,7 +44,7 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
       .withJobExecutionId(jobExecutionId)
       .withLast(incomingChunk.getRecordsMetadata().getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
-      .withChunkSize(incomingChunk.getRecords().size())
+      .withChunkSize(incomingChunk.getInitialRecords().size())
       .withCreatedDate(new Date());
     jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(job -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))

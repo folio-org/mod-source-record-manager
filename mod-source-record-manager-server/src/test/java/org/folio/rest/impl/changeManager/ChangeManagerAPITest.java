@@ -17,10 +17,13 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -57,6 +60,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 
@@ -98,7 +102,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withRecords(Collections.singletonList(CORRECT_RAW_RECORD_1)
+    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
 
   @Test
@@ -765,13 +769,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecords(TestContext testContext) {
+  public void shouldProcessChunkOfRawRecords(TestContext testContext) throws IOException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
@@ -797,6 +803,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
+
+    String requestBody = findAll(putRequestedFor(urlEqualTo(PARSED_RECORDS_COLLECTION_URL))).get(0).getBodyAsString();
+    RecordCollection recordCollection = new ObjectMapper().readValue(requestBody, RecordCollection.class);
+    Assert.assertThat(recordCollection.getRecords().size(), is(not(0)));
+
+    Record updatedRecord = recordCollection.getRecords().get(0);
+    Assert.assertNotNull(updatedRecord.getExternalIdsHolder());
+    Assert.assertNotNull(updatedRecord.getExternalIdsHolder().getInstanceId());
 
     async = testContext.async();
     RestAssured.given()
@@ -837,7 +851,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     // when
-    for (int i = 0; i< NUMBER_OF_CHUNKS; i++) {
+    for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
       async = testContext.async();
       RestAssured.given()
         .spec(spec)
@@ -869,6 +883,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(CONTRIBUTOR_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(CONTRIBUTOR_NAME_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(ELECTRONIC_ACCESS_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_NOTE_TYPES_URL)));
     async.complete();
   }
 
@@ -889,6 +904,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_FORMATS_URL).willReturn(serverError()));
     WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL).willReturn(serverError()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1214,7 +1230,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(false)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(CORRECT_RAW_RECORD_1, CORRECT_RAW_RECORD_1)
+      .withInitialRecords(asList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1), new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
       );
     Async async = testContext.async();
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
@@ -1268,7 +1284,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     assertEquals(1, requests.size());
     String body = requests.get(0).getBodyAsString();
-    assertEquals(1, new JsonObject(body).getJsonArray("parsedRecords").size());
+    assertEquals(1, new JsonObject(body).getJsonArray("records").size());
   }
 
   @Test
@@ -1302,10 +1318,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_PARSING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1374,10 +1390,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(Arrays.asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_PARSING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(Arrays.asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1446,7 +1462,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(rawRecordsDto.getRecordsMetadata().getCounter())
         .withContentType(rawRecordsDto.getRecordsMetadata().getContentType()))
-      .withRecords(rawRecordsDto.getRecords());
+      .withInitialRecords(rawRecordsDto.getInitialRecords());
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1493,10 +1509,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1571,10 +1587,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withLast(true)
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withRecords(asList(
-        CORRECT_RAW_RECORD_2,
-        RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR,
-        CORRECT_RAW_RECORD_3));
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
