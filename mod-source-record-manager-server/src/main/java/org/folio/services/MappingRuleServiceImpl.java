@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -47,14 +49,14 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           }
         });
       } else {
-        String errorMessage = "Can not save default rules in non-JSON format";
+        String errorMessage = "Can not save rules in non-JSON format";
         LOGGER.error(errorMessage);
         future.fail(errorMessage);
       }
     } else {
-      String errorMessage = "Can not find default rules in resources";
+      String errorMessage = "No default rules found";
       LOGGER.error(errorMessage);
-      future.fail(errorMessage);
+      future.fail(new InternalServerErrorException(errorMessage));
     }
     return future;
   }
@@ -67,7 +69,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
       LOGGER.error(errorMessage);
-      future.fail(errorMessage);
+      future.fail(new BadRequestException(errorMessage));
     }
     return future;
   }
@@ -82,7 +84,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);
-      future.fail(errorMessage);
+      future.fail(new InternalServerErrorException(errorMessage));
     }
     return future;
   }
