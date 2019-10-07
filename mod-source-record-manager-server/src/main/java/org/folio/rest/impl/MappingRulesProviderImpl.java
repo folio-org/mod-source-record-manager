@@ -21,7 +21,6 @@ import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 
 public class MappingRulesProviderImpl implements MappingRules {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MappingRulesProviderImpl.class);
   private String tenantId;
   @Autowired
   private MappingRuleService mappingRuleService;

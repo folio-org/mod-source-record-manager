@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -15,12 +14,13 @@ import javax.ws.rs.InternalServerErrorException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
 public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleServiceImpl.class);
-  private static final Charset DEFAULT_RULES_ENCODING = Charsets.UTF_8;
+  private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_RULES_PATH = "rules/rules.json";
   private MappingRuleDao mappingRuleDao;
 
