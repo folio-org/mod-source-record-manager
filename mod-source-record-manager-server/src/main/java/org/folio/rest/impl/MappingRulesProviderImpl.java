@@ -41,10 +41,10 @@ public class MappingRulesProviderImpl implements MappingRules {
   }
 
   @Override
-  public void putMappingRulesUpdate(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putMappingRules(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
       .compose(ar -> mappingRuleService.update(entity, tenantId))
-      .map(rules -> PutMappingRulesUpdateResponse.respond200WithApplicationJson(rules.encode()))
+      .map(rules -> PutMappingRulesResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
       .setHandler(asyncResultHandler);

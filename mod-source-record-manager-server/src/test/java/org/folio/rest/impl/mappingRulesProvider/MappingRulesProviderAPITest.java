@@ -45,7 +45,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .spec(spec)
       .body(expectedRules.encode())
       .when()
-      .put(SERVICE_PATH + "/update")
+      .put(SERVICE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
     // then

@@ -39,27 +39,26 @@ resourceTypes:
         body:
           text/plain:
             example: "Internal server error"
-  /update:
-    put:
-      is: [validate]
-      body:
-        application/json:
-          type: string
-      responses:
-        200:
-          body:
-            application/json:
-              type: string
-        400:
-          description: "Bad request"
-          body:
-            text/plain:
-              example: "Bad request"
-        500:
-          description: "Internal server error"
-          body:
-            text/plain:
-              example: "Internal server error"
+  put:
+    is: [validate]
+    body:
+      application/json:
+        type: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: string
+      400:
+        description: "Bad request"
+        body:
+          text/plain:
+            example: "Bad request"
+      500:
+        description: "Internal server error"
+        body:
+          text/plain:
+            example: "Internal server error"
   /restore:
     put:
       is: [validate]
