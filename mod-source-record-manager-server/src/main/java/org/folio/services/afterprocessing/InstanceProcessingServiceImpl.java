@@ -80,7 +80,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
           updateSourceChunkState(
             sourceChunkId,
             ar.succeeded() ? JobExecutionSourceChunk.State.COMPLETED : JobExecutionSourceChunk.State.ERROR,
-            okapiParams)
+            okapiParams
+          )
             .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
             // Complete future in order to continue the import process regardless of the result of creating Instances
             .setHandler(updateAr -> future.complete());
