@@ -12,6 +12,7 @@
     <basedir>${project.parent.basedir}</basedir>
     <ramlfiles_path>${project.parent.basedir}/ramls</ramlfiles_path>
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
+    <sonar.exclusions>org.folio.rest.impl.ModTenantAPI</sonar.exclusions>
     <jackson.version>2.9.10</jackson.version>
     <jackson.jaxb.version>2.9.9</jackson.jaxb.version>
   </properties>
