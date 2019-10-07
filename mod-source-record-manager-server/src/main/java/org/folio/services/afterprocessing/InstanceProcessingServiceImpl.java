@@ -74,29 +74,24 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
-    return succeededFuture()
+    Future future = Future.future();
+    succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
-      .compose(mappingParameters -> {
-          String tenantId = okapiParams.getTenantId();
-          mappingRuleService.get(tenantId)
-            .compose(optionalMappingRules -> {
-              if (optionalMappingRules.isPresent()) {
-                JsonObject mappingRules = optionalMappingRules.get();
-                return mapRecords(records, sourceChunkId, mappingParameters, mappingRules, okapiParams);
-              } else {
-                LOGGER.error(format("Can not map Record to Instance, no mapping rules found for tenant %s"), tenantId);
-                // Complete future in order to continue the import process regardless of the result of creating Instances
-                return succeededFuture();
-              }
-            });
-        return succeededFuture();
+      .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
+      .setHandler(ar -> {
+        JobExecutionSourceChunk.State sourceChunkState = ar.succeeded() ? COMPLETED : ERROR;
+        updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
+          .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
+          // Complete future in order to continue the import process regardless of the result of creating Instances
+          .setHandler(updateAr -> future.complete());
       });
+    return future;
   }
 
   /**
    * Provides external parameters for the MARC-to-Instance mapping process
    *
-   * @param records list of incoming records
+   * @param records     list of incoming records
    * @param okapiParams okapi connection parameters
    * @return mapping parameters
    */
@@ -117,29 +112,36 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Updates 'completed date' for job execution source chunk.
    *
    * @param records       - parsed records for processing
-   * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param mappingParams - external parameters needed for mapping functions
    * @param okapiParams   - OkapiConnectionParams to interact with external services
    * @return future
    */
-  private Future<Void> mapRecords(List<Record> records, String sourceChunkId, MappingParameters mappingParams, JsonObject mappingRules, OkapiConnectionParams okapiParams) {
+  private Future<Void> mapRecords(List<Record> records, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
     Future future = Future.future();
-    Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, mappingRules, okapiParams);
-    List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-    postInstances(instances, okapiParams).setHandler(ar -> {
-      JobExecutionSourceChunk.State sourceChunkState = ERROR;
-      if (ar.succeeded()) {
-        List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
-        List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
-        addExternalIds(recordsToUpdate);
-        addAdditionalFields(recordsToUpdate, okapiParams);
-        sourceChunkState = COMPLETED;
-      }
-      updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
-        .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
-        // Complete future in order to continue the import process regardless of the result of creating Instances
-        .setHandler(updateAr -> future.complete());
-    });
+    String tenantId = okapiParams.getTenantId();
+    mappingRuleService.get(tenantId)
+      .compose(optionalMappingRules -> {
+        if (optionalMappingRules.isPresent()) {
+          JsonObject mappingRules = optionalMappingRules.get();
+          Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, mappingRules, okapiParams);
+          List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
+          postInstances(instances, okapiParams).setHandler(ar -> {
+            if (ar.succeeded()) {
+              List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
+              List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
+              addExternalIds(recordsToUpdate);
+              addAdditionalFields(recordsToUpdate, okapiParams);
+              future.complete();
+            } else {
+              LOGGER.error("Can not post Instances", ar.cause());
+              future.fail(ar.cause());
+            }
+          });
+        } else {
+          future.fail(format("Can not map Records to Instances, no mapping rules found for tenant %s", tenantId));
+        }
+        return succeededFuture();
+      });
     return future;
   }
 
@@ -162,9 +164,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Maps list of Records to Instances
    *
-   * @param records given list of records
+   * @param records           given list of records
    * @param mappingParameters parameters needed for mapping rules
-   * @param mappingRules mapping rules needed for mapping processor
+   * @param mappingRules      mapping rules needed for mapping processor
    * @return association between Records and corresponding Instances
    */
   private Map<Instance, Record> mapRecords(List<Record> records, MappingParameters mappingParameters, JsonObject mappingRules, OkapiConnectionParams params) {
@@ -184,10 +186,10 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   /**
    * Maps Record to an Instance
    *
-   * @param record Record
-   * @param mapper Record to Instance mapper
+   * @param record            Record
+   * @param mapper            Record to Instance mapper
    * @param mappingParameters parameters needed for mapping rules
-   * @param mappingRules mapping rules needed for mapping processor
+   * @param mappingRules      mapping rules needed for mapping processor
    * @return either a pair of record-instance or null
    */
   private Pair<Instance, Record> mapRecordToInstance(Record record, RecordToInstanceMapper mapper, MappingParameters mappingParameters, JsonObject mappingRules) {
