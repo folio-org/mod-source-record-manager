@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
-import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.COMPLETED;
-import static org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State.ERROR;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
@@ -79,17 +77,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
       .setHandler(ar -> {
-        JobExecutionSourceChunk.State sourceChunkState = null;
-        if (ar.succeeded()) {
-          sourceChunkState = COMPLETED;
-        } else {
-          sourceChunkState = ERROR;
+          JobExecutionSourceChunk.State state =
+            ar.succeeded() ? JobExecutionSourceChunk.State.COMPLETED : JobExecutionSourceChunk.State.ERROR;
+          updateSourceChunkState(sourceChunkId, state, okapiParams)
+            .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
+            // Complete future in order to continue the import process regardless of the result of creating Instances
+            .setHandler(updateAr -> future.complete());
         }
-        updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
-          .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
-          // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> future.complete());
-      });
+      );
     return future;
   }
 
