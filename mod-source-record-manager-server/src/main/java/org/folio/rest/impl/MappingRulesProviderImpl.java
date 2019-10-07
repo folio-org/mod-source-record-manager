@@ -4,8 +4,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.resource.MappingRules;
 import org.folio.rest.tools.utils.TenantTool;

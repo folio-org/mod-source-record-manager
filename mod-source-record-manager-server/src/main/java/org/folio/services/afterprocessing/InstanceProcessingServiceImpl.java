@@ -79,7 +79,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
       .setHandler(ar -> {
-        JobExecutionSourceChunk.State sourceChunkState = ar.succeeded() ? COMPLETED : ERROR;
+        JobExecutionSourceChunk.State sourceChunkState = null;
+        if (ar.succeeded()) {
+          sourceChunkState = COMPLETED;
+        } else {
+          sourceChunkState = ERROR;
+        }
         updateSourceChunkState(sourceChunkId, sourceChunkState, okapiParams)
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
