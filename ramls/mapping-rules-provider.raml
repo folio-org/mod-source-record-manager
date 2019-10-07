@@ -1,0 +1,74 @@
+#%RAML 1.0
+
+title: Mapping rules Provider
+version: v2.0
+protocols: [ HTTP, HTTPS ]
+baseUri: http://localhost
+
+documentation:
+  - title: Mapping rules Provider API
+    content: API for accessing mapping rules
+
+types:
+  errors: !include raml-storage/raml-util/schemas/errors.schema
+
+traits:
+  validate: !include raml-storage/raml-util/traits/validation.raml
+  language: !include raml-storage/raml-util/traits/language.raml
+  pageable:  !include raml-storage/raml-util/traits/pageable.raml
+  searchable: !include raml-storage/raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-storage/raml-util/rtypes/collection.raml
+  collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
+
+/mapping-rules:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: string
+      404:
+        description: "Not found"
+        body:
+          text/plain:
+            example: "Not found"
+      500:
+        description: "Internal server error"
+        body:
+          text/plain:
+            example: "Internal server error"
+  put:
+    is: [validate]
+    body:
+      application/json:
+        type: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: string
+      400:
+        description: "Bad request"
+        body:
+          text/plain:
+            example: "Bad request"
+      500:
+        description: "Internal server error"
+        body:
+          text/plain:
+            example: "Internal server error"
+  /restore:
+    put:
+      is: [validate]
+      responses:
+        200:
+          body:
+            application/json:
+              type: string
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"

@@ -34,11 +34,14 @@ public class MappingTest {
 
   private static final String INSTANCES_PATH = "src/test/resources/org/folio/services/mapping/instances.json";
   private static final String BIBS_PATH = "src/test/resources/org/folio/services/mapping/CornellFOLIOExemplars_Bibs.mrc";
+  private static final String DEFAULT_MAPPING_RULES_PATH = "src/main/resources/rules/rules.json";
 
   @Test
   public void testMarcToInstance() throws IOException {
     MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(TestUtil.readFileFromPath(BIBS_PATH).getBytes(StandardCharsets.UTF_8)));
     JsonArray instances = new JsonArray(TestUtil.readFileFromPath(INSTANCES_PATH));
+    JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MAPPING_RULES_PATH));
+
     int i = 0;
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     while (reader.hasNext()) {
@@ -47,7 +50,7 @@ public class MappingTest {
       Record record = reader.next();
       writer.write(record);
       JsonObject marc = new JsonObject(new String(os.toByteArray()));
-      Instance instance = mapper.mapRecord(marc, new MappingParameters());
+      Instance instance = mapper.mapRecord(marc, new MappingParameters(), mappingRules);
       Assert.assertNotNull(instance.getTitle());
       Assert.assertNotNull(instance.getSource());
       Assert.assertNotNull(instance.getInstanceTypeId());

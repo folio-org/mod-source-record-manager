@@ -133,6 +133,27 @@
       ]
     },
     {
+      "id": "mapping-rules-provider",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/mapping-rules",
+          "permissionsRequired": [ "mapping-rules.get" ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/mapping-rules",
+          "permissionsRequired": [ "mapping-rules.update" ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/mapping-rules/restore",
+          "permissionsRequired": [ "mapping-rules.restore" ]
+        }
+      ]
+    },
+    {
       "id": "_tenant",
       "version": "1.2",
       "interfaceType": "system",
@@ -189,6 +210,21 @@
       "description": "Delete JobExecution and all associated records from SRS"
     },
     {
+      "permissionName": "mapping-rules.get",
+      "displayName": "Mapping Rules provider - get default rules by tenant id",
+      "description": "Get mapping rules for tenant"
+    },
+    {
+      "permissionName": "mapping-rules.update",
+      "displayName": "Mapping Rules provider - update default rules by tenant id",
+      "description": "Update mapping rules for tenant"
+    },
+    {
+      "permissionName": "mapping-rules.restore",
+      "displayName": "Mapping Rules provider - restore default rules by tenant id",
+      "description": "Restore existing mapping rules to default for tenant"
+    },
+    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -199,7 +235,10 @@
         "change-manager.jobexecutions.put",
         "change-manager.jobexecutions.get",
         "change-manager.records.post",
-        "change-manager.records.delete"
+        "change-manager.records.delete",
+        "mapping-rules.get",
+        "mapping-rules.update",
+        "mapping-rules.restore"
       ],
       "visible": false
     }

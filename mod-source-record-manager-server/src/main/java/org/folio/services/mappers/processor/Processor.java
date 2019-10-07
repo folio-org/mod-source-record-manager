@@ -4,7 +4,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Instance;
@@ -20,8 +19,6 @@ import org.marc4j.marc.impl.SubfieldImpl;
 
 import javax.script.ScriptException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,6 +37,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.services.mappers.processor.LoaderHelper.isMappingValid;
 import static org.folio.services.mappers.processor.LoaderHelper.isPrimitiveOrPrimitiveWrapperOrString;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Processor {
 
@@ -49,7 +47,7 @@ public class Processor {
   private static final String TYPE = "type";
   private static final String REPEATABLE_SUBFIELD_SEPARATOR = StringUtils.SPACE;
 
-  private JsonObject rulesFile;
+  private JsonObject mappingRules;
 
   private Leader leader;
   private String separator; //separator between subfields with different delimiters
@@ -63,27 +61,18 @@ public class Processor {
   private final Map<String, StringBuilder> subField2Data = new HashMap<>();
   private final Map<String, String> subField2Delimiter = new HashMap<>();
   private final Set<String> ignoredSubsequentFields = new HashSet<>();
-  private static final String MAPPING_RULES = "rules.json";
 
-  public Processor() {
-    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(MAPPING_RULES);
-    try {
-      this.rulesFile = new JsonObject(IOUtils.toString(inputStream, UTF_8));
-    } catch (IOException e) {
-      LOGGER.error("Error reading rules file", e);
-    }
-  }
-
-  public Instance process(JsonObject record, MappingParameters mappingParameters) {
+  public Instance process(JsonObject record, MappingParameters mappingParameters, JsonObject mappingRules) {
     instance = null;
     try {
+      this.mappingRules = checkNotNull(mappingRules);
       final MarcJsonReader reader = new MarcJsonReader(new ByteArrayInputStream(record.toString().getBytes(UTF_8)));
       if (reader.hasNext()) {
         Record marcRecord = reader.next();
         instance = processSingleEntry(marcRecord, mappingParameters);
       }
     } catch (Exception e) {
-      LOGGER.error("Error mapping Marc record");
+      LOGGER.error("Error mapping Marc record", e.getCause());
     }
     return instance;
   }
@@ -118,7 +107,7 @@ public class Processor {
     DataField dataField = ruleExecutionContext.getDataField();
     createNewComplexObj = true; // each rule will generate a new instance in an array , for an array data member
     Object[] rememberComplexObj = new Object[]{null};
-    JsonArray mappingEntry = rulesFile.getJsonArray(dataField.getTag());
+    JsonArray mappingEntry = mappingRules.getJsonArray(dataField.getTag());
     if (mappingEntry == null) {
       return;
     }
@@ -379,7 +368,7 @@ public class Processor {
     while (ctrlIter.hasNext()) {
       ControlField controlField = ctrlIter.next();
       //get entry for this control field in the rules.json file
-      JsonArray controlFieldRules = rulesFile.getJsonArray(controlField.getTag());
+      JsonArray controlFieldRules = mappingRules.getJsonArray(controlField.getTag());
       if (controlFieldRules != null) {
         handleControlFieldRules(controlFieldRules, controlField, context);
       }

@@ -9,8 +9,10 @@ import org.folio.services.parsers.RecordFormat;
 public class MarcToInstanceMapper implements RecordToInstanceMapper {
 
   @Override
-  public Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters) {
-    return new Processor().process(parsedRecord, mappingParameters).withSource(getMapperFormat().getFormat());
+  public Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters, JsonObject mappingRules) {
+    return new Processor()
+      .process(parsedRecord, mappingParameters, mappingRules)
+      .withSource(getMapperFormat().getFormat());
   }
 
   @Override

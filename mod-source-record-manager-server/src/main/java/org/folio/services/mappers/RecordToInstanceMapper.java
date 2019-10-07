@@ -15,10 +15,11 @@ public interface RecordToInstanceMapper {
    *
    * @param parsedRecord - JsonObject containing Parsed Record
    * @param mappingParameters - parameters needed for mapping functions
+   * @param mappingRules - required rules for mapping
    * @return - Wrapper for parsed record in json format.
    * Can contains errors descriptions if parsing was failed
    */
-  Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters);
+  Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters, JsonObject mappingRules);
 
   /**
    * Provides access to the MapperFormat
