@@ -61,6 +61,38 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnBadRequestWhenSendingRulesInWrongFormatOnPut() {
+    // given
+    Map expectedDefaultRules =
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().as(Map.class);
+    // when
+    String rulesToUpdate = "WRONG-RULES-FORMAT";
+    RestAssured.given()
+      .spec(spec)
+      .body(rulesToUpdate)
+      .when()
+      .put(SERVICE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+    // then
+    Map actualRules =
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().as(Map.class);
+    Assert.assertEquals(expectedDefaultRules.toString(), actualRules.toString());
+  }
+
+  @Test
   public void shouldRestoreDefaultRulesOnPut() {
     // given
     Map defaultRules =

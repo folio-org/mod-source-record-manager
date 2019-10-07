@@ -51,7 +51,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
         LOGGER.error(errorMessage);
-        future.fail(new BadRequestException(errorMessage));
+        future.fail(new InternalServerErrorException(errorMessage));
       }
     } else {
       String errorMessage = "No default rules found";
