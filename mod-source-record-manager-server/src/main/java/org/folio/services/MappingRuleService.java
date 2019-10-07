@@ -27,7 +27,7 @@ public interface MappingRuleService {
   Future<Void> saveDefaultRules(String tenantId);
 
   /**
-   * Updates default rules
+   * Updates rules
    *
    * @param rules    rules
    * @param tenantId tenant
