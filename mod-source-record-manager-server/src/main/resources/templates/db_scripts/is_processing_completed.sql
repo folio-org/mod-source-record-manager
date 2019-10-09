@@ -7,8 +7,8 @@ RETURNS boolean AS $completed$
 DECLARE
 	completed boolean;
 BEGIN
-SELECT count(_id) =
-	(SELECT count(_id)
+SELECT count(id) =
+	(SELECT count(id)
 		FROM job_execution_source_chunks
  			WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId)
 	into completed
