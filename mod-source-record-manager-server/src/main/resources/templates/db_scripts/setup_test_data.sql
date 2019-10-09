@@ -1,4 +1,4 @@
-INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (_id, jsonb) values
+INSERT INTO ${myuniversity}_${mymodule}.JOB_EXECUTIONS (id, jsonb) values
 ('e451348f-2273-4b45-b385-0a8b0184b4e1', '{
     "jobProfileInfo": {
       "id": "448ae575-daec-49c1-8041-d64c8ed8e5b1",

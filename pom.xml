@@ -19,8 +19,8 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>23.12.0</raml-module-builder.version>
-    <vertx.version>3.5.4</vertx.version>
+    <raml-module-builder.version>27.1.1</raml-module-builder.version>
+    <vertx.version>3.8.1</vertx.version>
     <junit.version>4.12</junit.version>
     <rest-assured.version>3.1.1</rest-assured.version>
     <wiremock.version>2.19.0</wiremock.version>
