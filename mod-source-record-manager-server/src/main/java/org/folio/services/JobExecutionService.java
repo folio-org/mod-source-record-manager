@@ -60,6 +60,15 @@ public interface JobExecutionService {
    * @param params       connection parameters
    * @return updated entity
    */
+  Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params);
+
+  /**
+   * Updates jobExecution
+   *
+   * @param jobExecution entity to update
+   * @param params       connection parameters
+   * @return updated entity
+   */
   Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params);
 
   /**

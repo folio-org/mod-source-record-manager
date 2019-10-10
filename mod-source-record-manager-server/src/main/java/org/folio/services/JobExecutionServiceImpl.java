@@ -112,6 +112,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
 
   @Override
+  public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+    return updateJobExecution(jobExecution, params)
+      .compose(jobExec -> updateSnapshotStatus(jobExecution, params));
+  }
+
+  @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
       Future<JobExecution> future = Future.future();
@@ -125,7 +131,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         future.complete(currentJobExec);
       }
       return future;
-    }, params.getTenantId()).compose(jobExec -> updateSnapshotStatus(jobExecution, params));
+    }, params.getTenantId());
   }
 
   @Override
@@ -304,8 +310,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
-      .withProgress(new Progress())
-      .withUserId(userId);
+      .withProgress(new Progress()
+        .withCurrent(1)
+        .withTotal(100))
+      .withUserId(userId)
+      .withStartedDate(new Date());
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)
         .withStatus(JobExecution.Status.NEW)
