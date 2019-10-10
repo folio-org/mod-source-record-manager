@@ -2,9 +2,10 @@
 * Wrote documentation for Marc-to-Instance mapping processor
 * Added order of the record in importing file
 * Create CLI way for individual tenant to update the default MARC-to-Instance map
-* Updated raml-module-builder version.
-* Updated data-import-utils version.
-* Deleted outdated index definition for foreign key.
+* Updated raml-module-builder version
+* Updated data-import-utils version
+* Deleted outdated index definition for foreign key
+* Fixed sorting and filtering of logs
 
 ## 2019-09-09 v1.6.1
  * Added instance-type settings loading for mapping
