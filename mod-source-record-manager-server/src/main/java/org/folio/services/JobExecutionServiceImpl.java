@@ -312,7 +312,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withSourcePath(fileName)
       .withProgress(new Progress()
         .withCurrent(1)
-        .withTotal(1))
+        .withTotal(100))
       .withUserId(userId)
       .withStartedDate(new Date());
     if (!isParent) {
