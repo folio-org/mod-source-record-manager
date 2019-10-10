@@ -310,8 +310,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
-      .withProgress(new Progress())
-      .withUserId(userId);
+      .withProgress(new Progress()
+        .withCurrent(1)
+        .withTotal(1))
+      .withUserId(userId)
+      .withStartedDate(new Date());
     if (!isParent) {
       job.withSubordinationType(JobExecution.SubordinationType.CHILD)
         .withStatus(JobExecution.Status.NEW)
