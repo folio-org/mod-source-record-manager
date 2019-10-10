@@ -264,7 +264,7 @@ public class MetadataProviderLogAPITest extends AbstractRestTest {
     LogCollectionDto logCollectionDto = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE)
+      .get(GET_LOGS_PATH_LANDING_PAGE_FALSE + "&query=cql.allRecords=1 sortBy completedDate/sort.descending")
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(LogCollectionDto.class);
