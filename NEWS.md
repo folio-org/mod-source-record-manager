@@ -6,6 +6,13 @@
 * Updated data-import-utils version
 * Deleted outdated index definition for foreign key
 * Fixed sorting and filtering of logs
+* Deleted jobExecutionDto and logDto entities.
+* Response body for endpoint "/metadata-provider/jobExecutions" changed to JobExecutionCollection.
+* Deleted endpoint for logs retrieving: "/metadata-provider/logs";
+
+ | METHOD |             URL                               | DESCRIPTION                                        |
+ |--------|-----------------------------------------------|----------------------------------------------------|
+ | GET    | /metadata-provider/jobExecutions              | Get list of the JobExecutions by query             |
 
 ## 2019-09-09 v1.6.1
  * Added instance-type settings loading for mapping

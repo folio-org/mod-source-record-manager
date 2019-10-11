@@ -1,4 +1,4 @@
-package org.folio.services.converters;
+package org.folio.services;
 
 import org.folio.rest.jaxrs.model.JobExecution;
 

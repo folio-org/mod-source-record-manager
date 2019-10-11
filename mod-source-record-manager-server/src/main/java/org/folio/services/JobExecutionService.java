@@ -7,9 +7,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 
 import java.util.Optional;
@@ -19,27 +17,18 @@ import java.util.Optional;
  *
  * @see JobExecution
  * @see org.folio.dao.JobExecutionDao
- * @see org.folio.rest.jaxrs.model.JobExecutionDto
+ * @see org.folio.rest.jaxrs.model.JobExecutionCollection
  */
 public interface JobExecutionService {
 
   /**
-   * Returns JobExecutionCollectionDto by the input query
-   *
+   * Returns JobExecutionCollection by the input query
    * @param query  query string to filter entities
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
+   * @return future with JobExecutionCollection
    */
-  Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId);
-
-  /**
-   * Returns LogCollectionDto by the input query
-   *
-   * @param query  query string to filter entities
-   * @param offset starting index in a list of results
-   * @param limit  maximum number of results to return
-   */
-  Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit, String tenantId);
+  Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
 
   /**
    * Performs creation of JobExecution and Snapshot entities

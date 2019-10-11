@@ -10,12 +10,8 @@ documentation:
     content: API for accessing metadata
 
 types:
-  logDto: !include raml-storage/schemas/dto/logDto.json
-  logCollectionDto: !include raml-storage/schemas/dto/logCollectionDto.json
   jobExecution: !include raml-storage/schemas/mod-source-record-manager/jobExecution.json
   jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
-  jobExecutionDto: !include raml-storage/schemas/dto/jobExecutionDto.json
-  jobExecutionCollectionDto: !include raml-storage/schemas/dto/jobExecutionCollectionDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
 
@@ -30,28 +26,6 @@ resourceTypes:
   collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
 
 /metadata-provider:
-  /logs:
-    get:
-      is: [
-        searchable: {description: "with valid searchable fields", example: "jobProfileName=marc"},
-        pageable
-      ]
-      queryParameters:
-        landingPage:
-          description: "Flag that indicates whether requested collection of entities have to be prepared for rendering on the landing page"
-          required: false
-          default: false
-          type: boolean
-      responses:
-        200:
-          body:
-            application/json:
-              schema: logCollectionDto
-        500:
-          description: "Internal server error"
-          body:
-            text/plain:
-              example: "Internal server error"
   /jobExecutions:
     get:
       is: [
@@ -62,7 +36,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobExecutionCollectionDto
+              schema: jobExecutionCollection
         500:
           description: "Internal server error"
           body:

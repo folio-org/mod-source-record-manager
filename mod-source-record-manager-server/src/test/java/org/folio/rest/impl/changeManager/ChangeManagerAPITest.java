@@ -27,7 +27,7 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.converters.Status;
+import org.folio.services.Status;
 import org.hamcrest.text.MatchesPattern;
 import org.junit.Assert;
 import org.junit.Test;
@@ -1147,6 +1147,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     if (JobExecution.SubordinationType.PARENT_SINGLE.equals(parent.getSubordinationType())) {
       //TODO assert source path properly
       Assert.assertNotNull(parent.getSourcePath());
+      Assert.assertNotNull(parent.getFileName());
     }
   }
 
@@ -1159,6 +1160,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(JobExecution.SubordinationType.CHILD, child.getSubordinationType());
     //TODO assert source path properly
     Assert.assertNotNull(child.getSourcePath());
+    Assert.assertNotNull(child.getFileName());
   }
 
   @Test
