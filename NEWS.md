@@ -10,9 +10,20 @@
 * Response body for endpoint "/metadata-provider/jobExecutions" changed to JobExecutionCollection.
 * Deleted endpoint for logs retrieving: "/metadata-provider/logs";
 
- | METHOD |             URL                               | DESCRIPTION                                        |
- |--------|-----------------------------------------------|----------------------------------------------------|
- | GET    | /metadata-provider/jobExecutions              | Get list of the JobExecutions by query             |
+ | METHOD |             URL                               | DESCRIPTION                                              |
+ |--------|-----------------------------------------------|----------------------------------------------------------|
+ | GET    | /metadata-provider/jobExecutions              | Get list of the JobExecutions by query                   |
+ | POST   | /change-manager/jobExecutions                 | Initialize JobExecution entities                         |
+ | GET    | /change-manager/jobExecutions/{id}            | Get single JobExecution entity                           |
+ | PUT    | /change-manager/jobExecutions/{id}/status     | Update status of JobExecution by id                      |
+ | PUT    | /change-manager/jobExecutions/{id}/jobProfile | Update jobProfile of single JobExecution entity          |
+ | GET    | /change-manager/jobExecutions/{id}/children   | Get children JobExecutions by parent id                  |
+ | POST   | /change-manager/jobExecutions/{id}/records    | Receive chunk of raw records for JobExecution            |
+ | DELETE | /change-manager/jobExecutions/{id}/records    | Delete Job Execution and all associated records from SRS |
+ | GET    | /mapping-rules                                | Get current mapping rules                                |
+ | PUT    | /mapping-rules                                | Update current mapping rules                             |
+ | PUT    | /mapping-rules/restore                        | Restore default mapping rules                            |
+ 
 
 ## 2019-09-09 v1.6.1
  * Added instance-type settings loading for mapping
