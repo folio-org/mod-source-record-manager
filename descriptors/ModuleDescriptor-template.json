@@ -58,11 +58,6 @@
       "handlers": [
         {
           "methods": ["GET"],
-          "pathPattern": "/metadata-provider/logs",
-          "permissionsRequired" : [ "metadata-provider.log.get" ]
-        },
-        {
-          "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobExecutions",
           "permissionsRequired" : [ "metadata-provider.jobexecutions.get" ]
         },
@@ -175,11 +170,6 @@
   ],
   "permissionSets": [
     {
-      "permissionName": "metadata-provider.log.get",
-      "displayName": "Metadata Provider - get logs",
-      "description": "Get logs"
-    },
-    {
       "permissionName": "metadata-provider.jobexecutions.get",
       "displayName": "Metadata Provider - get jobExecutions",
       "description": "Get JobExecutions"
@@ -229,7 +219,6 @@
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
       "subPermissions": [
-        "metadata-provider.log.get",
         "metadata-provider.jobexecutions.get",
         "change-manager.jobexecutions.post",
         "change-manager.jobexecutions.put",

@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+import org.apache.commons.io.FilenameUtils;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -18,17 +19,12 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.LogCollectionDto;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
-import org.folio.services.converters.JobExecutionToDtoConverter;
-import org.folio.services.converters.JobExecutionToLogDtoConverter;
-import org.folio.services.converters.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,26 +57,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JobExecutionDao jobExecutionDao;
   @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
-  private JobExecutionToDtoConverter jobExecutionToDtoConverter;
-  @Autowired
-  private JobExecutionToLogDtoConverter jobExecutionToLogDtoConverter;
   private Random random = new Random();
 
   @Override
-  public Future<JobExecutionCollectionDto> getJobExecutionCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId)
-      .map(jobExecutionCollection -> new JobExecutionCollectionDto()
-        .withJobExecutionDtos(jobExecutionToDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
-        .withTotalRecords(jobExecutionCollection.getTotalRecords()));
-  }
-
-  @Override
-  public Future<LogCollectionDto> getLogCollectionDtoByQuery(String query, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getLogsWithoutMultipleParent(query, offset, limit, tenantId)
-      .map(jobExecutionCollection -> new LogCollectionDto()
-        .withLogDtos(jobExecutionToLogDtoConverter.convert(jobExecutionCollection.getJobExecutions()))
-        .withTotalRecords(jobExecutionCollection.getTotalRecords()));
+  public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId);
   }
 
   @Override
@@ -310,6 +291,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
+      .withFileName(FilenameUtils.getName(fileName))
       .withProgress(new Progress()
         .withCurrent(1)
         .withTotal(100))

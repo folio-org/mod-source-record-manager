@@ -23,9 +23,6 @@ import java.util.Optional;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.DISCARDED;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 
 /**
@@ -54,25 +51,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String[] fieldList = {"*"};
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE, limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "status=\"\" NOT status=" + DISCARDED));
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), query));
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
-    } catch (Exception e) {
-      LOGGER.error("Error while getting JobExecutions", e);
-      future.fail(e);
-    }
-    return future.map(results -> new JobExecutionCollection()
-      .withJobExecutions(results.getResults())
-      .withTotalRecords(results.getResultInfo().getTotalRecords()));
-  }
-
-  @Override
-  public Future<JobExecutionCollection> getLogsWithoutMultipleParent(String query, int offset, int limit, String tenantId) {
-    Future<Results<JobExecution>> future = Future.future();
-    try {
-      String[] fieldList = {"*"};
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, "status any \"" + COMMITTED + " " + ERROR + " \"", limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
       cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), query));
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {

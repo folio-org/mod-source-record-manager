@@ -7,8 +7,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
-import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,7 +17,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -38,7 +39,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos", empty())
+      .body("jobExecutions", empty())
       .body("totalRecords", is(0));
   }
 
@@ -54,7 +55,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(expectedJobExecutionsNumber))
+      .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber));
   }
 
@@ -70,7 +71,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTIONS_PATH + "?limit=2")
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(2))
+      .body("jobExecutions.size()", is(2))
       .body("totalRecords", is(expectedJobExecutionsNumber));
   }
 
@@ -80,7 +81,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     int expectedNotDiscardedNumber = 2;
     List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(numberOfFiles).getJobExecutions();
     List<JobExecution> children = createdJobExecutions.stream()
-      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).collect(Collectors.toList());
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
     StatusDto discardedStatus = new StatusDto().withStatus(StatusDto.Status.DISCARDED);
 
     for (int i = 0; i < children.size() - expectedNotDiscardedNumber; i++) {
@@ -92,11 +93,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_PATH)
+      .get(GET_JOB_EXECUTIONS_PATH + "?query=(status=\"\" NOT status=\"DISCARDED\")")
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDtos.size()", is(expectedNotDiscardedNumber))
-      .body("jobExecutionDtos*.status", not(StatusDto.Status.DISCARDED.name()))
+      .body("jobExecutions.size()", is(expectedNotDiscardedNumber))
+      .body("jobExecutions*.status", not(StatusDto.Status.DISCARDED.name()))
       .body("totalRecords", is(expectedNotDiscardedNumber));
   }
 
@@ -110,15 +111,51 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
     int expectedJobExecutionsNumber = createdJobExecution.size() - 1;
-    JobExecutionCollectionDto jobExecutionCollectionDto = RestAssured.given()
+    JobExecutionCollection jobExecutionCollection = RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_JOB_EXECUTIONS_PATH + "?query=(uiStatus==\"INITIALIZATION\") sortBy completedDate/sort.descending")
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
-      .extract().response().body().as(JobExecutionCollectionDto.class);
+      .extract().response().body().as(JobExecutionCollection.class);
 
-    List<JobExecutionDto> jobExecutionDtoList = jobExecutionCollectionDto.getJobExecutionDtos();
+    List<JobExecution> jobExecutionDtoList = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutionDtoList.size());
+    Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(2).getCompletedDate().after(jobExecutionDtoList.get(3).getCompletedDate()));
+  }
+
+  @Test
+  public void shouldReturnFilteredAndSortedJobExecutionsOnGetWhenConditionAndSortByIsSpecified() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(8).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      if (i % 2 == 0) {
+        childJobsToUpdate.get(i)
+          .withStatus(JobExecution.Status.COMMITTED )
+          .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
+      }
+      createdJobExecution.get(i).setCompletedDate(new Date(1234567892000L + i));
+      putJobExecution(createdJobExecution.get(i));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
+    JobExecutionCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTIONS_PATH + "?query=(uiStatus==\"RUNNING_COMPLETE\" AND status==\"COMMITTED\") sortBy completedDate/sort.descending")
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions*.status", everyItem(is(JobExecution.Status.COMMITTED.value())))
+      .body("jobExecutions*.uiStatus", everyItem(is(JobExecution.UiStatus.RUNNING_COMPLETE.value())))
+      .extract().response().body().as(JobExecutionCollection.class);
+
+    List<JobExecution> jobExecutionDtoList = jobExecutionCollection.getJobExecutions();
     Assert.assertEquals(expectedJobExecutionsNumber, jobExecutionDtoList.size());
     Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
     Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));

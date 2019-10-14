@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
-  private static final int LANDING_PAGE_LOGS_LIMIT = 25;
   @Autowired
   private JobExecutionService jobExecutionService;
   private String tenantId;
@@ -28,29 +27,11 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderLogs(boolean landingPage, String query, int offset, int limit,
-                                      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
-                                      Context vertxContext) {
-    vertxContext.runOnContext(v -> {
-      try {
-        jobExecutionService.getLogCollectionDtoByQuery(query, offset, landingPage ? LANDING_PAGE_LOGS_LIMIT : limit, tenantId)
-          .map(GetMetadataProviderLogsResponse::respond200WithApplicationJson)
-          .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
-      } catch (Exception e) {
-        asyncResultHandler.handle(Future.succeededFuture(
-          ExceptionHelper.mapExceptionToResponse(e)));
-      }
-    });
-  }
-
-  @Override
   public void getMetadataProviderJobExecutions(String query, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getJobExecutionCollectionDtoByQuery(query, offset, limit, tenantId)
+        jobExecutionService.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
