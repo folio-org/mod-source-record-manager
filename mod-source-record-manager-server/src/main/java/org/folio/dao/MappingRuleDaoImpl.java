@@ -16,14 +16,12 @@ import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleDaoImpl.class);
 
   private static final String TABLE_NAME = "mapping_rules";
   private static final String SELECT_QUERY = "SELECT jsonb FROM %s.%s limit 1";
-  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s')";
-  private static final String RULES_JSON_FIELD = "mappingRules";
+  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb='%s'";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -42,17 +40,16 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       if (resultSet.getRows().isEmpty()) {
         return Optional.empty();
       } else {
-        JsonObject rules = new JsonObject(resultSet.getRows().get(0).getString("jsonb"))
-          .getJsonObject(RULES_JSON_FIELD);
+        JsonObject rules = new JsonObject(resultSet.getRows().get(0).getString("jsonb"));
         return Optional.of(rules);
       }
     });
   }
 
   @Override
-  public Future<String> save(JsonObject rules, String tenantId) {
+  public Future<String> save(JsonObject rule, String tenantId) {
     Future<String> future = Future.future();
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, new JsonObject().put(RULES_JSON_FIELD, rules), future);
+    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, rule, future);
     return future;
   }
 

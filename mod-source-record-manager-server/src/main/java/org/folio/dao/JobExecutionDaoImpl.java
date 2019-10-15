@@ -5,7 +5,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.sql.UpdateResult;
-import org.folio.cql2pgjson.exception.FieldException;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -17,6 +16,7 @@ import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.z3950.zing.cql.cql2pgjson.FieldException;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Optional;
@@ -33,7 +33,6 @@ import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_M
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
@@ -149,7 +148,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .append(PostgresClient.convertToPsqlStandard(tenantId))
         .append(".")
         .append(TABLE_NAME)
-        .append(" WHERE id ='")
+        .append(" WHERE _id ='")
         .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
       Future<UpdateResult> selectResult = Future.future(); //NOSONAR
       pgClientFactory.createInstance(tenantId).execute(tx, selectJobExecutionQuery.toString(), selectResult);
