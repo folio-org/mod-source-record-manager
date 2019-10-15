@@ -7,7 +7,7 @@ RETURNS boolean AS $has_errors$
 DECLARE
 	has_errors boolean;
 BEGIN
- SELECT count(id) > 0 into has_errors
+ SELECT count(_id) > 0 into has_errors
  FROM
    job_execution_source_chunks
     WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId

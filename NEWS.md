@@ -2,9 +2,6 @@
 * Wrote documentation for Marc-to-Instance mapping processor
 * Added order of the record in importing file
 * Create CLI way for individual tenant to update the default MARC-to-Instance map
-* Updated raml-module-builder version
-* Updated data-import-utils version
-* Deleted outdated index definition for foreign key
 * Fixed sorting and filtering of logs
 * Deleted jobExecutionDto and logDto entities.
 * Response body for endpoint "/metadata-provider/jobExecutions" changed to JobExecutionCollection.
