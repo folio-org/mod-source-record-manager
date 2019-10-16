@@ -91,7 +91,16 @@
     "childInstances": [],
     "title": "Neue Ausgabe sämtlicher Werke, in Verbindung mit den Mozartstädten, Augsburg, Salzburg und Wien. Hrsg. von der Internationalen Stiftung Mozarteum, Salzburg.",
     "indexTitle": "Neue Ausgabe sämtlicher Werke, in Verbindung mit den Mozartstädten, Augsburg, Salzburg und Wien.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Works"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Neue Mozart-Ausgabe"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -163,7 +172,12 @@
     "childInstances": [],
     "title": "The eighteenth century [microform].",
     "indexTitle": "Eighteenth century",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Eighteenth century collections"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -266,7 +280,16 @@
     "childInstances": [],
     "title": "The Law of Federal income taxation.",
     "indexTitle": "Law of Federal income taxation.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Mertens the law of federal income taxation"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Mertens law of federal income taxation"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -395,7 +418,12 @@
     "childInstances": [],
     "title": "Purdon's Pennsylvania statutes, annotated : permanent ed.",
     "indexTitle": "Purdon's Pennsylvania statutes, annotated : permanent ed.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laws, etc. (Compiled statutes : 1930-   )"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -1425,7 +1453,12 @@
     "childInstances": [],
     "title": "Yr ymarfer o dduioldeb yn cyfarwyddo [microform] / dyn i rodio fel y rhyngo ef fodd Duw : yr hwn lyfr a ofodwŷd allan yn saesnaeg o waith y gwir barchedig dâd yn nuw Lewis Escob Bangor, ac a gyfithwŷd yn gymeraeg o waith Row. Vaughan o Gaergai yn Sir Feirionedd, wr-bonneddig, yn y flwyddŷn o oed Jesu 1620.",
     "indexTitle": "Ymarfer o dduioldeb yn cyfarwyddo",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Practice of piety. Welsh"
+      }
+    ],
     "editions": [],
     "series": [
       "Early English books, 1641-1700 ; 1560:68."
@@ -1628,7 +1661,24 @@
     "childInstances": [],
     "title": "Laporan penelitian.",
     "indexTitle": "Laporan penelitian.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laporan penelitian (Universitas Lambung Mangkurat : 1990-)"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laporan kegiatan"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laporan akhir penelitian dasar"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laporan hasil penelitian"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -1888,7 +1938,16 @@
     "childInstances": [],
     "title": "Time.",
     "indexTitle": "Time.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Time (Online)"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Time magazine"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -2363,7 +2422,12 @@
     "childInstances": [],
     "title": "2000 Philippine provincial poverty statistics.",
     "indexTitle": "2000 Philippine provincial poverty statistics.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Philippine provincial poverty statistics"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -2433,7 +2497,12 @@
     "childInstances": [],
     "title": "Halsbury's laws of England.",
     "indexTitle": "Halsbury's laws of England.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Laws of England."
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4162,7 +4231,12 @@
     "childInstances": [],
     "title": "The duke of bachata [videorecording] / Horizon Line Documentary presents ; a film by Adam Taub ; director, Adam Taub.",
     "indexTitle": "Duke of bachata",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Duque de la bachata"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4281,7 +4355,12 @@
     "childInstances": [],
     "title": "El duque de la bachata [sound recording] / Joan Soriano.",
     "indexTitle": "Duque de la bachata",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Duke of bachata"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4431,7 +4510,12 @@
     "childInstances": [],
     "title": "1-bit symphony [realia] / Tristan Perich.",
     "indexTitle": "1-bit symphony",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "One-bit symphony"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4510,7 +4594,12 @@
     "childInstances": [],
     "title": "Zi you zhu yi zai jin dai Zhongguo de li shi ming yun : \\\"Du li ping lun\\\" shi qi Hu Shi zheng zhi si xiang yan jiu / Gao Zhiyong zhu.",
     "indexTitle": "Zi you zhu yi zai jin dai Zhongguo de li shi ming yun : \\\"Du li ping lun\\\" shi qi Hu Shi zheng zhi si xiang yan jiu /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "\\\"Du li ping lun\\\" shi qi Hu Shi zheng zhi si xiang yan jiu"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4697,7 +4786,12 @@
     "childInstances": [],
     "title": "Chan fang [electronic resource] / FM3.",
     "indexTitle": "Chan fang",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Buddha machine III"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -4871,7 +4965,12 @@
     "childInstances": [],
     "title": "Requiem [sound recording] / Verdi.",
     "indexTitle": "Requiem",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Messa da Requiem"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -5752,7 +5851,16 @@
     "childInstances": [],
     "title": "Paramount : the rise & fall. Vol. one, 1917-1927.",
     "indexTitle": "Paramount : the rise & fall. Vol. one, 1917-1927.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Rise and fall of Paramount. Volume one, (1917-1932)"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Rise & fall of Paramount. Volume one, 1917-1927"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -5978,7 +6086,12 @@
     "childInstances": [],
     "title": "Tompkins County bicycle map.",
     "indexTitle": "Tompkins County bicycle map.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Bicycle map, Ithaca & Tompkins County"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -6075,7 +6188,12 @@
     "childInstances": [],
     "title": "The history of a bit of bread. (Pt. 2. Animals) : being letters to a child on the life of man and of animals / by Jean Mac©Øe ; translated from the French and edited by Mrs. Alfred Gatty, author of 'Parables from nature' etc.",
     "indexTitle": "History of a bit of bread. (Pt. 2. Animals) : being letters to a child on the life of man and of animals /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Histoire d'une bouch©Øee de pain"
+      }
+    ],
     "editions": [],
     "series": [
       "Nineteenth Century Collections Online: Children's Literature and Childhood."
@@ -6286,7 +6404,12 @@
     "childInstances": [],
     "title": "The Voyager golden record.",
     "indexTitle": "Voyager golden record.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Voyager interstellar record"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -6475,7 +6598,16 @@
     "childInstances": [],
     "title": "Wiley CMAexcel exam review flashcards.",
     "indexTitle": "Wiley CMAexcel exam review flashcards.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "CMAexcel exam review flashcards"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Flashcards"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -6774,7 +6906,12 @@
     "childInstances": [],
     "title": "6 haikus / Andy Akiho.",
     "indexTitle": "6 haikus /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Six haikus"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -7099,7 +7236,12 @@
     "childInstances": [],
     "title": "Adam le-adam : meḥḳarim be-filosofyah Yehudit bi-yeme ha-benayim uva-ʻet ha-ḥadashah, mugashim li-Prof. Zeʼev Harṿi ʻal yede talmidaṿ bi-melot lo shivʻim = Homo homini : essays in Jewish philosophy presented by his students to Professor Warren Zev Harvey / ʻorekh rashi, Shemuʼel Ṿigodah ; ʻorkhim, Esti Aizenman, Ari Aḳerman, Aviram Ravitsḳi.",
     "indexTitle": "Adam le-adam : meḥḳarim be-filosofyah Yehudit bi-yeme ha-benayim uva-ʻet ha-ḥadashah, mugashim li-Prof. Zeʼev Harṿi ʻal yede talmidaṿ bi-melot lo shivʻim = Homo homini : essays in Jewish philosophy presented by his students to Professor Warren Zev Harvey /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Homo homini : essays in Jewish philosophy presented by his students to Professor Warren Zev Harvey"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -7337,7 +7479,16 @@
     "childInstances": [],
     "title": "Kitāb al-Tibyān fī mā yaḥullu min maʼkūl al-ḥayawān / taʼlīf al-Shaykh al-imām al-ʻālim al-fāḍil al-qudwah al-muḥaqqiq Shihāb al-Dīn Aḥmad Ibn al-Shaykh ʻImād al-Dīn ʻImād al-Shāfiʻī al-Aqfahsī nafaʻa Allāh bi-barakatihi wa-amtaʻa bi-ṭawl ibqāʼihi bi-mannihi wa-karamih.",
     "indexTitle": "Kitāb al-Tibyān fī mā yaḥullu min maʼkūl al-ḥayawān /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Tibyān li-mā yaḥullu wa-yaḥrumu min al-ḥayawān"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Tibyān li-mā yaḥullu wa-yaḥrumu min al-ḥayawān"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -7448,7 +7599,16 @@
     "childInstances": [],
     "title": "The HistoryMakers video oral history with Ray Chew.",
     "indexTitle": "HistoryMakers video oral history with Ray Chew.",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "History Makers video oral history with Ray Chew"
+      },
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Ray Chew"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
@@ -7671,7 +7831,12 @@
     "childInstances": [],
     "title": "Bhāratīya dharma-saṃskr̥ti aura paryāvaraṇa / sampādaka, Ḍô. Kiśanārāma Biśnoī, Ḍô. Madhulikā Suhāga, Indubālā Suhāga = Bhartiya dharam-sanskriti aur pariyavaran / by Ḍr. Kishnaram Bishnoi, Dr. Madhulika Suhag, Indubala Suhag.",
     "indexTitle": "Bhāratīya dharma-saṃskr̥ti aura paryāvaraṇa /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "Bhartiya dharam-sanskriti aur pariyavaran"
+      }
+    ],
     "editions": [],
     "series": [
       "Forever learning."

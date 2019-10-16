@@ -6,6 +6,7 @@
 * Deleted jobExecutionDto and logDto entities.
 * Response body for endpoint "/metadata-provider/jobExecutions" changed to JobExecutionCollection.
 * Deleted endpoint for logs retrieving: "/metadata-provider/logs";
+* Updated mapping for "Uniform title" instance alternative title type
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|

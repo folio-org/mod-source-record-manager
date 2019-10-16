@@ -884,6 +884,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(CONTRIBUTOR_NAME_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(ELECTRONIC_ACCESS_URL)));
     verify(1, getRequestedFor(urlEqualTo(INSTANCE_NOTE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL)));
     async.complete();
   }
 
@@ -905,6 +906,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL).willReturn(serverError()));
 
     Async async = testContext.async();
     RestAssured.given()

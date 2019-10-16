@@ -3,6 +3,7 @@ package org.folio.services.mappers.processor.functions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
+import org.folio.rest.jaxrs.model.AlternativeTitleType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorType;
@@ -320,6 +321,24 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .stream()
         .filter(instanceNoteType -> instanceNoteType.getName().equalsIgnoreCase(noteTypeName))
         .findFirst();
+    }
+  },
+
+  SET_ALTERNATIVE_TITLE_TYPE_ID() {
+    private static final String NAME_PARAMETER = "name";
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String alternativeTitleTypeName = context.getRuleParameter().getString(NAME_PARAMETER);
+      List<AlternativeTitleType> alternativeTitleTypes = context.getMappingParameters().getAlternativeTitleTypes();
+      if (alternativeTitleTypes == null || alternativeTitleTypeName == null) {
+        return STUB_FIELD_TYPE_ID;
+      }
+      return alternativeTitleTypes.stream()
+        .filter(alternativeTitleType -> alternativeTitleType.getName().equalsIgnoreCase(alternativeTitleTypeName))
+        .findFirst()
+        .map(AlternativeTitleType::getId)
+        .orElse(STUB_FIELD_TYPE_ID);
     }
   };
 

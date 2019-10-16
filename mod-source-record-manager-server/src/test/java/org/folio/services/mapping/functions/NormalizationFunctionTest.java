@@ -3,6 +3,7 @@ package org.folio.services.mapping.functions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.jaxrs.model.AlternativeTitleType;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ContributorNameType;
 import org.folio.rest.jaxrs.model.ContributorType;
@@ -615,6 +616,34 @@ public class NormalizationFunctionTest {
     String actualInstanceNoteTypeId = runFunction("set_note_type_id", context);
     // then
     assertEquals(STUB_FIELD_TYPE_ID, actualInstanceNoteTypeId);
+  }
+
+  @Test
+  public void SET_ALTERNATIVE_TITLE_TYPE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedAlternativeTitleTypeId = UUID.randomUUID().toString();
+    AlternativeTitleType alternativeTitleType = new AlternativeTitleType()
+      .withId(expectedAlternativeTitleTypeId)
+      .withName("Uniform title");
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters().withAlternativeTitleTypes(Collections.singletonList(alternativeTitleType)));
+    context.setRuleParameter(new JsonObject().put("name", "Uniform title"));
+    // when
+    String actualAlternativeTitleTypeId = runFunction("set_alternative_title_type_id", context);
+    // then
+    assertEquals(expectedAlternativeTitleTypeId, actualAlternativeTitleTypeId);
+  }
+
+  @Test
+  public void SET_ALTERNATIVE_TITLE_TYPE_ID_shouldReturnStubIdIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setRuleParameter(new JsonObject().put("name", "Uniform title"));
+    // when
+    String actualAlternativeTitleTypeId = runFunction("set_alternative_title_type_id", context);
+    // then
+    assertEquals(STUB_FIELD_TYPE_ID, actualAlternativeTitleTypeId);
   }
 
 }
