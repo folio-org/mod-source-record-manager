@@ -274,7 +274,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-    private static Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
+    private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
       Future<List<InstanceNoteType>> future = Future.future();
       RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
         if (RestUtil.validateAsyncResult(ar, future)) {
@@ -290,7 +290,7 @@ public class MappingParametersProvider {
       return future;
     }
 
-  private static Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params){
+  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params){
     Future<List<AlternativeTitleType>> future = Future.future();
     RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
