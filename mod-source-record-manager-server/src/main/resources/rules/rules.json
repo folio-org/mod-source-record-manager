@@ -1290,30 +1290,67 @@
   ],
   "130": [
     {
-      "target": "alternativeTitles",
-      "description": "Alternative Title",
-      "subfield": [
-        "a",
-        "n",
-        "p",
-        "d",
-        "f",
-        "g",
-        "h",
-        "k",
-        "l",
-        "m",
-        "o",
-        "r",
-        "s",
-        "t"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "alternativeTitles.alternativeTitleTypeId",
+          "description": "Alternative Title id",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "d",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "o",
+            "r",
+            "s",
+            "t"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "remove_ending_punc, trim"
+              "conditions": [
+                {
+                  "type": "set_alternative_title_type_id",
+                  "parameter": {
+                    "name": "Uniform title"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "alternativeTitles.alternativeTitle",
+          "description": "Alternative Title",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "d",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "o",
+            "r",
+            "s",
+            "t"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
             }
           ]
         }
@@ -1322,29 +1359,65 @@
   ],
   "240": [
     {
-      "target": "alternativeTitles",
-      "description": "Alternative Title",
-      "subfield": [
-        "a",
-        "n",
-        "p",
-        "d",
-        "f",
-        "g",
-        "h",
-        "k",
-        "l",
-        "m",
-        "o",
-        "r",
-        "s"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "alternativeTitles.alternativeTitleTypeId",
+          "description": "Alternative Title id",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "d",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "o",
+            "r",
+            "s"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "remove_ending_punc, trim"
+              "conditions": [
+                {
+                  "type": "set_alternative_title_type_id",
+                  "parameter": {
+                    "name": "Uniform title"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "alternativeTitles.alternativeTitle",
+          "description": "Alternative Title",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "d",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "o",
+            "r",
+            "s"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
             }
           ]
         }
@@ -1392,24 +1465,55 @@
   ],
   "246": [
     {
-      "target": "alternativeTitles",
-      "description": "Alternative Title",
-      "subfield": [
-        "a",
-        "n",
-        "p",
-        "b",
-        "f",
-        "g",
-        "h",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "alternativeTitles.alternativeTitleTypeId",
+          "description": "Alternative Title id",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "b",
+            "f",
+            "g",
+            "h",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "remove_ending_punc, trim"
+              "conditions": [
+                {
+                  "type": "set_alternative_title_type_id",
+                  "parameter": {
+                    "name": "Variant title"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "alternativeTitles.alternativeTitle",
+          "description": "Alternative Title",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "b",
+            "f",
+            "g",
+            "h",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
             }
           ]
         }
@@ -1418,11 +1522,10 @@
   ],
   "247": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
-          "target": "alternativeTitles.alternativeTitle",
-          "description": "Former Title",
+          "target": "alternativeTitles.alternativeTitleTypeId",
+          "description": "Alternative Title id",
           "subfield": [
             "a",
             "n",
@@ -1433,6 +1536,34 @@
             "h",
             "x"
           ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_alternative_title_type_id",
+                  "parameter": {
+                    "name": "Former title"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "alternativeTitles.alternativeTitle",
+          "description": "Former title",
+          "subfield": [
+            "a",
+            "n",
+            "p",
+            "b",
+            "f",
+            "g",
+            "h",
+            "x"
+          ],
+          "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [

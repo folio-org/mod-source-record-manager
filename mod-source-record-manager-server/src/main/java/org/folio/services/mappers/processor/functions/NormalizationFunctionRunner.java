@@ -25,7 +25,7 @@ public class NormalizationFunctionRunner {
    * @return the chunks
    */
   public static Iterator<String> runSplitFunction(String funcName, String subFieldData, String param) {
-    if (SPLIT_FUNCTION_SPLIT_EVERY.equals(funcName) && subFieldData != null) {
+    if (SPLIT_FUNCTION_SPLIT_EVERY.equalsIgnoreCase(funcName) && subFieldData != null) {
       return Splitter.fixedLength(Integer.parseInt(param)).split(subFieldData).iterator();
     }
     return null;
