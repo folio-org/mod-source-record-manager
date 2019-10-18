@@ -79,6 +79,7 @@ public abstract class AbstractRestTest {
   protected static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=500";
   protected static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=500";
   protected static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=500";
+  protected static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=500";
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
@@ -207,6 +208,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(CONTRIBUTOR_NAME_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorNameTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(CONTRIBUTOR_TYPES_URL).willReturn(okJson(new JsonObject().put("contributorTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceNoteTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL).willReturn(okJson(new JsonObject().put("alternativeTitleTypes", new JsonArray()).toString())));
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
   }

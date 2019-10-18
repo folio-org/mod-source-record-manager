@@ -9,6 +9,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.rest.jaxrs.model.AlternativeTitle;
+import org.folio.rest.jaxrs.model.AlternativeTitleType;
+import org.folio.rest.jaxrs.model.AlternativeTitleTypes;
 import org.folio.rest.jaxrs.model.ClassificationType;
 import org.folio.rest.jaxrs.model.ClassificationTypes;
 import org.folio.rest.jaxrs.model.ContributorNameType;
@@ -48,6 +51,7 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=" + SETTING_LIMIT;
+  private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=" + SETTING_LIMIT;
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -57,6 +61,7 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_TYPES_RESPONSE_PARAM = "contributorTypes";
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
   private static final String INSTANCE_NOTE_TYPES_RESPONSE_PARAM = "instanceNoteTypes";
+  private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM = "alternativeTitleTypes";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
   private InternalCache internalCache;
@@ -91,8 +96,9 @@ public class MappingParametersProvider {
     Future<List<ContributorType>> contributorTypesFuture = getContributorTypes(okapiParams);
     Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(okapiParams);
     Future<List<InstanceNoteType>> instanceNoteTypesFuture = getInstanceNoteTypes(okapiParams);
-    return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture,
-      instanceFormatsFuture, contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture))
+    Future<List<AlternativeTitleType>> alternativeTitleTypesFuture = getAlternativeTitleTypes(okapiParams);
+    return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
+      contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -104,6 +110,7 @@ public class MappingParametersProvider {
           .withContributorTypes(contributorTypesFuture.result())
           .withContributorNameTypes(contributorNameTypesFuture.result())
           .withInstanceNoteTypes(instanceNoteTypesFuture.result())
+          .withAlternativeTitleTypes(alternativeTitleTypesFuture.result())
       );
   }
 
@@ -267,7 +274,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-    private static Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
+    private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
       Future<List<InstanceNoteType>> future = Future.future();
       RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
         if (RestUtil.validateAsyncResult(ar, future)) {
@@ -282,6 +289,22 @@ public class MappingParametersProvider {
       });
       return future;
     }
+
+  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params){
+    Future<List<AlternativeTitleType>> future = Future.future();
+    RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+      if (RestUtil.validateAsyncResult(ar, future)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
+          List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(AlternativeTitleTypes.class).getAlternativeTitleTypes();
+          future.complete(alternativeTitleTypes);
+        } else {
+          future.complete(Collections.emptyList());
+        }
+      }
+    });
+    return future;
+  }
 
   /**
    * In-memory cache to store mapping params
