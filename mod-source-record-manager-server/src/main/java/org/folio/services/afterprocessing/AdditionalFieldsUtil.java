@@ -16,15 +16,17 @@ import org.marc4j.marc.VariableField;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Util to work with additional fields
  */
 public final class AdditionalFieldsUtil {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldsUtil.class);
-
   public static final String TAG_999 = "999";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldsUtil.class);
+  private static final char INDICATOR = 'f';
 
   private AdditionalFieldsUtil() {
   }
@@ -49,13 +51,16 @@ public final class AdditionalFieldsUtil {
         MarcFactory factory = MarcFactory.newInstance();
         if (reader.hasNext()) {
           org.marc4j.marc.Record marcRecord = reader.next();
-          VariableField variableField = marcRecord.getVariableField(field);
+          VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(field), INDICATOR, INDICATOR);
           DataField dataField;
-          if (variableField != null) {
+          if (variableField != null
+            && ((DataField) variableField).getIndicator1() == INDICATOR
+            && ((DataField) variableField).getIndicator2() == INDICATOR
+          ) {
             dataField = (DataField) variableField;
             marcRecord.removeVariableField(variableField);
           } else {
-            dataField = factory.newDataField(field, 'f', 'f');
+            dataField = factory.newDataField(field, INDICATOR, INDICATOR);
           }
           dataField.addSubfield(factory.newSubfield(subfield, value));
           marcRecord.addVariableField(dataField);
@@ -70,5 +75,15 @@ public final class AdditionalFieldsUtil {
       LOGGER.error("Failed to add additional subfield {} for field {} to record {}", e, subfield, field, record.getId());
     }
     return result;
+  }
+
+  private static VariableField getSingleFieldByIndicators(List<VariableField> list, char ind1, char ind2) {
+    if (list == null || list.isEmpty()) {
+      return null;
+    }
+    return list.stream()
+      .filter(f -> ((DataField) f).getIndicator1() == ind1 && ((DataField) f).getIndicator2() == ind2)
+      .findFirst()
+      .orElse(null);
   }
 }

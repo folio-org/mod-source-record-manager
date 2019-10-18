@@ -41,6 +41,7 @@ public class AdditionalFieldsUtilTest {
     String newLeader = content.getString("leader");
     Assert.assertNotEquals(leader, newLeader);
     Assert.assertTrue(!fields.isEmpty());
+    int totalFieldsCount = 0;
     for (int i = fields.size(); i-- > 0; ) {
       JsonObject targetField = fields.getJsonObject(i);
       if (targetField.containsKey(AdditionalFieldsUtil.TAG_999)) {
@@ -56,8 +57,10 @@ public class AdditionalFieldsUtilTest {
             Assert.assertEquals(recordId, actualSourceRecordId);
           }
         }
+        totalFieldsCount++;
       }
     }
+    Assert.assertEquals(2, totalFieldsCount);
   }
 
   @Test
