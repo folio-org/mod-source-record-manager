@@ -4594,7 +4594,12 @@
     "childInstances": [],
     "title": "Zi you zhu yi zai jin dai Zhongguo de li shi ming yun : \"Du li ping lun\" shi qi Hu Shi zheng zhi si xiang yan jiu / Gao Zhiyong zhu.",
     "indexTitle": "Zi you zhu yi zai jin dai Zhongguo de li shi ming yun : \"Du li ping lun\" shi qi Hu Shi zheng zhi si xiang yan jiu /",
-    "alternativeTitles": [],
+    "alternativeTitles": [
+      {
+        "alternativeTitleTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
+        "alternativeTitle": "\"Du li ping lun\" shi qi Hu Shi zheng zhi si xiang yan jiu"
+      }
+    ],
     "editions": [],
     "series": [],
     "identifiers": [
