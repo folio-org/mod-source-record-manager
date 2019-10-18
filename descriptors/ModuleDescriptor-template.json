@@ -4,11 +4,11 @@
   "requires": [
     {
       "id": "source-storage-snapshots",
-      "version": "0.1"
+      "version": "1.0"
     },
     {
       "id": "source-storage-records",
-      "version": "0.1"
+      "version": "1.0"
     },
     {
       "id": "source-storage-batch",
@@ -61,20 +61,14 @@
   ],
   "provides": [
     {
-      "id": "metadata-provider",
-      "version": "0.1",
+      "id": "source-manager-job-executions",
+      "version": "1.0",
       "handlers": [
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobExecutions",
           "permissionsRequired" : [ "metadata-provider.jobexecutions.get" ]
-        }
-      ]
-    },
-    {
-      "id": "source-manager-job-executions",
-      "version": "0.1",
-      "handlers": [
+        },
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
@@ -100,15 +94,19 @@
           "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}/status",
           "permissionsRequired": [ "change-manager.jobexecutions.put" ],
-          "modulePermissions": [
-            "source-storage.snapshots.put"
-          ]
+          "modulePermissions": [ "source-storage.snapshots.put" ]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}/jobProfile",
           "permissionsRequired": [ "change-manager.jobexecutions.put" ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "source-manager-records",
+      "version": "1.0",
+      "handlers": [
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
@@ -131,13 +129,7 @@
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get"
           ]
-        }
-      ]
-    },
-    {
-      "id": "source-manager-records",
-      "version": "0.1",
-      "handlers": [
+        },
         {
           "methods": ["DELETE"],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
