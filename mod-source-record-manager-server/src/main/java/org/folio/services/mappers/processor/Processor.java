@@ -34,10 +34,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.services.mappers.processor.LoaderHelper.isMappingValid;
 import static org.folio.services.mappers.processor.LoaderHelper.isPrimitiveOrPrimitiveWrapperOrString;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Processor {
 
@@ -416,7 +416,8 @@ public class Processor {
 
   private String processRules(RuleExecutionContext ruleExecutionContext) {
     if (rules == null) {
-      return Escaper.escape(ruleExecutionContext.getSubFieldValue());
+      return Escaper.escape(ruleExecutionContext.getSubFieldValue())
+        .replaceAll("\\\\\"", "\\\"");
     }
 
     //there are rules associated with this subfield / control field - to instance field mapping
@@ -428,7 +429,8 @@ public class Processor {
         break;
       }
     }
-    return Escaper.escape(ruleExecutionContext.getSubFieldValue());
+    return Escaper.escape(ruleExecutionContext.getSubFieldValue())
+      .replaceAll("\\\\\"", "\\\"");
   }
 
   private ProcessedSingleItem processRule(JsonObject rule, RuleExecutionContext ruleExecutionContext, String originalData) {
