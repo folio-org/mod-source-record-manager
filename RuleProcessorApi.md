@@ -412,6 +412,7 @@ Rule:
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
 There are 3 REST methods to work with rules.
+
 | Method | URL | ContentType | Description |
 | ------ |------ | ------ |------ |
 | **GET** | /mapping-rules | | Get rules for given tenant |
