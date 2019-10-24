@@ -489,9 +489,9 @@ A response returns updated rules, content should be the same you sent in body of
 }
 ```
 Before sending an updates, please, make sure your file has valid JSON format, otherwise the system returns response with 400 error code (Bad Request).
-To validate JSON file there are online free tools: [Json Formatter](https://jsonformatter.curiousconcept.com), [jsonformatter](https://jsonformatter.org), [JsonViewer](http://jsonviewer.stack.hu)
+To validate JSON file there are online free tools: [Json Formatter](https://jsonformatter.curiousconcept.com).
 
-To revert the current state of rules to default state, as it was at the system startup, use PUT method with 'restore' suffix:
+To revert the current state of rules to default, as it was at the system startup, use PUT method with 'restore' suffix:
 ```
 curl -w '\n' -X PUT \
 -H "Content-type: application/json" \
