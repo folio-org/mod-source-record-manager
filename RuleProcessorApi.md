@@ -413,11 +413,11 @@ Rule:
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
 There are 3 REST methods to work with rules.
 
-| Method | URL | ContentType | Description |
-| ------ |------ | ------ |------ |
-| **GET** | /mapping-rules | | Get rules for given tenant |
-| **PUT** | /mapping-rules | application/json | Update rules for given tenant |
-| **PUT** | /mapping-rules/restore | application/json | Restore rules to default |
+| Method | URL | Content type | Description |
+| :------------ | :------------ | :------------ | :------------ |
+|**GET**| /mapping-rules | | Get rules for given tenant |
+|**PUT**| /mapping-rules | application/json | Update rules for given tenant |
+|**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
 To get rules you can send this request using GET method
 ```
