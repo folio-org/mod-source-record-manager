@@ -410,8 +410,111 @@ Rule:
 - If "z" exists among record sub-fields, then "identifiers.value" gets filled by all the `["z","q","c"].`
 #
 ### REST API
-This section is not done yet.
-- GET
-- POST
-- PUT
-- DELETE
+When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
+There are 3 REST methods to work with rules.
+
+| Method | URL | Content type | Description |
+| :------------ | :------------ | :------------ | :------------ |
+|**GET**| /mapping-rules | | Get rules for given tenant |
+|**PUT**| /mapping-rules | application/json | Update rules for given tenant |
+|**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
+
+To get rules you can send this request using GET method
+```
+curl -w '\n' -X GET \
+-H "Content-type: application/json" \ 
+-H "x-okapi-tenant: {tenant}" \
+-H "x-okapi-token: {token}" \
+https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+```
+A response returns existing rules:
+```
+{
+    "001": [
+        {
+            "rules": [],
+            "target": "hrid",
+            "subfield": [],
+            "description": "The human readable ID"
+        }
+    ],
+    "008": [
+        {
+            "rules":
+...
+}
+```
+
+If you would like to update rules just get existing rules using GET method and combine it with your updates, use PUT method:
+```
+curl -w '\n' -X PUT \
+-H "Content-type: application/json" \
+-H "Accept: text/plain, application/json" \
+-H "x-okapi-tenant: {tenant}" \
+-H "x-okapi-token: {token}" \
+-d @rules.json \
+https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+```
+rules.json with updated list of subfields for 001 :
+```
+{
+    "001": [
+        {
+            "rules": [],
+            "target": "hrid",
+            "subfield": ["a", "b", "c"],
+            "description": "The human readable ID"
+        }
+    ],
+    "008": [
+        {
+            "rules":
+...
+}
+```
+A response returns updated rules, content should be the same you sent in body of the PUT request:
+```
+{
+    "001": [
+        {
+            "rules": [],
+            "target": "hrid",
+            "subfield": ["a", "b", "c"],
+            "description": "The human readable ID"
+        }
+    ],
+    "008": [
+        {
+            "rules":
+...
+}
+```
+Before sending an updates, please, make sure your file has valid JSON format, otherwise the system returns response with 400 error code (Bad Request).
+To validate JSON file there are online free tools: [Json Formatter](https://jsonformatter.curiousconcept.com).
+
+To revert the current state of rules to default, as it was at the system startup, use PUT method with 'restore' suffix:
+```
+curl -w '\n' -X PUT \
+-H "Content-type: application/json" \
+-H "Accept: text/plain, application/json" \
+-H "x-okapi-tenant: {tenant}" \
+-H "x-okapi-token: {token}" \
+https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
+```
+A response returns rules in default state:
+```
+{
+    "001": [
+        {
+            "rules": [],
+            "target": "hrid",
+            "subfield": [],
+            "description": "The human readable ID"
+        }
+    ],
+    "008": [
+        {
+            "rules":
+...
+}
+```
