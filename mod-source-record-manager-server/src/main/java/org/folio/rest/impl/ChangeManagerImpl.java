@@ -163,8 +163,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         chunkProcessingService.processChunk(entity, id, params)
-          .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
-            format("Chunk of RawRecords with JobExecution id %s was successfully processed", id)))
+          .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
@@ -182,8 +181,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.deleteJobExecutionAndSRSRecords(id, params)
-          .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204WithTextPlain(
-            format("Records associated with JobExecution %s were successfully deleted", id)))
+          .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
