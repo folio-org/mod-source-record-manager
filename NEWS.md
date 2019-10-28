@@ -7,6 +7,7 @@
 * Response body for endpoint "/metadata-provider/jobExecutions" changed to JobExecutionCollection.
 * Deleted endpoint for logs retrieving: "/metadata-provider/logs";
 * Updated mapping for "Uniform title" instance alternative title type
+* Added loading sample data by "loadSample" tenant parameter.
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|
