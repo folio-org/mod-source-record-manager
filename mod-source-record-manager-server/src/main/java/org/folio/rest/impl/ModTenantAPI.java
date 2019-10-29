@@ -29,16 +29,15 @@ import java.util.Map;
 public class ModTenantAPI extends TenantAPI {
   private static final Logger LOGGER = LoggerFactory.getLogger(ModTenantAPI.class);
 
-  private static final String TEST_MODE = "test.mode";
-
   public static final String GRANT_SEQUENCES_PERMISSION_PATTERN = "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %s TO %s;";
+
+  private static final String LOAD_SAMPLE_PARAMETER = "loadSample";
 
   private static final String SETUP_TEST_DATA_SQL = "templates/db_scripts/setup_test_data.sql";
 
   public static final String TENANT_PLACEHOLDER = "${myuniversity}";
 
   public static final String MODULE_PLACEHOLDER = "${mymodule}";
-
 
   @Autowired
   private MappingRuleService mappingRuleService;
@@ -57,7 +56,7 @@ public class ModTenantAPI extends TenantAPI {
         OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(headers, context.owner());
         String tenantId = TenantTool.calculateTenantId(okapiConnectionParams.getTenantId());
         setSequencesPermissionForDbUser(context, tenantId)
-          .compose(permissionAr -> setupTestData(context, tenantId))
+          .compose(permissionAr -> setupTestData(entity, context, tenantId))
           .compose(ar -> mappingRuleService.saveDefaultRules(tenantId))
           .setHandler(event -> handler.handle(postTenantAr));
       }
@@ -75,9 +74,9 @@ public class ModTenantAPI extends TenantAPI {
     return future;
   }
 
-  private Future<List<String>> setupTestData(Context context, String tenantId) {
+  private Future<List<String>> setupTestData(TenantAttributes tenantAttributes, Context context, String tenantId) {
     try {
-      if (!Boolean.TRUE.equals(Boolean.valueOf(System.getenv(TEST_MODE)))) {
+      if (!isLoadSample(tenantAttributes)) {
         LOGGER.info("Test data was not initialized.");
         return Future.succeededFuture();
       }
@@ -103,6 +102,16 @@ public class ModTenantAPI extends TenantAPI {
     } catch (IOException e) {
       return Future.failedFuture(e);
     }
+  }
+
+  private boolean isLoadSample(TenantAttributes attributes) {
+    if (attributes == null) {
+      return false;
+    }
+    return attributes.getParameters()
+      .stream()
+      .anyMatch(p -> p.getKey().equals(LOAD_SAMPLE_PARAMETER)
+        && p.getValue().equals(Boolean.TRUE.toString()));
   }
 
 }
