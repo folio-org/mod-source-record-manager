@@ -8,6 +8,7 @@
 * Deleted endpoint for logs retrieving: "/metadata-provider/logs";
 * Updated mapping for "Uniform title" instance alternative title type
 * Added loading sample data by "loadSample" tenant parameter.
+* Provided cql query support for sorting numeric data
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|

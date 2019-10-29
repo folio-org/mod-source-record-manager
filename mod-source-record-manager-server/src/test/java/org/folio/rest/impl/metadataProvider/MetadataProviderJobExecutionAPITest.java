@@ -8,6 +8,7 @@ import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -160,6 +162,35 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
     Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));
     Assert.assertTrue(jobExecutionDtoList.get(2).getCompletedDate().after(jobExecutionDtoList.get(3).getCompletedDate()));
+  }
+
+  @Test
+  public void shouldReturnSortedJobExecutionsByTotalProgressOnGet() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      putJobExecution(createdJobExecution.get(i)
+        .withProgress(new Progress().withTotal(i * 5)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size();
+    JobExecutionCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTIONS_PATH + "?query=cql.allRecords=1 sortBy progress.total/sort.descending/sort.number")
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionCollection.class);
+
+    List<JobExecution> jobExecutions = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
+    Assert.assertThat(jobExecutions.get(0).getProgress().getTotal(), greaterThan(jobExecutions.get(1).getProgress().getTotal()));
+    Assert.assertThat(jobExecutions.get(1).getProgress().getTotal(), greaterThan(jobExecutions.get(2).getProgress().getTotal()));
+    Assert.assertThat(jobExecutions.get(2).getProgress().getTotal(), greaterThan(jobExecutions.get(3).getProgress().getTotal()));
   }
 
   private JobExecution putJobExecution(JobExecution jobExecution) {
