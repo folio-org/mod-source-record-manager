@@ -9,6 +9,7 @@
 * Updated mapping for "Uniform title" instance alternative title type
 * Added loading sample data by "loadSample" tenant parameter.
 * Provided cql query support for sorting numeric data
+* Divided endpoints into more smaller interfaces
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|
