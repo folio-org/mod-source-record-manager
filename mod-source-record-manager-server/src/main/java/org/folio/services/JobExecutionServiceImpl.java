@@ -287,8 +287,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, String parentJobExecutionId, String fileName, String userId) {
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
-      // stub hrId
-      .withHrId(String.valueOf(random.nextInt(99999)))
       .withParentJobId(parentJobExecutionId)
       .withSourcePath(fileName)
       .withFileName(FilenameUtils.getName(fileName))

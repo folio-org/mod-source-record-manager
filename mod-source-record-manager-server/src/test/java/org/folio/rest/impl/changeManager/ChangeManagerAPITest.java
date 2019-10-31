@@ -28,6 +28,7 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.Status;
+import org.hamcrest.Matchers;
 import org.hamcrest.text.MatchesPattern;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,6 +60,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -88,7 +90,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   private JobExecution jobExecution = new JobExecution()
     .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
-    .withHrId("1000")
+    .withHrId(1000)
     .withParentJobId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
     .withStatus(JobExecution.Status.NEW)
@@ -298,7 +300,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("id", is(createdJobExecutions.get(0).getId()))
-      .body("hrId", MatchesPattern.matchesPattern("\\d+"))
+      .body("hrId", greaterThanOrEqualTo(0))
       .body("runBy.firstName", notNullValue())
       .body("runBy.lastName", notNullValue());
   }

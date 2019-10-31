@@ -48,7 +48,7 @@
   "scripts": [
     {
       "run": "after",
-      "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;",
+      "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;",
       "fromModuleVersion": "mod-source-record-manager-1.5.0"
     },
     {
