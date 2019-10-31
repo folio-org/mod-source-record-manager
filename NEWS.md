@@ -10,6 +10,7 @@
 * Added loading sample data by "loadSample" tenant parameter.
 * Provided cql query support for sorting numeric data
 * Broken down source-record-manager interface into smaller ones: source-manager-job-executions, source-manager-records.
+* Changed 'hrId' field type to integer for jobExecution
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|

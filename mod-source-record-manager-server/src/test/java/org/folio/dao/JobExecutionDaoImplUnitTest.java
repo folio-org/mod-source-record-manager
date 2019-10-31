@@ -36,7 +36,7 @@ public class JobExecutionDaoImplUnitTest {
 
   private JobExecution jobExecution = new JobExecution()
     .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
-    .withHrId("1000")
+    .withHrId(1000)
     .withParentJobId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
     .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
     .withStatus(JobExecution.Status.NEW)

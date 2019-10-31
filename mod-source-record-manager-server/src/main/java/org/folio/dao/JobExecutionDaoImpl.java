@@ -100,7 +100,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     String preparedQuery = String.format(GET_JOB_EXECUTION_HR_ID, PostgresClient.convertToPsqlStandard(tenantId));
     pgClientFactory.createInstance(tenantId).select(preparedQuery, getHrIdAr -> {
       if (getHrIdAr.succeeded() && getHrIdAr.result().getResults().get(0) != null) {
-        jobExecution.setHrId(getHrIdAr.result().getResults().get(0).getLong(0).toString());
+        jobExecution.setHrId(getHrIdAr.result().getResults().get(0).getInteger(0));
         pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecution.getId(), jobExecution, future.completer());
       } else {
         future.fail(getHrIdAr.cause());
