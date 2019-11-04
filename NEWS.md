@@ -1,4 +1,4 @@
-## 2019-09-30 v1.7.0-SNAPSHOT
+## 2019-11-04 v1.7.0
 * Wrote documentation for Marc-to-Instance mapping processor
 * Added order of the record in importing file
 * Create CLI way for individual tenant to update the default MARC-to-Instance map
