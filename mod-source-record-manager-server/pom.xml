@@ -13,6 +13,7 @@
     <ramlfiles_path>${project.parent.basedir}/ramls</ramlfiles_path>
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
     <sonar.exclusions>org.folio.rest.impl.ModTenantAPI</sonar.exclusions>
+    <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
     <jackson.version>2.9.10</jackson.version>
     <jackson.jaxb.version>2.9.9</jackson.jaxb.version>
   </properties>
@@ -128,6 +129,17 @@
       <artifactId>cql2pgjson</artifactId>
       <version>4.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-proxy</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <version>${vertx.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -146,6 +158,11 @@
           <source>1.8</source>
           <target>1.8</target>
           <encoding>UTF-8</encoding>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
+          <annotationProcessors>
+            <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+          </annotationProcessors>
+          <generatedSourcesDirectory>${project.build.directory}/generated-sources/services</generatedSourcesDirectory>
         </configuration>
       </plugin>
 
