@@ -60,6 +60,11 @@
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(_id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
       "fromModuleVersion": "mod-source-record-manager-1.5.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (_id UUID PRIMARY KEY, jobExecutionId UUID REFERENCES job_executions(_id), sourceId UUID, entityType text, entityId text, entityHrId text, actionType text, actionStatus text, actionDate timestamp);",
+      "fromModuleVersion": "mod-source-record-manager-1.7.1"
     }
   ]
 }
