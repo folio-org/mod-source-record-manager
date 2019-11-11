@@ -419,8 +419,9 @@ There are 3 REST methods to work with rules.
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
 Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system using UI, just copy token from `Apps/Settings/Developer/Set token/Authentication token` field.
-Also you can log into the system using CLI:
+Also you can log in the system using CLI tools, response returns `x-okapi-token` header with HTTP token.
 ```
+Login request:
 curl --request POST \
   --header "Content-Type: application/json" \
   --header "x-okapi-tenant: {tenant}" \
@@ -433,7 +434,6 @@ curl --request POST \
     "password": "{password}"
   }
 ```
-To find a token see `x-okapi-token` in response headers.
 #
 To get rules you can send a request using GET method
 ```
