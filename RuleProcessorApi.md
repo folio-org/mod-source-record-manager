@@ -418,22 +418,30 @@ There are 3 REST methods to work with rules.
 |**PUT**| /mapping-rules | application/json | Update rules for given tenant |
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
-Before working with API make sure you have HTTP token that is required to send requests. If you have already logged in the system just copy token from Authentication token field, that is on the page Apps/Settings/Developer/SetToken.
+Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system just copy token from Authentication token field, that is on the page `Apps/Settings/Developer/SetToken`.
 Also you can use login request if you prefer to get token with CLI tools:
 ```
-curl --request POST
+curl --request POST \
   --header "Content-Type: application/json" \
-  --data '{"username":"{username}","password":"{password}"}' \
-https://folio-snapshot-load-okapi.aws.indexdata.com/bl-users/login
-```
+  --header "x-okapi-tenant: {tenant}" \
+  --data @credentials.json \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/bl-users/login
 
-To get rules you can send this request using GET method
+  credentials.json: 
+  {
+    "username": "{username}",
+    "password": "{password}"
+  }
+```
+To find a token see `x-okapi-token` in response headers.
+#
+To get rules you can send a request using GET method
 ```
 curl -w '\n' -X GET \
--H "Content-type: application/json" \ 
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  --header "Content-type: application/json" \ 
+  --header "x-okapi-tenant: {tenant}" \
+  --header "x-okapi-token: {token}" \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
 ```
 A response returns existing rules:
 ```
@@ -456,12 +464,12 @@ A response returns existing rules:
 If you would like to update rules just get existing rules using GET method and combine it with your updates, use PUT method:
 ```
 curl -w '\n' -X PUT \
--H "Content-type: application/json" \
--H "Accept: text/plain, application/json" \
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
--d @rules.json \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  --header "Content-type: application/json" \
+  --header "Accept: text/plain, application/json" \
+  --header "x-okapi-tenant: {tenant}" \
+  --header "x-okapi-token: {token}" \
+  --data @rules.json \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
 ```
 rules.json with updated list of subfields for 001 :
 ```
@@ -503,11 +511,11 @@ To validate JSON file there are online free tools: [Json Formatter](https://json
 To revert the current state of rules to default, as it was at the system startup, use PUT method with 'restore' suffix:
 ```
 curl -w '\n' -X PUT \
--H "Content-type: application/json" \
--H "Accept: text/plain, application/json" \
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
+  --header "Content-type: application/json" \
+  --header "Accept: text/plain, application/json" \
+  --header "x-okapi-tenant: {tenant}" \
+  --header--header "x-okapi-token: {token}" \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
 ```
 A response returns rules in default state:
 ```
