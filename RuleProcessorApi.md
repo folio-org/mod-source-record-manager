@@ -422,7 +422,7 @@ Before working with API make sure you have an HTTP token that is required for se
 Also you can log in the system using CLI tools, response returns `x-okapi-token` header with HTTP token.
 ```
 Login request:
-curl --request POST \
+curl -w '\n' -X POST \
   --header "Content-Type: application/json" \
   --header "x-okapi-tenant: {tenant}" \
   --data @credentials.json \
