@@ -418,7 +418,7 @@ There are 3 REST methods to work with rules.
 |**PUT**| /mapping-rules | application/json | Update rules for given tenant |
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
-Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system using UI, just copy token from `Apps/ Settings/ Developer/ Set token/ Authentication token` field.
+Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system using UI, just copy token from `Apps/Settings/Developer/Set token/Authentication token` field.
 Also you can enter in the system using CLI:
 ```
 curl --request POST \
