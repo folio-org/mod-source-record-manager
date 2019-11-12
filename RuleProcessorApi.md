@@ -90,7 +90,10 @@ Instance:
 ```
 
 #### Mapping for complex fields
-What if there is a separate target in an Instance record for each subfield within a MARC field? If that is the case, then we can write the mapping rules as shown below:
+
+Sometimes you can encounter Instance fields with sub-fields on UI, for example, Electronic access (sub-fields: linked text, public note, uri), Contributors (name, type, primary), Publication (place, publisher, date of publication).
+To map "264" record into the "place of publication" we have to use period-delimited syntax: `"target": "publication.place"`. Period serves a sub-field delimiter to reach a "place" sub-field of the "publication" field.
+ We can write the mapping rules for the Publication field as shown below:
  ```json
 MARC Record: "264":{"subfields":[{"a":"Chicago, Illinois :"}, {"b":"The HistoryMakers,"}, {"c":"[2016]"}], "ind1":" ", "ind2":"1"}
 ```
@@ -130,6 +133,7 @@ Instance:
   ]
 }
 ```
+
 If there are repeated MARC fields in a single record, then the Instance will receive several elements in its target field. To skip mapping for repeated fields and take only the first occurrence, we can use the `ignoreSubsequentFields` flag:
  ```json
 MARC Record:
