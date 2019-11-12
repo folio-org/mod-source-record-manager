@@ -21,6 +21,8 @@ This rule belongs to the "001" field and handles all the "001" fields from incom
 
 SRM has own schema for Inventory Instance. The schema describes target fields, data types, restrictions and other internal details of Instance. Please, be careful while writing rules - you can put into "target" only fields from the schema, take a look at the  [Instance schema](https://github.com/folio-org/mod-source-record-manager/blob/master/ramls/instance.json) for clear understanding. If the "target" field is specified wrong then the RuleProcessor does not take this rule for mapping.
 
+##### NOTE:  MARC records and mapping rules below have been taken intentionally just for demonstration purposes.
+
 #### Normalization functions
 In most cases the record value needs to be normalized before being imported into an Instance field, because MARC record data is often raw and mixed. For this purpose we have to use such structure:
  ```json
@@ -90,7 +92,6 @@ Instance:
 ```
 
 #### Mapping for complex fields
-
 Sometimes you can encounter Instance fields with sub-fields, for example, Electronic access (sub-fields: linked text, public note, uri), Contributors (name, type, primary), Publication (place, publisher, date of publication).
 To map "264" record into the "place of publication" we have to use period-delimited syntax: `"target": "publication.place"`. Period serves a sub-field delimiter to reach a "place" sub-field of the "publication" field.
  We can write the mapping rules for the Publication field as shown below:
