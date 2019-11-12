@@ -83,7 +83,8 @@ Rule:
     }
   ]
 ```
-This rule takes only the “a” and “b” subfields (subfield “6” is purposely left out) and calls normalization functions for each sub-field. The result is concatenated in one string and written to the Instance "edition" field. An outcome Instance looks like this in Json:
+The RuleProcessor triggers the rule above only for each allowed subfield ("a" and "b"), that causes a call for normalization functions ("capitalize" and "trim"). Subfield "6" is not allowed, the RuleProcessor just skips calling normalization functions for "6" subfield. 
+The result is concatenated in one string and written to the Instance "edition" field. An outcome Instance looks like this in Json:
 ```json
 Instance:
 {
