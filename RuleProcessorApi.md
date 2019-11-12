@@ -53,7 +53,7 @@ Instance:
 }
 ```
 
-[Here](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/functions/NormalizationFunction.java) are all of the formatting functions defined. The most useful ones are. The most useful ones are: `trim, capitalize, remove_ending_punc`.
+[Here](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/functions/NormalizationFunction.java) are all of the formatting functions defined. The most useful ones are: `trim, capitalize, remove_ending_punc`.
 
 In most cases there are subfields present within MARC fields. This is important for mapping. Here is an example of a MARC “250” field that contains a “subfield a”, a “subfield b”, and a “subfield 6.”
  ```json
@@ -514,7 +514,7 @@ curl -w '\n' -X PUT \
   --header "Content-type: application/json" \
   --header "Accept: text/plain, application/json" \
   --header "x-okapi-tenant: {tenant}" \
-  --header--header "x-okapi-token: {token}" \
+  --header "x-okapi-token: {token}" \
   https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
 ```
 A response returns rules in default state:
