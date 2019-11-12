@@ -18,6 +18,9 @@ Rule:
 }
 ```
 This rule belongs to the "001" field and handles all the "001" fields from incoming record. It takes value from "001" field and puts it into Instance "hrid" field.
+
+SRM has own schema for Inventory Instance. The schema describes target fields, data types, restrictions and other internal details of Instance. Please, be careful while writing rules - you can put into "target" only fields from the schema, take a look at the  [Instance schema](https://github.com/folio-org/mod-source-record-manager/blob/master/ramls/instance.json) for clear understanding. If the "target" field is specified wrong then the RuleProcessor does not take this rule for mapping.
+
 #### Normalization functions
 In most cases the record value needs to be normalized before being imported into an Instance field, because MARC record data is often raw and mixed. For this purpose we have to use such structure:
  ```json
@@ -85,6 +88,7 @@ Instance:
   "edition": "Fifth ed. Editor in chief Lord Mackay of Clashfern."
 }
 ```
+
 #### Mapping for complex fields
 What if there is a separate target in an Instance record for each subfield within a MARC field? If that is the case, then we can write the mapping rules as shown below:
  ```json
@@ -313,6 +317,7 @@ Instance:
   ]
 }
 ```
+
 #### Processing rules on concatenated data
 By default rules run on the data in a single sub-field. In order to concatenate un-normalized data, and run the rules on the concatenated data add the following field: `applyRulesOnConcatedData: true`. This can be used when punctuation should only be removed from the end of a concatenated string.
 ```json
@@ -324,6 +329,7 @@ Rule:
     }
 ]
 ```
+
 #### Delimiting sub-fields
 Grouping sub-fields `"subfield": [ "a", "f"]` will concatenate (space delimited) the values in those sub-fields and place the result in the target. However, if there is a need to declare different delimiters per set of sub-fields, the following can be declared using the `subFieldDelimiter` array:
 ```json
@@ -366,6 +372,7 @@ Instance:
   ]
 }
 ```
+
 #### Required sub-fields
 Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `requiredSubfield` to define the required subfield needed to trigger the appearance of a target field. In this example, the presence of an 020 subfield "z" in a MARC record is needed in order for the target field, “Invalid ISBN” to appear in the Inventory record.
 ```json
