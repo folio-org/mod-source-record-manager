@@ -163,7 +163,7 @@ Instance:
 #### Multiple objects from one field
 Usually, the [Rule Processor](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/Processor.java) creates only one instance of the 'target' field for each record field. What if we need to create several objects from single record field ?
 ##### New object for group of sub-fields
-In example below we map several 'publication' elements from a single "264" record field. To do so, we have to wrap mapping structure into `entity`:
+In the example below we map several 'publication' elements from a single "264" record field. To do so we have to wrap a rule structure into an `entity`. Let's consider the example below:
  ```json
 MARC Record:
   "264": {
