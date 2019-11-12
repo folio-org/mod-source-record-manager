@@ -1,11 +1,11 @@
 ### Introduction
-The source-record-manager(SRM) converts MARC records to Inventory instances while handling incoming data. The process of converting MARC record into Instance object is usually called **MARC-to-Instance mapping**. 
+The source-record-manager (SRM) converts MARC records to Inventory instances while handling incoming data. The process of converting a MARC record into an Instance object is usually called **MARC-to-Instance mapping**. 
 
-Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rule basically has functions for data normalization(trim leading whitespaces, remove slashes, remove ending punctuation) and the target Instance field, where to put result of mapping.
+Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rules basically have functions for data normalization (trimming leading whitespaces, removing slashes, removing ending punctuation) and the assigning target Inventory fields to the values of the incoming MARC record.
 #### *This document describes structure of rules, flags, real use cases and REST API to work with.*
 #
-### What is mapping rule
-Basically, rule is a simple key-value JSON element. The key serves a MARC record's field(tag). The value itself is a rule.
+### What is a mapping rule
+Basically, a mapping rule is a simple key-value JSON element. The key serves a MARC record's field (tag). The value is a rule configuration.
 ```json
 Rule:
 {
@@ -17,9 +17,14 @@ Rule:
   ]
 }
 ```
-This rule belongs to the "001" field and handles all the "001" fields from incoming record. It takes value from "001" field and puts it into Instance "hrid" field. Such rules are usual for **Control field**.
+This rule belongs to the "001" field and handles all the "001" fields from incoming record. It takes value from "001" field and puts it into Instance "hrid" field.
+
+SRM has own schema for Inventory Instance. The schema describes target fields, data types, restrictions and other internal details of Instance. Please, be careful while writing rules - you can put into "target" only fields from the schema, take a look at the  [Instance schema](https://github.com/folio-org/mod-source-record-manager/blob/master/ramls/instance.json) for clear understanding. If the "target" field is specified wrong then the RuleProcessor does not take this rule for mapping.
+
+##### NOTE:  MARC records and mapping rules below have been taken intentionally just for demonstration purposes.
+#
 #### Normalization functions
-In most cases the record value needs to be normalized before getting into Instance field, because of record data is often raw and mixed . For this purpose we have to use such structure:
+In most cases the record value needs to be normalized before being imported into an Instance field, because MARC record data is often raw and mixed. For this purpose we have to use such structure:
  ```json
 MARC Record: "001": "393/89/3"
 ```
@@ -44,7 +49,7 @@ Rule:
     }
   ]
 ```
-`remove_substring` is normalization function, that removes given substring from field's value. The function just doing a job and returns string that gets into Instance "hrid" field.
+`remove_substring` is normalization function that removes the given substring from the field’s value. The function is just doing a job and returns a string that ends up in the Instance “hrid” field.
 An outcome Instance looks like this in Json:
 ```json
 Instance: 
@@ -53,9 +58,9 @@ Instance:
 }
 ```
 
-[Here](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/functions/NormalizationFunction.java) all the formatting functions defined. Most useful are: `trim, capitalize, remove_ending_punc`.
+[Here](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/functions/NormalizationFunction.java) are all of the formatting functions defined. The most useful ones are: `trim, capitalize, remove_ending_punc`.
 
- In most cases there are sub-fields present in field, that is important for mapping. Example for "250" field with `a, b, 6` sub-fields comes below: 
+In most cases there are subfields present within MARC fields. This is important for mapping. Here is an example of a MARC “250” field that contains a “subfield a”, a “subfield b”, and a “subfield 6.”
  ```json
 MARC Record: "250":{"ind1":"", "ind2":"", "subfields":[ { "a":" fifth ed." }, { "b":"Editor in chief Lord Mackay of Clashfern. " } , {"6":"880-02"}]}
 ```
@@ -78,15 +83,19 @@ Rule:
     }
   ]
 ```
-This rule takes only "a" and "b" sub-fields and calls normalization functions for each sub-field. The result is concatenated in one string and written to the Instance "edition" field. An outcome Instance looks like this in Json:
+The RuleProcessor triggers the rule above only for each allowed subfield ("a" and "b"), that causes a call for normalization functions ("capitalize" and "trim"). Subfield "6" is not allowed, the RuleProcessor just skips calling normalization functions for "6" subfield. 
+The result is concatenated in one string and written to the Instance "edition" field. An outcome Instance looks like this in Json:
 ```json
 Instance:
 {
   "edition": "Fifth ed. Editor in chief Lord Mackay of Clashfern."
 }
 ```
+
 #### Mapping for complex fields
-What if the target Instance field is not simple String, but List of complex objects with several fields in ? This happends usually if record field is a **Data field**. We can write rule to map record as below: 
+Sometimes you can encounter Instance fields with sub-fields, for example, Electronic access (sub-fields: linked text, public note, uri), Contributors (name, type, primary), Publication (place, publisher, date of publication).
+To map "264" record into the "place of publication" we have to use period-delimited syntax: `"target": "publication.place"`. Period serves a sub-field delimiter to reach a "place" sub-field of the "publication" field.
+ We can write the mapping rules for the Publication field as shown below:
  ```json
 MARC Record: "264":{"subfields":[{"a":"Chicago, Illinois :"}, {"b":"The HistoryMakers,"}, {"c":"[2016]"}], "ind1":" ", "ind2":"1"}
 ```
@@ -126,8 +135,8 @@ Instance:
   ]
 }
 ```
-If there are repeated "264" fields in a single record, then Instance gets several elements in the "publication" field.
-To skip mapping for repeated fields and take only first occurrence We can use `ignoreSubsequentFields` flag:
+
+If there are repeated MARC fields in a single record, then the Instance will receive several elements in its target field. To skip mapping for repeated fields and take only the first occurrence, we can use the `ignoreSubsequentFields` flag:
  ```json
 MARC Record:
 "336":{"subfields":[{"a":"text"}, {"b":"txt"}, {"2":"rdacontent"}], "ind1":" ", "ind2":" "},  ...
@@ -154,9 +163,9 @@ Instance:
 ```
 
 #### Multiple objects from one field
-Usually, the [Rule Processor](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/Processor.java) creates only one instance of the 'target' field for each record field. What if We need to create several objects from single record field ?
+Usually, the [Rule Processor](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/Processor.java) creates only one instance of the 'target' field for each record field. What if we need to create several objects from single record field ?
 ##### New object for group of sub-fields
-In example below we map several 'publication' elements from a single "264" record field. To do so, we have to wrap mapping structure into `entity`:
+In the example below we map several 'publication' elements from a single "264" record field. To do so we have to wrap a rule structure into an `entity`. Let's consider the example below:
  ```json
 MARC Record:
   "264": {
@@ -314,6 +323,7 @@ Instance:
   ]
 }
 ```
+
 #### Processing rules on concatenated data
 By default rules run on the data in a single sub-field. In order to concatenate un-normalized data, and run the rules on the concatenated data add the following field: `applyRulesOnConcatedData: true`. This can be used when punctuation should only be removed from the end of a concatenated string.
 ```json
@@ -325,6 +335,7 @@ Rule:
     }
 ]
 ```
+
 #### Delimiting sub-fields
 Grouping sub-fields `"subfield": [ "a", "f"]` will concatenate (space delimited) the values in those sub-fields and place the result in the target. However, if there is a need to declare different delimiters per set of sub-fields, the following can be declared using the `subFieldDelimiter` array:
 ```json
@@ -367,8 +378,9 @@ Instance:
   ]
 }
 ```
+
 #### Required sub-fields
-Sometimes there is a need to map target field depending on existence of some sub-field. We use `requiredSubfield`  to define sub-field required to map target field:
+Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `requiredSubfield` to define the required subfield needed to trigger the appearance of a target field. In this example, the presence of an 020 subfield "z" in a MARC record is needed in order for the target field, “Invalid ISBN” to appear in the Inventory record.
 ```json
 MARC Record:
 {
@@ -405,9 +417,9 @@ Rule:
     }
   ]
 ```
-"z" sub-field is required for mapping "identifiers.value". 
-- If no "z" in record sub-fields, then "identifiers.value" remains empty(null).
-- If "z" exists among record sub-fields, then "identifiers.value" gets filled by all the `["z","q","c"].`
+
+- If there is no "z" in record sub-fields then target field does not appear at all.
+- If there is "z" among record sub-fields then target field gets filled by all the `["z","q","c"].`
 #
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
@@ -419,13 +431,30 @@ There are 3 REST methods to work with rules.
 |**PUT**| /mapping-rules | application/json | Update rules for given tenant |
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
-To get rules you can send this request using GET method
+Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system using UI, just copy token from `Apps/Settings/Developer/Set token/Authentication token` field.
+Also you can log in the system using CLI tools, response returns `x-okapi-token` header with HTTP token.
+```
+Login request:
+curl -w '\n' -X POST \
+  --header "Content-Type: application/json" \
+  --header "x-okapi-tenant: {tenant}" \
+  --data @credentials.json \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/bl-users/login
+
+  credentials.json: 
+  {
+    "username": "{username}",
+    "password": "{password}"
+  }
+```
+#
+To get rules you can send a request using GET method
 ```
 curl -w '\n' -X GET \
--H "Content-type: application/json" \ 
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  --header "Content-type: application/json" \ 
+  --header "x-okapi-tenant: {tenant}" \
+  --header "x-okapi-token: {token}" \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
 ```
 A response returns existing rules:
 ```
@@ -448,12 +477,12 @@ A response returns existing rules:
 If you would like to update rules just get existing rules using GET method and combine it with your updates, use PUT method:
 ```
 curl -w '\n' -X PUT \
--H "Content-type: application/json" \
--H "Accept: text/plain, application/json" \
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
--d @rules.json \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  --header "Content-type: application/json" \
+  --header "Accept: text/plain, application/json" \
+  --header "x-okapi-tenant: {tenant}" \
+  --header "x-okapi-token: {token}" \
+  --data @rules.json \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
 ```
 rules.json with updated list of subfields for 001 :
 ```
@@ -495,11 +524,11 @@ To validate JSON file there are online free tools: [Json Formatter](https://json
 To revert the current state of rules to default, as it was at the system startup, use PUT method with 'restore' suffix:
 ```
 curl -w '\n' -X PUT \
--H "Content-type: application/json" \
--H "Accept: text/plain, application/json" \
--H "x-okapi-tenant: {tenant}" \
--H "x-okapi-token: {token}" \
-https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
+  --header "Content-type: application/json" \
+  --header "Accept: text/plain, application/json" \
+  --header "x-okapi-tenant: {tenant}" \
+  --header "x-okapi-token: {token}" \
+  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
 ```
 A response returns rules in default state:
 ```
