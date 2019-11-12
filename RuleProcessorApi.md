@@ -91,7 +91,7 @@ Instance:
 
 #### Mapping for complex fields
 
-Sometimes you can encounter Instance fields with sub-fields on UI, for example, Electronic access (sub-fields: linked text, public note, uri), Contributors (name, type, primary), Publication (place, publisher, date of publication).
+Sometimes you can encounter Instance fields with sub-fields, for example, Electronic access (sub-fields: linked text, public note, uri), Contributors (name, type, primary), Publication (place, publisher, date of publication).
 To map "264" record into the "place of publication" we have to use period-delimited syntax: `"target": "publication.place"`. Period serves a sub-field delimiter to reach a "place" sub-field of the "publication" field.
  We can write the mapping rules for the Publication field as shown below:
  ```json
