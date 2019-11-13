@@ -2,6 +2,7 @@ package org.folio.services.journal;
 
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -21,11 +22,11 @@ public interface JournalService {
   }
 
   /**
-   * Saves {@link org.folio.rest.jaxrs.model.JournalRecord} entity
+   * Saves set of {@link org.folio.rest.jaxrs.model.JournalRecord} entities
    *
-   * @param jsonJournalRecord journalRecord as json object
-   * @param tenantId          tenant id
-   * @throws IllegalArgumentException if the jsonJournalRecord cannot be mapped to JournalRecord entity
+   * @param journalRecords json array that contains journalRecords as json objects
+   * @param tenantId       tenant id
+   * @throws IllegalArgumentException if the JournalRecord json from journalRecords cannot be mapped to JournalRecord entity
    */
-  void save(JsonObject jsonJournalRecord, String tenantId);
+  void save(JsonArray journalRecords, String tenantId);
 }

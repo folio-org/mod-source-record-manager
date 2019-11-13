@@ -3,6 +3,7 @@ package org.folio.services.afterprocessing;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.*;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
@@ -138,10 +140,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
               addExternalIds(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
-              writeToJournalInstancesCreation(instanceRecordMap, result, okapiParams);
+              List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
+              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               future.complete();
             } else {
-              writeToJournalInstancesCreation(instanceRecordMap, Collections.emptyList(), okapiParams);
+              List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
+              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               LOGGER.error("Can not post Instances", ar.cause());
               future.fail(ar.cause());
             }
@@ -393,17 +397,21 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Saves info about instances creation result
+   * Builds list of journal records represented as json objects
+   * which contain info about instances processing result
    *
-   * @param instanceRecordMap records with associated instances that should be created
-   * @param createdInstances created instances
-   * @param okapiParams okapi connection parameters
+   * @param instanceRecordMap records with associated instances that should be processed
+   * @param processedInstances created instances
+   * @param actionType action type which was performed on instances during processing
+   * @return list of journal records represented as json objects
    */
-  private void writeToJournalInstancesCreation(Map<Instance, Record> instanceRecordMap, List<Instance> createdInstances, OkapiConnectionParams okapiParams) {
-    Set<String> createdInstanceIds = createdInstances.stream()
+  private List<JsonObject> buildJournalRecordsForProcessedInstances(Map<Instance, Record> instanceRecordMap, List<Instance> processedInstances,
+                                                                    JournalRecord.ActionType actionType) {
+    Set<String> createdInstanceIds = processedInstances.stream()
       .map(Instance::getId)
       .collect(Collectors.toSet());
 
+    List<JsonObject> journalRecords = new ArrayList<>();
     instanceRecordMap.forEach((instance, record) -> {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
@@ -411,13 +419,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         .withEntityType(JournalRecord.EntityType.INSTANCE)
         .withEntityId(instance.getId())
         .withEntityHrId(instance.getHrid())
-        .withActionType(JournalRecord.ActionType.CREATE)
+        .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(createdInstanceIds.contains(instance.getId())
           ? JournalRecord.ActionStatus.COMPLETED
           : JournalRecord.ActionStatus.ERROR);
 
-      journalService.save(JsonObject.mapFrom(journalRecord), okapiParams.getTenantId());
+      journalRecords.add(JsonObject.mapFrom(journalRecord));
     });
+    return journalRecords;
   }
 }

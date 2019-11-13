@@ -1,6 +1,7 @@
 package org.folio.services.journal;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -17,9 +18,13 @@ public class JournalServiceImpl implements JournalService {
   }
 
   @Override
-  public void save(JsonObject jsonJournalRecord, String tenantId) {
-    JournalRecord journalRecord = jsonJournalRecord.mapTo(JournalRecord.class);
-    journalRecordDao.save(journalRecord, tenantId);
+  public void save(JsonArray journalRecords, String tenantId) {
+    for (int i = 0; i < journalRecords.size(); i++) {
+      JsonObject json = journalRecords.getJsonObject(i);
+      JournalRecord journalRecord = json.mapTo(JournalRecord.class);
+      journalRecordDao.save(journalRecord, tenantId);
+    }
   }
+
 
 }
