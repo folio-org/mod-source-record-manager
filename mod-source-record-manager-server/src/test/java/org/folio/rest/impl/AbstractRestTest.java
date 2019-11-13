@@ -60,13 +60,14 @@ public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
+  private static final String JOURNAL_RECORDS_TABLE = "journal_records";
   private static final String TOKEN = "token";
   private static final String HTTP_PORT = "http.port";
   private static int port;
   private static String useExternalDatabase;
   private static String postedSnapshotResponseBody = UUID.randomUUID().toString();
   private static Vertx vertx;
-  private static final String TENANT_ID = "diku";
+  protected static final String TENANT_ID = "diku";
   protected static RequestSpecification spec;
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
@@ -217,12 +218,13 @@ public abstract class AbstractRestTest {
     Async async = context.async();
     PostgresClient pgClient = PostgresClient.getInstance(vertx, TENANT_ID);
     pgClient.delete(CHUNKS_TABLE_NAME, new Criterion(), event1 -> {
-      pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event2 -> {
+    pgClient.delete(JOURNAL_RECORDS_TABLE, new Criterion(), event2 ->
+      pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event3 -> {
         if (event2.failed()) {
           context.fail(event2.cause());
         }
         async.complete();
-      });
+      }));
     });
   }
 

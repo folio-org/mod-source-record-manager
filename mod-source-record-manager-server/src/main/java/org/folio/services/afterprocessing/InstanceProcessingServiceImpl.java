@@ -1,6 +1,7 @@
 package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -19,9 +20,11 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.services.MappingRuleService;
+import org.folio.services.journal.JournalService;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -36,6 +39,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +65,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
+  private JournalService journalService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
@@ -68,6 +73,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
+    this.journalService = JournalService.createProxy(Vertx.currentContext().owner());
   }
 
   @Override
@@ -132,8 +138,10 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
               addExternalIds(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
+              writeToJournalInstancesCreation(instanceRecordMap, result, okapiParams);
               future.complete();
             } else {
+              writeToJournalInstancesCreation(instanceRecordMap, Collections.emptyList(), okapiParams);
               LOGGER.error("Can not post Instances", ar.cause());
               future.fail(ar.cause());
             }
@@ -382,5 +390,34 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       future.fail(e);
     }
     return future;
+  }
+
+  /**
+   * Saves info about instances creation result
+   *
+   * @param instanceRecordMap records with associated instances that should be created
+   * @param createdInstances created instances
+   * @param okapiParams okapi connection parameters
+   */
+  private void writeToJournalInstancesCreation(Map<Instance, Record> instanceRecordMap, List<Instance> createdInstances, OkapiConnectionParams okapiParams) {
+    Set<String> createdInstanceIds = createdInstances.stream()
+      .map(Instance::getId)
+      .collect(Collectors.toSet());
+
+    instanceRecordMap.forEach((instance, record) -> {
+      JournalRecord journalRecord = new JournalRecord()
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withEntityType(JournalRecord.EntityType.INSTANCE)
+        .withEntityId(instance.getId())
+        .withEntityHrId(instance.getHrid())
+        .withActionType(JournalRecord.ActionType.CREATE)
+        .withActionDate(new Date())
+        .withActionStatus(createdInstanceIds.contains(instance.getId())
+          ? JournalRecord.ActionStatus.COMPLETED
+          : JournalRecord.ActionStatus.ERROR);
+
+      journalService.save(JsonObject.mapFrom(journalRecord), okapiParams.getTenantId());
+    });
   }
 }

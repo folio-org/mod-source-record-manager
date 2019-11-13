@@ -12,6 +12,7 @@
 * Broken down source-record-manager interface into smaller ones: source-manager-job-executions, source-manager-records.
 * Changed 'hrId' field type to integer for jobExecution
 * Added table schema for journal service
+* Implemented journal service 
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|

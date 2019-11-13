@@ -1,7 +1,9 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -15,6 +17,7 @@ import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
@@ -23,6 +26,7 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.journal.JournalService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
@@ -31,7 +35,9 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -52,11 +58,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
+  private JournalService journalService;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
+    this.journalService = JournalService.createProxy(Vertx.currentContext().owner());
   }
 
   @Override
@@ -178,11 +186,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         if (isStatus(response, HTTP_CREATED)) {
           response.bodyHandler(it ->
             future.handle(
-              Try.itGet(() -> it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords())
+              Try.itGet(() -> {
+                List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
+                writeToJournalRecordsCreation(parsedRecords, createdRecords, params);
+                return createdRecords;
+              })
                 .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
             )
           );
         } else {
+          writeToJournalRecordsCreation(parsedRecords, Collections.emptyList(), params);
           String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
@@ -198,5 +211,33 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   public static boolean isStatus(HttpClientResponse response, HttpStatus status) {
     return response.statusCode() == status.toInt();
+  }
+
+  /**
+   * Saves info about records creation result
+   *
+   * @param records records that should be created
+   * @param createdRecords created records
+   * @param params okapi connection parameters
+   */
+  private void writeToJournalRecordsCreation(List<Record> records, List<Record> createdRecords, OkapiConnectionParams params) {
+    Set<String> createdRecordIds = createdRecords.stream()
+      .map(Record::getId)
+      .collect(Collectors.toSet());
+
+    records.forEach(record -> {
+      JournalRecord journalRecord = new JournalRecord()
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withEntityType(JournalRecord.EntityType.RECORD)
+        .withEntityId(record.getId())
+        .withActionType(JournalRecord.ActionType.CREATE)
+        .withActionDate(new Date())
+        .withActionStatus(record.getErrorRecord() == null && createdRecordIds.contains(record.getId())
+          ? JournalRecord.ActionStatus.COMPLETED
+          : JournalRecord.ActionStatus.ERROR);
+
+      journalService.save(JsonObject.mapFrom(journalRecord), params.getTenantId());
+    });
   }
 }
