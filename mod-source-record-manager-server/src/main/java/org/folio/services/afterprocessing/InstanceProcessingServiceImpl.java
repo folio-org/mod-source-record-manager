@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.*;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
@@ -71,11 +71,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
-                                       @Autowired MappingRuleService mappingRuleService) {
+                                       @Autowired MappingRuleService mappingRuleService,
+                                       @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
-    this.journalService = JournalService.createProxy(Vertx.currentContext().owner());
+    this.journalService = JournalService.createProxy(vertx);
   }
 
   @Override
@@ -397,7 +398,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   /**
-   * Builds list of journal records represented as json objects
+   * Builds list of journal records represented as json objects,
    * which contain info about instances processing result
    *
    * @param instanceRecordMap records with associated instances that should be processed

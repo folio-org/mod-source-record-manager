@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.*;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
@@ -64,7 +64,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JournalService journalService;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
-                                 @Autowired JobExecutionService jobExecutionService, @Autowired Vertx vertx) {
+                                 @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = JournalService.createProxy(vertx);
