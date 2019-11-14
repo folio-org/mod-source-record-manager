@@ -389,6 +389,15 @@
       "required": [
         "self"
       ]
+    },
+    "natureOfContentTermIds": {
+      "type": "array",
+      "description": "Array of UUID for the Instance nature of content (e.g. bibliography, biography, exhibition catalogue, festschrift, newspaper, proceedings, research report, thesis or website)",
+      "items": {
+        "type": "string",
+        "description": "Single UUID for the Instance nature of content",
+        "$ref": "raml-storage/schemas/common/uuid.json"
+      }
     }
   },
   "additionalProperties": true,

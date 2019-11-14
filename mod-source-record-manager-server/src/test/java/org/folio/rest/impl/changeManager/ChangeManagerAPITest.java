@@ -7,12 +7,16 @@ import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.restassured.RestAssured;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
+import org.folio.dao.JournalRecordDao;
+import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -20,6 +24,9 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
+import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
@@ -28,11 +35,13 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.Status;
-import org.hamcrest.Matchers;
-import org.hamcrest.text.MatchesPattern;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,9 +67,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -106,6 +118,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
     .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
+
+  @Spy
+  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
+  @InjectMocks
+  private JournalRecordDao journalRecordDao = new JournalRecordDaoImpl();
+
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+  }
 
   @Test
   public void testInitJobExecutionsWith1File() {
@@ -1826,4 +1848,230 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NOT_FOUND);
     async.complete();
   }
+
+  @Test
+  public void shouldCreateCompletedJournalRecordsWhenInstancesWereSaved(TestContext testContext) throws IOException {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    Async async2 = testContext.async();
+    journalRecordDao.getByJobExecutionId(jobExec.getId(), TENANT_ID).setHandler(ar -> {
+      testContext.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+        List<JournalRecord> journalRecords = ar.result();
+        Assert.assertThat(journalRecords.size(), is(2));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("actionStatus", is(ActionStatus.COMPLETED))));
+        Assert.assertThat(journalRecords, hasItem(hasProperty("entityType", is(EntityType.RECORD))));
+        Assert.assertThat(journalRecords, hasItem(hasProperty("entityType", is(EntityType.INSTANCE))));
+      });
+      async2.complete();
+    });
+  }
+
+  @Test
+  public void shouldCreateErrorJournalRecordsWhenRecordsWereNotSaved(TestContext testContext) {
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(15)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_1),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2)));
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(serverError()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+
+    Async async2 = testContext.async();
+    journalRecordDao.getByJobExecutionId(jobExec.getId(),TENANT_ID).setHandler(ar -> {
+      testContext.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+        List<JournalRecord> journalRecords = ar.result();
+        Assert.assertThat(journalRecords.size(), is(2));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("entityType", is(EntityType.RECORD))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("actionStatus", is(ActionStatus.ERROR))));
+      });
+      async2.complete();
+    });
+  }
+
+  @Test
+  public void shouldCreateErrorJournalRecordWhenInstanceWasNotSaved(TestContext testContext) {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL).willReturn(serverError()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    Async async2 = testContext.async();
+    journalRecordDao.getByJobExecutionId(jobExec.getId(), TENANT_ID).setHandler(ar -> {
+      testContext.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+        List<JournalRecord> journalRecords = ar.result();
+        Assert.assertThat(journalRecords.size(), is(2));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
+        Assert.assertThat(journalRecords, hasItem(allOf(
+          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("actionStatus", is(ActionStatus.COMPLETED)))));
+        Assert.assertThat(journalRecords, hasItem(allOf(
+          hasProperty("entityType", is(EntityType.INSTANCE)),
+          hasProperty("actionStatus", is(ActionStatus.ERROR)))));
+      });
+      async2.complete();
+    });
+  }
+
+  @Test
+  public void shouldCreateErrorJournalRecordWhenErrorRawRecordWasProcessed(TestContext testContext) {
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(15)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_1),
+        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR)));
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    Async async2 = testContext.async();
+    journalRecordDao.getByJobExecutionId(jobExec.getId(), TENANT_ID).setHandler(ar -> {
+      testContext.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+        List<JournalRecord> journalRecords = ar.result();
+        Assert.assertThat(journalRecords.size(), is(3));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
+        Assert.assertThat(journalRecords, hasItem(allOf(
+          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("actionStatus", is(ActionStatus.COMPLETED)))));
+        Assert.assertThat(journalRecords, hasItem(allOf(
+          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("actionStatus", is(ActionStatus.ERROR)))));
+        Assert.assertThat(journalRecords, hasItem(allOf(
+          hasProperty("entityType", is(EntityType.INSTANCE)),
+          hasProperty("actionStatus", is(ActionStatus.COMPLETED)))));
+      });
+      async2.complete();
+    });
+  }
+
 }

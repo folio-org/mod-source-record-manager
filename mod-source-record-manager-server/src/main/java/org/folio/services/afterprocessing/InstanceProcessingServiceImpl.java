@@ -1,7 +1,9 @@
 package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -19,9 +21,11 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.services.MappingRuleService;
+import org.folio.services.journal.JournalService;
 import org.folio.services.mappers.RecordToInstanceMapper;
 import org.folio.services.mappers.RecordToInstanceMapperBuilder;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
@@ -36,6 +40,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +54,7 @@ import java.util.stream.Collectors;
 import static io.vertx.core.Future.succeededFuture;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
@@ -61,13 +67,16 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
+  private JournalService journalService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
-                                       @Autowired MappingRuleService mappingRuleService) {
+                                       @Autowired MappingRuleService mappingRuleService,
+                                       @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
+    this.journalService = JournalService.createProxy(vertx);
   }
 
   @Override
@@ -132,8 +141,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
               addExternalIds(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
+              List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
+              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               future.complete();
             } else {
+              List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
+              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               LOGGER.error("Can not post Instances", ar.cause());
               future.fail(ar.cause());
             }
@@ -382,5 +395,39 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       future.fail(e);
     }
     return future;
+  }
+
+  /**
+   * Builds list of journal records represented as json objects,
+   * which contain info about instances processing result
+   *
+   * @param instanceRecordMap records with associated instances that should be processed
+   * @param processedInstances created instances
+   * @param actionType action type which was performed on instances during processing
+   * @return list of journal records represented as json objects
+   */
+  private List<JsonObject> buildJournalRecordsForProcessedInstances(Map<Instance, Record> instanceRecordMap, List<Instance> processedInstances,
+                                                                    JournalRecord.ActionType actionType) {
+    Set<String> createdInstanceIds = processedInstances.stream()
+      .map(Instance::getId)
+      .collect(Collectors.toSet());
+
+    List<JsonObject> journalRecords = new ArrayList<>();
+    instanceRecordMap.forEach((instance, record) -> {
+      JournalRecord journalRecord = new JournalRecord()
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withEntityType(JournalRecord.EntityType.INSTANCE)
+        .withEntityId(instance.getId())
+        .withEntityHrId(instance.getHrid())
+        .withActionType(actionType)
+        .withActionDate(new Date())
+        .withActionStatus(createdInstanceIds.contains(instance.getId())
+          ? JournalRecord.ActionStatus.COMPLETED
+          : JournalRecord.ActionStatus.ERROR);
+
+      journalRecords.add(JsonObject.mapFrom(journalRecord));
+    });
+    return journalRecords;
   }
 }

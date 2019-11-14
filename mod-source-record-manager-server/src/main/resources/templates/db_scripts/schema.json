@@ -63,7 +63,7 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (_id UUID PRIMARY KEY, jobExecutionId UUID REFERENCES job_executions(_id), sourceId UUID, entityType text, entityId text, entityHrId text, actionType text, actionStatus text, actionDate timestamp);",
+      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (_id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(_id), source_id UUID, entity_type text, entity_id text, entity_hrid text, action_type text, action_status text, action_date timestamp);",
       "fromModuleVersion": "mod-source-record-manager-1.7.1"
     }
   ]

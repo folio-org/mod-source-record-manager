@@ -57,7 +57,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JobExecutionDao jobExecutionDao;
   @Autowired
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  private Random random = new Random();
+  @Autowired
+  private JournalRecordService journalRecordService;
 
   @Override
   public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
@@ -191,6 +192,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> deleteRecordsFromSRS(jobExecutionId, params)
+          .compose(v -> journalRecordService.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
           .compose(v -> jobExecutionSourceChunkDao.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
           .compose(v -> jobExecutionDao.deleteJobExecutionById(jobExecutionId, params.getTenantId())))
         .orElse(Future.failedFuture(new NotFoundException(
