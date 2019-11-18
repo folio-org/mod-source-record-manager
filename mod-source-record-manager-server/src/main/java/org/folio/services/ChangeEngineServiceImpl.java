@@ -33,12 +33,14 @@ import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -123,7 +125,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
         Record record = new Record()
-          .withId(UUID.randomUUID().toString())
+          .withId(obtainId(parsedResult))
           .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
           .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
@@ -149,6 +151,30 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
+  }
+
+  private String obtainId(ParsedResult parsedResult) {
+    if(parsedResult.isHasError()) {
+      return UUID.randomUUID().toString();
+    }
+    JsonArray fields = parsedResult.getParsedRecord().getJsonArray("fields", new JsonArray());
+    String id = "";
+    Optional<JsonObject> nineNineNineField = findInArrayByKey(fields, "999");
+    if(nineNineNineField.isPresent()) {
+      JsonArray subFields = nineNineNineField.get().getJsonArray("subfields", new JsonArray());
+      Optional<JsonObject> subFieldI = findInArrayByKey(subFields, "i");
+      if(subFieldI.isPresent()) {
+        id = subFieldI.get().getString("i");
+      }
+    }
+    return StringUtils.isEmpty(id) ? UUID.randomUUID().toString() : id;
+  }
+
+  private Optional<JsonObject> findInArrayByKey(JsonArray array, String key) {
+    return array.stream()
+      .map(o->(JsonObject)o)
+      .filter(f ->f.containsKey(key))
+      .findFirst();
   }
 
   /**
