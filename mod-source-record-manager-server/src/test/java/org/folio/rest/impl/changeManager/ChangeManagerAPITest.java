@@ -1892,7 +1892,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         Assert.assertThat(journalRecords.size(), is(2));
         Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
         Assert.assertThat(journalRecords, everyItem(hasProperty("actionStatus", is(ActionStatus.COMPLETED))));
-        Assert.assertThat(journalRecords, hasItem(hasProperty("entityType", is(EntityType.RECORD))));
+        Assert.assertThat(journalRecords, hasItem(hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC))));
         Assert.assertThat(journalRecords, hasItem(hasProperty("entityType", is(EntityType.INSTANCE))));
       });
       async2.complete();
@@ -1948,7 +1948,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         Assert.assertThat(journalRecords.size(), is(2));
         Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
         Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
-        Assert.assertThat(journalRecords, everyItem(hasProperty("entityType", is(EntityType.RECORD))));
+        Assert.assertThat(journalRecords, everyItem(hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC))));
         Assert.assertThat(journalRecords, everyItem(hasProperty("actionStatus", is(ActionStatus.ERROR))));
       });
       async2.complete();
@@ -1998,7 +1998,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
         Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
         Assert.assertThat(journalRecords, hasItem(allOf(
-          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC)),
           hasProperty("actionStatus", is(ActionStatus.COMPLETED)))));
         Assert.assertThat(journalRecords, hasItem(allOf(
           hasProperty("entityType", is(EntityType.INSTANCE)),
@@ -2061,10 +2061,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         Assert.assertThat(journalRecords, everyItem(hasProperty("jobExecutionId", is(jobExec.getId()))));
         Assert.assertThat(journalRecords, everyItem(hasProperty("actionType", is(JournalRecord.ActionType.CREATE))));
         Assert.assertThat(journalRecords, hasItem(allOf(
-          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC)),
           hasProperty("actionStatus", is(ActionStatus.COMPLETED)))));
         Assert.assertThat(journalRecords, hasItem(allOf(
-          hasProperty("entityType", is(EntityType.RECORD)),
+          hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC)),
           hasProperty("actionStatus", is(ActionStatus.ERROR)))));
         Assert.assertThat(journalRecords, hasItem(allOf(
           hasProperty("entityType", is(EntityType.INSTANCE)),

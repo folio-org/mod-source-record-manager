@@ -239,7 +239,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
-        .withEntityType(JournalRecord.EntityType.RECORD)
+        .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
