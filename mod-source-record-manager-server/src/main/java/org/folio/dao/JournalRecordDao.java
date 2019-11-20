@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 import java.util.List;
@@ -36,4 +37,13 @@ public interface JournalRecordDao {
    * @return future with true if succeeded
    */
   Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
+
+  /**
+   * Returns JobExecutionLogDto entity for job execution with specified id
+   *
+   * @param jobExecutionId job execution id
+   * @param tenantId       tenant id
+   * @return future with JobExecutionLogDto entity
+   */
+  Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId);
 }
