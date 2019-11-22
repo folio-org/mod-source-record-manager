@@ -5973,6 +5973,46 @@
       ]
     }
   ],
+  "655": [
+    {
+      "target": "subjects",
+      "description": "Subject Headings",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": "--",
+          "subfields": [
+            "a",
+            "e",
+            "g",
+            "v",
+            "x",
+            "y",
+            "z"
+          ]
+        }
+      ],
+      "applyRulesOnConcatenatedData": true,
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "trim_period, trim"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
   "700": [
     {
       "entity": [
