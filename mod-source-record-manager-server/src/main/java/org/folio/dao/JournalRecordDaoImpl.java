@@ -8,6 +8,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.UpdateResult;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.rest.jaxrs.model.ActionLog;
+import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
@@ -35,6 +37,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String INSERT_SQL = "INSERT INTO %s.%s (_id, job_execution_id, source_id, entity_type, entity_id, entity_hrid, action_type, action_status, action_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = ?";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = ?";
+  private static final String GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY = "SELECT job_execution_id, entity_type, action_type, " +
+                                                                        "COUNT(*) FILTER (WHERE action_status = 'COMPLETED') AS total_completed, " +
+                                                                        "COUNT(*) FILTER (WHERE action_status = 'ERROR') AS total_failed " +
+                                                                      "FROM %s.%s WHERE job_execution_id = ? AND action_type != 'ERROR' " +
+                                                                      "GROUP BY (job_execution_id, entity_type, action_type)";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -87,6 +94,16 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return future.map(updateResult -> updateResult.getUpdated() >= 1);
   }
 
+  @Override
+  public Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId) {
+    Future<ResultSet> future = Future.future();
+    String query = String.format(GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+    JsonArray queryParams = new JsonArray()
+      .add(jobExecutionId != null ? jobExecutionId : EMPTY);
+    pgClientFactory.createInstance(tenantId).select(query, queryParams, future.completer());
+    return future.map(this::mapResultSetToJobExecutionLogDto);
+  }
+
   private List<JournalRecord> mapResultSetToJournalRecordsList(ResultSet resultSet) {
     return resultSet.getRows().stream()
       .map(this::mapRowJsonToJournalRecord)
@@ -104,6 +121,21 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withActionType(ActionType.valueOf(rowAsJson.getString("action_type")))
       .withActionStatus(ActionStatus.valueOf(rowAsJson.getString("action_status")))
       .withActionDate(Date.from(LocalDateTime.parse(rowAsJson.getString("action_date")).toInstant(ZoneOffset.UTC)));
+  }
+
+  private JobExecutionLogDto mapResultSetToJobExecutionLogDto(ResultSet resultSet) {
+    JobExecutionLogDto jobExecutionSummary = new JobExecutionLogDto();
+    resultSet.getRows().forEach(rowAsJson -> {
+      ActionLog actionLog = new ActionLog()
+        .withEntityType(rowAsJson.getString("entity_type"))
+        .withActionType(rowAsJson.getString("action_type"))
+        .withTotalCompleted(rowAsJson.getInteger("total_completed"))
+        .withTotalFailed(rowAsJson.getInteger("total_failed"));
+
+      jobExecutionSummary.withJobExecutionId(rowAsJson.getString("job_execution_id"));
+      jobExecutionSummary.getJobExecutionResultLogs().add(actionLog);
+    });
+    return jobExecutionSummary;
   }
 
 }
