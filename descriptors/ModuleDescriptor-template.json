@@ -72,7 +72,7 @@
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/logs/{jobExecutionId}",
-          "permissionsRequired" : [ "metadata-provider.log.get" ]
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
         },
         {
           "methods": ["POST"],
@@ -193,7 +193,7 @@
       "description": "Get JobExecutions"
     },
     {
-      "permissionName": "metadata-provider.log.get",
+      "permissionName": "metadata-provider.logs.get",
       "displayName": "Metadata Provider - get jobExecution logs",
       "description": "Get JobExecutionLogDto"
     },
