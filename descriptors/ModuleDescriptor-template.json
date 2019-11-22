@@ -70,6 +70,11 @@
           "permissionsRequired" : [ "metadata-provider.jobexecutions.get" ]
         },
         {
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/logs/{jobExecutionId}",
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
           "permissionsRequired" : [ "change-manager.jobexecutions.post" ],
@@ -186,6 +191,11 @@
       "permissionName": "metadata-provider.jobexecutions.get",
       "displayName": "Metadata Provider - get jobExecutions",
       "description": "Get JobExecutions"
+    },
+    {
+      "permissionName": "metadata-provider.logs.get",
+      "displayName": "Metadata Provider - get jobExecution logs",
+      "description": "Get JobExecutionLogDto"
     },
     {
       "permissionName": "change-manager.jobexecutions.post",

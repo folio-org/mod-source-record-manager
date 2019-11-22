@@ -13,6 +13,7 @@
 * Changed 'hrId' field type to integer for jobExecution
 * Added table schema for journal service
 * Implemented journal service 
+* Added get JobExecutionLogDto endpoint
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|
