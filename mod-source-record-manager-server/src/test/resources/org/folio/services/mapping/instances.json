@@ -46,7 +46,8 @@
     ],
     "subjects": [
       "Church history--Periodicals",
-      "Church history"
+      "Church history",
+      "Periodicals"
     ],
     "classifications": [
       {
@@ -229,6 +230,7 @@
       "Great Britain",
       "Civilization",
       "1700 - 1799",
+      "History",
       "English literature"
     ],
     "classifications": [],
@@ -652,7 +654,8 @@
       "Song cycles",
       "Songs (High voice) with instrumental ensemble--Scores",
       "Vocal duets with instrumental ensemble--Scores",
-      "García Lorca, Federico, 1898-1936"
+      "García Lorca, Federico, 1898-1936",
+      "Musical settings"
     ],
     "classifications": [
       {
@@ -1087,6 +1090,12 @@
       "John Nolen Research Fund",
       "La Monte, C. B., Mrs",
       "Seymour, Robert M., Mrs",
+      "Blueprints","Lecture notes",
+      "Maps",
+      "Photographs",
+      "Negatives (photographic)",
+      "Scrapbooks",
+      "Architectural drawings (visual works)",
       "Harvard University",
       "University of Pennsylvania",
       "City planners",
@@ -1115,7 +1124,8 @@
       "United States",
       "Virginia--Roanoke",
       "Wisconsin--La Crosse",
-      "Wisconsin--Madison"
+      "Wisconsin--Madison",
+      "Diaries--United States--20th century"
     ],
     "classifications": [],
     "publication": [],
@@ -1817,7 +1827,9 @@
     ],
     "subjects": [
       "Androids--Fiction",
-      "Androids"
+      "Science fiction",
+      "Androids",
+      "Fiction"
     ],
     "classifications": [],
     "publication": [
@@ -2013,7 +2025,8 @@
     ],
     "subjects": [
       "Periodicals",
-      "CURRENT EVENTS"
+      "CURRENT EVENTS",
+      "Electronic journals"
     ],
     "classifications": [
       {
@@ -2232,7 +2245,9 @@
       "Church of England",
       "Anglican church buildings",
       "England--Cumbria",
-      "England--Grasmere"
+      "England--Grasmere",
+      "Church history",
+      "Guidebooks","History"
     ],
     "classifications": [
       {
@@ -2312,7 +2327,8 @@
       "Art--Study and teaching (Higher)--New York (State)--Ithaca",
       "Art",
       "Art--Study and teaching (Higher)",
-      "New York (State)--Ithaca"
+      "New York (State)--Ithaca",
+      "Catalogs"
     ],
     "classifications": [
       {
@@ -2708,7 +2724,9 @@
       "Confederate States of America--History--Sources",
       "American Civil War (1861-1865)",
       "1861 - 1865",
-      "United States"
+      "United States",
+      "History",
+      "Sources"
     ],
     "classifications": [
       {
@@ -4023,7 +4041,9 @@
       "Popular music--1961-1970",
       "Motion picture music--Excerpts",
       "Rock music",
-      "1961-1970"
+      "1961-1970",
+      "Motion picture music",
+      "Popular music"
     ],
     "classifications": [
       {
@@ -4190,7 +4210,8 @@
       "Cuneiform inscriptions",
       "Akkadian language--Texts",
       "Sumerians--Economic conditions",
-      "Akkadian language"
+      "Akkadian language",
+      "Texts"
     ],
     "classifications": [],
     "publication": [],
@@ -4307,13 +4328,15 @@
       "Dominican Republic--Music",
       "Monte Plata (Dominican Republic)--Social conditions",
       "Monte Plata (Dominican Republic)--Economic conditions",
+      "Documentary films",
       "Economic history",
       "Manners and customs",
       "Musicians",
       "Popular music",
       "Social history",
       "Dominican Republic",
-      "Dominican Republic--Monte Plata"
+      "Dominican Republic--Monte Plata",
+      "Music"
     ],
     "classifications": [],
     "publication": [
@@ -4443,6 +4466,7 @@
       "Bachata",
       "Soriano, Yoan",
       "Musicians--Dominican Republic--Biography",
+      "Documentary films",
       "Popular music--Dominican Republic",
       "Dominican Republic--Social life and customs",
       "Dominican Republic--Music",
@@ -4454,7 +4478,9 @@
       "Popular music",
       "Social history",
       "Dominican Republic",
-      "Dominican Republic--Monte Plata"
+      "Dominican Republic--Monte Plata",
+      "Biography",
+      "Music"
     ],
     "classifications": [],
     "publication": [
@@ -4667,7 +4693,8 @@
       "Liberalism",
       "Political and social views",
       "Political science--Philosophy",
-      "China"
+      "China",
+      "History"
     ],
     "classifications": [],
     "publication": [
@@ -5073,7 +5100,8 @@
       }
     ],
     "subjects": [
-      "Requiems"
+      "Requiems",
+      "Live sound recordings"
     ],
     "classifications": [
       {
@@ -5224,10 +5252,13 @@
       "Great Britain--Foreign relations--Sources",
       "Great Britain--Politics and government--Sources",
       "United States--Politics and government--Sources",
+      "Electronic reference sources",
       "Diplomatic relations",
       "Political science",
       "Great Britain",
-      "United States"
+      "United States",
+      "History",
+      "Sources"
     ],
     "classifications": [
       {
@@ -6001,7 +6032,9 @@
       "Sound recordings",
       "United States",
       "Wisconsin",
-      "To 1931"
+      "To 1931",
+      "Catalogs",
+      "Discographies"
     ],
     "classifications": [
       {
@@ -6163,7 +6196,8 @@
       "Ithaca (N.Y.)--Maps",
       "Bicycle trails",
       "New York (State)--Ithaca",
-      "New York (State)--Tompkins County"
+      "New York (State)--Tompkins County",
+      "Maps"
     ],
     "classifications": [
       {
@@ -6705,7 +6739,9 @@
       "Decision making--Examinations--Study guides",
       "Decision making--Examinations, questions, etc",
       "Accounting--Examinations",
-      "Decision making"
+      "Decision making",
+      "Examinations, questions, etc",
+      "Study guides"
     ],
     "classifications": [
       {
@@ -6808,7 +6844,10 @@
       "Historians--Ukraine--Cherkasʹka oblastʹ--Bio-bibliography--Dictionaries--Ukrainian",
       "Cherkasʹka oblastʹ (Ukraine)--Bio-bibliography--Dictionaries--Ukrainian",
       "Historians",
-      "Ukraine--Cherkasʹka oblastʹ"
+      "Ukraine--Cherkasʹka oblastʹ",
+      "Biographies",
+      "Bibliographies",
+      "Dictionaries"
     ],
     "classifications": [
       {
@@ -6902,7 +6941,8 @@
     ],
     "subjects": [
       "Fungi",
-      "Fungi--Pictorial works"
+      "Fungi--Pictorial works",
+      "Pictorial works"
     ],
     "classifications": [
       {
@@ -6999,7 +7039,10 @@
       }
     ],
     "subjects": [
-      "Songs (Medium voice) with instrumental ensemble--Scores and parts"
+      "Songs (Medium voice) with instrumental ensemble--Scores and parts",
+      "Art music",
+      "Songs",
+      "Scores"
     ],
     "classifications": [
       {
@@ -7116,7 +7159,11 @@
       "Romitelli, Fausto, 1963-2004--Manuscripts--Facsimiles",
       "Romitelli, Fausto, 1963-2004",
       "Music--Manuscripts--Facsimiles",
-      "Music"
+      "Music",
+      "Art music",
+      "Scores",
+      "Facsimiles",
+      "Manuscripts"
     ],
     "classifications": [
       {
@@ -7202,7 +7249,10 @@
     ],
     "subjects": [
       "Steel band music--Scores and parts",
-      "Percussion ensembles--Scores and parts"
+      "Percussion ensembles--Scores and parts",
+      "Art music",
+      "Scores",
+      "Parts (Music)"
     ],
     "classifications": [
       {
@@ -7575,7 +7625,9 @@
       "Manuscripts, Arabic",
       "Muslims--Dietary laws",
       "New Jersey--Princeton",
-      "1300-1399"
+      "1300-1399",
+      "Manuscripts, Arabic--15th century",
+      "Early works"
     ],
     "classifications": [],
     "publication": [
@@ -7707,7 +7759,9 @@
     ],
     "subjects": [
       "African Americans--Interviews",
-      "Chew, Raymond--Interviews"
+      "Chew, Raymond--Interviews",
+      "Oral histories",
+      "Internet videos"
     ],
     "classifications": [
       {
@@ -7832,7 +7886,8 @@
       "Spanish colonies",
       "America",
       "Spain",
-      "1700-1899"
+      "1700-1899",
+      "History"
     ],
     "classifications": [
       {
