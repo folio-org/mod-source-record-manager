@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JournalRecordCollection;
 
 /**
  * JournalRecord Service interface.
@@ -12,7 +13,7 @@ public interface JournalRecordService {
    * Deletes journal records associated with job execution by specified id
    *
    * @param jobExecutionId job execution id
-   * @param tenantId tenant id
+   * @param tenantId       tenant id
    * @return future with true if succeeded
    */
   Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
@@ -25,4 +26,15 @@ public interface JournalRecordService {
    * @return future with JobExecutionLogDto entity
    */
   Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId);
+
+  /**
+   * Searches for JournalRecords by jobExecutionId and sorts them using specified sort criteria and direction
+   *
+   * @param jobExecutionId job execution id
+   * @param sortBy         sort criteria
+   * @param order          sort direction
+   * @param tenantId       tenant id
+   * @return future with JournalRecordCollection
+   */
+  Future<JournalRecordCollection> getJobExecutionJournalRecords(String jobExecutionId, String sortBy, String order, String tenantId);
 }

@@ -1,3 +1,10 @@
+## 2019-12-04 v2.1.0-SNAPSHOT
+* Added get journalRecords endpoint
+
+ | METHOD |             URL                                    | DESCRIPTION                                         |
+ |--------|----------------------------------------------------|-----------------------------------------------------|
+ | GET    | /metadata-provider/journalRecords/{jobExecutionId} | Get list of the JournalRecords by jobExecution id   |
+
 ## 2019-12-04 v2.0.0 
 * Added table schema for journal service
 * Implemented journal service 

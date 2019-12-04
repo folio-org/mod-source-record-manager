@@ -75,6 +75,11 @@
           "permissionsRequired" : [ "metadata-provider.logs.get" ]
         },
         {
+        "methods": ["GET"],
+        "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
+        "permissionsRequired" : [ "metadata-provider.logs.get" ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
           "permissionsRequired" : [ "change-manager.jobexecutions.post" ],

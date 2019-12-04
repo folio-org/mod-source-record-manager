@@ -17,14 +17,17 @@ import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
+import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +56,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
+  private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String RECORDS_PATH = "/records";
   private static final String RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
@@ -63,7 +67,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(1)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(RAW_RECORD)));
+    .withInitialRecords(Collections.singletonList(new InitialRecord()
+      .withRecord(RAW_RECORD)
+      .withOrder(0)));
 
   @Test
   public void shouldReturnEmptyListIfNoJobExecutionsExist(final TestContext context) {
@@ -285,8 +291,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .withCounter(15)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
       .withInitialRecords(asList(
-        new InitialRecord().withRecord(RAW_RECORD),
-        new InitialRecord().withRecord(RAW_RECORD)));
+        new InitialRecord().withRecord(RAW_RECORD).withOrder(0),
+        new InitialRecord().withRecord(RAW_RECORD).withOrder(1)));
 
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -399,8 +405,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .withCounter(1)
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
       .withInitialRecords(asList(
-        new InitialRecord().withRecord(RAW_RECORD),
-        new InitialRecord().withRecord(ERROR_RAW_RECORD)));
+        new InitialRecord().withRecord(RAW_RECORD).withOrder(0),
+        new InitialRecord().withRecord(ERROR_RAW_RECORD).withOrder(1)));
 
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -482,6 +488,112 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID().toString())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnJournalRecordsSortedBySourceRecordOrder(TestContext testContext) {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(false)
+        .withCounter(1)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(Arrays.asList(new InitialRecord().withRecord(RAW_RECORD).withOrder(0),
+        new InitialRecord().withRecord(RAW_RECORD).withOrder(1)));
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    JournalRecordCollection journalRecords = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=source_record_order&order=desc")
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JournalRecordCollection.class);
+    async.complete();
+
+    Assert.assertThat(journalRecords.getTotalRecords(), is(4));
+    Assert.assertThat(journalRecords.getJournalRecords().size(), is(4));
+    Assert.assertEquals(journalRecords.getJournalRecords().get(0).getSourceRecordOrder(), journalRecords.getJournalRecords().get(1).getSourceRecordOrder());
+    Assert.assertThat(journalRecords.getJournalRecords().get(1).getSourceRecordOrder(), greaterThan(journalRecords.getJournalRecords().get(2).getSourceRecordOrder()));
+    Assert.assertEquals(journalRecords.getJournalRecords().get(2).getSourceRecordOrder(), journalRecords.getJournalRecords().get(3).getSourceRecordOrder());
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenProcessingWasNotStarted() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    JournalRecordCollection journalRecords = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JournalRecordCollection.class);
+
+    Assert.assertThat(journalRecords.getTotalRecords(), is(0));
+    Assert.assertThat(journalRecords.getJournalRecords().size(), is(0));
+  }
+
+  @Test
+  public void shouldReturnNotFoundWhenJobExecutionDoesNotExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND)
+      .body(Matchers.notNullValue(String.class));
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenParameterSortByIsInvalid() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=foo&order=asc")
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST)
+      .body(Matchers.notNullValue(String.class));
   }
 
   private JobExecution putJobExecution(JobExecution jobExecution) {

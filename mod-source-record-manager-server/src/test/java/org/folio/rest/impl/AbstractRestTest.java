@@ -217,15 +217,14 @@ public abstract class AbstractRestTest {
   private void clearTable(TestContext context) {
     Async async = context.async();
     PostgresClient pgClient = PostgresClient.getInstance(vertx, TENANT_ID);
-    pgClient.delete(CHUNKS_TABLE_NAME, new Criterion(), event1 -> {
-    pgClient.delete(JOURNAL_RECORDS_TABLE, new Criterion(), event2 ->
-      pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event3 -> {
-        if (event2.failed()) {
-          context.fail(event2.cause());
-        }
-        async.complete();
-      }));
-    });
+    pgClient.delete(CHUNKS_TABLE_NAME, new Criterion(), event1 ->
+      pgClient.delete(JOURNAL_RECORDS_TABLE, new Criterion(), event2 ->
+        pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event3 -> {
+          if (event2.failed()) {
+            context.fail(event2.cause());
+          }
+          async.complete();
+        })));
   }
 
   protected InitJobExecutionsRsDto constructAndPostInitJobExecutionRqDto(int filesNumber) {
