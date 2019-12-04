@@ -1,3 +1,11 @@
+## 2019-12-04 v2.0.0 
+* Added table schema for journal service
+* Implemented journal service 
+* Added get JobExecutionLogDto endpoint
+* Applied new JVM features to manage container memory
+* Updated instance subject headings to include MARC 655 field
+* Updated RuleProcessor documentation
+
 ## 2019-11-04 v1.7.0
 * Wrote documentation for Marc-to-Instance mapping processor
 * Added order of the record in importing file
@@ -11,9 +19,6 @@
 * Provided cql query support for sorting numeric data
 * Broken down source-record-manager interface into smaller ones: source-manager-job-executions, source-manager-records.
 * Changed 'hrId' field type to integer for jobExecution
-* Added table schema for journal service
-* Implemented journal service 
-* Added get JobExecutionLogDto endpoint
 
  | METHOD |             URL                               | DESCRIPTION                                              |
  |--------|-----------------------------------------------|----------------------------------------------------------|
