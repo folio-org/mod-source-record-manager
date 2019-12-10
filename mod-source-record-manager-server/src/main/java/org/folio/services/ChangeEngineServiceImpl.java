@@ -238,6 +238,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     records.forEach(record -> {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
+        .withSourceRecordOrder(record.getOrder())
         .withSourceId(record.getId())
         .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
         .withEntityId(record.getId())

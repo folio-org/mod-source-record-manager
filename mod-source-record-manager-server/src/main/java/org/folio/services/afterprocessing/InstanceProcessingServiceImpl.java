@@ -417,6 +417,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
+        .withSourceRecordOrder(record.getOrder())
         .withEntityType(JournalRecord.EntityType.INSTANCE)
         .withEntityId(instance.getId())
         .withEntityHrId(instance.getHrid())

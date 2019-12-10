@@ -21,13 +21,15 @@ public interface JournalRecordDao {
   Future<String> save(JournalRecord journalRecord, String tenantId);
 
   /**
-   * Searches for JournalRecord entities by jobExecutionId
+   * Searches for JournalRecord entities by jobExecutionId and sorts them using specified sort criteria and direction
    *
    * @param jobExecutionId job execution id
+   * @param sortBy   sort criteria
+   * @param order    sort direction
    * @param tenantId tenant id
    * @return future with list of journalRecord entities
    */
-  Future<List<JournalRecord>> getByJobExecutionId(String jobExecutionId, String tenantId);
+  Future<List<JournalRecord>> getByJobExecutionId(String jobExecutionId, String sortBy, String order, String tenantId);
 
   /**
    * Deletes journal records associated with job execution by specified jobExecutionId
