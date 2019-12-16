@@ -2,10 +2,8 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "generateId": false,
       "fromModuleVersion": "mod-source-record-manager-0.1.0",
       "withMetadata": false,
-      "pkColumnName": "_id",
       "index": [
         {
           "fieldName": "id",
@@ -15,10 +13,8 @@
     },
     {
       "tableName": "job_execution_source_chunks",
-      "generateId": false,
       "fromModuleVersion": "mod-source-record-manager-1.2.0",
       "withMetadata": false,
-      "pkColumnName": "_id",
       "index": [
         {
           "fieldName": "id",
@@ -39,10 +35,8 @@
     },
     {
       "tableName": "mapping_rules",
-      "generateId": true,
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
-      "withMetadata": false,
-      "pkColumnName": "_id"
+      "withMetadata": false
     }
   ],
   "scripts": [
