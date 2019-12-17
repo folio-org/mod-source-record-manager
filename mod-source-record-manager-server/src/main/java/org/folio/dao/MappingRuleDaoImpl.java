@@ -16,6 +16,7 @@ import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleDaoImpl.class);
 

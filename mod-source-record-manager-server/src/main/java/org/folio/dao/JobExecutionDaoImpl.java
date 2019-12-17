@@ -34,6 +34,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_M
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
