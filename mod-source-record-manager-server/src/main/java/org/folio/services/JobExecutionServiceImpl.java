@@ -48,6 +48,7 @@ import static java.lang.String.format;
  * @see JobExecution
  */
 @Service
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
