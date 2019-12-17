@@ -3,12 +3,28 @@
     {
       "tableName": "job_executions",
       "fromModuleVersion": "mod-source-record-manager-0.1.0",
-      "withMetadata": false
+      "withMetadata": false,
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        }
+      ]
     },
     {
       "tableName": "job_execution_source_chunks",
       "fromModuleVersion": "mod-source-record-manager-1.2.0",
       "withMetadata": false,
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        },
+        {
+          "fieldName": "jobExecutionId",
+          "tOps": "ADD"
+        }
+      ],
       "foreignKeys": [
         {
           "fieldName": "jobExecutionId",
