@@ -41,7 +41,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private final Set<String> sortableFields = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("source_record_order", "action_type", "error")));
 
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (_id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = ?";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = ?";
@@ -130,7 +130,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private JournalRecord mapRowJsonToJournalRecord(JsonObject rowAsJson) {
     return new JournalRecord()
-      .withId(rowAsJson.getString("_id"))
+      .withId(rowAsJson.getString("id"))
       .withJobExecutionId(rowAsJson.getString("job_execution_id"))
       .withSourceId(rowAsJson.getString("source_id"))
       .withSourceRecordOrder(rowAsJson.getInteger("source_record_order"))

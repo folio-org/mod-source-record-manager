@@ -7,11 +7,10 @@ RETURNS boolean AS $has_errors$
 DECLARE
 	has_errors boolean;
 BEGIN
- SELECT count(_id) > 0 into has_errors
- FROM
-   job_execution_source_chunks
-    WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
-	 AND jsonb->>'state' = 'ERROR';
-RETURN has_errors;
+    SELECT count(id) > 0 INTO has_errors
+    FROM job_execution_source_chunks
+    WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR';
+
+    RETURN has_errors;
 END;
 $has_errors$ LANGUAGE plpgsql;
