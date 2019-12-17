@@ -119,7 +119,7 @@ public abstract class AbstractRestTest {
     PostgresClient.stopEmbeddedPostgres();
     PostgresClient.closeAllClients();
     useExternalDatabase = System.getProperty(
-      "org.folio.pubsub.test.database",
+      "org.folio.source.record.manager.test.database",
       "embedded");
 
     switch (useExternalDatabase) {
@@ -128,7 +128,7 @@ public abstract class AbstractRestTest {
         break;
       case "external":
         String postgresConfigPath = System.getProperty(
-          "org.folio.pubsub.test.config",
+          "org.folio.source.record.manager.test.config",
           "/postgres-conf-local.json");
         PostgresClient.setConfigFilePath(postgresConfigPath);
         break;
@@ -138,7 +138,7 @@ public abstract class AbstractRestTest {
         break;
       default:
         String message = "No understood database choice made." +
-          "Please set org.folio.pubsub.test.database" +
+          "Please set org.folio.source.record.manager.test.database" +
           "to 'external', 'environment' or 'embedded'";
         throw new Exception(message);
     }
