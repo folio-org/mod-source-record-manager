@@ -16,12 +16,14 @@ import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleDaoImpl.class);
 
   private static final String TABLE_NAME = "mapping_rules";
+  private static final String RULES_JSON_FIELD = "mappingRules";
   private static final String SELECT_QUERY = "SELECT jsonb FROM %s.%s limit 1";
-  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb='%s'";
+  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s')";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -40,24 +42,25 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       if (resultSet.getRows().isEmpty()) {
         return Optional.empty();
       } else {
-        JsonObject rules = new JsonObject(resultSet.getRows().get(0).getString("jsonb"));
+        JsonObject rules = new JsonObject(resultSet.getRows().get(0).getString("jsonb"))
+          .getJsonObject(RULES_JSON_FIELD);
         return Optional.of(rules);
       }
     });
   }
 
   @Override
-  public Future<String> save(JsonObject rule, String tenantId) {
+  public Future<String> save(JsonObject rules, String tenantId) {
     Future<String> future = Future.future();
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, rule, future);
+    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, new JsonObject().put(RULES_JSON_FIELD, rules), future);
     return future;
   }
 
   @Override
-  public Future<JsonObject> update(JsonObject rule, String tenantId) {
+  public Future<JsonObject> update(JsonObject rules, String tenantId) {
     Future<UpdateResult> future = Future.future();
-    String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME, rule);
+    String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME, rules);
     pgClientFactory.createInstance(tenantId).execute(query, future.completer());
-    return future.map(rule);
+    return future.map(rules);
   }
 }

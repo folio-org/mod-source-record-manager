@@ -19,6 +19,7 @@ import java.util.UUID;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Service
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class ChunkProcessingServiceImpl implements ChunkProcessingService {
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;

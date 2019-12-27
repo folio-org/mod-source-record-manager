@@ -59,6 +59,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
 @Service
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);

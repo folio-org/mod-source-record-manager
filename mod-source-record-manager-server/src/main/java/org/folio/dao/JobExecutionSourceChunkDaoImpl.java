@@ -29,6 +29,7 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
