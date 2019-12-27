@@ -16,13 +16,14 @@ import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.z3950.zing.cql.cql2pgjson.FieldException;
+import org.folio.cql2pgjson.exception.FieldException;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Optional;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 
 /**
@@ -33,6 +34,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_M
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
+@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
@@ -49,8 +51,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Future<Results<JobExecution>> future = Future.future();
     try {
       String[] fieldList = {"*"};
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE, limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), query));
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
+      cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "subordinationType=\"\" NOT subordinationType=" + PARENT_MULTIPLE));
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
@@ -66,9 +68,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Future<Results<JobExecution>> future = Future.future();
     try {
       String[] fieldList = {"*"};
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, "parentJobId=" + parentId, limit, offset);
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), "subordinationType=" + JobExecution.SubordinationType.CHILD.name()));
-      cqlWrapper.addWrapper(new CQLWrapper(cqlWrapper.getField(), query));
+      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
+      cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "parentJobId=" + parentId));
+      cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "subordinationType=" + CHILD));
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, future.completer());
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecutions by parent id", e);
@@ -148,7 +150,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .append(PostgresClient.convertToPsqlStandard(tenantId))
         .append(".")
         .append(TABLE_NAME)
-        .append(" WHERE _id ='")
+        .append(" WHERE id ='")
         .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
       Future<UpdateResult> selectResult = Future.future(); //NOSONAR
       pgClientFactory.createInstance(tenantId).execute(tx, selectJobExecutionQuery.toString(), selectResult);

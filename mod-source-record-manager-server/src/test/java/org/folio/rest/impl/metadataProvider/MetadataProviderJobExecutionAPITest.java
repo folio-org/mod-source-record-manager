@@ -219,7 +219,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     JobExecutionCollection jobExecutionCollection = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_PATH + "?query=cql.allRecords=1 sortBy progress.total/sort.descending/sort.number")
+      .get(GET_JOB_EXECUTIONS_PATH + "?query=cql.allRecords=1 sortBy progress.total/sort.descending/number")
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JobExecutionCollection.class);

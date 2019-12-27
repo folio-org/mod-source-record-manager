@@ -2,33 +2,13 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "generateId": false,
       "fromModuleVersion": "mod-source-record-manager-0.1.0",
-      "withMetadata": false,
-      "pkColumnName": "_id",
-      "index": [
-        {
-          "fieldName": "id",
-          "tOps": "ADD"
-        }
-      ]
+      "withMetadata": false
     },
     {
       "tableName": "job_execution_source_chunks",
-      "generateId": false,
       "fromModuleVersion": "mod-source-record-manager-1.2.0",
       "withMetadata": false,
-      "pkColumnName": "_id",
-      "index": [
-        {
-          "fieldName": "id",
-          "tOps": "ADD"
-        },
-        {
-          "fieldName": "jobExecutionId",
-          "tOps": "ADD"
-        }
-      ],
       "foreignKeys": [
         {
           "fieldName": "jobExecutionId",
@@ -39,10 +19,8 @@
     },
     {
       "tableName": "mapping_rules",
-      "generateId": true,
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
-      "withMetadata": false,
-      "pkColumnName": "_id"
+      "withMetadata": false
     }
   ],
   "scripts": [
@@ -53,18 +31,18 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(_id) = (SELECT count(_id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-1.5.0"
+      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-2.0.0"
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(_id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-1.5.0"
+      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-2.0.0"
     },
     {
       "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (_id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(_id), source_id UUID, source_record_order int, entity_type text, entity_id text, entity_hrid text, action_type text, action_status text, error text, action_date timestamp);",
-      "fromModuleVersion": "mod-source-record-manager-1.7.1"
+      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), source_id UUID, source_record_order int, entity_type text, entity_id text, entity_hrid text, action_type text, action_status text, error text, action_date timestamp);",
+      "fromModuleVersion": "mod-source-record-manager-2.0.0"
     }
   ]
 }

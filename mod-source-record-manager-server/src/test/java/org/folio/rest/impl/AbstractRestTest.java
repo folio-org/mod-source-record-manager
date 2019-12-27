@@ -35,6 +35,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.tools.PomReader;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -109,10 +110,12 @@ public abstract class AbstractRestTest {
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
-    Async async = context.async();
     vertx = Vertx.vertx();
-    port = NetworkUtils.nextFreePort();
-    String okapiUrl = "http://localhost:" + port;
+    runDatabase();
+    deployVerticle(context);
+  }
+
+  private static void runDatabase() throws Exception {
     PostgresClient.stopEmbeddedPostgres();
     PostgresClient.closeAllClients();
     useExternalDatabase = System.getProperty(
@@ -139,16 +142,21 @@ public abstract class AbstractRestTest {
           "to 'external', 'environment' or 'embedded'";
         throw new Exception(message);
     }
+  }
 
+  private static void deployVerticle(final TestContext context) {
+    Async async = context.async();
+    port = NetworkUtils.nextFreePort();
+    String okapiUrl = "http://localhost:" + port;
     TenantClient tenantClient = new TenantClient(okapiUrl, TENANT_ID, TOKEN);
-
-    final DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put(HTTP_PORT, port));
-    vertx.deployVerticle(RestVerticle.class.getName(), options, res -> {
+    final DeploymentOptions options = new DeploymentOptions()
+      .setConfig(new JsonObject()
+        .put(HTTP_PORT, port));
+    vertx.deployVerticle(RestVerticle.class.getName(), options, deployVerticleAr -> {
       try {
-        TenantAttributes tenantAttributes = null;
-        tenantClient.postTenant(tenantAttributes, res2 -> {
-          async.complete();
-        });
+        TenantAttributes tenantAttributes = new TenantAttributes();
+        tenantAttributes.setModuleTo(PomReader.INSTANCE.getModuleName());
+        tenantClient.postTenant(tenantAttributes, postTenantAr -> {async.complete();});
       } catch (Exception e) {
         e.printStackTrace();
       }

@@ -7,15 +7,15 @@ RETURNS boolean AS $completed$
 DECLARE
 	completed boolean;
 BEGIN
-SELECT count(_id) =
-	(SELECT count(_id)
-		FROM job_execution_source_chunks
- 			WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId)
-	into completed
-	FROM
-	job_execution_source_chunks
-	WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
-		AND jsonb->>'state' IN ('COMPLETED', 'ERROR');
-RETURN completed;
+    SELECT count(id) =
+        (
+            SELECT count(id)
+            FROM job_execution_source_chunks
+            WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
+        ) INTO completed
+    FROM job_execution_source_chunks
+    WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR');
+
+    RETURN completed;
 END;
 $completed$ LANGUAGE plpgsql;
