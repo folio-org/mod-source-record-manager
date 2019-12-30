@@ -1,4 +1,5 @@
 ## 2020-01-06 v2.0.1
+* Fixed MARC-Instance mapping for 260/264 $c
 * Using "unspecified" instance type instead of stub value if no 336 field in MARC record
 
 ## 2019-12-04 v2.0.0 

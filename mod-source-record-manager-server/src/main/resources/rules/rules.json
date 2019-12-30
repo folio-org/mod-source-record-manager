@@ -1500,7 +1500,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_punc, trim, trim_period"
             }
           ]
         }
@@ -1574,7 +1574,7 @@
         {
           "conditions": [
             {
-              "type": "remove_ending_punc, trim"
+              "type": "remove_ending_punc, trim, trim_period"
             }
           ]
         }
