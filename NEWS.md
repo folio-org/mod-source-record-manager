@@ -1,6 +1,7 @@
 ## 2019-12-04 v2.1.0-SNAPSHOT
 * Added get journalRecords endpoint
 * Incremented RMB version
+* Fixed MARC-Instance mapping for 260/264 $c
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
