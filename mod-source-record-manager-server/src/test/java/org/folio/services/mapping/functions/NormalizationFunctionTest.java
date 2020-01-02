@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(JUnit4.class)
 public class NormalizationFunctionTest {
   private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
-  private static final String DEFAULT_INSTANCE_TYPE_ID = "30fffe0e-e985-4144-b2e2-1e8179bdb41f";
+  private static final String UNSPECIFIED_INSTANCE_TYPE_ID = "30fffe0e-e985-4144-b2e2-1e8179bdb41f";
 
 
   @Test
@@ -318,7 +318,7 @@ public class NormalizationFunctionTest {
     // when
     String actualTypeId = runFunction("set_instance_type_id", context);
     // then
-    assertEquals(DEFAULT_INSTANCE_TYPE_ID, actualTypeId);
+    assertEquals(UNSPECIFIED_INSTANCE_TYPE_ID, actualTypeId);
   }
 
   @Test
