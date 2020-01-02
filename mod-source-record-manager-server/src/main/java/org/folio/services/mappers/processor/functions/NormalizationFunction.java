@@ -218,6 +218,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
   },
 
   SET_INSTANCE_TYPE_ID() {
+    private static final String UNSPECIFIED_TYPE_ID = "30fffe0e-e985-4144-b2e2-1e8179bdb41f";
     @Override
     public String apply(RuleExecutionContext context) {
       List<InstanceType> types = context.getMappingParameters().getInstanceTypes();
@@ -228,7 +229,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .filter(instanceType -> instanceType.getCode().equalsIgnoreCase(context.getSubFieldValue()))
         .findFirst()
         .map(InstanceType::getId)
-        .orElse(STUB_FIELD_TYPE_ID);
+        .orElse(UNSPECIFIED_TYPE_ID);
     }
   },
 
