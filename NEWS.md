@@ -1,3 +1,6 @@
+## 2020-01-06 v2.0.1
+* Using "unspecified" instance type instead of stub value if no 336 field in MARC record
+
 ## 2019-12-04 v2.0.0 
 * Added table schema for journal service
 * Implemented journal service 
