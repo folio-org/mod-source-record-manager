@@ -123,9 +123,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
+        String recordId = UUID.randomUUID().toString();
         Record record = new Record()
-          .withId(UUID.randomUUID().toString())
-          .withMatchedId(getMatchedIdFromParsedResult(parsedResult))
+          .withId(recordId)
+          .withMatchedId(recordId)
           .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
@@ -209,11 +210,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
       });
     }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
-  }
-
-  private String getMatchedIdFromParsedResult(ParsedResult parsedResult) { //NOSONAR
-    // STUB implementation
-    return UUID.randomUUID().toString();
   }
 
   public static boolean isStatus(HttpClientResponse response, HttpStatus status) {

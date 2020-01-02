@@ -2,6 +2,7 @@
 * Added get journalRecords endpoint
 * Incremented RMB version
 * Fixed MARC-Instance mapping for 260/264 $c
+* MatchedId filled in with the same value as recordId
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
