@@ -1,13 +1,15 @@
 ## 2019-12-04 v2.1.0-SNAPSHOT
 * Added get journalRecords endpoint
 * Incremented RMB version
-* Fixed MARC-Instance mapping for 260/264 $c
 * MatchedId filled in with the same value as recordId
-* Using "unspecified" instance type(008) instead of stub value if no 336 field in MARC record
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
  | GET    | /metadata-provider/journalRecords/{jobExecutionId} | Get list of the JournalRecords by jobExecution id   |
+
+## 2020-01-06 v2.0.1
+* Fixed MARC-Instance mapping for 260/264 $c
+* Using "unspecified" instance type(008) instead of stub value if no 336 field in MARC record
 
 ## 2019-12-04 v2.0.0 
 * Added table schema for journal service
