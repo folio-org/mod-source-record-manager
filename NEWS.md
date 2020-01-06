@@ -3,7 +3,7 @@
 * Incremented RMB version
 * Fixed MARC-Instance mapping for 260/264 $c
 * MatchedId filled in with the same value as recordId
-* Using "unspecified" instance type instead of stub value if no 336 field in MARC record
+* Using "unspecified" instance type(008) instead of stub value if no 336 field in MARC record
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
