@@ -2,6 +2,7 @@
 * Added get journalRecords endpoint
 * Incremented RMB version
 * MatchedId filled in with the same value as recordId
+* Exposed json schemas api
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
