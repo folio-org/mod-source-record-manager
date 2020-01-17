@@ -57,6 +57,22 @@
     {
       "id": "alternative-title-types",
       "version": "1.0"
+    },
+    {
+      "id": "pubsub-event-types",
+      "version": "0.1"
+    },
+    {
+      "id": "pubsub-publishers",
+      "version": "0.1"
+    },
+    {
+      "id": "pubsub-subscribers",
+      "version": "0.1"
+    },
+    {
+      "id": "pubsub-publish",
+      "version": "0.1"
     }
   ],
   "provides": [
@@ -137,7 +153,8 @@
             "inventory-storage.contributor-types.collection.get",
             "inventory-storage.contributor-name-types.collection.get",
             "inventory-storage.instance-note-types.collection.get",
-            "inventory-storage.alternative-title-types.collection.get"
+            "inventory-storage.alternative-title-types.collection.get",
+            "pubsub.publish.post"
           ]
         },
         {
@@ -172,6 +189,26 @@
       ]
     },
     {
+      "id": "source-manager-event-handlers",
+      "version": "0.1",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/handlers/created-inventory-instance",
+          "permissionsRequired": [
+            "source-records-manager.events.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/handlers/data-import-error",
+          "permissionsRequired": [
+            "source-records-manager.events.post"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_tenant",
       "version": "1.2",
       "interfaceType": "system",
@@ -180,7 +217,12 @@
           "methods": [
             "POST"
           ],
-          "pathPattern": "/_/tenant"
+          "pathPattern": "/_/tenant",
+          "modulePermissions": [
+            "pubsub.event-types.post",
+            "pubsub.publishers.post",
+            "pubsub.subscribers.post"
+          ]
         },
         {
           "methods": [
@@ -254,6 +296,11 @@
       "description": "Restore existing mapping rules to default for tenant"
     },
     {
+      "permissionName": "source-records-manager.events.post",
+      "displayName": "Source Record Manager - handle event",
+      "description": "Handle event"
+    },
+    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -266,7 +313,8 @@
         "change-manager.records.delete",
         "mapping-rules.get",
         "mapping-rules.update",
-        "mapping-rules.restore"
+        "mapping-rules.restore",
+        "source-records-manager.events.post"
       ],
       "visible": false
     }
