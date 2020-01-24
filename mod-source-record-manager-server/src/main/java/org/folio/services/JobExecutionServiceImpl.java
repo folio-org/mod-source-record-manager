@@ -157,6 +157,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
             if (status.getStatus().equals(StatusDto.Status.ERROR)) {
               jobExecution.withErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()))
+                .withProgress(jobExecution.getProgress().withTotal(0))
                 .withCompletedDate(new Date());
             }
             future.complete(jobExecution);
