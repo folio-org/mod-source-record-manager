@@ -1242,7 +1242,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.ERROR.name()));
+      .body("status", is(JobExecution.Status.ERROR.name()))
+      .body("progress.total", is(0));
   }
 
   @Test
