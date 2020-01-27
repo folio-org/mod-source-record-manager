@@ -7,6 +7,8 @@
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
  | GET    | /metadata-provider/journalRecords/{jobExecutionId} | Get list of the JournalRecords by jobExecution id   |
+ 
+ * Added HrId handling on records parsing and after instance creation
 
 ## 2020-01-06 v2.0.1
 * Fixed MARC-Instance mapping for 260/264 $c
