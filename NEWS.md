@@ -3,6 +3,7 @@
 * Incremented RMB version
 * MatchedId filled in with the same value as recordId
 * Exposed json schemas api
+* Added module registration as publisher/subscriber to mod-pubsub
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
