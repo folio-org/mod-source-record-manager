@@ -155,10 +155,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           } else {
             jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
             jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
-            if (status.getStatus().equals(StatusDto.Status.ERROR)) {
-              jobExecution.withErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()))
-                .withCompletedDate(new Date());
-            }
+            updateJobExecutionIfErrorExist(status, jobExecution);
             future.complete(jobExecution);
           }
         } catch (Exception e) {
@@ -441,5 +438,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       future.fail(e);
     }
     return future;
+  }
+
+  /**
+   * Updates jobExecution object, if Error exists.
+   * @param status - DTO which contains new status
+   * @param jobExecution - specific JobExecution
+   */
+  private void updateJobExecutionIfErrorExist(StatusDto status, JobExecution jobExecution) {
+    if (status.getStatus() == StatusDto.Status.ERROR) {
+      jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+      jobExecution.setCompletedDate(new Date());
+      if(jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)){
+        jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
+      }
+    }
   }
 }

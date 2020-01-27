@@ -1,0 +1,34 @@
+#%RAML 1.0
+
+title: Source Record Storage event handlers API
+version: v0.1
+protocols: [ HTTP, HTTPS ]
+baseUri: http://localhost
+
+documentation:
+  - title: Source Record Manager event handlers API
+    content: API for event handling
+
+types:
+  errors: !include raml-storage/raml-util/schemas/errors.schema
+
+traits:
+  validate: !include raml-storage/raml-util/traits/validation.raml
+
+/change-manager/handlers:
+  /created-inventory-instance:
+    description: "Handler for CREATED_INVENTORY_INSTANCE event."
+    post:
+      body:
+        application/json:
+          type: string
+      responses:
+        200:
+  /data-import-error:
+      description: "Handler for DATA_IMPORT_ERROR event."
+      post:
+        body:
+          application/json:
+            type: string
+        responses:
+          200:
