@@ -43,11 +43,10 @@ public final class AdditionalFieldsUtil {
    */
   public static boolean addFieldToMarcRecord(Record record, String field, char subfield, String value) {
     boolean result = false;
-    try {
+    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
       if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         MarcReader reader = buildMarcReader(record);
         MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
         MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
         MarcFactory factory = MarcFactory.newInstance();
         if (reader.hasNext()) {
@@ -88,11 +87,10 @@ public final class AdditionalFieldsUtil {
    */
   public static boolean addControlledFieldToMarcRecord(Record record, String field, String value) {
     boolean result = false;
-    try {
+    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
       if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         MarcReader reader = buildMarcReader(record);
         MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
         MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
         MarcFactory factory = MarcFactory.newInstance();
         if (reader.hasNext()) {
@@ -121,12 +119,11 @@ public final class AdditionalFieldsUtil {
    */
   public static boolean removeField(Record record, String field) {
     boolean result = false;
-    try {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         MarcReader reader = buildMarcReader(record);
-        MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
+        MarcWriter marcStreamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
+        MarcJsonWriter marcJsonWriter = new MarcJsonWriter(baos);
         if (reader.hasNext()) {
           org.marc4j.marc.Record marcRecord = reader.next();
           VariableField variableField = marcRecord.getVariableField(field);
@@ -134,14 +131,14 @@ public final class AdditionalFieldsUtil {
             marcRecord.removeVariableField(variableField);
           }
           // use stream writer to recalculate leader
-          streamWriter.write(marcRecord);
-          jsonWriter.write(marcRecord);
-          record.setParsedRecord(record.getParsedRecord().withContent(new JsonObject(new String(os.toByteArray())).encode()));
+          marcStreamWriter.write(marcRecord);
+          marcJsonWriter.write(marcRecord);
+          record.setParsedRecord(record.getParsedRecord().withContent(new JsonObject(new String(baos.toByteArray())).encode()));
           result = true;
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional controlled field {) to record {}", e, field, record.getId());
+      LOGGER.error("Failed to remove controlled field {) from record {}", e, field, record.getId());
     }
     return result;
   }
