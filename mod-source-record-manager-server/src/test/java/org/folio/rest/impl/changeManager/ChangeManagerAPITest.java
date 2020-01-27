@@ -573,6 +573,43 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldSetTotalZeroToJobExecutionOnUpdateStatusToError() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExecution = createdJobExecutions.get(0);
+    Assert.assertThat(jobExecution.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
+    Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
+    Assert.assertNotNull(jobExecution.getRunBy().getLastName());
+
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExecution.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(status.getStatus().name()))
+      .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()))
+      .body("errorStatus", is(status.getErrorStatus().toString()))
+      .body("completedDate", notNullValue(Date.class));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(status.getStatus().name()))
+      .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()))
+      .body("errorStatus", is(status.getErrorStatus().toString()))
+      .body("completedDate", notNullValue(Date.class))
+      .body("progress.total", is(0));
+  }
+
+  @Test
   public void shouldNotUpdateStatusToParent() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1242,8 +1279,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.ERROR.name()))
-      .body("progress.total", is(0));
+      .body("status", is(JobExecution.Status.ERROR.name()));
   }
 
   @Test

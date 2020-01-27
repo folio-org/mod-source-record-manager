@@ -446,11 +446,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param jobExecution - specific JobExecution
    */
   private void updateJobExecutionIfErrorExist(StatusDto status, JobExecution jobExecution) {
-    if (status.getStatus().equals(StatusDto.Status.ERROR)) {
-      jobExecution.withErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()))
-        .withCompletedDate(new Date());
+    if (status.getStatus() == StatusDto.Status.ERROR) {
+      jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
+      jobExecution.setCompletedDate(new Date());
       if(jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)){
-        jobExecution.withProgress(jobExecution.getProgress().withTotal(0));
+        jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
       }
     }
   }
