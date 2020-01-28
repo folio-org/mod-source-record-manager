@@ -1,6 +1,7 @@
 package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -59,7 +60,6 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
 @Service
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
@@ -69,20 +69,23 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
   private JournalService journalService;
+  private HrIdFieldService hrIdFieldService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
                                        @Autowired MappingRuleService mappingRuleService,
+                                       @Autowired HrIdFieldService hrIdFieldService,
                                        @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
     this.journalService = JournalService.createProxy(vertx);
+    this.hrIdFieldService = hrIdFieldService;
   }
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
-    Future future = Future.future();
+    Promise<Void> promise = Promise.promise();
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
@@ -94,9 +97,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         )
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> future.complete())
+          .setHandler(updateAr -> promise.complete())
       );
-    return future;
+    return promise.future();
   }
 
   /**
@@ -128,7 +131,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @return future
    */
   private Future<Void> mapRecords(List<Record> records, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
-    Future future = Future.future();
+    Promise<Void> promise = Promise.promise();
     String tenantId = okapiParams.getTenantId();
     mappingRuleService.get(tenantId)
       .compose(optionalMappingRules -> {
@@ -141,23 +144,24 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
               addExternalIds(recordsToUpdate);
+              hrIdFieldService.fillHrIdFieldInMarcRecord(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
               journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
-              future.complete();
+              promise.complete();
             } else {
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
               journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               LOGGER.error("Can not post Instances", ar.cause());
-              future.fail(ar.cause());
+              promise.fail(ar.cause());
             }
           });
         } else {
-          future.fail(format("Can not map Records to Instances, no mapping rules found for tenant %s", tenantId));
+          promise.fail(format("Can not map Records to Instances, no mapping rules found for tenant %s", tenantId));
         }
         return succeededFuture();
       });
-    return future;
+    return promise.future();
   }
 
   private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> instances) {
@@ -191,11 +195,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
-    return records.parallelStream()
+    Map<Instance, Record> mappedRecords = records.parallelStream()
       .map(record -> mapRecordToInstance(record, mapper, mappingParameters, mappingRules))
       .filter(Objects::nonNull)
       .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+    hrIdFieldService.moveHrIdFieldsAfterMapping(mappedRecords);
+    return mappedRecords;
   }
 
   /**
@@ -251,22 +257,22 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (CollectionUtils.isEmpty(instanceList)) {
       return succeededFuture();
     }
-    Future<List<Instance>> future = Future.future();
+    Promise<List<Instance>> promise = Promise.promise();
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
-        if (RestUtil.validateAsyncResult(responseResult, future)) {
+        if (RestUtil.validateAsyncResult(responseResult, promise.future())) {
           InstancesBatchResponse response = responseResult.result().getJson().mapTo(InstancesBatchResponse.class);
-          future.complete(response.getInstances());
+          promise.complete(response.getInstances());
         } else {
-          LOGGER.error("Error creating a new collection of Instances", future.cause());
+          LOGGER.error("Error creating a new collection of Instances", promise.future().cause());
         }
       } catch (Exception e) {
         LOGGER.error("Error during post for new collection of Instances", e);
-        future.fail(e);
+        promise.fail(e);
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -347,7 +353,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (CollectionUtils.isEmpty(records)) {
       return succeededFuture();
     }
-    Future<Void> future = Future.future();
+    Promise<Void> promise = Promise.promise();
     try {
       RecordCollection recordCollection = new RecordCollection()
         .withRecords(records)
@@ -356,17 +362,17 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
         .putSourceStorageBatchParsedRecords(recordCollection, response -> {
           if (HttpStatus.HTTP_OK.toInt() != response.statusCode()) {
-            setFail(future, response.statusCode());
+            setFail(promise, response.statusCode());
           }
         });
     } catch (Exception e) {
       LOGGER.error("Failed to update parsed records collection", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.isComplete() ? future : succeededFuture();
+    return promise.future().isComplete() ? promise.future() : succeededFuture();
   }
 
-  private void setFail(Future<Void> future, int statusCode) {
+  private void setFail(Promise<Void> future, int statusCode) {
     String errorMessage = format("Couldn't update parsed records collection - response status code %s, expected 200", statusCode);
     LOGGER.error(errorMessage);
     future.fail(errorMessage);
@@ -380,31 +386,31 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @return future with true if Record was updated, false otherwise
    */
   private Future<Boolean> updateRecord(Record record, OkapiConnectionParams params) {
-    Future<Boolean> future = Future.future();
+    Promise<Boolean> promise = Promise.promise();
     try {
       SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
       client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
         if (HttpStatus.HTTP_OK.toInt() == response.statusCode()) {
-          future.complete(true);
+          promise.complete(true);
         } else {
           LOGGER.error("Record {} was not updated", record.getId());
-          future.complete(false);
+          promise.complete(false);
         }
       });
     } catch (Exception e) {
       LOGGER.error("Error updating Record", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future;
+    return promise.future();
   }
 
   /**
    * Builds list of journal records represented as json objects,
    * which contain info about instances processing result
    *
-   * @param instanceRecordMap records with associated instances that should be processed
+   * @param instanceRecordMap  records with associated instances that should be processed
    * @param processedInstances created instances
-   * @param actionType action type which was performed on instances during processing
+   * @param actionType         action type which was performed on instances during processing
    * @return list of journal records represented as json objects
    */
   private List<JsonObject> buildJournalRecordsForProcessedInstances(Map<Instance, Record> instanceRecordMap, List<Instance> processedInstances,
