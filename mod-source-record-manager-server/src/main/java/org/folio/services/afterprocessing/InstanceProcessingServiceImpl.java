@@ -68,20 +68,23 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
   private JournalService journalService;
+  private HrIdFieldService hrIdFieldService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
                                        @Autowired MappingRuleService mappingRuleService,
+                                       @Autowired HrIdFieldService hrIdFieldService,
                                        @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
     this.journalService = JournalService.createProxy(vertx);
+    this.hrIdFieldService = hrIdFieldService;
   }
 
   @Override
   public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
-    Future future = Future.future();
+    Future<Void> future = Future.future();
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
@@ -127,7 +130,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @return future
    */
   private Future<Void> mapRecords(List<Record> records, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
-    Future future = Future.future();
+    Future<Void> future = Future.future();
     String tenantId = okapiParams.getTenantId();
     mappingRuleService.get(tenantId)
       .compose(optionalMappingRules -> {
@@ -140,6 +143,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
               addExternalIds(recordsToUpdate);
+              hrIdFieldService.fillHrIdFieldInMarcRecord(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
               journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
@@ -190,11 +194,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
-    return records.parallelStream()
+    Map<Instance, Record> mappedRecords = records.parallelStream()
       .map(record -> mapRecordToInstance(record, mapper, mappingParameters, mappingRules))
       .filter(Objects::nonNull)
       .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+    hrIdFieldService.moveHrIdFieldsAfterMapping(mappedRecords);
+    return mappedRecords;
   }
 
   /**
@@ -401,9 +407,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * Builds list of journal records represented as json objects,
    * which contain info about instances processing result
    *
-   * @param instanceRecordMap records with associated instances that should be processed
+   * @param instanceRecordMap  records with associated instances that should be processed
    * @param processedInstances created instances
-   * @param actionType action type which was performed on instances during processing
+   * @param actionType         action type which was performed on instances during processing
    * @return list of journal records represented as json objects
    */
   private List<JsonObject> buildJournalRecordsForProcessedInstances(Map<Instance, Record> instanceRecordMap, List<Instance> processedInstances,

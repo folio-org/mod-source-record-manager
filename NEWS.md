@@ -1,6 +1,9 @@
+## 2020-02-10 v2.0.2
+* Added HrId handling on records parsing and after instance creation
+
 ## 2020-01-06 v2.0.1
 * Fixed MARC-Instance mapping for 260/264 $c
-* Using "unspecified" instance type instead of stub value if no 336 field in MARC record
+* Using "unspecified" instance type(008) instead of stub value if no 336 field in MARC record
 
 ## 2019-12-04 v2.0.0 
 * Added table schema for journal service
