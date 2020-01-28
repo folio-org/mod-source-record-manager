@@ -84,8 +84,8 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   @Override
-  public Promise<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
-    Promise<Void> future = Promise.promise();
+  public Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams okapiParams) {
+    Promise<Void> promise = Promise.promise();
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
@@ -97,9 +97,9 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         )
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> future.complete())
+          .setHandler(updateAr -> promise.complete())
       );
-    return future;
+    return promise.future();
   }
 
   /**
@@ -131,7 +131,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @return future
    */
   private Future<Void> mapRecords(List<Record> records, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
-    Promise<Void> future = Promise.promise();
+    Promise<Void> promise = Promise.promise();
     String tenantId = okapiParams.getTenantId();
     mappingRuleService.get(tenantId)
       .compose(optionalMappingRules -> {
@@ -148,20 +148,20 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               addAdditionalFields(recordsToUpdate, okapiParams);
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
               journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
-              future.complete();
+              promise.complete();
             } else {
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
               journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
               LOGGER.error("Can not post Instances", ar.cause());
-              future.fail(ar.cause());
+              promise.fail(ar.cause());
             }
           });
         } else {
-          future.fail(format("Can not map Records to Instances, no mapping rules found for tenant %s", tenantId));
+          promise.fail(format("Can not map Records to Instances, no mapping rules found for tenant %s", tenantId));
         }
         return succeededFuture();
       });
-    return future.future();
+    return promise.future();
   }
 
   private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> instances) {
@@ -257,22 +257,22 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (CollectionUtils.isEmpty(instanceList)) {
       return succeededFuture();
     }
-    Promise<List<Instance>> future = Promise.promise();
+    Promise<List<Instance>> promise = Promise.promise();
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
       try {
-        if (RestUtil.validateAsyncResult(responseResult, future.future())) {
+        if (RestUtil.validateAsyncResult(responseResult, promise.future())) {
           InstancesBatchResponse response = responseResult.result().getJson().mapTo(InstancesBatchResponse.class);
-          future.complete(response.getInstances());
+          promise.complete(response.getInstances());
         } else {
-          LOGGER.error("Error creating a new collection of Instances", future.future().cause());
+          LOGGER.error("Error creating a new collection of Instances", promise.future().cause());
         }
       } catch (Exception e) {
         LOGGER.error("Error during post for new collection of Instances", e);
-        future.fail(e);
+        promise.fail(e);
       }
     });
-    return future.future();
+    return promise.future();
   }
 
   /**
@@ -353,7 +353,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (CollectionUtils.isEmpty(records)) {
       return succeededFuture();
     }
-    Promise<Void> future = Promise.promise();
+    Promise<Void> promise = Promise.promise();
     try {
       RecordCollection recordCollection = new RecordCollection()
         .withRecords(records)
@@ -362,14 +362,14 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
       new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken())
         .putSourceStorageBatchParsedRecords(recordCollection, response -> {
           if (HttpStatus.HTTP_OK.toInt() != response.statusCode()) {
-            setFail(future, response.statusCode());
+            setFail(promise, response.statusCode());
           }
         });
     } catch (Exception e) {
       LOGGER.error("Failed to update parsed records collection", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.future().isComplete() ? future.future() : succeededFuture();
+    return promise.future().isComplete() ? promise.future() : succeededFuture();
   }
 
   private void setFail(Promise<Void> future, int statusCode) {
@@ -386,22 +386,22 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @return future with true if Record was updated, false otherwise
    */
   private Future<Boolean> updateRecord(Record record, OkapiConnectionParams params) {
-    Promise<Boolean> future = Promise.promise();
+    Promise<Boolean> promise = Promise.promise();
     try {
       SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
       client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
         if (HttpStatus.HTTP_OK.toInt() == response.statusCode()) {
-          future.complete(true);
+          promise.complete(true);
         } else {
           LOGGER.error("Record {} was not updated", record.getId());
-          future.complete(false);
+          promise.complete(false);
         }
       });
     } catch (Exception e) {
       LOGGER.error("Error updating Record", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.future();
+    return promise.future();
   }
 
   /**

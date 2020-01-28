@@ -1,6 +1,6 @@
 package org.folio.services.afterprocessing;
 
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 
@@ -16,5 +16,5 @@ public interface AfterProcessingService {
    * @param params        - OkapiConnectionParams to interact with external services
    * @return future
    */
-  Promise<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params);
+  Future<Void> process(List<Record> records, String sourceChunkId, OkapiConnectionParams params);
 }
