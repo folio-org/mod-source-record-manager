@@ -87,7 +87,6 @@
   ],
   "020": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
