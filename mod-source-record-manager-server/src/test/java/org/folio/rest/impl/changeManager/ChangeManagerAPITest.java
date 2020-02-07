@@ -773,6 +773,32 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnBadRequestOnSetJobProfileInfoWhenJobExecutionAssociatedWithJobProfile() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(jobProfile).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(jobProfile).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
   public void shouldSetJobProfileInfoForJobExecution() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -789,7 +815,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfileInfo.id", is(jobProfile.getId()))
-      .body("jobProfileInfo.name", is(jobProfile.getName()));
+      .body("jobProfileInfo.name", is(jobProfile.getName()))
+      .body("jobProfileSnapshotWrapperId", is(profileSnapshotWrapperResponse.getId()));
 
     RestAssured.given()
       .spec(spec)
@@ -798,7 +825,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfileInfo.id", is(jobProfile.getId()))
-      .body("jobProfileInfo.name", is(jobProfile.getName()));
+      .body("jobProfileInfo.name", is(jobProfile.getName()))
+      .body("jobProfileSnapshotWrapperId", is(profileSnapshotWrapperResponse.getId()));
   }
 
   @Test

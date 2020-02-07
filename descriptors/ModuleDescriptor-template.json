@@ -73,6 +73,10 @@
     {
       "id": "pubsub-publish",
       "version": "0.1"
+    },
+    {
+      "id": "data-import-converter-storage",
+      "version": "1.2"
     }
   ],
   "provides": [
@@ -125,7 +129,10 @@
         {
           "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}/jobProfile",
-          "permissionsRequired": [ "change-manager.jobexecutions.put" ]
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ],
+          "modulePermissions": [
+            "converter-storage.jobprofilesnapshots.post"
+          ]
         }
       ]
     },
@@ -154,7 +161,8 @@
             "inventory-storage.contributor-name-types.collection.get",
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
-            "pubsub.publish.post"
+            "pubsub.publish.post",
+            "converter-storage.jobprofilesnapshots.get"
           ]
         },
         {
