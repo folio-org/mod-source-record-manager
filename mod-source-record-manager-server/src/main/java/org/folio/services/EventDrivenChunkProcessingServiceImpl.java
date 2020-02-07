@@ -69,11 +69,25 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))))
       .compose(profileSnapshotWrapper -> {
         List<Future> futures = createdRecords.stream()
-          .filter(record -> record.getParsedRecord() != null && record.getParsedRecord().getContent() != null)
+          .filter(this::isRecordReadyToSend)
           .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
           .collect(Collectors.toList());
        return CompositeFuture.join(futures).map(true);
       });
+  }
+
+  /**
+   * Checks whether the record contains parsed content for sending.
+   *
+   * @param record record for verification
+   * @return true if record has parsed content
+   */
+  private boolean isRecordReadyToSend(Record record) {
+    if (record.getParsedRecord() == null || record.getParsedRecord().getContent() == null) {
+      LOGGER.error("The record has not parsed content, so it will not be sent to mod-pubsub");
+      return false;
+    }
+    return true;
   }
 
   /**
