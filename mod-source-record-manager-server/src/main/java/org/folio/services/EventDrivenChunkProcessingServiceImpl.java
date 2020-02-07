@@ -6,18 +6,25 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.DataImportEventPayload;
 import org.folio.ProfileSnapshotWrapper;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.processing.events.model.EventContext;
 import org.folio.rest.client.DataImportProfilesClient;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.EventMetadata;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.tools.PomReader;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -111,16 +118,19 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private Future<Record> sendEventWithRecord(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper, OkapiConnectionParams params) {
     Promise<Record> promise = Promise.promise();
 
-    EventContext eventContext = new EventContext();
-    eventContext.setEventType(CREATED_SRS_MARC_BIB_RECORD.value());
-    eventContext.setProfileSnapshot(profileSnapshotWrapper);
-    eventContext.setCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0));
-    eventContext.putObject(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
+    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
+    dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(CREATED_SRS_MARC_BIB_RECORD.value())
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withContext(dataImportEventPayloadContext);
 
     Event createdRecordEvent = new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(CREATED_SRS_MARC_BIB_RECORD.value())
-      .withEventPayload(Json.encode(eventContext))
+      .withEventPayload(Json.encode(dataImportEventPayload))
       .withEventMetadata(new EventMetadata()
         .withTenantId(params.getTenantId())
         .withEventTTL(1)
