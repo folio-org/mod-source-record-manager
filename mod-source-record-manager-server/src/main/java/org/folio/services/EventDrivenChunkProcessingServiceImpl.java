@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_OK;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.CREATED_SRS_MARC_BIB_RECORD;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
@@ -58,7 +59,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
         .map(jobExecution -> getJobProfileSnapshotWrapper(jobExecution, params))
-        .orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))))
+        .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))))
       .compose(profileSnapshotWrapper -> {
         List<Future> futures = createdRecords.stream()
           .filter(record -> record.getParsedRecord() != null && record.getParsedRecord().getContent() != null)
@@ -81,9 +82,17 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
     client.getDataImportProfilesJobProfileSnapshotsById(jobExecution.getJobProfileSnapshotWrapperId(), response -> {
       if (response.statusCode() == HTTP_OK.toInt()) {
-        response.bodyHandler(body -> promise.complete(body.toJsonObject().mapTo(ProfileSnapshotWrapper.class)));
+        response.bodyHandler(body -> {
+          try {
+            promise.complete(body.toJsonObject().mapTo(ProfileSnapshotWrapper.class));
+          } catch (Exception e) {
+            String message = format("Error during deserializing ProfileSnapshotWrapper from response, cause: %s", e.getMessage());
+            LOGGER.error(message, e);
+            promise.fail(message);
+          }
+        });
       } else {
-        String message = String.format("Error getting ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobExecution.getId(), response.statusCode());
+        String message = format("Error getting ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobExecution.getId(), response.statusCode());
         LOGGER.error(message);
         promise.fail(message);
       }
