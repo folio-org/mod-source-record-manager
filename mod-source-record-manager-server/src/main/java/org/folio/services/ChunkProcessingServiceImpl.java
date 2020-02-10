@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -14,15 +15,11 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
-import java.util.UUID;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-@Service
-@SuppressWarnings("squid:CallToDeprecatedMethod")
-public class ChunkProcessingServiceImpl implements ChunkProcessingService {
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  private JobExecutionService jobExecutionService;
+@Service("restChunkProcessingService")
+public class ChunkProcessingServiceImpl extends AbstractChunkProcessingService {
   private ChangeEngineService changeEngineService;
   private AfterProcessingService instanceProcessingService;
 
@@ -30,31 +27,21 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
                                     @Autowired JobExecutionService jobExecutionService,
                                     @Autowired ChangeEngineService changeEngineService,
                                     @Autowired AfterProcessingService instanceProcessingService) {
-    this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
-    this.jobExecutionService = jobExecutionService;
+    super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.instanceProcessingService = instanceProcessingService;
   }
 
   @Override
-  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
-    Future<Boolean> future = Future.future();
+  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
+    Promise<Boolean> promise = Promise.promise();
 
-    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
-      .withId(UUID.randomUUID().toString())
-      .withJobExecutionId(jobExecutionId)
-      .withLast(incomingChunk.getRecordsMetadata().getLast())
-      .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
-      .withChunkSize(incomingChunk.getInitialRecords().size())
-      .withCreatedDate(new Date());
-    jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(jobExecution -> updateJobExecutionProgress(jobExecutionId, incomingChunk, params))
+    updateJobExecutionProgress(jobExecutionId, incomingChunk, params)
       .compose(jobExecution -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExecution, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
       .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
-        .setHandler(jobUpdateAr -> future.handle(chunkProcessAr.map(true))));
-    return future;
+        .setHandler(jobUpdateAr -> promise.handle(chunkProcessAr.map(true))));
+    return promise.future();
   }
 
   /**
@@ -74,25 +61,6 @@ public class ChunkProcessingServiceImpl implements ChunkProcessingService {
         }
         return Future.succeededFuture(false);
       });
-  }
-
-  /**
-   * Checks JobExecution current status and updates it if needed
-   *
-   * @param jobExecutionId - JobExecution id
-   * @param status         - required statusDto of JobExecution
-   * @param params         - okapi connection params
-   * @return future
-   */
-  private Future<JobExecution> checkAndUpdateJobExecutionStatusIfNecessary(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
-    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
-      .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExecution -> {
-          if (!status.getStatus().value().equals(jobExecution.getStatus().value())) {
-            return jobExecutionService.updateJobExecutionStatus(jobExecutionId, status, params);
-          }
-          return Future.succeededFuture(jobExecution);
-        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
   /**

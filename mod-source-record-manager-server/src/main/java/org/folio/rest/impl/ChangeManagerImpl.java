@@ -5,6 +5,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -17,9 +19,8 @@ import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
 import org.folio.spring.SpringContextUtil;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -33,6 +34,7 @@ public class ChangeManagerImpl implements ChangeManager {
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
+  @Qualifier("restChunkProcessingService")
   private ChunkProcessingService chunkProcessingService;
   private String tenantId;
 
@@ -144,7 +146,8 @@ public class ChangeManagerImpl implements ChangeManager {
   public void putChangeManagerJobExecutionsJobProfileById(String id, JobProfileInfo entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.setJobProfileToJobExecution(id, entity, tenantId)
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        jobExecutionService.setJobProfileToJobExecution(id, entity, params)
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

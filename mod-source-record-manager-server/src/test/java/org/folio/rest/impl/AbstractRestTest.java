@@ -19,18 +19,22 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import org.folio.ProfileSnapshotWrapper;
 import org.folio.TestUtil;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
+import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
@@ -43,6 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +56,9 @@ import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static org.folio.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 
@@ -90,6 +98,8 @@ public abstract class AbstractRestTest {
   protected static final String RECORD_SERVICE_URL = "/source-storage/records";
   protected static final String INVENTORY_URL = "/inventory/instances/batch";
   protected static final String PARSED_RECORDS_COLLECTION_URL = "/source-storage/batch/parsed-records";
+  private static final String PROFILE_SNAPSHOT_URL = "/data-import-profiles/jobProfileSnapshots";
+  protected static final String PUBSUB_PUBLISH_URL = "/pubsub/publish";
   protected static final String okapiUserIdHeader = UUID.randomUUID().toString();
 
   private JsonObject userResponse = new JsonObject()
@@ -98,6 +108,28 @@ public abstract class AbstractRestTest {
         .put("username", "diku_admin")
         .put("personal", new JsonObject().put("firstName", "DIKU").put("lastName", "ADMINISTRATOR"))))
     .put("totalRecords", 1);
+
+  protected JobProfile jobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC Bibs")
+    .withDataType(JobProfile.DataType.MARC);
+
+  private ActionProfile actionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC Bib")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
+
+  protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(actionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionProfile)));
 
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
@@ -207,6 +239,13 @@ public abstract class AbstractRestTest {
       .willReturn(WireMock.created().withHeader("location", UUID.randomUUID().toString())));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(profileSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(profileSnapshotWrapperResponse))));
+    WireMock.stubFor(post(PUBSUB_PUBLISH_URL)
+      .willReturn(WireMock.noContent()));
+
     WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(okJson(userResponse.toString())));
     WireMock.stubFor(get(IDENTIFIER_TYPES_URL).willReturn(okJson(new JsonObject().put("identifierTypes", new JsonArray()).toString())));

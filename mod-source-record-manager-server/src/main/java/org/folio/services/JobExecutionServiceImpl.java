@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -13,6 +14,8 @@ import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.dataimport.util.Try;
+import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -20,6 +23,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
@@ -35,10 +39,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.folio.HttpStatus.HTTP_CREATED;
 
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
@@ -48,7 +52,6 @@ import static java.lang.String.format;
  * @see JobExecution
  */
 @Service
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
@@ -103,17 +106,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
-      Future<JobExecution> future = Future.future();
+      Promise<JobExecution> promise = Promise.promise();
       if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
         String errorMessage = format("JobExecution %s current status is %s and cannot be updated to %s",
           currentJobExec.getId(), currentJobExec.getStatus(), jobExecution.getStatus());
         LOGGER.error(errorMessage);
-        future.fail(new BadRequestException(errorMessage));
+        promise.fail(new BadRequestException(errorMessage));
       } else {
         currentJobExec = jobExecution;
-        future.complete(currentJobExec);
+        promise.complete(currentJobExec);
       }
-      return future;
+      return promise.future();
     }, params.getTenantId());
   }
 
@@ -146,43 +149,57 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-        Future<JobExecution> future = Future.future();
+        Promise<JobExecution> promise = Promise.promise();
         try {
           if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
             String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
             LOGGER.error(message);
-            future.fail(new BadRequestException(message));
+            promise.fail(new BadRequestException(message));
           } else {
             jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
             jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
             updateJobExecutionIfErrorExist(status, jobExecution);
-            future.complete(jobExecution);
+            promise.complete(jobExecution);
           }
         } catch (Exception e) {
           String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
           LOGGER.error(errorMessage, e);
-          future.fail(errorMessage);
+          promise.fail(errorMessage);
         }
-        return future;
+        return promise.future();
       }, params.getTenantId())
         .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
     }
   }
 
   @Override
-  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, String tenantId) {
+  public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
     return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-      Future<JobExecution> future = Future.future();
-      try {
-        jobExecution.setJobProfileInfo(jobProfile);
-        future.complete(jobExecution);
-      } catch (Exception e) {
-        String errorMessage = "Error setting JobProfile to JobExecution with id " + jobExecutionId;
-        LOGGER.error(errorMessage, e);
-        future.fail(errorMessage);
+      if (jobExecution.getJobProfileSnapshotWrapper() != null) {
+        throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
       }
-      return future;
-    }, tenantId);
+      return createJobProfileSnapshotWrapper(jobProfile, params)
+        .map(profileSnapshotWrapper -> jobExecution
+          .withJobProfileInfo(jobProfile)
+          .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
+    }, params.getTenantId());
+  }
+
+  private Future<JobProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
+    Promise<JobProfileSnapshotWrapper> promise = Promise.promise();
+    DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+
+    client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
+      if (response.statusCode() == HTTP_CREATED.toInt()) {
+        response.bodyHandler(body ->
+          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(JobProfileSnapshotWrapper.class))));
+      } else {
+        String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
+        LOGGER.error(message);
+        promise.fail(message);
+      }
+    });
+    return promise.future();
   }
 
   @Override
@@ -249,23 +266,23 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return Future with found UserInfo
    */
   private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
-    Future<UserInfo> future = Future.future();
+    Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .setHandler(getUserResult -> {
-        if (RestUtil.validateAsyncResult(getUserResult, future)) {
+        if (RestUtil.validateAsyncResult(getUserResult, promise.future())) {
           JsonObject response = getUserResult.result().getJson();
           if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-            future.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
+            promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
           } else {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
               LOGGER.error(errorMessage);
-              future.fail(errorMessage);
+              promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
               LOGGER.error(errorMessage);
-              future.fail(errorMessage);
+              promise.fail(errorMessage);
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
@@ -273,12 +290,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 .withFirstName(userPersonalInfo.getString("firstName"))
                 .withLastName(userPersonalInfo.getString("lastName"))
                 .withUserName(jsonUser.getString("username"));
-              future.complete(userInfo);
+              promise.complete(userInfo);
             }
           }
         }
       });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -368,27 +385,27 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
-    Future<String> future = Future.future();
+    Promise<String> promise = Promise.promise();
 
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.error("Error during post for new Snapshot.", response.statusMessage());
-          future.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
+          promise.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
         } else {
-          response.bodyHandler(buffer -> future.complete(buffer.toString()));
+          response.bodyHandler(buffer -> promise.complete(buffer.toString()));
         }
       });
     } catch (Exception e) {
       LOGGER.error("Error during post for new Snapshot", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future;
+    return promise.future();
   }
 
   private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
-    Future<JobExecution> future = Future.future();
+    Promise<JobExecution> promise = Promise.promise();
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
       .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
@@ -397,47 +414,47 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     try {
       client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), null, snapshot, response -> {
         if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
-          future.complete(jobExecution);
+          promise.complete(jobExecution);
         } else {
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
-            Future<JobExecution> jobExecutionFuture = Future.future();
+            Promise<JobExecution> jobExecutionPromise = Promise.promise();
             jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
             jobExec.setStatus(JobExecution.Status.ERROR);
             jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
-            jobExecutionFuture.complete(jobExec);
-            return jobExecutionFuture;
+            jobExecutionPromise.complete(jobExec);
+            return jobExecutionPromise.future();
           }, params.getTenantId()).setHandler(jobExecutionUpdate -> {
             String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
             LOGGER.error(message);
-            future.fail(message);
+            promise.fail(message);
           });
         }
       });
     } catch (Exception e) {
       LOGGER.error("Error during update for Snapshot with id {}", e, jobExecution.getId());
-      future.fail(e);
+      promise.fail(e);
     }
-    return future;
+    return promise.future();
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
-    Future<Boolean> future = Future.future();
+    Promise<Boolean> promise = Promise.promise();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.deleteSourceStorageSnapshotsRecordsByJobExecutionId(jobExecutionId, response -> {
         if (response.statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
-          future.complete(true);
+          promise.complete(true);
         } else {
           String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
           LOGGER.error(message);
-          future.fail(new HttpStatusException(response.statusCode(), message));
+          promise.fail(new HttpStatusException(response.statusCode(), message));
         }
       });
     } catch (Exception e) {
       LOGGER.error("Error deleting records from SRS for Job Execution {}", e, jobExecutionId);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future;
+    return promise.future();
   }
 
   /**

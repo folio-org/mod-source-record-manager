@@ -92,13 +92,14 @@ public interface JobExecutionService {
   Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
 
   /**
-   * Sets JobProfile for JobExecution
+   * Sets JobProfile and JobProfile snapshot wrapper for JobExecution
    *
    * @param jobExecutionId JobExecution id
    * @param jobProfile     JobProfileInfo entity
+   * @param params         connection parameters
    * @return future with updated JobExecution
    */
-  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, String tenantId);
+  Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params);
 
   /**
    * Delete JobExecution and all associated records from SRS
