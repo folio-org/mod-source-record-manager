@@ -23,7 +23,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.JobProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
@@ -175,24 +175,24 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   @Override
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
     return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-      if (jobExecution.getJobProfileSnapshotWrapperId() != null) {
+      if (jobExecution.getJobProfileSnapshotWrapper() != null) {
         throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
       }
       return createJobProfileSnapshotWrapper(jobProfile, params)
         .map(profileSnapshotWrapper -> jobExecution
           .withJobProfileInfo(jobProfile)
-          .withJobProfileSnapshotWrapperId(profileSnapshotWrapper.getId()));
+          .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
     }, params.getTenantId());
   }
 
-  private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
-    Promise<ProfileSnapshotWrapper> promise = Promise.promise();
+  private Future<JobProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
+    Promise<JobProfileSnapshotWrapper> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.statusCode() == HTTP_CREATED.toInt()) {
         response.bodyHandler(body ->
-          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
+          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(JobProfileSnapshotWrapper.class))));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
         LOGGER.error(message);

@@ -816,7 +816,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfileInfo.id", is(jobProfile.getId()))
       .body("jobProfileInfo.name", is(jobProfile.getName()))
-      .body("jobProfileSnapshotWrapperId", is(profileSnapshotWrapperResponse.getId()));
+      .body("jobProfileSnapshotWrapper", notNullValue());
 
     RestAssured.given()
       .spec(spec)
@@ -826,7 +826,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfileInfo.id", is(jobProfile.getId()))
       .body("jobProfileInfo.name", is(jobProfile.getName()))
-      .body("jobProfileSnapshotWrapperId", is(profileSnapshotWrapperResponse.getId()));
+      .body("jobProfileSnapshotWrapper", notNullValue());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -10,10 +11,8 @@ import org.folio.DataImportEventPayload;
 import org.folio.ProfileSnapshotWrapper;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
-import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
@@ -30,7 +29,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.folio.HttpStatus.HTTP_OK;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.CREATED_SRS_MARC_BIB_RECORD;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 
@@ -65,15 +63,15 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private Future<Boolean> sendEventsWithCreatedRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
-        .map(jobExecution -> getJobProfileSnapshotWrapper(jobExecution, params))
-        .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))))
-      .compose(profileSnapshotWrapper -> {
-        List<Future> futures = createdRecords.stream()
-          .filter(this::isRecordReadyToSend)
-          .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
-          .collect(Collectors.toList());
-       return CompositeFuture.join(futures).map(true);
-      });
+        .map(jobExecution -> {
+          ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
+          List<Future> futures = createdRecords.stream()
+              .filter(this::isRecordReadyToSend)
+              .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
+              .collect(Collectors.toList());
+            return CompositeFuture.join(futures).map(true);
+        })
+        .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
   /**
@@ -88,37 +86,6 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       return false;
     }
     return true;
-  }
-
-  /**
-   * Returns ProfileSnapshotWrapper for specified jobExecution
-   *
-   * @param jobExecution jobExecution
-   * @param params       okapi connection parameters
-   * @return future with ProfileSnapshotWrapper
-   */
-  private Future<ProfileSnapshotWrapper> getJobProfileSnapshotWrapper(JobExecution jobExecution, OkapiConnectionParams params) {
-    Promise<ProfileSnapshotWrapper> promise = Promise.promise();
-    DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-
-    client.getDataImportProfilesJobProfileSnapshotsById(jobExecution.getJobProfileSnapshotWrapperId(), response -> {
-      if (response.statusCode() == HTTP_OK.toInt()) {
-        response.bodyHandler(body -> {
-          try {
-            promise.complete(body.toJsonObject().mapTo(ProfileSnapshotWrapper.class));
-          } catch (Exception e) {
-            String message = format("Error during deserializing ProfileSnapshotWrapper from response, cause: %s", e.getMessage());
-            LOGGER.error(message, e);
-            promise.fail(message);
-          }
-        });
-      } else {
-        String message = format("Error getting ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobExecution.getId(), response.statusCode());
-        LOGGER.error(message);
-        promise.fail(message);
-      }
-    });
-    return promise.future();
   }
 
   /**

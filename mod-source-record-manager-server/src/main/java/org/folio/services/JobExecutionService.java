@@ -92,7 +92,7 @@ public interface JobExecutionService {
   Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params);
 
   /**
-   * Sets JobProfile and JobProfile snapshot wrapper id for JobExecution
+   * Sets JobProfile and JobProfile snapshot wrapper for JobExecution
    *
    * @param jobExecutionId JobExecution id
    * @param jobProfile     JobProfileInfo entity
