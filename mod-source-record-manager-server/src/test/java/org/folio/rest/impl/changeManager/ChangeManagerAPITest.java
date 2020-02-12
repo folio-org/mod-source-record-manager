@@ -82,6 +82,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String CHILDREN_PATH = "/children";
   private static final String STATUS_PATH = "/status";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
+  private static final String RAW_DTO_PATH = "src/test/resources/org/folio/rest/rawRecordsDto.json";
 
   private static final String CORRECT_RAW_RECORD_1 = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
   private static final String CORRECT_RAW_RECORD_2 = "01314nam  22003851a 4500001001100000003000800011005001700019006001800036007001500054008004100069020003200110020003500142040002100177050002000198082001500218100002000233245008900253250001200342260004900354300002300403490002400426500002400450504006200474505009200536650003200628650001400660700002500674710001400699776004000713830001800753856009400771935001500865980003400880981001400914\u001Eybp7406411\u001ENhCcYBP\u001E20120404100627.6\u001Em||||||||d|||||||\u001Ecr||n|||||||||\u001E120329s2011    sz a    ob    001 0 eng d\u001E  \u001Fa2940447241 (electronic bk.)\u001E  \u001Fa9782940447244 (electronic bk.)\u001E  \u001FaNhCcYBP\u001FcNhCcYBP\u001E 4\u001FaZ246\u001Fb.A43 2011\u001E04\u001Fa686.22\u001F222\u001E1 \u001FaAmbrose, Gavin.\u001E14\u001FaThe fundamentals of typography\u001Fh[electronic resource] /\u001FcGavin Ambrose, Paul Harris.\u001E  \u001Fa2nd ed.\u001E  \u001FaLausanne ;\u001FaWorthing :\u001FbAVA Academia,\u001Fc2011.\u001E  \u001Fa1 online resource.\u001E1 \u001FaAVA Academia series\u001E  \u001FaPrevious ed.: 2006.\u001E  \u001FaIncludes bibliographical references (p. [200]) and index.\u001E0 \u001FaType and language -- A few basics -- Letterforms -- Words and paragraphs -- Using type.\u001E 0\u001FaGraphic design (Typography)\u001E 0\u001FaPrinting.\u001E1 \u001FaHarris, Paul,\u001Fd1971-\u001E2 \u001FaEBSCOhost\u001E  \u001FcOriginal\u001Fz9782940411764\u001Fz294041176X\u001E 0\u001FaAVA academia.\u001E40\u001Fuhttp://search.ebscohost.com/login.aspx?direct=true&scope=site&db=nlebk&db=nlabk&AN=430135\u001E  \u001Fa.o13465259\u001E  \u001Fa130307\u001Fb7107\u001Fe7107\u001Ff243965\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
@@ -112,6 +113,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
     .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
+
+  private RawRecordsDto rawRecordsDto_2;
+
+  {
+    try {
+      rawRecordsDto_2 = new JsonObject(TestUtil.readFileFromPath(RAW_DTO_PATH)).mapTo(RawRecordsDto.class);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
@@ -905,6 +916,67 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(15))
+      .body("startedDate", notNullValue(Date.class)).log().all();
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) throws IOException {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_2)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    String requestBody = findAll(putRequestedFor(urlEqualTo(PARSED_RECORDS_COLLECTION_URL))).get(0).getBodyAsString();
+    RecordCollection recordCollection = new ObjectMapper().readValue(requestBody, RecordCollection.class);
+    Assert.assertThat(recordCollection.getRecords().size(), is(50));
+
+
+    recordCollection.getRecords().forEach(record -> {
+      Assert.assertNotNull(record.getExternalIdsHolder());
+      Assert.assertNotNull(record.getExternalIdsHolder().getInstanceId());
+    });
+
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.COMMITTED.name()))
+      .body("runBy.firstName", is("DIKU"))
+      .body("progress.total", is(50))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }

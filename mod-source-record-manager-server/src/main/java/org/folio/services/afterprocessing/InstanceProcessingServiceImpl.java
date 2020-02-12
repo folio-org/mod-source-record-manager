@@ -50,6 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.vertx.core.Future.succeededFuture;
@@ -64,6 +65,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances/batch";
+  private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private MappingParametersProvider mappingParametersProvider;
@@ -236,10 +238,18 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    */
   private boolean validateInstanceAndUpdateRecordIfInvalid(Pair<Instance, Record> instanceRecordPair, Validator validator, OkapiConnectionParams params) {
     Set<ConstraintViolation<Instance>> violations = validator.validate(instanceRecordPair.getKey());
-    if (!violations.isEmpty()) {
-      Record record = instanceRecordPair.getValue().withErrorRecord(new ErrorRecord().withId(UUID.randomUUID().toString())
-        .withDescription(String.format("Mapped Instance is invalid: %s", violations.toString()))
-        .withContent(instanceRecordPair.getKey()));
+    boolean invalidIdentifiers = instanceRecordPair.getKey().getIdentifiers()
+      .stream()
+      .anyMatch(identifier -> !UUID_PATTERN.matcher(identifier.getIdentifierTypeId()).matches());
+    if (!violations.isEmpty() || invalidIdentifiers) {
+      String description = invalidIdentifiers
+        ? "Mapped Instance IdentifierTypeId is invalid"
+        : String.format("Mapped Instance is invalid: %s", violations.toString());
+      Record record = instanceRecordPair.getValue()
+        .withErrorRecord(new ErrorRecord()
+          .withId(UUID.randomUUID().toString())
+          .withDescription(description)
+          .withContent(instanceRecordPair.getKey()));
       updateRecord(record, params);
       return false;
     }
