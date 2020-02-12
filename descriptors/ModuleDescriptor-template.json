@@ -304,11 +304,6 @@
       "description": "Restore existing mapping rules to default for tenant"
     },
     {
-      "permissionName": "source-records-manager.events.post",
-      "displayName": "Source Record Manager - handle event",
-      "description": "Handle event"
-    },
-    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -321,8 +316,7 @@
         "change-manager.records.delete",
         "mapping-rules.get",
         "mapping-rules.update",
-        "mapping-rules.restore",
-        "source-records-manager.events.post"
+        "mapping-rules.restore"
       ],
       "visible": false
     }
