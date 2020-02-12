@@ -1,8 +1,11 @@
 package org.folio.services.mappers;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Instance;
+import org.folio.services.ChangeEngineServiceImpl;
 import org.folio.services.mappers.processor.Processor;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.folio.services.parsers.RecordFormat;
@@ -12,6 +15,7 @@ import java.util.regex.Pattern;
 public class MarcToInstanceMapper implements RecordToInstanceMapper {
 
   private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarcToInstanceMapper.class);
 
   @Override
   public Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters, JsonObject mappingRules) {
@@ -48,15 +52,14 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
 
   private String fixUUID(String uuid) {
     try {
-      if (StringUtils.isNoneBlank(uuid)) {
-        if (!UUID_PATTERN.matcher(uuid).matches()) {
-          String fixed = uuid.split(" ")[0];
-          if (UUID_PATTERN.matcher(fixed).matches()) {
-            return fixed;
-          }
+      if (StringUtils.isNoneBlank(uuid) && !UUID_PATTERN.matcher(uuid).matches()) {
+        String fixed = uuid.split(" ")[0];
+        if (UUID_PATTERN.matcher(fixed).matches()) {
+          return fixed;
         }
       }
-    } catch (Exception ignored) {
+    } catch (Exception e) {
+      LOGGER.info("Can't fix uuid for IdentifierTypeId", e);
     }
     return uuid;
   }
