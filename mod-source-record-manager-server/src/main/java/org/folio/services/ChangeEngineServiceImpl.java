@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
@@ -74,7 +75,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
-    Future<List<Record>> future = Future.future();
+    Promise<List<Record>> promise = Promise.promise();
     List<Record> parsedRecords = parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
@@ -94,12 +95,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
-            .setHandler(ar -> future.fail(postAr.cause()));
+            .setHandler(ar -> promise.fail(postAr.cause()));
         } else {
-          future.complete(parsedRecords);
+          promise.complete(parsedRecords);
         }
       });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -220,9 +221,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * Builds list of journal records represented as json objects,
    * which contain info about records processing result
    *
-   * @param records records that should be created
+   * @param records          records that should be created
    * @param processedRecords created records
-   * @param actionType action type which was performed on instances during processing
+   * @param actionType       action type which was performed on instances during processing
    * @return list of journal records represented as json objects
    */
   private List<JsonObject> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,

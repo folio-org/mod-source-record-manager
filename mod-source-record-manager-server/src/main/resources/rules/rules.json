@@ -1343,7 +1343,7 @@
   ],
   "250": [
     {
-      "target": "edition",
+      "target": "editions",
       "description": "Edition",
       "subfield": [
         "a",

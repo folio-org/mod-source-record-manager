@@ -34,6 +34,7 @@ public class MappingTest {
 
   private static final String INSTANCES_PATH = "src/test/resources/org/folio/services/mapping/instances.json";
   private static final String BIBS_PATH = "src/test/resources/org/folio/services/mapping/CornellFOLIOExemplars_Bibs.mrc";
+  private static final String BIBS_ERRORS_PATH = "src/test/resources/org/folio/services/mapping/test1_err.mrc";
   private static final String DEFAULT_MAPPING_RULES_PATH = "src/main/resources/rules/rules.json";
 
   @Test
@@ -60,5 +61,29 @@ public class MappingTest {
       Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(i).encode());
       i++;
     }
+  }
+
+  @Test
+  public void testMarcToInstanceWithWrongRecords() throws IOException {
+    MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(TestUtil.readFileFromPath(BIBS_ERRORS_PATH).getBytes(StandardCharsets.UTF_8)));
+    JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MAPPING_RULES_PATH));
+    int i = 0;
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    while (reader.hasNext()) {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      MarcJsonWriter writer = new MarcJsonWriter(os);
+      Record record = reader.next();
+      writer.write(record);
+      JsonObject marc = new JsonObject(new String(os.toByteArray()));
+      Instance instance = mapper.mapRecord(marc, new MappingParameters(), mappingRules);
+      Assert.assertNotNull(instance.getTitle());
+      Assert.assertNotNull(instance.getSource());
+      Assert.assertNotNull(instance.getInstanceTypeId());
+      Validator validator = factory.getValidator();
+      Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
+      Assert.assertTrue(violations.isEmpty());
+      i++;
+    }
+    Assert.assertEquals(50, i);
   }
 }
