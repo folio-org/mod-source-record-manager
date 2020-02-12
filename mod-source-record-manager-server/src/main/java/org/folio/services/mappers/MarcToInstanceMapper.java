@@ -51,7 +51,7 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
       if (StringUtils.isNoneBlank(uuid)) {
         if (!UUID_PATTERN.matcher(uuid).matches()) {
           String fixed = uuid.split(" ")[0];
-          if (UUID_PATTERN.matcher(uuid).matches()) {
+          if (UUID_PATTERN.matcher(fixed).matches()) {
             return fixed;
           }
         }
