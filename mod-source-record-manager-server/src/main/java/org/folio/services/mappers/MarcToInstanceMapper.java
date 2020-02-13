@@ -1,8 +1,6 @@
 package org.folio.services.mappers;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Classification;
 import org.folio.rest.jaxrs.model.Identifier;
@@ -20,7 +18,6 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
 
   private static final Pattern UUID_DUPLICATE_PATTERN = Pattern.compile("([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} ){2,}");
   private static final String BLANK_STRING = " ";
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarcToInstanceMapper.class);
 
   @Override
   public Instance mapRecord(JsonObject parsedRecord, MappingParameters mappingParameters, JsonObject mappingRules) {
@@ -37,8 +34,13 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
   }
 
   private Instance fixDuplicatedUUIDs(Instance instance) {
+    fixIdentifiers(instance);
+    fixClassifications(instance);
+    return instance;
+  }
+
+  private void fixIdentifiers(Instance instance) {
     List<Identifier> splitIdentifiers = new ArrayList<>();
-    List<Classification> splitClassification = new ArrayList<>();
     instance.getIdentifiers().forEach(identifier -> {
       if (StringUtils.isNoneBlank(identifier.getIdentifierTypeId())
         && UUID_DUPLICATE_PATTERN.matcher(identifier.getIdentifierTypeId() + BLANK_STRING).matches()) {
@@ -59,6 +61,11 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
         }
       }
     });
+    instance.getIdentifiers().addAll(splitIdentifiers);
+  }
+
+  private void fixClassifications(Instance instance) {
+    List<Classification> splitClassification = new ArrayList<>();
     instance.getClassifications().forEach(classification -> {
       if (StringUtils.isNoneBlank(classification.getClassificationTypeId())
         && UUID_DUPLICATE_PATTERN.matcher(classification.getClassificationTypeId() + BLANK_STRING).matches()) {
@@ -79,8 +86,6 @@ public class MarcToInstanceMapper implements RecordToInstanceMapper {
         }
       }
     });
-    instance.getIdentifiers().addAll(splitIdentifiers);
     instance.getClassifications().addAll(splitClassification);
-    return instance;
   }
 }
