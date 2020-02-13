@@ -167,7 +167,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   }
 
   private List<Pair<Record, Instance>> calculateRecordsToUpdate(Map<Instance, Record> instanceRecordMap, List<Instance> instances) {
-    //In performance perspective we creat a map Instance::id -> Record.
+    //In performance perspective we create a map Instance::id -> Record.
     //In addition, inventory can return an instance with extra fields or changed fields (metadata)
     //that influences on a hashCode of an Instance.
     Map<String, Record> instanceToRecordMap = instanceRecordMap.entrySet().stream()
