@@ -218,18 +218,28 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
   },
 
   SET_INSTANCE_TYPE_ID() {
-    private static final String UNSPECIFIED_INSTANCE_TYPE_ID = "30fffe0e-e985-4144-b2e2-1e8179bdb41f";
+    private static final String NAME_PARAMETER = "unspecifiedInstanceTypeCode";
     @Override
     public String apply(RuleExecutionContext context) {
       List<InstanceType> types = context.getMappingParameters().getInstanceTypes();
       if (types == null) {
         return STUB_FIELD_TYPE_ID;
       }
-      return types.stream()
-        .filter(instanceType -> instanceType.getCode().equalsIgnoreCase(context.getSubFieldValue()))
-        .findFirst()
+      String unspecifiedTypeCode = context.getRuleParameter().getString(NAME_PARAMETER);
+      String instanceTypeCode = context.getDataField() != null ? context.getSubFieldValue() : unspecifiedTypeCode;
+
+      return getInstanceTypeByCode(instanceTypeCode, types)
         .map(InstanceType::getId)
-        .orElse(UNSPECIFIED_INSTANCE_TYPE_ID);
+        .orElseGet(() -> getInstanceTypeByCode(unspecifiedTypeCode, types)
+          .map(InstanceType::getId)
+          .orElse(STUB_FIELD_TYPE_ID));
+    }
+
+    private Optional<InstanceType> getInstanceTypeByCode(String instanceTypeCode, List<InstanceType> instanceTypes) {
+      return instanceTypes
+        .stream()
+        .filter(instanceType -> instanceType.getCode().equalsIgnoreCase(instanceTypeCode))
+        .findFirst();
     }
   },
 

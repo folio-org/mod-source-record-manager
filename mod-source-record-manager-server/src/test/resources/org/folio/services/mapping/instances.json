@@ -13,7 +13,7 @@
     "identifiers": [
       {
         "value": "58020553",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "0022-0469",
@@ -73,7 +73,7 @@
       "v. 1-   Apr. 1950-"
     ],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. 25 cm."
@@ -108,7 +108,7 @@
     "identifiers": [
       {
         "value": "55001156/M",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)63611770",
@@ -146,7 +146,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. facsims. 33 cm."
@@ -186,7 +186,7 @@
     "identifiers": [
       {
         "value": "89894004",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)9198532",
@@ -358,7 +358,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. (loose-leaf) 26 cm."
@@ -435,7 +435,7 @@
     "identifiers": [
       {
         "value": "30014365 //r855",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(NIC)notisAHK7689",
@@ -493,7 +493,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. ; 25 cm."
@@ -573,7 +573,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "vii, 192 p. illus., map. 21 cm."
@@ -610,15 +610,15 @@
     "identifiers": [
       {
         "value": "72209620 /M",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Edition Peters, no. 66303",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "C. F. Peters Corp.",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(CStRLIN)NYCX91C2172",
@@ -673,7 +673,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "score (8 p.) 52 cm."
@@ -755,7 +755,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "8 volumes; 29.3 cubic ft."
@@ -852,7 +852,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "36 cubic ft."
@@ -1139,7 +1139,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "135.9 cubic ft., 257 map case folders"
@@ -1221,11 +1221,11 @@
     "identifiers": [
       {
         "value": "OCR 46",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Ocora",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(CStRLIN)NYCX92R2055",
@@ -1262,7 +1262,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 disc. 33 1/3 rpm. microgroove. 12 in."
@@ -1296,7 +1296,7 @@
     "identifiers": [
       {
         "value": "75949742",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(CStRLIN)NYCX93B21842",
@@ -1338,7 +1338,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "153 p. ; 22 cm."
@@ -1364,7 +1364,7 @@
     "identifiers": [
       {
         "value": "92946555",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(NIC)notisANX3362",
@@ -1411,7 +1411,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "3 v. (xliii, 1650 leaves) : ill., col. photos ; 31 cm."
@@ -1531,7 +1531,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "[10], 333, [13] p."
@@ -1588,7 +1588,7 @@
     "identifiers": [
       {
         "value": "98185219",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(NIC)notisAQY8394",
@@ -1645,7 +1645,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. ; 25 cm."
@@ -1745,7 +1745,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. : ill., maps ; 29-33 cm."
@@ -1800,7 +1800,7 @@
     "identifiers": [
       {
         "value": "96096117",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "0345404475 (pbk.) : $11.00",
@@ -1849,7 +1849,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "x, 244 p. ; 21 cm."
@@ -1939,7 +1939,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "x, 166 p. ; 22 cm."
@@ -2077,7 +2077,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource."
@@ -2154,7 +2154,7 @@
     "identifiers": [
       {
         "value": "96105233",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)34116891",
@@ -2198,7 +2198,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "vi, 76 p. ; 21 cm."
@@ -2273,7 +2273,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 folded sheet ([4] p.) : ill. ; 23 cm."
@@ -2360,7 +2360,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [],
     "languages": [
@@ -2443,7 +2443,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "26 p. illus., maps. 24 cm."
@@ -2514,7 +2514,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "90 p. : ill., maps ; 28 cm."
@@ -2614,7 +2614,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "v. ; 26 cm."
@@ -3551,7 +3551,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "70 v. in 128. 24 cm."
@@ -3623,147 +3623,147 @@
     "identifiers": [
       {
         "value": "2011616192",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945120",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(box set)",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945120",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd.",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(box set)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945229",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Please please me)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945328",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (With the Beatles)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945427",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Hard day's night)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945526",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Beatles for sale)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945625",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Help!)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945724",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Rubber soul)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945823",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Revolver)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969945922",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Sgt. Pepper's Lonely Hearts Club Band)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969946028",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Magical mystery tour)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099968495725",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (The Beatles, 2 CD set)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969946127",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (The Beatles, CD 1)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969946226",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (The Beatles, CD 2)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099968495824",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Mono masters, 2 CD set)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969946325",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Mono masters, disc 1)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "5099969946424",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Apple Corps Ltd. $q (Mono masters, disc 2)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)436228315",
@@ -4244,7 +4244,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "approximately 220 items."
@@ -4301,7 +4301,7 @@
     "identifiers": [
       {
         "value": "885444214585",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "6970336",
@@ -4359,7 +4359,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 videodisc (53 min.) : sd., col. ; 4 3/4 in."
@@ -4428,23 +4428,23 @@
     "identifiers": [
       {
         "value": "881626932827",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "00881626932827",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "gtin-14",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "iAS-CD/DVD-005",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "iASO Records",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "7025902",
@@ -4503,7 +4503,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 sound disc : digital ; 4 3/4 in. + 1 DVD (sd., col. ; 4 3/4 in.)"
@@ -4587,7 +4587,7 @@
     "identifiers": [
       {
         "value": "713746305420",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "7063543",
@@ -4620,7 +4620,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 electronic sound-making device ; 13 x 15 x 1 cm. + 1 page (38 x 28 cm. folded to 13 x 15 cm.)"
@@ -4719,7 +4719,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "2, 2, 3, 290 p. ; 21 cm."
@@ -4797,7 +4797,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource. "
@@ -4869,7 +4869,7 @@
     "identifiers": [
       {
         "value": "718122861712",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)743321427",
@@ -4903,7 +4903,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 sound media player : digital ; 2 3/8 x 3 5/8 x 1 in."
@@ -4950,7 +4950,7 @@
     "identifiers": [
       {
         "value": "2010338658",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9789719429265 (pbk.)",
@@ -5013,7 +5013,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "167 p. : ill. (some col.), col. map ; 23 cm."
@@ -5050,15 +5050,15 @@
     "identifiers": [
       {
         "value": "028947852452",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "B0018946-02",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Decca",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)855219292",
@@ -5135,7 +5135,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "2 sound discs (86 min.) : digital, stereo. ; 4 3/4 in."
@@ -5219,7 +5219,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "p. cm."
@@ -5339,7 +5339,7 @@
     "identifiers": [
       {
         "value": "0747313233021",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(Naxos)8.557330",
@@ -5508,7 +5508,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource"
@@ -5562,7 +5562,7 @@
     "identifiers": [
       {
         "value": "5099920882457",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(Naxos)5099920882457",
@@ -5617,7 +5617,7 @@
         "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
       }
     ],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 online resource"
@@ -5729,7 +5729,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "volumes (score) ; 24-30 cm."
@@ -5770,7 +5770,7 @@
     "identifiers": [
       {
         "value": "2015316788",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9786162971280",
@@ -5956,39 +5956,39 @@
     "identifiers": [
       {
         "value": "FM 21-100",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Third Man Records",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(manual)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "203-1--203-12",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Third Man Records",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(discs)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "TMR203",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Third Man Records",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(publisher's website)",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)863715403",
@@ -6232,7 +6232,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "1 map : color, plastic-coated ; sheet 71 x 61 cm, folded to 18 x 11 cm"
@@ -6480,7 +6480,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [],
     "languages": [
@@ -6783,7 +6783,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [
       "521 flash cards ; each 8 x 13 cm, in containers 9 x 14 x 9 cm and 9 x 14 x 6 cm"
@@ -6937,7 +6937,7 @@
     "identifiers": [
       {
         "value": "91206819",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)26218343",
@@ -7029,11 +7029,11 @@
     "identifiers": [
       {
         "value": "ARP 2017-02-02a",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Aki Rhythm Press",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)974393208",
@@ -7131,31 +7131,31 @@
     "identifiers": [
       {
         "value": "9790041408132",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "140813",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Ricordi",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "140813",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Ricordi",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "NR 14081300",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "Ricordi",
-        "identifierTypeId": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)999728261",
@@ -7386,11 +7386,11 @@
       },
       {
         "value": "0004501710611",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "danacode",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)962186145",
@@ -7864,7 +7864,7 @@
     "identifiers": [
       {
         "value": "2017003262",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9780190494889 hardcover ; alkaline paper",
@@ -7981,7 +7981,7 @@
     "identifiers": [
       {
         "value": "2016325185",
-        "identifierTypeId": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "9789351137634 (hardback)",
@@ -8091,15 +8091,15 @@
     "identifiers": [
       {
         "value": "00190295755553",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "gtin-14",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "190295755553",
-        "identifierTypeId": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+        "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
       },
       {
         "value": "(OCoLC)1002130878",
@@ -8128,7 +8128,7 @@
     "publicationFrequency": [],
     "publicationRange": [],
     "electronicAccess": [],
-    "instanceTypeId": "30fffe0e-e985-4144-b2e2-1e8179bdb41f",
+    "instanceTypeId": "fe19bae4-da28-472b-be90-d442e2428ead",
     "instanceFormatIds": [],
     "physicalDescriptions": [],
     "languages": [
