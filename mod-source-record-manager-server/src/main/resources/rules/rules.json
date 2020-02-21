@@ -14,8 +14,14 @@
       "subfield": [],
       "rules": [
         {
-          "conditions": [],
-          "value": "30fffe0e-e985-4144-b2e2-1e8179bdb41f"
+          "conditions": [
+            {
+              "type": "set_instance_type_id",
+              "parameter": {
+                "unspecifiedInstanceTypeCode": "zzz"
+              }
+            }
+          ]
         }
       ]
     },
@@ -61,8 +67,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "c858e4f2-2b6b-4385-842b-60732ee14abb"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "LCCN"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -320,8 +332,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "2e8b3b6c-0e7d-4e48-bca2-b0b23b376af5"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Other standard identifier"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -363,8 +381,14 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "b5d8cdc4-9441-487c-90cf-0c7ec97728eb"
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Publisher or distributor number"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1666,7 +1690,10 @@
         {
           "conditions": [
             {
-              "type": "set_instance_type_id"
+              "type": "set_instance_type_id",
+              "parameter": {
+                "unspecifiedInstanceTypeCode": "zzz"
+              }
             }
           ]
         }
