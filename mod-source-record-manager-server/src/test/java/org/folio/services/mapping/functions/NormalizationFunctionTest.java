@@ -300,6 +300,8 @@ public class NormalizationFunctionTest {
     RuleExecutionContext context = new RuleExecutionContext();
     context.setSubFieldValue("txt");
     context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    context.setRuleParameter(new JsonObject().put("unspecifiedInstanceTypeCode", "zzz"));
+    context.setDataField(new DataFieldImpl("336", ' ', ' '));
     // when
     String actualTypeId = runFunction("set_instance_type_id", context);
     // then
@@ -315,10 +317,11 @@ public class NormalizationFunctionTest {
     RuleExecutionContext context = new RuleExecutionContext();
     context.setSubFieldValue("txt");
     context.setMappingParameters(new MappingParameters().withInstanceTypes(Collections.singletonList(instanceType)));
+    context.setRuleParameter(new JsonObject().put("unspecifiedInstanceTypeCode", "zzz"));
     // when
     String actualTypeId = runFunction("set_instance_type_id", context);
     // then
-    assertEquals(UNSPECIFIED_INSTANCE_TYPE_ID, actualTypeId);
+    assertEquals(STUB_FIELD_TYPE_ID, actualTypeId);
   }
 
   @Test
