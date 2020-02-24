@@ -905,6 +905,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Record updatedRecord = recordCollection.getRecords().get(0);
     Assert.assertNotNull(updatedRecord.getExternalIdsHolder());
     Assert.assertNotNull(updatedRecord.getExternalIdsHolder().getInstanceId());
+    Assert.assertEquals(Integer.valueOf(0), updatedRecord.getGeneration());
 
     async = testContext.async();
     RestAssured.given()
