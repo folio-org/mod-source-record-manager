@@ -105,7 +105,8 @@ public class MappingParametersProvider {
     Future<List<AlternativeTitleType>> alternativeTitleTypesFuture = getAlternativeTitleTypes(okapiParams);
     Future<List<IssuanceMode>> issuanceModesFuture = getIssuanceModes(okapiParams);
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
-      contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture))
+      contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
+      issuanceModesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
