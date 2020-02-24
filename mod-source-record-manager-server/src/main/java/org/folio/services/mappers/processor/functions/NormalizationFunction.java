@@ -12,8 +12,10 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.IssuanceMode;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
+import org.folio.services.mappers.processor.functions.enums.IssuanceModeEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
@@ -350,6 +352,52 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .findFirst()
         .map(AlternativeTitleType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
+    }
+  },
+
+  SET_ISSUANCE_MODE_ID() {
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String subFieldValue = context.getSubFieldValue();
+      char seventhChar = subFieldValue.charAt(6);
+      List<IssuanceMode> issuanceModes = context.getMappingParameters().getIssuanceModes();
+      if (issuanceModes == null || issuanceModes.isEmpty()) {
+        return StringUtils.EMPTY;
+      }
+      String defaultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.UNSPECIFIED, StringUtils.EMPTY);
+      return matchIssuanceModeIdViaLeaderSymbol(seventhChar, issuanceModes, defaultIssuanceModeId);
+    }
+
+    private String findIssuanceModeId(List<IssuanceMode> issuanceModes, IssuanceModeEnum issuanceModeType,
+                                      String defaultId) {
+      return issuanceModes.stream()
+        .filter(issuanceMode -> issuanceMode.getName().equals(issuanceModeType.getValue()))
+        .findFirst()
+        .map(IssuanceMode::getId)
+        .orElse(defaultId);
+    }
+
+    private String matchIssuanceModeIdViaLeaderSymbol(char seventhChar, List<IssuanceMode> issuanceModes, String defaultId) {
+      String resultIssuanceModeId;
+      switch (seventhChar) {
+        case 'a':
+        case 'c':
+        case 'd':
+        case 'm':
+          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.SINGLE_UNIT, defaultId);
+          break;
+        case 'b':
+        case 's':
+          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.SERIAL, defaultId);
+          break;
+        case 'i':
+          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.INTEGRATING_RESOURCE, defaultId);
+          break;
+        default:
+          resultIssuanceModeId = defaultId;
+      }
+      return resultIssuanceModeId;
     }
   };
 

@@ -28,6 +28,8 @@ import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceNoteTypes;
 import org.folio.rest.jaxrs.model.InstanceType;
 import org.folio.rest.jaxrs.model.InstanceTypes;
+import org.folio.rest.jaxrs.model.IssuanceMode;
+import org.folio.rest.jaxrs.model.IssuanceModes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +54,8 @@ public class MappingParametersProvider {
   private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=" + SETTING_LIMIT;
   private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=" + SETTING_LIMIT;
+  private static final String ISSUANCE_MODES_URL = "/modes-of-issuance?limit=" + SETTING_LIMIT;
+
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -62,6 +66,8 @@ public class MappingParametersProvider {
   private static final String CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM = "contributorNameTypes";
   private static final String INSTANCE_NOTE_TYPES_RESPONSE_PARAM = "instanceNoteTypes";
   private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM = "alternativeTitleTypes";
+  private static final String ISSUANCE_MODES_RESPONSE_PARAM = "issuanceModes";
+
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
   private InternalCache internalCache;
@@ -97,6 +103,7 @@ public class MappingParametersProvider {
     Future<List<ContributorNameType>> contributorNameTypesFuture = getContributorNameTypes(okapiParams);
     Future<List<InstanceNoteType>> instanceNoteTypesFuture = getInstanceNoteTypes(okapiParams);
     Future<List<AlternativeTitleType>> alternativeTitleTypesFuture = getAlternativeTitleTypes(okapiParams);
+    Future<List<IssuanceMode>> issuanceModesFuture = getIssuanceModes(okapiParams);
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
       contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture))
       .map(ar ->
@@ -111,6 +118,8 @@ public class MappingParametersProvider {
           .withContributorNameTypes(contributorNameTypesFuture.result())
           .withInstanceNoteTypes(instanceNoteTypesFuture.result())
           .withAlternativeTitleTypes(alternativeTitleTypesFuture.result())
+          .withIssuanceModes(issuanceModesFuture.result())
+
       );
   }
 
@@ -298,6 +307,28 @@ public class MappingParametersProvider {
         if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
           List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(AlternativeTitleTypes.class).getAlternativeTitleTypes();
           future.complete(alternativeTitleTypes);
+        } else {
+          future.complete(Collections.emptyList());
+        }
+      }
+    });
+    return future;
+  }
+
+  /**
+   * Requests for Issuance modes from application Settings (mod-inventory-storage)
+   * *
+   * @param params Okapi connection parameters
+   * @return List of Issuance modes
+   */
+  private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params){
+    Future<List<IssuanceMode>> future = Future.future();
+    RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).setHandler(ar -> {
+      if (RestUtil.validateAsyncResult(ar, future)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
+          List<IssuanceMode> issuanceModes = response.mapTo(IssuanceModes.class).getIssuanceModes();
+          future.complete(issuanceModes);
         } else {
           future.complete(Collections.emptyList());
         }
