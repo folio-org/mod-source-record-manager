@@ -12,8 +12,10 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.IssuanceMode;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.functions.enums.ElectronicAccessRelationshipEnum;
+import org.folio.services.mappers.processor.functions.enums.IssuanceModeEnum;
 import org.folio.services.mappers.processor.publisher.PublisherRole;
 import org.marc4j.marc.DataField;
 
@@ -351,7 +353,47 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
         .map(AlternativeTitleType::getId)
         .orElse(STUB_FIELD_TYPE_ID);
     }
+  },
+
+  SET_ISSUANCE_MODE_ID() {
+
+    @Override
+    public String apply(RuleExecutionContext context) {
+      String subFieldValue = context.getSubFieldValue();
+      char seventhChar = subFieldValue.charAt(6); //Regarding "MODSOURMAN-203" is should be 7-th symbol.
+      List<IssuanceMode> issuanceModes = context.getMappingParameters().getIssuanceModes();
+      if (issuanceModes == null || issuanceModes.isEmpty()) {
+        return StringUtils.EMPTY;
+      }
+      String defaultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.UNSPECIFIED, StringUtils.EMPTY);
+      return matchIssuanceModeIdViaLeaderSymbol(seventhChar, issuanceModes, defaultIssuanceModeId);
+    }
+
+    private String findIssuanceModeId(List<IssuanceMode> issuanceModes, IssuanceModeEnum issuanceModeType,
+                                      String defaultId) {
+      return issuanceModes.stream()
+        .filter(issuanceMode -> issuanceMode.getName().equalsIgnoreCase(issuanceModeType.getValue()))
+        .findFirst()
+        .map(IssuanceMode::getId)
+        .orElse(defaultId);
+    }
+
+    private String matchIssuanceModeIdViaLeaderSymbol(char seventhChar, List<IssuanceMode> issuanceModes, String defaultId) {
+      IssuanceModeEnum issuanceMode = matchSymbolToIssuanceMode(seventhChar);
+      return findIssuanceModeId(issuanceModes, issuanceMode, defaultId);
+    }
   };
+
+  public IssuanceModeEnum matchSymbolToIssuanceMode(char symbol) {
+    for(IssuanceModeEnum issuanceMode : IssuanceModeEnum.values()) {
+      for (int i = 0; i < issuanceMode.getSymbols().length; i++) {
+        if(issuanceMode.getSymbols()[i] == symbol) {
+          return issuanceMode;
+        }
+      }
+    }
+    return IssuanceModeEnum.UNSPECIFIED;
+  }
 
   private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 }

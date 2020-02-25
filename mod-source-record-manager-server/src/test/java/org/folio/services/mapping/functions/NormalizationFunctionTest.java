@@ -12,6 +12,7 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.IssuanceMode;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.folio.services.mappers.processor.parameters.MappingParameters;
 import org.junit.Test;
@@ -651,4 +652,66 @@ public class NormalizationFunctionTest {
     assertEquals(STUB_FIELD_TYPE_ID, actualAlternativeTitleTypeId);
   }
 
+  @Test
+  public void SET_ISSUANCE_MODE_ID_shouldReturnExpectedResult() {
+    // given
+    String expectedIssuanceModeId = UUID.randomUUID().toString();
+    IssuanceMode issuanceMode = new IssuanceMode()
+      .withId(expectedIssuanceModeId)
+      .withName("serial");
+
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("aa ac bcdddmmmbsi");
+    context.setMappingParameters(new MappingParameters().withIssuanceModes(Collections.singletonList(issuanceMode)));
+    // when
+    String actualIssuanceModeId = runFunction("set_issuance_mode_id", context);
+    // then
+    assertEquals(expectedIssuanceModeId, actualIssuanceModeId);
+  }
+
+  @Test
+  public void SET_ISSUANCE_MODE_ID_shouldReturnUnspecifiedIssuanceModeIdIfNoMatchedExists() {
+    // given
+    String expectedIssuanceModeId = UUID.randomUUID().toString();
+    IssuanceMode issuanceMode = new IssuanceMode()
+      .withId(expectedIssuanceModeId)
+      .withName("unspecified");
+
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("zzzzzzzzzz");
+    context.setMappingParameters(new MappingParameters().withIssuanceModes(Collections.singletonList(issuanceMode)));
+    // when
+    String actualIssuanceModeId = runFunction("set_issuance_mode_id", context);
+    // then
+    assertEquals(expectedIssuanceModeId, actualIssuanceModeId);
+  }
+
+  @Test
+  public void SET_ISSUANCE_MODE_ID_shouldReturnEmptyStringIfNoMatchedExistsAndUnspecifiedIssuanceModeIdNotExists() {
+    // given
+    String expectedIssuanceModeId = UUID.randomUUID().toString();
+    IssuanceMode issuanceMode = new IssuanceMode()
+      .withId(expectedIssuanceModeId)
+      .withName("single unit");
+
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setSubFieldValue("zzzzzzzzzz");
+    context.setMappingParameters(new MappingParameters().withIssuanceModes(Collections.singletonList(issuanceMode)));
+    // when
+    String actualIssuanceModeId = runFunction("set_issuance_mode_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualIssuanceModeId);
+  }
+
+  @Test
+  public void SET_ISSUANCE_MODE_ID_shouldReturnEmptyStringIfNoSettingsSpecified() {
+    // given
+    RuleExecutionContext context = new RuleExecutionContext();
+    context.setMappingParameters(new MappingParameters());
+    context.setSubFieldValue("aa ac ccdddmmmbsi");
+    // when
+    String actualIssuanceModeId = runFunction("set_issuance_mode_id", context);
+    // then
+    assertEquals(StringUtils.EMPTY, actualIssuanceModeId);
+  }
 }

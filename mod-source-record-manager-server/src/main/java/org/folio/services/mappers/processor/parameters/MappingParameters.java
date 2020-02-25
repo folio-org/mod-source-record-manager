@@ -10,6 +10,7 @@ import org.folio.rest.jaxrs.model.IdentifierType;
 import org.folio.rest.jaxrs.model.InstanceFormat;
 import org.folio.rest.jaxrs.model.InstanceNoteType;
 import org.folio.rest.jaxrs.model.InstanceType;
+import org.folio.rest.jaxrs.model.IssuanceMode;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class MappingParameters {
   private UnmodifiableList<ContributorNameType> contributorNameTypes;
   private UnmodifiableList<InstanceNoteType> instanceNoteTypes;
   private UnmodifiableList<AlternativeTitleType> alternativeTitleTypes;
+  private UnmodifiableList<IssuanceMode> issuanceModes;
 
   public boolean isInitialized() {
     return initializedState;
@@ -116,6 +118,15 @@ public class MappingParameters {
 
   public MappingParameters withAlternativeTitleTypes(List<AlternativeTitleType> alternativeTitleTypes) {
     this.alternativeTitleTypes = new UnmodifiableList<>(alternativeTitleTypes);
+    return this;
+  }
+
+  public UnmodifiableList<IssuanceMode> getIssuanceModes() {
+    return issuanceModes;
+  }
+
+  public MappingParameters withIssuanceModes(List<IssuanceMode> issuanceModes) {
+    this.issuanceModes = new UnmodifiableList<>(issuanceModes);
     return this;
   }
 }

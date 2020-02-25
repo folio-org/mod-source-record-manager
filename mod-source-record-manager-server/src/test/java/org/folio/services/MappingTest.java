@@ -58,7 +58,7 @@ public class MappingTest {
       Validator validator = factory.getValidator();
       Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
       Assert.assertTrue(violations.isEmpty());
-      Assert.assertEquals(JsonObject.mapFrom(instance).put("id", "0").encode(), instances.getJsonObject(i).encode());
+      Assert.assertEquals(instances.getJsonObject(i).encode(), JsonObject.mapFrom(instance).put("id", "0").encode());
       i++;
     }
   }
