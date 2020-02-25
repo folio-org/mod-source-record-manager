@@ -46,7 +46,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.CREATED_SRS_MARC_BIB_RECORD;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
@@ -138,7 +138,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       DataImportEventPayload dataImportEventPayload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
       context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
       context.assertNotNull(dataImportEventPayload.getCurrentNode());
-      context.assertEquals(CREATED_SRS_MARC_BIB_RECORD.value(), dataImportEventPayload.getEventType());
+      context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
       context.assertNotNull(dataImportEventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value()));
       async.complete();
     });
