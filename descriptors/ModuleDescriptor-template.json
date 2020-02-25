@@ -77,6 +77,10 @@
     {
       "id": "data-import-converter-storage",
       "version": "1.2"
+    },
+    {
+      "id": "modes-of-issuance",
+      "version": "1.1"
     }
   ],
   "provides": [
@@ -161,6 +165,7 @@
             "inventory-storage.contributor-name-types.collection.get",
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.modes-of-issuance.collection.get",
             "pubsub.publish.post",
             "converter-storage.jobprofilesnapshots.get"
           ]
