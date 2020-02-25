@@ -360,7 +360,7 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     @Override
     public String apply(RuleExecutionContext context) {
       String subFieldValue = context.getSubFieldValue();
-      char seventhChar = subFieldValue.charAt(6);
+      char seventhChar = subFieldValue.charAt(6); //Regarding "MODSOURMAN-203" is should be 7-th symbol.
       List<IssuanceMode> issuanceModes = context.getMappingParameters().getIssuanceModes();
       if (issuanceModes == null || issuanceModes.isEmpty()) {
         return StringUtils.EMPTY;
@@ -372,34 +372,28 @@ public enum NormalizationFunction implements Function<RuleExecutionContext, Stri
     private String findIssuanceModeId(List<IssuanceMode> issuanceModes, IssuanceModeEnum issuanceModeType,
                                       String defaultId) {
       return issuanceModes.stream()
-        .filter(issuanceMode -> issuanceMode.getName().equals(issuanceModeType.getValue()))
+        .filter(issuanceMode -> issuanceMode.getName().equalsIgnoreCase(issuanceModeType.getValue()))
         .findFirst()
         .map(IssuanceMode::getId)
         .orElse(defaultId);
     }
 
     private String matchIssuanceModeIdViaLeaderSymbol(char seventhChar, List<IssuanceMode> issuanceModes, String defaultId) {
-      String resultIssuanceModeId;
-      switch (seventhChar) {
-        case 'a':
-        case 'c':
-        case 'd':
-        case 'm':
-          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.SINGLE_UNIT, defaultId);
-          break;
-        case 'b':
-        case 's':
-          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.SERIAL, defaultId);
-          break;
-        case 'i':
-          resultIssuanceModeId = findIssuanceModeId(issuanceModes, IssuanceModeEnum.INTEGRATING_RESOURCE, defaultId);
-          break;
-        default:
-          resultIssuanceModeId = defaultId;
-      }
-      return resultIssuanceModeId;
+      IssuanceModeEnum issuanceMode = matchSymbolToIssuanceMode(seventhChar);
+      return findIssuanceModeId(issuanceModes, issuanceMode, defaultId);
     }
   };
+
+  public IssuanceModeEnum matchSymbolToIssuanceMode(char symbol) {
+    for(IssuanceModeEnum issuanceMode : IssuanceModeEnum.values()) {
+      for (int i = 0; i < issuanceMode.getSymbols().length; i++) {
+        if(issuanceMode.getSymbols()[i] == symbol) {
+          return issuanceMode;
+        }
+      }
+    }
+    return IssuanceModeEnum.UNSPECIFIED;
+  }
 
   private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 }

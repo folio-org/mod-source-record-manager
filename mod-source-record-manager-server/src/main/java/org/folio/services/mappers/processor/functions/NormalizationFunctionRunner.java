@@ -1,6 +1,8 @@
 package org.folio.services.mappers.processor.functions;
 
 import com.google.common.base.Splitter;
+
+import org.apache.commons.lang.StringUtils;
 import org.folio.services.mappers.processor.RuleExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,11 @@ public class NormalizationFunctionRunner {
    */
   public static String runFunction(String functionName, RuleExecutionContext ruleExecutionContext) {
     try {
-      return NormalizationFunction.valueOf(functionName.trim().toUpperCase()).apply(ruleExecutionContext);
+      String result = NormalizationFunction.valueOf(functionName.trim().toUpperCase()).apply(ruleExecutionContext);
+      if(result.equals(StringUtils.EMPTY)){
+        LOGGER.debug("Result of {} function is empty", functionName);
+      }
+      return result;
     } catch (RuntimeException e) {
       LOGGER.error("Error while running normalization functions", e);
       return ruleExecutionContext.getSubFieldValue();
