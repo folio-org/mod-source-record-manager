@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -120,7 +121,6 @@ public class MappingParametersProvider {
           .withInstanceNoteTypes(instanceNoteTypesFuture.result())
           .withAlternativeTitleTypes(alternativeTitleTypesFuture.result())
           .withIssuanceModes(issuanceModesFuture.result())
-
       );
   }
 
@@ -323,19 +323,19 @@ public class MappingParametersProvider {
    * @return List of Issuance modes
    */
   private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params){
-    Future<List<IssuanceMode>> future = Future.future();
+    Promise<List<IssuanceMode>> promise = Promise.promise();
     RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
           List<IssuanceMode> issuanceModes = response.mapTo(IssuanceModes.class).getIssuanceModes();
-          future.complete(issuanceModes);
+          promise.complete(issuanceModes);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
