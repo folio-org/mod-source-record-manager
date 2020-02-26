@@ -5,6 +5,22 @@
       "description": "The human readable ID",
       "subfield": [],
       "rules": []
+    },
+    {
+      "target": "modeOfIssuanceId",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Issuance mode based on 7 leader`s byte",
+          "conditions": [
+            {
+              "type": "set_issuance_mode_id",
+              "LDR": true
+            }
+          ]
+        }
+      ]
     }
   ],
   "008": [
