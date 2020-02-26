@@ -1,7 +1,7 @@
 {
   "publications": [
     {
-      "eventType": "CREATED_SRS_MARC_BIB_RECORD",
+      "eventType": "DI_SRS_MARC_BIB_RECORD_CREATED",
       "description": "Created SRS Marc Bibliographic Record",
       "eventTTL": 1,
       "signed": false
@@ -9,11 +9,11 @@
   ],
   "subscriptions": [
     {
-      "eventType": "CREATED_INVENTORY_INSTANCE",
+      "eventType": "DI_INVENTORY_INSTANCE_CREATED",
       "callbackAddress": "/change-manager/handlers/created-inventory-instance"
     },
     {
-      "eventType": "DATA_IMPORT_ERROR",
+      "eventType": "DI_ERROR",
       "callbackAddress": "/change-manager/handlers/data-import-error"
     }
   ]

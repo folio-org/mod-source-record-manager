@@ -29,7 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.CREATED_SRS_MARC_BIB_RECORD;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 
 @Service("eventDrivenChunkProcessingService")
@@ -103,14 +103,14 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(CREATED_SRS_MARC_BIB_RECORD.value())
+      .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withContext(dataImportEventPayloadContext);
 
     Event createdRecordEvent = new Event()
       .withId(UUID.randomUUID().toString())
-      .withEventType(CREATED_SRS_MARC_BIB_RECORD.value())
+      .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
       .withEventPayload(Json.encode(dataImportEventPayload))
       .withEventMetadata(new EventMetadata()
         .withTenantId(params.getTenantId())
