@@ -5,6 +5,8 @@
 * Exposed json schemas api
 * Added module registration as publisher/subscriber to mod-pubsub
 * Added mode of issuance mapping mechanism
+* Updated mapping for instance identifier types and unspecified instance type
+* Added JobExecutionProgress service
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
