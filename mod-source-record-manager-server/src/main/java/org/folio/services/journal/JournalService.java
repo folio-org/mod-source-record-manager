@@ -22,11 +22,19 @@ public interface JournalService {
   }
 
   /**
+   * Saves {@link org.folio.rest.jaxrs.model.JournalRecord} entity regarding event payload which was received
+   *
+   * @param journalRecord - journal record, which will be saved
+   * @param tenantId - tenant id
+   */
+  void saveJournalRecord(JsonObject journalRecord, String tenantId);
+
+  /**
    * Saves set of {@link org.folio.rest.jaxrs.model.JournalRecord} entities
    *
    * @param journalRecords json array that contains journalRecords as json objects
    * @param tenantId       tenant id
    * @throws IllegalArgumentException if the JournalRecord json from journalRecords cannot be mapped to JournalRecord entity
    */
-  void save(JsonArray journalRecords, String tenantId);
+  void saveBatchJournalRecords(JsonArray journalRecords, String tenantId);
 }

@@ -15,6 +15,10 @@
     {
       "eventType": "DI_ERROR",
       "callbackAddress": "/change-manager/handlers/data-import-error"
+    },
+    {
+      "eventType": "DI_INVENTORY_INSTANCE_CREATED",
+      "callbackAddress": "/change-manager/handlers/created-inventory-instance"
     }
   ]
 }

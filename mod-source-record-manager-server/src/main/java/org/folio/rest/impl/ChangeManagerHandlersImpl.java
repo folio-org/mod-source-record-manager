@@ -5,19 +5,32 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+
+import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.ExceptionHelper;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
+import org.folio.rest.tools.utils.ObjectMapperTool;
+import org.folio.rest.util.OkapiConnectionParams;
+import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
+
 import java.util.Map;
 
 public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerHandlersImpl.class);
 
-  public ChangeManagerHandlersImpl(Vertx vertx, String tenantId) { //NOSONAR
+  private JournalService journalService;
+
+  public ChangeManagerHandlersImpl(Vertx vertx, String tenantId, @Autowired JournalService journalService) { //NOSONAR
+    this.journalService = JournalService.createProxy(vertx);
   }
 
   @Override
@@ -25,10 +38,14 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
                                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        // endpoint will be implemented in https://issues.folio.org/browse/MODSOURMAN-241
         LOGGER.info("Event was received: {}", entity);
         Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond200())
           .setHandler(asyncResultHandler);
+        DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
+        JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE);
+
+        journalService.saveJournalRecord(JsonObject.mapFrom(journalRecord),
+          new OkapiConnectionParams(okapiHeaders, vertxContext.owner()).getTenantId());
       } catch (Exception e) {
         LOGGER.error("Failed to handle event", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
