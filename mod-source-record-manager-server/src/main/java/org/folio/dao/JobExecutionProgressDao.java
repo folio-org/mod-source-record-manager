@@ -15,11 +15,11 @@ public interface JobExecutionProgressDao {
   /**
    * Searches for jobExecutionProgress by {@link JobExecution} id
    *
-   * @param jobExectuionId jobExectuion id
+   * @param jobExecutionId jobExecution id
    * @param tenantId       tenant id
    * @return future with jobExecutionProgress
    */
-  Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExectuionId, String tenantId);
+  Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
    * Saves jobExecutionProgress entity to database

@@ -11,7 +11,6 @@ import io.vertx.ext.sql.UpdateResult;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.cql2pgjson.CQL2PgJSON;
 import org.folio.cql2pgjson.exception.FieldException;
-import org.folio.cql2pgjson.exception.QueryValidationException;
 import org.folio.cql2pgjson.model.SqlSelect;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
@@ -20,7 +19,6 @@ import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.rest.persist.cql.CQLQueryValidationException;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.folio.rest.tools.utils.ObjectMapperTool;
@@ -85,7 +83,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       if (StringUtils.isNotEmpty(query)) {
         cqlQuery.append(" and ").append(query);
       }
-      SqlSelect sqlSelect = getSqlSelect(TABLE_NAME, cqlQuery.toString());
+      SqlSelect sqlSelect = new CQL2PgJSON(TABLE_NAME + ".jsonb").toSql(cqlQuery.toString());
       String preparedQuery = prepareQueryGetJobWithoutParentMultiple(sqlSelect, limit, offset, convertToPsqlStandard(tenantId));
       pgClientFactory.createInstance(tenantId).select(preparedQuery, promise);
     } catch (Exception e) {
@@ -171,12 +169,12 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId) {
     Promise<JobExecution> promise = Promise.promise();
     String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId;
-    Promise<SQLConnection> tx = Promise.promise();
+    Promise<SQLConnection> connection = Promise.promise();
     Future<JobExecution> jobExecutionFuture = Future.future();
     Future.succeededFuture()
       .compose(v -> {
-        pgClientFactory.createInstance(tenantId).startTx(tx);
-        return tx.future();
+        pgClientFactory.createInstance(tenantId).startTx(connection);
+        return connection.future();
       }).compose(v -> {
       StringBuilder selectJobExecutionQuery = new StringBuilder("SELECT jsonb FROM ")
         .append(PostgresClient.convertToPsqlStandard(tenantId))
@@ -185,7 +183,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .append(" WHERE id ='")
         .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
       Promise<UpdateResult> selectResult = Promise.promise();
-      pgClientFactory.createInstance(tenantId).execute(tx.future(), selectJobExecutionQuery.toString(), selectResult);
+      pgClientFactory.createInstance(tenantId).execute(connection.future(), selectJobExecutionQuery.toString(), selectResult);
       return selectResult.future();
     }).compose(selectResult -> {
       if (selectResult.getUpdated() != 1) {
@@ -193,7 +191,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       }
       Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId);
       Promise<Results<JobExecution>> jobExecResult = Promise.promise();
-      pgClientFactory.createInstance(tenantId).get(tx.future(), TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
+      pgClientFactory.createInstance(tenantId).get(connection.future(), TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
       return jobExecResult.future();
     }).compose(jobExecResult -> {
       if (jobExecResult.getResults().size() != 1) {
@@ -210,18 +208,18 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         throw new RuntimeException(e);
       }
       Promise<UpdateResult> updateHandler = Promise.promise();
-      pgClientFactory.createInstance(tenantId).update(tx.future(), TABLE_NAME, jobExecution, filter, true, updateHandler);
+      pgClientFactory.createInstance(tenantId).update(connection.future(), TABLE_NAME, jobExecution, filter, true, updateHandler);
       return updateHandler.future();
     }).compose(updateHandler -> {
       if (updateHandler.getUpdated() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
       Promise<Void> endTxFuture = Promise.promise();
-      pgClientFactory.createInstance(tenantId).endTx(tx.future(), endTxFuture);
+      pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
       return endTxFuture.future();
     }).setHandler(v -> {
       if (v.failed()) {
-        pgClientFactory.createInstance(tenantId).rollbackTx(tx.future(), rollback -> promise.fail(v.cause()));
+        pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(v.cause()));
         return;
       }
       promise.complete(jobExecutionFuture.result());
@@ -234,14 +232,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Promise<UpdateResult> promise = Promise.promise();
     pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, jobExecutionId, promise);
     return promise.future().map(updateResult -> updateResult.getUpdated() == 1);
-  }
-
-  private SqlSelect getSqlSelect(String tableName, String cql) throws FieldException {
-    try {
-      return new CQL2PgJSON(tableName + ".jsonb").toSql(cql);
-    } catch (QueryValidationException e) {
-      throw new CQLQueryValidationException(e);
-    }
   }
 
   private String prepareQueryGetJobWithoutParentMultiple(SqlSelect sqlSelect, int limit, int offset, String schemaName) {

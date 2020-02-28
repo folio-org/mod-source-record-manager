@@ -38,9 +38,9 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExectuionId, String tenantId) {
+  public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<Results<JobExecutionProgress>> promise = Promise.promise();
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExectuionId);
+    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
     pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true,false, promise);
     return promise.future()
       .map(Results::getResults)
