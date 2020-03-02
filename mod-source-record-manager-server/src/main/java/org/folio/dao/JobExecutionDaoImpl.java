@@ -29,7 +29,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.NotFoundException;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,12 +66,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   @PostConstruct
   public void init() {
-    try {
-      getJobsWithoutParentMultipleSql = ResourceUtil.asString(GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH);
-    } catch (UncheckedIOException e) {
-      LOGGER.error("Error while reading query from file {}", GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH, e);
-      throw e;
-    }
+    getJobsWithoutParentMultipleSql = ResourceUtil.asString(GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH);
   }
 
   @Override
