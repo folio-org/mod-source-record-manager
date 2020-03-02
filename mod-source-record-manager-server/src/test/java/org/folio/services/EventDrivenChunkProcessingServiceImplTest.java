@@ -5,12 +5,12 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -23,13 +23,12 @@ import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.journal.JournalService;
+import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -53,6 +52,7 @@ import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
 
@@ -65,8 +65,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private Vertx vertx = Vertx.vertx();
   @Spy
   PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
-  @Mock
-  JournalService journalService;
   @Spy
   @InjectMocks
   JobExecutionDaoImpl jobExecutionDao;
@@ -76,6 +74,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   @Spy
   JobExecutionServiceImpl jobExecutionService;
+  @InjectMocks
+  @Spy
+  JobExecutionProgressDaoImpl jobExecutionProgressDao;
+  @Spy
+  @InjectMocks
+  JobExecutionProgressServiceImpl jobExecutionProgressService;
 
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
@@ -90,6 +94,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     .withRecordsMetadata(new RecordsMetadata()
       .withLast(false)
       .withCounter(15)
+      .withTotal(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
     .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD)));
 
@@ -102,9 +107,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, vertx);
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService);
-
-    Mockito.doNothing().when(journalService).save(isA(JsonArray.class), isA(String.class));
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
@@ -128,6 +131,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
 
       verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));

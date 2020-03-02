@@ -8,16 +8,18 @@ import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.DataImportEventPayload;
-import org.folio.ProfileSnapshotWrapper;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.tools.PomReader;
+import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,25 +33,43 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
 
   private ChangeEngineService changeEngineService;
+  private JobExecutionProgressService jobExecutionProgressService;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
-                                               @Autowired ChangeEngineService changeEngineService) {
+                                               @Autowired ChangeEngineService changeEngineService,
+                                               @Autowired JobExecutionProgressService jobExecutionProgressService) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
+    this.jobExecutionProgressService = jobExecutionProgressService;
   }
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
-    return checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params)
-      .compose(jobExecution -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExecution, sourceChunk.getId(), params))
+    return initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
+      .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params));
+  }
+
+  private Future<Boolean> initializeJobExecutionProgressIfNecessary(String jobExecutionId, RawRecordsDto incomingChunk, String tenantId) {
+    return jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExecution -> {
+          JobExecution.Status jobStatus = jobExecution.getStatus();
+          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || ERROR.value().equals(jobStatus.value())) {
+            return Future.succeededFuture(true);
+          }
+          return jobExecutionProgressService.initializeJobExecutionProgress(jobExecution.getId(), incomingChunk.getRecordsMetadata().getTotal(), tenantId).map(true);
+        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
   /**
