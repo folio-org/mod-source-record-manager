@@ -15,12 +15,14 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.rest.util.OkapiConnectionParams;
+import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
@@ -29,7 +31,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
   private JournalService journalService;
 
-  public ChangeManagerHandlersImpl(Vertx vertx, String tenantId, @Autowired JournalService journalService) { //NOSONAR
+  public ChangeManagerHandlersImpl(Vertx vertx, String tenantId) { //NOSONAR
     this.journalService = JournalService.createProxy(vertx);
   }
 
@@ -46,7 +48,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
         journalService.saveJournalRecord(JsonObject.mapFrom(journalRecord),
           new OkapiConnectionParams(okapiHeaders, vertxContext.owner()).getTenantId());
-      } catch (Exception e) {
+      } catch (IOException | JournalRecordMapperException e) {
         LOGGER.error("Failed to handle event", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
