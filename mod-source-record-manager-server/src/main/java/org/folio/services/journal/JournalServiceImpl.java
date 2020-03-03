@@ -24,13 +24,13 @@ public class JournalServiceImpl implements JournalService {
   }
 
   @Override
-  public void saveJournalRecord(JsonObject journalRecord, String tenantId) {
+  public void save(JsonObject journalRecord, String tenantId) {
     JournalRecord record = journalRecord.mapTo(JournalRecord.class);
     journalRecordDao.save(record, tenantId);
   }
 
   @Override
-  public void saveBatchJournalRecords(JsonArray journalRecords, String tenantId) {
+  public void saveBatch(JsonArray journalRecords, String tenantId) {
     for (int i = 0; i < journalRecords.size(); i++) {
       JournalRecord journalRecord = journalRecords.getJsonObject(i).mapTo(JournalRecord.class);
       journalRecordDao.save(journalRecord, tenantId);

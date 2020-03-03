@@ -104,7 +104,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, vertx);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService);
 
-    Mockito.doNothing().when(journalService).saveBatchJournalRecords(isA(JsonArray.class), isA(String.class));
+    Mockito.doNothing().when(journalService).saveBatch(isA(JsonArray.class), isA(String.class));
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());

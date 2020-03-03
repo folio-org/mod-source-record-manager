@@ -13,6 +13,9 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 
+/**
+ * Journal util class for building specific 'JournalRecord'-objects, based on parameters.
+ */
 public class JournalUtil {
 
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle CREATED_INVENTORY_INSTANCE event, because event payload context does not contain INSTANCE and/or MARC_BIBLIOGRAPHIC data";

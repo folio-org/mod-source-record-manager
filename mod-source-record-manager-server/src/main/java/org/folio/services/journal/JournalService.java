@@ -27,7 +27,7 @@ public interface JournalService {
    * @param journalRecord - journal record, which will be saved
    * @param tenantId - tenant id
    */
-  void saveJournalRecord(JsonObject journalRecord, String tenantId);
+  void save(JsonObject journalRecord, String tenantId);
 
   /**
    * Saves set of {@link org.folio.rest.jaxrs.model.JournalRecord} entities
@@ -36,5 +36,5 @@ public interface JournalService {
    * @param tenantId       tenant id
    * @throws IllegalArgumentException if the JournalRecord json from journalRecords cannot be mapped to JournalRecord entity
    */
-  void saveBatchJournalRecords(JsonArray journalRecords, String tenantId);
+  void saveBatch(JsonArray journalRecords, String tenantId);
 }
