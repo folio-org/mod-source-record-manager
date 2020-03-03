@@ -17,22 +17,23 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
+import org.folio.rest.tools.PomReader;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.rest.util.OkapiConnectionParams;
-import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.util.pubsub.PubSubClientUtils;
 
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerHandlersImpl.class);
   private static final String INVENTORY_INSTANCE_CREATED_ERROR_MSG = "Failed to process: DI_INVENTORY_INSTANCE_CREATED";
+  private static final String DI_ERROR_EVENT_TYPE = "DI_ERROR";
 
   private JournalService journalService;
 
@@ -52,8 +53,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE);
         journalService.saveJournalRecord(JsonObject.mapFrom(journalRecord),
           new OkapiConnectionParams(okapiHeaders, vertxContext.owner()).getTenantId());
-      } catch (IOException | JournalRecordMapperException e) {
-        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      } catch (Exception e) {
         LOGGER.error("Failed to handle event", e);
         Event errorEvent = buildErrorEvent(okapiHeaders.get(OKAPI_TENANT_HEADER), INVENTORY_INSTANCE_CREATED_ERROR_MSG);
         publishEvent(okapiHeaders, asyncResultHandler, vertxContext, errorEvent);
@@ -78,10 +78,12 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   }
 
   private Event buildErrorEvent(String okapiHeaders, String eventPayload) {
-    return new Event().withEventType("DI_ERROR")
+    return new Event()
+      .withId(String.valueOf(UUID.randomUUID()))
+      .withEventType(DI_ERROR_EVENT_TYPE)
       .withEventPayload(eventPayload)
       .withEventMetadata(new EventMetadata()
-        .withPublishedBy("mod-source-record-manager")
+        .withPublishedBy(PomReader.INSTANCE.getModuleName() + "-" + PomReader.INSTANCE.getVersion())
         .withTenantId(okapiHeaders)
         .withEventTTL(1));
   }

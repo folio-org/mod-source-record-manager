@@ -26,8 +26,7 @@ public class JournalServiceImpl implements JournalService {
   @Override
   public void saveJournalRecord(JsonObject journalRecord, String tenantId) {
     JournalRecord record = journalRecord.mapTo(JournalRecord.class);
-    Future<String> savedId = journalRecordDao.save(record, tenantId);
-    LOGGER.info("journal record with id: {} was saved", savedId.result());
+    journalRecordDao.save(record, tenantId);
   }
 
   @Override

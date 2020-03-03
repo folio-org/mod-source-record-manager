@@ -15,7 +15,7 @@ import org.folio.rest.tools.utils.ObjectMapperTool;
 
 public class JournalUtil {
 
-  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle CREATED_INVENTORY_INSTANCE event, cause event payload context does not contain INSTANCE and/or MARC_BIBLIOGRAPHIC data";
+  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle CREATED_INVENTORY_INSTANCE event, because event payload context does not contain INSTANCE and/or MARC_BIBLIOGRAPHIC data";
   private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
 
   private JournalUtil(){
