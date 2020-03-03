@@ -2014,27 +2014,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
-    jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
-    jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
-    jobExec.setStartedDate(new Date());
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
-    WireMock.stubFor(post(PUBSUB_PUBLISH_URL)
-      .willReturn(WireMock.noContent()));
-
     Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(jobExec)
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK).log().all();
-    async.complete();
-
-    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -2066,7 +2050,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
     async.complete();
 
