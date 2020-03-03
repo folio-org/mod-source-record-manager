@@ -24,7 +24,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.TestUtil;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
@@ -35,6 +34,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
@@ -57,10 +57,10 @@ import java.util.stream.Collectors;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -70,6 +70,7 @@ public abstract class AbstractRestTest {
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
+  private static final String JOB_EXECUTION_PROGRESS_TABLE = "job_execution_progress";
   private static final String TOKEN = "token";
   private static final String HTTP_PORT = "http.port";
   private static int port;
@@ -268,12 +269,13 @@ public abstract class AbstractRestTest {
     PostgresClient pgClient = PostgresClient.getInstance(vertx, TENANT_ID);
     pgClient.delete(CHUNKS_TABLE_NAME, new Criterion(), event1 ->
       pgClient.delete(JOURNAL_RECORDS_TABLE, new Criterion(), event2 ->
-        pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event3 -> {
-          if (event2.failed()) {
-            context.fail(event2.cause());
-          }
-          async.complete();
-        })));
+        pgClient.delete(JOB_EXECUTION_PROGRESS_TABLE, new Criterion(), event3 ->
+          pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event4 -> {
+            if (event3.failed()) {
+              context.fail(event3.cause());
+            }
+            async.complete();
+          }))));
   }
 
   protected InitJobExecutionsRsDto constructAndPostInitJobExecutionRqDto(int filesNumber) {

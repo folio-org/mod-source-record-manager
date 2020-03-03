@@ -21,6 +21,18 @@
       "tableName": "mapping_rules",
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
       "withMetadata": false
+    },
+    {
+      "tableName": "job_execution_progress",
+      "fromModuleVersion": "mod-source-record-manager-2.1.0",
+      "withMetadata": false,
+      "foreignKeys": [
+        {
+          "fieldName": "jobExecutionId",
+          "targetTable": "job_executions",
+          "tOps": "ADD"
+        }
+      ]
     }
   ],
   "scripts": [

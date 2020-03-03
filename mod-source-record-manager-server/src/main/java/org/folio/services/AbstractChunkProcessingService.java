@@ -34,7 +34,6 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       .withCreatedDate(new Date());
 
     return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(records -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params));
   }
 
