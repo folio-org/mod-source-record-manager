@@ -8,18 +8,13 @@ import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 import org.folio.DataImportEventPayload;
-import org.folio.rest.impl.ChangeManagerHandlersImpl;
 import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-
 public class JournalUtil {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerHandlersImpl.class);
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle CREATED_INVENTORY_INSTANCE event, cause event payload context does not contain INSTANCE and/or MARC_BIBLIOGRAPHIC data";
   private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
 
