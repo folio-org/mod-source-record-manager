@@ -845,6 +845,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldReturnBadRequestOnPostWhenNoDtoPassedInBody() {
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(new JsonObject().toString())
       .when()
       .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
@@ -856,6 +857,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   public void shouldReturnErrorOnPostRawRecordsWhenJobExecutionDoesNotExist() {
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
@@ -1138,6 +1140,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
@@ -1660,6 +1663,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(lastRawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
@@ -1864,6 +1868,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
@@ -1874,6 +1879,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1895,6 +1901,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
@@ -1931,6 +1938,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(rawRecordsDto)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
@@ -1941,6 +1949,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1981,6 +1990,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
