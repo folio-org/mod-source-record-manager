@@ -40,7 +40,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
       try {
         Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond200())
           .setHandler(asyncResultHandler);
-        LOGGER.info("Event was received: {}", entity);
+        LOGGER.debug("Event was received: {}", entity);
         DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);

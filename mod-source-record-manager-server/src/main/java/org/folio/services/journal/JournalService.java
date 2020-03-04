@@ -22,7 +22,7 @@ public interface JournalService {
   }
 
   /**
-   * Saves {@link org.folio.rest.jaxrs.model.JournalRecord} entity regarding event payload which was received
+   * Saves {@link org.folio.rest.jaxrs.model.JournalRecord} journal record entity
    *
    * @param journalRecord - journal record, which will be saved
    * @param tenantId - tenant id
