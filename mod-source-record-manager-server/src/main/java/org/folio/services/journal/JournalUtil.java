@@ -25,16 +25,18 @@ public class JournalUtil {
 
   }
 
-  public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload event, JournalRecord.ActionType actionType) throws JournalRecordMapperException {
+  public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload event, JournalRecord.ActionType actionType,
+                                                        JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     String instanceAsString = event.getContext().get(INSTANCE.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
     if (StringUtils.isEmpty(instanceAsString) || StringUtils.isEmpty(recordAsString)) {
       throw new JournalRecordMapperException(EVENT_HAS_NO_DATA_MSG);
     }
-    return buildJournalRecord(actionType, instanceAsString, recordAsString);
+    return buildJournalRecord(actionType, entityType, actionStatus, instanceAsString, recordAsString);
   }
 
-  private static JournalRecord buildJournalRecord(JournalRecord.ActionType actionType, String instanceAsString, String recordAsString) throws JournalRecordMapperException {
+  private static JournalRecord buildJournalRecord(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                  JournalRecord.ActionStatus actionStatus, String instanceAsString, String recordAsString) throws JournalRecordMapperException {
     try {
       Record record = ObjectMapperTool.getMapper().readValue(recordAsString, Record.class);
       Instance instance = ObjectMapperTool.getMapper().readValue(instanceAsString, Instance.class);
@@ -42,12 +44,12 @@ public class JournalUtil {
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
         .withSourceRecordOrder(record.getOrder())
-        .withEntityType(JournalRecord.EntityType.INSTANCE)
+        .withEntityType(entityType)
         .withEntityId(instance.getId())
         .withEntityHrId(instance.getHrid())
         .withActionType(actionType)
         .withActionDate(new Date())
-        .withActionStatus(JournalRecord.ActionStatus.COMPLETED);
+        .withActionStatus(actionStatus);
     } catch (IOException e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG);
     }

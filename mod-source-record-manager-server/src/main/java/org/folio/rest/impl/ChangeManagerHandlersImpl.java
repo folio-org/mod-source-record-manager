@@ -50,7 +50,8 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
           .setHandler(asyncResultHandler);
         LOGGER.info("Event was received: {}", entity);
         DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
-        JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE);
+        JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
         journalService.save(JsonObject.mapFrom(journalRecord), new OkapiConnectionParams(okapiHeaders, vertxContext.owner()).getTenantId());
       } catch (Exception e) {
         LOGGER.error("Failed to handle event", e);

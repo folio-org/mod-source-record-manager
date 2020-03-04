@@ -1,13 +1,14 @@
 package org.folio.rest.impl;
 
-import io.restassured.RestAssured;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.UUID;
+
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.UUID;
+import io.restassured.RestAssured;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class EventHandlersApiTest extends AbstractRestTest {
@@ -49,6 +50,26 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .when()
       .body(eventDataImportError.encode())
       .post(HANDLERS_DATA_IMPORT_ERROR_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+  }
+
+  @Test
+  public void shouldReturnOkIfEventPayloadIsInvalid() {
+     JsonObject invalidEvent = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("eventType", "CREATED_INVENTORY_INSTANCE")
+      .put("contexttt", "test")
+      .put("eventMetadata", new JsonObject()
+        .put("tenantId", TENANT_ID)
+        .put("eventTTL", 1)
+        .put("publishedBy", "mod-inventory"));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .body(invalidEvent.encode())
+      .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
   }
