@@ -5,16 +5,11 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 public class JournalServiceImpl implements JournalService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(JournalServiceImpl.class);
 
   @Autowired
   private JournalRecordDao journalRecordDao;
