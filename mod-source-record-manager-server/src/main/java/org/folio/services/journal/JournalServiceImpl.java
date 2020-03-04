@@ -18,6 +18,10 @@ public class JournalServiceImpl implements JournalService {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
+  public JournalServiceImpl(JournalRecordDao journalRecordDao) { //For testing purpose
+    this.journalRecordDao = journalRecordDao;
+  }
+
   @Override
   public void save(JsonObject journalRecord, String tenantId) {
     JournalRecord record = journalRecord.mapTo(JournalRecord.class);

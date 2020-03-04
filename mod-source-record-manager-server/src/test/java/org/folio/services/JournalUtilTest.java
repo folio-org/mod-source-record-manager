@@ -12,9 +12,12 @@ import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 
+@RunWith(VertxUnitRunner.class)
 public class JournalUtilTest {
 
   @Test
