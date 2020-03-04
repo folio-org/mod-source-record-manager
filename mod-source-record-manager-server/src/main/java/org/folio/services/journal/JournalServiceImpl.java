@@ -18,7 +18,7 @@ public class JournalServiceImpl implements JournalService {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
-  public JournalServiceImpl(JournalRecordDao journalRecordDao) { //For testing purpose
+  public JournalServiceImpl(JournalRecordDao journalRecordDao) {
     this.journalRecordDao = journalRecordDao;
   }
 
