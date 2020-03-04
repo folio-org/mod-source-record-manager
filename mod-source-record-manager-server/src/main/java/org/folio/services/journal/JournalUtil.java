@@ -30,7 +30,7 @@ public class JournalUtil {
     String instanceAsString = event.getContext().get(INSTANCE.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
     if (StringUtils.isEmpty(instanceAsString) || StringUtils.isEmpty(recordAsString)) {
-      throw new JournalRecordMapperException(EVENT_HAS_NO_DATA_MSG);
+      throw new JournalRecordMapperException(buildErrorMessage(event).toString());
     }
     return buildJournalRecord(actionType, entityType, actionStatus, instanceAsString, recordAsString);
   }
@@ -53,5 +53,15 @@ public class JournalUtil {
     } catch (IOException e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG);
     }
+  }
+
+  private static StringBuilder buildErrorMessage(DataImportEventPayload event) {
+    return new StringBuilder()
+      .append("Failed to handle ")
+      .append(event.getEventType())
+      .append(" event, because event payload context does not contain ")
+      .append(INSTANCE.value()).append(" and/or ")
+      .append(MARC_BIBLIOGRAPHIC.value())
+      .append(" data");
   }
 }

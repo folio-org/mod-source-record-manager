@@ -5,12 +5,6 @@
       "description": "Created SRS Marc Bibliographic Record",
       "eventTTL": 1,
       "signed": false
-    },
-    {
-      "eventType": "DI_ERROR",
-      "description": "Data import error occurred",
-      "eventTTL": 1,
-      "signed": false
     }
   ],
   "subscriptions": [
