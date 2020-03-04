@@ -92,7 +92,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
     OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
     PubSubClientUtils.sendEventMessage(event, params)
       .whenComplete((result, throwable) -> {
-        if (result) {
+        if (Boolean.TRUE.equals(result)) {
           LOGGER.info("Event published successfully: {} ", event.getEventPayload());
           asyncResultHandler.handle(Future.succeededFuture());
         } else {
