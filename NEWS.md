@@ -7,6 +7,7 @@
 * Added mode of issuance mapping mechanism
 * Updated mapping for instance identifier types and unspecified instance type
 * Added JobExecutionProgress service
+* New endpoint for saving results of instance creation to journal was added 
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|

@@ -18,7 +18,7 @@ import org.folio.rest.tools.utils.ObjectMapperTool;
  */
 public class JournalUtil {
 
-  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle CREATED_INVENTORY_INSTANCE event, because event payload context does not contain INSTANCE and/or MARC_BIBLIOGRAPHIC data";
+  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
 
   private JournalUtil(){
@@ -30,7 +30,8 @@ public class JournalUtil {
     String instanceAsString = event.getContext().get(INSTANCE.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
     if (StringUtils.isEmpty(instanceAsString) || StringUtils.isEmpty(recordAsString)) {
-      throw new JournalRecordMapperException(buildErrorMessage(event).toString());
+      throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),
+        INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
     return buildJournalRecord(actionType, entityType, actionStatus, instanceAsString, recordAsString);
   }
@@ -53,15 +54,5 @@ public class JournalUtil {
     } catch (IOException e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG);
     }
-  }
-
-  private static StringBuilder buildErrorMessage(DataImportEventPayload event) {
-    return new StringBuilder()
-      .append("Failed to handle ")
-      .append(event.getEventType())
-      .append(" event, because event payload context does not contain ")
-      .append(INSTANCE.value()).append(" and/or ")
-      .append(MARC_BIBLIOGRAPHIC.value())
-      .append(" data");
   }
 }
