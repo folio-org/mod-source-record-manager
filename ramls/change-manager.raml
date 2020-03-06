@@ -187,6 +187,11 @@ resourceTypes:
         post:
           is: [validate]
           description: "Receive chunk of raw records"
+          queryParameters:
+            defaultMapping:
+              description: Boolean value which defines a mapping
+              type: boolean
+              default: false
           body:
             application/json:
               schema: rawRecordsDto
