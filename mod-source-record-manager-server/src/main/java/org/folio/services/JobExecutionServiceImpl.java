@@ -43,6 +43,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
+import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.FILE_PROCESSING_ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 
 /**
  * Implementation of the JobExecutionService, calls JobExecutionDao to access JobExecution metadata.
@@ -182,7 +184,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .map(profileSnapshotWrapper -> jobExecution
           .withJobProfileInfo(jobProfile)
           .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
-    }, params.getTenantId());
+    }, params.getTenantId())
+      .recover(throwable ->  {
+        StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(FILE_PROCESSING_ERROR);
+        return updateJobExecutionStatus(jobExecutionId,statusDto, params)
+          .compose(ar -> Future.failedFuture(throwable));
+      });
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
@@ -463,7 +470,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param jobExecution - specific JobExecution
    */
   private void updateJobExecutionIfErrorExist(StatusDto status, JobExecution jobExecution) {
-    if (status.getStatus() == StatusDto.Status.ERROR) {
+    if (status.getStatus() == ERROR) {
       jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
       jobExecution.setCompletedDate(new Date());
       if(jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)){
