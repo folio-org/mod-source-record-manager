@@ -9,13 +9,13 @@ import io.vertx.core.json.Json;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -126,14 +126,14 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
-        payloadContext.put("jobExecutionId", jobExecution.getId());
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
         return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
       });
 
     // when
     Future<JobExecutionProgress> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(payloadContext.get("jobExecutionId"), TENANT_ID));
+      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
     jobFuture.setHandler(ar -> {
@@ -158,14 +158,14 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
-        payloadContext.put("jobExecutionId", jobExecution.getId());
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
         return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
       });
 
     // when
     Future<JobExecutionProgress> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(payloadContext.get("jobExecutionId"), TENANT_ID));
+      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
     jobFuture.setHandler(ar -> {
@@ -176,7 +176,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
 
     Async async2 = context.async();
-    jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(payloadContext.get("jobExecutionId"), TENANT_ID))
+    jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
       .setHandler(jobAr -> {
         context.assertTrue(jobAr.succeeded());
         context.assertTrue(jobAr.result().isPresent());
@@ -208,14 +208,14 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
-        payloadContext.put("jobExecutionId", jobExecution.getId());
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
         return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
       });
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> jobExecutionService.getJobExecutionById(payloadContext.get("jobExecutionId"), TENANT_ID));
+      .compose(ar -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
     jobFuture.setHandler(ar -> {
@@ -254,14 +254,17 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .map(jobExecution -> payloadContext.put("jobExecutionId", jobExecution.getId()))
-      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto,  payloadContext.get("jobExecutionId"), params));
+      .map(jobExecution -> {
+        datImpErrorEventPayload.withJobExecutionId(jobExecution.getId());
+        return datImpCompletedEventPayload.withJobExecutionId(jobExecution.getId());
+      })
+      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto,  datImpErrorEventPayload.getJobExecutionId(), params));
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpErrorEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
-      .compose(ar -> jobExecutionService.getJobExecutionById(payloadContext.get("jobExecutionId"), TENANT_ID));
+      .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
     jobFuture.setHandler(ar -> {

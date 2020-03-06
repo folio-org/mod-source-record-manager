@@ -58,7 +58,8 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   }
 
   @Override
-  public void postChangeManagerHandlersProcessingResult(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postChangeManagerHandlersProcessingResult(String entity, Map<String, String> okapiHeaders,
+                                                        Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
         LOGGER.debug("Event was received: {}", entity);
         asyncResultHandler.handle(Future.succeededFuture(ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond200()));

@@ -7,9 +7,9 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -132,6 +132,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withJobExecutionId(createdRecord.getSnapshotId())
       .withContext(dataImportEventPayloadContext);
 
     Event createdRecordEvent = new Event()
