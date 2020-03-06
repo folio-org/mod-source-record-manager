@@ -40,7 +40,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .body(eventCreatedInstance.encode())
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
@@ -51,7 +51,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .body(eventDataImportError.encode())
       .post(HANDLERS_DATA_IMPORT_PROCESSING_RESULT)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
@@ -71,6 +71,6 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .body(invalidEvent.encode())
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 }

@@ -43,7 +43,6 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
-import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.FILE_PROCESSING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 
@@ -180,17 +179,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
       if (jobExecution.getJobProfileSnapshotWrapper() != null) {
         throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
-  }
+      }
       return createJobProfileSnapshotWrapper(jobProfile, params)
         .map(profileSnapshotWrapper -> jobExecution
-    .withJobProfileInfo(jobProfile)
-    .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
-}, params.getTenantId())
-  .recover(throwable -> {
-  StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
-  return updateJobExecutionStatus(jobExecutionId, statusDto, params)
-  .compose(ar -> Future.failedFuture(throwable));
-  });
+          .withJobProfileInfo(jobProfile)
+          .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
+    }, params.getTenantId())
+      .recover(throwable -> {
+        StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
+        return updateJobExecutionStatus(jobExecutionId, statusDto, params)
+          .compose(ar -> Future.failedFuture(throwable));
+      });
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {

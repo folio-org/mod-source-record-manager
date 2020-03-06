@@ -62,13 +62,13 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   private JobExecutionProgress changeProgressAccordingToEventType(JobExecutionProgress progress, DataImportEventTypes eventType) {
     switch (eventType) {
       case DI_COMPLETED:
-        progress.withCurrentlySucceeded(progress.getCurrentlySucceeded() + 1);
-        break;
+        return progress.withCurrentlySucceeded(progress.getCurrentlySucceeded() + 1);
       case DI_ERROR:
-        progress.withCurrentlyFailed(progress.getCurrentlyFailed() + 1);
-        break;
+        return progress.withCurrentlyFailed(progress.getCurrentlyFailed() + 1);
+      default:
+        LOGGER.error("Illegal event type specified '{}' ", eventType);
+        return progress;
     }
-    return progress;
   }
 
   private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {

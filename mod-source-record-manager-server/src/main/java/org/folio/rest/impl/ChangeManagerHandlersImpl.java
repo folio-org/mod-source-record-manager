@@ -44,7 +44,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
                                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond200())
+        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204())
           .setHandler(asyncResultHandler);
         LOGGER.debug("Event was received: {}", entity);
         DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
@@ -62,7 +62,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
         LOGGER.debug("Event was received: {}", entity);
-        asyncResultHandler.handle(Future.succeededFuture(ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond200()));
+        asyncResultHandler.handle(Future.succeededFuture(ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond204()));
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         recordProcessedEventHandleService.handle(entity, params);
     });
