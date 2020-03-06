@@ -13,6 +13,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
@@ -31,9 +32,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 
 @Service("eventDrivenChunkProcessingService")
@@ -54,10 +55,15 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
-    return initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
+    Promise<Boolean> promise = Promise.promise();
+
+    initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
-      .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params));
+      .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params))
+      .setHandler(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
+        .setHandler(updateAr -> promise.handle(sendEventsAr.map(true))));
+    return promise.future();
   }
 
   private Future<Boolean> initializeJobExecutionProgressIfNecessary(String jobExecutionId, RawRecordsDto incomingChunk, String tenantId) {
@@ -65,7 +71,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           JobExecution.Status jobStatus = jobExecution.getStatus();
-          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || ERROR.value().equals(jobStatus.value())) {
+          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())) {
             return Future.succeededFuture(true);
           }
           return jobExecutionProgressService.initializeJobExecutionProgress(jobExecution.getId(), incomingChunk.getRecordsMetadata().getTotal(), tenantId).map(true);
@@ -153,5 +159,32 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         }
       });
     return promise.future();
+  }
+
+  private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, OkapiConnectionParams params) {
+    return jobExecutionSourceChunkDao.get("jobExecutionId=" + jobExecutionId + " AND last=true", 0, 1, params.getTenantId())
+      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
+      .compose(isAllChunksError -> {
+        if (isAllChunksError) {
+          StatusDto statusDto = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+          return jobExecutionProgressService.getByJobExecutionId(jobExecutionId, params.getTenantId())
+            .compose(progress -> updateJobExecutionState(jobExecutionId, progress, statusDto, params));
+        }
+        return Future.succeededFuture(false);
+      });
+  }
+
+  private Future<Boolean> updateJobExecutionState(String jobExecutionId, JobExecutionProgress progress, StatusDto statusDto, OkapiConnectionParams params) {
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(jobOptional -> jobOptional
+        .map(jobExecution -> jobExecution
+          .withStatus(JobExecution.Status.valueOf(statusDto.getStatus().value()))
+          .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusDto.getStatus().value()).getUiStatus()))
+          .withErrorStatus(JobExecution.ErrorStatus.valueOf(statusDto.getErrorStatus().value()))
+          .withProgress(jobExecution.getProgress()
+            .withCurrent(progress.getTotal())
+            .withTotal(progress.getTotal())))
+        .map(jobExecution -> jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params).map(true))
+        .orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution to update with id %s", jobExecutionId)))));
   }
 }

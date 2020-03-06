@@ -13,8 +13,12 @@
       "callbackAddress": "/change-manager/handlers/created-inventory-instance"
     },
     {
+      "eventType": "DI_COMPLETED",
+      "callbackAddress": "/change-manager/handlers/processing-result"
+    },
+    {
       "eventType": "DI_ERROR",
-      "callbackAddress": "/change-manager/handlers/data-import-error"
+      "callbackAddress": "/change-manager/handlers/processing-result"
     }
   ]
 }

@@ -17,18 +17,18 @@ traits:
 
 /change-manager/handlers:
   /created-inventory-instance:
-    description: "Handler for CREATED_INVENTORY_INSTANCE event."
+    description: "Handler for DI_INVENTORY_INSTANCE_CREATED event."
     post:
       body:
         application/json:
           type: string
       responses:
         200:
-  /data-import-error:
-      description: "Handler for DATA_IMPORT_ERROR event."
-      post:
-        body:
-          application/json:
-            type: string
-        responses:
-          200:
+  /processing-result:
+    description: "Handler for DI_COMPLETED and DI_ERROR events."
+    post:
+      body:
+        application/json:
+          type: string
+      responses:
+        200:

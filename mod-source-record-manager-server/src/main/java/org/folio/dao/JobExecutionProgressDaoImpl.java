@@ -39,6 +39,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   @Override
   public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
+
     Promise<Results<JobExecutionProgress>> promise = Promise.promise();
     Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
     pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true,false, promise);
@@ -94,7 +95,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private Future<JobExecutionProgress> updateProgressByJobExecutionId(AsyncResult<SQLConnection> tx, JobExecutionProgress progress, String tenantId) {
     Promise<UpdateResult> promise = Promise.promise();
     try {
-      String query = JOB_EXECUTION_ID_FIELD + "==" + progress.getJobExecutionId();
+      String query = "jobExecutionId==" + progress.getJobExecutionId();
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query);
       pgClientFactory.createInstance(tenantId).update(tx, TABLE_NAME, progress, cqlWrapper, true, promise);
     } catch (FieldException e) {
