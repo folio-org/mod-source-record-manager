@@ -838,7 +838,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.ERROR.value()))
-      .body("errorStatus", is(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR.value()));
+      .body("errorStatus", is(JobExecution.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR.value()));
   }
 
   @Test
