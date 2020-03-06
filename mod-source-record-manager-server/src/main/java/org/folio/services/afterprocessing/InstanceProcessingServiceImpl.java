@@ -149,11 +149,11 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               hrIdFieldService.fillHrIdFieldInMarcRecord(recordsToUpdate);
               addAdditionalFields(recordsToUpdate, okapiParams);
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
-              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
+              journalService.saveBatch(new JsonArray(journalRecords), okapiParams.getTenantId());
               promise.complete();
             } else {
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
-              journalService.save(new JsonArray(journalRecords), okapiParams.getTenantId());
+              journalService.saveBatch(new JsonArray(journalRecords), okapiParams.getTenantId());
               LOGGER.error("Can not post Instances", ar.cause());
               promise.fail(ar.cause());
             }

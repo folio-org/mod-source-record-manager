@@ -197,7 +197,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               Try.itGet(() -> {
                 List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
                 List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE);
-                journalService.save(new JsonArray(journalRecords), params.getTenantId());
+                journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
                 return createdRecords;
               })
                 .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
@@ -205,7 +205,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           );
         } else {
           List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, Collections.emptyList(), CREATE);
-          journalService.save(new JsonArray(journalRecords), params.getTenantId());
+          journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
           String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           future.fail(message);
