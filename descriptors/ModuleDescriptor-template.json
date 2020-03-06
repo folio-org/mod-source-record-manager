@@ -214,9 +214,12 @@
         },
         {
           "methods": ["POST"],
-          "pathPattern": "/change-manager/handlers/data-import-error",
+          "pathPattern": "/change-manager/handlers/processing-result",
           "permissionsRequired": [
             "source-records-manager.events.post"
+          ],
+          "modulePermissions": [
+            "source-storage.snapshots.put"
           ]
         }
       ]

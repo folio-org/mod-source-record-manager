@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -223,6 +225,41 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
       verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
       verify(2, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldMarkJobExecutionAsErrorWhenWhenFailedPostRecordsToRecordsStorage(TestContext context) {
+    Async async = context.async();
+    RawRecordsDto lastRawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(15)
+        .withTotal(15)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(rawRecordsDto.getInitialRecords());
+
+    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+      .willReturn(WireMock.serverError()));
+
+    Future<Optional<JobExecution>> jobFuture = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> chunkProcessingService.processChunk(lastRawRecordsDto, jobExecution.getId(), params).otherwise(true).map(jobExecution))
+      .compose(jobExecution -> jobExecutionService.getJobExecutionById(jobExecution.getId(), params.getTenantId()));
+
+    jobFuture.setHandler(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertTrue(ar.result().isPresent());
+      JobExecution jobExecution = ar.result().get();
+      context.assertEquals(JobExecution.Status.ERROR, jobExecution.getStatus());
+      context.assertEquals(JobExecution.UiStatus.ERROR, jobExecution.getUiStatus());
+      context.assertEquals(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR, jobExecution.getErrorStatus());
+      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
+      context.assertNotNull(jobExecution.getStartedDate());
+      context.assertNotNull(jobExecution.getCompletedDate());
+      verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
+      verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       async.complete();
     });
   }

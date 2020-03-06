@@ -14,7 +14,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class EventHandlersApiTest extends AbstractRestTest {
 
   private static final String HANDLERS_CREATED_INSTANCE_PATH = "/change-manager/handlers/created-inventory-instance";
-  private static final String HANDLERS_DATA_IMPORT_ERROR_PATH = "/change-manager/handlers/data-import-error";
+  private static final String HANDLERS_DATA_IMPORT_PROCESSING_RESULT = "/change-manager/handlers/processing-result";
 
   private JsonObject eventCreatedInstance = new JsonObject()
     .put("id", UUID.randomUUID().toString())
@@ -40,7 +40,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .body(eventCreatedInstance.encode())
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
@@ -49,9 +49,9 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .spec(spec)
       .when()
       .body(eventDataImportError.encode())
-      .post(HANDLERS_DATA_IMPORT_ERROR_PATH)
+      .post(HANDLERS_DATA_IMPORT_PROCESSING_RESULT)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
@@ -71,6 +71,6 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .body(invalidEvent.encode())
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 }

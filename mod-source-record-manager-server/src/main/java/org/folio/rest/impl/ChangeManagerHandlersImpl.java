@@ -8,18 +8,18 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
 import org.folio.DataImportEventPayload;
-import org.folio.dataimport.util.ExceptionHelper;
+import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
 import org.folio.rest.tools.utils.ObjectMapperTool;
-import org.folio.rest.util.OkapiConnectionParams;
+import org.folio.services.EventHandlingService;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
-
 import java.util.Map;
 
 public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
@@ -29,8 +29,14 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
   private JournalService journalService;
 
+  @Autowired
+  private EventHandlingService recordProcessedEventHandleService;
+  private String tenantId;
+
   public ChangeManagerHandlersImpl(Vertx vertx, String tenantId) { //NOSONAR
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
     this.journalService = JournalService.createProxy(vertx);
+    this.tenantId = tenantId;
   }
 
   @Override
@@ -38,13 +44,13 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
                                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond200())
+        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204())
           .setHandler(asyncResultHandler);
         LOGGER.debug("Event was received: {}", entity);
         DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
-        journalService.save(JsonObject.mapFrom(journalRecord), new OkapiConnectionParams(okapiHeaders, vertxContext.owner()).getTenantId());
+        journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
       } catch (Exception e) {
         LOGGER.error(INVENTORY_INSTANCE_CREATED_ERROR_MSG, e);
       }
@@ -52,18 +58,13 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   }
 
   @Override
-  public void postChangeManagerHandlersDataImportError(String entity, Map<String, String> okapiHeaders,
-                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postChangeManagerHandlersProcessingResult(String entity, Map<String, String> okapiHeaders,
+                                                        Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
-      try {
-        // endpoint will be implemented in https://issues.folio.org/browse/MODSOURMAN-244
-        LOGGER.info("Event was received: {}", entity);
-        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersDataImportErrorResponse.respond200())
-          .setHandler(asyncResultHandler);
-      } catch (Exception e) {
-        LOGGER.error("Failed to handle event", e);
-        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
-      }
+        LOGGER.debug("Event was received: {}", entity);
+        asyncResultHandler.handle(Future.succeededFuture(ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond204()));
+        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+        recordProcessedEventHandleService.handle(entity, params);
     });
   }
 }

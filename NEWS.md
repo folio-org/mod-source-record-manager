@@ -9,10 +9,13 @@
 * Added JobExecutionProgress service
 * Added defaultMapping query param to choose between default mapping and application of JobProfiles
 * New endpoint for saving results of instance creation to journal was added 
+* Implemented endpoint to handle DI_COMPLETED and DI_ERROR events.
 
- | METHOD |             URL                                    | DESCRIPTION                                         |
- |--------|----------------------------------------------------|-----------------------------------------------------|
- | GET    | /metadata-provider/journalRecords/{jobExecutionId} | Get list of the JournalRecords by jobExecution id   |
+ | METHOD |             URL                                     | DESCRIPTION                                         |
+ |--------|-----------------------------------------------------|-----------------------------------------------------|
+ | GET    | /metadata-provider/journalRecords/{jobExecutionId}  | Get list of the JournalRecords by jobExecution id   |
+ | POST   | /change-manager/handlers/created-inventory-instance | Handle event about created inventory instance        |
+ | POST   | /change-manager/handlers/processing-result          | Handle DI_COMPLETED and DI_ERROR events              |
  
 ## 2020-02-10 v2.0.2 
 * Added HrId handling on records parsing and after instance creation

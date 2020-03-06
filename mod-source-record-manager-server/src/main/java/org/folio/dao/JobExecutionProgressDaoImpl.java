@@ -94,7 +94,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private Future<JobExecutionProgress> updateProgressByJobExecutionId(AsyncResult<SQLConnection> tx, JobExecutionProgress progress, String tenantId) {
     Promise<UpdateResult> promise = Promise.promise();
     try {
-      String query = JOB_EXECUTION_ID_FIELD + "==" + progress.getJobExecutionId();
+      String query = "jobExecutionId==" + progress.getJobExecutionId();
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query);
       pgClientFactory.createInstance(tenantId).update(tx, TABLE_NAME, progress, cqlWrapper, true, promise);
     } catch (FieldException e) {
