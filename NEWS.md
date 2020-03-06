@@ -8,6 +8,7 @@
 * Updated mapping for instance identifier types and unspecified instance type
 * Added JobExecutionProgress service
 * Added defaultMapping query param to choose between default mapping and application of JobProfiles
+* New endpoint for saving results of instance creation to journal was added 
 
  | METHOD |             URL                                    | DESCRIPTION                                         |
  |--------|----------------------------------------------------|-----------------------------------------------------|
