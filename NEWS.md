@@ -1,4 +1,4 @@
-## 2019-12-04 v2.1.0-SNAPSHOT
+## 2020-03-13 v2.1.0
 * Added get journalRecords endpoint
 * Incremented RMB version
 * MatchedId filled in with the same value as recordId
