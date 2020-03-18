@@ -1,3 +1,6 @@
+## 2020-03-18 v2.1.1-SNAPSHOT
+* Updated mapping for instance type ID and instance format ID
+
 ## 2020-03-13 v2.1.0
 * Added get journalRecords endpoint
 * Incremented RMB version

@@ -35,7 +35,9 @@ public class MappingTest {
   private static final String INSTANCES_PATH = "src/test/resources/org/folio/services/mapping/instances.json";
   private static final String BIBS_PATH = "src/test/resources/org/folio/services/mapping/CornellFOLIOExemplars_Bibs.mrc";
   private static final String BIBS_ERRORS_PATH = "src/test/resources/org/folio/services/mapping/test1_err.mrc";
+  private static final String BIB_WITH_REPEATED_SUBFIELDS_PATH = "src/test/resources/org/folio/services/mapping/336_repeated_subfields.mrc";
   private static final String DEFAULT_MAPPING_RULES_PATH = "src/main/resources/rules/rules.json";
+  private static final String STUB_FIELD_TYPE_ID = "fe19bae4-da28-472b-be90-d442e2428ead";
 
   @Test
   public void testMarcToInstance() throws IOException {
@@ -85,5 +87,28 @@ public class MappingTest {
       i++;
     }
     Assert.assertEquals(50, i);
+  }
+
+  @Test
+  public void testMarcToInstanceIgnoreSubsequentSubfieldsForInstanceTypeId() throws IOException {
+    MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(TestUtil.readFileFromPath(BIB_WITH_REPEATED_SUBFIELDS_PATH).getBytes(StandardCharsets.UTF_8)));
+    JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MAPPING_RULES_PATH));
+
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    while (reader.hasNext()) {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      MarcJsonWriter writer = new MarcJsonWriter(os);
+      Record record = reader.next();
+      writer.write(record);
+      JsonObject marc = new JsonObject(new String(os.toByteArray()));
+      Instance instance = mapper.mapRecord(marc, new MappingParameters(), mappingRules);
+      Assert.assertNotNull(instance.getTitle());
+      Assert.assertNotNull(instance.getSource());
+      Assert.assertEquals(STUB_FIELD_TYPE_ID, instance.getInstanceTypeId());
+      Validator validator = factory.getValidator();
+      Set<ConstraintViolation<Instance>> violations = validator.validate(instance);
+      Assert.assertTrue(violations.isEmpty());
+    }
+
   }
 }
