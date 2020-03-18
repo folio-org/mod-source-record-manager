@@ -61,6 +61,7 @@ public class Processor {
   private final Map<String, StringBuilder> subField2Data = new HashMap<>();
   private final Map<String, String> subField2Delimiter = new HashMap<>();
   private final Set<String> ignoredSubsequentFields = new HashSet<>();
+  private final Set<Character> ignoredSubsequentSubfields = new HashSet<>();
 
   public Instance process(JsonObject record, MappingParameters mappingParameters, JsonObject mappingRules) {
     instance = null;
@@ -170,6 +171,7 @@ public class Processor {
     for (int i = 0; i < mappingRuleEntry.size(); i++) {
       JsonObject fieldRule = mappingRuleEntry.getJsonObject(i);
       if (!recordHasAllRequiredSubfields(ruleExecutionContext.getDataField(), fieldRule)) {
+        ignoredSubsequentSubfields.clear();
         return;
       }
       handleInstanceFields(fieldRule, arraysOfObjects, rememberComplexObj, ruleExecutionContext);
@@ -178,6 +180,7 @@ public class Processor {
     if (entityRequested) {
       createNewComplexObj = true;
     }
+    ignoredSubsequentSubfields.clear();
   }
 
   /**
@@ -258,7 +261,9 @@ public class Processor {
     }
 
     for (int i = 0; i < subFields.size(); i++) {
-      handleSubFields(ruleExecutionContext, subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
+      if (canHandleSubField(subFields.get(i), jObj)) {
+        handleSubFields(ruleExecutionContext, subFields, i, subFieldsSet, arraysOfObjects, applyPost, embeddedFields);
+      }
     }
 
     if (!(entityRequestedPerRepeatedSubfield && entityRequested)) {
@@ -273,6 +278,20 @@ public class Processor {
       }
     }
     instance.setId(UUID.randomUUID().toString());
+  }
+
+  private boolean canHandleSubField(Subfield subfield, JsonObject mappingRuleEntry) {
+    if (mappingRuleEntry.containsKey("ignoreSubsequentSubfields")) {
+      boolean mapFirstSubfieldOccurrence = mappingRuleEntry.getBoolean("ignoreSubsequentSubfields");
+      if (mapFirstSubfieldOccurrence) {
+        if (ignoredSubsequentSubfields.contains(subfield.getCode())) {
+          return false;
+        } else {
+          ignoredSubsequentSubfields.add(subfield.getCode());
+        }
+      }
+    }
+    return true;
   }
 
   private void handleSubFields(RuleExecutionContext ruleExecutionContext, List<Subfield> subFields, int subFieldsIndex, Set<String> subFieldsSet,

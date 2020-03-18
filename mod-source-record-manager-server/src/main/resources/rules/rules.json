@@ -1699,6 +1699,7 @@
       "target": "instanceTypeId",
       "description": "Instance type ID",
       "ignoreSubsequentFields": true,
+      "ignoreSubsequentSubfields": true,
       "subfield": [
         "b"
       ],
@@ -1720,6 +1721,7 @@
     {
       "target": "instanceFormatIds",
       "description": "Instance Format ID",
+      "ignoreSubsequentSubfields": true,
       "subfield": [
         "b"
       ],
