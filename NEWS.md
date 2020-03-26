@@ -1,5 +1,6 @@
 ## 2020-03-18 v2.1.1-SNAPSHOT
 * Updated mapping for instance type ID and instance format ID
+* Fixed duplicate languages in instance mapping.
 
 ## 2020-03-13 v2.1.0
 * Added get journalRecords endpoint
