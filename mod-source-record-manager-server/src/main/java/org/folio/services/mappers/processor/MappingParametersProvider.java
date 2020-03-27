@@ -131,19 +131,19 @@ public class MappingParametersProvider {
    * @return List of Identifier types
    */
   private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
-    Future<List<IdentifierType>> future = Future.future();
+    Promise<List<IdentifierType>> promise = Promise.promise();
     RestUtil.doRequest(params, IDENTIFIER_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
           List<IdentifierType> identifierTypeList = response.mapTo(Identifiertypes.class).getIdentifierTypes();
-          future.complete(identifierTypeList);
+          promise.complete(identifierTypeList);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -153,19 +153,19 @@ public class MappingParametersProvider {
    * @return List of Classification types
    */
   private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
-    Future<List<ClassificationType>> future = Future.future();
+    Promise<List<ClassificationType>> promise = Promise.promise();
     RestUtil.doRequest(params, CLASSIFICATION_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
           List<ClassificationType> classificationTypeList = response.mapTo(Classificationtypes.class).getClassificationTypes();
-          future.complete(classificationTypeList);
+          promise.complete(classificationTypeList);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -175,19 +175,19 @@ public class MappingParametersProvider {
    * @return List of Instance types
    */
   private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
-    Future<List<InstanceType>> future = Future.future();
+    Promise<List<InstanceType>> promise = Promise.promise();
     RestUtil.doRequest(params, INSTANCE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
           List<InstanceType> instanceTypeList = response.mapTo(Instancetypes.class).getInstanceTypes();
-          future.complete(instanceTypeList);
+          promise.complete(instanceTypeList);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -197,19 +197,19 @@ public class MappingParametersProvider {
    * @return List of Electronic Access Relationships
    */
   private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
-    Future<List<ElectronicAccessRelationship>> future = Future.future();
+    Promise<List<ElectronicAccessRelationship>> promise = Promise.promise();
     RestUtil.doRequest(params, ELECTRONIC_ACCESS_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
           List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(Electronicaccessrelationships.class).getElectronicAccessRelationships();
-          future.complete(electronicAccessRelationshipList);
+          promise.complete(electronicAccessRelationshipList);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -219,19 +219,19 @@ public class MappingParametersProvider {
    * @return List of Instance formats
    */
   private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
-    Future<List<InstanceFormat>> future = Future.future();
+    Promise<List<InstanceFormat>> promise = Promise.promise();
     RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
           List<InstanceFormat> instanceFormatList = response.mapTo(Instanceformats.class).getInstanceFormats();
-          future.complete(instanceFormatList);
+          promise.complete(instanceFormatList);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -241,19 +241,19 @@ public class MappingParametersProvider {
    * @return List of Contributor types
    */
   private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
-    Future<List<ContributorType>> future = Future.future();
+    Promise<List<ContributorType>> promise = Promise.promise();
     RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
           List<ContributorType> contributorTypes = response.mapTo(Contributortypes.class).getContributorTypes();
-          future.complete(contributorTypes);
+          promise.complete(contributorTypes);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -263,19 +263,19 @@ public class MappingParametersProvider {
    * @return List of Contributor name types
    */
   private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
-    Future<List<ContributorNameType>> future = Future.future();
+    Promise<List<ContributorNameType>> promise = Promise.promise();
     RestUtil.doRequest(params, CONTRIBUTOR_NAME_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
           List<ContributorNameType> contributorNameTypes = response.mapTo(Contributornametypes.class).getContributorNameTypes();
-          future.complete(contributorNameTypes);
+          promise.complete(contributorNameTypes);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -286,35 +286,35 @@ public class MappingParametersProvider {
    * @return List of Contributor name types
    */
   private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
-    Future<List<InstanceNoteType>> future = Future.future();
+    Promise<List<InstanceNoteType>> promise = Promise.promise();
     RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
           List<InstanceNoteType> contributorNameTypes = response.mapTo(Instancenotetypes.class).getInstanceNoteTypes();
-          future.complete(contributorNameTypes);
+          promise.complete(contributorNameTypes);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
-    Future<List<AlternativeTitleType>> future = Future.future();
+    Promise<List<AlternativeTitleType>> promise = Promise.promise();
     RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-      if (RestUtil.validateAsyncResult(ar, future)) {
+      if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
           List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(Alternativetitletypes.class).getAlternativeTitleTypes();
-          future.complete(alternativeTitleTypes);
+          promise.complete(alternativeTitleTypes);
         } else {
-          future.complete(Collections.emptyList());
+          promise.complete(Collections.emptyList());
         }
       }
     });
-    return future;
+    return promise.future();
   }
 
   /**
@@ -365,20 +365,20 @@ public class MappingParametersProvider {
      * @return mapping params for the given key
      */
     public Future<MappingParameters> get(String key, Function<MappingParameters, Future<MappingParameters>> initAction) {
-      Future<MappingParameters> future = Future.future();
+      Promise<MappingParameters> promise = Promise.promise();
       this.cache.get(key).whenComplete((mappingParameters, exception) -> {
         if (exception != null) {
-          future.fail(exception);
+          promise.fail(exception);
         } else {
           if (mappingParameters.isInitialized()) {
-            future.complete(mappingParameters);
+            promise.complete(mappingParameters);
           } else {
             // Complete future to continue with mapping even if request for MappingParameters is failed
-            initAction.apply(mappingParameters).setHandler(ar -> future.complete(mappingParameters));
+            initAction.apply(mappingParameters).setHandler(ar -> promise.complete(mappingParameters));
           }
         }
       });
-      return future;
+      return promise.future();
     }
   }
 }
