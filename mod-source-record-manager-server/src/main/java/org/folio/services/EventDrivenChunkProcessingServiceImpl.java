@@ -99,14 +99,20 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private Future<Boolean> sendEventsWithCreatedRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
-        .map(jobExecution -> {
-          ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
-          List<Future> futures = createdRecords.stream()
-            .filter(this::isRecordReadyToSend)
-            .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
-            .collect(Collectors.toList());
-          return CompositeFuture.join(futures).map(true);
-        })
+        .map(jobExecution -> getMappingParameters(jobExecutionId, params)
+          .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
+            .compose(rulesOptional -> {
+              if (rulesOptional.isPresent()) {
+                ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
+                List<Future> futures = createdRecords.stream()
+                  .filter(this::isRecordReadyToSend)
+                  .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params))
+                  .collect(Collectors.toList());
+                return CompositeFuture.join(futures).map(true);
+              } else {
+                return Future.failedFuture(format("Can not send events with created records, no mapping rules found for tenant %s", params.getTenantId()));
+              }
+            })))
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
@@ -140,16 +146,18 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    *
    * @param createdRecord          record to send
    * @param profileSnapshotWrapper profileSnapshotWrapper to send
+   * @param mappingRules           rules for default instance mapping
+   * @param mappingParameters      mapping parameters
    * @param params                 connection parameters
    * @return completed future with record if record was sent successfully
    */
-  private Future<Record> sendEventWithRecord(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper, OkapiConnectionParams params) {
+  private Future<Record> sendEventWithRecord(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper,
+                                             JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Record> promise = Promise.promise();
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
     dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
-    Optional<JsonObject> rules = mappingRuleService.get(params.getTenantId()).result();
-    rules.ifPresent(entries -> dataImportEventPayloadContext.put("MAPPING_RULES", entries.encode()));
-    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(getMappingParameters(createdRecord.getSnapshotId(), params).result()));
+    dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
+    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
