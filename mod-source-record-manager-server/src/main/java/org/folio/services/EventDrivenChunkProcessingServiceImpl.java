@@ -5,10 +5,12 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
@@ -20,6 +22,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.tools.PomReader;
+import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.NotFoundException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,14 +47,20 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
+  private MappingParametersProvider mappingParametersProvider;
+  private MappingRuleService mappingRuleService;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
                                                @Autowired ChangeEngineService changeEngineService,
-                                               @Autowired JobExecutionProgressService jobExecutionProgressService) {
+                                               @Autowired JobExecutionProgressService jobExecutionProgressService,
+                                               @Autowired MappingParametersProvider mappingParametersProvider,
+                                               @Autowired MappingRuleService mappingRuleService) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
+    this.mappingParametersProvider = mappingParametersProvider;
+    this.mappingRuleService = mappingRuleService;
   }
 
   @Override
@@ -92,10 +102,10 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         .map(jobExecution -> {
           ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
           List<Future> futures = createdRecords.stream()
-              .filter(this::isRecordReadyToSend)
-              .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
-              .collect(Collectors.toList());
-            return CompositeFuture.join(futures).map(true);
+            .filter(this::isRecordReadyToSend)
+            .map(record -> sendEventWithRecord(record, profileSnapshotWrapper, params))
+            .collect(Collectors.toList());
+          return CompositeFuture.join(futures).map(true);
         })
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
@@ -115,18 +125,31 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   /**
+   * Provides external parameters for the MARC-to-Instance mapping process
+   *
+   * @param snapshotId  - snapshotId
+   * @param okapiParams okapi connection parameters
+   * @return mapping parameters
+   */
+  private Future<MappingParameters> getMappingParameters(String snapshotId, OkapiConnectionParams okapiParams) {
+    return mappingParametersProvider.get(snapshotId, okapiParams);
+  }
+
+  /**
    * Prepares event with createdRecord, profileSnapshotWrapper and sends prepared event to the mod-pubsub
    *
-   * @param createdRecord           record to send
-   * @param profileSnapshotWrapper  profileSnapshotWrapper to send
-   * @param params                  connection parameters
+   * @param createdRecord          record to send
+   * @param profileSnapshotWrapper profileSnapshotWrapper to send
+   * @param params                 connection parameters
    * @return completed future with record if record was sent successfully
    */
   private Future<Record> sendEventWithRecord(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper, OkapiConnectionParams params) {
     Promise<Record> promise = Promise.promise();
-
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
     dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
+    Optional<JsonObject> rules = mappingRuleService.get(params.getTenantId()).result();
+    rules.ifPresent(entries -> dataImportEventPayloadContext.put("MAPPING_RULES", entries.encode()));
+    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(getMappingParameters(createdRecord.getSnapshotId(), params).result()));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())

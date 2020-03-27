@@ -1,4 +1,4 @@
-package org.folio.services.mappers.processor.parameters;
+package org.folio.services.mappers.processor;
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -8,29 +8,29 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import org.folio.AlternativeTitleType;
+import org.folio.Alternativetitletypes;
+import org.folio.ClassificationType;
+import org.folio.Classificationtypes;
+import org.folio.ContributorNameType;
+import org.folio.ContributorType;
+import org.folio.Contributornametypes;
+import org.folio.Contributortypes;
+import org.folio.ElectronicAccessRelationship;
+import org.folio.Electronicaccessrelationships;
+import org.folio.IdentifierType;
+import org.folio.Identifiertypes;
+import org.folio.InstanceFormat;
+import org.folio.InstanceNoteType;
+import org.folio.InstanceType;
+import org.folio.Instanceformats;
+import org.folio.Instancenotetypes;
+import org.folio.Instancetypes;
+import org.folio.IssuanceMode;
+import org.folio.Issuancemodes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
-import org.folio.rest.jaxrs.model.AlternativeTitle;
-import org.folio.rest.jaxrs.model.AlternativeTitleType;
-import org.folio.rest.jaxrs.model.AlternativeTitleTypes;
-import org.folio.rest.jaxrs.model.ClassificationType;
-import org.folio.rest.jaxrs.model.ClassificationTypes;
-import org.folio.rest.jaxrs.model.ContributorNameType;
-import org.folio.rest.jaxrs.model.ContributorNameTypes;
-import org.folio.rest.jaxrs.model.ContributorType;
-import org.folio.rest.jaxrs.model.ContributorTypes;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationship;
-import org.folio.rest.jaxrs.model.ElectronicAccessRelationships;
-import org.folio.rest.jaxrs.model.IdentifierType;
-import org.folio.rest.jaxrs.model.IdentifierTypes;
-import org.folio.rest.jaxrs.model.InstanceFormat;
-import org.folio.rest.jaxrs.model.InstanceFormats;
-import org.folio.rest.jaxrs.model.InstanceNoteType;
-import org.folio.rest.jaxrs.model.InstanceNoteTypes;
-import org.folio.rest.jaxrs.model.InstanceType;
-import org.folio.rest.jaxrs.model.InstanceTypes;
-import org.folio.rest.jaxrs.model.IssuanceMode;
-import org.folio.rest.jaxrs.model.IssuanceModes;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -136,7 +136,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
-          List<IdentifierType> identifierTypeList = response.mapTo(IdentifierTypes.class).getIdentifierTypes();
+          List<IdentifierType> identifierTypeList = response.mapTo(Identifiertypes.class).getIdentifierTypes();
           future.complete(identifierTypeList);
         } else {
           future.complete(Collections.emptyList());
@@ -158,7 +158,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
-          List<ClassificationType> classificationTypeList = response.mapTo(ClassificationTypes.class).getClassificationTypes();
+          List<ClassificationType> classificationTypeList = response.mapTo(Classificationtypes.class).getClassificationTypes();
           future.complete(classificationTypeList);
         } else {
           future.complete(Collections.emptyList());
@@ -180,7 +180,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
-          List<InstanceType> instanceTypeList = response.mapTo(InstanceTypes.class).getInstanceTypes();
+          List<InstanceType> instanceTypeList = response.mapTo(Instancetypes.class).getInstanceTypes();
           future.complete(instanceTypeList);
         } else {
           future.complete(Collections.emptyList());
@@ -202,7 +202,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
-          List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(ElectronicAccessRelationships.class).getElectronicAccessRelationships();
+          List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(Electronicaccessrelationships.class).getElectronicAccessRelationships();
           future.complete(electronicAccessRelationshipList);
         } else {
           future.complete(Collections.emptyList());
@@ -224,7 +224,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
-          List<InstanceFormat> instanceFormatList = response.mapTo(InstanceFormats.class).getInstanceFormats();
+          List<InstanceFormat> instanceFormatList = response.mapTo(Instanceformats.class).getInstanceFormats();
           future.complete(instanceFormatList);
         } else {
           future.complete(Collections.emptyList());
@@ -246,7 +246,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
-          List<ContributorType> contributorTypes = response.mapTo(ContributorTypes.class).getContributorTypes();
+          List<ContributorType> contributorTypes = response.mapTo(Contributortypes.class).getContributorTypes();
           future.complete(contributorTypes);
         } else {
           future.complete(Collections.emptyList());
@@ -268,7 +268,7 @@ public class MappingParametersProvider {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
-          List<ContributorNameType> contributorNameTypes = response.mapTo(ContributorNameTypes.class).getContributorNameTypes();
+          List<ContributorNameType> contributorNameTypes = response.mapTo(Contributornametypes.class).getContributorNameTypes();
           future.complete(contributorNameTypes);
         } else {
           future.complete(Collections.emptyList());
@@ -281,32 +281,33 @@ public class MappingParametersProvider {
   /**
    * Requests for Instance note types from application Settings (mod-inventory-storage)
    * *
+   *
    * @param params Okapi connection parameters
    * @return List of Contributor name types
    */
-    private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params){
-      Future<List<InstanceNoteType>> future = Future.future();
-      RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
-        if (RestUtil.validateAsyncResult(ar, future)) {
-          JsonObject response = ar.result().getJson();
-          if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
-            List<InstanceNoteType> contributorNameTypes = response.mapTo(InstanceNoteTypes.class).getInstanceNoteTypes();
-            future.complete(contributorNameTypes);
-          } else {
-            future.complete(Collections.emptyList());
-          }
+  private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
+    Future<List<InstanceNoteType>> future = Future.future();
+    RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+      if (RestUtil.validateAsyncResult(ar, future)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
+          List<InstanceNoteType> contributorNameTypes = response.mapTo(Instancenotetypes.class).getInstanceNoteTypes();
+          future.complete(contributorNameTypes);
+        } else {
+          future.complete(Collections.emptyList());
         }
-      });
-      return future;
-    }
+      }
+    });
+    return future;
+  }
 
-  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params){
+  private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
     Future<List<AlternativeTitleType>> future = Future.future();
     RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, future)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
-          List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(AlternativeTitleTypes.class).getAlternativeTitleTypes();
+          List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(Alternativetitletypes.class).getAlternativeTitleTypes();
           future.complete(alternativeTitleTypes);
         } else {
           future.complete(Collections.emptyList());
@@ -319,16 +320,17 @@ public class MappingParametersProvider {
   /**
    * Requests for Issuance modes from application Settings (mod-inventory-storage)
    * *
+   *
    * @param params Okapi connection parameters
    * @return List of Issuance modes
    */
-  private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params){
+  private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params) {
     Promise<List<IssuanceMode>> promise = Promise.promise();
     RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).setHandler(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
-          List<IssuanceMode> issuanceModes = response.mapTo(IssuanceModes.class).getIssuanceModes();
+          List<IssuanceMode> issuanceModes = response.mapTo(Issuancemodes.class).getIssuanceModes();
           promise.complete(issuanceModes);
         } else {
           promise.complete(Collections.emptyList());
