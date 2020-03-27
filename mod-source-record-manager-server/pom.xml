@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-source-record-storage-client</artifactId>
-      <version>3.1.1</version>
+      <version>3.1.2</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -148,7 +148,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-data-import-converter-storage-client</artifactId>
-      <version>1.7.0</version>
+      <version>1.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
