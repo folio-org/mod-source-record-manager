@@ -1,6 +1,7 @@
-## 2020-03-18 v2.1.1-SNAPSHOT
+## 2020-03-27 v2.1.1
 * Updated mapping for instance type ID and instance format ID
-* Fixed duplicate languages in instance mapping.
+* Fixed duplicate languages in instance mapping
+* Updated dependency on data-import-processing-core library
 
 ## 2020-03-13 v2.1.0
 * Added get journalRecords endpoint
