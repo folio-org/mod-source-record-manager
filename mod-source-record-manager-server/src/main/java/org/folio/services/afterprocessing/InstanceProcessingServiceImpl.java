@@ -14,6 +14,9 @@ import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.processing.mapping.defaultmapper.RecordToInstanceMapper;
+import org.folio.processing.mapping.defaultmapper.RecordToInstanceMapperBuilder;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
@@ -27,10 +30,7 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.services.MappingRuleService;
 import org.folio.services.journal.JournalService;
-import org.folio.services.mappers.RecordToInstanceMapper;
-import org.folio.services.mappers.RecordToInstanceMapperBuilder;
-import org.folio.services.mappers.processor.parameters.MappingParameters;
-import org.folio.services.mappers.processor.parameters.MappingParametersProvider;
+import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -194,7 +194,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     if (CollectionUtils.isEmpty(records)) {
       return new HashMap<>();
     }
-    final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)));
+    final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)).name());
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     Map<Instance, Record> mappedRecords = records.parallelStream()
@@ -219,7 +219,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     try {
       if (record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
         JsonObject parsedRecordContent = new JsonObject(record.getParsedRecord().getContent().toString());
-        Instance instance = mapper.mapRecord(parsedRecordContent, mappingParameters, mappingRules);
+        Instance instance = JsonObject.mapFrom(mapper.mapRecord(parsedRecordContent, mappingParameters, mappingRules)).mapTo(Instance.class);
         return Pair.of(instance, record);
       }
     } catch (Exception e) {
