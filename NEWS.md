@@ -1,3 +1,6 @@
+## 2020-03-27 v2.1.2-SNAPSHOT
+* Added filling connection parameters to the data import event payload.
+
 ## 2020-03-27 v2.1.1
 * Updated mapping for instance type ID and instance format ID
 * Fixed duplicate languages in instance mapping

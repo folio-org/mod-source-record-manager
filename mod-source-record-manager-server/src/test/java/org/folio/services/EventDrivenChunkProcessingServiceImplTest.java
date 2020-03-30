@@ -169,6 +169,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
       context.assertNotNull(dataImportEventPayload.getCurrentNode());
       context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
+      context.assertEquals(params.getOkapiUrl(), dataImportEventPayload.getOkapiUrl());
+      context.assertEquals(params.getTenantId(), dataImportEventPayload.getTenant());
+      context.assertEquals(params.getToken(), dataImportEventPayload.getToken());
       context.assertNotNull(dataImportEventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value()));
       async.complete();
     });
