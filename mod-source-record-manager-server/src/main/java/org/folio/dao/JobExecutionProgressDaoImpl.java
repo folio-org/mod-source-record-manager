@@ -69,6 +69,18 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         return tx.future();
       })
       .compose(sqlConnection -> {
+        StringBuilder selectProgressQuery = new StringBuilder("SELECT jsonb FROM ")
+          .append(PostgresClient.convertToPsqlStandard(tenantId))
+          .append(".")
+          .append(TABLE_NAME)
+          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+          .append(jobExecutionId)
+          .append("' LIMIT 1 FOR UPDATE;");
+        Promise<UpdateResult> selectResult = Promise.promise();
+        pgClient.execute(tx.future(), selectProgressQuery.toString(), selectResult);
+        return selectResult.future();
+      })
+      .compose(selectResult -> {
         Promise<Results<JobExecutionProgress>> getProgressPromise = Promise.promise();
         pgClient.get(tx.future(), TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), false, true, getProgressPromise);
         return getProgressPromise.future();

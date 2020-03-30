@@ -163,7 +163,10 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(createdRecord.getSnapshotId())
-      .withContext(dataImportEventPayloadContext);
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(params.getOkapiUrl())
+      .withTenant(params.getTenantId())
+      .withToken(params.getToken());
 
     Event createdRecordEvent = new Event()
       .withId(UUID.randomUUID().toString())
