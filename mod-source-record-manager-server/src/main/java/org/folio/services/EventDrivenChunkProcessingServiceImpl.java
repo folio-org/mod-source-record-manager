@@ -195,7 +195,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
           }
         });
     } catch (Exception e) {
-      LOGGER.error("Error during event sending: {}", e);
+      LOGGER.error("Error during event building: {}", e);
       promise.fail(e);
     }
     return promise.future();
