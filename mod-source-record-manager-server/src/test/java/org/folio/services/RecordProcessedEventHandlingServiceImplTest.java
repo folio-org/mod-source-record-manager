@@ -198,7 +198,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
         } catch (IOException e) {
           e.printStackTrace();
-          return null;
+          return Future.failedFuture(e);
         }
       })
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
@@ -255,7 +255,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
         } catch (IOException e) {
           e.printStackTrace();
-          return null;
+          return Future.failedFuture(e);
         }
       })
       .compose(ar -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
@@ -310,7 +310,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpErrorEventPayload)), params);
         } catch (IOException e) {
           e.printStackTrace();
-          return null;
+          return Future.failedFuture(e);
         }
       })
       .compose(ar -> {
@@ -318,7 +318,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpCompletedEventPayload)), params);
         } catch (IOException e) {
           e.printStackTrace();
-          return null;
+          return Future.failedFuture(e);
         }
       })
       .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
