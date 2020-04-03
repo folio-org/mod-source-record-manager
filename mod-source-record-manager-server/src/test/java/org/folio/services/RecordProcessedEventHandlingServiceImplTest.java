@@ -159,7 +159,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
           return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
         } catch (IOException e) {
           e.printStackTrace();
-          return null;
+          return Future.failedFuture(e);
         }
       })
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
