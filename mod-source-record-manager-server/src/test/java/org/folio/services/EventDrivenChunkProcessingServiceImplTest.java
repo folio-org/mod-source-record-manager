@@ -17,6 +17,7 @@ import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -165,7 +166,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       context.assertEquals(1, loggedRequests.size());
       Event event = Json.decodeValue(loggedRequests.get(0).getBodyAsString(), Event.class);
-      DataImportEventPayload dataImportEventPayload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
+      DataImportEventPayload dataImportEventPayload = null;
+      try {
+        dataImportEventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
       context.assertNotNull(dataImportEventPayload.getCurrentNode());
       context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
