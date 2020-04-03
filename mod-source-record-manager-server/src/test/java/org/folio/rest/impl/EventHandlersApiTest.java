@@ -1,8 +1,10 @@
 package org.folio.rest.impl;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,29 +35,29 @@ public class EventHandlersApiTest extends AbstractRestTest {
       .put("publishedBy", "mod-inventory"));
 
   @Test
-  public void shouldReturnOkOnPostInstanceCreatedEvent() {
+  public void shouldReturnOkOnPostInstanceCreatedEvent() throws IOException {
     RestAssured.given()
       .spec(spec)
       .when()
-      .body(eventCreatedInstance.encode())
+      .body(ZIPArchiver.zip(eventCreatedInstance.encode()))
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
-  public void shouldReturnOkOnPostDataImportErrorEvent() {
+  public void shouldReturnOkOnPostDataImportErrorEvent() throws IOException {
     RestAssured.given()
       .spec(spec)
       .when()
-      .body(eventDataImportError.encode())
+      .body(ZIPArchiver.zip(eventDataImportError.encode()))
       .post(HANDLERS_DATA_IMPORT_PROCESSING_RESULT)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
   }
 
   @Test
-  public void shouldReturnOkIfEventPayloadIsInvalid() {
+  public void shouldReturnOkIfEventPayloadIsInvalid() throws IOException {
      JsonObject invalidEvent = new JsonObject()
       .put("id", UUID.randomUUID().toString())
       .put("eventType", "CREATED_INVENTORY_INSTANCE")
@@ -68,7 +70,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .body(invalidEvent.encode())
+      .body(ZIPArchiver.zip(invalidEvent.encode()))
       .post(HANDLERS_CREATED_INSTANCE_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
