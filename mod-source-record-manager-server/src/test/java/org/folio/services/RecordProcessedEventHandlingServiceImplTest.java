@@ -17,7 +17,6 @@ import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
@@ -154,14 +153,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<JobExecutionProgress> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -193,14 +185,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<JobExecutionProgress> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -250,14 +235,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
       .compose(ar -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -305,22 +283,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpErrorEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpCompletedEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpErrorEventPayload), params))
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
       .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
