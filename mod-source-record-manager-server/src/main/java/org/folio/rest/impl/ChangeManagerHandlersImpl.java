@@ -10,7 +10,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
 import org.folio.rest.tools.utils.ObjectMapperTool;
@@ -48,7 +47,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
         Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204())
           .setHandler(asyncResultHandler);
         LOGGER.debug("Event was received: {}", entity);
-        DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), DataImportEventPayload.class);
+        DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(entity, DataImportEventPayload.class);
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
         journalService.save(JsonObject.mapFrom(journalRecord), tenantId);

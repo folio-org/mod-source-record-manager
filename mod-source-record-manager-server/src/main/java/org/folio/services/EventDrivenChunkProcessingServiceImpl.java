@@ -10,7 +10,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
@@ -30,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -155,49 +153,45 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private Future<Record> sendEventWithRecord(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper,
                                              JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Record> promise = Promise.promise();
-    try {
-      HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
-      dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
-      dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
-      dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
+    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
+    dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
+    dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
+    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
 
-      DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-        .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
-        .withProfileSnapshot(profileSnapshotWrapper)
-        .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
-        .withJobExecutionId(createdRecord.getSnapshotId())
-        .withContext(dataImportEventPayloadContext)
-        .withOkapiUrl(params.getOkapiUrl())
-        .withTenant(params.getTenantId())
-        .withToken(params.getToken());
-      Event createdRecordEvent = new Event()
-        .withId(UUID.randomUUID().toString())
-        .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
-        .withEventPayload(ZIPArchiver.zip(Json.encode(dataImportEventPayload)))
-        .withEventMetadata(new EventMetadata()
-          .withTenantId(params.getTenantId())
-          .withEventTTL(1)
-          .withPublishedBy(PomReader.INSTANCE.getModuleName() + "-" + PomReader.INSTANCE.getVersion()));
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withJobExecutionId(createdRecord.getSnapshotId())
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(params.getOkapiUrl())
+      .withTenant(params.getTenantId())
+      .withToken(params.getToken());
 
-      org.folio.rest.util.OkapiConnectionParams connectionParams = new org.folio.rest.util.OkapiConnectionParams();
-      connectionParams.setOkapiUrl(params.getOkapiUrl());
-      connectionParams.setToken(params.getToken());
-      connectionParams.setTenantId(params.getTenantId());
-      connectionParams.setVertx(params.getVertx());
+    Event createdRecordEvent = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
+      .withEventPayload(Json.encode(dataImportEventPayload))
+      .withEventMetadata(new EventMetadata()
+        .withTenantId(params.getTenantId())
+        .withEventTTL(1)
+        .withPublishedBy(PomReader.INSTANCE.getModuleName() + "-" + PomReader.INSTANCE.getVersion()));
 
-      PubSubClientUtils.sendEventMessage(createdRecordEvent, connectionParams)
-        .whenComplete((ar, throwable) -> {
-          if (throwable == null) {
-            promise.complete(createdRecord);
-          } else {
-            LOGGER.error("Error during event sending: {}", throwable, createdRecordEvent);
-            promise.fail(throwable);
-          }
-        });
-    } catch (Exception e) {
-      LOGGER.error("Error during event building: {}", e);
-      promise.fail(e);
-    }
+    org.folio.rest.util.OkapiConnectionParams connectionParams = new org.folio.rest.util.OkapiConnectionParams();
+    connectionParams.setOkapiUrl(params.getOkapiUrl());
+    connectionParams.setToken(params.getToken());
+    connectionParams.setTenantId(params.getTenantId());
+    connectionParams.setVertx(params.getVertx());
+
+    PubSubClientUtils.sendEventMessage(createdRecordEvent, connectionParams)
+      .whenComplete((ar, throwable) -> {
+        if (throwable == null) {
+          promise.complete(createdRecord);
+        } else {
+          LOGGER.error("Error during event sending: {}", throwable, createdRecordEvent);
+          promise.fail(throwable);
+        }
+      });
     return promise.future();
   }
 
