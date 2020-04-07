@@ -1,5 +1,6 @@
-## 2020-03-27 v2.1.2-SNAPSHOT
-* Added filling connection parameters to the data import event payload.
+## 2020-04-07 v2.1.2
+* [MODSOURMAN-296](https://issues.folio.org/browse/MODSOURMAN-296) Added filling connection parameters to the data import event payload.
+* Updated dependency onn data-import-processing-core library
 
 ## 2020-03-27 v2.1.1
 * Updated mapping for instance type ID and instance format ID
