@@ -3,12 +3,28 @@
     {
       "tableName": "job_executions",
       "fromModuleVersion": "mod-source-record-manager-0.1.0",
-      "withMetadata": false
+      "withMetadata": false,
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        }
+      ]
     },
     {
       "tableName": "job_execution_source_chunks",
       "fromModuleVersion": "mod-source-record-manager-1.2.0",
       "withMetadata": false,
+      "index": [
+        {
+          "fieldName": "id",
+          "tOps": "ADD"
+        },
+        {
+          "fieldName": "jobExecutionId",
+          "tOps": "ADD"
+        }
+      ],
       "foreignKeys": [
         {
           "fieldName": "jobExecutionId",
@@ -37,6 +53,11 @@
   ],
   "scripts": [
     {
+      "run": "before",
+      "snippetPath": "upgrade_rmb_25.0-29.1.sql",
+      "fromModuleVersion": "mod-source-record-manager-2.1.3"
+    },
+    {
       "run": "after",
       "snippet": "CREATE SEQUENCE IF NOT EXISTS job_execution_hr_id_sequence INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;",
       "fromModuleVersion": "mod-source-record-manager-1.5.0"
@@ -44,17 +65,22 @@
     {
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.0.0"
+      "fromModuleVersion": "mod-source-record-manager-2.1.0"
     },
     {
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.0.0"
+      "fromModuleVersion": "mod-source-record-manager-2.1.0"
     },
     {
       "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), source_id UUID, source_record_order int, entity_type text, entity_id text, entity_hrid text, action_type text, action_status text, error text, action_date timestamp);",
-      "fromModuleVersion": "mod-source-record-manager-2.0.0"
+      "snippet": "CREATE TABLE IF NOT EXISTS journal_records (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), source_id UUID, entity_type text, entity_id text, entity_hrid text, action_type text, action_status text, action_date timestamp);",
+      "fromModuleVersion": "mod-source-record-manager-2.1.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN source_record_order integer NULL; ALTER TABLE journal_records ADD COLUMN error text NULL;",
+      "fromModuleVersion": "mod-source-record-manager-2.1.3"
     }
   ]
 }

@@ -1,5 +1,8 @@
 ## 2020-04-10 v2.2.0-SNAPSHOT
-*[MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
+* [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
+
+## 2020-04-10 v2.1.3-SNAPSHOT
+* Added migration script to support RMB version update 
 
 ## 2020-04-07 v2.1.2
 * [MODSOURMAN-296](https://issues.folio.org/browse/MODSOURMAN-296) Added filling connection parameters to the data import event payload.
