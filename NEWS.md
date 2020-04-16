@@ -1,6 +1,6 @@
 ## 2020-04-10 v2.2.0-SNAPSHOT
 * [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
-
+* [MODDICORE-43](https://issues.folio.org/browse/MODDICORE-43) SRS MARC Bib: Fix formatting of 035 field constructed from incoming 001
 ## 2020-04-10 v2.1.3-SNAPSHOT
 * [MODSOURMAN-298](https://issues.folio.org/browse/MODSOURMAN-298) Added migration script to support RMB version update 
 
