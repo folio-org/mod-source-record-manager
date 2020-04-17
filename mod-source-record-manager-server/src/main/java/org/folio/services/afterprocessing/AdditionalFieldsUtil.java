@@ -168,10 +168,10 @@ public final class AdditionalFieldsUtil {
                   return true;
                 }
               }
-            } else if (field instanceof ControlField) {
-              if (isNotEmpty(((ControlField) field).getData()) && ((ControlField) field).getData().equals(value.trim())) {
-                return true;
-              }
+            } else if (field instanceof ControlField
+              && isNotEmpty(((ControlField) field).getData())
+              && ((ControlField) field).getData().equals(value.trim())) {
+              return true;
             }
           }
         }

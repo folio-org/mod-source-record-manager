@@ -138,6 +138,7 @@ public class AdditionalFieldsUtilTest {
     // then
     Assert.assertTrue(added);
     Assert.assertTrue(AdditionalFieldsUtil.isFieldExist(record, "035", 'a', instanceId));
+    Assert.assertTrue(AdditionalFieldsUtil.isFieldExist(record, "001", 'a', "ybp7406411"));
     Assert.assertNotNull(record.getParsedRecord());
     Assert.assertNotNull(record.getParsedRecord().getContent());
   }
