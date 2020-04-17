@@ -27,7 +27,9 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
       if (entry.getKey() != null && entry.getValue() != null) {
         String hrId = entry.getKey().getHrid();
         if (StringUtils.isNotEmpty(hrId)) {
-          addControlledFieldToMarcRecord(entry.getValue(), HR_ID_TO_FIELD, hrId);
+          if (!isFieldExist(entry.getValue(), HR_ID_TO_FIELD, HR_ID_FIELD_SUB, hrId)) {
+            addDataFieldToMarcRecord(entry.getValue(), HR_ID_TO_FIELD, HR_ID_FIELD_IND, HR_ID_FIELD_IND, HR_ID_FIELD_SUB, hrId);
+          }
           removeField(entry.getValue(), HR_ID_FROM_FIELD);
           // clearing hrId field in instance to generate new one in inventory
           entry.getKey().setHrid(null);
@@ -40,8 +42,8 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
   public void fillHrIdFieldInMarcRecord(List<Pair<Record, Instance>> list) {
     list.stream().parallel().forEach(recordInstancePair -> {
       String hrId = recordInstancePair.getValue().getHrid();
-      if (StringUtils.isNotEmpty(hrId) && !isFieldExist(recordInstancePair.getKey(), HR_ID_FROM_FIELD, HR_ID_FIELD_SUB, hrId)) {
-        addDataFieldToMarcRecord(recordInstancePair.getKey(), HR_ID_FROM_FIELD, HR_ID_FIELD_IND, HR_ID_FIELD_IND, HR_ID_FIELD_SUB, hrId);
+      if (StringUtils.isNotEmpty(hrId)) {
+        addControlledFieldToMarcRecord(recordInstancePair.getKey(), HR_ID_FROM_FIELD, hrId);
       }
     });
   }
