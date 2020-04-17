@@ -156,7 +156,6 @@ public final class AdditionalFieldsUtil {
    * @return true if exist
    */
   public static boolean isFieldExist(Record record, String tag, char subfield, String value) {
-    boolean result = false;
     if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
       MarcReader reader = buildMarcReader(record);
       if (reader.hasNext()) {
@@ -165,18 +164,18 @@ public final class AdditionalFieldsUtil {
           if (field instanceof DataField) {
             for (Subfield sub : ((DataField) field).getSubfields(subfield)) {
               if (isNotEmpty(sub.getData()) && sub.getData().equals(value.trim())) {
-                result = true;
-                break;
+                return true;
               }
             }
-          }
-          if (result) {
-            break;
+          } else if (field instanceof ControlField) {
+            if (isNotEmpty(((ControlField) field).getData()) && ((ControlField) field).getData().equals(value.trim())) {
+              return true;
+            }
           }
         }
       }
     }
-    return result;
+    return false;
   }
 
   /**
