@@ -123,6 +123,26 @@ public class AdditionalFieldsUtilTest {
   }
 
   @Test
+  public void shouldAddDatafieldIfContentHasNoFields() throws IOException {
+    // given
+    String parsedRecordContent = TestUtil.readFileFromPath(PARSED_RECORD_PATH);
+    ParsedRecord parsedRecord = new ParsedRecord();
+    parsedRecord.setContent(parsedRecordContent);
+    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    String instanceId = UUID.randomUUID().toString();
+    boolean added = false;
+    if (!AdditionalFieldsUtil.isFieldExist(record, "035", 'a', instanceId)) {
+      added = AdditionalFieldsUtil.addDataFieldToMarcRecord(record, "035", ' ', ' ', 'a', instanceId);
+    }
+    // when
+    // then
+    Assert.assertTrue(added);
+    Assert.assertTrue(AdditionalFieldsUtil.isFieldExist(record, "035", 'a', instanceId));
+    Assert.assertNotNull(record.getParsedRecord());
+    Assert.assertNotNull(record.getParsedRecord().getContent());
+  }
+
+  @Test
   public void shouldNotAddInstanceIdSubfieldIfContentIsNull() {
     // given
     Record record = new Record();
