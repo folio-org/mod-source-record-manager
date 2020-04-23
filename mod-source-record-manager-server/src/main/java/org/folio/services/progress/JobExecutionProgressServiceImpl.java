@@ -8,7 +8,6 @@ import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.util.function.UnaryOperator;
 
@@ -31,18 +30,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
 
   @Override
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
-    return jobExecutionProgressDao.getByJobExecutionId(jobExecutionId, tenantId)
-      .compose(progressOptional -> {
-        if (!progressOptional.isPresent()) {
-          JobExecutionProgress progress = new JobExecutionProgress()
-            .withJobExecutionId(jobExecutionId)
-            .withTotal(totalRecords);
-          return jobExecutionProgressDao.save(progress, tenantId).map(progress);
-        }
-        String msg = String.format("JobExecutionProgress for jobExecution with id '%s' already initialized", jobExecutionId);
-        LOGGER.error(msg);
-        throw new BadRequestException(msg);
-      });
+    return jobExecutionProgressDao.initializeJobExecutionProgress(jobExecutionId, totalRecords, tenantId);
   }
 
   @Override
