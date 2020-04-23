@@ -6,6 +6,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import java.io.IOException;
 import java.util.Date;
 
+import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Instance;
@@ -40,18 +41,18 @@ public class JournalUtil {
                                                   JournalRecord.ActionStatus actionStatus, String instanceAsString, String recordAsString) throws JournalRecordMapperException {
     try {
       Record record = ObjectMapperTool.getMapper().readValue(recordAsString, Record.class);
-      Instance instance = ObjectMapperTool.getMapper().readValue(instanceAsString, Instance.class);
+      JsonObject instance = new JsonObject(instanceAsString);
       return new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
         .withSourceRecordOrder(record.getOrder())
         .withEntityType(entityType)
-        .withEntityId(instance.getId())
-        .withEntityHrId(instance.getHrid())
+        .withEntityId(instance.getString("id"))
+        .withEntityHrId(instance.getString("hrid"))
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG);
     }
   }

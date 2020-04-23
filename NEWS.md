@@ -1,5 +1,6 @@
 ## 2020-04-10 v2.1.3
 *[MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
+*[MODSOURMAN-307](https://issues.folio.org/browse/MODSOURMAN-307) Progress for Cornell file duplicates and the job hangs.
 
 
 ## 2020-04-07 v2.1.2
