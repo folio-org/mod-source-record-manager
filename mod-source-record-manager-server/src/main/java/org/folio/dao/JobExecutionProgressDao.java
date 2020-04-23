@@ -22,6 +22,16 @@ public interface JobExecutionProgressDao {
   Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
+   * Creates jobExecutionProgress for {@link JobExecution} with specified jobExecutionId
+   *
+   * @param jobExecutionId  jobExecution id
+   * @param totalRecords    total number of records to be processed
+   * @param tenantId        tenant id
+   * @return future with created JobExecutionProgress
+   */
+  Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId);
+
+  /**
    * Saves jobExecutionProgress entity to database
    *
    * @param progress entity to save

@@ -10,6 +10,7 @@ import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,9 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         .setHandler(ar -> {
           if (ar.failed()) {
             LOGGER.error("Failed to handle {} event", ar.cause(), eventType);
-            promise.fail(ar.cause());
+            updateJobStatusToError(jobExecutionId, params).setHandler(statusAr -> {
+              promise.fail(ar.cause());
+            });
           } else {
             promise.complete(true);
           }
@@ -57,6 +60,12 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       promise.fail(e);
     }
     return promise.future();
+  }
+
+  private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
+    return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto()
+      .withStatus(StatusDto.Status.ERROR)
+      .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR), params);
   }
 
   private JobExecutionProgress changeProgressAccordingToEventType(JobExecutionProgress progress, DataImportEventTypes eventType) {

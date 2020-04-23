@@ -41,10 +41,56 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<Results<JobExecutionProgress>> promise = Promise.promise();
     Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
-    pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true,false, promise);
+    pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true, false, promise);
     return promise.future()
       .map(Results::getResults)
       .map(progressList -> progressList.isEmpty() ? Optional.empty() : Optional.of(progressList.get(0)));
+  }
+
+  @Override
+  public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
+    Promise<JobExecutionProgress> promise = Promise.promise();
+    Promise<SQLConnection> tx = Promise.promise();
+    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
+    PostgresClient client = pgClientFactory.createInstance(tenantId);
+    Future.succeededFuture()
+      .compose(v -> {
+        client.startTx(tx);
+        return tx.future();
+      })
+      .compose(sqlConnection -> {
+        StringBuilder selectProgressQuery = new StringBuilder("SELECT jsonb FROM ")
+          .append(PostgresClient.convertToPsqlStandard(tenantId))
+          .append(".")
+          .append(TABLE_NAME)
+          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+          .append(jobExecutionId)
+          .append("' LIMIT 1 FOR UPDATE;");
+        Promise<UpdateResult> selectResult = Promise.promise();
+        client.execute(tx.future(), selectProgressQuery.toString(), selectResult);
+        return selectResult.future();
+      })
+      .compose(selectResult -> {
+        Promise<Results<JobExecutionProgress>> getProgressPromise = Promise.promise();
+        client.get(tx.future(), TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), false, true, getProgressPromise);
+        return getProgressPromise.future();
+      })
+      .compose(selectResult -> {
+        JobExecutionProgress progress = new JobExecutionProgress()
+          .withJobExecutionId(jobExecutionId)
+          .withTotal(totalRecords)
+          .withId(UUID.randomUUID().toString());
+        return selectResult.getResults().isEmpty() ? save(progress, tenantId).map(progress) : Future.succeededFuture(selectResult.getResults().get(0));
+      })
+      .setHandler(updateAr -> {
+        if (updateAr.succeeded()) {
+          client.endTx(tx.future(), endTx -> promise.complete(updateAr.result()));
+        } else {
+          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, updateAr.cause());
+          client.rollbackTx(tx.future(), r -> promise.fail(updateAr.cause()));
+        }
+      });
+    return promise.future();
   }
 
   @Override
