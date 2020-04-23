@@ -132,6 +132,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
           .withGeneration(0)
+          .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withId(UUID.randomUUID().toString()).withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
           record.setErrorRecord(new ErrorRecord()
