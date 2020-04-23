@@ -53,7 +53,7 @@ public class JournalUtil {
         .withActionDate(new Date())
         .withActionStatus(actionStatus);
     } catch (Exception e) {
-      throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG);
+      throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);
     }
   }
 }

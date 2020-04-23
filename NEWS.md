@@ -1,7 +1,8 @@
-## 2020-04-10 v2.1.3
-*[MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
+## 2020-04-23 v2.1.3
+* [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
+* [MODSOURMAN-298](https://issues.folio.org/browse/MODSOURMAN-298) Added migration script to support RMB version update 
+* [MODDICORE-43](https://issues.folio.org/browse/MODDICORE-43) SRS MARC Bib: Fix formatting of 035 field constructed from incoming 001
 *[MODSOURMAN-307](https://issues.folio.org/browse/MODSOURMAN-307) Progress for Cornell file duplicates and the job hangs.
-
 
 ## 2020-04-07 v2.1.2
 * [MODSOURMAN-296](https://issues.folio.org/browse/MODSOURMAN-296) Added filling connection parameters to the data import event payload.

@@ -21,7 +21,6 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.tools.PomReader;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.util.pubsub.PubSubClientUtils;
@@ -175,7 +174,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .withEventMetadata(new EventMetadata()
         .withTenantId(params.getTenantId())
         .withEventTTL(1)
-        .withPublishedBy(PomReader.INSTANCE.getModuleName() + "-" + PomReader.INSTANCE.getVersion()));
+        .withPublishedBy(PubSubClientUtils.constructModuleName()));
 
     org.folio.rest.util.OkapiConnectionParams connectionParams = new org.folio.rest.util.OkapiConnectionParams();
     connectionParams.setOkapiUrl(params.getOkapiUrl());
