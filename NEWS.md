@@ -1,4 +1,4 @@
-## 2020-04-10 v2.2.0-SNAPSHOT
+## 2020-04-10 v2.1.3
 *[MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
 
 
