@@ -1,3 +1,6 @@
+## 2020-04-24 v2.1.4
+* Fixed migration script
+
 ## 2020-04-23 v2.1.3
 * [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
 * [MODSOURMAN-298](https://issues.folio.org/browse/MODSOURMAN-298) Added migration script to support RMB version update 
