@@ -79,7 +79,7 @@
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE journal_records ADD COLUMN source_record_order integer NULL; ALTER TABLE journal_records ADD COLUMN error text NULL;",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS source_record_order integer NULL; ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS error text NULL;",
       "fromModuleVersion": "mod-source-record-manager-2.1.3"
     }
   ]
