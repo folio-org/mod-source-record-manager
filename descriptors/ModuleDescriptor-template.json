@@ -11,6 +11,10 @@
       "version": "1.0"
     },
     {
+      "id": "source-manager-parsed-records",
+      "version": "1.0"
+    },
+    {
       "id": "source-storage-batch",
       "version": "0.1"
     },
@@ -181,6 +185,20 @@
       ]
     },
     {
+      "id": "source-manager-parsed-records",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/parsedRecords",
+          "permissionsRequired" : [ "change-manager.parsedrecords.get" ],
+          "modulePermissions": [
+            "source-storage.sourceRecords.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "mapping-rules-provider",
       "version": "1.0",
       "handlers": [
@@ -290,6 +308,11 @@
       "permissionName": "change-manager.records.post",
       "displayName": "Change Manager - post chunk of raw records",
       "description": "Post chunk of raw records"
+    },
+    {
+      "permissionName": "change-manager.parsedrecords.get",
+      "displayName": "Change Manager - get parsed records by instanceId",
+      "description": "Get parsed record"
     },
     {
       "permissionName": "change-manager.records.delete",

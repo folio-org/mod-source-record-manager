@@ -15,6 +15,7 @@ types:
   initJobExecutionsRqDto: !include raml-storage/schemas/dto/initJobExecutionsRqDto.json
   initJobExecutionsRsDto: !include raml-storage/schemas/dto/initJobExecutionsRsDto.json
   rawRecordsDto: !include raml-storage/schemas/dto/rawRecordsDto.json
+  parsedRecordDto: !include raml-storage/schemas/dto/parsedRecordDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
   statusDto: !include raml-storage/schemas/dto/statusDto.json
@@ -211,3 +212,31 @@ resourceTypes:
               body:
                 text/plain:
                   example: "Internal server error"
+  /parsedRecords:
+    get:
+      description: "instanceId which for searching"
+      queryParameters:
+        instanceId:
+          description: "instanceId parameter"
+          pattern: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: parsedRecordDto
+        400:
+          description: "Bad request"
+          body:
+            text/plain:
+              example: "Bad request"
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
