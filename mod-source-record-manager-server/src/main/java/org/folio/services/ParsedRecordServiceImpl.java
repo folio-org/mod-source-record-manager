@@ -1,18 +1,16 @@
 package org.folio.services;
 
-import org.folio.HttpStatus;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.rest.client.SourceStorageClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.springframework.stereotype.Service;
-
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 import javax.ws.rs.NotFoundException;
 
@@ -35,7 +33,11 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
         } else {
           String message = String.format("Error retrieving Record by instanceId: '%s', response code %s, %s",
             instanceId, response.statusCode(), response.statusMessage());
-          promise.fail(message);
+          if (HTTP_NOT_FOUND.toInt() == response.statusCode()) {
+            promise.fail(new NotFoundException(message));
+          } else {
+            promise.fail(message);
+          }
         }
       });
     } catch (Exception e) {

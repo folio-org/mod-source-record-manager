@@ -58,13 +58,32 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnErrorIfThereIsNoSourceRecord(TestContext testContext) {
+  public void shouldReturnNotFoundIfThereIsNoSourceRecord(TestContext testContext) {
     Async async = testContext.async();
 
     String instanceId = UUID.randomUUID().toString();
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
       .willReturn(notFound()));
+
+    RestAssured.given()
+      .spec(spec)
+      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .when()
+      .get(PARSED_RECORDS_URL)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldReturnErrorIfExceptionWasThrown(TestContext testContext) {
+    Async async = testContext.async();
+
+    String instanceId = UUID.randomUUID().toString();
+
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
+      .willReturn(ok().withBody("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}")));
 
     RestAssured.given()
       .spec(spec)
