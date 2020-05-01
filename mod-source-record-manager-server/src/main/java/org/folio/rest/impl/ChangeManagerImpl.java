@@ -12,6 +12,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.resource.ChangeManager;
@@ -63,7 +64,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Error during initializing JobExecution entities", e, e.getMessage());
+        LOGGER.error("Error during initializing JobExecution entities", e);
         asyncResultHandler.handle(Future.failedFuture(e));
       }
     });
@@ -100,6 +101,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
+        LOGGER.error("Failed to get JobExecution by id", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -179,7 +181,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", id, e);
+        LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -197,14 +199,15 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to delete records for JobExecution id {}", id, e);
+        LOGGER.error("Failed to delete records for JobExecution id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
   }
 
   @Override
-  public void getChangeManagerParsedRecords(String instanceId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getChangeManagerParsedRecords(String instanceId, Map<String, String> okapiHeaders,
+                                            Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         parsedRecordService.getRecordByInstanceId(instanceId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
@@ -213,7 +216,24 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve parsed record by instanceId {}", instanceId, e);
+        LOGGER.error("Failed to retrieve parsed record by instanceId {}", e, instanceId);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
+  @Override
+  public void putChangeManagerParsedRecordsById(String id, ParsedRecordDto entity, Map<String, String> okapiHeaders,
+                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        parsedRecordService.updateRecord(entity, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
+          .map(updated -> PutChangeManagerParsedRecordsByIdResponse.respond204())
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to update parsed record with id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

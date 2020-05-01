@@ -17,4 +17,7 @@ public interface ParsedRecordService {
    * @return future with ParsedRecordDto, which was mapped from SourceRecord from SRS
    */
   Future<ParsedRecordDto> getRecordByInstanceId(String instanceId, OkapiConnectionParams params);
+
+  Future<Boolean> updateRecord(ParsedRecordDto parsedRecordDto, OkapiConnectionParams params);
+
 }

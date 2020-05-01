@@ -18,7 +18,10 @@ import org.junit.runner.RunWith;
 
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
