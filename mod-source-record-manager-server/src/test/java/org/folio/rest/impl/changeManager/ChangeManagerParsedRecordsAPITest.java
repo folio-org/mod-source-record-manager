@@ -95,4 +95,24 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
     async.complete();
   }
 
+  @Test
+  public void shouldReturnErrorIfErrorResponse(TestContext testContext) {
+    Async async = testContext.async();
+
+    String instanceId = UUID.randomUUID().toString();
+
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
+      .willReturn(serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .when()
+      .get(PARSED_RECORDS_URL)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+  }
+
+
 }
