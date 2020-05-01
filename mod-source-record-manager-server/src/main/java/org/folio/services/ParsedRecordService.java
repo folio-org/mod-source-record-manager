@@ -11,10 +11,10 @@ import io.vertx.core.Future;
 public interface ParsedRecordService {
 
   /**
-   * Get MarcRecord (ParsedRecordDto) by intanceId
+   * Get {@link ParsedRecordDto} by instanceId
    * @param instanceId - instanceId
    * @param params - OkapiConnectionParams
-   * @return future with ParsedRecordDto, which was mapped from SourceRecord from srs.
+   * @return future with ParsedRecordDto, which was mapped from SourceRecord from SRS
    */
-  Future<ParsedRecordDto> getMarcRecordByInstanceId(String instanceId, OkapiConnectionParams params);
+  Future<ParsedRecordDto> getRecordByInstanceId(String instanceId, OkapiConnectionParams params);
 }

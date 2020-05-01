@@ -214,7 +214,7 @@ resourceTypes:
                   example: "Internal server error"
   /parsedRecords:
     get:
-      description: "instanceId which for searching"
+      description: "Retrieve ParsedRecord by instanceId"
       queryParameters:
         instanceId:
           description: "instanceId parameter"
@@ -230,11 +230,6 @@ resourceTypes:
           body:
             text/plain:
               example: "Bad request"
-        404:
-          description: "Not found"
-          body:
-            text/plain:
-              example: "Not found"
         500:
           description: "Internal server error"
           body:

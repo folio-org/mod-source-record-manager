@@ -205,14 +205,15 @@ public class ChangeManagerImpl implements ChangeManager {
 
   @Override
   public void getChangeManagerParsedRecords(String instanceId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    vertxContext.runOnContext(c -> {
+    vertxContext.runOnContext(v -> {
       try {
-        parsedRecordService.getMarcRecordByInstanceId(instanceId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
+        parsedRecordService.getRecordByInstanceId(instanceId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
           .map(GetChangeManagerParsedRecordsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
+        LOGGER.error("Failed to retrieve parsed record by instanceId {}", instanceId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
