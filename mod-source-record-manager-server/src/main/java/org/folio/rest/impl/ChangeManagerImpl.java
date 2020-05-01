@@ -18,6 +18,7 @@ import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
+import org.folio.services.ParsedRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,6 +40,8 @@ public class ChangeManagerImpl implements ChangeManager {
   @Autowired
   @Qualifier("eventDrivenChunkProcessingService")
   private ChunkProcessingService eventDrivenChunkProcessingService;
+  @Autowired
+  private ParsedRecordService parsedRecordService;
 
   private String tenantId;
 
@@ -195,6 +198,22 @@ public class ChangeManagerImpl implements ChangeManager {
           .setHandler(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to delete records for JobExecution id {}", id, e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
+  @Override
+  public void getChangeManagerParsedRecords(String instanceId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        parsedRecordService.getRecordByInstanceId(instanceId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
+          .map(GetChangeManagerParsedRecordsResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .setHandler(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to retrieve parsed record by instanceId {}", instanceId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

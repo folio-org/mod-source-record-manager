@@ -181,6 +181,20 @@
       ]
     },
     {
+      "id": "source-manager-parsed-records",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/change-manager/parsedRecords",
+          "permissionsRequired" : [ "change-manager.parsedrecords.get" ],
+          "modulePermissions": [
+            "source-storage.sourceRecords.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "mapping-rules-provider",
       "version": "1.0",
       "handlers": [
@@ -297,6 +311,11 @@
       "description": "Delete JobExecution and all associated records from SRS"
     },
     {
+      "permissionName": "change-manager.parsedrecords.get",
+      "displayName": "Change Manager - get parsed records by instanceId",
+      "description": "Get parsed record"
+    },
+    {
       "permissionName": "mapping-rules.get",
       "displayName": "Mapping Rules provider - get default rules by tenant id",
       "description": "Get mapping rules for tenant"
@@ -317,11 +336,13 @@
       "description": "Entire set of permissions needed to manage jobExecutions",
       "subPermissions": [
         "metadata-provider.jobexecutions.get",
+        "metadata-provider.logs.get",
         "change-manager.jobexecutions.post",
         "change-manager.jobexecutions.put",
         "change-manager.jobexecutions.get",
         "change-manager.records.post",
         "change-manager.records.delete",
+        "change-manager.parsedrecords.get",
         "mapping-rules.get",
         "mapping-rules.update",
         "mapping-rules.restore"
