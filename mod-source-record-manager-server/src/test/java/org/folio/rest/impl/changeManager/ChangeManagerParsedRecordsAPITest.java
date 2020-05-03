@@ -152,5 +152,53 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
     async.complete();
   }
 
+  @Test
+  public void shouldReturnNotFoundOnPutIfRecordDoesNotExist(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.notFound()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldReturnErrorOnPutIfOneOfRequestsFailed(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+  }
+
 
 }

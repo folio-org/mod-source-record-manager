@@ -5,22 +5,15 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.UUID;
 import javax.ws.rs.NotFoundException;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageClient;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
@@ -34,15 +27,14 @@ import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.HttpStatus.HTTP_NOT_FOUND;
 import static org.folio.HttpStatus.HTTP_OK;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.util.pubsub.PubSubClientUtils.constructModuleName;
-import static org.folio.util.pubsub.PubSubClientUtils.sendEventMessage;
+import static org.folio.services.util.EventHandlingUtil.sendEventWithRecord;
 
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParsedRecordServiceImpl.class);
 
+  //  should be updated in scope of {@link https://issues.folio.org/browse/MODDICONV-121}
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String QM_RECORD_UPDATED_EVENT_TYPE = "QM_SRS_MARC_BIB_RECORD_UPDATED";
 
@@ -108,7 +100,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.getSourceStorageRecordsById(id, null,
-        getResponseHandler(promise, Record.class,  format("Error retrieving Record by id: '%s'", id)));
+        getResponseHandler(promise, Record.class, format("Error retrieving Record by id: '%s'", id)));
     } catch (Exception e) {
       LOGGER.error("Failed to GET Record from SRS", e);
       promise.fail(e);
@@ -179,13 +171,15 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     return promise.future();
   }
 
-  private Future<Void> sendEventWithUpdatedRecord(Record record, OkapiConnectionParams params) {
+  private Future<Boolean> sendEventWithUpdatedRecord(Record record, OkapiConnectionParams params) {
     return mappingParametersProvider.get(record.getSnapshotId(), params)
       .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
         .compose(rulesOptional -> {
           if (rulesOptional.isPresent()) {
             return createJobProfileSnapshotWrapper(DEFAULT_JOB_PROFILE_ID, params)
-              .compose(profileSnapshotWrapper -> sendEvent(record, profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params));
+              .compose(profileSnapshotWrapper ->
+                sendEventWithRecord(record, QM_RECORD_UPDATED_EVENT_TYPE, profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params)
+                  .map(ar -> true));
           } else {
             return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));
           }
@@ -199,51 +193,6 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfileId,
       getResponseHandler(promise, ProfileSnapshotWrapper.class,
         format("Failed to create ProfileSnapshotWrapper by JobProfile id %s", jobProfileId)));
-    return promise.future();
-  }
-
-  private Future<Void> sendEvent(Record updatedRecord, ProfileSnapshotWrapper profileSnapshotWrapper,
-                                 JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
-    Promise<Void> promise = Promise.promise();
-    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
-    dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(updatedRecord));
-    dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
-    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
-
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(QM_RECORD_UPDATED_EVENT_TYPE)
-      .withProfileSnapshot(profileSnapshotWrapper)
-      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
-      .withJobExecutionId(updatedRecord.getSnapshotId())
-      .withContext(dataImportEventPayloadContext)
-      .withOkapiUrl(params.getOkapiUrl())
-      .withTenant(params.getTenantId())
-      .withToken(params.getToken());
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventType(QM_RECORD_UPDATED_EVENT_TYPE)
-      .withEventPayload(Json.encode(dataImportEventPayload))
-      .withEventMetadata(new EventMetadata()
-        .withTenantId(params.getTenantId())
-        .withEventTTL(1)
-        .withPublishedBy(constructModuleName()));
-
-    org.folio.rest.util.OkapiConnectionParams connectionParams = new org.folio.rest.util.OkapiConnectionParams();
-    connectionParams.setOkapiUrl(params.getOkapiUrl());
-    connectionParams.setToken(params.getToken());
-    connectionParams.setTenantId(params.getTenantId());
-    connectionParams.setVertx(params.getVertx());
-
-    sendEventMessage(event, connectionParams)
-      .whenComplete((ar, throwable) -> {
-        if (throwable == null) {
-          promise.complete();
-        } else {
-          LOGGER.error("Error during event sending: {}", throwable, event);
-          promise.fail(throwable);
-        }
-      });
     return promise.future();
   }
 
