@@ -1,8 +1,10 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -105,19 +107,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<Record> promise = Promise.promise();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.getSourceStorageRecordsById(id, null, response -> {
-        if (HTTP_OK.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(Record.class))));
-        } else {
-          String message = format("Error retrieving Record by id: '%s', response code %s, %s",
-            id, response.statusCode(), response.statusMessage());
-          if (HTTP_NOT_FOUND.toInt() == response.statusCode()) {
-            promise.fail(new NotFoundException(message));
-          } else {
-            promise.fail(message);
-          }
-        }
-      });
+      client.getSourceStorageRecordsById(id, null,
+        getResponseHandler(promise, Record.class,  format("Error retrieving Record by id: '%s'", id)));
     } catch (Exception e) {
       LOGGER.error("Failed to GET Record from SRS", e);
       promise.fail(e);
@@ -153,15 +144,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<Snapshot> promise = Promise.promise();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.postSourceStorageSnapshots(null, snapshot, response -> {
-        if (HTTP_CREATED.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(Snapshot.class))));
-        } else {
-          String message = format("Error saving Snapshot - response code %s, %s", response.statusCode(), response.statusMessage());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
+      client.postSourceStorageSnapshots(null, snapshot,
+        getResponseHandler(promise, Snapshot.class, "Error saving Snapshot"));
     } catch (Exception e) {
       LOGGER.error("Failed to save Snapshot in SRS", e);
       promise.fail(e);
@@ -173,15 +157,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<Record> promise = Promise.promise();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.postSourceStorageRecords(null, record, response -> {
-        if (HTTP_CREATED.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(Record.class))));
-        } else {
-          String message = format("Error saving Record - response code %s, %s", response.statusCode(), response.statusMessage());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
+      client.postSourceStorageRecords(null, record,
+        getResponseHandler(promise, Record.class, "Error saving Record"));
     } catch (Exception e) {
       LOGGER.error("Failed to save Record in SRS", e);
       promise.fail(e);
@@ -193,15 +170,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<Record> promise = Promise.promise();
     SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
-        if (HTTP_OK.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(Record.class))));
-        } else {
-          String message = format("Error updating Record - response code %s, %s", response.statusCode(), response.statusMessage());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
+      client.putSourceStorageRecordsById(record.getId(), null, record,
+        getResponseHandler(promise, Record.class, "Error updating Record"));
     } catch (Exception e) {
       LOGGER.error("Failed to update Record in SRS", e);
       promise.fail(e);
@@ -226,17 +196,9 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<ProfileSnapshotWrapper> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
-    client.postDataImportProfilesJobProfileSnapshotsById(jobProfileId, response -> {
-      if (response.statusCode() == HTTP_CREATED.toInt()) {
-        response.bodyHandler(body ->
-          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
-      } else {
-        String message = format("Failed to create ProfileSnapshotWrapper by JobProfile id %s, response code %s, %s",
-          jobProfileId, response.statusCode(), response.statusMessage());
-        LOGGER.error(message);
-        promise.fail(message);
-      }
-    });
+    client.postDataImportProfilesJobProfileSnapshotsById(jobProfileId,
+      getResponseHandler(promise, ProfileSnapshotWrapper.class,
+        format("Failed to create ProfileSnapshotWrapper by JobProfile id %s", jobProfileId)));
     return promise.future();
   }
 
@@ -283,6 +245,21 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
         }
       });
     return promise.future();
+  }
+
+  private <T> Handler<HttpClientResponse> getResponseHandler(Promise<T> promise, Class<T> clazz, String errorMessage) {
+    return response -> {
+      if (HTTP_OK.toInt() == response.statusCode() || HTTP_CREATED.toInt() == response.statusCode()) {
+        response.bodyHandler(body -> promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(clazz))));
+      } else {
+        String message = format("%s, response code %s, %s", errorMessage, response.statusCode(), response.statusMessage());
+        if (HTTP_NOT_FOUND.toInt() == response.statusCode()) {
+          promise.fail(new NotFoundException(message));
+        } else {
+          promise.fail(message);
+        }
+      }
+    };
   }
 
 }
