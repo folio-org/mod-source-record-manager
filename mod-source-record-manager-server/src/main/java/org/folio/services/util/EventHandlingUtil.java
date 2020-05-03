@@ -15,7 +15,6 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.EventDrivenChunkProcessingServiceImpl;
 import org.folio.util.pubsub.PubSubClientUtils;
 
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
@@ -25,7 +24,7 @@ public final class EventHandlingUtil {
   private EventHandlingUtil() {
   }
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EventHandlingUtil.class);
 
   /**
    * Prepares event with record, profileSnapshotWrapper and sends prepared event to the mod-pubsub
