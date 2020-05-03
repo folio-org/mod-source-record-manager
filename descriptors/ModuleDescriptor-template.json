@@ -200,7 +200,19 @@
             "source-storage.records.get",
             "source-storage.snapshots.post",
             "source-storage.records.post",
-            "source-storage.records.put"
+            "source-storage.records.put",
+            "converter-storage.jobprofilesnapshots.post",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "pubsub.publish.post"
           ]
         }
       ]
