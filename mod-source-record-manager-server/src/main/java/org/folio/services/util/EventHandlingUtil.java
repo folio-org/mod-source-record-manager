@@ -57,7 +57,7 @@ public final class EventHandlingUtil {
     Event createdRecordEvent = new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(eventType)
-      .withEventPayload(Json.encode(dataImportEventPayload))
+      .withEventPayload(ZIPArchiver.zip(Json.encode(dataImportEventPayload)))
       .withEventMetadata(new EventMetadata()
         .withTenantId(params.getTenantId())
         .withEventTTL(1)
