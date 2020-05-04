@@ -4,21 +4,27 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ParsedRecordDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.UUID;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
@@ -109,6 +115,86 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
       .when()
       .get(PARSED_RECORDS_URL)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+  }
+
+  @Test
+  public void shouldUpdateParsedRecordOnPut(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
+      .willReturn(WireMock.created().withBody(Json.encode(new Snapshot().withJobExecutionId(UUID.randomUUID().toString())))));
+    WireMock.stubFor(WireMock.post(RECORD_SERVICE_URL)
+      .willReturn(WireMock.created().withBody(Json.encode(new Record()
+        .withId(UUID.randomUUID().toString())
+        .withSnapshotId(UUID.randomUUID().toString())))));
+    WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(new Record()
+        .withId(UUID.randomUUID().toString())
+        .withSnapshotId(UUID.randomUUID().toString())))));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+  }
+
+  @Test
+  public void shouldReturnNotFoundOnPutIfRecordDoesNotExist(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.notFound()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldReturnErrorOnPutIfOneOfRequestsFailed(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(WireMock.get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
       .then()
       .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     async.complete();

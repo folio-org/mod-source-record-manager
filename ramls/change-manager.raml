@@ -235,3 +235,27 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
+    /{id}:
+      description: Update ParsedRecord by id
+      put:
+        is: [validate]
+        body:
+          application/json:
+            schema: parsedRecordDto
+        responses:
+          204:
+          400:
+            description: "Bad request"
+            body:
+              text/plain:
+                example: "Bad request"
+          404:
+            description: "Not found"
+            body:
+              text/plain:
+                example: "Not found"
+          500:
+            description: "Internal server error"
+            body:
+              text/plain:
+                example: "Internal server error"

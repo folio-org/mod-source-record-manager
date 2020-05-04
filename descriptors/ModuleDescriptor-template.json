@@ -191,6 +191,29 @@
           "modulePermissions": [
             "source-storage.sourceRecords.get"
           ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/change-manager/parsedRecords/{id}",
+          "permissionsRequired" : [ "change-manager.parsedrecords.put" ],
+          "modulePermissions": [
+            "source-storage.records.get",
+            "source-storage.snapshots.post",
+            "source-storage.records.post",
+            "source-storage.records.put",
+            "converter-storage.jobprofilesnapshots.post",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "pubsub.publish.post"
+          ]
         }
       ]
     },
@@ -316,6 +339,11 @@
       "description": "Get parsed record"
     },
     {
+      "permissionName":  "change-manager.parsedrecords.put",
+      "displayName": "Change Manager - update parsed record by id",
+      "description": "Update parsed record"
+    },
+    {
       "permissionName": "mapping-rules.get",
       "displayName": "Mapping Rules provider - get default rules by tenant id",
       "description": "Get mapping rules for tenant"
@@ -343,6 +371,7 @@
         "change-manager.records.post",
         "change-manager.records.delete",
         "change-manager.parsedrecords.get",
+        "change-manager.parsedrecords.put",
         "mapping-rules.get",
         "mapping-rules.update",
         "mapping-rules.restore"
