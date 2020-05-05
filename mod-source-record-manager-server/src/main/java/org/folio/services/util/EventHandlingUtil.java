@@ -29,7 +29,7 @@ public final class EventHandlingUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventHandlingUtil.class);
 
   /**
-   * Prepares event with record, profileSnapshotWrapper and sends prepared event to the mod-pubsub
+   * Prepares event with record, profileSnapshotWrapper and sends prepared event with zipped payload to the mod-pubsub
    *
    * @param record                 record to send
    * @param profileSnapshotWrapper profileSnapshotWrapper to send
