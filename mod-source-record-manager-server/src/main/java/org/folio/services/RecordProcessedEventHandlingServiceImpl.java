@@ -17,6 +17,7 @@ import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Date;
 
 import static java.lang.String.format;
@@ -40,9 +41,17 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   @Override
   public Future<Boolean> handle(String eventContent, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
+    DataImportEventPayload dataImportEventPayload;
     try {
-      DataImportEventPayload dataImportEventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(eventContent), DataImportEventPayload.class);
-      String jobExecutionId = dataImportEventPayload.getJobExecutionId();
+      dataImportEventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(eventContent), DataImportEventPayload.class);
+    } catch (IOException e) {
+      LOGGER.error("Failed to unzip event {}", e, eventContent);
+      promise.fail(e);
+      return promise.future();
+    }
+
+    String jobExecutionId = dataImportEventPayload.getJobExecutionId();
+    try {
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
       jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progress -> changeProgressAccordingToEventType(progress, eventType), params.getTenantId())
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
@@ -58,6 +67,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         });
     } catch (Exception e) {
       LOGGER.error("Failed to handle event {}", e, eventContent);
+      updateJobStatusToError(jobExecutionId, params);
       promise.fail(e);
     }
     return promise.future();

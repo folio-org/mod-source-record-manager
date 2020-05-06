@@ -83,7 +83,7 @@ public final class EventHandlingUtil {
           }
         });
     } catch (Exception e) {
-      LOGGER.error("Error during event building or sending: {}", e);
+      LOGGER.error("Error during event building or sending", e);
       promise.fail(e);
     }
     return promise.future();
