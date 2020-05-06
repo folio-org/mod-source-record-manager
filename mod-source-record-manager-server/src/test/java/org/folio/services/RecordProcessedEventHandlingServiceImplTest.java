@@ -176,6 +176,34 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   }
 
   @Test
+  public void shouldNotProcessIfErrorWhileEventUnzipping(TestContext context) {
+    // given
+    Async async = context.async();
+    HashMap<String, String> payloadContext = new HashMap<>();
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
+      .withContext(payloadContext);
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> {
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+      });
+
+    // when
+    Future<JobExecutionProgress> jobFuture = future
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
+      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
+
+    // then
+    jobFuture.setHandler(ar -> {
+      context.assertTrue(ar.failed());
+      async.complete();
+    });
+  }
+
+  @Test
   public void shouldIncrementCurrentlyFailedAndUpdateProgressOnHandleEvent(TestContext context) {
     // given
     Async async = context.async();
