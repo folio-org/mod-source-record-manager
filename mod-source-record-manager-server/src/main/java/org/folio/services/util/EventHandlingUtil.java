@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
