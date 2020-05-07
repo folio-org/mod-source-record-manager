@@ -1,6 +1,8 @@
 package org.folio.services;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -17,6 +19,7 @@ import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -25,6 +28,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -45,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -55,6 +60,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
@@ -165,7 +171,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       context.assertEquals(1, loggedRequests.size());
       Event event = Json.decodeValue(loggedRequests.get(0).getBodyAsString(), Event.class);
-      DataImportEventPayload dataImportEventPayload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
+      DataImportEventPayload dataImportEventPayload = null;
+      try {
+        dataImportEventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
       context.assertNotNull(dataImportEventPayload.getCurrentNode());
       context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
@@ -287,6 +298,31 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       context.assertNotNull(jobExecution.getCompletedDate());
       verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
       verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
+      async.complete();
+    });
+  }
+
+
+  @Test
+  public void shouldNotProcessChunkOfRawRecordsIfChildSnapshotWrapperIsEmpty(TestContext context) {
+    Async async = context.async();
+
+    ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withProfileId(jobProfile.getId())
+      .withContentType(JOB_PROFILE)
+      .withContent(jobProfile)
+      .withChildSnapshotWrappers(Collections.emptyList());
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(profileSnapshotWrapperResponse))));
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
+
+    future.setHandler(ar -> {
+      context.assertTrue(ar.failed());
       async.complete();
     });
   }
