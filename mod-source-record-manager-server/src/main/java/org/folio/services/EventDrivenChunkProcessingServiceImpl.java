@@ -4,14 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -27,8 +31,9 @@ import org.springframework.stereotype.Service;
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
-import static org.folio.services.util.EventHandlingUtil.sendEventWithRecord;
+import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
@@ -95,8 +100,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
                 ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
                 List<Future> futures = createdRecords.stream()
                   .filter(this::isRecordReadyToSend)
-                  .map(record -> sendEventWithRecord(record, DI_SRS_MARC_BIB_RECORD_CREATED.value(),
-                    profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params))
+                  .map(record -> sendEventWithPayload(Json.encode(prepareEventPayload(record,
+                    profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params)), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params))
                   .collect(Collectors.toList());
                 return CompositeFuture.join(futures).map(true);
               } else {
@@ -129,6 +134,34 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    */
   private Future<MappingParameters> getMappingParameters(String snapshotId, OkapiConnectionParams okapiParams) {
     return mappingParametersProvider.get(snapshotId, okapiParams);
+  }
+
+  /**
+   * Prepares eventPayload with createdRecord and profileSnapshotWrapper
+   *
+   * @param createdRecord          record to send
+   * @param profileSnapshotWrapper profileSnapshotWrapper to send
+   * @param mappingRules           rules for default instance mapping
+   * @param mappingParameters      mapping parameters
+   * @param params                 connection parameters
+   * @return dataImportEventPayload
+   */
+  private DataImportEventPayload prepareEventPayload(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper,
+                                             JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
+    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
+    dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
+    dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
+    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
+
+    return new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_CREATED.value())
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withJobExecutionId(createdRecord.getSnapshotId())
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(params.getOkapiUrl())
+      .withTenant(params.getTenantId())
+      .withToken(params.getToken());
   }
 
   private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, OkapiConnectionParams params) {
