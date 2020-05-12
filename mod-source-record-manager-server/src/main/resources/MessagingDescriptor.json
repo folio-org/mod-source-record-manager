@@ -7,8 +7,8 @@
       "signed": false
     },
     {
-      "eventType": "QM_SRS_MARC_BIB_RECORD_UPDATED",
-      "description": "Updated SRS Marc Bibliographic Record",
+      "eventType": "QM_RECORD_UPDATED",
+      "description": "Updated Marc Bibliographic Record",
       "eventTTL": 1,
       "signed": false
     }
