@@ -287,7 +287,8 @@
       "handlers" : [
         {
           "methods" : [ "GET" ],
-          "pathPattern" : "/_/jsonSchemas"
+          "pathPattern" : "/_/jsonSchemas",
+          "permissionsRequired": []
         }
       ]
     }
