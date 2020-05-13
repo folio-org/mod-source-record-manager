@@ -288,9 +288,7 @@
         {
           "methods" : [ "GET" ],
           "pathPattern" : "/_/jsonSchemas",
-          "permissionsRequired": [
-            "change-manager.json-schemas.get"
-          ]
+          "permissionsRequired": []
         }
       ]
     }
@@ -357,11 +355,6 @@
       "description": "Restore existing mapping rules to default for tenant"
     },
     {
-      "permissionName": "change-manager.json-schemas.get",
-      "displayName": "Change Manager - get json schemas provided by module",
-      "description": "Get schemas"
-    },
-    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -377,8 +370,7 @@
         "change-manager.parsedrecords.put",
         "mapping-rules.get",
         "mapping-rules.update",
-        "mapping-rules.restore",
-        "change-manager.json-schemas.get"
+        "mapping-rules.restore"
       ],
       "visible": false
     }
