@@ -84,7 +84,12 @@
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId);",
+      "snippet": "ALTER TABLE job_execution_progress DROP CONSTRAINT IF EXISTS job_execution_id_unique; ALTER TABLE job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId);",
+      "fromModuleVersion": "mod-source-record-manager-2.1.3"
+    },
+    {
+      "run": "after",
+      "snippet": "DELETE FROM diku_mod_source_record_manager.job_execution_progress jep1 USING diku_mod_source_record_manager.job_execution_progress jep2 WHERE  jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid;",
       "fromModuleVersion": "mod-source-record-manager-2.1.3"
     }
   ]
