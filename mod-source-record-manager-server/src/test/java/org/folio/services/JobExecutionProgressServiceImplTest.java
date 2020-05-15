@@ -98,6 +98,23 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldNotReturnFailedFutureWhenJobExecutionIdDuplicates(TestContext context) {
+    Async async = context.async();
+    int expectedTotalRecords = 62;
+
+    Future<JobExecutionProgress> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID)
+      .compose(jobExecutionProgress -> jobExecutionProgressService.initializeJobExecutionProgress(jobExecutionProgress.getJobExecutionId(), expectedTotalRecords, TENANT_ID)));
+
+    future.setHandler(ar -> {
+      context.assertTrue(ar.succeeded());
+      JobExecutionProgress progress = ar.result();
+      context.assertEquals(expectedTotalRecords, progress.getTotal());
+      async.complete();
+    });
+  }
+
+  @Test
   public void shouldUpdateProgress(TestContext context) {
     Async async = context.async();
     int expectedTotalRecords = 42;
