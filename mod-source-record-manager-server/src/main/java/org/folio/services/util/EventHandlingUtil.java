@@ -2,25 +2,14 @@ package org.folio.services.util;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
-import java.util.HashMap;
 import java.util.UUID;
-
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.events.utils.ZIPArchiver;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.Record;
 import org.folio.util.pubsub.PubSubClientUtils;
-
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 
 public final class EventHandlingUtil {
 
@@ -30,38 +19,20 @@ public final class EventHandlingUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventHandlingUtil.class);
 
   /**
-   * Prepares event with record, profileSnapshotWrapper and sends prepared event with zipped payload to the mod-pubsub
+   * Prepares and sends event with zipped payload to the mod-pubsub
    *
-   * @param record                 record to send
-   * @param profileSnapshotWrapper profileSnapshotWrapper to send
-   * @param mappingRules           rules for default instance mapping
-   * @param mappingParameters      mapping parameters
-   * @param params                 connection parameters
-   * @return completed future with record if record was sent successfully
+   * @param eventPayload eventPayload in String representation
+   * @param eventType    eventType
+   * @param params       connection parameters
+   * @return completed future with true if event was sent successfully
    */
-  public static Future<Record> sendEventWithRecord(Record record, String eventType, ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                   JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
-    Promise<Record> promise = Promise.promise();
+  public static Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params) {
+    Promise<Boolean> promise = Promise.promise();
     try {
-      HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
-      dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
-      dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
-      dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
-
-      DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-        .withEventType(eventType)
-        .withProfileSnapshot(profileSnapshotWrapper)
-        .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
-        .withJobExecutionId(record.getSnapshotId())
-        .withContext(dataImportEventPayloadContext)
-        .withOkapiUrl(params.getOkapiUrl())
-        .withTenant(params.getTenantId())
-        .withToken(params.getToken());
-
-      Event createdRecordEvent = new Event()
+      Event event = new Event()
         .withId(UUID.randomUUID().toString())
         .withEventType(eventType)
-        .withEventPayload(ZIPArchiver.zip(Json.encode(dataImportEventPayload)))
+        .withEventPayload(ZIPArchiver.zip(eventPayload))
         .withEventMetadata(new EventMetadata()
           .withTenantId(params.getTenantId())
           .withEventTTL(1)
@@ -73,17 +44,17 @@ public final class EventHandlingUtil {
       connectionParams.setTenantId(params.getTenantId());
       connectionParams.setVertx(params.getVertx());
 
-      PubSubClientUtils.sendEventMessage(createdRecordEvent, connectionParams)
+      PubSubClientUtils.sendEventMessage(event, connectionParams)
         .whenComplete((ar, throwable) -> {
           if (throwable == null) {
-            promise.complete(record);
+            promise.complete(true);
           } else {
-            LOGGER.error("Error during event sending: {}", throwable, createdRecordEvent);
+            LOGGER.error("Error during event sending: {}", throwable, event);
             promise.fail(throwable);
           }
         });
     } catch (Exception e) {
-      LOGGER.error("Error during event building or sending", e);
+      LOGGER.error("Failed to send {} event to mod-pubsub", e, eventType);
       promise.fail(e);
     }
     return promise.future();

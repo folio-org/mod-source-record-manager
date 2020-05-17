@@ -197,11 +197,6 @@
           "pathPattern": "/change-manager/parsedRecords/{id}",
           "permissionsRequired" : [ "change-manager.parsedrecords.put" ],
           "modulePermissions": [
-            "source-storage.records.get",
-            "source-storage.snapshots.post",
-            "source-storage.records.post",
-            "source-storage.records.put",
-            "converter-storage.jobprofilesnapshots.post",
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
             "inventory-storage.instance-types.collection.get",
@@ -292,7 +287,8 @@
       "handlers" : [
         {
           "methods" : [ "GET" ],
-          "pathPattern" : "/_/jsonSchemas"
+          "pathPattern" : "/_/jsonSchemas",
+          "permissionsRequired": []
         }
       ]
     }
