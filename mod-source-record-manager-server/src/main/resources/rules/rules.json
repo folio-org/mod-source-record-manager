@@ -6145,7 +6145,7 @@
           ]
         },
         {
-          "target": "precedingTitles.identifiers.identifierTypeId",
+          "target": "precedingTitles.isbnId",
           "description": "Type for Valid ISBN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6165,7 +6165,7 @@
           ]
         },
         {
-          "target": "precedingTitles.identifiers.value",
+          "target": "precedingTitles.isbnValue",
           "description": "Value for Valid ISBN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6182,7 +6182,7 @@
           ]
         },
         {
-          "target": "precedingTitles.identifiers.identifierTypeId",
+          "target": "precedingTitles.issnId",
           "description": "Type for Valid ISSN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6202,7 +6202,7 @@
           ]
         },
         {
-          "target": "precedingTitles.identifiers.value",
+          "target": "precedingTitles.issnValue",
           "description": "Value for Valid ISSN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6242,7 +6242,7 @@
           ]
         },
         {
-          "target": "succeedingTitles.identifiers.identifierTypeId",
+          "target": "succeedingTitles.isbnId",
           "description": "Type for Valid ISBN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6262,7 +6262,7 @@
           ]
         },
         {
-          "target": "succeedingTitles.identifiers.value",
+          "target": "succeedingTitles.isbnValue",
           "description": "Value for Valid ISBN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6279,7 +6279,7 @@
           ]
         },
         {
-          "target": "succeedingTitles.identifiers.identifierTypeId",
+          "target": "succeedingTitles.issnId",
           "description": "Type for Valid ISSN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
@@ -6299,7 +6299,7 @@
           ]
         },
         {
-          "target": "succeedingTitles.identifiers.value",
+          "target": "succeedingTitles.issnValue",
           "description": "Value for Valid ISSN",
           "applyRulesOnConcatenatedData": true,
           "subfield": [
