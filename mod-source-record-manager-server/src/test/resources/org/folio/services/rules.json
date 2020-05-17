@@ -445,7 +445,10 @@
                 {
                   "type": "set_identifier_type_id_by_value",
                   "parameter": {
-                    "names": ["System control number", "OCLC"],
+                    "names": [
+                      "System control number",
+                      "OCLC"
+                    ],
                     "oclc_regex": "(\\(OCoLC\\)|ocm|ocn|on).*"
                   }
                 }
@@ -3047,7 +3050,6 @@
   "526": [
     {
       "entity": [
-
         {
           "target": "notes.instanceNoteTypeId",
           "description": "Instance note type id",
@@ -3945,7 +3947,6 @@
             }
           ]
         },
-
         {
           "target": "notes.note",
           "description": "Location of Other Archival Materials Note",
@@ -5821,7 +5822,6 @@
       ]
     }
   ],
-
   "700": [
     {
       "entity": [
@@ -6116,6 +6116,200 @@
               "conditions": [
                 {
                   "type": "trim_period, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "780": [
+    {
+      "entity": [
+        {
+          "target": "precedingTitles.title",
+          "description": "The primary title (or label) associated with the resource",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "t"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "precedingTitles.isbnId",
+          "description": "Type for Valid ISBN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISBN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "precedingTitles.isbnValue",
+          "description": "Value for Valid ISBN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "precedingTitles.issnId",
+          "description": "Type for Valid ISSN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISSN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "precedingTitles.issnValue",
+          "description": "Value for Valid ISSN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "785": [
+    {
+      "entity": [
+        {
+          "target": "succeedingTitles.title",
+          "description": "The primary title (or label) associated with the resource",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "t"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "succeedingTitles.isbnId",
+          "description": "Type for Valid ISBN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISBN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "succeedingTitles.isbnValue",
+          "description": "Value for Valid ISBN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "succeedingTitles.issnId",
+          "description": "Type for Valid ISSN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISSN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "succeedingTitles.issnValue",
+          "description": "Value for Valid ISSN",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
                 }
               ]
             }
