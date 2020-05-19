@@ -467,6 +467,11 @@
           "type": "string",
           "$ref": "uuid.json"
         },
+        "precedingInstanceId": {
+          "description": "Id of the current instance",
+          "type": "string",
+          "$ref": "uuid.json"
+        },
         "title": {
           "type": "string",
           "description": "The primary title (or label) associated with the resource"

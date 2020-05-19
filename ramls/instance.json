@@ -415,6 +415,11 @@
             "type": "string",
             "$ref": "raml-storage/schemas/common/uuid.json"
           },
+          "succeedingInstanceId": {
+            "description": "Id of the current instance",
+            "type": "string",
+            "$ref": "raml-storage/schemas/common/uuid.json"
+          },
           "title": {
             "type": "string",
             "description": "The primary title (or label) associated with the resource"
@@ -463,6 +468,11 @@
           },
           "succeedingInstanceId": {
             "description": "Id of the succeeding instance id",
+            "type": "string",
+            "$ref": "raml-storage/schemas/common/uuid.json"
+          },
+          "precedingInstanceId": {
+            "description": "Id of the current instance",
             "type": "string",
             "$ref": "raml-storage/schemas/common/uuid.json"
           },
