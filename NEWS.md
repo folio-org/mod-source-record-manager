@@ -6,6 +6,7 @@
 * [MODSOURMAN-310](https://issues.folio.org/browse/MODSOURMAN-310) Added definition that jsonSchemas api doesn't require any permissions
 * [MODSOURMAN-311](https://issues.folio.org/browse/MODSOURMAN-311) JobExecution duplicates for Cornell file [BUGFIX]
 * [MODDICORE-50](https://issues.folio.org/browse/MODDICORE-50) Fixed placement of newly-created 035 field
+* [MODSOURMAN-275](https://issues.folio.org/browse/MODSOURMAN-275) Remove preview area's sample data.
 
 ## 2020-04-23 v2.1.3
 * [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
