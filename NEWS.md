@@ -7,6 +7,7 @@
 * [MODSOURMAN-311](https://issues.folio.org/browse/MODSOURMAN-311) JobExecution duplicates for Cornell file [BUGFIX]
 * [MODDICORE-50](https://issues.folio.org/browse/MODDICORE-50) Fixed placement of newly-created 035 field
 * [MODSOURMAN-275](https://issues.folio.org/browse/MODSOURMAN-275) Remove preview area's sample data.
+* [MODSOURMAN-318](https://issues.folio.org/browse/MODSOURMAN-318) Remove hardcoded diku tenant in db schema.json.
 
 ## 2020-04-23 v2.1.3
 * [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record.
