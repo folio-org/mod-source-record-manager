@@ -89,7 +89,7 @@
     },
     {
       "run": "after",
-      "snippet": "DELETE FROM diku_mod_source_record_manager.job_execution_progress jep1 USING diku_mod_source_record_manager.job_execution_progress jep2 WHERE  jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid;",
+      "snippet": "DELETE FROM job_execution_progress jep1 USING diku_mod_source_record_manager.job_execution_progress jep2 WHERE  jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid;",
       "fromModuleVersion": "mod-source-record-manager-2.2.0"
     }
   ]
