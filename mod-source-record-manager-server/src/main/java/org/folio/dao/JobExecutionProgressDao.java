@@ -24,9 +24,9 @@ public interface JobExecutionProgressDao {
   /**
    * Creates jobExecutionProgress for {@link JobExecution} with specified jobExecutionId
    *
-   * @param jobExecutionId  jobExecution id
-   * @param totalRecords    total number of records to be processed
-   * @param tenantId        tenant id
+   * @param jobExecutionId jobExecution id
+   * @param totalRecords   total number of records to be processed
+   * @param tenantId       tenant id
    * @return future with created JobExecutionProgress
    */
   Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId);

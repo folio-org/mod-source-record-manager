@@ -75,7 +75,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID))
       .compose(progress -> jobExecutionProgressService.getByJobExecutionId(progress.getJobExecutionId(), TENANT_ID));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress progress = ar.result();
       context.assertEquals(expectedTotalRecords, progress.getTotal());
@@ -91,7 +91,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     Future<JobExecutionProgress> future = jobExecutionProgressService.initializeJobExecutionProgress(jobExecId, totalRecords, TENANT_ID);
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       async.complete();
     });
@@ -104,9 +104,9 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     Future<JobExecutionProgress> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID)
-      .compose(jobExecutionProgress -> jobExecutionProgressService.initializeJobExecutionProgress(jobExecutionProgress.getJobExecutionId(), expectedTotalRecords, TENANT_ID)));
+        .compose(jobExecutionProgress -> jobExecutionProgressService.initializeJobExecutionProgress(jobExecutionProgress.getJobExecutionId(), expectedTotalRecords, TENANT_ID)));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress progress = ar.result();
       context.assertEquals(expectedTotalRecords, progress.getTotal());
@@ -125,10 +125,10 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto -> jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
       .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID))
       .compose(progress -> jobExecutionProgressService.updateJobExecutionProgress(progress.getJobExecutionId(), progressToUpdate ->
-        progressToUpdate.withCurrentlySucceeded(expectedSucceededRecords).withCurrentlyFailed(expectedFailedRecords),
+          progressToUpdate.withCurrentlySucceeded(expectedSucceededRecords).withCurrentlyFailed(expectedFailedRecords),
         TENANT_ID));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress progress = ar.result();
       context.assertEquals(expectedTotalRecords, progress.getTotal());
@@ -147,7 +147,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     Future<JobExecutionProgress> future = jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progressToUpdate ->
       progressToUpdate.withCurrentlySucceeded(succeededRecords), TENANT_ID);
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       async.complete();
     });

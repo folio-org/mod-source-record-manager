@@ -62,7 +62,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(initJobExecutionsRsDto ->
             (Response) PostChangeManagerJobExecutionsResponse.respond201WithApplicationJson(initJobExecutionsRsDto))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Error during initializing JobExecution entities", e);
         asyncResultHandler.handle(Future.failedFuture(e));
@@ -80,7 +80,7 @@ public class ChangeManagerImpl implements ChangeManager {
         jobExecutionService.updateJobExecutionWithSnapshotStatus(entity, params)
           .map(updatedEntity -> (Response) PutChangeManagerJobExecutionsByIdResponse.respond200WithApplicationJson(updatedEntity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to update JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -99,7 +99,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(GetChangeManagerJobExecutionsByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to get JobExecution by id", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -125,7 +125,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(GetChangeManagerJobExecutionsChildrenByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to retrieve JobExecutions by parent id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -143,7 +143,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to update status for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -160,7 +160,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to set JobProfile for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -179,7 +179,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -197,7 +197,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to delete records for JobExecution id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -214,7 +214,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(GetChangeManagerParsedRecordsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to retrieve parsed record by instanceId {}", e, instanceId);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
@@ -231,7 +231,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .map(updated -> PutChangeManagerParsedRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error("Failed to update parsed record with id {}", e, id);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));

@@ -79,13 +79,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     List<Record> parsedRecords = parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     postRecords(params, jobExecution, parsedRecords)
-      .setHandler(postAr -> {
+      .onComplete(postAr -> {
         if (postAr.failed()) {
           StatusDto statusDto = new StatusDto()
             .withStatus(StatusDto.Status.ERROR)
             .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
           jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-            .setHandler(r -> {
+            .onComplete(r -> {
               if (r.failed()) {
                 LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
               }
@@ -95,7 +95,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
               .orElseThrow(() -> new NotFoundException(String.format(
                 "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
-            .setHandler(ar -> promise.fail(postAr.cause()));
+            .onComplete(ar -> promise.fail(postAr.cause()));
         } else {
           promise.complete(parsedRecords);
         }

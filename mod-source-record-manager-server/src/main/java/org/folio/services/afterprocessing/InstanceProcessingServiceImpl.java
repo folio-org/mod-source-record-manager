@@ -91,7 +91,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
-      .setHandler(ar ->
+      .onComplete(ar ->
         updateSourceChunkState(
           sourceChunkId,
           ar.succeeded() ? JobExecutionSourceChunk.State.COMPLETED : JobExecutionSourceChunk.State.ERROR,
@@ -99,7 +99,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         )
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> promise.complete())
+          .onComplete(updateAr -> promise.complete())
       );
     return promise.future();
   }

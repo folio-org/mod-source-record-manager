@@ -55,10 +55,10 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
       jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progress -> changeProgressAccordingToEventType(progress, eventType), params.getTenantId())
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
-        .setHandler(ar -> {
+        .onComplete(ar -> {
           if (ar.failed()) {
             LOGGER.error("Failed to handle {} event", ar.cause(), eventType);
-            updateJobStatusToError(jobExecutionId, params).setHandler(statusAr -> {
+            updateJobStatusToError(jobExecutionId, params).onComplete(statusAr -> {
               promise.fail(ar.cause());
             });
           } else {

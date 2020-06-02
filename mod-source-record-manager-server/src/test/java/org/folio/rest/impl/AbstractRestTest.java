@@ -190,7 +190,9 @@ public abstract class AbstractRestTest {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
         tenantAttributes.setModuleTo(PomReader.INSTANCE.getModuleName());
-        tenantClient.postTenant(tenantAttributes, postTenantAr -> {async.complete();});
+        tenantClient.postTenant(tenantAttributes, postTenantAr -> {
+          async.complete();
+        });
       } catch (Exception e) {
         e.printStackTrace();
       }

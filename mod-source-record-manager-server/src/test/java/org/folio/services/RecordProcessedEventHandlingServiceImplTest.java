@@ -165,7 +165,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress updatedProgress = ar.result();
       context.assertEquals(1, updatedProgress.getCurrentlySucceeded());
@@ -197,7 +197,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.failed());
       async.complete();
     });
@@ -232,7 +232,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress updatedProgress = ar.result();
       context.assertEquals(1, updatedProgress.getCurrentlyFailed());
@@ -241,7 +241,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
       Async async2 = context.async();
       jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
-        .setHandler(jobAr -> {
+        .onComplete(jobAr -> {
           context.assertTrue(jobAr.succeeded());
           context.assertTrue(jobAr.result().isPresent());
           JobExecution jobExecution = jobAr.result().get();
@@ -289,7 +289,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertTrue(ar.result().isPresent());
       JobExecution jobExecution = ar.result().get();
@@ -352,7 +352,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertTrue(ar.result().isPresent());
       JobExecution jobExecution = ar.result().get();

@@ -65,8 +65,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
       .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params))
-      .setHandler(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
-        .setHandler(updateAr -> promise.handle(sendEventsAr.map(true))));
+      .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
+        .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
   }
 
@@ -147,7 +147,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    * @return dataImportEventPayload
    */
   private DataImportEventPayload prepareEventPayload(Record createdRecord, ProfileSnapshotWrapper profileSnapshotWrapper,
-                                             JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
+                                                     JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
     dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(createdRecord));
     dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());

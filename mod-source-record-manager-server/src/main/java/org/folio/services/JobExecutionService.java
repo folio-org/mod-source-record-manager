@@ -23,6 +23,7 @@ public interface JobExecutionService {
 
   /**
    * Returns JobExecutionCollection by the input query
+   *
    * @param query  query string to filter entities
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return

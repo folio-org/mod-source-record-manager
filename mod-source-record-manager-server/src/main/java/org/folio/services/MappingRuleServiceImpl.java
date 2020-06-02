@@ -2,6 +2,7 @@ package org.folio.services;
 
 import com.google.common.io.Resources;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import org.folio.dao.MappingRuleDao;
 import org.slf4j.Logger;
@@ -18,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleServiceImpl.class);
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
@@ -36,7 +36,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<Void> saveDefaultRules(String tenantId) {
-    Future<Void> future = Future.future();
+    Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
@@ -44,50 +44,50 @@ public class MappingRuleServiceImpl implements MappingRuleService {
         mappingRuleDao.save(new JsonObject(rules), tenantId).setHandler(ar -> {
           if (ar.failed()) {
             LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
-            future.fail(ar.cause());
+            promise.fail(ar.cause());
           } else {
-            future.complete();
+            promise.complete();
           }
         });
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
         LOGGER.error(errorMessage);
-        future.fail(new InternalServerErrorException(errorMessage));
+        promise.fail(new InternalServerErrorException(errorMessage));
       }
     } else {
       String errorMessage = "No default rules found";
       LOGGER.error(errorMessage);
-      future.fail(errorMessage);
+      promise.fail(errorMessage);
     }
-    return future;
+    return promise.future();
   }
 
   @Override
   public Future<JsonObject> update(String rules, String tenantId) {
-    Future<JsonObject> future = Future.future();
+    Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
-      mappingRuleDao.update(new JsonObject(rules), tenantId).setHandler(future);
+      mappingRuleDao.update(new JsonObject(rules), tenantId).onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
       LOGGER.error(errorMessage);
-      future.fail(new BadRequestException(errorMessage));
+      promise.fail(new BadRequestException(errorMessage));
     }
-    return future;
+    return promise.future();
   }
 
   @Override
   public Future<JsonObject> restore(String tenantId) {
-    Future<JsonObject> future = Future.future();
+    Promise<JsonObject> promise = Promise.promise();
     Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
-      update(rules, tenantId).setHandler(future);
+      update(rules, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);
-      future.fail(new InternalServerErrorException(errorMessage));
+      promise.fail(new InternalServerErrorException(errorMessage));
     }
-    return future;
+    return promise.future();
   }
 
   /**

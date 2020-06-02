@@ -45,9 +45,9 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
                                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        Future.succeededFuture((Response) ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204())
-          .setHandler(asyncResultHandler);
         LOGGER.debug("Event was received: {}", entity);
+        asyncResultHandler.handle(Future.succeededFuture(
+          ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204()));
         DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), DataImportEventPayload.class);
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
@@ -62,10 +62,11 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   public void postChangeManagerHandlersProcessingResult(String entity, Map<String, String> okapiHeaders,
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
-        LOGGER.debug("Event was received: {}", entity);
-        asyncResultHandler.handle(Future.succeededFuture(ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond204()));
-        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        recordProcessedEventHandleService.handle(entity, params);
+      LOGGER.debug("Event was received: {}", entity);
+      asyncResultHandler.handle(Future.succeededFuture(
+        ChangeManagerHandlers.PostChangeManagerHandlersProcessingResultResponse.respond204()));
+      OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
+      recordProcessedEventHandleService.handle(entity, params);
     });
   }
 }

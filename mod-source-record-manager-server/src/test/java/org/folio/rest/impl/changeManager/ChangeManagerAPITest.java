@@ -1846,7 +1846,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .queryParam(QUERY_PARAM_NAME,true)
+      .queryParam(QUERY_PARAM_NAME, true)
       .body(rawRecordsDtoContainingError)
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)

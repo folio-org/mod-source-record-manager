@@ -58,7 +58,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
 
   @Test
   public void shouldReturnOkIfEventPayloadIsInvalid() throws IOException {
-     JsonObject invalidEvent = new JsonObject()
+    JsonObject invalidEvent = new JsonObject()
       .put("id", UUID.randomUUID().toString())
       .put("eventType", "CREATED_INVENTORY_INSTANCE")
       .put("contexttt", "test")

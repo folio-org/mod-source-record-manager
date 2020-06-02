@@ -275,7 +275,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private Future<UserInfo> lookupUser(String userId, OkapiConnectionParams params) {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
-      .setHandler(getUserResult -> {
+      .onComplete(getUserResult -> {
         if (RestUtil.validateAsyncResult(getUserResult, promise.future())) {
           JsonObject response = getUserResult.result().getJson();
           if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
@@ -466,14 +466,15 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   /**
    * Updates jobExecution object, if Error exists.
-   * @param status - DTO which contains new status
+   *
+   * @param status       - DTO which contains new status
    * @param jobExecution - specific JobExecution
    */
   private void updateJobExecutionIfErrorExist(StatusDto status, JobExecution jobExecution) {
     if (status.getStatus() == ERROR) {
       jobExecution.setErrorStatus(JobExecution.ErrorStatus.fromValue(status.getErrorStatus().name()));
       jobExecution.setCompletedDate(new Date());
-      if(jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)){
+      if (jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)) {
         jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
       }
     }

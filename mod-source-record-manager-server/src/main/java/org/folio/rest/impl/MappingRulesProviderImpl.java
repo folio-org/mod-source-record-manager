@@ -37,7 +37,7 @@ public class MappingRulesProviderImpl implements MappingRules {
       .map(rules -> GetMappingRulesResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
-      .setHandler(asyncResultHandler);
+      .onComplete(asyncResultHandler);
   }
 
   @Override
@@ -47,7 +47,7 @@ public class MappingRulesProviderImpl implements MappingRules {
       .map(rules -> PutMappingRulesResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
-      .setHandler(asyncResultHandler);
+      .onComplete(asyncResultHandler);
   }
 
   @Override
@@ -57,6 +57,6 @@ public class MappingRulesProviderImpl implements MappingRules {
       .map(rules -> PutMappingRulesRestoreResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
-      .setHandler(asyncResultHandler);
+      .onComplete(asyncResultHandler);
   }
 }

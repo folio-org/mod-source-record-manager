@@ -159,7 +159,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
@@ -199,7 +199,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService, times(2)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
@@ -225,7 +225,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
@@ -255,7 +255,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
@@ -286,7 +286,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(jobExecution -> chunkProcessingService.processChunk(lastRawRecordsDto, jobExecution.getId(), params).otherwise(true).map(jobExecution))
       .compose(jobExecution -> jobExecutionService.getJobExecutionById(jobExecution.getId(), params.getTenantId()));
 
-    jobFuture.setHandler(ar -> {
+    jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertTrue(ar.result().isPresent());
       JobExecution jobExecution = ar.result().get();
@@ -321,7 +321,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.failed());
       async.complete();
     });

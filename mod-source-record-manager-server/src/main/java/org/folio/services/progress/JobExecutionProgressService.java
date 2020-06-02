@@ -14,8 +14,8 @@ public interface JobExecutionProgressService {
   /**
    * Searches for jobExecutionProgress by {@link JobExecution} id
    *
-   * @param jobExecutionId  jobExecution id
-   * @param tenantId        tenant id
+   * @param jobExecutionId jobExecution id
+   * @param tenantId       tenant id
    * @return future with jobExecutionProgress
    */
   Future<JobExecutionProgress> getByJobExecutionId(String jobExecutionId, String tenantId);
@@ -23,9 +23,9 @@ public interface JobExecutionProgressService {
   /**
    * Creates jobExecutionProgress for {@link JobExecution} with specified jobExecutionId
    *
-   * @param jobExecutionId  jobExecution id
-   * @param totalRecords    total number of records to be processed
-   * @param tenantId        tenant id
+   * @param jobExecutionId jobExecution id
+   * @param totalRecords   total number of records to be processed
+   * @param tenantId       tenant id
    * @return future with created JobExecutionProgress
    */
   Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId);
