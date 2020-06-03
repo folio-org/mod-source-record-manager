@@ -9,6 +9,7 @@
 * [MODSOURMAN-275](https://issues.folio.org/browse/MODSOURMAN-275) Remove preview area's sample data
 * [MODSOURMAN-318](https://issues.folio.org/browse/MODSOURMAN-318) Remove hardcoded diku tenant in db schema.json
 * Updated reference to raml-storage
+* [MODSOURMAN-321](https://issues.folio.org/browse/MODSOURMAN-321) Change response status to 202 on parsed record update
 
 ## 2020-04-23 v2.1.3
 * [MODSOURMAN-303](https://issues.folio.org/browse/MODSOURMAN-303) Add actual state on creating record
