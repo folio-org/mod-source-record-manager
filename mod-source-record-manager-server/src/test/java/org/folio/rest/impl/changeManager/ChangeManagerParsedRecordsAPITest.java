@@ -135,7 +135,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .when()
       .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
       .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
+      .statusCode(HttpStatus.SC_ACCEPTED);
     async.complete();
   }
 

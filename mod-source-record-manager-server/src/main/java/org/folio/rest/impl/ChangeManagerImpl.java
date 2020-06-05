@@ -228,7 +228,7 @@ public class ChangeManagerImpl implements ChangeManager {
     vertxContext.runOnContext(v -> {
       try {
         parsedRecordService.updateRecord(entity, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
-          .map(updated -> PutChangeManagerParsedRecordsByIdResponse.respond204())
+          .map(sentEventForProcessing -> PutChangeManagerParsedRecordsByIdResponse.respond202())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
