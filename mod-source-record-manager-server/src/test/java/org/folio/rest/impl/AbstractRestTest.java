@@ -282,8 +282,8 @@ public abstract class AbstractRestTest {
 
   protected InitJobExecutionsRsDto constructAndPostInitJobExecutionRqDto(int filesNumber) {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    String jsonFiles = null;
-    List<File> filesList = null;
+    String jsonFiles;
+    List<File> filesList;
     try {
       jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<List<File>>() {

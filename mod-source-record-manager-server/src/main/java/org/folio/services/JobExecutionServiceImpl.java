@@ -98,7 +98,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
   }
 
-
   @Override
   public Future<JobExecution> updateJobExecutionWithSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
     return updateJobExecution(jobExecution, params)
@@ -430,7 +429,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
             jobExecutionPromise.complete(jobExec);
             return jobExecutionPromise.future();
-          }, params.getTenantId()).setHandler(jobExecutionUpdate -> {
+          }, params.getTenantId()).onComplete(jobExecutionUpdate -> {
             String message = "Couldn't update snapshot status for jobExecution with id " + jobExecution.getId();
             LOGGER.error(message);
             promise.fail(message);

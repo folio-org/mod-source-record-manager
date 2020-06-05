@@ -41,7 +41,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       if (resultSet.rowCount() == 0) {
         return Optional.empty();
       } else {
-        JsonObject rules = new JsonObject(resultSet.iterator().next().getString("jsonb"))
+        JsonObject rules = new JsonObject(resultSet.iterator().next().getValue("jsonb").toString())
           .getJsonObject(RULES_JSON_FIELD);
         return Optional.of(rules);
       }

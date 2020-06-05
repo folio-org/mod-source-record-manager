@@ -57,7 +57,6 @@ public class MappingParametersProvider {
   private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=" + SETTING_LIMIT;
   private static final String ISSUANCE_MODES_URL = "/modes-of-issuance?limit=" + SETTING_LIMIT;
 
-
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
   private static final String CLASSIFICATION_TYPES_RESPONSE_PARAM = "classificationTypes";
@@ -132,7 +131,7 @@ public class MappingParametersProvider {
    */
   private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
     Promise<List<IdentifierType>> promise = Promise.promise();
-    RestUtil.doRequest(params, IDENTIFIER_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, IDENTIFIER_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
@@ -154,7 +153,7 @@ public class MappingParametersProvider {
    */
   private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
     Promise<List<ClassificationType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CLASSIFICATION_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, CLASSIFICATION_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
@@ -176,7 +175,7 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
     Promise<List<InstanceType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, INSTANCE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
@@ -198,7 +197,7 @@ public class MappingParametersProvider {
    */
   private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
     Promise<List<ElectronicAccessRelationship>> promise = Promise.promise();
-    RestUtil.doRequest(params, ELECTRONIC_ACCESS_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, ELECTRONIC_ACCESS_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
@@ -220,7 +219,7 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
     Promise<List<InstanceFormat>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
@@ -242,7 +241,7 @@ public class MappingParametersProvider {
    */
   private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
     Promise<List<ContributorType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
@@ -264,7 +263,7 @@ public class MappingParametersProvider {
    */
   private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
     Promise<List<ContributorNameType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CONTRIBUTOR_NAME_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, CONTRIBUTOR_NAME_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
@@ -287,7 +286,7 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
     Promise<List<InstanceNoteType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
@@ -303,7 +302,7 @@ public class MappingParametersProvider {
 
   private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
     Promise<List<AlternativeTitleType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
@@ -326,7 +325,7 @@ public class MappingParametersProvider {
    */
   private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params) {
     Promise<List<IssuanceMode>> promise = Promise.promise();
-    RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).setHandler(ar -> {
+    RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise.future())) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
@@ -374,7 +373,7 @@ public class MappingParametersProvider {
             promise.complete(mappingParameters);
           } else {
             // Complete future to continue with mapping even if request for MappingParameters is failed
-            initAction.apply(mappingParameters).setHandler(ar -> promise.complete(mappingParameters));
+            initAction.apply(mappingParameters).onComplete(ar -> promise.complete(mappingParameters));
           }
         }
       });

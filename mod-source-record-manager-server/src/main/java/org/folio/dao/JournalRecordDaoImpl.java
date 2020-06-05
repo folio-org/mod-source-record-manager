@@ -47,7 +47,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY = "SELECT job_execution_id, entity_type, action_type, " +
     "COUNT(*) FILTER (WHERE action_status = 'COMPLETED') AS total_completed, " +
     "COUNT(*) FILTER (WHERE action_status = 'ERROR') AS total_failed " +
-    "FROM %s.%s WHERE job_execution_id = ? AND action_type != 'ERROR' " +
+    "FROM %s.%s WHERE job_execution_id = $1 AND action_type != 'ERROR' " +
     "GROUP BY (job_execution_id, entity_type, action_type)";
 
   @Autowired
@@ -68,17 +68,17 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
-    return Tuple.of(journalRecord.getId(),
-      journalRecord.getJobExecutionId(),
-      journalRecord.getSourceId(),
+    return Tuple.of(UUID.fromString(journalRecord.getId()),
+      UUID.fromString(journalRecord.getJobExecutionId()),
+      UUID.fromString(journalRecord.getSourceId()),
       journalRecord.getSourceRecordOrder(),
-      journalRecord.getEntityType(),
+      journalRecord.getEntityType().toString(),
       journalRecord.getEntityId(),
       journalRecord.getEntityHrId() != null ? journalRecord.getEntityHrId() : EMPTY,
-      journalRecord.getActionType(),
-      journalRecord.getActionStatus(),
+      journalRecord.getActionType().toString(),
+      journalRecord.getActionStatus().toString(),
       journalRecord.getError() != null ? journalRecord.getError() : EMPTY,
-      Timestamp.from(journalRecord.getActionDate().toInstant()).toString());
+      Timestamp.from(journalRecord.getActionDate().toInstant()).toLocalDateTime());
   }
 
   @Override
@@ -89,7 +89,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       if (sortBy != null) {
         queryBuilder.append(prepareSortingClause(sortBy, order));
       }
-      Tuple queryParams = Tuple.of(jobExecutionId != null ? jobExecutionId : EMPTY);
+      Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
       pgClientFactory.createInstance(tenantId).select(queryBuilder.toString(), queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting JournalRecords by jobExecution id", e);
@@ -102,7 +102,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-    Tuple queryParams = Tuple.of(jobExecutionId != null ? jobExecutionId : EMPTY);
+    Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
     pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     return promise.future().map(updateResult -> updateResult.rowCount() >= 1);
   }
@@ -111,22 +111,22 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   public Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-    Tuple queryParams = Tuple.of(jobExecutionId != null ? jobExecutionId : EMPTY);
+    Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
     pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
     return promise.future().map(this::mapResultSetToJobExecutionLogDto);
   }
 
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
     List<JournalRecord> journalRecords = new ArrayList<>();
-    resultSet.iterator().forEachRemaining(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
+    resultSet.forEach(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
     return journalRecords;
   }
 
   private JournalRecord mapRowJsonToJournalRecord(Row row) {
     return new JournalRecord()
-      .withId(row.getString("id"))
-      .withJobExecutionId(row.getString("job_execution_id"))
-      .withSourceId(row.getString("source_id"))
+      .withId(row.getValue("id").toString())
+      .withJobExecutionId(row.getValue("job_execution_id").toString())
+      .withSourceId(row.getValue("source_id").toString())
       .withSourceRecordOrder(row.getInteger("source_record_order"))
       .withEntityType(EntityType.valueOf(row.getString("entity_type")))
       .withEntityId(row.getString("entity_id"))
@@ -134,19 +134,19 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withActionType(ActionType.valueOf(row.getString("action_type")))
       .withActionStatus(ActionStatus.valueOf(row.getString("action_status")))
       .withError(row.getString("error"))
-      .withActionDate(Date.from(LocalDateTime.parse(row.getString("action_date")).toInstant(ZoneOffset.UTC)));
+      .withActionDate(Date.from(LocalDateTime.parse(row.getValue("action_date").toString()).toInstant(ZoneOffset.UTC)));
   }
 
   private JobExecutionLogDto mapResultSetToJobExecutionLogDto(RowSet<Row> resultSet) {
     JobExecutionLogDto jobExecutionSummary = new JobExecutionLogDto();
-    resultSet.iterator().forEachRemaining(row -> {
+    resultSet.forEach(row -> {
       ActionLog actionLog = new ActionLog()
         .withEntityType(row.getString("entity_type"))
         .withActionType(row.getString("action_type"))
         .withTotalCompleted(row.getInteger("total_completed"))
         .withTotalFailed(row.getInteger("total_failed"));
 
-      jobExecutionSummary.withJobExecutionId(row.getString("job_execution_id"));
+      jobExecutionSummary.withJobExecutionId(row.getValue("job_execution_id").toString());
       jobExecutionSummary.getJobExecutionResultLogs().add(actionLog);
     });
     return jobExecutionSummary;

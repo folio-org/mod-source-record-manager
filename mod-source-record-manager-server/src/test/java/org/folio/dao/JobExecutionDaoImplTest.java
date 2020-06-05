@@ -82,7 +82,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       context.assertTrue(ar.succeeded());
       Async async2 = context.async(ar.result().size());
       for (JobExecution jobExecution : ar.result()) {
-        jobExecutionProgressDao.getByJobExecutionId(jobExecution.getId(), params.getTenantId()).setHandler(progressAr -> {
+        jobExecutionProgressDao.getByJobExecutionId(jobExecution.getId(), params.getTenantId()).onComplete(progressAr -> {
           context.assertTrue(progressAr.succeeded());
           context.assertTrue(progressAr.result().isPresent());
           JobExecutionProgress progress = progressAr.result().get();

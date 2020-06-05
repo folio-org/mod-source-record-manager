@@ -3,6 +3,7 @@ package org.folio.dao;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.sqlclient.Row;
@@ -162,7 +163,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Promise<JobExecution> promise = Promise.promise();
     String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId;
     Promise<SQLConnection> connection = Promise.promise();
-    Future<JobExecution> jobExecutionFuture = Future.future();
+    Promise<JobExecution> jobExecutionPromise = Promise.promise();
     Future.succeededFuture()
       .compose(v -> {
         pgClientFactory.createInstance(tenantId).startTx(connection);
@@ -190,8 +191,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         throw new NotFoundException(rollbackMessage);
       }
       JobExecution jobExecution = jobExecResult.getResults().get(0);
-      mutator.mutate(jobExecution).onComplete(jobExecutionFuture);
-      return jobExecutionFuture;
+      mutator.mutate(jobExecution).onComplete(jobExecutionPromise);
+      return jobExecutionPromise.future();
     }).compose(jobExecution -> {
       CQLWrapper filter;
       try {
@@ -214,7 +215,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(v.cause()));
         return;
       }
-      promise.complete(jobExecutionFuture.result());
+      promise.complete(jobExecutionPromise.future().result());
     });
     return promise.future();
   }
@@ -235,16 +236,16 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private JobExecutionCollection mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
     int totalRecords = resultSet.rowCount() != 0 ? resultSet.iterator().next().getInteger(TOTAL_ROWS_COLUMN) : 0;
     List<JobExecution> jobExecutions = new ArrayList<>();
-    resultSet.iterator().forEachRemaining(row -> jobExecutions.add(mapJsonToJobExecution(row.getString(JSONB_COLUMN))));
+    resultSet.forEach(row -> jobExecutions.add(mapJsonToJobExecution(row.getValue(JSONB_COLUMN).toString())));
 
     return new JobExecutionCollection()
       .withJobExecutions(jobExecutions)
       .withTotalRecords(totalRecords);
   }
 
-  private JobExecution mapJsonToJobExecution(String jsonString) {
+  private JobExecution mapJsonToJobExecution(String jsonAsString) {
     try {
-      return ObjectMapperTool.getMapper().readValue(jsonString, JobExecution.class);
+      return ObjectMapperTool.getMapper().readValue(jsonAsString, JobExecution.class);
     } catch (IOException e) {
       LOGGER.error("Error while mapping json to jobExecution", e);
       throw new RuntimeJsonMappingException(e.getMessage());

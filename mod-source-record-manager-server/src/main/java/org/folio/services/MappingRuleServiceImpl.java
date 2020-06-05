@@ -41,7 +41,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
       if (isValidJson(rules)) {
-        mappingRuleDao.save(new JsonObject(rules), tenantId).setHandler(ar -> {
+        mappingRuleDao.save(new JsonObject(rules), tenantId).onComplete(ar -> {
           if (ar.failed()) {
             LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
             promise.fail(ar.cause());
