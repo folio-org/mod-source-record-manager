@@ -52,7 +52,6 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 
 @Service
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private static final String CAN_T_CREATE_NEW_RECORDS_MSG = "Can't create new records with JobExecution id: %s in source-record-storage, response code %s";

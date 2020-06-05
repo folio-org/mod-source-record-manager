@@ -7,10 +7,12 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import javax.ws.rs.NotFoundException;
+
 import org.folio.cql2pgjson.exception.FieldException;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;

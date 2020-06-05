@@ -1,9 +1,8 @@
 package org.folio.services;
 
+import io.vertx.core.Future;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
-
-import io.vertx.core.Future;
 
 /**
  * Service for processing parsed record
