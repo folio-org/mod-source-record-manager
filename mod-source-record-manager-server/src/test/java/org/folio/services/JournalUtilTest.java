@@ -1,11 +1,7 @@
 package org.folio.services;
 
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-
-import java.util.HashMap;
-import java.util.UUID;
-
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalRecordMapperException;
@@ -14,8 +10,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.HashMap;
+import java.util.UUID;
+
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalUtilTest {

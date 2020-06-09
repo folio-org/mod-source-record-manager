@@ -1,18 +1,16 @@
 package org.folio.services.journal;
 
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-
-import java.io.IOException;
-import java.util.Date;
-
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.tools.utils.ObjectMapperTool;
+
+import java.util.Date;
+
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
 /**
  * Journal util class for building specific 'JournalRecord'-objects, based on parameters.
@@ -22,7 +20,7 @@ public class JournalUtil {
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
 
-  private JournalUtil(){
+  private JournalUtil() {
 
   }
 

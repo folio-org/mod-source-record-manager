@@ -90,7 +90,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
       .compose(ar -> journalRecordDao.save(journalRecord3, TENANT_ID))
       .compose(ar -> journalRecordDao.getByJobExecutionId(jobExec.getId(), "action_type", "asc", TENANT_ID));
 
-    getFuture.setHandler(ar -> {
+    getFuture.onComplete(ar -> {
       testContext.verify(v -> {
         Assert.assertTrue(ar.succeeded());
         List<JournalRecord> journalRecords = ar.result();
@@ -148,7 +148,7 @@ public class JournalRecordDaoTest extends AbstractRestTest {
       .compose(ar -> journalRecordDao.save(journalRecord3, TENANT_ID))
       .compose(ar -> journalRecordDao.getByJobExecutionId(jobExec.getId(), "error", "desc", TENANT_ID));
 
-    getFuture.setHandler(ar -> {
+    getFuture.onComplete(ar -> {
       testContext.verify(v -> {
         Assert.assertTrue(ar.succeeded());
         List<JournalRecord> journalRecords = ar.result();

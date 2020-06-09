@@ -5,9 +5,16 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.PostConstruct;
+import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.cql2pgjson.CQL2PgJSON;
 import org.folio.cql2pgjson.exception.FieldException;
@@ -19,19 +26,13 @@ import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.persist.SQLConnection;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.util.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import javax.annotation.PostConstruct;
-import javax.ws.rs.NotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
@@ -47,7 +48,6 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionDaoImpl.class);
@@ -71,7 +71,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   @Override
   public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
-    Promise<ResultSet> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       StringBuilder cqlQuery = new StringBuilder("subordinationType=\"\" NOT subordinationType=").append(PARENT_MULTIPLE);
       if (StringUtils.isNotEmpty(query)) {
@@ -125,8 +125,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Promise<String> promise = Promise.promise();
     String preparedQuery = String.format(GET_JOB_EXECUTION_HR_ID, PostgresClient.convertToPsqlStandard(tenantId));
     pgClientFactory.createInstance(tenantId).select(preparedQuery, getHrIdAr -> {
-      if (getHrIdAr.succeeded() && getHrIdAr.result().getResults().get(0) != null) {
-        jobExecution.setHrId(getHrIdAr.result().getResults().get(0).getInteger(0));
+      if (getHrIdAr.succeeded() && getHrIdAr.result().iterator().hasNext()) {
+        jobExecution.setHrId(getHrIdAr.result().iterator().next().getInteger(0));
         pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecution.getId(), jobExecution, promise);
       } else {
         promise.fail(getHrIdAr.cause());
@@ -144,7 +144,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         if (updateResult.failed()) {
           LOGGER.error("Could not update jobExecution with id {}", jobExecution.getId(), updateResult.cause());
           promise.fail(updateResult.cause());
-        } else if (updateResult.result().getUpdated() != 1) {
+        } else if (updateResult.result().rowCount() != 1) {
           String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
           LOGGER.error(errorMessage);
           promise.fail(new NotFoundException(errorMessage));
@@ -164,7 +164,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     Promise<JobExecution> promise = Promise.promise();
     String rollbackMessage = "Rollback transaction. Error during jobExecution update. jobExecutionId" + jobExecutionId;
     Promise<SQLConnection> connection = Promise.promise();
-    Future<JobExecution> jobExecutionFuture = Future.future();
+    Promise<JobExecution> jobExecutionPromise = Promise.promise();
     Future.succeededFuture()
       .compose(v -> {
         pgClientFactory.createInstance(tenantId).startTx(connection);
@@ -176,11 +176,11 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .append(TABLE_NAME)
         .append(" WHERE id ='")
         .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
-      Promise<UpdateResult> selectResult = Promise.promise();
+      Promise<RowSet<Row>> selectResult = Promise.promise();
       pgClientFactory.createInstance(tenantId).execute(connection.future(), selectJobExecutionQuery.toString(), selectResult);
       return selectResult.future();
     }).compose(selectResult -> {
-      if (selectResult.getUpdated() != 1) {
+      if (selectResult.rowCount() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
       Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId);
@@ -192,8 +192,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         throw new NotFoundException(rollbackMessage);
       }
       JobExecution jobExecution = jobExecResult.getResults().get(0);
-      mutator.mutate(jobExecution).setHandler(jobExecutionFuture);
-      return jobExecutionFuture;
+      mutator.mutate(jobExecution).onComplete(jobExecutionPromise);
+      return jobExecutionPromise.future();
     }).compose(jobExecution -> {
       CQLWrapper filter;
       try {
@@ -201,31 +201,31 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       } catch (FieldException e) {
         throw new RuntimeException(e);
       }
-      Promise<UpdateResult> updateHandler = Promise.promise();
+      Promise<RowSet<Row>> updateHandler = Promise.promise();
       pgClientFactory.createInstance(tenantId).update(connection.future(), TABLE_NAME, jobExecution, filter, true, updateHandler);
       return updateHandler.future();
     }).compose(updateHandler -> {
-      if (updateHandler.getUpdated() != 1) {
+      if (updateHandler.rowCount() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
       Promise<Void> endTxFuture = Promise.promise();
       pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
       return endTxFuture.future();
-    }).setHandler(v -> {
+    }).onComplete(v -> {
       if (v.failed()) {
         pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(v.cause()));
         return;
       }
-      promise.complete(jobExecutionFuture.result());
+      promise.complete(jobExecutionPromise.future().result());
     });
     return promise.future();
   }
 
   @Override
   public Future<Boolean> deleteJobExecutionById(String jobExecutionId, String tenantId) {
-    Promise<UpdateResult> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, jobExecutionId, promise);
-    return promise.future().map(updateResult -> updateResult.getUpdated() == 1);
+    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
   }
 
   private String prepareQueryGetJobWithoutParentMultiple(SqlSelect sqlSelect, int limit, int offset, String schemaName) {
@@ -234,20 +234,19 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return String.format(getJobsWithoutParentMultipleSql, schemaName, whereClause, schemaName, schemaName, whereClause, orderBy, limit, offset);
   }
 
-  private JobExecutionCollection mapResultSetToJobExecutionCollection(ResultSet resultSet) {
-    int totalRecords = resultSet.getNumRows() != 0 ? resultSet.getRows(false).get(0).getInteger(TOTAL_ROWS_COLUMN) : 0;
-    List<JobExecution> jobExecutions = resultSet.getRows().stream()
-      .map(row -> mapJsonToJobExecution(row.getString(JSONB_COLUMN)))
-      .collect(Collectors.toList());
+  private JobExecutionCollection mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
+    int totalRecords = resultSet.rowCount() != 0 ? resultSet.iterator().next().getInteger(TOTAL_ROWS_COLUMN) : 0;
+    List<JobExecution> jobExecutions = new ArrayList<>();
+    resultSet.forEach(row -> jobExecutions.add(mapJsonToJobExecution(row.getValue(JSONB_COLUMN).toString())));
 
     return new JobExecutionCollection()
       .withJobExecutions(jobExecutions)
       .withTotalRecords(totalRecords);
   }
 
-  private JobExecution mapJsonToJobExecution(String jsonString) {
+  private JobExecution mapJsonToJobExecution(String jsonAsString) {
     try {
-      return ObjectMapperTool.getMapper().readValue(jsonString, JobExecution.class);
+      return ObjectMapperTool.getMapper().readValue(jsonAsString, JobExecution.class);
     } catch (IOException e) {
       LOGGER.error("Error while mapping json to jobExecution", e);
       throw new RuntimeJsonMappingException(e.getMessage());

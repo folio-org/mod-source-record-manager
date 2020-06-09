@@ -3,12 +3,14 @@ package org.folio.dao;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.persist.helpers.LocalRowSet;
 import org.folio.rest.persist.interfaces.Results;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,12 +66,12 @@ public class JobExecutionSourceChunkDaoImplTest {
     Results<Object> queryResults = new Results<>();
     queryResults.setResults(Collections.singletonList(jobExecutionSourceChunk));
 
-    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(queryResults),5))
+    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(queryResults), 5))
       .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.getById(jobExecutionSourceChunk.getId(), TENANT_ID)
-    // then
-      .setHandler(ar -> {
+      // then
+      .onComplete(ar -> {
         Assert.assertTrue(ar.succeeded());
         Assert.assertTrue(ar.result().isPresent());
         JobExecutionSourceChunk receivedEntity = ar.result().get();
@@ -91,8 +93,8 @@ public class JobExecutionSourceChunkDaoImplTest {
       .when(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.getById(jobExecutionSourceChunk.getId(), TENANT_ID)
-    // then
-      .setHandler(ar -> {
+      // then
+      .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
 
         verify(pgClient).get(eq(TABLE_NAME), eq(JobExecutionSourceChunk.class), any(Criterion.class), eq(true), eq(false), any(Handler.class));
@@ -103,40 +105,40 @@ public class JobExecutionSourceChunkDaoImplTest {
   public void shouldReturnFutureWithTrueOnSuccessfulDeletionById() {
     // given
     int updatedRowsNumber = 1;
-    UpdateResult updateResult = new UpdateResult();
-    updateResult.setUpdated(updatedRowsNumber);
+    RowSet<Row> updateResult = new LocalRowSet(updatedRowsNumber);
 
-    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(updateResult),2))
+    doAnswer(new GenericHandlerAnswer<>(Future.succeededFuture(updateResult), 2))
       .when(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
 
     // when
     jobExecutionSourceChunkDao.delete(jobExecutionSourceChunk.getId(), TENANT_ID)
-    // then
-    .setHandler(ar -> {
-      Assert.assertTrue(ar.succeeded());
-      Assert.assertEquals(true, ar.result());
-      verify(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
-    });
+      // then
+      .onComplete(ar -> {
+        Assert.assertTrue(ar.succeeded());
+        Assert.assertEquals(true, ar.result());
+        verify(pgClient).delete(eq(TABLE_NAME), eq(jobExecutionSourceChunk.getId()), any(Handler.class));
+      });
   }
 
   @Test
   public void shouldReturnFailedFutureWhenEntityWithSpecifiedIdNotFound() {
     // given
     int numberUpdatedRows = 0;
-    UpdateResult sqlUpdateResult = when(mock(UpdateResult.class).getUpdated()).thenReturn(numberUpdatedRows).getMock();
+    RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(numberUpdatedRows).getMock();
     AsyncResult updateResult = mock(AsyncResult.class);
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult,4))
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.update(jobExecutionSourceChunk, TENANT_ID)
-    // then
-    .setHandler(ar -> {
-      Assert.assertTrue(ar.failed());
-      verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));;
-    });
+      // then
+      .onComplete(ar -> {
+        Assert.assertTrue(ar.failed());
+        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
+        ;
+      });
   }
 
   @Test
@@ -146,8 +148,8 @@ public class JobExecutionSourceChunkDaoImplTest {
       .when(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
     // when
     jobExecutionSourceChunkDao.update(jobExecutionSourceChunk, TENANT_ID)
-    // then
-      .setHandler(ar -> {
+      // then
+      .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecutionSourceChunk), any(Criterion.class), eq(true), any(Handler.class));
       });

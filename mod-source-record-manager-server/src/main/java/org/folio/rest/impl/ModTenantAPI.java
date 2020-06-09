@@ -8,9 +8,12 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.UpdateResult;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+
+import java.util.Map;
+import javax.ws.rs.core.Response;
+
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.jaxrs.model.TenantAttributes;
@@ -20,13 +23,6 @@ import org.folio.services.MappingRuleService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 public class ModTenantAPI extends TenantAPI {
   private static final Logger LOGGER = LoggerFactory.getLogger(ModTenantAPI.class);
@@ -52,20 +48,20 @@ public class ModTenantAPI extends TenantAPI {
         setSequencesPermissionForDbUser(context, tenantId)
           .compose(ar -> mappingRuleService.saveDefaultRules(tenantId))
           .compose(ar -> registerModuleToPubsub(headers, context.owner()))
-          .setHandler(event -> handler.handle(postTenantAr));
+          .onComplete(event -> handler.handle(postTenantAr));
       }
     }, context);
   }
 
-  private Future<UpdateResult> setSequencesPermissionForDbUser(Context context, String tenantId) {
-    Future<UpdateResult> future = Future.future();
+  private Future<RowSet<Row>> setSequencesPermissionForDbUser(Context context, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
     String dbSchemaName = new StringBuilder()
       .append(tenantId)
       .append('_')
       .append(PostgresClient.getModuleName()).toString();
     String preparedSql = String.format(GRANT_SEQUENCES_PERMISSION_PATTERN, dbSchemaName, dbSchemaName);
-    PostgresClient.getInstance(context.owner()).execute(preparedSql, future);
-    return future;
+    PostgresClient.getInstance(context.owner()).execute(preparedSql, promise);
+    return promise.future();
   }
 
   private Future<Void> registerModuleToPubsub(Map<String, String> headers, Vertx vertx) {

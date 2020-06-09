@@ -1,10 +1,16 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+
+import java.util.List;
+import java.util.Optional;
+import javax.ws.rs.NotFoundException;
+
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.persist.Criteria.Criteria;
@@ -13,10 +19,6 @@ import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import javax.ws.rs.NotFoundException;
-import java.util.List;
-import java.util.Optional;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
@@ -29,7 +31,6 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
  * @see org.folio.rest.persist.PostgresClient
  */
 @Repository
-@SuppressWarnings("squid:CallToDeprecatedMethod")
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
@@ -44,107 +45,110 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   @Override
   public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
-    Future<String> future = Future.future();
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, future.completer());
-    return future;
+    Promise<String> promise = Promise.promise();
+    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, promise);
+    return promise.future();
   }
 
   @Override
   public Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit, String tenantId) {
-    Future<Results<JobExecutionSourceChunk>> future = Future.future();
+    Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
     try {
       String[] fieldList = {"*"};
       CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionSourceChunk.class, fieldList, cql, true, false, future.completer());
+      pgClientFactory.createInstance(tenantId)
+        .get(TABLE_NAME, JobExecutionSourceChunk.class, fieldList, cql, true, false, promise);
     } catch (Exception e) {
       LOGGER.error("Error while searching for JobExecutionSourceChunks", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.map(Results::getResults);
+    return promise.future().map(Results::getResults);
   }
 
   @Override
   public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
-    Future<Results<JobExecutionSourceChunk>> future = Future.future();
+    Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
     try {
       Criteria idCrit = constructCriteria(ID_FIELD, id);
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, future.completer());
+      pgClientFactory.createInstance(tenantId)
+        .get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, promise);
     } catch (Exception e) {
       LOGGER.error("Error querying JobExecutionSourceChunk by id {}", id, e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future
+    return promise.future()
       .map(Results::getResults)
       .map(jobExecutionSourceChunks -> jobExecutionSourceChunks.isEmpty() ? Optional.empty() : Optional.of(jobExecutionSourceChunks.get(0)));
   }
 
   @Override
   public Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
-    Future<JobExecutionSourceChunk> future = Future.future();
+    Promise<JobExecutionSourceChunk> promise = Promise.promise();
     try {
       Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionChunk.getId());
-      pgClientFactory.createInstance(tenantId).update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
-        if (updateResult.failed()) {
-          LOGGER.error("Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
-          future.fail(updateResult.cause());
-        } else if (updateResult.result().getUpdated() != 1) {
-          String errorMessage = String.format("JobExecutionSourceChunk with id '%s' was not found", jobExecutionChunk.getId());
-          LOGGER.error(errorMessage);
-          future.fail(new NotFoundException(errorMessage));
-        } else {
-          future.complete(jobExecutionChunk);
-        }
-      });
+      pgClientFactory.createInstance(tenantId)
+        .update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
+          if (updateResult.failed()) {
+            LOGGER.error("Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
+            promise.fail(updateResult.cause());
+          } else if (updateResult.result().rowCount() != 1) {
+            String errorMessage = String.format("JobExecutionSourceChunk with id '%s' was not found", jobExecutionChunk.getId());
+            LOGGER.error(errorMessage);
+            promise.fail(new NotFoundException(errorMessage));
+          } else {
+            promise.complete(jobExecutionChunk);
+          }
+        });
     } catch (Exception e) {
       LOGGER.error("Error updating jobExecutionSourceChunk", e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future;
+    return promise.future();
   }
 
   @Override
   public Future<Boolean> delete(String id, String tenantId) {
-    Future<UpdateResult> future = Future.future();
-    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id, future.completer());
-    return future.map(updateResult -> updateResult.getUpdated() == 1);
+    Promise<RowSet<Row>> promise = Promise.promise();
+    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, id, promise);
+    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
   }
 
   @Override
   public Future<Boolean> isAllChunksProcessed(String jobExecutionId, String tenantId) {
-    Future<ResultSet> future = Future.future();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = String.format(IS_PROCESSING_COMPLETED_QUERY, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).select(query, future.completer());
+      pgClientFactory.createInstance(tenantId).select(query, promise);
     } catch (Exception e) {
       LOGGER.error("Error while checking if processing is completed for JobExecution {}", e, jobExecutionId);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.map(resultSet -> resultSet.getResults().get(0).getBoolean(0));
+    return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
   }
 
   @Override
   public Future<Boolean> containsErrorChunks(String jobExecutionId, String tenantId) {
-    Future<ResultSet> future = Future.future();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).select(query, future.completer());
+      pgClientFactory.createInstance(tenantId).select(query, promise);
     } catch (Exception e) {
       LOGGER.error("Error while checking if any errors occurred for JobExecution {}", e, jobExecutionId);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.map(resultSet -> resultSet.getResults().get(0).getBoolean(0));
+    return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
   }
 
   @Override
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
-    Future<UpdateResult> future = Future.future();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       Criteria idCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), future.completer());
+      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), promise);
     } catch (Exception e) {
       LOGGER.error("Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
-      future.fail(e);
+      promise.fail(e);
     }
-    return future.map(updateResult -> updateResult.getUpdated() != 0);
+    return promise.future().map(updateResult -> updateResult.rowCount() != 0);
   }
 }

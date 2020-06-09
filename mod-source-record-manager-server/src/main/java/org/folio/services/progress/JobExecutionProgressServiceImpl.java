@@ -16,8 +16,6 @@ import static java.lang.String.format;
 @Service
 public class JobExecutionProgressServiceImpl implements JobExecutionProgressService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionProgressServiceImpl.class);
-
   @Autowired
   private JobExecutionProgressDao jobExecutionProgressDao;
 

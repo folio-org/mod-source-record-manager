@@ -91,7 +91,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
-      .setHandler(ar ->
+      .onComplete(ar ->
         updateSourceChunkState(
           sourceChunkId,
           ar.succeeded() ? JobExecutionSourceChunk.State.COMPLETED : JobExecutionSourceChunk.State.ERROR,
@@ -99,7 +99,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         )
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
-          .setHandler(updateAr -> promise.complete())
+          .onComplete(updateAr -> promise.complete())
       );
     return promise.future();
   }
@@ -141,7 +141,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
           JsonObject mappingRules = optionalMappingRules.get();
           Map<Instance, Record> instanceRecordMap = mapRecords(records, mappingParams, mappingRules, okapiParams);
           List<Instance> instances = new ArrayList<>(instanceRecordMap.keySet());
-          postInstances(instances, okapiParams).setHandler(ar -> {
+          postInstances(instances, okapiParams).onComplete(ar -> {
             if (ar.succeeded()) {
               List<Instance> result = Optional.ofNullable(ar.result()).orElse(new ArrayList<>());
               List<Pair<Record, Instance>> recordsToUpdate = calculateRecordsToUpdate(instanceRecordMap, result);
@@ -269,7 +269,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     }
     Promise<List<Instance>> promise = Promise.promise();
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
-    RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).setHandler(responseResult -> {
+    RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).onComplete(responseResult -> {
       try {
         if (RestUtil.validateAsyncResult(responseResult, promise.future())) {
           InstancesBatchResponse response = responseResult.result().getJson().mapTo(InstancesBatchResponse.class);
@@ -317,7 +317,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
         .map(Pair::getKey)
         .collect(Collectors.toList());
 
-      updateParsedRecords(records, params).setHandler(updatedAr -> {
+      updateParsedRecords(records, params).onComplete(updatedAr -> {
         if (updatedAr.failed()) {
           LOGGER.error("Couldn't update parsed records", updatedAr.cause());
         }

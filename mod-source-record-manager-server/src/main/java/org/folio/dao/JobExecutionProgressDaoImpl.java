@@ -5,23 +5,25 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
+
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
+import javax.ws.rs.NotFoundException;
+
 import org.folio.cql2pgjson.exception.FieldException;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.persist.SQLConnection;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import javax.ws.rs.NotFoundException;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.UnaryOperator;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
@@ -66,7 +68,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(" WHERE jsonb ->> 'jobExecutionId' = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
-        Promise<UpdateResult> selectResult = Promise.promise();
+        Promise<RowSet<Row>> selectResult = Promise.promise();
         client.execute(tx.future(), selectProgressQuery.toString(), selectResult);
         return selectResult.future();
       })
@@ -82,7 +84,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .withId(UUID.randomUUID().toString());
         return selectResult.getResults().isEmpty() ? save(progress, tenantId).map(progress) : Future.succeededFuture(selectResult.getResults().get(0));
       })
-      .setHandler(updateAr -> {
+      .onComplete(updateAr -> {
         if (updateAr.succeeded()) {
           client.endTx(tx.future(), endTx -> promise.complete(updateAr.result()));
         } else {
@@ -122,7 +124,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(" WHERE jsonb ->> 'jobExecutionId' = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
-        Promise<UpdateResult> selectResult = Promise.promise();
+        Promise<RowSet<Row>> selectResult = Promise.promise();
         pgClient.execute(tx.future(), selectProgressQuery.toString(), selectResult);
         return selectResult.future();
       })
@@ -138,7 +140,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         return progressMutator.apply(progressResults.getResults().get(0));
       })
       .compose(mutatedProgress -> updateProgressByJobExecutionId(tx.future(), mutatedProgress, tenantId))
-      .setHandler(updateAr -> {
+      .onComplete(updateAr -> {
         if (updateAr.succeeded()) {
           pgClient.endTx(tx.future(), endTx -> promise.complete(updateAr.result()));
         } else {
@@ -150,7 +152,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   }
 
   private Future<JobExecutionProgress> updateProgressByJobExecutionId(AsyncResult<SQLConnection> tx, JobExecutionProgress progress, String tenantId) {
-    Promise<UpdateResult> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = "jobExecutionId==" + progress.getJobExecutionId();
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query);

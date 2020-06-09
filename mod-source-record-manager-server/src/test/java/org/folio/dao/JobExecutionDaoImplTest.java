@@ -78,11 +78,11 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(null, 0, 10, params.getTenantId()))
       .map(JobExecutionCollection::getJobExecutions);
 
-    future.setHandler(ar -> {
+    future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Async async2 = context.async(ar.result().size());
       for (JobExecution jobExecution : ar.result()) {
-        jobExecutionProgressDao.getByJobExecutionId(jobExecution.getId(), params.getTenantId()).setHandler(progressAr -> {
+        jobExecutionProgressDao.getByJobExecutionId(jobExecution.getId(), params.getTenantId()).onComplete(progressAr -> {
           context.assertTrue(progressAr.succeeded());
           context.assertTrue(progressAr.result().isPresent());
           JobExecutionProgress progress = progressAr.result().get();

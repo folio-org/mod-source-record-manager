@@ -2,7 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.ext.sql.UpdateResult;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -64,7 +65,7 @@ public class JobExecutionDaoImplUnitTest {
   public void shouldReturnFutureWithUpdatedEntity() {
     // given
     int updatedRowsNumber = 1;
-    UpdateResult sqlUpdateResult = when(mock(UpdateResult.class).getUpdated()).thenReturn(updatedRowsNumber).getMock();
+    RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(updatedRowsNumber).getMock();
     AsyncResult updateResult = mock(AsyncResult.class);
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
@@ -76,7 +77,7 @@ public class JobExecutionDaoImplUnitTest {
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
 
       // then
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         Assert.assertTrue(ar.succeeded());
         Assert.assertEquals(jobExecution.getId(), ar.result().getId());
         Assert.assertEquals(jobExecution.getHrId(), ar.result().getHrId());
@@ -97,7 +98,7 @@ public class JobExecutionDaoImplUnitTest {
   public void shouldReturnFailedFutureWhenEntityWithSpecifiedIdNotFound() {
     // given
     int numberUpdatedRows = 0;
-    UpdateResult sqlUpdateResult = when(mock(UpdateResult.class).getUpdated()).thenReturn(numberUpdatedRows).getMock();
+    RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(numberUpdatedRows).getMock();
     AsyncResult updateResult = mock(AsyncResult.class);
     when(updateResult.failed()).thenReturn(false);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
@@ -107,7 +108,7 @@ public class JobExecutionDaoImplUnitTest {
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
       // then
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
       });
@@ -124,7 +125,7 @@ public class JobExecutionDaoImplUnitTest {
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
       // then
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
       });
@@ -138,7 +139,7 @@ public class JobExecutionDaoImplUnitTest {
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
       // then
-      .setHandler(ar -> {
+      .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
         verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
       });

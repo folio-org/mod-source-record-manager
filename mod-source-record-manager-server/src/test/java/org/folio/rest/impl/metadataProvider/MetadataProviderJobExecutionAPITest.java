@@ -61,7 +61,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String RECORDS_PATH = "/records";
   private static final String RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
   private static final String ERROR_RAW_RECORD = "01247nam  2200313zu 450000100110000000300080001100500170001905\u001F222\u001E1 \u001FaAriáes, Philippe.\u001E10\u001FaWestern attitudes toward death\u001Fh[electronic resource] :\u001Fbfrom the Middle Ages to the present /\u001Fcby Philippe Ariáes ; translated by Patricia M. Ranum.\u001E  \u001FaJohn Hopkins Paperbacks ed.\u001E  \u001FaBaltimore :\u001FbJohns Hopkins University Press,\u001Fc1975.\u001E  \u001Fa1 online resource.\u001E1 \u001FaThe Johns Hopkins symposia in comparative history ;\u001Fv4th\u001E  \u001FaDescription based on online resource; title from digital title page (viewed on Mar. 7, 2013).\u001E 0\u001FaDeath.\u001E2 \u001FaEbrary.\u001E 0\u001FaJohns Hopkins symposia in comparative history ;\u001Fv4th.\u001E40\u001FzConnect to e-book on Ebrary\u001Fuhttp://gateway.library.qut.edu.au/login?url=http://site.ebrary.com/lib/qut/docDetail.action?docID=10635130\u001E  \u001Fa.o1346565x\u001E  \u001Fa130307\u001Fb2095\u001Fe2095\u001Ff243966\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
-  private static final String QUERY_PARAM_NAME ="defaultMapping";
+  private static final String QUERY_PARAM_NAME = "defaultMapping";
 
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
     .withRecordsMetadata(new RecordsMetadata()
@@ -177,7 +177,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       if (i % 2 == 0) {
         childJobsToUpdate.get(i)
-          .withStatus(JobExecution.Status.COMMITTED )
+          .withStatus(JobExecution.Status.COMMITTED)
           .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
       }
       createdJobExecution.get(i).setCompletedDate(new Date(1234567892000L + i));
@@ -279,7 +279,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionResultLogs.size()", is(2))
       .body("jobExecutionResultLogs*.actionType", everyItem(is(ActionType.CREATE.value())))
       .body("jobExecutionResultLogs*.entityType", hasItem(is(EntityType.MARC_BIBLIOGRAPHIC.value())))
-      .body("jobExecutionResultLogs*.entityType", hasItem( is(EntityType.INSTANCE.value())))
+      .body("jobExecutionResultLogs*.entityType", hasItem(is(EntityType.INSTANCE.value())))
       .body("jobExecutionResultLogs*.totalCompleted", everyItem(is(1)))
       .body("jobExecutionResultLogs*.totalFailed", everyItem(is(0)));
     async.complete();

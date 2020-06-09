@@ -40,8 +40,8 @@ public class ChunkProcessingServiceImpl extends AbstractChunkProcessingService {
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExecution -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExecution, sourceChunk.getId(), params))
       .compose(records -> instanceProcessingService.process(records, sourceChunk.getId(), params))
-      .setHandler(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
-        .setHandler(jobUpdateAr -> promise.handle(chunkProcessAr.map(true))));
+      .onComplete(chunkProcessAr -> updateJobExecutionStatusIfAllChunksProcessed(jobExecutionId, params)
+        .onComplete(jobUpdateAr -> promise.handle(chunkProcessAr.map(true))));
     return promise.future();
   }
 

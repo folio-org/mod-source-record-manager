@@ -1,16 +1,15 @@
 package org.folio.rest.impl;
 
-import java.io.IOException;
-import java.util.UUID;
-
+import io.restassured.RestAssured;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.IOException;
+import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
 public class EventHandlersApiTest extends AbstractRestTest {
@@ -58,7 +57,7 @@ public class EventHandlersApiTest extends AbstractRestTest {
 
   @Test
   public void shouldReturnOkIfEventPayloadIsInvalid() throws IOException {
-     JsonObject invalidEvent = new JsonObject()
+    JsonObject invalidEvent = new JsonObject()
       .put("id", UUID.randomUUID().toString())
       .put("eventType", "CREATED_INVENTORY_INSTANCE")
       .put("contexttt", "test")

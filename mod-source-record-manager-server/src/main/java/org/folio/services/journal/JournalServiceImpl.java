@@ -1,13 +1,12 @@
 package org.folio.services.journal;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 public class JournalServiceImpl implements JournalService {
 

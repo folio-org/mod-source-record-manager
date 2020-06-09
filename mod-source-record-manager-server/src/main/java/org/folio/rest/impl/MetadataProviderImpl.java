@@ -40,10 +40,9 @@ public class MetadataProviderImpl implements MetadataProvider {
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        asyncResultHandler.handle(Future.succeededFuture(
-          ExceptionHelper.mapExceptionToResponse(e)));
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
   }
@@ -59,10 +58,9 @@ public class MetadataProviderImpl implements MetadataProvider {
           .map(GetMetadataProviderLogsByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        asyncResultHandler.handle(Future.succeededFuture(
-          ExceptionHelper.mapExceptionToResponse(e)));
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
   }
@@ -78,10 +76,9 @@ public class MetadataProviderImpl implements MetadataProvider {
           .map(GetMetadataProviderJournalRecordsByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .setHandler(asyncResultHandler);
+          .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        asyncResultHandler.handle(Future.succeededFuture(
-          ExceptionHelper.mapExceptionToResponse(e)));
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
   }

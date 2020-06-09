@@ -40,10 +40,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   /**
    * Process chunk of RawRecords
    *
-   * @param incomingChunk        - chunk with raw records
-   * @param sourceChunk          - source chunk job execution
-   * @param jobExecutionId       - JobExecution id
-   * @param params               - okapi connection params
+   * @param incomingChunk  - chunk with raw records
+   * @param sourceChunk    - source chunk job execution
+   * @param jobExecutionId - JobExecution id
+   * @param params         - okapi connection params
    * @return future with boolean
    */
   protected abstract Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params);

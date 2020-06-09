@@ -29,7 +29,7 @@ public interface MappingRuleDao {
   /**
    * Updates rules if exist
    *
-   * @param rules rules
+   * @param rules    rules
    * @param tenantId tenant
    * @return updated rules
    */
