@@ -275,7 +275,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
-        if (RestUtil.validateAsyncResult(getUserResult, promise.future())) {
+        if (RestUtil.validateAsyncResult(getUserResult, promise)) {
           JsonObject response = getUserResult.result().getJson();
           if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
             promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
