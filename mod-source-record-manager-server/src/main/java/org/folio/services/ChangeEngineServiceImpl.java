@@ -183,7 +183,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return Future.succeededFuture();
     }
 
-    return Try.itDo((Future<List<Record>> future) -> {
+    return Try.itDo((Promise<List<Record>> promise) -> {
       SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
       RecordCollection recordCollection = new RecordCollection()
@@ -193,7 +193,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       client.postSourceStorageBatchRecords(recordCollection, response -> {
         if (isStatus(response, HTTP_CREATED)) {
           response.bodyHandler(it ->
-            future.handle(
+            promise.handle(
               Try.itGet(() -> {
                 List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
                 List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE);
@@ -208,7 +208,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
           String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
-          future.fail(message);
+          promise.fail(message);
         }
       });
     }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));

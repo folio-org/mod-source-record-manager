@@ -271,7 +271,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     Instances instances = new Instances().withInstances(instanceList).withTotalRecords(instanceList.size());
     RestUtil.doRequest(params, INVENTORY_URL, HttpMethod.POST, instances).onComplete(responseResult -> {
       try {
-        if (RestUtil.validateAsyncResult(responseResult, promise.future())) {
+        if (RestUtil.validateAsyncResult(responseResult, promise)) {
           InstancesBatchResponse response = responseResult.result().getJson().mapTo(InstancesBatchResponse.class);
           promise.complete(response.getInstances());
         } else {
