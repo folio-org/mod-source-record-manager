@@ -133,15 +133,15 @@ at the [FOLIO issue tracker](https://dev.folio.org/guidelines/issue-tracker/).
 
 ## Data import workflow
 There are two ways to import records into source-record-storage via source-record-manager.
-* The first way is basically used by UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
-* The second way is intended to import records using CLI tools - Postman, curl, SoapUI. This option is preferred if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
+* Using UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
+* Using CLI tools - Postman, curl, SoapUI. This option is preferable if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
 
 In both ways mod-source-record-manager maps MARC records to Inventory instances and sends instances to mod-inventory. For more details see [RuleProcessorApi](RuleProcessorApi.md).
 
-Next up listed  details of how to import records using second way. In this case user has to follow steps below:
+To import records using CLI tools one has to follow steps below:
 1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
 2. Send RawRecordsDto containing records list and field last=false.
-3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total amount sent field in field "counter".
+3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total number of records in field "counter".
 
 ### Create JobExecution
 
@@ -195,8 +195,8 @@ curl -w '\n' -X POST -D -   \
 
 ### Post records to parsing
 
-To initiate records parsing should send POST request containing RawRecordsDto, which contains raw records list ("initialRecords" field)
-to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. 
+To initiate records parsing one should send POST request containing RawRecordsDto, which contains raw records list ("initialRecords" field)
+to **/change-manager/jobExecutions/{jobExecutionId}/records?defaultMapping=true** 
 The list of records can contain records in different formats for example:  "MARC_RAW", "MARC_JSON", "MARC_XML". \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of previous request.
 ```
@@ -206,7 +206,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @rawRecordsDto.json \
-   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records?defaultMapping=true
 ```
 
 ##### example of rawRecordsDto.json to parse marc records in raw format
@@ -240,8 +240,8 @@ curl -w '\n' -X POST -D -   \
   "recordsMetadata": {
     "last": false,
     "counter": 1,
-    "total": 1
-    "contentType":"MARC_JSON",
+    "total": 1,
+    "contentType":"MARC_JSON"
   },
   "initialRecords": [
   {
@@ -258,8 +258,8 @@ curl -w '\n' -X POST -D -   \
   "recordsMetadata": {
     "last": false,
     "counter": 2,
-    "total": 2
-    "contentType":"MARC_XML",
+    "total": 2,
+    "contentType":"MARC_XML"
   },
   "initialRecords": [     
   {
@@ -273,9 +273,9 @@ curl -w '\n' -X POST -D -   \
 ```
 
 ##### Response
-If the records parsing is successfully initiated, there won't be any content in the response (HTTP status 204).
+If records parsing was successfully initiated, there won't be any content in the response (HTTP status 204).
 
-JobExecution entity will be have following changed state
+JobExecution state will be updated
 ```
 {
   "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
@@ -303,10 +303,10 @@ JobExecution entity will be have following changed state
 ```
 
 ### Finishing raw records parsing
-To indicate end of raw records transferring for parsing should send POST request containing last RawRecordsDto
-to follow path: /change-manager/jobExecutions/{jobExecutionId}/records. \
+To indicate the end of raw records transferring for parsing one should send POST request containing last RawRecordsDto
+to **/change-manager/jobExecutions/{jobExecutionId}/records?defaultMapping=true**. \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of JobExecution creation request.
-The last RawRecordsDto should contains empty records list ("records" field), appropriate record format value 
+The last RawRecordsDto should contain empty records list ("initialRecords" field), appropriate record format value 
 in "contentType" field (for example MARC_RAW) and field "last" = true.
 
 ```
@@ -316,7 +316,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @lastRawRecordsDto.json \
-   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+   https://folio-testing-okapi.aws.indexdata.com:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records?defaultMapping=true
 ```
 
 ##### lastRawRecordsDto.json
@@ -326,8 +326,8 @@ curl -w '\n' -X POST -D -   \
   "recordsMetadata": {
     "last": true,
     "counter": 3,
-    "total": 3
-    "contentType":"MARC_RAW",
+    "total": 3,
+    "contentType":"MARC_RAW"
   },
   "initialRecords": []
 }
@@ -336,7 +336,7 @@ curl -w '\n' -X POST -D -   \
 ##### Response
 Successful response won't have any content (HTTP status 204).
 
-JobExecution entity will be have following changed state
+JobExecution state will be changed
 ```
 {
   "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
