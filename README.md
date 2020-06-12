@@ -143,6 +143,8 @@ To import records using CLI tools one has to follow steps below:
 2. Send RawRecordsDto containing records list and field last=false.
 3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total number of records in field "counter".
 
+**NOTE**: Jobs with imported records directly via API will show up in the Data Import log without a file name.
+
 ### Create JobExecution
 
 Parsing records starts from creating Job Execution. 
