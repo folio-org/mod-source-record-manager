@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.is;
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
-  private final String SOURCE_RECORDS_URL = "/source-storage/sourceRecords/";
+  private final String SOURCE_RECORDS_URL = "/source-storage/source-records/";
   private final String PARSED_RECORDS_URL = "/change-manager/parsedRecords";
   private final String INSTANCE_ID_QUERY_PARAM = "instanceId";
 

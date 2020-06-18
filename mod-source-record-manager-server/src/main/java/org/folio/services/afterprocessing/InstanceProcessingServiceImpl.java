@@ -18,7 +18,7 @@ import org.folio.processing.mapping.defaultmapper.RecordToInstanceMapper;
 import org.folio.processing.mapping.defaultmapper.RecordToInstanceMapperBuilder;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.SourceStorageBatchClient;
-import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.client.SourceStorageRecordsClient;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.Instance;
@@ -398,7 +398,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private Future<Boolean> updateRecord(Record record, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
     try {
-      SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+      SourceStorageRecordsClient client = new SourceStorageRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
       client.putSourceStorageRecordsById(record.getId(), null, record, response -> {
         if (HttpStatus.HTTP_OK.toInt() == response.statusCode()) {
           promise.complete(true);
