@@ -138,7 +138,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
         } else {
-          record.setParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+          record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
         }
         return record;
       })
