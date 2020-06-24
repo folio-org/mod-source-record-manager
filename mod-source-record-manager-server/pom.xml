@@ -14,7 +14,7 @@
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
-    <jackson.version>2.9.10.4</jackson.version>
+    <jackson.version>2.10.0.pr1</jackson.version>
     <jackson.jaxb.version>2.9.9</jackson.jaxb.version>
   </properties>
 
