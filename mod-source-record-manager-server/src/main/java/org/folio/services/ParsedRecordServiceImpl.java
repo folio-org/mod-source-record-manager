@@ -10,7 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.client.SourceStorageSourceRecordsClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.services.mappers.processor.MappingParametersProvider;
@@ -45,7 +45,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   @Override
   public Future<ParsedRecordDto> getRecordByInstanceId(String instanceId, OkapiConnectionParams params) {
     Promise<ParsedRecordDto> promise = Promise.promise();
-    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSourceRecordsClient client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
         if (HTTP_OK.toInt() == response.statusCode()) {

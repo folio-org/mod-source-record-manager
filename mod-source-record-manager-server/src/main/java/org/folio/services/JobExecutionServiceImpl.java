@@ -16,7 +16,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
 import org.folio.rest.client.DataImportProfilesClient;
-import org.folio.rest.client.SourceStorageClient;
+import org.folio.rest.client.SourceStorageSnapshotsClient;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -393,7 +393,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
     Promise<String> promise = Promise.promise();
 
-    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
@@ -416,7 +416,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withJobExecutionId(jobExecution.getId())
       .withStatus(Snapshot.Status.fromValue(jobExecution.getStatus().name()));
 
-    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), null, snapshot, response -> {
         if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
@@ -445,9 +445,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
-    SourceStorageClient client = new SourceStorageClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.deleteSourceStorageSnapshotsRecordsByJobExecutionId(jobExecutionId, response -> {
+      client.deleteSourceStorageSnapshotsByJobExecutionId(jobExecutionId, null, response -> {
         if (response.statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
           promise.complete(true);
         } else {

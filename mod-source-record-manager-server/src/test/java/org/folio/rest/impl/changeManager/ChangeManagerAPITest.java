@@ -1883,6 +1883,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1951,7 +1953,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
       .willReturn(WireMock.serverError()));
 
     Async async = testContext.async();
@@ -2005,6 +2007,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
+      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()

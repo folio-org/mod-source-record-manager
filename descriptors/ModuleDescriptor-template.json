@@ -4,11 +4,15 @@
   "requires": [
     {
       "id": "source-storage-snapshots",
-      "version": "1.0"
+      "version": "2.0"
     },
     {
       "id": "source-storage-records",
-      "version": "1.0"
+      "version": "2.0"
+    },
+    {
+      "id": "source-storage-source-records",
+      "version": "2.0"
     },
     {
       "id": "source-storage-batch",
