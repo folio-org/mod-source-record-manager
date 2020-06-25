@@ -1,3 +1,6 @@
+## 2020-06-25 v2.3.0
+* [MODSOURMAN-325](https://issues.folio.org/browse/MODSOURMAN-325) Update SRS client requests for v4
+
 ## 2020-06-11 v2.2.0
 * [MODSOURMAN-276](https://issues.folio.org/browse/MODSOURMAN-276) Create an endpoint for retrieving MARC record by instance id
 * [MODSOURMAN-268](https://issues.folio.org/browse/MODSOURMAN-268) Implement endpoint for updating MARC record by id
