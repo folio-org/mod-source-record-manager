@@ -1,3 +1,6 @@
+## 2020-07-10 v2.3.1
+* [MODSOURMAN-329](https://issues.folio.org/browse/MODSOURMAN-329) Set completed date on error status update for JobExecution
+
 ## 2020-06-25 v2.3.0
 * [MODSOURMAN-325](https://issues.folio.org/browse/MODSOURMAN-325) Update SRS client requests for v4
 
