@@ -22,6 +22,7 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
+import org.folio.rest.tools.utils.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -84,12 +85,16 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .withId(UUID.randomUUID().toString());
         return selectResult.getResults().isEmpty() ? save(progress, tenantId).map(progress) : Future.succeededFuture(selectResult.getResults().get(0));
       })
-      .onComplete(updateAr -> {
-        if (updateAr.succeeded()) {
-          client.endTx(tx.future(), endTx -> promise.complete(updateAr.result()));
+      .onComplete(saveAr -> {
+        if (saveAr.succeeded()) {
+          client.endTx(tx.future(), endTx -> promise.complete(saveAr.result()));
         } else {
-          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, updateAr.cause());
-          client.rollbackTx(tx.future(), r -> promise.fail(updateAr.cause()));
+          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, saveAr.cause());
+          if (ValidationHelper.isDuplicate(saveAr.cause().getMessage())) {
+            client.rollbackTx(tx.future(), r -> promise.complete());
+            return;
+          }
+          client.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
         }
       });
     return promise.future();
