@@ -3,6 +3,7 @@
 
 ## 2020-06-25 v2.3.0
 * [MODSOURMAN-325](https://issues.folio.org/browse/MODSOURMAN-325) Update SRS client requests for v4
+* [MODSOURMAN-324](https://issues.folio.org/browse/MODSOURMAN-324) Hardcode JobProfile for importing records using CLI tool.
 
 ## 2020-06-11 v2.2.0
 * [MODSOURMAN-276](https://issues.folio.org/browse/MODSOURMAN-276) Create an endpoint for retrieving MARC record by instance id

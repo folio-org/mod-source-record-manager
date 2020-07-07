@@ -58,6 +58,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
   private static final String GET_USER_URL = "/users?query=id==";
+  private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
@@ -237,8 +238,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
+      JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
+      jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
-        .withJobProfileInfo(dto.getJobProfileInfo())
+        .withJobProfileInfo(jobProfileInfo)
         .withRunBy(buildRunByFromUserInfo(userInfo)));
     }
     List<JobExecution> result = new ArrayList<>();
