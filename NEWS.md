@@ -1,6 +1,7 @@
 ## 2020-07-10 v2.3.1-SNAPSHOT
 * [MODDATAIMP-309](https://issues.folio.org/browse/MODDATAIMP-309) Return 204 response when unique constrain is violated upon job progress initialization
 * [MODDATAIMP-309](https://issues.folio.org/browse/MODDATAIMP-309) Changed records publishing using blocking coordinator
+* [MODSOURMAN-329](https://issues.folio.org/browse/MODSOURMAN-329) Set completed date on error status update for JobExecution
 
 ## 2020-06-25 v2.3.0
 * [MODSOURMAN-325](https://issues.folio.org/browse/MODSOURMAN-325) Update SRS client requests for v4
