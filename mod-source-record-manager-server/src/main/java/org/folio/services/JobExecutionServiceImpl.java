@@ -430,6 +430,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
             jobExec.setStatus(JobExecution.Status.ERROR);
             jobExec.setUiStatus(JobExecution.UiStatus.ERROR);
+            jobExec.setCompletedDate(new Date());
             jobExecutionPromise.complete(jobExec);
             return jobExecutionPromise.future();
           }, params.getTenantId()).onComplete(jobExecutionUpdate -> {
