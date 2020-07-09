@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -19,18 +20,20 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.coordinator.QueuedBlockingCoordinator;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
@@ -40,22 +43,30 @@ import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
 
+  private static final int BLOCKING_COORDINATOR_RECORDS_NUMBER =
+    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("record.publishing.blocking.coordinator.recors.number", "50"));
+
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
+  private Vertx vertx;
+  private QueuedBlockingCoordinator coordinator;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
                                                @Autowired ChangeEngineService changeEngineService,
                                                @Autowired JobExecutionProgressService jobExecutionProgressService,
                                                @Autowired MappingParametersProvider mappingParametersProvider,
-                                               @Autowired MappingRuleService mappingRuleService) {
+                                               @Autowired MappingRuleService mappingRuleService,
+                                               @Autowired Vertx vertx) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
+    this.vertx = vertx;
+    this.coordinator = new QueuedBlockingCoordinator(BLOCKING_COORDINATOR_RECORDS_NUMBER);
   }
 
   @Override
@@ -98,18 +109,46 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
           .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
             .compose(rulesOptional -> {
               if (rulesOptional.isPresent()) {
-                ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
-                List<Future> futures = createdRecords.stream()
-                  .filter(this::isRecordReadyToSend)
-                  .map(record -> sendEventWithPayload(Json.encode(prepareEventPayload(record,
-                    profileSnapshotWrapper, rulesOptional.get(), mappingParameters, params)), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params))
-                  .collect(Collectors.toList());
-                return CompositeFuture.join(futures).map(true);
+                return sendCreatedRecordsWithBlocking(createdRecords, jobExecution, rulesOptional.get(), mappingParameters, params);
               } else {
                 return Future.failedFuture(format("Can not send events with created records, no mapping rules found for tenant %s", params.getTenantId()));
               }
             })))
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
+
+  private Future<Boolean> sendCreatedRecordsWithBlocking(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
+    Promise<Boolean> promise = Promise.promise();
+    List<Future> futures = new ArrayList<>();
+    ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
+
+    vertx.executeBlocking(blockingPromise -> {
+      try {
+        for (Record record : createdRecords) {
+          coordinator.acceptLock();
+          if (isRecordReadyToSend(record)) {
+            DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
+            Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params)
+              .onComplete(ar -> coordinator.acceptUnlock());
+            futures.add(booleanFuture);
+          }
+        }
+      } catch (Exception e) {
+        LOGGER.error("Error publishing event with record", e);
+        futures.add(Future.failedFuture(e));
+      }
+
+      CompositeFuture.join(futures).onComplete(ar -> {
+        if (ar.failed()) {
+          LOGGER.error("Error publishing events with created records", ar.cause());
+          promise.fail(ar.cause());
+          return;
+        }
+        promise.complete(true);
+      });
+    }, null);
+
+    return promise.future();
   }
 
   /**
