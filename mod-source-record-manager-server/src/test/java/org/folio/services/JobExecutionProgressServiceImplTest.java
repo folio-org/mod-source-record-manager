@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
@@ -22,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
@@ -102,14 +104,15 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     Async async = context.async();
     int expectedTotalRecords = 62;
 
-    Future<JobExecutionProgress> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID)
-        .compose(jobExecutionProgress -> jobExecutionProgressService.initializeJobExecutionProgress(jobExecutionProgress.getJobExecutionId(), expectedTotalRecords, TENANT_ID)));
+    Future<CompositeFuture> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> {
+        Future<JobExecutionProgress> future1 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
+        Future<JobExecutionProgress> future2 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
+        return CompositeFuture.join(future1, future2);
+      });
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress progress = ar.result();
-      context.assertEquals(expectedTotalRecords, progress.getTotal());
       async.complete();
     });
   }
