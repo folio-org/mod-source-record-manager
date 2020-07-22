@@ -57,7 +57,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
           response.bodyHandler(body -> promise.handle(Try
             .itGet(() -> mapSourceRecordToParsedRecordDto(body))
             .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
-              .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElseThrow(NotFoundException::new))
+              .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
               .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto.withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
           ));
         } else {
