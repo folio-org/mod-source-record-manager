@@ -1,13 +1,18 @@
 package org.folio.dao;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
+import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.persist.SQLConnection;
+import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.folio.rest.tools.utils.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +50,39 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       .map(sourceRecordStates -> sourceRecordStates.isEmpty() ? Optional.empty() : Optional.of(sourceRecordStates.get(0)));
   }
 
+  private Future<Optional<SourceRecordState>> get(String sourceRecordId, AsyncResult<SQLConnection> conn, String tenantId) {
+    Promise<Results<SourceRecordState>> promise = Promise.promise();
+    try {
+      Criteria idCrit = constructCriteria(ID_FIELD, sourceRecordId);
+      pgClientFactory.createInstance(tenantId).get(conn, TABLE_NAME, SourceRecordState.class, new Criterion(idCrit), true, false, promise);
+    } catch (Exception e) {
+      LOGGER.error("Error getting sourceRecord state by source id", e);
+      promise.fail(e);
+    }
+    return promise.future()
+      .map(Results::getResults)
+      .map(sourceRecordStates -> sourceRecordStates.isEmpty() ? Optional.empty() : Optional.of(sourceRecordStates.get(0)));
+  }
+
   @Override
   public Future<String> save(SourceRecordState state, String tenantId) {
+    state.withId(UUID.randomUUID().toString());
+    PostgresClient client = pgClientFactory.createInstance(tenantId);
+    return DbUtil.executeInTransaction(client, sqlConnection -> get(state.getSourceRecordId(), sqlConnection, tenantId)
+      .compose(sourceRecordStateOptional -> {
+        if (sourceRecordStateOptional.isPresent()) {
+          return update(state, sqlConnection, tenantId)
+            .map(state.getId());
+        } else {
+          return save(state, sqlConnection, tenantId);
+        }
+      }));
+  }
+
+  public Future<String> save(SourceRecordState state, AsyncResult<SQLConnection> conn, String tenantId) {
     Promise<String> promise = Promise.promise();
     state.withId(UUID.randomUUID().toString());
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, state.getId(), state, ar -> {
+    pgClientFactory.createInstance(tenantId).save(conn, TABLE_NAME, state.getId(), state, ar -> {
       if (ar.succeeded()) {
         promise.complete(state.getId());
       } else {
@@ -65,11 +98,19 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
   }
 
   @Override
-  public Future<SourceRecordState> update(SourceRecordState state, String tenantId) {
+  public Future<SourceRecordState> updateState(String sourceId, SourceRecordState.RecordState recordState, String tenantId) {
+    PostgresClient client = pgClientFactory.createInstance(tenantId);
+    return DbUtil.executeInTransaction(client, sqlConnection -> get(sourceId, sqlConnection, tenantId)
+      .map(sourceRecordState -> sourceRecordState.orElseThrow(NotFoundException::new))
+      .compose(sourceRecordState -> update(sourceRecordState.withRecordState(recordState), sqlConnection, tenantId)));
+  }
+
+  private Future<SourceRecordState> update(SourceRecordState state, AsyncResult<SQLConnection> conn, String tenantId) {
     Promise<SourceRecordState> promise = Promise.promise();
     try {
       Criteria idCrit = constructCriteria(ID_FIELD, state.getSourceRecordId());
-      pgClientFactory.createInstance(tenantId).update(TABLE_NAME, state, new Criterion(idCrit), true, updateResult -> {
+      CQLWrapper wrapper = new CQLWrapper(new Criterion(idCrit));
+      pgClientFactory.createInstance(tenantId).update(conn, TABLE_NAME, state, wrapper, true, updateResult -> {
         if (updateResult.failed()) {
           LOGGER.error("Could not update state SourceRecordState sourceRecordId {}", state.getSourceRecordId(), updateResult.cause());
           promise.fail(updateResult.cause());

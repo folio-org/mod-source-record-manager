@@ -12,9 +12,11 @@ import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
 import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.services.EventHandlingService;
+import org.folio.services.SourceRecordStateService;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.spring.SpringContextUtil;
@@ -30,8 +32,12 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerHandlersImpl.class);
   private static final String INVENTORY_INSTANCE_CREATED_ERROR_MSG = "Failed to process: DI_INVENTORY_INSTANCE_CREATED";
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
+  private static final String RECORD_ID_KEY = "RECORD_ID";
 
   private JournalService journalService;
+
+  @Autowired
+  private SourceRecordStateService sourceRecordStateService;
 
   @Autowired
   private EventHandlingService recordProcessedEventHandleService;
@@ -78,10 +84,8 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
     vertxContext.runOnContext(v -> {
       try {
         HashMap<String, String> eventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
-        LOGGER.debug("Event was received: {}", eventPayload);
-        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        //todo
-
+        LOGGER.debug("Event was received for QM_COMPLETE: {}", eventPayload);
+        sourceRecordStateService.updateState(eventPayload.get(RECORD_ID_KEY), SourceRecordState.RecordState.ACTUAL, tenantId);
       } catch (IOException e) {
         LOGGER.error(UNZIP_ERROR_MESSAGE, e);
       } finally {
@@ -96,10 +100,8 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
     vertxContext.runOnContext(v -> {
       try {
         HashMap<String, String> eventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
-        LOGGER.debug("Event was received: {}", eventPayload);
-        OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        //todo
-
+        LOGGER.debug("Event was received for QM_ERROR: {}", eventPayload);
+        sourceRecordStateService.updateState(eventPayload.get(RECORD_ID_KEY), SourceRecordState.RecordState.ERROR, tenantId);
       } catch (IOException e) {
         LOGGER.error(UNZIP_ERROR_MESSAGE, e);
       } finally {

@@ -30,9 +30,10 @@ public interface SourceRecordStateDao {
   /**
    * Updates state if exist
    *
-   * @param state    state
+   * @param sourceId id of source record
+   * @param recordState records state in QM workflow
    * @param tenantId tenant
    * @return updated rules
    */
-  Future<SourceRecordState> update(SourceRecordState state, String tenantId);
+  Future<SourceRecordState> updateState(String sourceId, SourceRecordState.RecordState recordState, String tenantId);
 }

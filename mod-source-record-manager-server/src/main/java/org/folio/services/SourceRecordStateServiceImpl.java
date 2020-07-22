@@ -28,7 +28,7 @@ public class SourceRecordStateServiceImpl implements SourceRecordStateService {
   }
 
   @Override
-  public Future<SourceRecordState> update(SourceRecordState state, String tenantId) {
-    return sourceRecordStateDao.update(state, tenantId);
+  public Future<SourceRecordState> updateState(String sourceId, SourceRecordState.RecordState recordState, String tenantId) {
+    return sourceRecordStateDao.updateState(sourceId, recordState, tenantId);
   }
 }
