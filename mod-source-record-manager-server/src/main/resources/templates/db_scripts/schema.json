@@ -111,6 +111,11 @@
       "run": "after",
       "snippet": "ALTER TABLE source_records_state DROP CONSTRAINT IF EXISTS source_records_state_id_unique; ALTER TABLE source_records_state ADD CONSTRAINT source_records_state_id_unique UNIQUE (sourceRecordId);",
       "fromModuleVersion": "mod-source-record-manager-2.4.0"
-    }
+     },
+     {
+      "run": "after",
+      "snippetPath": "remove_deprecated_data.sql",
+      "fromModuleVersion": "mod-source-record-manager-2.3.1"
+     }
   ]
 }
