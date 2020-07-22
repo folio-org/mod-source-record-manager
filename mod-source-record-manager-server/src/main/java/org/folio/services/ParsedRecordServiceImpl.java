@@ -13,6 +13,7 @@ import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingPa
 import org.folio.rest.client.SourceStorageSourceRecordsClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
+import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,11 +36,15 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
+  private SourceRecordStateService sourceRecordStateService;
 
   public ParsedRecordServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
-                                 @Autowired MappingRuleService mappingRuleService) {
+                                 @Autowired MappingRuleService mappingRuleService,
+                                 @Autowired SourceRecordStateService sourceRecordStateService
+  ) {
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
+    this.sourceRecordStateService = sourceRecordStateService;
   }
 
   @Override
@@ -49,7 +54,19 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
         if (HTTP_OK.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> promise.handle(Try.itGet(() -> mapSourceRecordToParsedRecordDto(body))));
+          response.bodyHandler(body -> Try
+            .itGet(() -> mapSourceRecordToParsedRecordDto(body))
+            .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
+              .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
+              .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto.withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
+            .onComplete(parsedRecordDtoAsyncResult -> {
+              if (parsedRecordDtoAsyncResult.succeeded()) {
+                promise.complete(parsedRecordDtoAsyncResult.result());
+              } else {
+                promise.fail(parsedRecordDtoAsyncResult.cause());
+              }
+            })
+          );
         } else {
           String message = format("Error retrieving Record by instanceId: '%s', response code %s, %s",
             instanceId, response.statusCode(), response.statusMessage());
@@ -74,8 +91,12 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
       .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
         .compose(rulesOptional -> {
           if (rulesOptional.isPresent()) {
-            return sendEventWithPayload(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
-              QM_RECORD_UPDATED_EVENT_TYPE, params);
+            SourceRecordState sourceRecordState = new SourceRecordState()
+              .withRecordState(SourceRecordState.RecordState.IN_PROGRESS)
+              .withSourceRecordId(parsedRecordDto.getId());
+            return sourceRecordStateService.save(sourceRecordState, params.getTenantId())
+              .compose(s -> sendEventWithPayload(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
+                QM_RECORD_UPDATED_EVENT_TYPE, params));
           } else {
             return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));
           }
@@ -90,7 +111,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
       .withRecordType(ParsedRecordDto.RecordType.fromValue(sourceRecord.getRecordType().value()))
       .withExternalIdsHolder(sourceRecord.getExternalIdsHolder())
       .withAdditionalInfo(sourceRecord.getAdditionalInfo())
-      .withMetadata(sourceRecord.getMetadata());
+      .withMetadata(sourceRecord.getMetadata())
+      .withRecordState(ParsedRecordDto.RecordState.ACTUAL);
   }
 
   private String prepareEventPayload(ParsedRecordDto parsedRecordDto, JsonObject mappingRules,
@@ -100,6 +122,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
     eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
+    eventPayload.put("RECORD_ID", parsedRecordDto.getId());
 
     return Json.encode(eventPayload);
   }
