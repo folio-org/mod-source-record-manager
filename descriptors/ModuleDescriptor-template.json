@@ -257,6 +257,20 @@
           "modulePermissions": [
             "source-storage.snapshots.put"
           ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/handlers/qm-completed",
+          "permissionsRequired": [
+            "source-records-manager.events.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/change-manager/handlers/qm-error",
+          "permissionsRequired": [
+            "source-records-manager.events.post"
+          ]
         }
       ]
     },
