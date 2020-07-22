@@ -24,8 +24,7 @@
   },
   "additionalProperties": false,
   "required": [
-    "source",
-    "title",
-    "instanceTypeId"
+    "sourceRecordId",
+    "recordState"
   ]
 }
