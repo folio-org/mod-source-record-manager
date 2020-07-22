@@ -46,7 +46,7 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       promise.fail(e);
     }
     return promise.future()
-      .map(Results::getResults)
+      .map(s-> s.getResults())
       .map(sourceRecordStates -> sourceRecordStates.isEmpty() ? Optional.empty() : Optional.of(sourceRecordStates.get(0)));
   }
 
