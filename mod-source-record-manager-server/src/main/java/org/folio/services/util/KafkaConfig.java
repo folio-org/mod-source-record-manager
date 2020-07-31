@@ -48,6 +48,7 @@ public class KafkaConfig {
   public Map<String, String> getConsumerProps() {
     Map<String, String> consumerProps = new HashMap<>();
     consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getKafkaUrl());
+    //TODO: all commits in Kafka Consumers must be manual!
     consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
     consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
     consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");

@@ -13,6 +13,7 @@ import org.folio.util.pubsub.PubSubClientUtils;
 
 import java.util.UUID;
 
+@Deprecated
 public final class EventHandlingUtil {
 
   private EventHandlingUtil() {
@@ -28,6 +29,7 @@ public final class EventHandlingUtil {
    * @param params       connection parameters
    * @return completed future with true if event was sent successfully
    */
+  @Deprecated
   public static Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params, EventDrivenChunkProcessingServiceImpl service) {
     Promise<Boolean> promise = Promise.promise();
     try {

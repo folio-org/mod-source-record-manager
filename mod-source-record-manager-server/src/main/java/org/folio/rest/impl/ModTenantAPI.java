@@ -64,6 +64,7 @@ public class ModTenantAPI extends TenantAPI {
         setSequencesPermissionForDbUser(context, tenantId)
           .compose(ar -> mappingRuleService.saveDefaultRules(tenantId))
           .compose(ar -> registerModuleToPubsub(headers, context.owner()))
+          //TODO: all commits in Kafka Consumers must be manual!
           .compose(ar -> subscribe("DI_INVENTORY_INSTANCE_CREATED", changeManagerKafkaHandlers.postChangeManagerHandlersCreatedInventoryInstance(tenantId), tenantId))
           .compose(ar -> subscribe("DI_COMPLETED", changeManagerKafkaHandlers.postChangeManagerHandlersProcessingResult(okapiConnectionParams), tenantId))
           .compose(ar -> subscribe("DI_ERROR", changeManagerKafkaHandlers.postChangeManagerHandlersProcessingResult(okapiConnectionParams), tenantId))

@@ -5,7 +5,6 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -13,9 +12,11 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.kafka.client.producer.impl.KafkaProducerRecordImpl;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -23,50 +24,42 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.coordinator.QueuedBlockingCoordinator;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.util.KafkaConfig;
 import org.folio.services.util.KafkaProducerManager;
 import org.folio.services.util.PubSubConfig;
+import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
-import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
 
-  private static final int BLOCKING_COORDINATOR_RECORDS_NUMBER =
-    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("record.publishing.blocking.coordinator.recors.number", "50"));
-
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
-  private Vertx vertx;
-  private QueuedBlockingCoordinator coordinator;
-
-  private static final int THREAD_POOL_SIZE =
-    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("event.publishing.thread.pool.size", "20"));
-
 
   private KafkaProducerManager manager;
 
   private KafkaConfig kafkaConfig;
-  private WorkerExecutor executor;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
@@ -85,9 +78,6 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     this.mappingRuleService = mappingRuleService;
     this.manager = manager;
     this.kafkaConfig = kafkaConfig;
-    this.vertx = vertx;
-    this.coordinator = new QueuedBlockingCoordinator(BLOCKING_COORDINATOR_RECORDS_NUMBER);
-    this.executor = vertx.createSharedWorkerExecutor("event-publishing-thread-pool", THREAD_POOL_SIZE);
   }
 
   @Override
@@ -124,75 +114,92 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    * @return future with boolean
    */
   private Future<Boolean> sendEventsWithCreatedRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
-    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
-      .compose(jobOptional -> jobOptional
-        .map(jobExecution -> getMappingParameters(jobExecutionId, params)
-          .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
-            .compose(rulesOptional -> {
-              if (rulesOptional.isPresent()) {
-                return sendCreatedRecordsWithBlocking(createdRecords, jobExecution, rulesOptional.get(), mappingParameters, params);
-              } else {
-                return Future.failedFuture(format("Can not send events with created records, no mapping rules found for tenant %s", params.getTenantId()));
-              }
-            })))
-        .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+    String tenantId = params.getTenantId();
+    Future<Optional<JobExecution>> jobExecutionFuture = jobExecutionService.getJobExecutionById(jobExecutionId, tenantId);
+    Future<Optional<JsonObject>> mappingRulesFuture = mappingRuleService.get(params.getTenantId());
+    Future<MappingParameters> mappingParameters = mappingParametersProvider.get(jobExecutionId, params);
+
+    return CompositeFuture.all(jobExecutionFuture, mappingRulesFuture, mappingParameters).compose(cf -> {
+      if (cf.failed()) {
+        return Future.failedFuture(cf.cause());
+      }
+
+      Optional<JobExecution> jobExecutionOptional = jobExecutionFuture.result();
+      if (Objects.isNull(jobExecutionOptional) || !jobExecutionOptional.isPresent()) {
+        return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)));
+      }
+
+      Optional<JsonObject> mappingRulesOptional = mappingRulesFuture.result();
+      if (Objects.isNull(mappingRulesOptional) || !mappingRulesOptional.isPresent()) {
+        return Future.failedFuture(format("Can not send events with created records, no mapping rules found for tenant %s", params.getTenantId()));
+      }
+
+      return sendCreatedRecordsWithBlocking(createdRecords, jobExecutionOptional.get(), mappingRulesOptional.get(), mappingParameters.result(), params);
+    });
   }
+
+  private Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params) {
+    Event event;
+    try {
+      event = new Event()
+        .withId(UUID.randomUUID().toString())
+        .withEventType(eventType)
+        .withEventPayload(ZIPArchiver.zip(eventPayload))
+        .withEventMetadata(new EventMetadata()
+          .withTenantId(params.getTenantId())
+          .withEventTTL(1)
+          .withPublishedBy(PubSubClientUtils.constructModuleName()));
+    } catch (IOException e) {
+      e.printStackTrace();
+      LOGGER.error(e);
+      return Future.failedFuture(e);
+    }
+
+    return sendEvent(event, params.getTenantId());
+  }
+
 
   public Future<Boolean> sendEvent(Event event, String tenantId) {
     Promise<Boolean> promise = Promise.promise();
     PubSubConfig config = new PubSubConfig(kafkaConfig.getEnvId(), tenantId, event.getEventType());
-    executor.<Boolean>executeBlocking(future -> {
-        try {
-          manager.getKafkaProducer().write(new KafkaProducerRecordImpl<>(config.getTopicName(), Json.encode(event)), done -> {
-            if (done.succeeded()) {
-              LOGGER.info("Sent {} event with id '{}' to topic {}", event.getEventType(), event.getId(), config.getTopicName());
-              future.complete(true);
-            } else {
-              String errorMessage = "Event was not sent";
-              LOGGER.error(errorMessage, done.cause());
-              future.fail(done.cause());
-            }
-          });
-        } catch (Exception e) {
-          String errorMessage = "Error publishing event";
-          LOGGER.error(errorMessage, e);
-        }
+
+    //TODO: it should be enough here to have a single or shared producers
+    manager.getKafkaProducer().write(new KafkaProducerRecordImpl<>(config.getTopicName(), Json.encode(event)), done -> {
+      if (done.succeeded()) {
+        LOGGER.info("Sent {} event with id '{}' to topic {}", event.getEventType(), event.getId(), config.getTopicName());
+        promise.complete(true);
+      } else {
+        String errorMessage = "Event was not sent";
+        LOGGER.error(errorMessage, done.cause());
+        promise.fail(done.cause());
       }
-      , ar -> promise.handle(ar));
+    });
 
     return promise.future();
   }
 
   private Future<Boolean> sendCreatedRecordsWithBlocking(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
+
     List<Future> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
 
-    vertx.executeBlocking(blockingPromise -> {
-      try {
-        for (Record record : createdRecords) {
-          coordinator.acceptLock();
-          if (isRecordReadyToSend(record)) {
-            DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
-            Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params, this)
-              .onComplete(ar -> coordinator.acceptUnlock());
-            futures.add(booleanFuture);
-          }
-        }
-      } catch (Exception e) {
-        LOGGER.error("Error publishing event with record", e);
-        futures.add(Future.failedFuture(e));
+    for (Record record : createdRecords) {
+      if (isRecordReadyToSend(record)) {
+        DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
+        Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params);
+        futures.add(booleanFuture);
       }
+    }
 
-      CompositeFuture.join(futures).onComplete(ar -> {
-        if (ar.failed()) {
-          LOGGER.error("Error publishing events with created records", ar.cause());
-          promise.fail(ar.cause());
-          return;
-        }
-        promise.complete(true);
-      });
-    }, null);
+    CompositeFuture.join(futures).onComplete(ar -> {
+      if (ar.failed()) {
+        LOGGER.error("Error publishing events with created records", ar.cause());
+        promise.fail(ar.cause());
+        return;
+      }
+      promise.complete(true);
+    });
 
     return promise.future();
   }
@@ -203,6 +210,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    * @param record record for verification
    * @return true if record has parsed content
    */
+  //TODO: What is the case for this F***ing method???
   private boolean isRecordReadyToSend(Record record) {
     if (record.getParsedRecord() == null || record.getParsedRecord().getContent() == null) {
       LOGGER.error("The record has not parsed content, so it will not be sent to mod-pubsub");
@@ -218,6 +226,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
    * @param okapiParams okapi connection parameters
    * @return mapping parameters
    */
+  @Deprecated
   private Future<MappingParameters> getMappingParameters(String snapshotId, OkapiConnectionParams okapiParams) {
     return mappingParametersProvider.get(snapshotId, okapiParams);
   }

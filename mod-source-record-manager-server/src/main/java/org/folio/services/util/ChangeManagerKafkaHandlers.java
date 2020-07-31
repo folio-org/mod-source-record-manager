@@ -42,6 +42,7 @@ public class ChangeManagerKafkaHandlers {
   }
 
   public Handler<KafkaConsumerRecord<String, String>> postChangeManagerHandlersCreatedInventoryInstance(String tenantId) {
+    //TODO: all commits in Kafka Consumers must be manual!
     return record -> {
       String value = record.value();
       try {
@@ -58,6 +59,7 @@ public class ChangeManagerKafkaHandlers {
   }
 
   public Handler<KafkaConsumerRecord<String, String>> postChangeManagerHandlersProcessingResult(OkapiConnectionParams params) {
+    //TODO: all commits in Kafka Consumers must be manual!
     return record -> {
       String value = record.value();
       recordProcessedEventHandleService.handle(value, params);
@@ -65,6 +67,7 @@ public class ChangeManagerKafkaHandlers {
   }
 
   public Handler<KafkaConsumerRecord<String, String>> postChangeManagerHandlersQmCompleted(String tenantId) {
+    //TODO: all commits in Kafka Consumers must be manual!
     return record -> {
       String value = record.value();
       try {
@@ -78,6 +81,7 @@ public class ChangeManagerKafkaHandlers {
   }
 
   public Handler<KafkaConsumerRecord<String, String>> postChangeManagerHandlersQmError(String tenantId) {
+    //TODO: all commits in Kafka Consumers must be manual!
     return record -> {
       try {
         String value = record.value();

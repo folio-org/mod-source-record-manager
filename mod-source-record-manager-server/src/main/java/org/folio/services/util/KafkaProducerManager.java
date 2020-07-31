@@ -6,9 +6,9 @@ import org.apache.commons.collections4.list.UnmodifiableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Iterators.cycle;
@@ -23,13 +23,14 @@ public class KafkaProducerManager {
   private Iterator<KafkaProducer<String, String>> producerIterator;
 
   public KafkaProducerManager(@Autowired Vertx vertx, @Autowired KafkaConfig config) {
-    List<KafkaProducer<String, String>> producers =
-      Stream.generate(() -> KafkaProducer.<String, String>create(vertx, config.getProducerProps()))
-        .limit(NUMBER_OF_PRODUCERS)
-        .collect(Collectors.toList());
+    List<KafkaProducer<String, String>> producers = new ArrayList<>(NUMBER_OF_PRODUCERS);
+    for (int i = 0; i < NUMBER_OF_PRODUCERS; i++) {
+      producers.add(KafkaProducer.<String, String>create(vertx, config.getProducerProps()));
+    }
     producerIterator = cycle(new UnmodifiableList<>(producers));
   }
 
+  //TODO: this method looks quite weird
   public KafkaProducer<String, String> getKafkaProducer() {
     return Stream.generate(producerIterator::next)
       .filter(producer -> !producer.writeQueueFull())
