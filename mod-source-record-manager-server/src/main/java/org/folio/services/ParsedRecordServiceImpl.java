@@ -37,6 +37,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
   private SourceRecordStateService sourceRecordStateService;
+  @Autowired
+  private EventDrivenChunkProcessingServiceImpl eventDrivenChunkProcessingService;
 
   public ParsedRecordServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
                                  @Autowired MappingRuleService mappingRuleService,
@@ -96,7 +98,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               .withSourceRecordId(parsedRecordDto.getId());
             return sourceRecordStateService.save(sourceRecordState, params.getTenantId())
               .compose(s -> sendEventWithPayload(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
-                QM_RECORD_UPDATED_EVENT_TYPE, params));
+                QM_RECORD_UPDATED_EVENT_TYPE, params, eventDrivenChunkProcessingService));
           } else {
             return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));
           }

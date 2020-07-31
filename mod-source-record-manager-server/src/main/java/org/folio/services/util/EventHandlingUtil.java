@@ -8,6 +8,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
+import org.folio.services.EventDrivenChunkProcessingServiceImpl;
 import org.folio.util.pubsub.PubSubClientUtils;
 
 import java.util.UUID;
@@ -27,7 +28,7 @@ public final class EventHandlingUtil {
    * @param params       connection parameters
    * @return completed future with true if event was sent successfully
    */
-  public static Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params) {
+  public static Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params, EventDrivenChunkProcessingServiceImpl service) {
     Promise<Boolean> promise = Promise.promise();
     try {
       Event event = new Event()
@@ -45,15 +46,7 @@ public final class EventHandlingUtil {
       connectionParams.setTenantId(params.getTenantId());
       connectionParams.setVertx(params.getVertx());
 
-      PubSubClientUtils.sendEventMessage(event, connectionParams)
-        .whenComplete((ar, throwable) -> {
-          if (throwable == null) {
-            promise.complete(true);
-          } else {
-            LOGGER.error("Error during event sending: {}", throwable, event);
-            promise.fail(throwable);
-          }
-        });
+      service.sendEvent(event, params.getTenantId()).onComplete(v -> promise.complete(true));
     } catch (Exception e) {
       LOGGER.error("Failed to send {} event to mod-pubsub", e, eventType);
       promise.fail(e);

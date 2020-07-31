@@ -5,14 +5,17 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.kafka.client.producer.impl.KafkaProducerRecordImpl;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -23,6 +26,9 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.coordinator.QueuedBlockingCoordinator;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
+import org.folio.services.util.KafkaConfig;
+import org.folio.services.util.KafkaProducerManager;
+import org.folio.services.util.PubSubConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,20 +59,35 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private Vertx vertx;
   private QueuedBlockingCoordinator coordinator;
 
+  private static final int THREAD_POOL_SIZE =
+    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("event.publishing.thread.pool.size", "20"));
+
+
+  private KafkaProducerManager manager;
+
+  private KafkaConfig kafkaConfig;
+  private WorkerExecutor executor;
+
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
                                                @Autowired ChangeEngineService changeEngineService,
                                                @Autowired JobExecutionProgressService jobExecutionProgressService,
                                                @Autowired MappingParametersProvider mappingParametersProvider,
                                                @Autowired MappingRuleService mappingRuleService,
-                                               @Autowired Vertx vertx) {
+                                               @Autowired Vertx vertx,
+                                               @Autowired KafkaConfig kafkaConfig,
+                                               @Autowired KafkaProducerManager manager
+  ) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
+    this.manager = manager;
+    this.kafkaConfig = kafkaConfig;
     this.vertx = vertx;
     this.coordinator = new QueuedBlockingCoordinator(BLOCKING_COORDINATOR_RECORDS_NUMBER);
+    this.executor = vertx.createSharedWorkerExecutor("event-publishing-thread-pool", THREAD_POOL_SIZE);
   }
 
   @Override
@@ -117,6 +138,31 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
+  public Future<Boolean> sendEvent(Event event, String tenantId) {
+    Promise<Boolean> promise = Promise.promise();
+    PubSubConfig config = new PubSubConfig(kafkaConfig.getEnvId(), tenantId, event.getEventType());
+    executor.<Boolean>executeBlocking(future -> {
+        try {
+          manager.getKafkaProducer().write(new KafkaProducerRecordImpl<>(config.getTopicName(), Json.encode(event)), done -> {
+            if (done.succeeded()) {
+              LOGGER.info("Sent {} event with id '{}' to topic {}", event.getEventType(), event.getId(), config.getTopicName());
+              future.complete(true);
+            } else {
+              String errorMessage = "Event was not sent";
+              LOGGER.error(errorMessage, done.cause());
+              future.fail(done.cause());
+            }
+          });
+        } catch (Exception e) {
+          String errorMessage = "Error publishing event";
+          LOGGER.error(errorMessage, e);
+        }
+      }
+      , ar -> promise.handle(ar));
+
+    return promise.future();
+  }
+
   private Future<Boolean> sendCreatedRecordsWithBlocking(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
     List<Future> futures = new ArrayList<>();
@@ -128,7 +174,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
           coordinator.acceptLock();
           if (isRecordReadyToSend(record)) {
             DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
-            Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params)
+            Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params, this)
               .onComplete(ar -> coordinator.acceptUnlock());
             futures.add(booleanFuture);
           }
