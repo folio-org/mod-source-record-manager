@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import com.sun.tools.javac.util.List;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
@@ -21,6 +22,7 @@ import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.MappingRuleService;
 import org.folio.services.util.ChangeManagerKafkaHandlers;
 import org.folio.services.util.KafkaConfig;
+import org.folio.services.util.KafkaTopicService;
 import org.folio.services.util.PubSubConfig;
 import org.folio.spring.SpringContextUtil;
 import org.folio.util.pubsub.PubSubClientUtils;
@@ -48,6 +50,9 @@ public class ModTenantAPI extends TenantAPI {
   @Autowired
   private ChangeManagerKafkaHandlers changeManagerKafkaHandlers;
 
+  @Autowired
+  private KafkaTopicService kafkaTopicService;
+
   public ModTenantAPI() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
@@ -63,7 +68,7 @@ public class ModTenantAPI extends TenantAPI {
         String tenantId = TenantTool.calculateTenantId(okapiConnectionParams.getTenantId());
         setSequencesPermissionForDbUser(context, tenantId)
           .compose(ar -> mappingRuleService.saveDefaultRules(tenantId))
-          .compose(ar -> registerModuleToPubsub(headers, context.owner()))
+          .compose(ar -> kafkaTopicService.createTopics(List.of("DI_INVENTORY_INSTANCE_CREATED", "DI_SRS_MARC_BIB_RECORD_CREATED", "DI_COMPLETED", "DI_ERROR", "QM_INVENTORY_INSTANCE_UPDATED", "QM_ERROR"), tenantId))
           //TODO: all commits in Kafka Consumers must be manual!
           .compose(ar -> subscribe("DI_INVENTORY_INSTANCE_CREATED", changeManagerKafkaHandlers.postChangeManagerHandlersCreatedInventoryInstance(tenantId), tenantId))
           .compose(ar -> subscribe("DI_COMPLETED", changeManagerKafkaHandlers.postChangeManagerHandlersProcessingResult(okapiConnectionParams), tenantId))

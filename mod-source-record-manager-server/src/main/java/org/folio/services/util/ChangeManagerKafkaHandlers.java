@@ -9,6 +9,7 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.events.utils.ZIPArchiver;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.rest.tools.utils.ObjectMapperTool;
@@ -48,8 +49,9 @@ public class ChangeManagerKafkaHandlers {
       try {
         LOGGER.debug("Event was received: {}", value);
 
-        DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(value), DataImportEventPayload.class);
-        JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
+        Event event = new JsonObject(record.value()).mapTo(Event.class);
+        DataImportEventPayload eventPayload = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(DataImportEventPayload.class);
+        JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
         journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
       } catch (Exception e) {
