@@ -1,6 +1,5 @@
 package org.folio.rest.impl;
 
-import com.sun.tools.javac.util.List;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
@@ -29,6 +28,7 @@ import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -68,7 +68,7 @@ public class ModTenantAPI extends TenantAPI {
         String tenantId = TenantTool.calculateTenantId(okapiConnectionParams.getTenantId());
         setSequencesPermissionForDbUser(context, tenantId)
           .compose(ar -> mappingRuleService.saveDefaultRules(tenantId))
-          .compose(ar -> kafkaTopicService.createTopics(List.of("DI_INVENTORY_INSTANCE_CREATED", "DI_SRS_MARC_BIB_RECORD_CREATED", "DI_COMPLETED", "DI_ERROR", "QM_INVENTORY_INSTANCE_UPDATED", "QM_ERROR"), tenantId))
+          .compose(ar -> kafkaTopicService.createTopics(Arrays.asList("DI_INVENTORY_INSTANCE_CREATED", "DI_SRS_MARC_BIB_RECORD_CREATED", "DI_COMPLETED", "DI_ERROR", "QM_INVENTORY_INSTANCE_UPDATED", "QM_ERROR"), tenantId))
           //TODO: all commits in Kafka Consumers must be manual!
           .compose(ar -> subscribe("DI_INVENTORY_INSTANCE_CREATED", changeManagerKafkaHandlers.postChangeManagerHandlersCreatedInventoryInstance(tenantId), tenantId))
           .compose(ar -> subscribe("DI_COMPLETED", changeManagerKafkaHandlers.postChangeManagerHandlersProcessingResult(okapiConnectionParams), tenantId))
