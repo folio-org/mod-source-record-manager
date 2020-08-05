@@ -14,7 +14,6 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import lombok.Builder;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.folio.services.EventDrivenChunkProcessingServiceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class KafkaConsumerWrapper<K, V> implements Handler<KafkaConsumerRecord<K, V>> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumerWrapper.class);
   private final static AtomicInteger indexer = new AtomicInteger();
 
   private final int id = indexer.getAndIncrement();
