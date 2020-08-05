@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 @Component
 public class KafkaConfig {
 
