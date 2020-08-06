@@ -1,6 +1,7 @@
 package org.folio.rest.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -17,8 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:10}")
+  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
   private int rawMarcChunkConsumerInstancesNumber;
+
+  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
+  private int storedMarcChunkConsumerInstancesNumber;
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
@@ -34,6 +38,7 @@ public class InitAPIImpl implements InitAPI {
         }
       });
     } catch (Throwable th) {
+      th.printStackTrace();
       handler.handle(Future.failedFuture(th));
     }
   }
@@ -44,15 +49,19 @@ public class InitAPIImpl implements InitAPI {
       .register(JournalService.class, JournalService.create());
   }
 
-  private Future<String> deployRawMarcChunkConsumersVerticles(Vertx vertx) {
+  private Future<?> deployRawMarcChunkConsumersVerticles(Vertx vertx) {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
-    Promise<String> deployConsumers = Promise.promise();
+    Promise<String> deployConsumers1 = Promise.promise();
+    Promise<String> deployConsumers2 = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.consumers.RawMarcChunkConsumersVerticle",
-      new DeploymentOptions().setWorker(true).setInstances(rawMarcChunkConsumerInstancesNumber), deployConsumers);
+      new DeploymentOptions().setWorker(true).setInstances(rawMarcChunkConsumerInstancesNumber), deployConsumers1);
 
-    return deployConsumers.future();
+    vertx.deployVerticle("org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle",
+      new DeploymentOptions().setWorker(true).setInstances(storedMarcChunkConsumerInstancesNumber), deployConsumers2);
+
+    return CompositeFuture.all(deployConsumers1.future(), deployConsumers2.future());
   }
 }

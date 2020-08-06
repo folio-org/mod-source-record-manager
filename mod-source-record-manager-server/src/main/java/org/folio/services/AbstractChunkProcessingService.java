@@ -27,7 +27,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   @Override
-  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+  public Future<Boolean> startChunkProcessing(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)

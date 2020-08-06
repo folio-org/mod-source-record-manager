@@ -13,7 +13,8 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.ChunkProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,18 +28,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Component
-@Qualifier("RawMarcChunksKafkaHandler")
-public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
+@Qualifier("StoredMarcChunksKafkaHandler")
+public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+  private static final Logger LOGGER = LoggerFactory.getLogger(StoredMarcChunksKafkaHandler.class);
 
   private static final AtomicInteger chunkCounter = new AtomicInteger();
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
   private Vertx vertx;
 
-  public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService") ChunkProcessingService eventDrivenChunkProcessingService,
-                                   @Autowired Vertx vertx) {
-    super();
+  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService") ChunkProcessingService eventDrivenChunkProcessingService,
+                                      @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
     this.vertx = vertx;
   }
@@ -46,26 +46,26 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
     Event event = new JsonObject(record.value()).mapTo(Event.class);
-
     try {
-      RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
+      RecordsBatchResponse recordsBatchResponse = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RecordsBatchResponse.class);
+      List<Record> storedRecords = recordsBatchResponse.getRecords();
 
       List<KafkaHeader> kafkaHeaders = record.headers();
       OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
 
+      String key = record.key();
+
       int chunkNumber = chunkCounter.incrementAndGet();
-      LOGGER.debug("RawRecordsDto has been received, starting processing... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
-      return eventDrivenChunkProcessingService
-        .startChunkProcessing(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
+      LOGGER.debug("RecordsBatchResponse has been received, starting processing... chunkNumber " + chunkNumber + " - " + key);
+      return eventDrivenChunkProcessingService.sendEventsWithStoredRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
-          LOGGER.debug("RawRecordsDto processing has been completed... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
-          return Future.succeededFuture(record.key());
+          LOGGER.debug("RecordsBatchResponse processing has been completed... chunkNumber " + chunkNumber + " - " + key);
+          return Future.succeededFuture(key);
         }, th -> {
           th.printStackTrace();
-          LOGGER.error("RawRecordsDto processing has failed with errors... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata(), th);
+          LOGGER.error("RecordsBatchResponse processing has failed with errors... chunkNumber " + chunkNumber + " - " + key);
           return Future.failedFuture(th);
         });
-
     } catch (IOException e) {
       e.printStackTrace();
       LOGGER.error("Can't process the kafka record: ", e);
@@ -87,4 +87,5 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
     return new OkapiConnectionParams(okapiHeaders, vertx);
   }
+
 }

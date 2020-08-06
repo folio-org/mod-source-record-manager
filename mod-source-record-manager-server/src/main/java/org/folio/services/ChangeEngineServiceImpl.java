@@ -4,18 +4,25 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.KafkaProducer;
+import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.Try;
-import org.folio.rest.client.SourceStorageBatchClient;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -25,27 +32,28 @@ import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.journal.JournalService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
+import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
@@ -54,21 +62,31 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldTo
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  private static final String CAN_T_CREATE_NEW_RECORDS_MSG = "Can't create new records with JobExecution id: %s in source-record-storage, response code %s";
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
+
+  //TODO: make it configurable
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
-  private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
+
+  //TODO: make it an ENUM value
+  public static final String DI_RAWMARCS_CHUNK_PARSED_EVENT_TYPE = "DI_RAWMARCS_CHUNK_PARSED";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
 
+  //TODO: make it configurable
+  private int maxDistributionNum = 100;
+  private static final AtomicInteger indexer = new AtomicInteger();
+  private KafkaConfig kafkaConfig;
+
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired KafkaConfig kafkaConfig,
                                  @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
+    this.kafkaConfig = kafkaConfig;
     this.journalService = JournalService.createProxy(vertx);
   }
 
@@ -182,35 +200,66 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return Future.succeededFuture();
     }
 
-    return Try.itDo((Promise<List<Record>> promise) -> {
-      SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    RecordCollection recordCollection = new RecordCollection()
+      .withRecords(parsedRecords)
+      .withTotalRecords(parsedRecords.size());
 
-      RecordCollection recordCollection = new RecordCollection()
-        .withRecords(parsedRecords)
-        .withTotalRecords(parsedRecords.size());
+    //TODO: this could be some utility method
+    Event event;
+    try {
+      event = new Event()
+        .withId(UUID.randomUUID().toString())
+        .withEventType(DI_RAWMARCS_CHUNK_PARSED_EVENT_TYPE)
+        .withEventPayload(ZIPArchiver.zip(Json.encode(recordCollection)))
+        .withEventMetadata(new EventMetadata()
+          .withTenantId(params.getTenantId())
+          .withEventTTL(1)
+          .withPublishedBy(PubSubClientUtils.constructModuleName()));
+    } catch (IOException e) {
+      e.printStackTrace();
+      LOGGER.error(e);
+      return Future.failedFuture(e);
+    }
 
-      client.postSourceStorageBatchRecords(recordCollection, response -> {
-        if (isStatus(response, HTTP_CREATED)) {
-          response.bodyHandler(it ->
-            promise.handle(
-              Try.itGet(() -> {
-                List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
-                List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE);
-                journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
-                return createdRecords;
-              })
-                .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
-            )
-          );
-        } else {
-          List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, Collections.emptyList(), CREATE);
-          journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
-          String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
-    }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
+    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+
+    String topicName = KafkaTopicNameHelper.formatTopicName(kafkaConfig.getEnvId(), KafkaTopicNameHelper.getDefaultNameSpace(), params.getTenantId(), DI_RAWMARCS_CHUNK_PARSED_EVENT_TYPE);
+
+    KafkaProducerRecord<String, String> record =
+      KafkaProducerRecord.create(topicName, key, Json.encode(event));
+
+    List<KafkaHeader> kafkaHeaders = params
+      .getHeaders()
+      .entries()
+      .stream()
+      .map(e -> KafkaHeader.header(e.getKey(), e.getValue()))
+      .collect(Collectors.toList());
+
+    record.addHeaders(kafkaHeaders);
+    record.addHeader("jobExecutionId", jobExecution.getId());
+
+    Promise<List<Record>> writePromise = Promise.promise();
+
+    String producerName = DI_RAWMARCS_CHUNK_PARSED_EVENT_TYPE + "_Producer";
+    KafkaProducer<String, String> producer =
+      KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
+
+    producer.write(record, war -> {
+      producer.end(ear -> producer.close());
+      if (war.succeeded()) {
+        //TODO: this logic must be rewritten
+        List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE);
+        journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
+
+        writePromise.complete();
+      } else {
+        Throwable cause = war.cause();
+        LOGGER.error(producerName + " write error:", cause);
+        writePromise.fail(cause);
+      }
+    });
+
+    return writePromise.future();
   }
 
   public static boolean isStatus(HttpClientResponse response, HttpStatus status) {
@@ -226,6 +275,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param actionType       action type which was performed on instances during processing
    * @return list of journal records represented as json objects
    */
+  @Deprecated
   private List<JsonObject> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
                                                                   JournalRecord.ActionType actionType) {
     Set<String> createdRecordIds = processedRecords.stream()

@@ -9,9 +9,13 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.kafka.client.producer.impl.KafkaProducerRecordImpl;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.KafkaProducer;
+import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
@@ -26,9 +30,6 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
-import org.folio.services.util.KafkaConfig;
-import org.folio.services.util.KafkaProducerManager;
-import org.folio.services.util.PubSubConfig;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -57,9 +60,11 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleService mappingRuleService;
 
-  private KafkaProducerManager manager;
 
-  private KafkaConfig kafkaConfig;
+  //TODO: make it configurable
+  private int maxDistributionNum = 100;
+  private static final AtomicInteger indexer = new AtomicInteger();
+  private org.folio.kafka.KafkaConfig kafkaConfig;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
@@ -67,16 +72,13 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
                                                @Autowired JobExecutionProgressService jobExecutionProgressService,
                                                @Autowired MappingParametersProvider mappingParametersProvider,
                                                @Autowired MappingRuleService mappingRuleService,
-                                               @Autowired Vertx vertx,
-                                               @Autowired KafkaConfig kafkaConfig,
-                                               @Autowired KafkaProducerManager manager
+                                               @Autowired KafkaConfig kafkaConfig
   ) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
-    this.manager = manager;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -87,7 +89,6 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
-      .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
@@ -106,14 +107,15 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   /**
-   * Sends events with created records to the mod-pubsub
+   * Sends events with created records to the mod-inventory
    *
    * @param createdRecords records to send
    * @param jobExecutionId job execution id
    * @param params         connection parameters
    * @return future with boolean
    */
-  private Future<Boolean> sendEventsWithCreatedRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
+  @Override
+  public Future<Boolean> sendEventsWithStoredRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
     String tenantId = params.getTenantId();
     Future<Optional<JobExecution>> jobExecutionFuture = jobExecutionService.getJobExecutionById(jobExecutionId, tenantId);
     Future<Optional<JsonObject>> mappingRulesFuture = mappingRuleService.get(params.getTenantId());
@@ -138,7 +140,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     });
   }
 
-  private Future<Boolean> sendEventWithPayload(String eventPayload, String eventType, OkapiConnectionParams params) {
+  private Future<Boolean> sendEventWithPayload(String tenantId, String eventPayload, String eventType, List<KafkaHeader> kafkaHeaders, KafkaProducer<String, String> producer) {
     Event event;
     try {
       event = new Event()
@@ -146,7 +148,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         .withEventType(eventType)
         .withEventPayload(ZIPArchiver.zip(eventPayload))
         .withEventMetadata(new EventMetadata()
-          .withTenantId(params.getTenantId())
+          .withTenantId(tenantId)
           .withEventTTL(1)
           .withPublishedBy(PubSubClientUtils.constructModuleName()));
     } catch (IOException e) {
@@ -155,28 +157,31 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       return Future.failedFuture(e);
     }
 
-    return sendEvent(event, params.getTenantId());
-  }
+    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
 
+    String topicName = KafkaTopicNameHelper.formatTopicName(kafkaConfig.getEnvId(), KafkaTopicNameHelper.getDefaultNameSpace(), tenantId, eventType);
 
-  public Future<Boolean> sendEvent(Event event, String tenantId) {
-    Promise<Boolean> promise = Promise.promise();
-    PubSubConfig config = new PubSubConfig(kafkaConfig.getEnvId(), tenantId, event.getEventType());
+    KafkaProducerRecord<String, String> record =
+      KafkaProducerRecord.create(topicName, key, Json.encode(event));
 
-    //TODO: it should be enough here to have a single or shared producers
-    manager.getKafkaProducer().write(new KafkaProducerRecordImpl<>(config.getTopicName(), Json.encode(event)), done -> {
-      if (done.succeeded()) {
-        LOGGER.info("Sent {} event with id '{}' to topic {}", event.getEventType(), event.getId(), config.getTopicName());
-        promise.complete(true);
+    record.addHeaders(kafkaHeaders);
+
+    Promise<Boolean> writePromise = Promise.promise();
+
+    producer.write(record, war -> {
+      if (war.succeeded()) {
+        //TODO: this logic must be rewritten
+        writePromise.complete(true);
       } else {
-        String errorMessage = "Event was not sent";
-        LOGGER.error(errorMessage, done.cause());
-        promise.fail(done.cause());
+        Throwable cause = war.cause();
+        LOGGER.error(producer + " write error:", cause);
+        writePromise.fail(cause);
       }
     });
 
-    return promise.future();
+    return writePromise.future();
   }
+
 
   private Future<Boolean> sendCreatedRecordsWithBlocking(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
@@ -184,21 +189,34 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     List<Future> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
 
+    List<KafkaHeader> kafkaHeaders = params
+      .getHeaders()
+      .entries()
+      .stream()
+      .map(e -> KafkaHeader.header(e.getKey(), e.getValue()))
+      .collect(Collectors.toList());
+
+    String eventType = DI_SRS_MARC_BIB_RECORD_CREATED.value();
+    String producerName = eventType + "_Producer";
+    KafkaProducer<String, String> producer =
+      KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
+
     for (Record record : createdRecords) {
       if (isRecordReadyToSend(record)) {
         DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
-        Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params);
+        Future<Boolean> booleanFuture = sendEventWithPayload(params.getTenantId(), Json.encode(payload), eventType, kafkaHeaders, producer);
         futures.add(booleanFuture);
       }
     }
 
     CompositeFuture.join(futures).onComplete(ar -> {
+      producer.end(ear -> producer.close());
       if (ar.failed()) {
         LOGGER.error("Error publishing events with created records", ar.cause());
         promise.fail(ar.cause());
-        return;
+      } else {
+        promise.complete(true);
       }
-      promise.complete(true);
     });
 
     return promise.future();
@@ -213,7 +231,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   //TODO: What is the case for this F***ing method???
   private boolean isRecordReadyToSend(Record record) {
     if (record.getParsedRecord() == null || record.getParsedRecord().getContent() == null) {
-      LOGGER.error("The record has not parsed content, so it will not be sent to mod-pubsub");
+      LOGGER.error("The record has not parsed content, so it will not be sent to mod-inventory!");
       return false;
     }
     return true;

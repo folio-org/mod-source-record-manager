@@ -175,7 +175,7 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         ChunkProcessingService chunkProcessingService = defaultMapping ? restChunkProcessingService : eventDrivenChunkProcessingService;
-        chunkProcessingService.processChunk(entity, id, params)
+        chunkProcessingService.startChunkProcessing(entity, id, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

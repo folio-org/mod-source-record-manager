@@ -48,7 +48,8 @@ public final class EventHandlingUtil {
       connectionParams.setTenantId(params.getTenantId());
       connectionParams.setVertx(params.getVertx());
 
-      service.sendEvent(event, params.getTenantId()).onComplete(v -> promise.complete(true));
+      throw new RuntimeException("fix me Spielberg!");
+//      service.sendEvent(event, params.getTenantId()).onComplete(v -> promise.complete(true));
     } catch (Exception e) {
       LOGGER.error("Failed to send {} event to mod-pubsub", e, eventType);
       promise.fail(e);
