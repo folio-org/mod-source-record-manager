@@ -22,27 +22,20 @@ public class InitAPIImpl implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
-
-    vertx.executeBlocking(
-      future -> {
-        SpringContextUtil.init(vertx, context, ApplicationConfig.class);
-        SpringContextUtil.autowireDependencies(this, context);
-        future.complete();
-      },
-      result -> {
-        if (result.succeeded()) {
-          initJournalService(vertx);
-          deployRawMarcChunkConsumersVerticles(vertx).onComplete(car -> {
-            if (car.succeeded()) {
-              handler.handle(Future.succeededFuture(true));
-            } else {
-              handler.handle(Future.failedFuture(car.cause()));
-            }
-          });
+    try {
+      SpringContextUtil.init(vertx, context, ApplicationConfig.class);
+      SpringContextUtil.autowireDependencies(this, context);
+      initJournalService(vertx);
+      deployRawMarcChunkConsumersVerticles(vertx).onComplete(car -> {
+        if (car.succeeded()) {
+          handler.handle(Future.succeededFuture(true));
         } else {
-          handler.handle(Future.failedFuture(result.cause()));
+          handler.handle(Future.failedFuture(car.cause()));
         }
       });
+    } catch (Throwable th) {
+      handler.handle(Future.failedFuture(th));
+    }
   }
 
   private void initJournalService(Vertx vertx) {

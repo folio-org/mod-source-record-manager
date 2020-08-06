@@ -1,7 +1,7 @@
 package org.folio.services.util;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,13 +30,16 @@ import java.util.stream.Collectors;
 public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
 
-
   private ChunkProcessingService eventDrivenChunkProcessingService;
 
+  private Vertx vertx;
 
-  public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService") ChunkProcessingService eventDrivenChunkProcessingService) {
+
+  public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService") ChunkProcessingService eventDrivenChunkProcessingService,
+                                   @Autowired Vertx vertx) {
     super();
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
+    this.vertx = vertx;
   }
 
   @Override
@@ -50,9 +52,17 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
       List<KafkaHeader> kafkaHeaders = record.headers();
       OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
 
+      LOGGER.debug("RawRecordsDto has been received, starting processing... " + rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("id"), okapiConnectionParams)
-        .compose(b -> Future.succeededFuture(record.key()));
+        .compose(b -> {
+          LOGGER.debug("RawRecordsDto processing has been completed... " + rawRecordsDto.getRecordsMetadata());
+          return Future.succeededFuture(record.key());
+        }, th -> {
+          th.printStackTrace();
+          LOGGER.error("RawRecordsDto processing has failed with errors... " + rawRecordsDto.getRecordsMetadata(), th);
+          return Future.failedFuture(th);
+        });
 
     } catch (IOException e) {
       e.printStackTrace();
@@ -71,8 +81,8 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
             Buffer value = header.value();
             return Objects.isNull(value) ? "" : value.toString();
           },
-          (a, b) -> Objects.isNull(a) ? b : a)));
+          (a, b) -> Strings.isNotBlank(a) ? a : b)));
 
-    return new OkapiConnectionParams(okapiHeaders, null);
+    return new OkapiConnectionParams(okapiHeaders, vertx);
   }
 }

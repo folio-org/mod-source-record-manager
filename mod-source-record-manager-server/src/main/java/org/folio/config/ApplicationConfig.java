@@ -1,6 +1,8 @@
 package org.folio.config;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.kafka.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.folio.services.util.KafkaConfig;
@@ -19,6 +21,7 @@ import java.util.Map;
   "org.folio.services",
   "org.folio.verticle.consumers"})
 public class ApplicationConfig {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationConfig.class);
 
   //TODO: get rid of old deprecated KafkaConfig
   @Bean
@@ -31,12 +34,16 @@ public class ApplicationConfig {
   //TODO: get rid of old deprecated KafkaConfig
   @Bean(name = "newKafkaConfig")
   public org.folio.kafka.KafkaConfig kafkaConfigBean(@Autowired KafkaConfig oldConfig) {
-    return org.folio.kafka.KafkaConfig.builder()
+    org.folio.kafka.KafkaConfig kafkaConfig = org.folio.kafka.KafkaConfig.builder()
       .envId(oldConfig.getEnvId())
       .kafkaHost(oldConfig.getKafkaHost())
       .kafkaPort(oldConfig.getKafkaPort())
       .okapiUrl(oldConfig.getOkapiUrl())
       .replicationFactor(oldConfig.getReplicationFactor())
       .build();
+
+    LOGGER.debug("kafkaConfig: " + kafkaConfig);
+
+    return kafkaConfig;
   }
 }

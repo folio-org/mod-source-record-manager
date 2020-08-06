@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Iterators.cycle;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 
+@Deprecated
 @Component
 public class KafkaProducerManager {
 

@@ -12,18 +12,18 @@ import java.util.Map;
 @Component
 public class KafkaConfig {
 
-  @Value("${KAFKA_HOST:10.0.2.15}")
+  @Value("${FOLIO_KAFKA_HOST:kafka}")
   private String kafkaHost;
-  @Value("${KAFKA_PORT:9092}")
+  @Value("${FOLIO_KAFKA_PORT:9092}")
   private String kafkaPort;
-  @Value("${OKAPI_URL:http://10.0.2.15:9130}")
+  @Value("${OKAPI_URL:http://okapi:9130}")
   private String okapiUrl;
-  @Value("${REPLICATION_FACTOR:1}")
+  @Value("${FOLIO_KAFKA_REPLICATION_FACTOR:1}")
   private int replicationFactor;
+  @Value("${FOLIO_KAFKA_ENV:folio}")
+  private String envId;
   @Value("${NUMBER_OF_PARTITIONS:1}")
   private int numberOfPartitions;
-  @Value("${ENV:folio}")
-  private String envId;
 
   public String getKafkaHost() {
     return kafkaHost;

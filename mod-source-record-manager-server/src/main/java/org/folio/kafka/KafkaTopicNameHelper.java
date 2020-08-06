@@ -1,10 +1,11 @@
 package org.folio.kafka;
 
+import org.folio.rest.tools.PomReader;
+
 import static java.lang.String.join;
 
 public class KafkaTopicNameHelper {
-  //TODO: retrieve module name from pom
-  private static final String MODULE_NAME = "mod-source-record-manager";
+  private static final String DEFAULT_NAMESPACE = "Default";
 
   private KafkaTopicNameHelper() {
     super();
@@ -15,7 +16,7 @@ public class KafkaTopicNameHelper {
   }
 
   public static String formatGroupName(String eventType) {
-    return join(".", eventType, MODULE_NAME);
+    return join(".", eventType, getModuleName());
   }
 
   public static String formatSubscriptionPattern(String env, String nameSpace, String eventType) {
@@ -23,7 +24,7 @@ public class KafkaTopicNameHelper {
   }
 
   public static String getDefaultNameSpace() {
-    return MODULE_NAME;
+    return DEFAULT_NAMESPACE;
   }
 
   public static SubscriptionDefinition createSubscriptionDefinition(String env, String nameSpace, String eventType) {
@@ -31,5 +32,9 @@ public class KafkaTopicNameHelper {
       .eventType(eventType)
       .subscriptionPattern(formatSubscriptionPattern(env, nameSpace, eventType))
       .build();
+  }
+
+  private static String getModuleName() {
+    return PomReader.INSTANCE.getModuleName().replace("_", "-");
   }
 }

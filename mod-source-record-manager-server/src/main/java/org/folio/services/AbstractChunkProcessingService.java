@@ -1,6 +1,8 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -13,6 +15,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractChunkProcessingService.class);
 
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   protected JobExecutionService jobExecutionService;
@@ -33,6 +36,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       .withChunkSize(incomingChunk.getInitialRecords().size())
       .withCreatedDate(new Date());
 
+    LOGGER.debug("JobExecutionSourceChunk created");
     return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
       .compose(records -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params));
   }

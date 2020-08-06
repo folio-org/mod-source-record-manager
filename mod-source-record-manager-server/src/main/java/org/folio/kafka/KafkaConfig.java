@@ -2,6 +2,7 @@ package org.folio.kafka;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 
 @Getter
 @Builder
+@ToString
 public class KafkaConfig {
   public static final String KAFKA_CONSUMER_AUTO_OFFSET_RESET = "kafka.consumer.auto.offset.reset";
   public static final String KAFKA_CONSUMER_AUTO_OFFSET_RESET_DEFAULT = "earliest";
