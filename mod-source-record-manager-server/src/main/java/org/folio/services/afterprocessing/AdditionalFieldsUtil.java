@@ -3,6 +3,7 @@ package org.folio.services.afterprocessing;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.jaxrs.model.Record;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcReader;
@@ -181,6 +182,37 @@ public final class AdditionalFieldsUtil {
       }
     }
     return false;
+  }
+
+  /**
+   * Extracts value from specified field
+   *
+   * @param record record
+   * @param tag    tag of data field
+   * @return value from the specified field, or null
+   */
+  public static String getValue(Record record, String tag, char subfield) {
+    if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+      MarcReader reader = buildMarcReader(record);
+      try {
+        if (reader.hasNext()) {
+          org.marc4j.marc.Record marcRecord = reader.next();
+          for (VariableField field : marcRecord.getVariableFields(tag)) {
+            if (field instanceof DataField) {
+              if (CollectionUtils.isNotEmpty(((DataField) field).getSubfields(subfield))) {
+                return ((DataField) field).getSubfields(subfield).get(0).getData();
+              }
+            } else if (field instanceof ControlField) {
+              return ((ControlField) field).getData();
+            }
+          }
+        }
+      } catch (Exception e) {
+        LOGGER.error("Error during the search a field in the record", e);
+        return null;
+      }
+    }
+    return null;
   }
 
   /**
