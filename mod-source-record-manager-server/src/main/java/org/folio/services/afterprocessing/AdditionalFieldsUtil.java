@@ -61,6 +61,7 @@ public final class AdditionalFieldsUtil {
           ) {
             dataField = (DataField) variableField;
             marcRecord.removeVariableField(variableField);
+            dataField.removeSubfield(dataField.getSubfield(subfield));
           } else {
             dataField = factory.newDataField(field, INDICATOR, INDICATOR);
           }
