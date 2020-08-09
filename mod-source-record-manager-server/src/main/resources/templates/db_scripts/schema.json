@@ -49,6 +49,17 @@
           "tOps": "ADD"
         }
       ]
+    },
+    {
+      "tableName": "source_records_state",
+      "fromModuleVersion": "mod-source-record-manager-2.4.0",
+      "withMetadata": false,
+      "uniqueIndex": [
+        {
+          "fieldName": "sourceRecordId",
+          "tOps": "ADD"
+        }
+      ]
     }
   ],
   "scripts": [

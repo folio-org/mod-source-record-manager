@@ -25,6 +25,14 @@
     {
       "eventType": "DI_ERROR",
       "callbackAddress": "/change-manager/handlers/processing-result"
+    },
+    {
+      "eventType": "QM_INVENTORY_INSTANCE_UPDATED",
+      "callbackAddress": "/change-manager/handlers/qm-completed"
+    },
+    {
+      "eventType": "QM_ERROR",
+      "callbackAddress": "/change-manager/handlers/qm-error"
     }
   ]
 }
