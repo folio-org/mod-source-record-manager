@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * Service for creating Kafka topics
  */
+@Deprecated
 public interface KafkaTopicService {
 
   /**

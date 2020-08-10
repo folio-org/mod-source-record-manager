@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
 
-  private static final AtomicInteger chunkCounter = new AtomicInteger();
-
   private ChunkProcessingService eventDrivenChunkProcessingService;
   private Vertx vertx;
 
@@ -45,24 +43,25 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+    List<KafkaHeader> kafkaHeaders = record.headers();
+    OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
+    String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
+    String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
+
     Event event = new JsonObject(record.value()).mapTo(Event.class);
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
 
-      List<KafkaHeader> kafkaHeaders = record.headers();
-      OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
-
-      int chunkNumber = chunkCounter.incrementAndGet();
-      LOGGER.debug("RawRecordsDto has been received, starting processing... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
+      LOGGER.debug("RawRecordsDto has been received, starting processing correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
         .startChunkProcessing(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
-          LOGGER.debug("RawRecordsDto processing has been completed... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
+          LOGGER.debug("RawRecordsDto processing has been completed correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
           return Future.succeededFuture(record.key());
         }, th -> {
           th.printStackTrace();
-          LOGGER.error("RawRecordsDto processing has failed with errors... chunkNumber " + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata(), th);
+          LOGGER.error("RawRecordsDto processing has failed with errors correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata(), th);
           return Future.failedFuture(th);
         });
 

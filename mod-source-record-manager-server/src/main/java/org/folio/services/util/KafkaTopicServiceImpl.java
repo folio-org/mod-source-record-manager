@@ -8,12 +8,12 @@ import io.vertx.kafka.admin.KafkaAdminClient;
 import io.vertx.kafka.admin.NewTopic;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+//@Component
+@Deprecated
 public class KafkaTopicServiceImpl implements KafkaTopicService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaTopicServiceImpl.class);

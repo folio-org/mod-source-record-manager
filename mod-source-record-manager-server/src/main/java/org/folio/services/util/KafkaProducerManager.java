@@ -24,11 +24,11 @@ public class KafkaProducerManager {
   private Iterator<KafkaProducer<String, String>> producerIterator;
 
   public KafkaProducerManager(@Autowired Vertx vertx, @Autowired KafkaConfig config) {
-    List<KafkaProducer<String, String>> producers = new ArrayList<>(NUMBER_OF_PRODUCERS);
-    for (int i = 0; i < NUMBER_OF_PRODUCERS; i++) {
-      producers.add(KafkaProducer.<String, String>create(vertx, config.getProducerProps()));
-    }
-    producerIterator = cycle(new UnmodifiableList<>(producers));
+//    List<KafkaProducer<String, String>> producers = new ArrayList<>(NUMBER_OF_PRODUCERS);
+//    for (int i = 0; i < NUMBER_OF_PRODUCERS; i++) {
+//      producers.add(KafkaProducer.<String, String>create(vertx, config.getProducerProps()));
+//    }
+//    producerIterator = cycle(new UnmodifiableList<>(producers));
   }
 
   //TODO: this method looks quite weird

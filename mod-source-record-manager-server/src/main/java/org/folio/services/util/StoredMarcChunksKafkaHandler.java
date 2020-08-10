@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
 public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(StoredMarcChunksKafkaHandler.class);
 
-  private static final AtomicInteger chunkCounter = new AtomicInteger();
-
   private ChunkProcessingService eventDrivenChunkProcessingService;
   private Vertx vertx;
 
@@ -45,25 +43,25 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+    List<KafkaHeader> kafkaHeaders = record.headers();
+    OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
+    String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
+    String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
+
     Event event = new JsonObject(record.value()).mapTo(Event.class);
+
     try {
       RecordsBatchResponse recordsBatchResponse = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RecordsBatchResponse.class);
       List<Record> storedRecords = recordsBatchResponse.getRecords();
 
-      List<KafkaHeader> kafkaHeaders = record.headers();
-      OkapiConnectionParams okapiConnectionParams = fromKafkaHeaders(kafkaHeaders);
-
-      String key = record.key();
-
-      int chunkNumber = chunkCounter.incrementAndGet();
-      LOGGER.debug("RecordsBatchResponse has been received, starting processing... chunkNumber " + chunkNumber + " - " + key);
+      LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId:" + correlationId + " chunkNumber:" + chunkNumber);
       return eventDrivenChunkProcessingService.sendEventsWithStoredRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
-          LOGGER.debug("RecordsBatchResponse processing has been completed... chunkNumber " + chunkNumber + " - " + key);
-          return Future.succeededFuture(key);
+          LOGGER.debug("RecordsBatchResponse processing has been completed correlationId:" + correlationId + " chunkNumber:" + chunkNumber);
+          return Future.succeededFuture(correlationId);
         }, th -> {
           th.printStackTrace();
-          LOGGER.error("RecordsBatchResponse processing has failed with errors... chunkNumber " + chunkNumber + " - " + key);
+          LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId:" + correlationId + " chunkNumber:" + chunkNumber);
           return Future.failedFuture(th);
         });
     } catch (IOException e) {

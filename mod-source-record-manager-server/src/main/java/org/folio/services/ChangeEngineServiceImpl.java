@@ -236,7 +236,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .collect(Collectors.toList());
 
     record.addHeaders(kafkaHeaders);
-    record.addHeader("jobExecutionId", jobExecution.getId());
+//    record.addHeader("jobExecutionId", jobExecution.getId());
 
     Promise<List<Record>> writePromise = Promise.promise();
 

@@ -14,6 +14,7 @@ import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.consumers.RawMarcChunkConsumersVerticle;
+import org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
@@ -52,6 +53,7 @@ public class InitAPIImpl implements InitAPI {
   private Future<?> deployRawMarcChunkConsumersVerticles(Vertx vertx) {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    StoredMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployConsumers1 = Promise.promise();
     Promise<String> deployConsumers2 = Promise.promise();
