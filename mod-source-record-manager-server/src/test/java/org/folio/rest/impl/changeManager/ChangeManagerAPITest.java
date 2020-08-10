@@ -32,6 +32,7 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.Status;
+import org.folio.services.afterprocessing.AdditionalFieldsUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -2145,6 +2146,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertThat(recordCollection.getRecords().size(), is(1));
 
     Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", AdditionalFieldsUtil.getValue(recordCollection.getRecords().get(0), "999", 's'));
 
   }
 }
