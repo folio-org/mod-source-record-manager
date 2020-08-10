@@ -24,6 +24,7 @@ import java.util.List;
 @Component
 @Qualifier("RawMarcChunksKafkaHandler")
 public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
@@ -32,11 +33,9 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
-                                   @Autowired
-                                   @Qualifier("restChunkProcessingService")
+                                   @Autowired @Qualifier("restChunkProcessingService")
                                      ChunkProcessingService restChunkProcessingService,
                                    @Autowired Vertx vertx) {
-    super();
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
     this.restChunkProcessingService = restChunkProcessingService;
     this.vertx = vertx;
@@ -54,22 +53,20 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
-      LOGGER.debug("RawRecordsDto has been received, starting processing correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
+      LOGGER.debug("RawRecordsDto has been received, starting processing correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       ChunkProcessingService chunkProcessingService = defaultMapping ? restChunkProcessingService : eventDrivenChunkProcessingService;
       return chunkProcessingService
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
-          LOGGER.debug("RawRecordsDto processing has been completed correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
+          LOGGER.debug("RawRecordsDto processing has been completed correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
           return Future.succeededFuture(record.key());
         }, th -> {
-          th.printStackTrace();
-          LOGGER.error("RawRecordsDto processing has failed with errors correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata(), th);
+          LOGGER.error("RawRecordsDto processing has failed with errors correlationId: {} chunkNumber: {} - {}", th, correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
           return Future.failedFuture(th);
         });
 
     } catch (IOException e) {
-      e.printStackTrace();
-      LOGGER.error("Can't process the kafka record: ", e);
+      LOGGER.error("Can't process kafka record: ", e);
       return Future.failedFuture(e);
     }
   }

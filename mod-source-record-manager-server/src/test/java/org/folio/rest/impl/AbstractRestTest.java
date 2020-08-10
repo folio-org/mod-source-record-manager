@@ -40,8 +40,8 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.rest.tools.PomReader;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,9 +50,7 @@ import org.junit.Rule;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -221,7 +219,7 @@ public abstract class AbstractRestTest {
     vertx.deployVerticle(RestVerticle.class.getName(), options, deployVerticleAr -> {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
-        tenantAttributes.setModuleTo(PomReader.INSTANCE.getModuleName());
+        tenantAttributes.setModuleTo(PubSubClientUtils.constructModuleName());
         tenantClient.postTenant(tenantAttributes, postTenantAr -> async.complete());
       } catch (Exception e) {
         e.printStackTrace();

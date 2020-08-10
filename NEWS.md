@@ -1,7 +1,8 @@
 ## 2020-11-29 v2.5.0-SNAPSHOT
 * [MODSOURMAN-380](https://issues.folio.org/browse/MODSOURMAN-380) Expand journalRecord entity with "title" property.
 * [MODSOURMAN-385](https://issues.folio.org/browse/MODSOURMAN-385) Enable OCLC update processing.
-
+* [MODSOURMAN-338](https://issues.folio.org/browse/MODSOURMAN-338) Change chunk processing to use kafka
+* [MODSOURCE-177](https://issues.folio.org/browse/MODSOURCE-177) Use kafka to save chunks of parsed records in SRS
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working
