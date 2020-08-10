@@ -13,6 +13,8 @@ import org.folio.config.ApplicationConfig;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
+import org.folio.verticle.consumers.DataImportErrorConsumersVerticle;
+import org.folio.verticle.consumers.InstanceCreatedConsumersVerticle;
 import org.folio.verticle.consumers.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,12 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
   private int storedMarcChunkConsumerInstancesNumber;
+
+  @Value("${srm.kafka.InstanceCreatedConsumer.instancesNumber:5}")
+  private int instanceCreatedConsumerInstancesNumber;
+
+  @Value("${srm.kafka.DataImportErrorConsumer.instancesNumber:5}")
+  private int dataImportErrorConsumerInstancesNumber;
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
@@ -54,9 +62,13 @@ public class InitAPIImpl implements InitAPI {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     StoredMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    InstanceCreatedConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    DataImportErrorConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployConsumers1 = Promise.promise();
     Promise<String> deployConsumers2 = Promise.promise();
+    Promise<String> deployConsumers3 = Promise.promise();
+    Promise<String> deployConsumers4 = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.consumers.RawMarcChunkConsumersVerticle",
       new DeploymentOptions().setWorker(true).setInstances(rawMarcChunkConsumerInstancesNumber), deployConsumers1);
@@ -64,6 +76,12 @@ public class InitAPIImpl implements InitAPI {
     vertx.deployVerticle("org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle",
       new DeploymentOptions().setWorker(true).setInstances(storedMarcChunkConsumerInstancesNumber), deployConsumers2);
 
-    return CompositeFuture.all(deployConsumers1.future(), deployConsumers2.future());
+    vertx.deployVerticle("org.folio.verticle.consumers.InstanceCreatedConsumersVerticle",
+      new DeploymentOptions().setWorker(true).setInstances(instanceCreatedConsumerInstancesNumber), deployConsumers3);
+
+    vertx.deployVerticle("org.folio.verticle.consumers.DataImportErrorConsumersVerticle",
+      new DeploymentOptions().setWorker(true).setInstances(dataImportErrorConsumerInstancesNumber), deployConsumers4);
+
+    return CompositeFuture.all(deployConsumers1.future(), deployConsumers2.future(), deployConsumers3.future(), deployConsumers4.future());
   }
 }
