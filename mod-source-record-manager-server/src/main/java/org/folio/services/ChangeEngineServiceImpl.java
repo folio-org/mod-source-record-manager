@@ -50,6 +50,7 @@ import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -139,6 +140,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withDescription(parsedResult.getErrors().encode()));
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
+          String matchedId = getValue(record, "999", 's');
+          if (matchedId != null){
+            record.setMatchedId(matchedId);
+            record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+          }
         }
         return record;
       })
