@@ -170,7 +170,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (Record.RecordType.MARC.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, 's', record.getId());
+          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
         }
       }
     }
