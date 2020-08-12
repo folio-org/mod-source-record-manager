@@ -21,16 +21,16 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:1}")
   private int rawMarcChunkConsumerInstancesNumber;
 
-  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:1}")
   private int storedMarcChunkConsumerInstancesNumber;
 
-  @Value("${srm.kafka.InstanceCreatedConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.InstanceCreatedConsumer.instancesNumber:1}")
   private int instanceCreatedConsumerInstancesNumber;
 
-  @Value("${srm.kafka.DataImportErrorConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.DataImportErrorConsumer.instancesNumber:1}")
   private int dataImportErrorConsumerInstancesNumber;
 
   @Override
