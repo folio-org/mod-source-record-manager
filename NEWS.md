@@ -1,3 +1,10 @@
+## 2020-08-17 v2.4.0-SNAPSHOT
+* [MODSOURMAN-344](https://issues.folio.org/browse/MODSOURMAN-344) Fixed default MARC Bib-Instance mapping for 024 and 028 fields
+
+## 2020-08-10 v2.3.2
+* [MODSOURMAN-322](https://issues.folio.org/browse/MODSOURMAN-322) Add source-record states storing mechanism for QM edit workflow
+* [MODSOURMAN-333](https://issues.folio.org/browse/MODSOURMAN-333) Replace incoming 999 ff fields if file is re-imported
+
 ## 2020-07-10 v2.3.1
 * [MODSOURMAN-329](https://issues.folio.org/browse/MODSOURMAN-329) Set completed date on error status update for JobExecution
 
