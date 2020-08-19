@@ -197,13 +197,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     final RecordToInstanceMapper mapper = RecordToInstanceMapperBuilder.buildMapper(RecordFormat.getByDataType(getRecordsType(records)).name());
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
-    Map<Instance, Record> mappedRecords = records.parallelStream()
+    return records.parallelStream()
       .map(record -> mapRecordToInstance(record, mapper, mappingParameters, mappingRules))
       .filter(Objects::nonNull)
       .filter(instanceRecordPair -> validateInstanceAndUpdateRecordIfInvalid(instanceRecordPair, validator, params))
+      .map(instanceRecordPair -> Pair.of(instanceRecordPair.getKey().withHrid(null), instanceRecordPair.getValue()))
       .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
-    hrIdFieldService.moveHrIdFieldsAfterMapping(mappedRecords);
-    return mappedRecords;
   }
 
   /**
