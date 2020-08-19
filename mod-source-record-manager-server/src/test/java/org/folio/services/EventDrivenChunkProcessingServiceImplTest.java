@@ -32,6 +32,7 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
@@ -107,6 +108,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   @InjectMocks
   JobExecutionProgressServiceImpl jobExecutionProgressService;
+  @Spy
+  @InjectMocks
+  HrIdFieldServiceImpl hrIdFieldService;
 
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
@@ -138,7 +142,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, vertx);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, vertx);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
 
     HashMap<String, String> headers = new HashMap<>();

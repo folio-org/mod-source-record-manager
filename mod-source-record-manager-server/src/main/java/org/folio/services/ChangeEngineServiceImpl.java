@@ -28,6 +28,7 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.journal.JournalService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
@@ -64,13 +65,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
+  private HrIdFieldService hrIdFieldService;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = JournalService.createProxy(vertx);
+    this.hrIdFieldService = hrIdFieldService;
   }
 
   @Override
@@ -169,6 +173,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (Record.RecordType.MARC.equals(recordType)) {
+        hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
         }
