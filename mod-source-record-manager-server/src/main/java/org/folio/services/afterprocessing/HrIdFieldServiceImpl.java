@@ -23,9 +23,9 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
 
   @Override
   public void move001valueTo035Field(List<Record> records) {
-    records.stream().parallel().forEach(record -> {
-      addDataFieldToMarcRecord(record, TAG_035, INDICATOR_FOR_035, INDICATOR_FOR_035, SUBFIELD_FOR_035, getValue(record, TAG_001, ' '));
-    });
+    records.stream().parallel().forEach(record ->
+      addDataFieldToMarcRecord(record, TAG_035, INDICATOR_FOR_035, INDICATOR_FOR_035, SUBFIELD_FOR_035,
+        getValue(record, TAG_001, ' ')));
   }
 
   @Override

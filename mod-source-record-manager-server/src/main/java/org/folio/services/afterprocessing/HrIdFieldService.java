@@ -5,7 +5,6 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.List;
-import java.util.Map;
 
 public interface HrIdFieldService {
 
