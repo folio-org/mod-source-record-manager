@@ -109,6 +109,7 @@ public class MappingParametersProvider {
   private static final String INSTANCE_NOTE_TYPES_RESPONSE_PARAM = "instanceNoteTypes";
   private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM = "alternativeTitleTypes";
   private static final String ISSUANCE_MODES_RESPONSE_PARAM = "issuanceModes";
+  private static final String INSTANCE_STATUSES_RESPONSE_PARAM = "instanceStatuses";
   private static final String NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM = "natureOfContentTerms";
   private static final String INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM = "instanceRelationshipTypes";
   private static final String HOLDINGS_TYPES_RESPONSE_PARAM = "holdingsTypes";
@@ -124,7 +125,7 @@ public class MappingParametersProvider {
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
-  private static final String INSTANCE_STATUSES_RESPONSE_PARAM = "instanceStatuses";
+
   private InternalCache internalCache;
 
   public MappingParametersProvider(@Autowired Vertx vertx) {
