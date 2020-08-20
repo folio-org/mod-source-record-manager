@@ -210,7 +210,7 @@ public class AdditionalFieldsUtilTest {
   }
 
   @Test
-  public void shouldSortFieldsInRecordWhenAddedFieldToRecord() throws IOException {
+  public void shouldAddFieldToMarcRecordInNumericalOrder() throws IOException {
     // given
     String instanceHrId = UUID.randomUUID().toString();
     String parsedRecordContent = TestUtil.readFileFromPath(PARSED_RECORD_PATH);
@@ -232,11 +232,27 @@ public class AdditionalFieldsUtilTest {
       JsonObject targetField = fields.getJsonObject(i);
       if (targetField.containsKey("035")) {
         existsNewField = true;
+        String currentTag = fields.getJsonObject(i).stream().map(Map.Entry::getKey).findFirst().get();
+        String nextTag = fields.getJsonObject(i + 1).stream().map(Map.Entry::getKey).findFirst().get();
+        Assert.assertThat(currentTag, lessThanOrEqualTo(nextTag));
       }
-      String tag = fields.getJsonObject(i).stream().map(Map.Entry::getKey).findFirst().get();
-      String nextTag = fields.getJsonObject(i + 1).stream().map(Map.Entry::getKey).findFirst().get();
-      Assert.assertThat(tag, lessThanOrEqualTo(nextTag));
     }
     Assert.assertTrue(existsNewField);
+  }
+
+  @Test
+  public void shouldNotSortExistingFieldsWhenAddFieldToToMarcRecord() {
+    // given
+    String instanceId = "12345";
+    String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
+    String expectedParsedContent = "{\"leader\":\"00113nam  22000731a 4500\",\"fields\":[{\"001\":\"ybp7406411\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"999\":{\"subfields\":[{\"i\":\"12345\"}],\"ind1\":\"f\",\"ind2\":\"f\"}}]}";
+    ParsedRecord parsedRecord = new ParsedRecord();
+    parsedRecord.setContent(parsedContent);
+    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    // when
+    boolean added = AdditionalFieldsUtil.addDataFieldToMarcRecord(record, "999", 'f', 'f', 'i', instanceId);
+    // then
+    Assert.assertTrue(added);
+    Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
   }
 }
