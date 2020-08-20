@@ -5,16 +5,15 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.List;
-import java.util.Map;
 
 public interface HrIdFieldService {
 
   /**
-   * Method move 001 field to 035 and clearing instance hrId to generate new one in inventory
+   * Method move 001 field to 035
    *
-   * @param map - map with Instance to Record relations
+   * @param records - list of MARC records
    */
-  void moveHrIdFieldsAfterMapping(Map<Instance, Record> map);
+  void move001valueTo035Field(List<Record> records);
 
   /**
    * Method fill 001 filed of marc records with instance hrId

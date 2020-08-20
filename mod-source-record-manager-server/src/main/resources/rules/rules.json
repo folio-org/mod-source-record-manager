@@ -333,11 +333,11 @@
   ],
   "024": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Other Standard Identifier",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
@@ -362,6 +362,7 @@
         {
           "target": "identifiers.value",
           "description": "Other Standard Identifier",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
@@ -385,11 +386,11 @@
   ],
   "028": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Publisher Number",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -411,6 +412,7 @@
         {
           "target": "identifiers.value",
           "description": "Publisher Number",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
