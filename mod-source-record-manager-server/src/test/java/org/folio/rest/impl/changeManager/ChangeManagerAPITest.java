@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.restassured.RestAssured;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -55,6 +56,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
@@ -1089,6 +1091,20 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(INSTANCE_NOTE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(MODE_OF_ISSUANCE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_STATUSES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(NATURE_OF_CONTENT_TERMS_URL)));
+    verify(1, getRequestedFor(urlEqualTo(INSTANCE_RELATIONSHIP_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(HOLDINGS_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(HOLDINGS_NOTE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(ILL_POLICIES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(CALL_NUMBER_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(STATISTICAL_CODES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(STATISTICAL_CODE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(LOCATIONS_URL)));
+    verify(1, getRequestedFor(urlEqualTo(MATERIAL_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(ITEM_DAMAGED_STATUSES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(LOAN_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(ITEM_NOTE_TYPES_URL)));
     async.complete();
   }
 
@@ -1112,6 +1128,20 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(MODE_OF_ISSUANCE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_STATUSES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(NATURE_OF_CONTENT_TERMS_URL).willReturn(serverError()));
+    WireMock.stubFor(get(INSTANCE_RELATIONSHIP_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(HOLDINGS_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(HOLDINGS_NOTE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(ILL_POLICIES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(CALL_NUMBER_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(STATISTICAL_CODES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(STATISTICAL_CODE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(LOCATIONS_URL).willReturn(serverError()));
+    WireMock.stubFor(get(MATERIAL_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(ITEM_DAMAGED_STATUSES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(serverError()));
 
     Async async = testContext.async();
     RestAssured.given()
