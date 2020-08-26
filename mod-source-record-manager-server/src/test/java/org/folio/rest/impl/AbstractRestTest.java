@@ -106,6 +106,7 @@ public abstract class AbstractRestTest {
   protected static final String ITEM_DAMAGED_STATUSES_URL = "/item-damaged-statuses?limit=500";
   protected static final String LOAN_TYPES_URL = "/loan-types?limit=500";
   protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=500";
+  protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=500";
 
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
@@ -291,6 +292,8 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(ITEM_DAMAGED_STATUSES_URL).willReturn(okJson(new JsonObject().put("itemDamageStatuses", new JsonArray()).toString())));
     WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(okJson(new JsonObject().put("loantypes", new JsonArray()).toString())));
     WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("itemNoteTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
+
 
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
