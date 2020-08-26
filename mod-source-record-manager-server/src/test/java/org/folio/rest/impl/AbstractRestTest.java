@@ -92,6 +92,21 @@ public abstract class AbstractRestTest {
   protected static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=500";
   protected static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=500";
   protected static final String MODE_OF_ISSUANCE_TYPES_URL = "/modes-of-issuance?limit=500";
+  protected static final String INSTANCE_STATUSES_URL = "/instance-statuses?limit=500";
+  protected static final String NATURE_OF_CONTENT_TERMS_URL = "/nature-of-content-terms?limit=500";
+  protected static final String INSTANCE_RELATIONSHIP_TYPES_URL = "/instance-relationship-types?limit=500";
+  protected static final String HOLDINGS_TYPES_URL = "/holdings-types?limit=500";
+  protected static final String HOLDINGS_NOTE_TYPES_URL = "/holdings-note-types?limit=500";
+  protected static final String ILL_POLICIES_URL = "/ill-policies?limit=500";
+  protected static final String CALL_NUMBER_TYPES_URL = "/call-number-types?limit=500";
+  protected static final String STATISTICAL_CODES_URL = "/statistical-codes?limit=500";
+  protected static final String STATISTICAL_CODE_TYPES_URL = "/statistical-code-types?limit=500";
+  protected static final String LOCATIONS_URL = "/locations?limit=500";
+  protected static final String MATERIAL_TYPES_URL = "/material-types?limit=500";
+  protected static final String ITEM_DAMAGED_STATUSES_URL = "/item-damaged-statuses?limit=500";
+  protected static final String LOAN_TYPES_URL = "/loan-types?limit=500";
+  protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=500";
+
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
   protected static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
@@ -262,6 +277,21 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(INSTANCE_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceNoteTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(INSTANCE_ALTERNATIVE_TITLE_TYPES_URL).willReturn(okJson(new JsonObject().put("alternativeTitleTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(MODE_OF_ISSUANCE_TYPES_URL).willReturn(okJson(new JsonObject().put("issuanceModes", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_STATUSES_URL).willReturn(okJson(new JsonObject().put("instanceStatuses", new JsonArray()).toString())));
+    WireMock.stubFor(get(NATURE_OF_CONTENT_TERMS_URL).willReturn(okJson(new JsonObject().put("natureOfContentTerms", new JsonArray()).toString())));
+    WireMock.stubFor(get(INSTANCE_RELATIONSHIP_TYPES_URL).willReturn(okJson(new JsonObject().put("instanceRelationshipTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(HOLDINGS_TYPES_URL).willReturn(okJson(new JsonObject().put("holdingsTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(HOLDINGS_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("holdingsNoteTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(ILL_POLICIES_URL).willReturn(okJson(new JsonObject().put("illPolicies", new JsonArray()).toString())));
+    WireMock.stubFor(get(CALL_NUMBER_TYPES_URL).willReturn(okJson(new JsonObject().put("callNumberTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(STATISTICAL_CODES_URL).willReturn(okJson(new JsonObject().put("statisticalCodes", new JsonArray()).toString())));
+    WireMock.stubFor(get(STATISTICAL_CODE_TYPES_URL).willReturn(okJson(new JsonObject().put("statisticalCodeTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(LOCATIONS_URL).willReturn(okJson(new JsonObject().put("locations", new JsonArray()).toString())));
+    WireMock.stubFor(get(MATERIAL_TYPES_URL).willReturn(okJson(new JsonObject().put("mtypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(ITEM_DAMAGED_STATUSES_URL).willReturn(okJson(new JsonObject().put("itemDamageStatuses", new JsonArray()).toString())));
+    WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(okJson(new JsonObject().put("loantypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("itemNoteTypes", new JsonArray()).toString())));
+
     WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}/records"), true))
       .willReturn(WireMock.noContent()));
   }
