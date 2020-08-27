@@ -48,6 +48,7 @@ import org.folio.Loantype;
 import org.folio.Loantypes;
 import org.folio.Location;
 import org.folio.Locations;
+import org.folio.MarcFieldProtectionSettingsCollection;
 import org.folio.Materialtypes;
 import org.folio.Mtype;
 import org.folio.NatureOfContentTerm;
@@ -60,7 +61,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
-import org.folio.rest.jaxrs.model.MarcFieldProtectionSettingsCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -650,23 +650,6 @@ public class MappingParametersProvider {
     });
     return promise.future();
   }
-
-  private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(OkapiConnectionParams params) {
-    Promise<List<MarcFieldProtectionSetting>> promise = Promise.promise();
-    RestUtil.doRequest(params, FIELD_PROTECTION_SETTINGS_URL, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM)) {
-          List<MarcFieldProtectionSetting> itemNoteTypes = response.mapTo(MarcFieldProtectionSettingsCollection.class).getMarcFieldProtectionSettings();
-          promise.complete(itemNoteTypes);
-        } else {
-          promise.complete(Collections.emptyList());
-        }
-      }
-    });
-    return promise.future();
-  }
-
   /**
    * Requests for Issuance modes from application Settings (mod-inventory-storage)
    * *
