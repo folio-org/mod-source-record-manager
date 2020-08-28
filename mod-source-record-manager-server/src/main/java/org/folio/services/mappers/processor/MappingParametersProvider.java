@@ -48,6 +48,7 @@ import org.folio.Loantype;
 import org.folio.Loantypes;
 import org.folio.Location;
 import org.folio.Locations;
+import org.folio.MarcFieldProtectionSettingsCollection;
 import org.folio.Materialtypes;
 import org.folio.Mtype;
 import org.folio.NatureOfContentTerm;
@@ -59,6 +60,7 @@ import org.folio.Statisticalcodetypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -98,6 +100,7 @@ public class MappingParametersProvider {
   private static final String ITEM_DAMAGED_STATUSES_URL = "/item-damaged-statuses?limit=" + SETTING_LIMIT;
   private static final String LOAN_TYPES_URL = "/loan-types?limit=" + SETTING_LIMIT;
   private static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=" + SETTING_LIMIT;
+  private static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=" + SETTING_LIMIT;
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -123,6 +126,7 @@ public class MappingParametersProvider {
   private static final String ITEM_DAMAGED_STATUSES_RESPONSE_PARAM = "itemDamageStatuses";
   private static final String LOAN_TYPES_RESPONSE_PARAM = "loantypes";
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
+  private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
 
@@ -174,12 +178,14 @@ public class MappingParametersProvider {
     Future<List<ItemDamageStatus>> itemDamagedStatusesFuture = getItemDamagedStatuses(okapiParams);
     Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
+    Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
+
 
     return CompositeFuture.all(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
       contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
       issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
       illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-      loanTypesFuture, itemNoteTypesFuture))
+      loanTypesFuture, itemNoteTypesFuture, marcFieldProtectionSettingsFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -208,6 +214,7 @@ public class MappingParametersProvider {
           .withItemDamagedStatuses(itemDamagedStatusesFuture.result())
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
+          .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
       );
   }
 
@@ -628,6 +635,21 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
+  private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(OkapiConnectionParams params) {
+    Promise<List<MarcFieldProtectionSetting>> promise = Promise.promise();
+    RestUtil.doRequest(params, FIELD_PROTECTION_SETTINGS_URL, HttpMethod.GET, null).onComplete(ar -> {
+      if (RestUtil.validateAsyncResult(ar, promise)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null && response.containsKey(FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM)) {
+          List<MarcFieldProtectionSetting> itemNoteTypes = response.mapTo(MarcFieldProtectionSettingsCollection.class).getMarcFieldProtectionSettings();
+          promise.complete(itemNoteTypes);
+        } else {
+          promise.complete(Collections.emptyList());
+        }
+      }
+    });
+    return promise.future();
+  }
   /**
    * Requests for Issuance modes from application Settings (mod-inventory-storage)
    * *

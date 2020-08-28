@@ -2,6 +2,7 @@
 * [MODSOURMAN-344](https://issues.folio.org/browse/MODSOURMAN-344) Fixed default MARC Bib-Instance mapping for 024 and 028 fields
 * [MODSOURMAN-340](https://issues.folio.org/browse/MODSOURMAN-340) MARC field sort into numerical order when record is imported
 * [MODSOURMAN-345](https://issues.folio.org/browse/MODSOURMAN-345) 003 handling in SRS for MARC Bib records: Create
+* [MODSOURMAN-346](https://issues.folio.org/browse/MODSOURMAN-346) Load MARC field protection settings to Mapping params
 
 ## 2020-08-10 v2.3.2
 * [MODSOURMAN-322](https://issues.folio.org/browse/MODSOURMAN-322) Add source-record states storing mechanism for QM edit workflow
