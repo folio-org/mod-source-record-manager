@@ -439,7 +439,7 @@ curl -w '\n' -X POST \
   --header "Content-Type: application/json" \
   --header "x-okapi-tenant: {tenant}" \
   --data @credentials.json \
-  https://folio-snapshot-load-okapi.aws.indexdata.com/bl-users/login
+  https://folio-snapshot-load-okapi.dev.folio.org/bl-users/login
 
   credentials.json: 
   {
@@ -454,7 +454,7 @@ curl -w '\n' -X GET \
   --header "Content-type: application/json" \ 
   --header "x-okapi-tenant: {tenant}" \
   --header "x-okapi-token: {token}" \
-  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  https://folio-snapshot-load-okapi.dev.folio.org/mapping-rules
 ```
 A response returns existing rules:
 ```
@@ -482,7 +482,7 @@ curl -w '\n' -X PUT \
   --header "x-okapi-tenant: {tenant}" \
   --header "x-okapi-token: {token}" \
   --data @rules.json \
-  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules
+  https://folio-snapshot-load-okapi.dev.folio.org/mapping-rules
 ```
 rules.json with updated list of subfields for 001 :
 ```
@@ -528,7 +528,7 @@ curl -w '\n' -X PUT \
   --header "Accept: text/plain, application/json" \
   --header "x-okapi-tenant: {tenant}" \
   --header "x-okapi-token: {token}" \
-  https://folio-snapshot-load-okapi.aws.indexdata.com/mapping-rules/restore
+  https://folio-snapshot-load-okapi.dev.folio.org/mapping-rules/restore
 ```
 A response returns rules in default state:
 ```
