@@ -1,3 +1,6 @@
+## 2020-09-03 v2.3.3
+* [MODSOURCE-178](https://issues.folio.org/browse/MODSOURCE-178) Move 001 value to 035 field before mapping to Instance
+
 ## 2020-08-10 v2.3.2
 * [MODSOURMAN-322](https://issues.folio.org/browse/MODSOURMAN-322) Add source-record states storing mechanism for QM edit workflow
 * [MODSOURMAN-333](https://issues.folio.org/browse/MODSOURMAN-333) Replace incoming 999 ff fields if file is re-imported
