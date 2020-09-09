@@ -3,6 +3,7 @@
 * [MODSOURMAN-340](https://issues.folio.org/browse/MODSOURMAN-340) MARC field sort into numerical order when record is imported
 * [MODSOURMAN-345](https://issues.folio.org/browse/MODSOURMAN-345) 003 handling in SRS for MARC Bib records: Create
 * [MODSOURMAN-346](https://issues.folio.org/browse/MODSOURMAN-346) Load MARC field protection settings to Mapping params
+* [MODDATAIMP-324](https://issues.folio.org/browse/MODDATAIMP-324) Update all Data-Import modules to the new RMB version
 
 ## 2020-08-10 v2.3.2
 * [MODSOURMAN-322](https://issues.folio.org/browse/MODSOURMAN-322) Add source-record states storing mechanism for QM edit workflow

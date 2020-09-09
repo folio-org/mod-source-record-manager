@@ -1,5 +1,6 @@
 package org.folio.dao;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -29,7 +30,6 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
-import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.util.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -246,7 +246,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobExecution mapJsonToJobExecution(String jsonAsString) {
     try {
-      return ObjectMapperTool.getMapper().readValue(jsonAsString, JobExecution.class);
+      return new ObjectMapper().readValue(jsonAsString, JobExecution.class);
     } catch (IOException e) {
       LOGGER.error("Error while mapping json to jobExecution", e);
       throw new RuntimeJsonMappingException(e.getMessage());

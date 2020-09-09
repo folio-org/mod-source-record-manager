@@ -1,11 +1,11 @@
 package org.folio.services.journal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.tools.utils.ObjectMapperTool;
 
 import java.util.Date;
 
@@ -38,7 +38,7 @@ public class JournalUtil {
   private static JournalRecord buildJournalRecord(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                   JournalRecord.ActionStatus actionStatus, String instanceAsString, String recordAsString) throws JournalRecordMapperException {
     try {
-      Record record = ObjectMapperTool.getMapper().readValue(recordAsString, Record.class);
+      Record record = new ObjectMapper().readValue(recordAsString, Record.class);
       JsonObject instance = new JsonObject(instanceAsString);
       return new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())

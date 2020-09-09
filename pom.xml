@@ -19,10 +19,10 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>30.0.2</raml-module-builder.version>
+    <raml-module-builder.version>31.0.2</raml-module-builder.version>
     <vertx.version>3.9.1</vertx.version>
-    <junit.version>4.12</junit.version>
-    <rest-assured.version>3.1.1</rest-assured.version>
+    <junit.version>4.13</junit.version>
+    <rest-assured.version>4.0.0</rest-assured.version>
     <wiremock.version>2.19.0</wiremock.version>
     <main.basedir>${project.basedir}</main.basedir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
@@ -41,10 +41,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.8.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>11</release>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
@@ -110,7 +109,7 @@
       <plugin>
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.0.1</version>
         <inherited>false</inherited>
         <executions>
           <execution>
