@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
@@ -14,7 +15,6 @@ import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
-import org.folio.rest.tools.utils.ObjectMapperTool;
 import org.folio.services.EventHandlingService;
 import org.folio.services.SourceRecordStateService;
 import org.folio.services.journal.JournalService;
@@ -57,7 +57,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
         LOGGER.debug("Event was received: {}", entity);
         asyncResultHandler.handle(Future.succeededFuture(
           ChangeManagerHandlers.PostChangeManagerHandlersCreatedInventoryInstanceResponse.respond204()));
-        DataImportEventPayload event = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), DataImportEventPayload.class);
+        DataImportEventPayload event = new ObjectMapper().readValue(ZIPArchiver.unzip(entity), DataImportEventPayload.class);
         JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(event, JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
         journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
@@ -83,7 +83,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   public void postChangeManagerHandlersQmCompleted(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        HashMap<String, String> eventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
+        HashMap<String, String> eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
         LOGGER.debug("Event was received for QM_COMPLETE: {}", eventPayload);
         sourceRecordStateService.updateState(eventPayload.get(RECORD_ID_KEY), SourceRecordState.RecordState.ACTUAL, tenantId);
       } catch (IOException e) {
@@ -99,7 +99,7 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   public void postChangeManagerHandlersQmError(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        HashMap<String, String> eventPayload = ObjectMapperTool.getMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
+        HashMap<String, String> eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(entity), HashMap.class);
         LOGGER.debug("Event was received for QM_ERROR: {}", eventPayload);
         sourceRecordStateService.updateState(eventPayload.get(RECORD_ID_KEY), SourceRecordState.RecordState.ERROR, tenantId);
       } catch (IOException e) {
