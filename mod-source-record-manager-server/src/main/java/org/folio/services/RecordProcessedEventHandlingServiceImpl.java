@@ -31,7 +31,10 @@ import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 
 @Service
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
@@ -105,12 +108,9 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   private void saveJournalRecord(DataImportEventPayload dataImportEventPayload) {
     try {
       String errorMessage = dataImportEventPayload.getContext().get(ERROR_KEY);
-
       JournalRecord journalRecord = dataImportEventPayload.getEventType().equals(DI_ERROR.value())
-        ? JournalUtil.buildJournalRecord(dataImportEventPayload, JournalRecord.ActionType.UPDATE,
-          JournalRecord.EntityType.ITEM, JournalRecord.ActionStatus.ERROR, errorMessage)
-        : JournalUtil.buildJournalRecord(dataImportEventPayload, JournalRecord.ActionType.UPDATE,
-          JournalRecord.EntityType.ITEM, JournalRecord.ActionStatus.COMPLETED);
+        ? JournalUtil.buildJournalRecord(dataImportEventPayload, UPDATE, ITEM, ERROR, errorMessage)
+        : JournalUtil.buildJournalRecord(dataImportEventPayload, UPDATE, ITEM, COMPLETED);
 
       journalService.save(JsonObject.mapFrom(journalRecord), dataImportEventPayload.getTenant());
     } catch (JournalRecordMapperException e) {
@@ -142,7 +142,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
           .map(jobExecution -> {
-            JobExecution.Status statusToUpdate = progress.getCurrentlyFailed() == 0 ? COMMITTED : ERROR;
+            JobExecution.Status statusToUpdate = progress.getCurrentlyFailed() == 0 ? COMMITTED : JobExecution.Status.ERROR;
             jobExecution.withStatus(statusToUpdate)
               .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
               .withCompletedDate(new Date())
