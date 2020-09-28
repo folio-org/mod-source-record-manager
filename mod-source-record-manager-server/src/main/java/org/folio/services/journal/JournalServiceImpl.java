@@ -1,22 +1,18 @@
 package org.folio.services.journal;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service("journalService")
 public class JournalServiceImpl implements JournalService {
 
-  @Autowired
   private JournalRecordDao journalRecordDao;
 
-  public JournalServiceImpl() {
-    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
-  }
-
+  @Autowired
   public JournalServiceImpl(JournalRecordDao journalRecordDao) {
     this.journalRecordDao = journalRecordDao;
   }

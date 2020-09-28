@@ -50,7 +50,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
 
   public RecordProcessedEventHandlingServiceImpl(@Autowired JobExecutionProgressService jobExecutionProgressService,
                                                  @Autowired JobExecutionService jobExecutionService,
-                                                 @Autowired @Qualifier(value = "journalServiceProxy") JournalService journalService) {
+                                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
