@@ -21,6 +21,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -34,6 +35,8 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
   private static final String RECORD_ID_KEY = "RECORD_ID";
 
+  @Autowired
+  @Qualifier("journalServiceProxy")
   private JournalService journalService;
 
   @Autowired
@@ -45,7 +48,6 @@ public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
   public ChangeManagerHandlersImpl(Vertx vertx, String tenantId) { //NOSONAR
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
-    this.journalService = JournalService.createProxy(vertx);
     this.tenantId = tenantId;
   }
 

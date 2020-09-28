@@ -33,6 +33,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.parsers.RecordFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.validation.ConstraintViolation;
@@ -77,11 +78,11 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
                                        @Autowired MappingParametersProvider mappingParametersProvider,
                                        @Autowired MappingRuleService mappingRuleService,
                                        @Autowired HrIdFieldService hrIdFieldService,
-                                       @Autowired Vertx vertx) {
+                                       @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleService = mappingRuleService;
-    this.journalService = JournalService.createProxy(vertx);
+    this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
   }
 

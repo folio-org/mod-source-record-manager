@@ -34,6 +34,7 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
@@ -70,10 +71,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
-                                 @Autowired Vertx vertx) {
+                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
-    this.journalService = JournalService.createProxy(vertx);
+    this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
   }
 
