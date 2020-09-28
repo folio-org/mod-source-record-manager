@@ -9,7 +9,9 @@ import org.folio.rest.jaxrs.model.Record;
 
 import java.util.Date;
 
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
 /**
@@ -26,32 +28,45 @@ public class JournalUtil {
 
   public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload event, JournalRecord.ActionType actionType,
                                                         JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
-    String instanceAsString = event.getContext().get(INSTANCE.value());
+    String entityAsString = event.getContext().get(entityType.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
-    if (StringUtils.isEmpty(instanceAsString) || StringUtils.isEmpty(recordAsString)) {
+    if (StringUtils.isEmpty(entityAsString) || StringUtils.isEmpty(recordAsString)) {
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),
         INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
-    return buildJournalRecord(actionType, entityType, actionStatus, instanceAsString, recordAsString);
+    return buildJournalRecord(event, actionType, entityType, actionStatus, recordAsString);
   }
 
-  private static JournalRecord buildJournalRecord(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
-                                                  JournalRecord.ActionStatus actionStatus, String instanceAsString, String recordAsString) throws JournalRecordMapperException {
+  public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                 JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
+      String recordAsString = eventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value());
+      String entityAsString = eventPayload.getContext().get(entityType.value());
       Record record = new ObjectMapper().readValue(recordAsString, Record.class);
-      JsonObject instance = new JsonObject(instanceAsString);
-      return new JournalRecord()
+      JsonObject entityJson = new JsonObject(entityAsString);
+
+      JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
         .withSourceRecordOrder(record.getOrder())
         .withEntityType(entityType)
-        .withEntityId(instance.getString("id"))
-        .withEntityHrId(instance.getString("hrid"))
+        .withEntityId(entityJson.getString("id"))
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus);
+
+      if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
+        journalRecord.setEntityHrId(entityJson.getString("hrid"));
+      }
+      return journalRecord;
     } catch (Exception e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);
     }
+  }
+
+  public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                 JournalRecord.ActionStatus actionStatus, String errorMessage) throws JournalRecordMapperException {
+    JournalRecord journalRecord = buildJournalRecord(eventPayload, actionType, entityType, actionStatus);
+    return journalRecord.withError(errorMessage);
   }
 }
