@@ -2,13 +2,14 @@ package org.folio.services.journal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.Date;
 
+import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -30,7 +31,7 @@ public class JournalUtil {
                                                         JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     String entityAsString = event.getContext().get(entityType.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
-    if (StringUtils.isEmpty(entityAsString) || StringUtils.isEmpty(recordAsString)) {
+    if (isAnyEmpty(entityAsString, recordAsString)) {
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),
         INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
