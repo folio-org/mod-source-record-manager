@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +15,7 @@ import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
+import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -28,34 +30,47 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
+import static org.folio.rest.jaxrs.model.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS;
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERROR_KEY;
+import static org.folio.services.RecordProcessedEventHandlingServiceImpl.FAILED_EVENT_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -94,13 +109,17 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @InjectMocks
   private JobExecutionProgressServiceImpl jobExecutionProgressService;
   @Spy
+  private HrIdFieldServiceImpl hrIdFieldService;
+  @Spy
   @InjectMocks
-  HrIdFieldServiceImpl hrIdFieldService;
-
-  private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
+  private JournalRecordDaoImpl journalRecordDao;
+  @Mock
+  private JournalService mockedJournalService;
 
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
+  private JournalServiceImpl journalService;
+  private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
   private OkapiConnectionParams params;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
@@ -125,12 +144,13 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, vertx);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mockedJournalService);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
-    recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService);
+    journalService = new JournalServiceImpl(journalRecordDao);
+    recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService, journalService);
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
@@ -158,14 +178,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<JobExecutionProgress> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(dataImportEventPayload)), params))
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -225,14 +238,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<JobExecutionProgress> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(dataImportEventPayload)), params))
       .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -282,14 +288,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(dataImportEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(dataImportEventPayload)), params))
       .compose(ar -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -337,22 +336,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpErrorEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
-      .compose(ar -> {
-        try {
-          return recordProcessedEventHandlingService.handle(ZIPArchiver.zip(Json.encode(datImpCompletedEventPayload)), params);
-        } catch (IOException e) {
-          e.printStackTrace();
-          return Future.failedFuture(e);
-        }
-      })
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(datImpErrorEventPayload)), params))
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(datImpCompletedEventPayload)), params))
       .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
 
     // then
@@ -368,6 +353,60 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       verify(2, putRequestedFor(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true)));
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldSaveJournalRecordWithErrorStatusOnHandleDIErrorEvent(TestContext context) {
+    // given
+    Async async = context.async();
+    Record record = new Record().withId(UUID.randomUUID().toString());
+    String expectedErrorMessage = "test error message";
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(ITEM.value(), new JsonObject().encode());
+    payloadContext.put(ERROR_KEY, expectedErrorMessage);
+    payloadContext.put(FAILED_EVENT_KEY, DI_INVENTORY_ITEM_UPDATED.value());
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withTenant(TENANT_ID)
+      .withEventType(DataImportEventTypes.DI_ERROR.value())
+      .withContext(payloadContext);
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> {
+        record.setSnapshotId(jobExecution.getId());
+        payloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+      });
+
+    // when
+    Promise<List<JournalRecord>> promise = Promise.promise();
+    future
+      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(dataImportEventPayload)), params))
+      .onComplete(ar -> vertx.setTimer(100, e -> journalRecordDao.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), null, null, TENANT_ID)
+        .onComplete(promise::handle)));
+
+    // then
+    promise.future().onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertEquals(1, ar.result().size());
+      JournalRecord journalRecord = ar.result().get(0);
+      context.assertEquals(dataImportEventPayload.getJobExecutionId(), journalRecord.getJobExecutionId());
+      context.assertEquals(expectedErrorMessage, journalRecord.getError());
+      context.assertEquals(JournalRecord.ActionStatus.ERROR, journalRecord.getActionStatus());
+      context.assertEquals(expectedErrorMessage, journalRecord.getError());
+      async.complete();
+    });
+  }
+
+  private String encodeWithZip(String stringToEncode) {
+    try {
+      return ZIPArchiver.zip(stringToEncode);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
 }

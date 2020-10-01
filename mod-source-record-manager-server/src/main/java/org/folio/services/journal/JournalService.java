@@ -13,10 +13,6 @@ public interface JournalService {
 
   String JOURNAL_RECORD_SERVICE_ADDRESS = "journal-service.queue";  //NOSONAR
 
-  static JournalService create() {
-    return new JournalServiceImpl();
-  }
-
   static JournalService createProxy(Vertx vertx) {
     return new JournalServiceVertxEBProxy(vertx, JOURNAL_RECORD_SERVICE_ADDRESS);
   }

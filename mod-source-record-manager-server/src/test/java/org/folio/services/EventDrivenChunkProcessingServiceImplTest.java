@@ -16,6 +16,7 @@ import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
+import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -33,6 +34,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
@@ -109,8 +111,10 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   JobExecutionProgressServiceImpl jobExecutionProgressService;
   @Spy
-  @InjectMocks
   HrIdFieldServiceImpl hrIdFieldService;
+  @Spy
+  @InjectMocks
+  private JournalRecordDaoImpl journalRecordDao;
 
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
@@ -142,7 +146,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, vertx);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao));
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
 
     HashMap<String, String> headers = new HashMap<>();
