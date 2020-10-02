@@ -171,7 +171,25 @@
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.modes-of-issuance.collection.get",
             "pubsub.publish.post",
-            "converter-storage.jobprofilesnapshots.get"
+            "converter-storage.jobprofilesnapshots.get",
+            "inventory-storage.items.collection.get",
+            "inventory-storage.items.item.post",
+            "inventory-storage.items.item.put",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.holdings.collection.get",
+            "inventory-storage.holdings.item.get",
+            "inventory-storage.holdings.item.post",
+            "inventory-storage.holdings.item.put",
+            "inventory-storage.instances.collection.get",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.instances.item.post",
+            "inventory-storage.instances.item.put",
+            "inventory-storage.preceding-succeeding-titles.item.post"
           ]
         },
         {
@@ -211,7 +229,9 @@
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.modes-of-issuance.collection.get",
-            "pubsub.publish.post"
+            "pubsub.publish.post",
+            "inventory-storage.instances.item.get",
+            "inventory-storage.instances.item.put"
           ]
         }
       ]
