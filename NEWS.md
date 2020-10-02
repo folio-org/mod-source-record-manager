@@ -1,3 +1,6 @@
+## 2020-10-02 v2.3.4
+* [MODSOURMAN-357](https://issues.folio.org/browse/MODSOURMAN-357) Add permissions necessary to process data-import profiles
+
 ## 2020-09-03 v2.3.3
 * [MODSOURCE-178](https://issues.folio.org/browse/MODSOURCE-178) Move 001 value to 035 field before mapping to Instance
 
