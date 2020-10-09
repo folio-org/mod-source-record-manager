@@ -38,6 +38,7 @@ import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -276,6 +277,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   }
 
   @Test
+  @Ignore
   public void shouldMarkJobExecutionAsErrorWhenWhenFailedPostRecordsToRecordsStorage(TestContext context) {
     Async async = context.async();
     RawRecordsDto lastRawRecordsDto = new RawRecordsDto()
