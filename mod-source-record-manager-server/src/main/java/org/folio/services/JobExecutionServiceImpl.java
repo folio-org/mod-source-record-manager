@@ -223,21 +223,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(true);
   }
 
-  private JobExecution verifyJobExecution(JobExecution jobExecution) {
-    String msg = null;
-    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
-      msg = "Cannot complete JobExecution with error, if it is not processed by default job profile";
-    } else if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
-      msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-    }
-
-    if (msg != null) {
-      LOGGER.error(msg);
-      throw new BadRequestException(msg);
-    }
-    return jobExecution;
-  }
-
   /**
    * Creates and returns list of JobExecution entities depending on received files.
    * In a case if only one file passed, method returns list with one JobExecution entity
@@ -461,6 +446,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       promise.fail(e);
     }
     return promise.future();
+  }
+
+  private JobExecution verifyJobExecution(JobExecution jobExecution) {
+    String msg = null;
+    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+      msg = "Cannot complete JobExecution with error, if it is not processed by default job profile";
+    } else if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
+      msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
+    }
+
+    if (msg != null) {
+      LOGGER.error(msg);
+      throw new BadRequestException(msg);
+    }
+    return jobExecution;
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
