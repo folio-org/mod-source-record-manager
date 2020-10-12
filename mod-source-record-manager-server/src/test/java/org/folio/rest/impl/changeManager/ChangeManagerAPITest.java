@@ -67,6 +67,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.NEW;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -94,6 +97,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String RAW_RECORD_RESULTING_IN_INSTANCE_MAPPING_ERROR = "04466cas a2200841 a 4500001000700000005001700007008004100024010004500065012002400110019004000134022003900174029002100213029001700234029002200251030002700273032001700300035002300317035008400340035001100424040038000435042002300815049000900838050001600847060001400863074002400877082001200901086001500913222005400928245005400982246000901036264012701045264007101172300003901243310002601282321004801308321002501356336002601381337002801407338002701435362004101462490004601503490003701549500011301586500005901699500005401758500006201812525004001874530002401914555003501938650007801973650002602051650002802077650002002105710008402125710008802209760003202297760003102329770010302360776011802463780007402581830008102655830006802736856007102804850024102875856025603116891003503372891004003407891004403447891003803491891004303529891004003572994001203612\u001E130824\u001E20171107114428.0\u001E741101c19409999ncusr p      f0   a0eng  \u001E  \u001Fa   40029172 \u001Fzsn 79004523 \u001Fzsn 82020472 \u001E  \u001Fb3\u001Fi8709\u001Fj3\u001Fk1\u001Flg\u001Fm1\u001E  \u001Fa1588389\u001Fa2264617\u001Fa4342024\u001Fa14349066\u001E0 \u001Fa0027-8874\u001Fl0027-8874\u001Fz0198-0157\u001F21\u001E1 \u001FaNLGGC\u001Fb842279245\u001E1 \u001FaNZ1\u001Fb4973626\u001E1 \u001FaAU@\u001Fb000023028302\u001E  \u001FaJNCIEQ\u001FzJNCIAM\u001FzJJIND8\u001E  \u001Fa001964\u001FbUSPS\u001E  \u001Fa(OCoLC)ocm01064763\u001E  \u001Fa(OCoLC)1064763\u001Fz(OCoLC)1588389\u001Fz(OCoLC)2264617\u001Fz(OCoLC)4342024\u001Fz(OCoLC)14349066\u001E  \u001Fa130824\u001E  \u001FaNLM\u001FcNLM\u001FdNSD\u001FdDLC\u001FdNSD\u001FdOCL\u001FdIUL\u001FdNSD\u001FdOCL\u001FdGPO\u001FdNSD\u001FdGPO\u001FdRCS\u001FdIUL\u001FdAIP\u001FdNST\u001FdAIP\u001FdDLC\u001FdOCL\u001FdNST\u001FdGPO\u001FdNSD\u001FdNST\u001FdHUL\u001FdNST\u001FdHUL\u001FdGPO\u001FdNSD\u001FdNLM\u001FdOCL\u001FdNST\u001FdOCL\u001FdNSD\u001FdGPO\u001FdNST\u001FdNSD\u001FdNST\u001FdWAU\u001FdNLM\u001FdNSD\u001FdGPA\u001FdNSD\u001FdNST\u001FdNSD\u001FdOCL\u001FdNST\u001FdGPO\u001FdDLC\u001FdOCL\u001FdGPO\u001FdMYG\u001FdNSD\u001FdGPO\u001FdGUA\u001FdGPO\u001FdMYG\u001FdHLS\u001FdGPO\u001FdOCL\u001FdDLC\u001FdGPO\u001FdOCLCQ\u001FdGPO\u001FdNSD\u001FdOCLCQ\u001FdDLC\u001FdGUA\u001FdOCL\u001FdMYG\u001FdNLGGC\u001FdEEM\u001FdOCLCQ\u001FdUtOrBLW\u001E  \u001Fansdp\u001Fapcc\u001Fapremarc\u001E  \u001FaALMM\u001E00\u001FaRC261\u001Fb.U47\u001E00\u001FaW1 JO941C\u001E  \u001Fa0488, 0488 (online)\u001E10\u001Fa616\u001F211\u001E0 \u001FaHE 20.3161\u001E 0\u001FaJournal of the National Cancer Institute\u001Fb(Print)\u001E00\u001FaJournal of the National Cancer Institute :\u001FbJNCI.\u001E30\u001FaJNCI\u001E 1\u001Fa[Bethesda, Md.] :\u001FbU.S. Department of Health, Education, and Welfare, Public Health Service, National Institutes of Health\u001E 2\u001Fa[Washington, D.C.] :\u001Fb[For sale by the Supt. of Docs., U.S. G.P.O]\u001E  \u001Favolumes :\u001Fbillustrations ;\u001Fc28 cm.\u001E  \u001FaSemimonthly,\u001Fb<1989->\u001E  \u001FaBimonthly (irregular),\u001FbAug. 1940-Apr. 1956\u001E  \u001FaMonthly,\u001FbJune 1956-\u001E  \u001Fatext\u001Fbtxt\u001F2rdacontent\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001E1 \u001FaBegan with: v. 1, no. 1 (Aug. 1940).\u001E1 \u001Fa-Apr. 1979: DHEW publication ;\u001Fvno. (NIH)\u001E1 \u001FaMay 1979-<1996>: NIH publication\u001E  \u001FaNo longer an official government publication; no longer distributed to depository libraries after Dec. 2002.\u001E  \u001FaPublished: Cary, NC : Oxford University Press, <2003->\u001E  \u001FaDescription based on: Vol. 62, no. 1 (Jan. 1979).\u001E  \u001FaLatest issue consulted: Vol. 95, no. 14 (July 16, 2003->.\u001E  \u001FaSupplements accompany some numbers.\u001E  \u001FaAlso issued online.\u001E  \u001FaVols. 1 (1940)-16 (1956). 1 v.\u001E 0\u001FaCancer\u001FvPeriodicals.\u001F0http://id.loc.gov/authorities/subjects/sh2008100056\u001E 2\u001FaNeoplasms\u001FvAbstracts.\u001E 2\u001FaNeoplasms\u001FvPeriodicals.\u001E17\u001FaOncologie.\u001F2gtt\u001E2 \u001FaNational Cancer Institute (U.S.)\u001F0http://id.loc.gov/authorities/names/n79107940\u001E2 \u001FaNational Institutes of Health (U.S.)\u001F0http://id.loc.gov/authorities/names/n78085445\u001E0 \u001FtDHEW publication\u001Fx0090-0206\u001E0 \u001FtNIH publication\u001Fx0276-4733\u001E0 \u001FtJournal of the National Cancer Institute. Monographs\u001Fx1052-6773\u001Fw(DLC)   94660018\u001Fw(OCoLC)21986096\u001E08\u001FiOnline version:\u001FtJournal of the National Cancer Institute (Online)\u001Fx1460-2105\u001Fw(DLC)  2005233013\u001Fw(OCoLC)42465676\u001E05\u001FtCancer treatment reports\u001Fx0361-5960\u001Fw(DLC)   76645250\u001Fw(OCoLC)2101497\u001E 0\u001FaDHEW publication ;\u001Fvno. (NIH)\u001F0http://id.loc.gov/authorities/names/n42009070\u001E 0\u001FaNIH publication.\u001F0http://id.loc.gov/authorities/names/n84710198\u001E41\u001Fuhttp://www.oxfordjournals.org/content?genre=journal&issn=0027-8874\u001E  \u001FaAU\u001FaCSt\u001FaCSt-L\u001FaCU-AM\u001FaCU-I\u001FaCU-RivA\u001FaCU-SM\u001FaCaOTU\u001FaCaOWtU\u001FaCaQMU\u001FaCoFS\u001FaCtY-M\u001FaDLC\u001FaFU-HC\u001FaGU\u001FaIaU\u001FaInU\u001FaMBCo\u001FaMBU-M\u001FaMCM\u001FaMH-BL\u001FaMH-CS\u001FaMMeT\u001FaMSobPR\u001FaNSyU\u001FaNcRS\u001FaOU\u001FaPPPCPh\u001FaPPiC\u001FaPPT\u001FaPU\u001FaPU-Med\u001FaRPB-S\u001FaTU-M\u001FaTxHMC\u001FaULA\u001FaViRCU-H\u001FaWaU\u001E41\u001Fahttp://purl.access.gpo.gov/GPO/LPS1716\u001Fzback issues are accessible by clicking on \"ABOUT THE JOURNAL\" and then clicking on \"ARCHIVE\" at the bottom of the screen (some issues available in: Full Text and Abstracts, Abstracts and PDF, and Abstracts Only)\u001E12\u001F9853\u001F81\u001Fav.\u001Fbno.\u001Fu06\u001Fvr\u001Fi(year)\u001E40\u001F9863\u001F81\u001Fa<10>-\u001Fi<1949>-\u001Fxprovisional\u001E12\u001F9853\u001F82\u001Fav.\u001Fbno.\u001Fu20\u001Fvr\u001Fi(year)\u001Fj(month)\u001E40\u001F9863\u001F82\u001Fa<80>\u001Fi<1988>\u001Fxprovisional\u001E12\u001F9853\u001F83\u001Fav.\u001Fbno.\u001Fu24\u001Fvr\u001Fi(year)\u001Fj(date)\u001E40\u001F9863\u001F83\u001Fa<81>-\u001Fi<1989>-\u001Fxprovisional\u001E  \u001FaC0\u001FbALM\u001E\u001D";
   private static final String QUERY_PARAM_NAME = "defaultMapping";
   private static final String RAW_RECORD_WITH_999_ff_s_SUBFIELD = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
+  private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
@@ -571,7 +575,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
     Assert.assertNotNull(jobExecution.getRunBy().getLastName());
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
+    StatusDto status = new StatusDto().withStatus(ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
@@ -607,7 +611,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(jobExecution.getRunBy().getFirstName());
     Assert.assertNotNull(jobExecution.getRunBy().getLastName());
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
+    StatusDto status = new StatusDto().withStatus(ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR);
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(status).toString())
@@ -1916,7 +1920,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldDeleteJobExecutionAndAllAssociatedRecords(TestContext testContext) {
+  public void shouldSetJobExecutionStatusToErrorAndDeleteAllAssociatedRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1933,7 +1937,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1955,7 +1959,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1968,7 +1971,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(ERROR.value()));
     async.complete();
   }
 
@@ -1977,7 +1981,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
@@ -1986,7 +1989,108 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotDeleteJobExecutionIfRecordsWereNotDeleted(TestContext testContext) {
+  public void shouldNotSetJobExecutionStatusToErrorIfRecordsWereNotDeleted(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
+      .willReturn(WireMock.serverError()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(PARSING_IN_PROGRESS.value()));
+    async.complete();
+  }
+
+  @Test
+  public void shouldSetJobExecutionStatusToErrorIfNoSourceChunksExist(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
+      .willReturn(WireMock.noContent()));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(ERROR.value()));
+    async.complete();
+  }
+
+  @Test
+  public void shouldNotSetJobExecutionStatusToErrorIfDefaultJobProfileWasNotSet(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2014,22 +2118,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .queryParam(QUERY_PARAM_NAME, true)
-      .body(rawRecordsDto)
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .queryParam(QUERY_PARAM_NAME, true)
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
     async.complete();
 
     async = testContext.async();
@@ -2038,51 +2130,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-  }
-
-  @Test
-  public void shouldDeleteJobExecutionIfNoSourceChunksExist(TestContext testContext) {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
-      .willReturn(WireMock.noContent()));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .queryParam(QUERY_PARAM_NAME, true)
-      .when()
-      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(NEW.value()));
     async.complete();
   }
 

@@ -193,7 +193,7 @@ public class ChangeManagerImpl implements ChangeManager {
     vertxContext.runOnContext(v -> {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        jobExecutionService.deleteJobExecutionAndSRSRecords(id, params)
+        jobExecutionService.completeJobExecutionWithError(id, params)
           .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

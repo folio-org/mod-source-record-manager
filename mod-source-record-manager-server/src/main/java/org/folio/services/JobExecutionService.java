@@ -103,12 +103,12 @@ public interface JobExecutionService {
   Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params);
 
   /**
-   * Delete JobExecution and all associated records from SRS
+   * Sets JobExecution status to ERROR and deletes all associated records from SRS
    *
    * @param jobExecutionId JobExecution id
    * @param params         connection parameters
    * @return future with true if succeeded
    */
-  Future<Boolean> deleteJobExecutionAndSRSRecords(String jobExecutionId, OkapiConnectionParams params);
+  Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params);
 
 }
