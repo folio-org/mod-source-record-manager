@@ -1,6 +1,8 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -13,6 +15,8 @@ import java.util.Date;
 import java.util.UUID;
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractChunkProcessingService.class);
+  private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
 
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   protected JobExecutionService jobExecutionService;
@@ -60,6 +64,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
+          if (jobExecution.getStatus() == JobExecution.Status.ERROR) {
+            LOGGER.error(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
+            return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
+          }
           if (!status.getStatus().value().equals(jobExecution.getStatus().value())) {
             return jobExecutionService.updateJobExecutionStatus(jobExecutionId, status, params);
           }
