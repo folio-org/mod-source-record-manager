@@ -218,7 +218,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
       .compose(jobExec -> deleteRecordsFromSRS(jobExecutionId, params).map(jobExec))
-      .map(jobExec -> jobExec.withStatus(JobExecution.Status.ERROR).withUiStatus(JobExecution.UiStatus.ERROR))
+      .map(this::modifyJobExecutionToCompleteWithError)
       .compose(jobExec -> updateJobExecution(jobExec, params))
       .map(true);
   }
@@ -461,6 +461,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       throw new BadRequestException(msg);
     }
     return jobExecution;
+  }
+
+  private JobExecution modifyJobExecutionToCompleteWithError(JobExecution jobExecution) {
+    return jobExecution
+      .withStatus(JobExecution.Status.ERROR)
+      .withUiStatus(JobExecution.UiStatus.ERROR)
+      .withCompletedDate(new Date());
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {

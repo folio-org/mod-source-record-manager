@@ -1920,7 +1920,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSetJobExecutionStatusToErrorAndDeleteAllAssociatedRecords(TestContext testContext) {
+  public void shouldMarkJobExecutionAsErrorAndDeleteAllAssociatedRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1972,7 +1972,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()));
+      .body("status", is(ERROR.value()))
+      .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
 
@@ -1989,7 +1990,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotSetJobExecutionStatusToErrorIfRecordsWereNotDeleted(TestContext testContext) {
+  public void shouldNotMarkJobExecutionAsErrorIfRecordsWereNotDeleted(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2046,7 +2047,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSetJobExecutionStatusToErrorIfNoSourceChunksExist(TestContext testContext) {
+  public void shouldMarkJobExecutionAsErrorIfNoSourceChunksExist(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2085,12 +2086,13 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()));
+      .body("status", is(ERROR.value()))
+      .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
 
   @Test
-  public void shouldNotSetJobExecutionStatusToErrorIfDefaultJobProfileWasNotSet(TestContext testContext) {
+  public void shouldNotMarkJobExecutionAsErrorIfDefaultJobProfileWasNotSet(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
