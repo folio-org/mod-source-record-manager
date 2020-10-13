@@ -43,6 +43,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 
@@ -59,6 +60,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
+  private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
@@ -210,16 +212,15 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<Boolean> deleteJobExecutionAndSRSRecords(String jobExecutionId, OkapiConnectionParams params) {
+  public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
-      .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExec -> deleteRecordsFromSRS(jobExecutionId, params)
-          .compose(v -> journalRecordService.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
-          .compose(v -> jobExecutionSourceChunkDao.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
-          .compose(v -> jobExecutionDao.deleteJobExecutionById(jobExecutionId, params.getTenantId())))
-        .orElse(Future.failedFuture(new NotFoundException(
-          format("JobExecution with id '%s' was not found", jobExecutionId))))
-      );
+      .map(optionalJobExecution -> optionalJobExecution
+        .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
+      .map(this::verifyJobExecution)
+      .map(this::modifyJobExecutionToCompleteWithError)
+      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
+      .compose(jobExec -> deleteRecordsFromSRS(jobExecutionId, params))
+      .map(true);
   }
 
   /**
@@ -445,6 +446,28 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       promise.fail(e);
     }
     return promise.future();
+  }
+
+  private JobExecution verifyJobExecution(JobExecution jobExecution) {
+    String msg = null;
+    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+      msg = "Cannot complete JobExecution with error, if it is not processed by default job profile";
+    } else if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
+      msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
+    }
+
+    if (msg != null) {
+      LOGGER.error(msg);
+      throw new BadRequestException(msg);
+    }
+    return jobExecution;
+  }
+
+  private JobExecution modifyJobExecutionToCompleteWithError(JobExecution jobExecution) {
+    return jobExecution
+      .withStatus(JobExecution.Status.ERROR)
+      .withUiStatus(JobExecution.UiStatus.ERROR)
+      .withCompletedDate(new Date());
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
