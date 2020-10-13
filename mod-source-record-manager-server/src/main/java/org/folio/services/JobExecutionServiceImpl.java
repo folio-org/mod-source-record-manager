@@ -217,9 +217,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
-      .compose(jobExec -> deleteRecordsFromSRS(jobExecutionId, params).map(jobExec))
       .map(this::modifyJobExecutionToCompleteWithError)
-      .compose(jobExec -> updateJobExecution(jobExec, params))
+      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
+      .compose(jobExec -> deleteRecordsFromSRS(jobExecutionId, params))
       .map(true);
   }
 

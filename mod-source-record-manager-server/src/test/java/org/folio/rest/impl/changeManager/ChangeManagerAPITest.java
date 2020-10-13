@@ -1990,7 +1990,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotMarkJobExecutionAsErrorIfRecordsWereNotDeleted(TestContext testContext) {
+  public void shouldMarkJobExecutionAsErrorIfRecordsWereNotDeleted(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2042,7 +2042,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(PARSING_IN_PROGRESS.value()));
+      .body("status", is(ERROR.value()))
+      .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
 
