@@ -2093,52 +2093,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotMarkJobExecutionAsErrorIfDefaultJobProfileWasNotSet(TestContext testContext) {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
-      .willReturn(WireMock.serverError()));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("status", is(NEW.value()));
-    async.complete();
-  }
-
-  @Test
   public void shouldProcessChunkOfRawRecordsWhenQueryParamIsFalse(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);

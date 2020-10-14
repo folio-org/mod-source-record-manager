@@ -219,7 +219,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(this::verifyJobExecution)
       .map(this::modifyJobExecutionToCompleteWithError)
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
-      .compose(jobExec -> deleteRecordsFromSRS(jobExecutionId, params))
+      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
   }
 
@@ -449,14 +449,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private JobExecution verifyJobExecution(JobExecution jobExecution) {
-    String msg = null;
-    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
-      msg = "Cannot complete JobExecution with error, if it is not processed by default job profile";
-    } else if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
-      msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-    }
-
-    if (msg != null) {
+    if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
+      String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
       LOGGER.error(msg);
       throw new BadRequestException(msg);
     }
@@ -468,6 +462,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withStatus(JobExecution.Status.ERROR)
       .withUiStatus(JobExecution.UiStatus.ERROR)
       .withCompletedDate(new Date());
+  }
+
+  private Future<Boolean> deleteRecordsFromSRSIfNecessary(JobExecution jobExecution, OkapiConnectionParams params) {
+    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+      LOGGER.info("Records removing was skipped because JobExecution is not processed by default job profile");
+      return Future.succeededFuture(false);
+    }
+    return deleteRecordsFromSRS(jobExecution.getId(), params);
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
