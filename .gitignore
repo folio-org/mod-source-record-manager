@@ -8,3 +8,4 @@ node_modules/
 /src/main/resources/postgres-conf.json
 /mod-source-record-manager-client/target/
 /mod-source-record-manager-server/target/
+.DS_Store
