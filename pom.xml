@@ -22,7 +22,7 @@
     <raml-module-builder.version>31.0.2</raml-module-builder.version>
     <vertx.version>3.9.1</vertx.version>
     <junit.version>4.13</junit.version>
-    <rest-assured.version>4.0.0</rest-assured.version>
+    <rest-assured.version>4.3.1</rest-assured.version>
     <wiremock.version>2.19.0</wiremock.version>
     <main.basedir>${project.basedir}</main.basedir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
@@ -49,18 +49,9 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.1</version>
-        <configuration>
-          <useSystemClassLoader>false</useSystemClassLoader>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <id>git submodule update</id>
@@ -84,7 +75,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <id>filter-descriptor-inputs</id>
