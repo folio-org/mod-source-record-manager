@@ -53,6 +53,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -2093,17 +2094,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotMarkJobExecutionAsErrorIfDefaultJobProfileWasNotSet(TestContext testContext) {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
+  public void shouldMarkJobExecutionAsErrorAndDoNotDeleteRecordsIfDefaultJobProfileWasNotSet(TestContext testContext) {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
-      .willReturn(WireMock.serverError()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -2124,7 +2122,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
+      .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
     async = testContext.async();
@@ -2134,8 +2132,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(NEW.value()));
+      .body("status", is(ERROR.value()));
     async.complete();
+
+    verify(0, deleteRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
   }
 
   @Test
