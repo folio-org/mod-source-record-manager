@@ -1,5 +1,8 @@
 ## 2020-08-17 v2.5.0-SNAPSHOT
 
+## 2020-08-17 v2.4.1-SNAPSHOT
+* [MODSOURMAN-363](https://issues.folio.org/browse/MODSOURMAN-363) New user with all permissions gets errors when importing with magic button
+
 ## 2020-08-17 v2.4.0
 * [MODSOURMAN-344](https://issues.folio.org/browse/MODSOURMAN-344) Fixed default MARC Bib-Instance mapping for 024 and 028 fields
 * [MODSOURMAN-340](https://issues.folio.org/browse/MODSOURMAN-340) MARC field sort into numerical order when record is imported
