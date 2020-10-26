@@ -111,7 +111,10 @@
           "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
           "permissionsRequired" : [ "change-manager.jobexecutions.post" ],
-          "modulePermissions": [ "source-storage.snapshots.post" ]
+          "modulePermissions": [
+            "source-storage.snapshots.post",
+            "users.collection.get"
+          ]
         },
         {
           "methods": ["PUT"],
@@ -170,6 +173,18 @@
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.modes-of-issuance.collection.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "converter-storage.field-protection-settings.get",
             "pubsub.publish.post",
             "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.items.collection.get",
