@@ -1,3 +1,6 @@
+## 2020-10-30 v2.4.2-SNAPSHOT
+* [MODSOURMAN-362](https://issues.folio.org/browse/MODSOURMAN-362) Mark job status with error when at least one record has not been parsed
+
 ## 2020-10-26 v2.4.1
 * [MODSOURMAN-363](https://issues.folio.org/browse/MODSOURMAN-363) Fix permissions issues
 * Update mod-pubsub-client to v1.3.1
