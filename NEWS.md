@@ -1,4 +1,5 @@
 ## 2020-08-17 v2.5.0-SNAPSHOT
+* [MODSOURMAN-339](https://issues.folio.org/browse/MODSOURMAN-339) Disable CQL2PgJSON & CQLWrapper extra logging in mod-source-record-manager
 
 ## 2020-10-30 v2.4.2-SNAPSHOT
 * [MODSOURMAN-362](https://issues.folio.org/browse/MODSOURMAN-362) Mark job status with error when at least one record has not been parsed
