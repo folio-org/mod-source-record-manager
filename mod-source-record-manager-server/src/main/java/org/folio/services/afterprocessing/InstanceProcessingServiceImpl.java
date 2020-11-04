@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Instances;
 import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
@@ -92,16 +93,13 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
     succeededFuture()
       .compose(ar -> getMappingParameters(records, okapiParams))
       .compose(mappingParameters -> mapRecords(records, mappingParameters, okapiParams))
-      .onComplete(ar ->
-        updateSourceChunkState(
-          sourceChunkId,
-          ar.succeeded() ? JobExecutionSourceChunk.State.COMPLETED : JobExecutionSourceChunk.State.ERROR,
-          okapiParams
-        )
+      .onComplete(ar -> {
+        State state = ar.succeeded() ? State.COMPLETED : State.ERROR;
+        updateSourceChunkState(sourceChunkId, state, okapiParams)
           .compose(updatedChunk -> jobExecutionSourceChunkDao.update(updatedChunk.withCompletedDate(new Date()), okapiParams.getTenantId()))
           // Complete future in order to continue the import process regardless of the result of creating Instances
-          .onComplete(updateAr -> promise.complete())
-      );
+          .onComplete(updateAr -> promise.complete());
+      });
     return promise.future();
   }
 
@@ -151,7 +149,12 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
               addAdditionalFields(recordsToUpdate, okapiParams);
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, result, CREATE);
               journalService.saveBatch(new JsonArray(journalRecords), okapiParams.getTenantId());
-              promise.complete();
+              if (records.size() == instances.size()) {
+                promise.complete();
+              } else {
+                int errorRecordsAmount = records.size() - instances.size();
+                promise.fail(String.format("%s records of %s cannot be mapped to instance", errorRecordsAmount, records.size()));
+              }
             } else {
               List<JsonObject> journalRecords = buildJournalRecordsForProcessedInstances(instanceRecordMap, Collections.emptyList(), CREATE);
               journalService.saveBatch(new JsonArray(journalRecords), okapiParams.getTenantId());
@@ -333,7 +336,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
    * @param params        okapi connection params
    * @return future with updated JobExecutionSourceChunk entity
    */
-  private Future<JobExecutionSourceChunk> updateSourceChunkState(String sourceChunkId, JobExecutionSourceChunk.State state, OkapiConnectionParams params) {
+  private Future<JobExecutionSourceChunk> updateSourceChunkState(String sourceChunkId, State state, OkapiConnectionParams params) {
     return jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
       .compose(optional -> optional
         .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(state), params.getTenantId()))

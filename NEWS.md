@@ -1,8 +1,12 @@
 ## 2020-08-17 v2.5.0-SNAPSHOT
 * [MODSOURMAN-339](https://issues.folio.org/browse/MODSOURMAN-339) Disable CQL2PgJSON & CQLWrapper extra logging in mod-source-record-manager
 
-## 2020-08-17 v2.4.1-SNAPSHOT
-* [MODSOURMAN-363](https://issues.folio.org/browse/MODSOURMAN-363) New user with all permissions gets errors when importing with magic button
+## 2020-10-30 v2.4.2-SNAPSHOT
+* [MODSOURMAN-362](https://issues.folio.org/browse/MODSOURMAN-362) Mark job status with error when at least one record has not been parsed
+
+## 2020-10-26 v2.4.1
+* [MODSOURMAN-363](https://issues.folio.org/browse/MODSOURMAN-363) Fix permissions issues
+* Update mod-pubsub-client to v1.3.1
 
 ## 2020-08-17 v2.4.0
 * [MODSOURMAN-344](https://issues.folio.org/browse/MODSOURMAN-344) Fixed default MARC Bib-Instance mapping for 024 and 028 fields
