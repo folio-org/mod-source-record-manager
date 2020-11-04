@@ -1,4 +1,5 @@
 ## 2020-08-17 v2.5.0-SNAPSHOT
+* [MODSOURMAN-339](https://issues.folio.org/browse/MODSOURMAN-339) Disable CQL2PgJSON & CQLWrapper extra logging in mod-source-record-manager
 
 ## 2020-08-17 v2.4.1-SNAPSHOT
 * [MODSOURMAN-363](https://issues.folio.org/browse/MODSOURMAN-363) New user with all permissions gets errors when importing with magic button
