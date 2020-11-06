@@ -244,9 +244,27 @@
             "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.modes-of-issuance.collection.get",
-            "pubsub.publish.post",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.locations.collection.get",
+            "converter-storage.field-protection-settings.get",
             "inventory-storage.instances.item.get",
-            "inventory-storage.instances.item.put"
+            "inventory-storage.instances.item.put",
+            "pubsub.publish.post"
           ]
         }
       ]
