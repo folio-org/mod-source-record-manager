@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -15,12 +14,16 @@ import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.rest.client.SourceStorageBatchClient;
+import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.ActionProfile.Action;
+import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -83,29 +87,54 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Promise<List<Record>> promise = Promise.promise();
     List<Record> parsedRecords = parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
-    postRecords(params, jobExecution, parsedRecords)
-      .onComplete(postAr -> {
-        if (postAr.failed()) {
-          StatusDto statusDto = new StatusDto()
-            .withStatus(StatusDto.Status.ERROR)
-            .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-          jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-            .onComplete(r -> {
-              if (r.failed()) {
-                LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
-              }
-            });
-          jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-            .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-              .orElseThrow(() -> new NotFoundException(String.format(
-                "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
-            .onComplete(ar -> promise.fail(postAr.cause()));
-        } else {
-          promise.complete(parsedRecords);
-        }
-      });
+    boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
+
+    if (updateMarcActionExists) {
+      LOGGER.info("Records have not been sent to the record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      promise.complete(parsedRecords);
+    } else {
+      postRecords(params, jobExecution, parsedRecords)
+        .onComplete(postAr -> {
+          if (postAr.failed()) {
+            StatusDto statusDto = new StatusDto()
+              .withStatus(StatusDto.Status.ERROR)
+              .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+            jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
+              .onComplete(r -> {
+                if (r.failed()) {
+                  LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
+                }
+              });
+            jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+              .compose(optional -> optional
+                .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+                .orElseThrow(() -> new NotFoundException(String.format(
+                  "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
+              .onComplete(ar -> promise.fail(postAr.cause()));
+          } else {
+            promise.complete(parsedRecords);
+          }
+        });
+    }
     return promise.future();
+  }
+
+  private boolean containsUpdateMarcActionProfile(ProfileSnapshotWrapper profileSnapshot) {
+    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
+      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+        && actionProfileMatches(childWrapper, FolioRecord.MARC_BIBLIOGRAPHIC, Action.UPDATE)) {
+        return true;
+      } else if (containsUpdateMarcActionProfile(childWrapper)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper, FolioRecord folioRecord, Action action) {
+    ActionProfile actionProfile = new JsonObject((Map) actionProfileWrapper.getContent()).mapTo(ActionProfile.class);
+    return actionProfile.getFolioRecord() == folioRecord && actionProfile.getAction() == action;
   }
 
   /**
