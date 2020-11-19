@@ -210,9 +210,10 @@
         {
           "methods": ["DELETE"],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
-          "permissionsRequired" : [ "change-manager.records.delete" ],
+          "permissionsRequired": [ "change-manager.records.delete" ],
           "modulePermissions": [
-            "source-storage.snapshots.records.delete"
+            "source-storage.snapshots.put",
+            "source-storage.snapshots.delete"
           ]
         }
       ]
@@ -224,7 +225,7 @@
         {
           "methods": ["GET"],
           "pathPattern": "/change-manager/parsedRecords",
-          "permissionsRequired" : [ "change-manager.parsedrecords.get" ],
+          "permissionsRequired": [ "change-manager.parsedrecords.get" ],
           "modulePermissions": [
             "source-storage.sourceRecords.get"
           ]
@@ -232,7 +233,7 @@
         {
           "methods": ["PUT"],
           "pathPattern": "/change-manager/parsedRecords/{id}",
-          "permissionsRequired" : [ "change-manager.parsedrecords.put" ],
+          "permissionsRequired": [ "change-manager.parsedrecords.put" ],
           "modulePermissions": [
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
