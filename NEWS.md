@@ -3,9 +3,10 @@
 * [MODSOURMAN-369](https://issues.folio.org/browse/MODSOURMAN-369) Upgrade to RMB v31.1.5
 
 ## 2020-08-17 v2.4.3-SNAPSHOT
+* [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working
 * [MODSOURMAN-374](https://issues.folio.org/browse/MODSOURMAN-374) Fixed permissions for stuck job deletion interface 
 
-## 2020-10-30 v2.4.2-SNAPSHOT
+## 2020-10-30 v2.4.2
 * [MODSOURMAN-362](https://issues.folio.org/browse/MODSOURMAN-362) Mark job status with error when at least one record has not been parsed
 
 ## 2020-10-26 v2.4.1
