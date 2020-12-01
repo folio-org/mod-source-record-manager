@@ -1,4 +1,5 @@
-## xxxx-xx-xx v2.5.0-SNAPSHOT
+## 2020-11-29 v2.5.0-SNAPSHOT
+* [MODSOURMAN-380](https://issues.folio.org/browse/MODSOURMAN-380) Expand journalRecord entity with "title" property.
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working
