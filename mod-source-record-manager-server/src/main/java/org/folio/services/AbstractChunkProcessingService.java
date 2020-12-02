@@ -68,6 +68,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             LOGGER.error(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
           }
+          if (jobExecution.getStatus() == JobExecution.Status.COMMITTED) {
+            return Future.succeededFuture(jobExecution);
+          }
           if (!status.getStatus().value().equals(jobExecution.getStatus().value())) {
             return jobExecutionService.updateJobExecutionStatus(jobExecutionId, status, params);
           }
