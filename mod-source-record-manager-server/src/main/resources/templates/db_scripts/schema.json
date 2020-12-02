@@ -111,7 +111,7 @@
     {
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS title text NULL;",
-      "fromModuleVersion": "mod-source-record-manager-2.5.0-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-2.5.0"
     }
   ]
 }
