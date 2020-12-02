@@ -240,7 +240,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-      if(jobProfileInfo.getName().isBlank()){
+      if (jobProfileInfo.getName().isBlank()) {
         jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
       }
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
