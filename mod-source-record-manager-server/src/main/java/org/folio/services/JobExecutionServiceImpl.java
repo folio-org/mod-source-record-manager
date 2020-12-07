@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -240,7 +242,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-      jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
+      if (jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+        jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
+      }
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
         .withJobProfileInfo(jobProfileInfo)
         .withRunBy(buildRunByFromUserInfo(userInfo)));
