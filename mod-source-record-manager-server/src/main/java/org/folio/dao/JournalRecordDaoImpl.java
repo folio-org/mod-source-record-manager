@@ -2,34 +2,33 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.impl.FailedFuture;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
-
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import javax.ws.rs.BadRequestException;
-
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
+import org.folio.rest.jaxrs.model.Entry;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import javax.ws.rs.BadRequestException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -39,13 +38,16 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JournalRecordDaoImpl.class);
-  private final Set<String> sortableFields = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("source_record_order", "action_type", "error")));
+  private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
+  private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
+    "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
 
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
+  private static final String GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM get_job_log_entries('%s', '%s', '%s', %s, %s)";
   private static final String GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY = "SELECT job_execution_id, entity_type, action_type, " +
     "COUNT(*) FILTER (WHERE action_status = 'COMPLETED') AS total_completed, " +
     "COUNT(*) FILTER (WHERE action_status = 'ERROR') AS total_failed " +
@@ -118,6 +120,17 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return promise.future().map(this::mapResultSetToJobExecutionLogDto);
   }
 
+  @Override
+  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
+    if (sortBy != null && !jobLogEntrySortableFields.contains(sortBy)) {
+      return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
+    }
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = format(GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY, jobExecutionId, sortBy, order, limit, offset);
+    pgClientFactory.createInstance(tenantId).select(query, promise);
+    return promise.future().map(this::mapRowSetToJobLogDtoCollection);
+  }
+
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
     List<JournalRecord> journalRecords = new ArrayList<>();
     resultSet.forEach(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
@@ -159,6 +172,35 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       throw new BadRequestException(format("The specified field for sorting journal records is invalid: '%s'", sortBy));
     }
     return format(ORDER_BY_PATTERN, sortBy, order);
+  }
+
+  private JobLogEntryDtoCollection mapRowSetToJobLogDtoCollection(RowSet<Row> rowSet) {
+    JobLogEntryDtoCollection jobLogEntryDtoCollection = new JobLogEntryDtoCollection()
+      .withTotalRecords(0);
+
+    rowSet.forEach(row -> {
+      Entry jobLogEntryDto = new Entry()      //todo: add javaType to the schema!
+        .withJobExecutionId(row.getValue("job_execution_id").toString())
+        .withSourceRecordId(row.getValue("source_id").toString())
+        .withSourceRecordOrder(row.getInteger("source_record_order"))
+        .withSourceRecordTitle(row.getString("title"))
+        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString("source_record_action_status")))
+        .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString("instance_action_status")))
+        .withHoldingsActionStatus(mapNameToEntityActionStatus(row.getString("holdings_action_status")))
+        .withItemActionStatus(mapNameToEntityActionStatus(row.getString("item_action_status")))
+        .withOrderActionStatus(mapNameToEntityActionStatus(row.getString("order_action_status")))
+        .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString("invoice_action_status")))
+        .withError(row.getString("error"));
+
+      jobLogEntryDtoCollection
+        .withTotalRecords(row.getInteger("total_count"))
+        .getEntries().add(jobLogEntryDto);
+    });
+    return jobLogEntryDtoCollection;
+  }
+
+  private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {
+    return name == null ? null : org.folio.rest.jaxrs.model.ActionStatus.fromValue(name);
   }
 
 }
