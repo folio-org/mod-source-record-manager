@@ -2,7 +2,6 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.impl.FailedFuture;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.sqlclient.Row;
@@ -10,8 +9,8 @@ import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
-import org.folio.rest.jaxrs.model.Entry;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
@@ -179,7 +178,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withTotalRecords(0);
 
     rowSet.forEach(row -> {
-      Entry jobLogEntryDto = new Entry()      //todo: add javaType to the schema!
+      JobLogEntryDto jobLogEntryDto = new JobLogEntryDto()
         .withJobExecutionId(row.getValue("job_execution_id").toString())
         .withSourceRecordId(row.getValue("source_id").toString())
         .withSourceRecordOrder(row.getInteger("source_record_order"))
