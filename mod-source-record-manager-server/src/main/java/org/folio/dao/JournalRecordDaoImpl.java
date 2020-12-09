@@ -42,7 +42,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
 
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
@@ -81,7 +81,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       journalRecord.getActionType().toString(),
       journalRecord.getActionStatus().toString(),
       journalRecord.getError() != null ? journalRecord.getError() : EMPTY,
-      Timestamp.from(journalRecord.getActionDate().toInstant()).toLocalDateTime());
+      Timestamp.from(journalRecord.getActionDate().toInstant()).toLocalDateTime(),
+      journalRecord.getTitle());
   }
 
   @Override
