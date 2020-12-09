@@ -271,6 +271,17 @@
       ]
     },
     {
+      "id": "metadata-provider-job-execution-logs",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}",
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
+        }
+      ]
+    },
+    {
       "id": "mapping-rules-provider",
       "version": "1.0",
       "handlers": [
@@ -407,7 +418,7 @@
       "description": "Get parsed record"
     },
     {
-      "permissionName":  "change-manager.parsedrecords.put",
+      "permissionName": "change-manager.parsedrecords.put",
       "displayName": "Change Manager - update parsed record by id",
       "description": "Update parsed record"
     },
