@@ -31,6 +31,27 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
+import static org.folio.dao.util.JournalRecordsColumns.ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.ACTION_TYPE;
+import static org.folio.dao.util.JournalRecordsColumns.ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.ENTITY_TYPE;
+import static org.folio.dao.util.JournalRecordsColumns.ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.ID;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.JOB_EXECUTION_ID;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
+import static org.folio.dao.util.JournalRecordsColumns.TITLE;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
@@ -122,7 +143,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
-    if (sortBy != null && !jobLogEntrySortableFields.contains(sortBy)) {
+    if (!jobLogEntrySortableFields.contains(sortBy)) {
       return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
     }
     Promise<RowSet<Row>> promise = Promise.promise();
@@ -139,29 +160,29 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private JournalRecord mapRowJsonToJournalRecord(Row row) {
     return new JournalRecord()
-      .withId(row.getValue("id").toString())
-      .withJobExecutionId(row.getValue("job_execution_id").toString())
-      .withSourceId(row.getValue("source_id").toString())
-      .withSourceRecordOrder(row.getInteger("source_record_order"))
-      .withEntityType(EntityType.valueOf(row.getString("entity_type")))
-      .withEntityId(row.getString("entity_id"))
-      .withEntityHrId(row.getString("entity_hrid"))
-      .withActionType(ActionType.valueOf(row.getString("action_type")))
-      .withActionStatus(ActionStatus.valueOf(row.getString("action_status")))
-      .withError(row.getString("error"))
-      .withActionDate(Date.from(LocalDateTime.parse(row.getValue("action_date").toString()).toInstant(ZoneOffset.UTC)));
+      .withId(row.getValue(ID).toString())
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withSourceId(row.getValue(SOURCE_ID).toString())
+      .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+      .withEntityType(EntityType.valueOf(row.getString(ENTITY_TYPE)))
+      .withEntityId(row.getString(ENTITY_ID))
+      .withEntityHrId(row.getString(ENTITY_HRID))
+      .withActionType(ActionType.valueOf(row.getString(ACTION_TYPE)))
+      .withActionStatus(ActionStatus.valueOf(row.getString(ACTION_STATUS)))
+      .withError(row.getString(ERROR))
+      .withActionDate(Date.from(LocalDateTime.parse(row.getValue(ACTION_DATE).toString()).toInstant(ZoneOffset.UTC)));
   }
 
   private JobExecutionLogDto mapResultSetToJobExecutionLogDto(RowSet<Row> resultSet) {
     JobExecutionLogDto jobExecutionSummary = new JobExecutionLogDto();
     resultSet.forEach(row -> {
       ActionLog actionLog = new ActionLog()
-        .withEntityType(row.getString("entity_type"))
-        .withActionType(row.getString("action_type"))
-        .withTotalCompleted(row.getInteger("total_completed"))
-        .withTotalFailed(row.getInteger("total_failed"));
+        .withEntityType(row.getString(ENTITY_TYPE))
+        .withActionType(row.getString(ACTION_TYPE))
+        .withTotalCompleted(row.getInteger(TOTAL_COMPLETED))
+        .withTotalFailed(row.getInteger(TOTAL_FAILED));
 
-      jobExecutionSummary.withJobExecutionId(row.getValue("job_execution_id").toString());
+      jobExecutionSummary.withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString());
       jobExecutionSummary.getJobExecutionResultLogs().add(actionLog);
     });
     return jobExecutionSummary;
@@ -180,20 +201,20 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
     rowSet.forEach(row -> {
       JobLogEntryDto jobLogEntryDto = new JobLogEntryDto()
-        .withJobExecutionId(row.getValue("job_execution_id").toString())
-        .withSourceRecordId(row.getValue("source_id").toString())
-        .withSourceRecordOrder(row.getInteger("source_record_order"))
-        .withSourceRecordTitle(row.getString("title"))
-        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString("source_record_action_status")))
-        .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString("instance_action_status")))
-        .withHoldingsActionStatus(mapNameToEntityActionStatus(row.getString("holdings_action_status")))
-        .withItemActionStatus(mapNameToEntityActionStatus(row.getString("item_action_status")))
-        .withOrderActionStatus(mapNameToEntityActionStatus(row.getString("order_action_status")))
-        .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString("invoice_action_status")))
-        .withError(row.getString("error"));
+        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+        .withSourceRecordTitle(row.getString(TITLE))
+        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+        .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
+        .withHoldingsActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
+        .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
+        .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+        .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+        .withError(row.getString(ERROR));
 
       jobLogEntryDtoCollection
-        .withTotalRecords(row.getInteger("total_count"))
+        .withTotalRecords(row.getInteger(TOTAL_COUNT))
         .getEntries().add(jobLogEntryDto);
     });
     return jobLogEntryDtoCollection;

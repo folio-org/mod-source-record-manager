@@ -5,6 +5,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
@@ -21,6 +23,7 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataProviderImpl.class);
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
@@ -99,6 +102,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
+        LOGGER.error("Failed to retrieve JobLogEntryDto entities by JobExecution id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
