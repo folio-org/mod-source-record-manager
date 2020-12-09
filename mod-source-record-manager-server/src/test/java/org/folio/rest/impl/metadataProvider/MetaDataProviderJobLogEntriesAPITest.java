@@ -29,6 +29,7 @@ import java.util.UUID;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -70,7 +71,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnMarcBibUpdatedWhenMarcBibUpdateIsLastAction(TestContext context) {
+  public void shouldReturnMarcBibUpdatedWhenMarcBibWasUpdated(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
@@ -98,14 +99,14 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnMarcBibUpdatedWhenMarcBibModifyIsLastAction(TestContext context) {
+  public void shouldReturnMarcBibUpdatedWhenMarcBibWasModified(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -256,7 +257,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .queryParam("offset", "1")
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
-        .then().log().all()
+        .then()
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(1))
         .body("totalRecords", is(3))
