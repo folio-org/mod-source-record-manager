@@ -76,10 +76,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -93,6 +94,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.UPDATED.value()));
 
       async.complete();
@@ -104,10 +106,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, recordTitle,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -121,6 +124,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.UPDATED.value()));
 
       async.complete();
@@ -132,10 +136,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
 
     Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, NON_MATCH, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, recordTitle,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, NON_MATCH, INSTANCE, COMPLETED, null))
       .onSuccess(v -> async.complete())
       .onFailure(context::fail);
 
@@ -150,6 +156,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .body("totalRecords", is(1))
       .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
       .body("entries[0].sourceRecordId", is(sourceRecordId))
+      .body("entries[0].sourceRecordTitle", is(recordTitle))
       .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
       .body("entries[0].instanceActionStatus", is(ActionStatus.DISCARDED.value()))
       .body("entries[0].error", emptyOrNullString());
@@ -160,10 +167,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, INSTANCE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, recordTitle,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, CREATE, INSTANCE, ERROR, "error msg"))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -177,6 +185,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].instanceActionStatus", is(ActionStatus.DISCARDED.value()))
         .body("entries[0].error", not(emptyOrNullString()));
 
@@ -189,11 +198,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, HOLDINGS, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, UPDATE, HOLDINGS, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, recordTitle,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, CREATE, HOLDINGS, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null,0, UPDATE, HOLDINGS, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -206,6 +216,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].holdingsActionStatus", is(ActionStatus.MULTIPLE.value()));
 
       async.complete();
@@ -221,12 +232,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String sourceRecordId3 = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, 1, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, 0, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, 3, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null,1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null,1, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null,0, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null,3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null,3, CREATE, INSTANCE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -267,14 +278,15 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
     String sourceRecordId3 = UUID.randomUUID().toString();
+    String recordTitle1 = "title1";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, 1, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, 0, CREATE, INSTANCE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, 3, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, recordTitle1,1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null,1, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, "title0",0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null,0, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, "title3",3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null,3, CREATE, INSTANCE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -292,17 +304,19 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(3))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId1))
+        .body("entries[0].sourceRecordTitle", is(recordTitle1))
         .body("entries[0].sourceRecordOrder", is(1));
 
       async.complete();
     }));
   }
 
-  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, int recordOrder, JournalRecord.ActionType actionType,
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String title, int recordOrder, JournalRecord.ActionType actionType,
                                                     JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage) {
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(jobExecutionId)
       .withSourceId(sourceId)
+      .withTitle(title)
       .withSourceRecordOrder(recordOrder)
       .withEntityType(entityType)
       .withActionType(actionType)
