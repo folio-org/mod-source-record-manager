@@ -11,8 +11,8 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
-import org.folio.rest.jaxrs.model.Entry;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.junit.Before;
@@ -30,6 +30,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -127,6 +128,34 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnInstanceDiscardedWhenInstanceWasNotMatched(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, 0, NON_MATCH, INSTANCE, COMPLETED, null))
+      .onSuccess(v -> async.complete())
+      .onFailure(context::fail);
+
+    async.awaitSuccess();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("entries.size()", is(1))
+      .body("totalRecords", is(1))
+      .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+      .body("entries[0].sourceRecordId", is(sourceRecordId))
+      .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+      .body("entries[0].instanceActionStatus", is(ActionStatus.DISCARDED.value()))
+      .body("entries[0].error", emptyOrNullString());
+  }
+
+  @Test
   public void shouldReturnInstanceDiscardedWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -201,7 +230,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      List<Entry> jobLogEntries = RestAssured.given()
+      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
         .spec(spec)
         .queryParam("sortBy", "source_record_order")
         .queryParam("order", "desc")
