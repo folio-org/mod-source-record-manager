@@ -111,7 +111,17 @@
     {
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS title text NULL;",
-      "fromModuleVersion": "mod-source-record-manager-2.5.0-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-2.5.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE INDEX IF NOT EXISTS journal_records_job_execution_id_idx ON journal_records USING BTREE (job_execution_id);",
+      "fromModuleVersion": "mod-source-record-manager-2.5.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_job_log_entries_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-2.5.0"
     }
   ]
 }
