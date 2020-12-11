@@ -86,8 +86,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
-      update(rules, tenantId)
-        .onComplete(promise);
+      update(rules, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);
