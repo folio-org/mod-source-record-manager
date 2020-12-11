@@ -150,7 +150,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     MockitoAnnotations.initMocks(this);
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mockedJournalService, mappingRulesCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
+    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRulesCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
     journalService = new JournalServiceImpl(journalRecordDao);

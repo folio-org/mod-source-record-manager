@@ -8,6 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.dao.MappingRuleDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,18 +20,18 @@ public class MappingRulesCache {
 
   private static final Logger LOG = LoggerFactory.getLogger(MappingRulesCache.class);
 
-  private MappingRuleService mappingRuleService;
+  private MappingRuleDao mappingRuleDao;
   private AsyncLoadingCache<String, Optional<JsonObject>> cache;
 
   @Autowired
-  public MappingRulesCache(MappingRuleService mappingRuleService, Vertx vertx) {
-    this.mappingRuleService = mappingRuleService;
+  public MappingRulesCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
+    this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
       .maximumSize(1)
       .buildAsync((key, executor) -> {
         CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-        executor.execute(() -> mappingRuleService.get(key)
+        executor.execute(() -> mappingRuleDao.get(key)
           .onFailure(throwable -> future.completeExceptionally(throwable))
           .onSuccess(optional -> future.complete(optional)));
         return future;
@@ -50,6 +51,7 @@ public class MappingRulesCache {
   }
 
   public void put(String tenantId, JsonObject mappingRules) {
+    cache.synchronous().invalidate(tenantId);
     cache.put(tenantId, CompletableFuture.completedFuture(Optional.of(mappingRules)));
   }
 }

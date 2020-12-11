@@ -24,9 +24,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_RULES_PATH = "rules/rules.json";
   private MappingRuleDao mappingRuleDao;
+  private MappingRulesCache mappingRulesCache;
 
-  public MappingRuleServiceImpl(@Autowired MappingRuleDao mappingRuleDao) {
+  @Autowired
+  public MappingRuleServiceImpl(MappingRuleDao mappingRuleDao, MappingRulesCache mappingRulesCache) {
     this.mappingRuleDao = mappingRuleDao;
+    this.mappingRulesCache = mappingRulesCache;
   }
 
   @Override
@@ -66,7 +69,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   public Future<JsonObject> update(String rules, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
-      mappingRuleDao.update(new JsonObject(rules), tenantId).onComplete(promise);
+      mappingRuleDao.update(new JsonObject(rules), tenantId)
+        .onSuccess(updatedRules -> mappingRulesCache.put(tenantId, updatedRules))
+        .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
       LOGGER.error(errorMessage);
@@ -81,7 +86,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
-      update(rules, tenantId).onComplete(promise);
+      update(rules, tenantId)
+        .onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);
