@@ -74,19 +74,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
-
-  private MappingRuleService mappingRuleService; // todo: change to cache
+  private MappingRulesCache mappingRulesCache;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
-                                 @Autowired MappingRuleService mappingRulesProvider) {
+                                 @Autowired MappingRulesCache mappingRulesCache) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
-    this.mappingRuleService = mappingRulesProvider;
+    this.mappingRulesCache = mappingRulesCache;
   }
 
   @Override
@@ -267,7 +266,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<JsonObject>> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
                                                                           JournalRecord.ActionType actionType, String tenantId) {
-    return mappingRuleService.get(tenantId)
+    return mappingRulesCache.get(tenantId)
       .map(rulesOptional -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, rulesOptional))
       .otherwise(th -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, Optional.empty()));
   }
