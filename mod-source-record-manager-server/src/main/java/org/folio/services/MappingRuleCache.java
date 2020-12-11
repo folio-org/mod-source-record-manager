@@ -14,28 +14,36 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Component
-public class MappingRulesCache {
+public class MappingRuleCache {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MappingRulesCache.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MappingRuleCache.class);
 
   private MappingRuleDao mappingRuleDao;
   private AsyncLoadingCache<String, Optional<JsonObject>> cache;
 
   @Autowired
-  public MappingRulesCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
+  public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
     this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
       .maximumSize(1)
-      .buildAsync((key, executor) -> {
-        CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-        executor.execute(() -> mappingRuleDao.get(key)
-          .onFailure(throwable -> future.completeExceptionally(throwable))
-          .onSuccess(optional -> future.complete(optional)));
-        return future;
-      });
+      .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
+  }
+
+  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
+    CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
+    executor.execute(() -> mappingRuleDao.get(tenantId).onComplete(ar -> {
+      if (ar.failed()) {
+        LOG.error("Failed to load mapping rules for tenant '{}' from data base", ar.cause(), tenantId);
+        future.completeExceptionally(ar.cause());
+        return;
+      }
+      future.complete(ar.result());
+    }));
+    return future;
   }
 
   public Future<Optional<JsonObject>> get(String tenantId) {

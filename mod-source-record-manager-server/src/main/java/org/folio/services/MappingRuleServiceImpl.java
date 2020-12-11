@@ -24,12 +24,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_RULES_PATH = "rules/rules.json";
   private MappingRuleDao mappingRuleDao;
-  private MappingRulesCache mappingRulesCache;
+  private MappingRuleCache mappingRuleCache;
 
   @Autowired
-  public MappingRuleServiceImpl(MappingRuleDao mappingRuleDao, MappingRulesCache mappingRulesCache) {
+  public MappingRuleServiceImpl(MappingRuleDao mappingRuleDao, MappingRuleCache mappingRuleCache) {
     this.mappingRuleDao = mappingRuleDao;
-    this.mappingRulesCache = mappingRulesCache;
+    this.mappingRuleCache = mappingRuleCache;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
       mappingRuleDao.update(new JsonObject(rules), tenantId)
-        .onSuccess(updatedRules -> mappingRulesCache.put(tenantId, updatedRules))
+        .onSuccess(updatedRules -> mappingRuleCache.put(tenantId, updatedRules))
         .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";

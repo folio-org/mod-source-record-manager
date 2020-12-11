@@ -93,7 +93,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
   @Spy
   @InjectMocks
-  private MappingRulesCache mappingRulesCache;
+  private MappingRuleCache mappingRuleCache;
   @Spy
   @InjectMocks
   private MappingRuleServiceImpl mappingRuleService;
@@ -148,9 +148,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mockedJournalService, mappingRulesCache);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mockedJournalService, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRulesCache);
+    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
     journalService = new JournalServiceImpl(journalRecordDao);

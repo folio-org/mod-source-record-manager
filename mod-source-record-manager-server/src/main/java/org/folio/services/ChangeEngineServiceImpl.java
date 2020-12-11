@@ -74,18 +74,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
-  private MappingRulesCache mappingRulesCache;
+  private MappingRuleCache mappingRuleCache;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
-                                 @Autowired MappingRulesCache mappingRulesCache) {
+                                 @Autowired MappingRuleCache mappingRuleCache) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
-    this.mappingRulesCache = mappingRulesCache;
+    this.mappingRuleCache = mappingRuleCache;
   }
 
   @Override
@@ -264,9 +264,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return response.statusCode() == status.toInt();
   }
 
+  /**
+   * Builds list of journal records which contain info about records processing result
+   *
+   * @param records          records that should be created
+   * @param processedRecords created records
+   * @param actionType       action type which was performed on instances during processing
+   * @return future with list of journal records represented as json objects
+   */
   private Future<List<JsonObject>> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
                                                                           JournalRecord.ActionType actionType, String tenantId) {
-    return mappingRulesCache.get(tenantId)
+    return mappingRuleCache.get(tenantId)
       .map(rulesOptional -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, rulesOptional))
       .otherwise(th -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, Optional.empty()));
   }

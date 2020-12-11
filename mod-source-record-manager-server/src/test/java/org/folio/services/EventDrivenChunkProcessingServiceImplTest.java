@@ -93,7 +93,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   JobExecutionDaoImpl jobExecutionDao;
   @Spy
   @InjectMocks
-  private MappingRulesCache mappingRulesCache;
+  private MappingRuleCache mappingRuleCache;
   @Spy
   @InjectMocks
   private MappingRuleServiceImpl mappingRuleService;
@@ -148,10 +148,10 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRulesCache);
+    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao), mappingRulesCache);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao), mappingRuleCache);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
 
     HashMap<String, String> headers = new HashMap<>();
