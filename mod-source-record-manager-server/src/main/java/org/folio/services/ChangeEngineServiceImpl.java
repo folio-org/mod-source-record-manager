@@ -36,6 +36,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
+import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -46,11 +47,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
@@ -72,14 +75,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
 
+  private MappingRuleService mappingRuleService; // todo: change to cache
+
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
-                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
+                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
+                                 @Autowired MappingRuleService mappingRulesProvider) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
+    this.mappingRuleService = mappingRulesProvider;
   }
 
   @Override
@@ -236,16 +243,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             promise.handle(
               Try.itGet(() -> {
                 List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
-                List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE);
-                journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
+                buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE, params.getTenantId())
+                  .onComplete(recordsAr -> journalService.saveBatch(new JsonArray(recordsAr.result()), params.getTenantId()));
                 return createdRecords;
               })
                 .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
             )
           );
         } else {
-          List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, Collections.emptyList(), CREATE);
-          journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
+          buildJournalRecordsForProcessedRecords(parsedRecords, Collections.emptyList(), CREATE, params.getTenantId())
+            .onComplete(recordsAr -> journalService.saveBatch(new JsonArray(recordsAr.result()), params.getTenantId()));
           String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
           LOGGER.error(message);
           promise.fail(message);
@@ -258,6 +265,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return response.statusCode() == status.toInt();
   }
 
+  private Future<List<JsonObject>> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
+                                                                          JournalRecord.ActionType actionType, String tenantId) {
+    return mappingRuleService.get(tenantId)
+      .map(rulesOptional -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, rulesOptional))
+      .otherwise(th -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, Optional.empty()));
+  }
+
   /**
    * Builds list of journal records represented as json objects,
    * which contain info about records processing result
@@ -268,13 +282,27 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return list of journal records represented as json objects
    */
   private List<JsonObject> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
-                                                                  JournalRecord.ActionType actionType) {
+                                                                  JournalRecord.ActionType actionType, Optional<JsonObject> mappingRulesOptional) {
+    String titleFieldTag = null;
+    List<String> subfieldCodes = null;
+    if (mappingRulesOptional.isPresent()) {
+      JsonObject mappingRules = mappingRulesOptional.get();
+
+      titleFieldTag = getMarcFieldByInstanceFieldPath(mappingRules, "title").get();
+      subfieldCodes = mappingRules.getJsonArray(titleFieldTag).stream()
+        .map(JsonObject.class::cast)
+        .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals("title"))
+        .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
+        .map(subfieldCode -> subfieldCode.toString())
+        .collect(Collectors.toList());
+    }
+
     Set<String> createdRecordIds = processedRecords.stream()
       .map(Record::getId)
       .collect(Collectors.toSet());
 
     List<JsonObject> journalRecords = new ArrayList<>();
-    records.forEach(record -> {
+    for (Record record : records) {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceRecordOrder(record.getOrder())
@@ -283,12 +311,26 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
+        .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
+          ? retrieveInstanceTitle(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null)
         .withActionStatus(record.getErrorRecord() == null && createdRecordIds.contains(record.getId())
           ? JournalRecord.ActionStatus.COMPLETED
           : JournalRecord.ActionStatus.ERROR);
 
       journalRecords.add(JsonObject.mapFrom(journalRecord));
-    });
+    }
     return journalRecords;
+  }
+
+  private Optional<String> getMarcFieldByInstanceFieldPath(JsonObject mappingRules, String instanceFieldPath) {
+    return mappingRules.getMap().keySet().stream()
+      .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
+        .map(o -> (JsonObject) o)
+        .anyMatch(fieldMappingRule -> instanceFieldPath.equals(fieldMappingRule.getString("target"))))
+      .findFirst();
+  }
+
+  private String retrieveInstanceTitle(ParsedRecord parsedRecord, String fieldTag, List<String> subfieldCodes) {
+    return ParsedRecordUtil.retrieveDataByField(parsedRecord, fieldTag, subfieldCodes);
   }
 }

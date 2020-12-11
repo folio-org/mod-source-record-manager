@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
@@ -22,6 +23,7 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +42,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static java.util.Arrays.asList;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.blankOrNullString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -600,6 +603,66 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST)
       .body(Matchers.notNullValue(String.class));
+  }
+
+  @Test
+  public void shouldReturnJournalRecordsWithTitleWhenSortedBySourceRecordOrder2(TestContext testContext) {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    MatcherAssert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    String expectedRecordTitle = "The Journal of ecclesiastical history.";
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(INVENTORY_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(UUID.randomUUID().toString())
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(false)
+        .withCounter(1)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(Arrays.asList(new InitialRecord().withRecord(RAW_RECORD).withOrder(0),
+        new InitialRecord().withRecord(RAW_RECORD).withOrder(1)));
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .queryParam(QUERY_PARAM_NAME, true)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+      RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=source_record_order&order=desc")
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("journalRecords.size()", is(4))
+      .extract().response().body().as(JournalRecordCollection.class).getJournalRecords()
+      .stream()
+      .filter(journalRecord -> journalRecord.getEntityType().equals(EntityType.MARC_BIBLIOGRAPHIC))
+      .forEach(journalRecord -> MatcherAssert.assertThat(journalRecord.getTitle(), is(expectedRecordTitle)));
+    async.complete();
   }
 
   private JobExecution putJobExecution(JobExecution jobExecution) {
