@@ -29,7 +29,6 @@ public class MappingRuleCache {
     this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
-      .maximumSize(1)
       .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
   }
 
@@ -59,7 +58,6 @@ public class MappingRuleCache {
   }
 
   public void put(String tenantId, JsonObject mappingRules) {
-    cache.synchronous().invalidate(tenantId);
     cache.put(tenantId, CompletableFuture.completedFuture(Optional.of(mappingRules)));
   }
 }
