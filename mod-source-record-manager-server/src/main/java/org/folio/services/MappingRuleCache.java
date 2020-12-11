@@ -16,6 +16,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+/**
+ * In-memory cache for the mapping rules
+ */
 @Component
 public class MappingRuleCache {
 
@@ -45,6 +48,11 @@ public class MappingRuleCache {
     return future;
   }
 
+  /**
+   * Returns mapping rules associated with specified tenant id
+   * @param  tenantId tenant id
+   * @return optional with mapping rules
+   */
   public Future<Optional<JsonObject>> get(String tenantId) {
     Promise<Optional<JsonObject>> promise = Promise.promise();
     cache.get(tenantId).whenComplete((rulesOptional, e) -> {
@@ -57,6 +65,11 @@ public class MappingRuleCache {
     return promise.future();
   }
 
+  /**
+   * Saves mapping rules in this cache for the specified tenant id
+   * @param tenantId      tenant id
+   * @param mappingRules  mapping rules
+   */
   public void put(String tenantId, JsonObject mappingRules) {
     cache.put(tenantId, CompletableFuture.completedFuture(Optional.of(mappingRules)));
   }
