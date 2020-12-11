@@ -93,9 +93,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   JobExecutionDaoImpl jobExecutionDao;
   @Spy
   @InjectMocks
-  private MappingRuleCache mappingRuleCache;
-  @Spy
-  @InjectMocks
   private MappingRuleServiceImpl mappingRuleService;
   @Spy
   @InjectMocks
@@ -121,6 +118,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
 
+  private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
   private OkapiConnectionParams params;
@@ -148,11 +146,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao), mappingRuleCache);
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleCache, vertx);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
