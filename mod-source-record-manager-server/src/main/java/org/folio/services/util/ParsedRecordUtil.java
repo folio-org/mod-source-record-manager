@@ -17,6 +17,15 @@ public final class ParsedRecordUtil {
   private ParsedRecordUtil() {
   }
 
+  /**
+   * Retrieve data from specified subfields of specified marc field.
+   * Subfields data returns as a concatenated string in which they are separated by space character.
+   *
+   * @param parsedRecord  parsed marc record
+   * @param fieldTag      marc field tag
+   * @param subfieldCodes subfields codes
+   * @return data from specified subfields concatenated and separated by space character
+   */
   public static String retrieveDataByField(ParsedRecord parsedRecord, String fieldTag, List<String> subfieldCodes) {
     JsonObject parsedContent = new JsonObject(parsedRecord.getContent().toString());
     JsonArray fields = parsedContent.getJsonArray("fields");

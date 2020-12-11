@@ -69,6 +69,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
+  private static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -294,14 +295,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     List<String> subfieldCodes = null;
     if (mappingRulesOptional.isPresent()) {
       JsonObject mappingRules = mappingRulesOptional.get();
+      Optional<String> titleFieldOptional = getTitleFieldTagByInstanceFieldPath(mappingRules);
 
-      titleFieldTag = getMarcFieldByInstanceFieldPath(mappingRules, "title").get();
-      subfieldCodes = mappingRules.getJsonArray(titleFieldTag).stream()
-        .map(JsonObject.class::cast)
-        .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals("title"))
-        .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
-        .map(subfieldCode -> subfieldCode.toString())
-        .collect(Collectors.toList());
+      if (titleFieldOptional.isPresent()) {
+        titleFieldTag = titleFieldOptional.get();
+        subfieldCodes = mappingRules.getJsonArray(titleFieldTag).stream()
+          .map(JsonObject.class::cast)
+          .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
+          .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
+          .map(subfieldCode -> subfieldCode.toString())
+          .collect(Collectors.toList());
+      }
     }
 
     Set<String> createdRecordIds = processedRecords.stream()
@@ -319,7 +323,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withActionType(actionType)
         .withActionDate(new Date())
         .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
-          ? retrieveInstanceTitle(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null)
+          ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null)
         .withActionStatus(record.getErrorRecord() == null && createdRecordIds.contains(record.getId())
           ? JournalRecord.ActionStatus.COMPLETED
           : JournalRecord.ActionStatus.ERROR);
@@ -329,15 +333,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return journalRecords;
   }
 
-  private Optional<String> getMarcFieldByInstanceFieldPath(JsonObject mappingRules, String instanceFieldPath) {
+  private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
     return mappingRules.getMap().keySet().stream()
       .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
         .map(o -> (JsonObject) o)
-        .anyMatch(fieldMappingRule -> instanceFieldPath.equals(fieldMappingRule.getString("target"))))
+        .anyMatch(fieldMappingRule -> INSTANCE_TITLE_FIELD_PATH.equals(fieldMappingRule.getString("target"))))
       .findFirst();
-  }
-
-  private String retrieveInstanceTitle(ParsedRecord parsedRecord, String fieldTag, List<String> subfieldCodes) {
-    return ParsedRecordUtil.retrieveDataByField(parsedRecord, fieldTag, subfieldCodes);
   }
 }
