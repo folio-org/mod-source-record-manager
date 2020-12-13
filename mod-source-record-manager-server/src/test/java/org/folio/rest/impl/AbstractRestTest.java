@@ -161,7 +161,7 @@ public abstract class AbstractRestTest {
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
-      .dynamicPort()
+      .port(NetworkUtils.nextFreePort())
       .notifier(new Slf4jNotifier(true))
       .extensions(new RequestToResponseTransformer(), new InstancesBatchResponseTransformer())
   );
@@ -188,7 +188,7 @@ public abstract class AbstractRestTest {
       if (useExternalDatabase.equals("embedded")) {
         PostgresClient.stopEmbeddedPostgres();
       }
-      cluster.stop();
+      cluster.close();
       async.complete();
     }));
   }
