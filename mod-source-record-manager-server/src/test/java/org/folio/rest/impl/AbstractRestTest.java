@@ -181,6 +181,18 @@ public abstract class AbstractRestTest {
     deployVerticle(context);
   }
 
+  @AfterClass
+  public static void tearDownClass(final TestContext context) {
+    Async async = context.async();
+    vertx.close(context.asyncAssertSuccess(res -> {
+      if (useExternalDatabase.equals("embedded")) {
+        PostgresClient.stopEmbeddedPostgres();
+      }
+      cluster.stop();
+      async.complete();
+    }));
+  }
+
   private static void runDatabase() throws Exception {
     PostgresClient.stopEmbeddedPostgres();
     PostgresClient.closeAllClients();
@@ -227,17 +239,6 @@ public abstract class AbstractRestTest {
         e.printStackTrace();
       }
     });
-  }
-
-  @AfterClass
-  public static void tearDownClass(final TestContext context) {
-    Async async = context.async();
-    vertx.close(context.asyncAssertSuccess(res -> {
-      if (useExternalDatabase.equals("embedded")) {
-        PostgresClient.stopEmbeddedPostgres();
-      }
-      async.complete();
-    }));
   }
 
   @Before
