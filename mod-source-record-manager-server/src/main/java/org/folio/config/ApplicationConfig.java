@@ -3,6 +3,7 @@ package org.folio.config;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.folio.kafka.KafkaConfig;
 import org.folio.services.journal.JournalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,8 +32,8 @@ public class ApplicationConfig {
   private String envId;
 
   @Bean(name = "newKafkaConfig")
-  public org.folio.kafka.KafkaConfig kafkaConfigBean() {
-    org.folio.kafka.KafkaConfig kafkaConfig = org.folio.kafka.KafkaConfig.builder()
+  public KafkaConfig kafkaConfigBean() {
+    KafkaConfig kafkaConfig = KafkaConfig.builder()
       .envId(envId)
       .kafkaHost(kafkaHost)
       .kafkaPort(kafkaPort)

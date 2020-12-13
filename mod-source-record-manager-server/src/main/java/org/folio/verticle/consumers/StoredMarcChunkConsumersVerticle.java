@@ -15,38 +15,34 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.AbstractApplicationContext;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_MARC_BIB_RECORDS_CHUNK_READ;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_MARC_BIB_RECORDS_CHUNK_SAVED;
 
-public class RawMarcChunkConsumersVerticle extends AbstractVerticle {
-
+public class StoredMarcChunkConsumersVerticle extends AbstractVerticle {
   //TODO: get rid of this workaround with global spring context
   private static AbstractApplicationContext springGlobalContext;
 
   private static final GlobalLoadSensor globalLoadSensor = new GlobalLoadSensor();
 
   @Autowired
-  @Qualifier("RawMarcChunksKafkaHandler")
-  private AsyncRecordHandler<String, String> rawMarcChunksKafkaHandler;
+  @Qualifier("StoredMarcChunksKafkaHandler")
+  private AsyncRecordHandler<String, String> storedMarcChunksKafkaHandler;
 
   @Autowired
   @Qualifier("newKafkaConfig")
   private KafkaConfig kafkaConfig;
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.loadLimit:5}")
+  @Value("${srm.kafka.StoredMarcChunkConsumer.loadLimit:5}")
   private int loadLimit;
 
   private KafkaConsumerWrapper<String, String> consumerWrapper;
-
   @Override
   public void start(Promise<Void> startPromise) {
     context.put("springContext", springGlobalContext);
 
     SpringContextUtil.autowireDependencies(this, context);
 
-    SubscriptionDefinition subscriptionDefinition = KafkaTopicNameHelper
-      .createSubscriptionDefinition(kafkaConfig.getEnvId(),
-        KafkaTopicNameHelper.getDefaultNameSpace(),
-        DI_RAW_MARC_BIB_RECORDS_CHUNK_READ.value());
+    SubscriptionDefinition subscriptionDefinition = KafkaTopicNameHelper.createSubscriptionDefinition(kafkaConfig.getEnvId(),
+      KafkaTopicNameHelper.getDefaultNameSpace(), DI_PARSED_MARC_BIB_RECORDS_CHUNK_SAVED.value());
 
     consumerWrapper = KafkaConsumerWrapper.<String, String>builder()
       .context(context)
@@ -57,8 +53,13 @@ public class RawMarcChunkConsumersVerticle extends AbstractVerticle {
       .subscriptionDefinition(subscriptionDefinition)
       .build();
 
-    consumerWrapper.start(rawMarcChunksKafkaHandler, PubSubClientUtils.constructModuleName())
-      .onComplete(ar -> startPromise.complete());
+    consumerWrapper.start(storedMarcChunksKafkaHandler, PubSubClientUtils.constructModuleName()).onComplete(sar -> {
+      if (sar.succeeded()) {
+        startPromise.complete();
+      } else {
+        startPromise.fail(sar.cause());
+      }
+    });
   }
 
   @Override
@@ -69,7 +70,7 @@ public class RawMarcChunkConsumersVerticle extends AbstractVerticle {
   //TODO: get rid of this workaround with global spring context
   @Deprecated
   public static void setSpringGlobalContext(AbstractApplicationContext springGlobalContext) {
-    RawMarcChunkConsumersVerticle.springGlobalContext = springGlobalContext;
+    StoredMarcChunkConsumersVerticle.springGlobalContext = springGlobalContext;
   }
 
 }

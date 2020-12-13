@@ -1,6 +1,7 @@
 package org.folio.rest.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -17,6 +18,7 @@ import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.consumers.RawMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
@@ -25,6 +27,9 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
   private int rawMarcChunkConsumerInstancesNumber;
+
+  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
+  private int storedMarcChunkConsumerInstancesNumber;
 
   @Autowired
   @Qualifier("journalService")
@@ -36,14 +41,14 @@ public class InitAPIImpl implements InitAPI {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
       initJournalService(vertx);
-      deployRawMarcChunkConsumersVerticles(vertx)
+      deployConsumersVerticles(vertx)
         .onComplete(car -> {
           handler.handle(Future.succeededFuture());
-          LOGGER.info("RawMarcChunkConsumers Verticles successfully started");
+          LOGGER.info("Consumer Verticles were successfully started");
         })
         .onFailure(th -> {
           handler.handle(Future.failedFuture(th));
-          LOGGER.error("RawMarcChunkConsumers Verticles were not started", th);
+          LOGGER.error("Consumer Verticles were not started", th);
         });
     } catch (Throwable th) {
       LOGGER.error("Error during module init", th);
@@ -57,18 +62,24 @@ public class InitAPIImpl implements InitAPI {
       .register(JournalService.class, journalService);
   }
 
-  private Future<?> deployRawMarcChunkConsumersVerticles(Vertx vertx) {
+  private Future<?> deployConsumersVerticles(Vertx vertx) {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    StoredMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
+    Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.consumers.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
         .setWorker(true)
-        .setInstances(rawMarcChunkConsumerInstancesNumber),
-      deployRawMarcChunkConsumer);
+        .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    return deployRawMarcChunkConsumer.future();
+    vertx.deployVerticle("org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
+
+    return CompositeFuture.all(deployRawMarcChunkConsumer.future(), deployStoredMarcChunkConsumer.future());
   }
 }

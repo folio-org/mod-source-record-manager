@@ -20,6 +20,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
@@ -85,6 +86,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private static final String RULES_PATH = "src/test/resources/org/folio/services/rules.json";
 
   private Vertx vertx = Vertx.vertx();
+
+  @Spy
+  KafkaConfig kafkaConfig;
   @Spy
   PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy
@@ -147,8 +151,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao));
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao), kafkaConfig);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, kafkaConfig);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
