@@ -16,7 +16,7 @@ stages:
   steps:
   - applyAppConfig:
       catalogTemplate: p-gh7sb:folijet-helmcharts-mod-source-record-manager
-      version: 0.1.26
+      version: 0.1.32
       answers:
         image.repository: docker.dev.folio.org/mod-source-record-manager
         image.tag: folijet-latest
