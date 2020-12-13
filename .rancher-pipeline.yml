@@ -15,7 +15,7 @@ stages:
 - name: Deploy
   steps:
   - applyAppConfig:
-      catalogTemplate: p-mf42h:folijet-helmcharts-mod-source-record-manager
+      catalogTemplate: p-gh7sb:folijet-helmcharts-mod-source-record-manager
       version: 0.1.26
       answers:
         image.repository: docker.dev.folio.org/mod-source-record-manager
