@@ -30,7 +30,8 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private ChunkProcessingService restChunkProcessingService;
   private Vertx vertx;
 
-  public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
+  public RawMarcChunksKafkaHandler(@Autowired
+                                   @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
                                    @Autowired
                                    @Qualifier("restChunkProcessingService")
@@ -62,13 +63,11 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
           LOGGER.debug("RawRecordsDto processing has been completed correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata());
           return Future.succeededFuture(record.key());
         }, th -> {
-          th.printStackTrace();
           LOGGER.error("RawRecordsDto processing has failed with errors correlationId:" + correlationId + " chunkNumber:" + chunkNumber + " - " + rawRecordsDto.getRecordsMetadata(), th);
           return Future.failedFuture(th);
         });
 
     } catch (IOException e) {
-      e.printStackTrace();
       LOGGER.error("Can't process the kafka record: ", e);
       return Future.failedFuture(e);
     }
