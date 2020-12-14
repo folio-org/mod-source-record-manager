@@ -35,15 +35,15 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   private static final String QM_RECORD_UPDATED_EVENT_TYPE = "QM_RECORD_UPDATED";
 
   private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleService mappingRuleService;
+  private MappingRuleCache mappingRuleCache;
   private SourceRecordStateService sourceRecordStateService;
 
   public ParsedRecordServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
-                                 @Autowired MappingRuleService mappingRuleService,
+                                 @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired SourceRecordStateService sourceRecordStateService
   ) {
     this.mappingParametersProvider = mappingParametersProvider;
-    this.mappingRuleService = mappingRuleService;
+    this.mappingRuleCache = mappingRuleCache;
     this.sourceRecordStateService = sourceRecordStateService;
   }
 
@@ -88,7 +88,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   public Future<Boolean> updateRecord(ParsedRecordDto parsedRecordDto, OkapiConnectionParams params) {
     String snapshotId = UUID.randomUUID().toString();
     return mappingParametersProvider.get(snapshotId, params)
-      .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
+      .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
         .compose(rulesOptional -> {
           if (rulesOptional.isPresent()) {
             SourceRecordState sourceRecordState = new SourceRecordState()

@@ -1,7 +1,8 @@
 ## 2020-11-29 v2.5.0-SNAPSHOT
-* [MODSOURMAN-380](https://issues.folio.org/browse/MODSOURMAN-380) Expand journalRecord entity with "title" property.
-* [MODSOURMAN-385](https://issues.folio.org/browse/MODSOURMAN-385) Enable OCLC update processing.
-* [MODSOURMAN-381](https://issues.folio.org/browse/MODSOURMAN-381) Add endpoint to retrieve a list of jobLogEntryDto.
+* [MODSOURMAN-380](https://issues.folio.org/browse/MODSOURMAN-380) Expand journalRecord entity with "title" property
+* [MODSOURMAN-385](https://issues.folio.org/browse/MODSOURMAN-385) Enable OCLC update processing
+* [MODSOURMAN-381](https://issues.folio.org/browse/MODSOURMAN-381) Add endpoint to retrieve a list of jobLogEntryDto
+* [MODSOURMAN-382](https://issues.folio.org/browse/MODSOURMAN-382) Fill title from marc record into journalRecord entity
 * [MODSOURMAN-383](https://issues.folio.org/browse/MODSOURMAN-383) Implement endpoint to retrieve a recordProcessingLogDto.
 
 

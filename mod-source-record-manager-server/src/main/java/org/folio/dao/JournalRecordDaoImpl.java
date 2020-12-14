@@ -194,6 +194,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withSourceId(row.getValue(SOURCE_ID).toString())
       .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+      .withTitle(row.getString(TITLE))
       .withEntityType(EntityType.valueOf(row.getString(ENTITY_TYPE)))
       .withEntityId(row.getString(ENTITY_ID))
       .withEntityHrId(row.getString(ENTITY_HRID))
