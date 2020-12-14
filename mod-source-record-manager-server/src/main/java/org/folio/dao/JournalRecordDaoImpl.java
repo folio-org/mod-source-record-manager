@@ -64,6 +64,7 @@ import static org.folio.dao.util.JournalRecordsColumns.ORDER_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
@@ -259,7 +260,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
       .withSourceRecordTitle(row.getString(TITLE))
       .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-      .withError(row.getString(ERROR))
+      .withError(row.getString(SOURCE_ENTITY_ERROR))
       .withRelatedInstanceInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
         .withIdList(Lists.newArrayList(row.getValue(INSTANCE_ENTITY_ID).toString()))

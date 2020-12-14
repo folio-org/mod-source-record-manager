@@ -26,6 +26,7 @@ public final class JournalRecordsColumns {
   public static final String INVOICE_ACTION_STATUS = "invoice_action_status";
   public static final String TOTAL_COUNT = "total_count";
 
+  public static final String SOURCE_ENTITY_ERROR = "source_entity_error";
   public static final String INSTANCE_ENTITY_ID = "instance_entity_id";
   public static final String INSTANCE_ENTITY_HRID = "instance_entity_hrid";
   public static final String INSTANCE_ENTITY_ERROR = "instance_entity_error";

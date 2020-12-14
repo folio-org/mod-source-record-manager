@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, record
 AS $$
 BEGIN
     RETURN QUERY EXECUTE format('
-SELECT records_actions.job_execution_id,
+        SELECT records_actions.job_execution_id,
                records_actions.source_id,
                records_actions.source_record_order,
                rec_titles.title,
@@ -90,7 +90,7 @@ SELECT records_actions.job_execution_id,
                WHERE journal_records.job_execution_id = ''%s'' AND journal_records.source_id = ''%s''
                GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id)
 			   AS records_actions
-                LEFT JOIN (
+        LEFT JOIN (
                     SELECT journal_records.source_id, journal_records.title FROM journal_records
                     WHERE journal_records.job_execution_id = ''%s'' AND journal_records.source_id = ''%s''
                   ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL',
