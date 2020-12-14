@@ -262,32 +262,25 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withSourceRecordTitle(row.getString(TITLE))
       .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
       .withError(row.getString(SOURCE_ENTITY_ERROR))
-      .withRelatedInstanceInfo(new ProcessedEntityInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
-        .withIdList(constructListFromColumn(row, INSTANCE_ENTITY_ID))
-        .withHridList(constructListFromColumn(row, INSTANCE_ENTITY_HRID))
-        .withError(row.getString(INSTANCE_ENTITY_ERROR)))
-      .withRelatedHoldingsInfo(new ProcessedEntityInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
-        .withIdList(constructListFromColumn(row, HOLDINGS_ENTITY_ID))
-        .withHridList(constructListFromColumn(row, HOLDINGS_ENTITY_HRID))
-        .withError(row.getString(HOLDINGS_ENTITY_ERROR)))
-      .withRelatedItemInfo(new ProcessedEntityInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
-        .withIdList(constructListFromColumn(row, ITEM_ENTITY_ID))
-        .withHridList(constructListFromColumn(row, ITEM_ENTITY_HRID))
-        .withError(row.getString(ITEM_ENTITY_ERROR)))
-      .withRelatedOrderInfo(new ProcessedEntityInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
-        .withIdList(constructListFromColumn(row, ORDER_ENTITY_ID))
-        .withHridList(constructListFromColumn(row, ORDER_ENTITY_HRID))
-        .withError(row.getString(ORDER_ENTITY_ERROR)))
-      .withRelatedInvoiceInfo(new ProcessedEntityInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
-        .withIdList(constructListFromColumn(row, INVOICE_ENTITY_ID))
-        .withHridList(constructListFromColumn(row, INVOICE_ENTITY_HRID))
-        .withError(row.getString(INVOICE_ENTITY_ERROR))));
+      .withRelatedInstanceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
+      .withRelatedHoldingsInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_ENTITY_ERROR))
+      .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
+      .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
+      .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR)));
     return recordProcessingLogSummary;
+  }
+
+  private ProcessedEntityInfo constructProcessedEntityInfoBasedOnEntityType(Row row, String actionStatus, String ids, String hrids, String error) {
+    return new ProcessedEntityInfo()
+      .withActionStatus(mapNameToEntityActionStatus(row.getString(actionStatus)))
+      .withIdList(constructListFromColumn(row, ids))
+      .withHridList(constructListFromColumn(row, hrids))
+      .withError(row.getString(error));
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
