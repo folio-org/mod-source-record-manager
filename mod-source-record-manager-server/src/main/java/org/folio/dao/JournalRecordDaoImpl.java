@@ -7,6 +7,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
+
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
@@ -16,10 +17,13 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
+import org.folio.rest.jaxrs.model.ProcessedEntityInfo;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.BadRequestException;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -39,12 +43,27 @@ import static org.folio.dao.util.JournalRecordsColumns.ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ENTITY_TYPE;
 import static org.folio.dao.util.JournalRecordsColumns.ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.JOB_EXECUTION_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ORDER_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
@@ -53,6 +72,8 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
+
+import com.google.common.collect.Lists;
 
 @Repository
 public class JournalRecordDaoImpl implements JournalRecordDao {
@@ -73,6 +94,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "COUNT(*) FILTER (WHERE action_status = 'ERROR') AS total_failed " +
     "FROM %s.%s WHERE job_execution_id = $1 AND action_type != 'ERROR' " +
     "GROUP BY (job_execution_id, entity_type, action_type)";
+  private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -152,6 +174,14 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return promise.future().map(this::mapRowSetToJobLogDtoCollection);
   }
 
+  @Override
+  public Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = format(GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY, jobExecutionId, recordId);
+    pgClientFactory.createInstance(tenantId).select(query, promise);
+    return promise.future().map(this::mapRowSetToRecordProcessingLogDto);
+  }
+
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
     List<JournalRecord> journalRecords = new ArrayList<>();
     resultSet.forEach(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
@@ -218,6 +248,43 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .getEntries().add(jobLogEntryDto);
     });
     return jobLogEntryDtoCollection;
+  }
+
+  private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {
+    RecordProcessingLogDto recordProcessingLogSummary = new RecordProcessingLogDto();
+    resultSet.forEach(row -> recordProcessingLogSummary
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+      .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+      .withSourceRecordTitle(row.getString(TITLE))
+      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+      .withError(row.getString(ERROR))
+      .withRelatedInstanceInfo(new ProcessedEntityInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
+        .withIdList(Lists.newArrayList(row.getValue(INSTANCE_ENTITY_ID).toString()))
+        .withHridList(Lists.newArrayList(row.getString(INSTANCE_ENTITY_HRID)))
+        .withError(row.getString(INSTANCE_ENTITY_ERROR)))
+      .withRelatedHoldingsInfo(new ProcessedEntityInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
+        .withIdList(Lists.newArrayList(row.getValue(HOLDINGS_ENTITY_ID).toString()))
+        .withHridList(Lists.newArrayList(row.getString(HOLDINGS_ENTITY_HRID)))
+        .withError(row.getString(HOLDINGS_ENTITY_ERROR)))
+      .withRelatedItemInfo(new ProcessedEntityInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
+        .withIdList(Lists.newArrayList(row.getValue(ITEM_ENTITY_ID).toString()))
+        .withHridList(Lists.newArrayList(row.getString(ITEM_ENTITY_HRID)))
+        .withError(row.getString(ITEM_ENTITY_ERROR)))
+      .withRelatedOrderInfo(new ProcessedEntityInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+        .withIdList(Lists.newArrayList(row.getValue(ORDER_ENTITY_ID).toString()))
+        .withHridList(Lists.newArrayList(row.getString(ORDER_ENTITY_HRID)))
+        .withError(row.getString(ORDER_ENTITY_ERROR)))
+      .withRelatedInvoiceInfo(new ProcessedEntityInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+        .withIdList(Lists.newArrayList(row.getValue(INVOICE_ENTITY_ID).toString()))
+        .withHridList(Lists.newArrayList(row.getString(INVOICE_ENTITY_HRID)))
+        .withError(row.getString(INVOICE_ENTITY_ERROR))));
+    return recordProcessingLogSummary;
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {

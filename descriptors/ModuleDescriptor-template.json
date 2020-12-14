@@ -282,6 +282,17 @@
       ]
     },
     {
+      "id": "metadata-provider-record-processing-logs",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
+        }
+      ]
+    },
+    {
       "id": "mapping-rules-provider",
       "version": "1.0",
       "handlers": [
