@@ -94,6 +94,6 @@ SELECT records_actions.job_execution_id,
                     SELECT journal_records.source_id, journal_records.title FROM journal_records
                     WHERE journal_records.job_execution_id = ''%s'' AND journal_records.source_id = ''%s''
                   ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL',
-        jobExecutionId, recordId);
+        jobExecutionId, recordId, jobExecutionId, recordId);
 END;
 $$ LANGUAGE plpgsql;
