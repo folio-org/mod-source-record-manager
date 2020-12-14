@@ -35,9 +35,9 @@ BEGIN
 			   order_entity_hrid[1],
 			   order_entity_error[1],
                get_entity_status(invoice_actions, invoice_errors_number)   AS invoice_action_status,
-			   order_entity_id[1]::uuid,
-			   order_entity_hrid[1],
-			   order_entity_error[1]
+			   invoice_entity_id[1]::uuid,
+			   invoice_entity_hrid[1],
+			   invoice_entity_error[1]
         FROM (
                SELECT journal_records.source_id,
                       journal_records.source_record_order,
@@ -62,7 +62,7 @@ BEGIN
 
 					  array_agg(entity_hrid) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_entity_hrid,
 			          array_agg(entity_id) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_entity_id,
-					  array_agg(entity_id) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_entity_error,
+					  array_agg(error) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_entity_error,
 
 
                       array_agg(action_type) FILTER (WHERE entity_type = ''ITEM'') AS item_actions,
@@ -70,21 +70,21 @@ BEGIN
 
 					  array_agg(entity_hrid) FILTER (WHERE entity_type = ''ITEM'') AS item_entity_hrid,
 			          array_agg(entity_id) FILTER (WHERE entity_type = ''ITEM'') AS item_entity_id,
-					  array_agg(entity_id) FILTER (WHERE entity_type = ''ITEM'') AS item_entity_error,
+					  array_agg(error) FILTER (WHERE entity_type = ''ITEM'') AS item_entity_error,
 
                       array_agg(action_type) FILTER (WHERE entity_type = ''ORDER'') AS order_actions,
                       count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
 
 					  array_agg(entity_hrid) FILTER (WHERE entity_type = ''ORDER'') AS order_entity_hrid,
 			          array_agg(entity_id) FILTER (WHERE entity_type = ''ORDER'') AS order_entity_id,
-					  array_agg(entity_id) FILTER (WHERE entity_type = ''ORDER'') AS order_entity_error,
+					  array_agg(error) FILTER (WHERE entity_type = ''ORDER'') AS order_entity_error,
 
                       array_agg(action_type) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_actions,
                       count(journal_records.source_id) FILTER (WHERE entity_type = ''INVOICE'' AND journal_records.error != '''') AS invoice_errors_number,
 
 					  array_agg(entity_hrid) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_entity_hrid,
 			          array_agg(entity_id) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_entity_id,
-					  array_agg(entity_id) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_entity_error
+					  array_agg(error) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_entity_error
 
                FROM journal_records
                WHERE journal_records.job_execution_id = ''%s'' AND journal_records.source_id = ''%s''
