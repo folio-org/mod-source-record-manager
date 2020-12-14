@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -263,30 +264,34 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withError(row.getString(SOURCE_ENTITY_ERROR))
       .withRelatedInstanceInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
-        .withIdList(Lists.newArrayList(row.getValue(INSTANCE_ENTITY_ID).toString()))
-        .withHridList(Lists.newArrayList(row.getString(INSTANCE_ENTITY_HRID)))
+        .withIdList(constructListFromColumn(row, INSTANCE_ENTITY_ID))
+        .withHridList(constructListFromColumn(row, INSTANCE_ENTITY_HRID))
         .withError(row.getString(INSTANCE_ENTITY_ERROR)))
       .withRelatedHoldingsInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
-        .withIdList(Lists.newArrayList(row.getValue(HOLDINGS_ENTITY_ID).toString()))
-        .withHridList(Lists.newArrayList(row.getString(HOLDINGS_ENTITY_HRID)))
+        .withIdList(constructListFromColumn(row, HOLDINGS_ENTITY_ID))
+        .withHridList(constructListFromColumn(row, HOLDINGS_ENTITY_HRID))
         .withError(row.getString(HOLDINGS_ENTITY_ERROR)))
       .withRelatedItemInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
-        .withIdList(Lists.newArrayList(row.getValue(ITEM_ENTITY_ID).toString()))
-        .withHridList(Lists.newArrayList(row.getString(ITEM_ENTITY_HRID)))
+        .withIdList(constructListFromColumn(row, ITEM_ENTITY_ID))
+        .withHridList(constructListFromColumn(row, ITEM_ENTITY_HRID))
         .withError(row.getString(ITEM_ENTITY_ERROR)))
       .withRelatedOrderInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
-        .withIdList(Lists.newArrayList(row.getValue(ORDER_ENTITY_ID).toString()))
-        .withHridList(Lists.newArrayList(row.getString(ORDER_ENTITY_HRID)))
+        .withIdList(constructListFromColumn(row, ORDER_ENTITY_ID))
+        .withHridList(constructListFromColumn(row, ORDER_ENTITY_HRID))
         .withError(row.getString(ORDER_ENTITY_ERROR)))
       .withRelatedInvoiceInfo(new ProcessedEntityInfo()
         .withActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
-        .withIdList(Lists.newArrayList(row.getValue(INVOICE_ENTITY_ID).toString()))
-        .withHridList(Lists.newArrayList(row.getString(INVOICE_ENTITY_HRID)))
+        .withIdList(constructListFromColumn(row, INVOICE_ENTITY_ID))
+        .withHridList(constructListFromColumn(row, INVOICE_ENTITY_HRID))
         .withError(row.getString(INVOICE_ENTITY_ERROR))));
     return recordProcessingLogSummary;
+  }
+
+  private List<String> constructListFromColumn(Row row, String columnName) {
+    return row.getValue(columnName) == null ? Collections.emptyList() : Lists.newArrayList(row.getValue(columnName).toString());
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {
