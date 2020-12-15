@@ -5,6 +5,7 @@ import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,5 +41,10 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   @Override
   public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
     return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, limit, offset, tenantId);
+  }
+
+  @Override
+  public Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId) {
+    return journalRecordDao.getRecordProcessingLogDto(jobExecutionId, recordId, tenantId);
   }
 }

@@ -18,6 +18,7 @@ types:
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
   jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
   jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
+  recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -114,3 +115,21 @@ resourceTypes:
           body:
             text/plain:
               example: "Bad request"
+  /jobLogEntries/{jobExecutionId}/records/{recordId}:
+    get:
+      description: get record processing log dto by job execution id and record id
+      responses:
+        200:
+          body:
+            application/json:
+              schema: recordProcessingLogDto
+        400:
+          description: "Bad request"
+          body:
+            text/plain:
+              example: "Bad request"
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
