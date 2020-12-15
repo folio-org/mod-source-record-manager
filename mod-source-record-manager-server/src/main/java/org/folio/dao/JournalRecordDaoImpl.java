@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -255,7 +256,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {
     RecordProcessingLogDto recordProcessingLogSummary = new RecordProcessingLogDto();
-    resultSet.forEach(row -> recordProcessingLogSummary
+    if (resultSet.size() == 0) {
+      throw new NotFoundException("Can`t find record with specific jobExecutionId and recordId");
+    }
+    resultSet.forEach(row ->
+      recordProcessingLogSummary
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withSourceRecordId(row.getValue(SOURCE_ID).toString())
       .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
