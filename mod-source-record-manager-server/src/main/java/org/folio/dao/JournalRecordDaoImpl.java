@@ -28,11 +28,13 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -74,8 +76,6 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
-
-import com.google.common.collect.Lists;
 
 @Repository
 public class JournalRecordDaoImpl implements JournalRecordDao {
@@ -284,7 +284,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
-    return row.getValue(columnName) == null ? Collections.emptyList() : Lists.newArrayList(row.getValue(columnName).toString());
+    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.stream(row.getStringArray(columnName)).collect(Collectors.toList());
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {

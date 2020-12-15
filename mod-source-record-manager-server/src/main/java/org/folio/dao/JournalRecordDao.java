@@ -65,7 +65,7 @@ public interface JournalRecordDao {
   Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId);
 
   /**
-   * Searches for JobLogEntryDto entities by jobExecutionId and recordId
+   * Searches for RecordProcessingLogDto entities by jobExecutionId and recordId
    *
    * @param jobExecutionId job execution id
    * @param recordId record id

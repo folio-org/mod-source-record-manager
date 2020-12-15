@@ -278,13 +278,7 @@
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}",
           "permissionsRequired" : [ "metadata-provider.logs.get" ]
-        }
-      ]
-    },
-    {
-      "id": "metadata-provider-record-processing-logs",
-      "version": "1.0",
-      "handlers": [
+        },
         {
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
