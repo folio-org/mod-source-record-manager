@@ -326,7 +326,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .when()
       .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString() + "/records/" + UUID.randomUUID().toString())
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
   @Test
