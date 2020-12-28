@@ -108,5 +108,22 @@ public class MetadataProviderImpl implements MetadataProvider {
     });
   }
 
+  @Override
+  public void getMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordId(String jobExecutionId, String recordId,
+                                                                                 Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
+    vertxContext.runOnContext(v -> {
+      try {
+        journalRecordService.getRecordProcessingLogDto(jobExecutionId, recordId, tenantId)
+          .map(GetMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordIdResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to retrieve RecordProcessingLogDto entity by JobExecution id and Record id", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+
+  }
 }

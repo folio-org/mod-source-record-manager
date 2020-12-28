@@ -42,6 +42,7 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.util.pubsub.PubSubClientUtils;
+import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -53,12 +54,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import static java.lang.String.format;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
+import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
@@ -72,27 +75,33 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
+  private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
+  private static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
+
   private KafkaConfig kafkaConfig;
 
   //TODO: make it configurable
   private int maxDistributionNum = 100;
   private static final AtomicInteger indexer = new AtomicInteger();
+  private MappingRuleCache mappingRuleCache;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
                                  @Autowired KafkaConfig kafkaConfig) {
+                                 @Autowired MappingRuleCache mappingRuleCache) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
     this.kafkaConfig = kafkaConfig;
+    this.mappingRuleCache = mappingRuleCache;
   }
 
   @Override
@@ -256,7 +265,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       LOGGER.error(e);
       return Future.failedFuture(e);
     }
-
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
 
     String topicName = KafkaTopicNameHelper.formatTopicName(kafkaConfig.getEnvId(), KafkaTopicNameHelper.getDefaultNameSpace(),
@@ -295,8 +303,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         writePromise.fail(cause);
       }
     });
-
     return writePromise.future();
+  }
+
+  /**
+   * Builds list of journal records which contain info about records processing result
+   *
+   * @param records          records that should be created
+   * @param processedRecords created records
+   * @param actionType       action type which was performed on instances during processing
+   * @return future with list of journal records represented as json objects
+   */
+  private Future<List<JsonObject>> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
+                                                                          JournalRecord.ActionType actionType, String tenantId) {
+    return mappingRuleCache.get(tenantId)
+      .map(rulesOptional -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, rulesOptional))
+      .otherwise(th -> buildJournalRecordsForProcessedRecords(records, processedRecords, actionType, Optional.empty()));
   }
 
   /**
@@ -309,13 +331,30 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return list of journal records represented as json objects
    */
   private List<JsonObject> buildJournalRecordsForProcessedRecords(List<Record> records, List<Record> processedRecords,
-                                                                  JournalRecord.ActionType actionType) {
+                                                                  JournalRecord.ActionType actionType, Optional<JsonObject> mappingRulesOptional) {
+    String titleFieldTag = null;
+    List<String> subfieldCodes = null;
+    if (mappingRulesOptional.isPresent()) {
+      JsonObject mappingRules = mappingRulesOptional.get();
+      Optional<String> titleFieldOptional = getTitleFieldTagByInstanceFieldPath(mappingRules);
+
+      if (titleFieldOptional.isPresent()) {
+        titleFieldTag = titleFieldOptional.get();
+        subfieldCodes = mappingRules.getJsonArray(titleFieldTag).stream()
+          .map(JsonObject.class::cast)
+          .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
+          .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
+          .map(subfieldCode -> subfieldCode.toString())
+          .collect(Collectors.toList());
+      }
+    }
+
     Set<String> createdRecordIds = processedRecords.stream()
       .map(Record::getId)
       .collect(Collectors.toSet());
 
     List<JsonObject> journalRecords = new ArrayList<>();
-    records.forEach(record -> {
+    for (Record record : records) {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceRecordOrder(record.getOrder())
@@ -324,12 +363,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
+        .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
+          ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null)
         .withActionStatus(record.getErrorRecord() == null && createdRecordIds.contains(record.getId())
           ? JournalRecord.ActionStatus.COMPLETED
           : JournalRecord.ActionStatus.ERROR);
 
       journalRecords.add(JsonObject.mapFrom(journalRecord));
-    });
+    }
     return journalRecords;
+  }
+
+  private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
+    return mappingRules.getMap().keySet().stream()
+      .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
+        .map(o -> (JsonObject) o)
+        .anyMatch(fieldMappingRule -> INSTANCE_TITLE_FIELD_PATH.equals(fieldMappingRule.getString("target"))))
+      .findFirst();
   }
 }

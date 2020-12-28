@@ -50,7 +50,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
   private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleService mappingRuleService;
+  private MappingRuleCache mappingRuleCache;
   private Vertx vertx;
   private QueuedBlockingCoordinator coordinator;
 
@@ -59,13 +59,13 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
                                                @Autowired ChangeEngineService changeEngineService,
                                                @Autowired JobExecutionProgressService jobExecutionProgressService,
                                                @Autowired MappingParametersProvider mappingParametersProvider,
-                                               @Autowired MappingRuleService mappingRuleService,
+                                               @Autowired MappingRuleCache mappingRuleCache,
                                                @Autowired Vertx vertx) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.mappingParametersProvider = mappingParametersProvider;
-    this.mappingRuleService = mappingRuleService;
+    this.mappingRuleCache = mappingRuleCache;
     this.vertx = vertx;
     this.coordinator = new QueuedBlockingCoordinator(BLOCKING_COORDINATOR_RECORDS_NUMBER);
   }
@@ -99,7 +99,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
         .map(jobExecution -> getMappingParameters(jobExecutionId, params)
-          .compose(mappingParameters -> mappingRuleService.get(params.getTenantId())
+          .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
             .compose(rulesOptional -> {
               if (rulesOptional.isPresent()) {
                 return sendCreatedRecordsWithBlocking(createdRecords, jobExecution, rulesOptional.get(), mappingParameters, params);

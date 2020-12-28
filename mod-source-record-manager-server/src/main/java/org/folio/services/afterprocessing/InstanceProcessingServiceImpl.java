@@ -2,7 +2,6 @@ package org.folio.services.afterprocessing;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -29,7 +28,7 @@ import org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.services.MappingRuleService;
+import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalService;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.parsers.RecordFormat;
@@ -68,21 +67,21 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private static final Logger LOGGER = LoggerFactory.getLogger(InstanceProcessingServiceImpl.class);
   private static final String INVENTORY_URL = "/inventory/instances/batch";
   private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+  private final MappingRuleCache mappingRuleCache;
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleService mappingRuleService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
 
   public InstanceProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                        @Autowired MappingParametersProvider mappingParametersProvider,
-                                       @Autowired MappingRuleService mappingRuleService,
+                                       @Autowired MappingRuleCache mappingRuleCache,
                                        @Autowired HrIdFieldService hrIdFieldService,
                                        @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.mappingParametersProvider = mappingParametersProvider;
-    this.mappingRuleService = mappingRuleService;
+    this.mappingRuleCache = mappingRuleCache;
     this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
   }
@@ -134,7 +133,7 @@ public class InstanceProcessingServiceImpl implements AfterProcessingService {
   private Future<Void> mapRecords(List<Record> records, MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
     Promise<Void> promise = Promise.promise();
     String tenantId = okapiParams.getTenantId();
-    mappingRuleService.get(tenantId)
+    mappingRuleCache.get(tenantId)
       .compose(optionalMappingRules -> {
         if (optionalMappingRules.isPresent()) {
           JsonObject mappingRules = optionalMappingRules.get();
