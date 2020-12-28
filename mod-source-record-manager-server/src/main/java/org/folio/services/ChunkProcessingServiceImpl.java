@@ -8,6 +8,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.AfterProcessingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
+import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
@@ -108,5 +110,10 @@ public class ChunkProcessingServiceImpl extends AbstractChunkProcessingService {
         }
         return Future.succeededFuture(new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS));
       });
+  }
+
+  @Override
+  public Future<Boolean> sendEventsWithStoredRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
+    return Future.failedFuture("Method is not supported");
   }
 }

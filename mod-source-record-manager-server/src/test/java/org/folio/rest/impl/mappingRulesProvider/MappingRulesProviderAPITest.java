@@ -40,6 +40,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .put("999", new JsonArray()
         .add(new JsonObject()
           .put("target", "instanceTypeId")));
+
     // when
     RestAssured.given()
       .spec(spec)
@@ -47,17 +48,19 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .when()
       .put(SERVICE_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_OK)
+      .log().everything();
     // then
-    Map actualRules =
+    String actualRules =
       RestAssured.given()
         .spec(spec)
         .when()
         .get(SERVICE_PATH)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertEquals(expectedRules.toString(), new JsonObject(actualRules).toString());
+        .log().everything()
+        .extract().body().asString();
+    Assert.assertEquals(expectedRules.toString(), actualRules);
   }
 
   @Test

@@ -39,6 +39,7 @@ import org.folio.services.Status;
 import org.folio.services.afterprocessing.AdditionalFieldsUtil;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -86,6 +87,7 @@ import static org.junit.Assert.assertEquals;
  * REST tests for ChangeManager to manager JobExecution entities initialization
  */
 @RunWith(VertxUnitRunner.class)
+@Ignore
 public class ChangeManagerAPITest extends AbstractRestTest {
 
   private static final String RECORDS_PATH = "/records";

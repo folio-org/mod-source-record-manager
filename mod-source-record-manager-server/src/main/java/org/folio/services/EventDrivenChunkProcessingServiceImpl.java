@@ -41,6 +41,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
 
   private static final int BLOCKING_COORDINATOR_RECORDS_NUMBER =
@@ -76,7 +77,6 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
-      .compose(records -> sendEventsWithCreatedRecords(records, jobExecutionId, params))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
@@ -94,15 +94,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
-  /**
-   * Sends events with created records to the mod-pubsub
-   *
-   * @param createdRecords records to send
-   * @param jobExecutionId job execution id
-   * @param params         connection parameters
-   * @return future with boolean
-   */
-  private Future<Boolean> sendEventsWithCreatedRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
+  @Override
+  public Future<Boolean> sendEventsWithStoredRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
         .map(jobExecution -> getMappingParameters(jobExecutionId, params)

@@ -24,6 +24,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.folio.TestUtil;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
@@ -39,24 +40,25 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.rest.tools.PomReader;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
+import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.useDefaults;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
@@ -75,7 +77,7 @@ public abstract class AbstractRestTest {
   private static final String HTTP_PORT = "http.port";
   private static int port;
   private static String useExternalDatabase;
-  private static String postedSnapshotResponseBody = UUID.randomUUID().toString();
+  private static final String postedSnapshotResponseBody = UUID.randomUUID().toString();
   private static Vertx vertx;
   protected static final String TENANT_ID = "diku";
   protected static RequestSpecification spec;
@@ -119,8 +121,13 @@ public abstract class AbstractRestTest {
   protected static final String PROFILE_SNAPSHOT_URL = "/data-import-profiles/jobProfileSnapshots";
   protected static final String PUBSUB_PUBLISH_URL = "/pubsub/publish";
   protected static final String okapiUserIdHeader = UUID.randomUUID().toString();
+  private static final String KAFKA_HOST = "FOLIO_KAFKA_HOST";
+  private static final String KAFKA_PORT = "FOLIO_KAFKA_PORT";
+  private static final String OKAPI_URL_ENV = "OKAPI_URL";
+  private static final int PORT = NetworkUtils.nextFreePort();
+  protected static final String OKAPI_URL = "http://localhost:" + PORT;
 
-  private JsonObject userResponse = new JsonObject()
+  private final JsonObject userResponse = new JsonObject()
     .put("users",
       new JsonArray().add(new JsonObject()
         .put("username", "diku_admin")
@@ -132,7 +139,7 @@ public abstract class AbstractRestTest {
     .withName("Create MARC Bibs")
     .withDataType(JobProfile.DataType.MARC);
 
-  private ActionProfile actionProfile = new ActionProfile()
+  private final ActionProfile actionProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
     .withName("Create MARC Bib")
     .withAction(ActionProfile.Action.CREATE)
@@ -157,12 +164,30 @@ public abstract class AbstractRestTest {
       .extensions(new RequestToResponseTransformer(), new InstancesBatchResponseTransformer())
   );
 
+  @ClassRule
+  public static EmbeddedKafkaCluster cluster = provisionWith(useDefaults());
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
     vertx = Vertx.vertx();
+    String[] hostAndPort = cluster.getBrokerList().split(":");
+
+    System.setProperty(KAFKA_HOST, hostAndPort[0]);
+    System.setProperty(KAFKA_PORT, hostAndPort[1]);
+    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
     deployVerticle(context);
+  }
+
+  @AfterClass
+  public static void tearDownClass(final TestContext context) {
+    Async async = context.async();
+    vertx.close(context.asyncAssertSuccess(res -> {
+      if (useExternalDatabase.equals("embedded")) {
+        PostgresClient.stopEmbeddedPostgres();
+      }
+      async.complete();
+    }));
   }
 
   private static void runDatabase() throws Exception {
@@ -205,25 +230,12 @@ public abstract class AbstractRestTest {
     vertx.deployVerticle(RestVerticle.class.getName(), options, deployVerticleAr -> {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
-        tenantAttributes.setModuleTo(PomReader.INSTANCE.getModuleName());
-        tenantClient.postTenant(tenantAttributes, postTenantAr -> {
-          async.complete();
-        });
+        tenantAttributes.setModuleTo(PubSubClientUtils.constructModuleName());
+        tenantClient.postTenant(tenantAttributes, postTenantAr -> async.complete());
       } catch (Exception e) {
         e.printStackTrace();
       }
     });
-  }
-
-  @AfterClass
-  public static void tearDownClass(final TestContext context) {
-    Async async = context.async();
-    vertx.close(context.asyncAssertSuccess(res -> {
-      if (useExternalDatabase.equals("embedded")) {
-        PostgresClient.stopEmbeddedPostgres();
-      }
-      async.complete();
-    }));
   }
 
   @Before
@@ -237,11 +249,6 @@ public abstract class AbstractRestTest {
       .addHeader("Accept", "text/plain, application/json")
       .setBaseUri("http://localhost:" + port)
       .build();
-    Map<String, String> okapiHeaders = new HashMap<>();
-    okapiHeaders.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
-    okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
-    okapiHeaders.put(RestVerticle.OKAPI_HEADER_TOKEN, TOKEN);
-    okapiHeaders.put(RestVerticle.OKAPI_USERID_HEADER, okapiUserIdHeader);
 
     String record = TestUtil.readFileFromPath(RECORD_PATH);
 
@@ -319,7 +326,7 @@ public abstract class AbstractRestTest {
     List<File> filesList;
     try {
       jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
-      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<List<File>>() {
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
       throw new RuntimeException(e);

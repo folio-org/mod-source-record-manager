@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.processing.events.utils.ZIPArchiver;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
+@Ignore
 public class EventHandlersApiTest extends AbstractRestTest {
 
   private static final String HANDLERS_CREATED_INSTANCE_PATH = "/change-manager/handlers/created-inventory-instance";
