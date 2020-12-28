@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -93,9 +94,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
+                                 @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
                                  @Autowired KafkaConfig kafkaConfig) {
-                                 @Autowired MappingRuleCache mappingRuleCache) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
@@ -197,7 +198,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           String matchedId = getValue(record, "999", 's');
-          if (matchedId != null){
+          if (matchedId != null) {
             record.setMatchedId(matchedId);
             record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
           }
@@ -293,9 +294,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       producer.end(ear -> producer.close());
       if (war.succeeded()) {
         //TODO: this logic must be rewritten
-        List<JsonObject> journalRecords = buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE);
-        journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
-
+        buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE, params.getTenantId())
+          .compose(journalRecords -> {
+            journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
+            return Future.succeededFuture();
+          });
         writePromise.complete();
       } else {
         Throwable cause = war.cause();
