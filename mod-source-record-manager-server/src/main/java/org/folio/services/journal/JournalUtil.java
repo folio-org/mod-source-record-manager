@@ -34,7 +34,7 @@ public class JournalUtil {
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),
         INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
-    return buildJournalRecord(event, actionType, entityType, actionStatus, recordAsString);
+    return buildJournalRecord(event, actionType, entityType, actionStatus);
   }
 
   public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
