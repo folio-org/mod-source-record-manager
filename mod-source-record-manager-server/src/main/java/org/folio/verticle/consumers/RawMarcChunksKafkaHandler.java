@@ -1,4 +1,4 @@
-package org.folio.services.util;
+package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -28,16 +28,12 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
-  private ChunkProcessingService restChunkProcessingService;
   private Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
-                                   @Autowired @Qualifier("restChunkProcessingService")
-                                     ChunkProcessingService restChunkProcessingService,
                                    @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
-    this.restChunkProcessingService = restChunkProcessingService;
     this.vertx = vertx;
   }
 
@@ -47,15 +43,13 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
-    boolean defaultMapping = Boolean.parseBoolean(okapiConnectionParams.getHeaders().get("defaultMapping"));
 
     Event event = new JsonObject(record.value()).mapTo(Event.class);
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
       LOGGER.debug("RawRecordsDto has been received, starting processing correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
-      ChunkProcessingService chunkProcessingService = defaultMapping ? restChunkProcessingService : eventDrivenChunkProcessingService;
-      return chunkProcessingService
+      return eventDrivenChunkProcessingService
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
           LOGGER.debug("RawRecordsDto processing has been completed correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());

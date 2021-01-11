@@ -1,4 +1,4 @@
-package org.folio.verticle.consumers;
+package org.folio.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

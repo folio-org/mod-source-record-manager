@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
   "org.folio.rest.impl",
   "org.folio.dao",
   "org.folio.services",
-  "org.folio.verticle.consumers"})
+  "org.folio.verticle"})
 public class ApplicationConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationConfig.class);
 

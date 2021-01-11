@@ -235,6 +235,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldReturnJobExecutionLogWithSuccessfulResultsWhenInstanceWereSaved(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -347,6 +348,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldReturnJobExecutionLogWithFailedResultWhenInstanceWasNotSaved(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -405,6 +407,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldReturnJobExecutionLogWithFailedResultWhenErrorRawRecordWasProcessed(TestContext testContext) {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withRecordsMetadata(new RecordsMetadata()
@@ -499,6 +502,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldReturnJournalRecordsSortedBySourceRecordOrder(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -606,6 +610,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldReturnJournalRecordsWithTitleWhenSortedBySourceRecordOrder2(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();

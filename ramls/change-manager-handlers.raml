@@ -19,22 +19,6 @@ traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
 
 /change-manager/handlers:
-  /created-inventory-instance:
-    description: "Handler for DI_INVENTORY_INSTANCE_CREATED event."
-    post:
-      body:
-        application/json:
-          type: string
-      responses:
-        204:
-  /processing-result:
-    description: "Handler for DI_COMPLETED and DI_ERROR events."
-    post:
-      body:
-        application/json:
-          type: string
-      responses:
-        204:
   /qm-completed:
       description: "Handler for QM_INVENTORY_INSTANCE_UPDATED events."
       post:

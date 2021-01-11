@@ -15,10 +15,12 @@ import org.folio.config.ApplicationConfig;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
-import org.folio.verticle.consumers.RawMarcChunkConsumersVerticle;
+import org.folio.verticle.DataImportConsumersVerticle;
+import org.folio.verticle.DataImportJournalConsumersVerticle;
+import org.folio.verticle.RawMarcChunkConsumersVerticle;
+import org.folio.verticle.StoredMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
@@ -30,6 +32,12 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
   private int storedMarcChunkConsumerInstancesNumber;
+
+  @Value("${srm.kafka.DataImportConsumersVerticle.instancesNumber:5}")
+  private int dataImportConsumerInstancesNumber;
+
+  @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:5}")
+  private int dataImportJournalConsumerInstancesNumber;
 
   @Autowired
   @Qualifier("journalService")
@@ -66,20 +74,38 @@ public class InitAPIImpl implements InitAPI {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     StoredMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
+    Promise<String> deployDataImportConsumer = Promise.promise();
+    Promise<String> deployDataImportJournalConsumer = Promise.promise();
 
-    vertx.deployVerticle("org.folio.verticle.consumers.RawMarcChunkConsumersVerticle",
+    vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.consumers.StoredMarcChunkConsumersVerticle",
+    vertx.deployVerticle("org.folio.verticle.StoredMarcChunkConsumersVerticle",
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
 
-    return CompositeFuture.all(deployRawMarcChunkConsumer.future(), deployStoredMarcChunkConsumer.future());
+    vertx.deployVerticle("org.folio.verticle.DataImportConsumersVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
+
+    vertx.deployVerticle("org.folio.verticle.DataImportJournalConsumersVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
+
+    return CompositeFuture.all(deployRawMarcChunkConsumer.future(),
+      deployStoredMarcChunkConsumer.future(),
+      deployDataImportConsumer.future(),
+      deployDataImportJournalConsumer.future());
+//  return Future.succeededFuture();
   }
 }

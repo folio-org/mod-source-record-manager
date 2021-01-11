@@ -1,4 +1,4 @@
-package org.folio.services.util;
+package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
