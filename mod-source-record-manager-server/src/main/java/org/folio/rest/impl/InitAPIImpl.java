@@ -106,6 +106,5 @@ public class InitAPIImpl implements InitAPI {
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future());
-//  return Future.succeededFuture();
   }
 }
