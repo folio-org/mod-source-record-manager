@@ -4,13 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -20,39 +21,39 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.coordinator.QueuedBlockingCoordinator;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
-import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
-
-  private static final int BLOCKING_COORDINATOR_RECORDS_NUMBER =
-    Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("record.publishing.blocking.coordinator.recors.number", "50"));
+  private static final AtomicInteger indexer = new AtomicInteger();
 
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleCache mappingRuleCache;
-  private Vertx vertx;
-  private QueuedBlockingCoordinator coordinator;
+  private KafkaConfig kafkaConfig;
+
+  @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
+  private int maxDistributionNum;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
@@ -60,14 +61,13 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
                                                @Autowired JobExecutionProgressService jobExecutionProgressService,
                                                @Autowired MappingParametersProvider mappingParametersProvider,
                                                @Autowired MappingRuleCache mappingRuleCache,
-                                               @Autowired Vertx vertx) {
+                                               @Autowired KafkaConfig kafkaConfig) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
-    this.vertx = vertx;
-    this.coordinator = new QueuedBlockingCoordinator(BLOCKING_COORDINATOR_RECORDS_NUMBER);
+    this.kafkaConfig = kafkaConfig;
   }
 
   @Override
@@ -102,7 +102,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
           .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
             .compose(rulesOptional -> {
               if (rulesOptional.isPresent()) {
-                return sendCreatedRecordsWithBlocking(createdRecords, jobExecution, rulesOptional.get(), mappingParameters, params);
+                return sendCreatedRecords(createdRecords, jobExecution, rulesOptional.get(), mappingParameters, params);
               } else {
                 return Future.failedFuture(format("Can not send events with created records, no mapping rules found for tenant %s", params.getTenantId()));
               }
@@ -110,37 +110,34 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
         .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
-  private Future<Boolean> sendCreatedRecordsWithBlocking(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
+  private Future<Boolean> sendCreatedRecords(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
     List<Future> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
 
-    vertx.executeBlocking(blockingPromise -> {
-      try {
-        for (Record record : createdRecords) {
-          coordinator.acceptLock();
-          if (isRecordReadyToSend(record)) {
-            DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
-            Future<Boolean> booleanFuture = sendEventWithPayload(Json.encode(payload), DI_SRS_MARC_BIB_RECORD_CREATED.value(), params)
-              .onComplete(ar -> coordinator.acceptUnlock());
-            futures.add(booleanFuture);
-          }
+    try {
+      for (Record record : createdRecords) {
+        if (isRecordReadyToSend(record)) {
+          String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+          DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params);
+          Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
+            DI_SRS_MARC_BIB_RECORD_CREATED.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
+          futures.add(booleanFuture);
         }
-      } catch (Exception e) {
-        LOGGER.error("Error publishing event with record", e);
-        futures.add(Future.failedFuture(e));
       }
+    } catch (Exception e) {
+      LOGGER.error("Error publishing event with record", e);
+      futures.add(Future.failedFuture(e));
+    }
 
-      CompositeFuture.join(futures).onComplete(ar -> {
-        if (ar.failed()) {
-          LOGGER.error("Error publishing events with created records", ar.cause());
-          promise.fail(ar.cause());
-          return;
-        }
-        promise.complete(true);
-      });
-    }, null);
-
+    CompositeFuture.join(futures).onComplete(ar -> {
+      if (ar.failed()) {
+        LOGGER.error("Error publishing events with created records", ar.cause());
+        promise.fail(ar.cause());
+        return;
+      }
+      promise.complete(true);
+    });
     return promise.future();
   }
 
