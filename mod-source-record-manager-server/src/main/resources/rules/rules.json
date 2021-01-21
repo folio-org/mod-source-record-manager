@@ -6569,5 +6569,14 @@
         }
       ]
     }
+  ],
+  "880": [
+    {
+      "target": "",
+      "description": "Field for target post-processing based on first 3 digits in subfield 6",
+      "subfield": [
+        "6"
+      ]
+    }
   ]
 }
