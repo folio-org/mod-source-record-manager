@@ -17,6 +17,12 @@ import java.nio.charset.StandardCharsets;
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
 
+  private static final String RAW_EDIFACT_RECORD = "UNA:+.? 'UNB+UNOC:2+1694510:31B+3640086:31B+130920:1943+10'UNH+30+INVOIC:D:96A:UN:EAN008'" +
+  "BGM+380+475463'DTM+137:20130919:102'CUX+2:USD:4'ALC+C++++TX::28:TAX'MOA+8:69.09'LIN+1++9780199588459:EN'" + 
+  "IMD+L+050+:::BLACK MARKET BRITAIN, 1939-1955.'IMD+L+010+:::ROODHOUSE, MARK'IMD+L+110+:::OXFORD'QTY+47:1'" +
+  "MOA+203:103.13'PRI+AAB:125'PRI+AAA:103.13'RFF+LI:POL-17653'RFF+SLI:99954761992'UNS+S'CNT+1:19'CNT+2:19'MOA+9:1818.28'" +
+  "MOA+79:1818.28'UNT+217+33'UNZ+4+10'";
+
   private static final String RAW_MARC_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006" +
     "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
     "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
@@ -68,8 +74,19 @@ public class ParserTest {
   private static final String NULL_RECORD = null;
   public static final String XML_MARC_RECORD_PATH = "src/test/resources/org/folio/services/parsers/xmlMarcRecord.xml";
 
+
   @Test
-  public void parseRawRecord(TestContext testContext) {
+  public void parseRawEdifactRecord(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(RAW_EDIFACT_RECORD);
+    testContext.assertFalse(result.isHasError());
+    testContext.assertNotNull(result.getParsedRecord());
+    testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+  }
+
+  @Test
+  public void parseRawMarcRecord(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(RAW_MARC_RECORD);
@@ -79,7 +96,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseRawErrorSource(TestContext testContext) {
+  public void parseMarcRawErrorSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(RAW_INCORRECT_RECORD);
@@ -89,7 +106,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parsEmptySource(TestContext testContext) {
+  public void parseMarcEmptySource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
@@ -99,7 +116,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parsNullSource(TestContext testContext) {
+  public void parseNullMarcRawSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(NULL_RECORD);
@@ -109,7 +126,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonRecord(TestContext testContext) {
+  public void parseMarcJsonRecord(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(JSON_MARC_RECORD);
@@ -119,7 +136,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonErrorSource(TestContext testContext) {
+  public void parseMarcJsonErrorSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(JSON_INCORRECT_RECORD);
@@ -129,7 +146,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonEmptySource(TestContext testContext) {
+  public void parseMarcJsonEmptySource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
@@ -139,7 +156,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseNullSource(TestContext testContext) {
+  public void parseNullMarcJsonSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(NULL_RECORD);

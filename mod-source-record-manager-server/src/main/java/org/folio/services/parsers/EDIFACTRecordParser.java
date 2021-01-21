@@ -8,6 +8,7 @@ import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamReader;
 
+import org.assertj.core.util.Arrays;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.marc4j.MarcError;
 import org.marc4j.MarcJsonWriter;
@@ -28,8 +29,8 @@ import java.util.List;
 /**
  * Raw record parser implementation for MARC format. Use marc4j library
  */
-public final class EDIFACTRecordParser implements RecordParser {
-  private static final Logger LOGGER = LoggerFactory.getLogger(EDIFACTRecordParser.class);
+public final class EdifactRecordParser implements RecordParser {
+  private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
   // private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override
@@ -42,7 +43,48 @@ public final class EDIFACTRecordParser implements RecordParser {
     try {
       while (reader.hasNext()) {
 
+        switch (reader.next()) {
+          case START_INTERCHANGE:
+            /* Retrieve the standard - "X12", "EDIFACT", or "TRADACOMS" */
+            String standard = reader.getStandard();
+        
+            /*
+             * Retrieve the version string array. An array is used to support
+             * the componentized version element used in the EDIFACT standard.
+             *
+             * e.g. [ "00501" ] (X12) or [ "UNOA", "3" ] (EDIFACT)
+             */
+            String[] version = reader.getVersion();
+            System.out.println("START_INTERCHANGE:");
+            System.out.println("\tstandard - " + standard);
+            System.out.println("\tversion - " + String.join(" ", version));
 
+            break;
+        
+          case START_SEGMENT:
+            // Retrieve the segment name - e.g. "ISA" (X12), "UNB" (EDIFACT), or "STX" (TRADACOMS)
+            String segmentName = reader.getText();
+            System.out.println("START_SEGMENT: " + segmentName);
+            break;
+        
+          case END_SEGMENT:
+            break;
+        
+          case START_COMPOSITE:
+            // String compositeName = reader;
+            System.out.println("\tSTART_COMPOSITE:");
+            break;
+        
+          case END_COMPOSITE:
+            break;
+        
+          case ELEMENT_DATA:
+            // Retrieve the value of the current element
+            String data = reader.getText();
+            System.out.println("\t\tELEMENT_DATA: " + data);
+
+            break;
+          }
 
 
       }
