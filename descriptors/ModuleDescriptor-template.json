@@ -278,6 +278,11 @@
           "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}",
           "permissionsRequired" : [ "metadata-provider.logs.get" ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
         }
       ]
     },
