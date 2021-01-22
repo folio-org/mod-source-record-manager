@@ -20,8 +20,10 @@ import io.xlate.edi.stream.EDIStreamReader;
  * Raw record parser implementation for MARC format. Use marc4j library
  */
 public final class EdifactRecordParser implements RecordParser {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
 
+  private static final String SEGMENTS_LABEL = "segments";
   private static final String TAG_LABEL = "tag";
   private static final String DATA_ELEMENTS_LABEL = "dataElements";
   private static final String COMPONENTS_LABEL = "components";
@@ -39,7 +41,7 @@ public final class EdifactRecordParser implements RecordParser {
     JsonObject resultJson = new JsonObject();
     JsonArray segmentsJson = new JsonArray();
 
-    resultJson.put("segments", segmentsJson);
+    resultJson.put(SEGMENTS_LABEL, segmentsJson);
 
     try {
       while (reader.hasNext()) {
