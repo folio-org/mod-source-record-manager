@@ -1,5 +1,13 @@
 package org.folio.services.parsers;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -8,137 +16,91 @@ import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamReader;
 
-import org.assertj.core.util.Arrays;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.marc4j.MarcError;
-import org.marc4j.MarcJsonWriter;
-import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.marc.Record;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Raw record parser implementation for MARC format. Use marc4j library
  */
 public final class EdifactRecordParser implements RecordParser {
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
-  // private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
+  private static final String TAG_LABEL = "tag";
+  private static final String DATA_ELEMENTS_LABEL = "dataElements";
+  private static final String COMPONENTS_LABEL = "components";
+  private static final String DATA_LABEL = "data";
+  
   @Override
   public ParsedResult parseRecord(String rawRecord) {
     ParsedResult result = new ParsedResult();
     EDIInputFactory factory = EDIInputFactory.newFactory();
     InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
     EDIStreamReader reader = factory.createEDIStreamReader(stream);
+    
+    boolean buildingComposite = false;
+
+    JsonObject resultJson = new JsonObject();
+    JsonArray segmentsJson = new JsonArray();
+
+    resultJson.put("segments", segmentsJson);
 
     try {
       while (reader.hasNext()) {
-
         switch (reader.next()) {
           case START_INTERCHANGE:
-            /* Retrieve the standard - "X12", "EDIFACT", or "TRADACOMS" */
-            String standard = reader.getStandard();
-        
-            /*
-             * Retrieve the version string array. An array is used to support
-             * the componentized version element used in the EDIFACT standard.
-             *
-             * e.g. [ "00501" ] (X12) or [ "UNOA", "3" ] (EDIFACT)
-             */
-            String[] version = reader.getVersion();
-            System.out.println("START_INTERCHANGE:");
-            System.out.println("\tstandard - " + standard);
-            System.out.println("\tversion - " + String.join(" ", version));
-
             break;
-        
           case START_SEGMENT:
-            // Retrieve the segment name - e.g. "ISA" (X12), "UNB" (EDIFACT), or "STX" (TRADACOMS)
             String segmentName = reader.getText();
-            System.out.println("START_SEGMENT: " + segmentName);
+            JsonObject segmentJson = new JsonObject();
+            segmentJson.put(TAG_LABEL, segmentName);
+            segmentJson.put(DATA_ELEMENTS_LABEL, new JsonArray());
+            segmentsJson.add(segmentJson);
             break;
-        
           case END_SEGMENT:
             break;
-        
           case START_COMPOSITE:
-            // String compositeName = reader;
-            System.out.println("\tSTART_COMPOSITE:");
+            buildingComposite = true;
+            JsonObject compositeSegment = segmentsJson.getJsonObject(segmentsJson.size()-1);
+            JsonObject compositeComponentsJson = new JsonObject();
+            compositeComponentsJson.put(COMPONENTS_LABEL, new JsonArray());
+            compositeSegment.getJsonArray(DATA_ELEMENTS_LABEL).add(compositeComponentsJson);
             break;
-        
           case END_COMPOSITE:
+            buildingComposite = false;
             break;
-        
           case ELEMENT_DATA:
-            // Retrieve the value of the current element
             String data = reader.getText();
-            System.out.println("\t\tELEMENT_DATA: " + data);
-
+            JsonObject lastSegment = segmentsJson.getJsonObject(segmentsJson.size()-1);
+            if(!buildingComposite) {
+              JsonObject componentsJson = new JsonObject();
+              componentsJson.put(COMPONENTS_LABEL, new JsonArray());
+              lastSegment.getJsonArray(DATA_ELEMENTS_LABEL).add(componentsJson);
+            }
+            JsonObject dataJson = new JsonObject();
+            dataJson.put(DATA_LABEL, data);
+            JsonArray dataElements = lastSegment.getJsonArray(DATA_ELEMENTS_LABEL);
+            JsonObject lastDataElement = dataElements.getJsonObject(dataElements.size()-1);
+            lastDataElement.getJsonArray(COMPONENTS_LABEL)
+              .add(dataJson);
             break;
+          case SEGMENT_ERROR:
+            throw new EDIStreamException("Parsing raw EDIFACT record resulted in a SEGMENT_ERROR.");
+          case ELEMENT_DATA_ERROR:
+            throw new EDIStreamException("Parsing raw EDIFACT record resulted in an ELEMENT_DATA_ERROR.");
+          case ELEMENT_OCCURRENCE_ERROR:
+            throw new EDIStreamException("Parsing raw EDIFACT record resulted in an ELEMENT_OCCURRENCE_ERROR.");
           }
-
-
       }
       reader.close();
       stream.close();
     } catch (EDIStreamException | IOException e) {
-      LOGGER.error("Error during parse MARC record from raw record", e);
+      LOGGER.error("Error during parse EDIFACT record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage())));
     }
 
-    
+    result.setParsedRecord(resultJson);
+    System.out.println(resultJson);
 
-    try {
-      // MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(rawRecord.getBytes(DEFAULT_CHARSET)), DEFAULT_CHARSET.name());
-      // if (reader.hasNext()) {
-      //   ByteArrayOutputStream os = new ByteArrayOutputStream();
-      //   MarcJsonWriter writer = new MarcJsonWriter(os);
-      //   Record record = reader.next();
-      //   List<MarcError> errorList = record.getErrors();
-      //   if (errorList == null || errorList.isEmpty()) {
-      //     writer.write(record);
-      //     result.setParsedRecord(new JsonObject(new String(os.toByteArray())));
-      //   } else {
-      //     List<JsonObject> preparedErrors = new ArrayList<>();
-      //     errorList.forEach(e -> preparedErrors.add(buildErrorObject(e)));
-      //     prepareResultWithError(result, preparedErrors);
-      //   }
-      //   return result;
-      // } else {
-        // result.setParsedRecord(new JsonObject());
-      // }
-    } catch (Exception e) {
-      // LOGGER.error("Error during parse MARC record from raw record", e);
-      // prepareResultWithError(result, Collections.singletonList(new JsonObject()
-      //   .put("name", e.getClass().getName())
-      //   .put("message", e.getMessage())));
-    }
     return result;
-  }
-
-  /**
-   * Build json representation of MarcRecord
-   *
-   * @param error - MarcRecord
-   * @return - JsonObject with error descriptions
-   */
-  private JsonObject buildErrorObject(MarcError error) {
-    JsonObject errorJson = new JsonObject();
-    errorJson.put("message", error.message);
-    errorJson.put("curField", error.curField);
-    errorJson.put("curSubfield", error.curSubfield);
-    return errorJson;
   }
 
   private void prepareResultWithError(ParsedResult result, List<JsonObject> errorObjects) {
