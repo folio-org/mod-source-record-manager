@@ -86,7 +86,7 @@ public final class EdifactRecordParser implements RecordParser {
           case SEGMENT_ERROR:
           case ELEMENT_DATA_ERROR:
           case ELEMENT_OCCURRENCE_ERROR:
-          errorList.add(buildErrorObject(reader.getText(), reader.getErrorType().name()));
+            errorList.add(buildErrorObject(reader.getText(), reader.getErrorType().name()));
           }
       }
       reader.close();
