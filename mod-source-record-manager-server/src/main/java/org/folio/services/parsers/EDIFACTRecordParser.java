@@ -100,7 +100,6 @@ public final class EdifactRecordParser implements RecordParser {
     }
 
     result.setParsedRecord(resultJson);
-    System.out.println(resultJson);
 
     return result;
   }
