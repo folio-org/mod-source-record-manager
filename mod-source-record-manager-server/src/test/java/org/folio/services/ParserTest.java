@@ -23,6 +23,10 @@ public class ParserTest {
   "MOA+203:103.13'PRI+AAB:125'PRI+AAA:103.13'RFF+LI:POL-17653'RFF+SLI:99954761992'UNS+S'CNT+1:19'CNT+2:19'MOA+9:1818.28'" +
   "MOA+79:1818.28'UNT+217+33'UNZ+4+10'";
 
+  private static final String RAW_EDIFACT_INCORRECT_RECORD = "UNA:+.? 'UNB+UNOC:2+1694510:31B+3640086:31B+130920:1943+10'UNH+30+INVOIC:D:96A:UN:EAN008'" +
+  "BGM+380+475463'DTMFF+LI:POL-17653'RFF+SLI:99954761992'UNS+S'CNT+1:19'CNT+2:19'MOA+9:1818.28'" +
+  "MOA+79:1818.28'UNT+217+33'UNZ+4+10'";
+
   private static final String RAW_MARC_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006" +
     "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
     "4300286260004700329265003800376300001500414310002200429321002500451362002300476570002900499650003300528650004500561" +
@@ -83,6 +87,36 @@ public class ParserTest {
     testContext.assertFalse(result.isHasError());
     testContext.assertNotNull(result.getParsedRecord());
     testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+  }
+
+  @Test
+  public void parseEdifactRawErrorSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(RAW_EDIFACT_INCORRECT_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseEdifactEmptySource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(EMPTY_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseNullEdifactRawSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(NULL_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
   }
 
   @Test

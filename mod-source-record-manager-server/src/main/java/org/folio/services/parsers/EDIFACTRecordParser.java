@@ -1,7 +1,6 @@
 package org.folio.services.parsers;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +13,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.xlate.edi.stream.EDIInputFactory;
-import io.xlate.edi.stream.EDIStreamException;
 import io.xlate.edi.stream.EDIStreamReader;
 
 /**
@@ -33,19 +31,20 @@ public final class EdifactRecordParser implements RecordParser {
   @Override
   public ParsedResult parseRecord(String rawRecord) {
     ParsedResult result = new ParsedResult();
-    EDIInputFactory factory = EDIInputFactory.newFactory();
-    InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
-    EDIStreamReader reader = factory.createEDIStreamReader(stream);
-    
-    
+
     List<JsonObject> errorList = new ArrayList<>();
     JsonObject resultJson = new JsonObject();
     JsonArray segmentsJson = new JsonArray();
     boolean buildingComposite = false;
 
-    resultJson.put(SEGMENTS_LABEL, segmentsJson);
-
     try {
+
+      EDIInputFactory factory = EDIInputFactory.newFactory();
+      InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
+      EDIStreamReader reader = factory.createEDIStreamReader(stream);
+
+      resultJson.put(SEGMENTS_LABEL, segmentsJson);
+
       while (reader.hasNext()) {
         switch (reader.next()) {
           case START_INTERCHANGE:
@@ -92,7 +91,7 @@ public final class EdifactRecordParser implements RecordParser {
       }
       reader.close();
       stream.close();
-    } catch (EDIStreamException | IOException e) {
+    } catch (Exception e) {
       LOGGER.error("Error during parse EDIFACT record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
