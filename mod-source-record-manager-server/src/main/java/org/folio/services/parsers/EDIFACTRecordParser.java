@@ -3,6 +3,7 @@ package org.folio.services.parsers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,10 +37,11 @@ public final class EdifactRecordParser implements RecordParser {
     InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
     EDIStreamReader reader = factory.createEDIStreamReader(stream);
     
-    boolean buildingComposite = false;
-
+    
+    List<JsonObject> errorList = new ArrayList<>();
     JsonObject resultJson = new JsonObject();
     JsonArray segmentsJson = new JsonArray();
+    boolean buildingComposite = false;
 
     resultJson.put(SEGMENTS_LABEL, segmentsJson);
 
@@ -83,11 +85,9 @@ public final class EdifactRecordParser implements RecordParser {
               .add(dataJson);
             break;
           case SEGMENT_ERROR:
-            throw new EDIStreamException("Parsing raw EDIFACT record resulted in a SEGMENT_ERROR.");
           case ELEMENT_DATA_ERROR:
-            throw new EDIStreamException("Parsing raw EDIFACT record resulted in an ELEMENT_DATA_ERROR.");
           case ELEMENT_OCCURRENCE_ERROR:
-            throw new EDIStreamException("Parsing raw EDIFACT record resulted in an ELEMENT_OCCURRENCE_ERROR.");
+          errorList.add(buildErrorObject(reader.getText(), reader.getErrorType().name()));
           }
       }
       reader.close();
@@ -99,9 +99,26 @@ public final class EdifactRecordParser implements RecordParser {
         .put("message", e.getMessage())));
     }
 
+    if (!errorList.isEmpty()) {
+      prepareResultWithError(result, errorList);
+    } 
+
     result.setParsedRecord(resultJson);
 
     return result;
+  }
+
+  /**
+   * Build json representation of MarcRecord
+   *
+   * @param error - MarcRecord
+   * @return - JsonObject with error descriptions
+   */
+  private JsonObject buildErrorObject(String tag, String message) {
+    JsonObject errorJson = new JsonObject();
+    errorJson.put("tag", tag);
+    errorJson.put("message", message);
+    return errorJson;
   }
 
   private void prepareResultWithError(ParsedResult result, List<JsonObject> errorObjects) {
