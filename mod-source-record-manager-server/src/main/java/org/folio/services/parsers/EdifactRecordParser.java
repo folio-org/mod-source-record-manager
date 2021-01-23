@@ -2,6 +2,8 @@ package org.folio.services.parsers;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,10 +18,10 @@ import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamReader;
 
 /**
- * Raw record parser implementation for MARC format. Use marc4j library
+ * Raw record parser implementation for EDIFACT format. Use staedi library
  */
 public final class EdifactRecordParser implements RecordParser {
-
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
 
   private static final String SEGMENTS_LABEL = "segments";
@@ -40,8 +42,8 @@ public final class EdifactRecordParser implements RecordParser {
     try {
 
       EDIInputFactory factory = EDIInputFactory.newFactory();
-      InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
-      EDIStreamReader reader = factory.createEDIStreamReader(stream);
+      InputStream stream = new ByteArrayInputStream(rawRecord.getBytes(DEFAULT_CHARSET));
+      EDIStreamReader reader = factory.createEDIStreamReader(stream, DEFAULT_CHARSET.name());
 
       resultJson.put(SEGMENTS_LABEL, segmentsJson);
 
@@ -71,7 +73,7 @@ public final class EdifactRecordParser implements RecordParser {
           case ELEMENT_DATA:
             String data = reader.getText();
             JsonObject lastSegment = segmentsJson.getJsonObject(segmentsJson.size()-1);
-            if(!buildingComposite) {
+            if (!buildingComposite) {
               JsonObject componentsJson = new JsonObject();
               componentsJson.put(COMPONENTS_LABEL, new JsonArray());
               lastSegment.getJsonArray(DATA_ELEMENTS_LABEL).add(componentsJson);
@@ -86,7 +88,12 @@ public final class EdifactRecordParser implements RecordParser {
           case SEGMENT_ERROR:
           case ELEMENT_DATA_ERROR:
           case ELEMENT_OCCURRENCE_ERROR:
+            LOGGER.error("Error during parse EDIFACT {} {}", reader.getText(), reader.getErrorType().name());
             errorList.add(buildErrorObject(reader.getText(), reader.getErrorType().name()));
+            break;
+          default:
+            // ELEMENT_DATA_BINARY, START_GROUP, END_GROUP, START_LOOP, END_LOOP, START_TRANSACTION, END_TRANSACTION, END_INTERCHANGE
+            break;
           }
       }
       reader.close();
@@ -100,7 +107,7 @@ public final class EdifactRecordParser implements RecordParser {
 
     if (!errorList.isEmpty()) {
       prepareResultWithError(result, errorList);
-    } 
+    }
 
     result.setParsedRecord(resultJson);
 
@@ -108,9 +115,10 @@ public final class EdifactRecordParser implements RecordParser {
   }
 
   /**
-   * Build json representation of MarcRecord
+   * Build json representation of EDIFACT error
    *
-   * @param error - MarcRecord
+   * @param tag - event tag
+   * @param tamessageg - error message
    * @return - JsonObject with error descriptions
    */
   private JsonObject buildErrorObject(String tag, String message) {
