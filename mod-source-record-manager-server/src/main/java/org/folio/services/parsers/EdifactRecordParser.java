@@ -39,14 +39,11 @@ public final class EdifactRecordParser implements RecordParser {
     JsonArray segmentsJson = new JsonArray();
     boolean buildingComposite = false;
 
-    try {
-
-      EDIInputFactory factory = EDIInputFactory.newFactory();
+    try (
       InputStream stream = new ByteArrayInputStream(rawRecord.getBytes(DEFAULT_CHARSET));
-      EDIStreamReader reader = factory.createEDIStreamReader(stream, DEFAULT_CHARSET.name());
-
+      EDIStreamReader reader = EDIInputFactory.newFactory().createEDIStreamReader(stream, DEFAULT_CHARSET.name());
+    ) {
       resultJson.put(SEGMENTS_LABEL, segmentsJson);
-
       while (reader.hasNext()) {
         switch (reader.next()) {
           case START_INTERCHANGE:
@@ -96,8 +93,6 @@ public final class EdifactRecordParser implements RecordParser {
             break;
           }
       }
-      reader.close();
-      stream.close();
     } catch (Exception e) {
       LOGGER.error("Error during parse EDIFACT record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
