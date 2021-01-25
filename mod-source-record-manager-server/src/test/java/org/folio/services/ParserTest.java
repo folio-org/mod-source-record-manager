@@ -13,9 +13,12 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
+
+  private static final String EDIFACT_RECORD_FOLDER_PATH = "src/test/resources/records/edifact";
 
   private static final String RAW_EDIFACT_RECORD =
     "UNA:+,? '" +
@@ -127,6 +130,34 @@ public class ParserTest {
   private static final String NULL_RECORD = null;
   public static final String XML_MARC_RECORD_PATH = "src/test/resources/org/folio/services/parsers/xmlMarcRecord.xml";
 
+  @Test
+  public void parseRawEdifactRecords(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+    File sourceRecordsDirectory = new File(EDIFACT_RECORD_FOLDER_PATH);
+    String[] extensions = new String[]{ "edi" };
+    AtomicBoolean passed = new AtomicBoolean(true);
+    System.out.println("\n\n");
+    FileUtils.listFiles(sourceRecordsDirectory, extensions, false).stream()
+      .map(File::getPath)
+      .forEach(path -> {
+        try {
+          String record = new String(FileUtils.readFileToByteArray(new File(path)));
+          System.out.println("\tparging " + path);
+          ParsedResult result = parser.parseRecord(record);
+          if (result.isHasError()) {
+            System.out.println("\t" + result.getErrors());
+            passed.set(false);
+          }
+          // testContext.assertFalse(result.isHasError());
+          // testContext.assertNotNull(result.getParsedRecord());
+          // testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+        } catch (IOException e) {
+          System.out.println("\t" + e.getMessage());
+        }
+      });
+    System.out.println("\n\n");
+    testContext.assertTrue(passed.get());
+  }
 
   @Test
   public void parseRawEdifactRecord(TestContext testContext) {
