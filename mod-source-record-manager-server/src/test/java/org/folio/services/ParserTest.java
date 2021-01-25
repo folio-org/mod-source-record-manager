@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
 
+  private static final String EDIFACT_RECORD_FOLDER_PATH = "src/test/resources/records/edifact";
+
   private static final String RAW_EDIFACT_RECORD =
     "UNA:+,? '" +
     "UNB+UNOA:2+FHPEDAL+HUBERGMBH+990802:1557+9908021557'" +
@@ -127,6 +129,25 @@ public class ParserTest {
   private static final String NULL_RECORD = null;
   public static final String XML_MARC_RECORD_PATH = "src/test/resources/org/folio/services/parsers/xmlMarcRecord.xml";
 
+  @Test
+  public void parseRawEdifactRecords(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+    File sourceRecordsDirectory = new File(EDIFACT_RECORD_FOLDER_PATH);
+    String[] extensions = new String[]{ "edi" };
+    FileUtils.listFiles(sourceRecordsDirectory, extensions, false).stream()
+      .map(File::getPath)
+      .forEach(path -> {
+        try {
+          String record = new String(FileUtils.readFileToByteArray(new File(path)));
+          ParsedResult result = parser.parseRecord(record);
+          testContext.assertFalse(result.isHasError());
+          testContext.assertNotNull(result.getParsedRecord());
+          testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+        } catch (IOException e) {
+          testContext.fail(e);
+        }
+      });
+  }
 
   @Test
   public void parseRawEdifactRecord(TestContext testContext) {
