@@ -47,6 +47,7 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
 
     try {
       RecordsBatchResponse recordsBatchResponse = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RecordsBatchResponse.class);
+      LOGGER.info("Received stored records {}", recordsBatchResponse);
       List<Record> storedRecords = recordsBatchResponse.getRecords();
 
       LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
