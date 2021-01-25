@@ -142,6 +142,7 @@ public class ParserTest {
       .forEach(path -> {
         try {
           String record = new String(FileUtils.readFileToByteArray(new File(path)));
+          System.out.println("\tparging " + path);
           ParsedResult result = parser.parseRecord(record);
           if (result.isHasError()) {
             System.out.println("\t" + result.getErrors());
