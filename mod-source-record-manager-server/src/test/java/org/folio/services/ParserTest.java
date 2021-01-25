@@ -1,7 +1,9 @@
 package org.folio.services;
 
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.io.FileUtils;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.parsers.ParsedResult;
@@ -10,10 +12,8 @@ import org.folio.services.parsers.RecordParserBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicBoolean;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
@@ -134,29 +134,20 @@ public class ParserTest {
   public void parseRawEdifactRecords(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
     File sourceRecordsDirectory = new File(EDIFACT_RECORD_FOLDER_PATH);
-    String[] extensions = new String[]{ "edi" };
-    AtomicBoolean passed = new AtomicBoolean(true);
-    System.out.println("\n\n");
+    String[] extensions = new String[] { "edi" };
     FileUtils.listFiles(sourceRecordsDirectory, extensions, false).stream()
       .map(File::getPath)
       .forEach(path -> {
         try {
           String record = new String(FileUtils.readFileToByteArray(new File(path)));
-          System.out.println("\tparging " + path);
           ParsedResult result = parser.parseRecord(record);
-          if (result.isHasError()) {
-            System.out.println("\t" + result.getErrors());
-            passed.set(false);
-          }
-          // testContext.assertFalse(result.isHasError());
-          // testContext.assertNotNull(result.getParsedRecord());
-          // testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+          testContext.assertFalse(result.isHasError());
+          testContext.assertNotNull(result.getParsedRecord());
+          testContext.assertNotEquals(result.getParsedRecord().encode(), "");
         } catch (IOException e) {
-          System.out.println("\t" + e.getMessage());
+          testContext.fail(e);
         }
       });
-    System.out.println("\n\n");
-    testContext.assertTrue(passed.get());
   }
 
   @Test

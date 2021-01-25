@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamReader;
+import io.xlate.edi.stream.EDIStreamValidationError;
 
 /**
  * Raw record parser implementation for EDIFACT format. Use staedi library
@@ -23,6 +25,10 @@ import io.xlate.edi.stream.EDIStreamReader;
 public final class EdifactRecordParser implements RecordParser {
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
+
+  private static final List<String> ALLOWED_CODE_VALUES = Arrays.asList(new String[] {
+    "ZZ"
+  });
 
   private static final String SEGMENTS_LABEL = "segments";
   private static final String TAG_LABEL = "tag";
@@ -82,11 +88,16 @@ public final class EdifactRecordParser implements RecordParser {
             lastDataElement.getJsonArray(COMPONENTS_LABEL)
               .add(dataJson);
             break;
-          case SEGMENT_ERROR:
           case ELEMENT_DATA_ERROR:
+            if(EDIStreamValidationError.INVALID_CODE_VALUE == reader.getErrorType() && ALLOWED_CODE_VALUES.contains(reader.getText())) {
+              LOGGER.info("Allowed invalid code value found: {}.", reader.getText());
+            } else {
+              errorList.add(processParsingEventError(reader));
+            }
+            break;
+          case SEGMENT_ERROR:
           case ELEMENT_OCCURRENCE_ERROR:
-            LOGGER.error("Error during parse EDIFACT {} {}", reader.getText(), reader.getErrorType().name());
-            errorList.add(buildErrorObject(reader.getText(), reader.getErrorType().name()));
+            errorList.add(processParsingEventError(reader));
             break;
           default:
             // ELEMENT_DATA_BINARY, START_GROUP, END_GROUP, START_LOOP, END_LOOP, START_TRANSACTION, END_TRANSACTION, END_INTERCHANGE
@@ -107,6 +118,11 @@ public final class EdifactRecordParser implements RecordParser {
     result.setParsedRecord(resultJson);
 
     return result;
+  }
+
+  private JsonObject processParsingEventError(EDIStreamReader reader) {
+    LOGGER.error("Error during parse EDIFACT {} {}, from the {} event.", reader.getText(), reader.getErrorType(), reader.getEventType());
+    return buildErrorObject(reader.getText(), reader.getErrorType().name());
   }
 
   /**
