@@ -6576,6 +6576,25 @@
       "description": "Field for target post-processing based on first 3 digits in subfield 6",
       "subfield": [
         "6"
+      ],
+      "fieldReplacementBy3Digits" : true,
+      "fieldReplacementRule" : [
+        {
+          "sourceDigits": "100",
+          "targetField": "700"
+        },
+        {
+          "sourceDigits": "110",
+          "targetField": "710"
+        },
+        {
+          "sourceDigits": "111",
+          "targetField": "711"
+        },
+        {
+          "sourceDigits": "245",
+          "targetField": "246"
+        }
       ]
     }
   ]
