@@ -3,7 +3,6 @@ package org.folio.services.parsers;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,10 +26,6 @@ import io.xlate.edi.stream.EDIStreamValidationError;
 public final class EdifactRecordParser implements RecordParser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
-
-  private static final List<String> ALLOWED_CODE_VALUES = Arrays.asList(new String[] {
-    "ZZ"
-  });
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
