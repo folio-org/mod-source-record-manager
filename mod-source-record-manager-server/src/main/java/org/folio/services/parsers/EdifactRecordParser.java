@@ -2,16 +2,18 @@ package org.folio.services.parsers;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.folio.rest.jaxrs.model.Component;
+import org.folio.rest.jaxrs.model.DataElement;
+import org.folio.rest.jaxrs.model.EdifactParsedContent;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.Segment;
 
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -23,74 +25,68 @@ import io.xlate.edi.stream.EDIStreamValidationError;
  * Raw record parser implementation for EDIFACT format. Use staedi library
  */
 public final class EdifactRecordParser implements RecordParser {
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
 
   private static final List<String> ALLOWED_CODE_VALUES = Arrays.asList(new String[] {
     "ZZ"
   });
 
-  private static final String SEGMENTS_LABEL = "segments";
-  private static final String TAG_LABEL = "tag";
-  private static final String DATA_ELEMENTS_LABEL = "dataElements";
-  private static final String COMPONENTS_LABEL = "components";
-  private static final String DATA_LABEL = "data";
-  
   @Override
   public ParsedResult parseRecord(String rawRecord) {
     ParsedResult result = new ParsedResult();
 
+    List<Segment> segments = new ArrayList<>();
+
     List<JsonObject> errorList = new ArrayList<>();
-    JsonObject resultJson = new JsonObject();
-    JsonArray segmentsJson = new JsonArray();
     boolean buildingComposite = false;
+    boolean skipInvalidCode = false;
 
     try (
-      InputStream stream = new ByteArrayInputStream(rawRecord.getBytes(DEFAULT_CHARSET));
-      EDIStreamReader reader = EDIInputFactory.newFactory().createEDIStreamReader(stream, DEFAULT_CHARSET.name());
+      InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
+      EDIStreamReader reader = EDIInputFactory.newFactory().createEDIStreamReader(stream);
     ) {
-      resultJson.put(SEGMENTS_LABEL, segmentsJson);
       while (reader.hasNext()) {
         switch (reader.next()) {
           case START_INTERCHANGE:
             break;
           case START_SEGMENT:
-            String segmentName = reader.getText();
-            JsonObject segmentJson = new JsonObject();
-            segmentJson.put(TAG_LABEL, segmentName);
-            segmentJson.put(DATA_ELEMENTS_LABEL, new JsonArray());
-            segmentsJson.add(segmentJson);
+            Segment segment = new Segment()
+              .withTag(reader.getText())
+              .withDataElements(new ArrayList<DataElement>());
+            segments.add(segment);
             break;
           case END_SEGMENT:
             break;
           case START_COMPOSITE:
             buildingComposite = true;
-            JsonObject compositeSegment = segmentsJson.getJsonObject(segmentsJson.size()-1);
-            JsonObject compositeComponentsJson = new JsonObject();
-            compositeComponentsJson.put(COMPONENTS_LABEL, new JsonArray());
-            compositeSegment.getJsonArray(DATA_ELEMENTS_LABEL).add(compositeComponentsJson);
+            segments.get(segments.size() - 1)
+              .getDataElements()
+              .add(new DataElement());
             break;
           case END_COMPOSITE:
             buildingComposite = false;
             break;
           case ELEMENT_DATA:
-            String data = reader.getText();
-            JsonObject lastSegment = segmentsJson.getJsonObject(segmentsJson.size()-1);
-            if (!buildingComposite) {
-              JsonObject componentsJson = new JsonObject();
-              componentsJson.put(COMPONENTS_LABEL, new JsonArray());
-              lastSegment.getJsonArray(DATA_ELEMENTS_LABEL).add(componentsJson);
+            if(skipInvalidCode) {
+              skipInvalidCode = false;
+              continue;
             }
-            JsonObject dataJson = new JsonObject();
-            dataJson.put(DATA_LABEL, data);
-            JsonArray dataElements = lastSegment.getJsonArray(DATA_ELEMENTS_LABEL);
-            JsonObject lastDataElement = dataElements.getJsonObject(dataElements.size()-1);
-            lastDataElement.getJsonArray(COMPONENTS_LABEL)
-              .add(dataJson);
+            Segment lastSegment = segments.get(segments.size() - 1);
+            if(!buildingComposite) {
+              lastSegment
+                .getDataElements()
+                .add(new DataElement());
+            }
+            List<DataElement> dataElements = lastSegment.getDataElements();
+            dataElements.get(dataElements.size() - 1)
+              .getComponents()
+              .add(new Component()
+                .withData(reader.getText()));
             break;
           case ELEMENT_DATA_ERROR:
-            if(EDIStreamValidationError.INVALID_CODE_VALUE == reader.getErrorType() && ALLOWED_CODE_VALUES.contains(reader.getText())) {
-              LOGGER.info("Allowed invalid code value found: {}.", reader.getText());
+            if(EDIStreamValidationError.INVALID_CODE_VALUE == reader.getErrorType()) {
+              skipInvalidCode = true;
             } else {
               errorList.add(processParsingEventError(reader));
             }
@@ -115,8 +111,10 @@ public final class EdifactRecordParser implements RecordParser {
       prepareResultWithError(result, errorList);
     }
 
-    result.setParsedRecord(resultJson);
-
+    String encodedResult = Json.encode(new EdifactParsedContent()
+      .withSegments(segments));
+    JsonObject parsedResult = new JsonObject(encodedResult);
+    result.setParsedRecord(parsedResult);
     return result;
   }
 
