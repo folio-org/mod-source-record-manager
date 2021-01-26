@@ -10,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
+import org.folio.JobProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
@@ -21,6 +22,7 @@ import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -179,7 +181,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           record.setErrorRecord(new ErrorRecord()
             .withContent(rawRecord)
             .withDescription(parsedResult.getErrors().encode()));
-        } else {
+        } else if(jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           String matchedId = getValue(record, "999", 's');
           if (matchedId != null){
