@@ -84,6 +84,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private static final String RAW_RECORD_RESULTING_IN_PARSING_ERROR = "01247nam  2200313zu 450000100110000000300080001100500170001905\u001F222\u001E1 \u001FaAriáes, Philippe.\u001E10\u001FaWestern attitudes toward death\u001Fh[electronic resource] :\u001Fbfrom the Middle Ages to the present /\u001Fcby Philippe Ariáes ; translated by Patricia M. Ranum.\u001E  \u001FaJohn Hopkins Paperbacks ed.\u001E  \u001FaBaltimore :\u001FbJohns Hopkins University Press,\u001Fc1975.\u001E  \u001Fa1 online resource.\u001E1 \u001FaThe Johns Hopkins symposia in comparative history ;\u001Fv4th\u001E  \u001FaDescription based on online resource; title from digital title page (viewed on Mar. 7, 2013).\u001E 0\u001FaDeath.\u001E2 \u001FaEbrary.\u001E 0\u001FaJohns Hopkins symposia in comparative history ;\u001Fv4th.\u001E40\u001FzConnect to e-book on Ebrary\u001Fuhttp://gateway.library.qut.edu.au/login?url=http://site.ebrary.com/lib/qut/docDetail.action?docID=10635130\u001E  \u001Fa.o1346565x\u001E  \u001Fa130307\u001Fb2095\u001Fe2095\u001Ff243966\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
   private static final String RULES_PATH = "src/test/resources/org/folio/services/rules.json";
 
+  @Spy
   private Vertx vertx = Vertx.vertx();
   @Spy
   PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -117,6 +118,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
 
+  private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
   private OkapiConnectionParams params;
@@ -144,11 +146,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao);
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
+    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao));
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleService, vertx);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, new JournalServiceImpl(journalRecordDao), mappingRuleCache);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleCache, vertx);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
