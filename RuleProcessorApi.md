@@ -420,6 +420,47 @@ Rule:
 
 - If there is no "z" in record sub-fields then target field does not appear at all.
 - If there is "z" among record sub-fields then target field gets filled by all the `["z","q","c"].`
+
+
+#### Field replacement rules
+There are "fieldReplacement" properties. They need for changing field number for specific fields, based on field replacement rules.
+For example, if 880 field need to be changed on 711 based on some condition, "fieldReplacement" properties can help with it.
+Example:
+```json
+Rule:
+"880": [
+{
+"target": "",
+"description": "Field for target post-processing based on first 3 digits in subfield 6",
+"subfield": [
+"6"
+],
+"fieldReplacementBy3Digits" : true,
+"fieldReplacementRule" : [
+{
+"sourceDigits": "100",
+"targetField": "700"
+},
+{
+"sourceDigits": "110",
+"targetField": "710"
+},
+{
+"sourceDigits": "111",
+"targetField": "711"
+},
+{
+"sourceDigits": "245",
+"targetField": "246"
+}
+]
+}
+]
+```
+`fieldReplacementBy3Digits` property indicates that "fieldReplacement"-logic should be applied here. (There can be added and implemented other properties, not only `...3Digits`)
+`fieldReplacementRule` property contains some additional data for "fieldReplacement"-logic.
+
+This mechanism executes in Processor, in data-import-processing-core, while parsing these rules.
 #
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
