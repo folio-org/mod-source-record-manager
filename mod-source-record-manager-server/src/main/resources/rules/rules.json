@@ -3796,8 +3796,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -3912,8 +3915,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -4524,8 +4530,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -5024,8 +5033,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
