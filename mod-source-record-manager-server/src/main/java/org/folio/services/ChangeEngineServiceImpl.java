@@ -322,7 +322,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withJobExecutionId(record.getSnapshotId())
         .withSourceRecordOrder(record.getOrder())
         .withSourceId(record.getId())
-        .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+        .withEntityType(inferJournalRecordEntityType(record))
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
@@ -335,6 +335,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       journalRecords.add(JsonObject.mapFrom(journalRecord));
     }
     return journalRecords;
+  }
+
+  private JournalRecord.EntityType inferJournalRecordEntityType(Record record) {
+    switch (record.getRecordType()) {
+      case EDIFACT:
+        return JournalRecord.EntityType.INVOICE;
+      case MARC:
+      default:
+        return JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+    }
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
