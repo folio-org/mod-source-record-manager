@@ -315,14 +315,14 @@
           "methods": ["POST"],
           "pathPattern": "/change-manager/handlers/created-inventory-instance",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/handlers/processing-result",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ],
           "modulePermissions": [
             "source-storage.snapshots.put"
@@ -332,14 +332,14 @@
           "methods": ["POST"],
           "pathPattern": "/change-manager/handlers/qm-completed",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/change-manager/handlers/qm-error",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ]
         }
       ]
