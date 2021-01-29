@@ -10,6 +10,7 @@ import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.folio.HttpStatus;
+import org.folio.JobProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
@@ -21,6 +22,7 @@ import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -181,10 +183,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withDescription(parsedResult.getErrors().encode()));
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
-          String matchedId = getValue(record, "999", 's');
-          if (matchedId != null){
-            record.setMatchedId(matchedId);
-            record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+          if (jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
+            String matchedId = getValue(record, "999", 's');
+            if (matchedId != null) {
+              record.setMatchedId(matchedId);
+              record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+            }
           }
         }
         return record;
@@ -318,7 +322,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withJobExecutionId(record.getSnapshotId())
         .withSourceRecordOrder(record.getOrder())
         .withSourceId(record.getId())
-        .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+        .withEntityType(inferJournalRecordEntityType(record))
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
@@ -331,6 +335,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       journalRecords.add(JsonObject.mapFrom(journalRecord));
     }
     return journalRecords;
+  }
+
+  private JournalRecord.EntityType inferJournalRecordEntityType(Record record) {
+    switch (record.getRecordType()) {
+      case EDIFACT:
+        return JournalRecord.EntityType.EDIFACT;
+      case MARC:
+      default:
+        return JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+    }
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
