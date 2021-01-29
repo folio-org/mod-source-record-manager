@@ -340,7 +340,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JournalRecord.EntityType inferJournalRecordEntityType(Record record) {
     switch (record.getRecordType()) {
       case EDIFACT:
-        return JournalRecord.EntityType.INVOICE;
+        return JournalRecord.EntityType.EDIFACT;
       case MARC:
       default:
         return JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
