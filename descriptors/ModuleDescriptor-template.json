@@ -200,10 +200,6 @@
           "modulePermissions": [
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
-            "source-storage.records.get",
-            "source-storage.records.post",
-            "source-storage.records.put",
-            "inventory.instances.batch.post",
             "users.collection.get",
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
@@ -226,9 +222,6 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.item-note-types.collection.get",
-            "converter-storage.field-protection-settings.get",
-            "pubsub.publish.post",
-            "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.items.collection.get",
             "inventory-storage.items.item.post",
             "inventory-storage.items.item.put",
@@ -246,7 +239,9 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
-            "inventory-storage.preceding-succeeding-titles.item.post"
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "converter-storage.field-protection-settings.get",
+            "converter-storage.jobprofilesnapshots.get"
           ]
         },
         {
