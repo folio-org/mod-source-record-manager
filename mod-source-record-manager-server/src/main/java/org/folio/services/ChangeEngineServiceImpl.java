@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
@@ -78,6 +79,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
+  private ReceivedRecordService receivedRecordService;
   private MappingRuleCache mappingRuleCache;
   private KafkaConfig kafkaConfig;
 
@@ -89,12 +91,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
+                                 @Autowired ReceivedRecordService receivedRecordService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.hrIdFieldService = hrIdFieldService;
     this.mappingRuleCache = mappingRuleCache;
     this.journalService = journalService;
+    this.receivedRecordService = receivedRecordService;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -107,6 +111,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     if (updateMarcActionExists) {
       LOGGER.info("Records have not been sent to the record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      receivedRecordService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, "DI_SRS_MARC_BIB_RECORD_RECEIVED");
       promise.complete(parsedRecords);
     } else {
       saveRecords(params, jobExecution, parsedRecords)

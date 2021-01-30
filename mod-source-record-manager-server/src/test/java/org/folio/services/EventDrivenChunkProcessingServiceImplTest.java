@@ -122,6 +122,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
+  @Spy
+  ReceivedRecordService receivedRecordService;
 
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
@@ -155,7 +157,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, new JournalServiceImpl(journalRecordDao), kafkaConfig);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, new JournalServiceImpl(journalRecordDao), receivedRecordService, kafkaConfig);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleCache, kafkaConfig);
 
     HashMap<String, String> headers = new HashMap<>();

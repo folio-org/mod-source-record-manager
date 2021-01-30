@@ -14,7 +14,7 @@ import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
-import org.folio.services.ChunkProcessingService;
+import org.folio.services.ReceivedRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -22,17 +22,19 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.List;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+
 @Component
 @Qualifier("StoredMarcChunksKafkaHandler")
 public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(StoredMarcChunksKafkaHandler.class);
 
-  private ChunkProcessingService eventDrivenChunkProcessingService;
+  private ReceivedRecordService receivedRecordService;
   private Vertx vertx;
 
-  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService") ChunkProcessingService eventDrivenChunkProcessingService,
+  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("receivedRecordsProcessingService") ReceivedRecordService receivedRecordService,
                                       @Autowired Vertx vertx) {
-    this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
+    this.receivedRecordService = receivedRecordService;
     this.vertx = vertx;
   }
 
@@ -53,7 +55,8 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
       List<Record> storedRecords = recordsBatchResponse.getRecords();
 
       LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
-      return eventDrivenChunkProcessingService.sendEventsWithStoredRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
+      return receivedRecordService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
+        okapiConnectionParams, DI_SRS_MARC_BIB_RECORD_CREATED.value())
         .compose(b -> {
           LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}",correlationId, chunkNumber);
           return Future.succeededFuture(correlationId);

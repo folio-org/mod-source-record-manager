@@ -19,13 +19,4 @@ public interface ChunkProcessingService {
    */
   Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params);
 
-  /**
-   * Process and send events after parsed records were stored in SRS
-   *
-   * @param createdRecords - records that were stored in SRS
-   * @param jobExecutionId - JobExecution id
-   * @param params         - OkapiConnectionParams to interact with external services
-   * @return - true if operation was successful
-   */
-  Future<Boolean> sendEventsWithStoredRecords(List<Record> createdRecords, String jobExecutionId, OkapiConnectionParams params);
 }
