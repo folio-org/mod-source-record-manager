@@ -11,8 +11,6 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.folio.HttpStatus;
-import org.folio.JobProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
@@ -81,7 +79,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
   private MappingRuleCache mappingRuleCache;
-  private JournalService journalService;
   private KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.ParsedRecordsKafkaHandler.maxDistributionNum:100}")
