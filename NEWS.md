@@ -7,6 +7,7 @@
 * [MODSOURMAN-382](https://issues.folio.org/browse/MODSOURMAN-382) Fill title from marc record into journalRecord entity
 * [MODSOURMAN-383](https://issues.folio.org/browse/MODSOURMAN-383) Implement endpoint to retrieve a recordProcessingLogDto.
 * [MODDICORE-114](https://issues.folio.org/browse/MODDICORE-114) Add MARC-Instance default mappings for 880 fields .
+* [MODDSOURMAN-377](https://issues.folio.org/browse/MODSOURMAN-377) Update 5xx Notes mappings to indicate staff only for some notes.
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working

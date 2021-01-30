@@ -93,92 +93,54 @@
       "version": "1.0",
       "handlers": [
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobExecutions",
-          "permissionsRequired": [
-            "metadata-provider.jobexecutions.get"
-          ]
+          "permissionsRequired" : [ "metadata-provider.jobexecutions.get" ]
         },
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/metadata-provider/logs/{jobExecutionId}",
-          "permissionsRequired": [
-            "metadata-provider.logs.get"
-          ]
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
         },
         {
-          "methods": [
-            "GET"
-          ],
-          "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
-          "permissionsRequired": [
-            "metadata-provider.logs.get"
-          ]
+        "methods": ["GET"],
+        "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
+        "permissionsRequired" : [ "metadata-provider.logs.get" ]
         },
         {
-          "methods": [
-            "POST"
-          ],
+          "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.post"
-          ],
+          "permissionsRequired" : [ "change-manager.jobexecutions.post" ],
           "modulePermissions": [
             "source-storage.snapshots.post",
             "users.collection.get"
           ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.put"
-          ]
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ]
         },
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/change-manager/jobExecutions/{id}",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.get"
-          ]
+          "permissionsRequired": [ "change-manager.jobexecutions.get" ]
         },
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/change-manager/jobExecutions/{id}/children",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.get"
-          ]
+          "permissionsRequired": [ "change-manager.jobexecutions.get" ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}/status",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.put"
-          ],
-          "modulePermissions": [
-            "source-storage.snapshots.put"
-          ]
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ],
+          "modulePermissions": [ "source-storage.snapshots.put" ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/change-manager/jobExecutions/{id}/jobProfile",
-          "permissionsRequired": [
-            "change-manager.jobexecutions.put"
-          ],
+          "permissionsRequired": [ "change-manager.jobexecutions.put" ],
           "modulePermissions": [
             "converter-storage.jobprofilesnapshots.post"
           ]
@@ -190,13 +152,9 @@
       "version": "1.0",
       "handlers": [
         {
-          "methods": [
-            "POST"
-          ],
+          "methods": ["POST"],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
-          "permissionsRequired": [
-            "change-manager.records.post"
-          ],
+          "permissionsRequired" : [ "change-manager.records.post" ],
           "modulePermissions": [
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
@@ -250,13 +208,9 @@
           ]
         },
         {
-          "methods": [
-            "DELETE"
-          ],
+          "methods": ["DELETE"],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
-          "permissionsRequired": [
-            "change-manager.records.delete"
-          ],
+          "permissionsRequired": [ "change-manager.records.delete" ],
           "modulePermissions": [
             "source-storage.snapshots.put",
             "source-storage.snapshots.delete"
@@ -269,25 +223,17 @@
       "version": "1.0",
       "handlers": [
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/change-manager/parsedRecords",
-          "permissionsRequired": [
-            "change-manager.parsedrecords.get"
-          ],
+          "permissionsRequired": [ "change-manager.parsedrecords.get" ],
           "modulePermissions": [
             "source-storage.sourceRecords.get"
           ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/change-manager/parsedRecords/{id}",
-          "permissionsRequired": [
-            "change-manager.parsedrecords.put"
-          ],
+          "permissionsRequired": [ "change-manager.parsedrecords.put" ],
           "modulePermissions": [
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
@@ -329,22 +275,14 @@
       "version": "1.0",
       "handlers": [
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}",
-          "permissionsRequired": [
-            "metadata-provider.logs.get"
-          ]
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
         },
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
-          "permissionsRequired": [
-            "metadata-provider.logs.get"
-          ]
+          "permissionsRequired" : [ "metadata-provider.logs.get" ]
         }
       ]
     },
@@ -353,31 +291,19 @@
       "version": "1.0",
       "handlers": [
         {
-          "methods": [
-            "GET"
-          ],
+          "methods": ["GET"],
           "pathPattern": "/mapping-rules",
-          "permissionsRequired": [
-            "mapping-rules.get"
-          ]
+          "permissionsRequired": [ "mapping-rules.get" ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/mapping-rules",
-          "permissionsRequired": [
-            "mapping-rules.update"
-          ]
+          "permissionsRequired": [ "mapping-rules.update" ]
         },
         {
-          "methods": [
-            "PUT"
-          ],
+          "methods": ["PUT"],
           "pathPattern": "/mapping-rules/restore",
-          "permissionsRequired": [
-            "mapping-rules.restore"
-          ]
+          "permissionsRequired": [ "mapping-rules.restore" ]
         }
       ]
     },
@@ -391,16 +317,14 @@
           ],
           "pathPattern": "/change-manager/handlers/qm-completed",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ]
         },
         {
-          "methods": [
-            "POST"
-          ],
+          "methods": ["POST"],
           "pathPattern": "/change-manager/handlers/qm-error",
           "permissionsRequired": [
-            "source-records-manager.events.post"
+            "pubsub.events.post"
           ]
         }
       ]
@@ -432,13 +356,11 @@
     {
       "id": "_jsonSchemas",
       "version": "1.0",
-      "interfaceType": "multiple",
-      "handlers": [
+      "interfaceType" : "multiple",
+      "handlers" : [
         {
-          "methods": [
-            "GET"
-          ],
-          "pathPattern": "/_/jsonSchemas",
+          "methods" : [ "GET" ],
+          "pathPattern" : "/_/jsonSchemas",
           "permissionsRequired": []
         }
       ]
@@ -532,56 +454,22 @@
     "dockerArgs": {
       "HostConfig": {
         "Memory": 715827883,
-        "PortBindings": {
-          "8081/tcp": [
-            {
-              "HostPort": "%p"
-            }
-          ]
-        }
+        "PortBindings": { "8081/tcp": [ { "HostPort": "%p" } ] }
       }
     },
     "env": [
-      {
-        "name": "JAVA_OPTIONS",
+      { "name": "JAVA_OPTIONS",
         "value": "-XX:MaxRAMPercentage=66.0  -Djava.util.logging.config.file=vertx-default-jul-logging.properties"
       },
-      {
-        "name": "DB_HOST",
-        "value": "postgres"
-      },
-      {
-        "name": "DB_PORT",
-        "value": "5432"
-      },
-      {
-        "name": "DB_USERNAME",
-        "value": "folio_admin"
-      },
-      {
-        "name": "DB_PASSWORD",
-        "value": "folio_admin"
-      },
-      {
-        "name": "DB_DATABASE",
-        "value": "okapi_modules"
-      },
-      {
-        "name": "DB_QUERYTIMEOUT",
-        "value": "60000"
-      },
-      {
-        "name": "DB_CHARSET",
-        "value": "UTF-8"
-      },
-      {
-        "name": "DB_MAXPOOLSIZE",
-        "value": "5"
-      },
-      {
-        "name": "test.mode",
-        "value": "true"
-      }
+      { "name": "DB_HOST", "value": "postgres" },
+      { "name": "DB_PORT", "value": "5432" },
+      { "name": "DB_USERNAME", "value": "folio_admin" },
+      { "name": "DB_PASSWORD", "value": "folio_admin" },
+      { "name": "DB_DATABASE", "value": "okapi_modules" },
+      { "name": "DB_QUERYTIMEOUT", "value": "60000" },
+      { "name": "DB_CHARSET", "value": "UTF-8" },
+      { "name": "DB_MAXPOOLSIZE", "value": "5" },
+      { "name": "test.mode", "value": "true" }
     ]
   }
 }

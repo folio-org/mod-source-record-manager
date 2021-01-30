@@ -71,15 +71,6 @@ public final class MarcRecordParser implements RecordParser {
     return errorJson;
   }
 
-  private void prepareResultWithError(ParsedResult result, List<JsonObject> errorObjects) {
-    JsonObject errorObject = new JsonObject();
-    JsonArray errors = new JsonArray();
-    errorObject.put("errors", errors);
-    errorObjects.forEach(errors::add);
-    result.setErrors(errorObject);
-    result.setHasError(true);
-  }
-
   @Override
   public RecordsMetadata.ContentType getParserFormat() {
     return RecordsMetadata.ContentType.MARC_RAW;
