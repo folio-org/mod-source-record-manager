@@ -201,6 +201,8 @@
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "users.collection.get",
+            "converter-storage.field-protection-settings.get",
+            "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.identifier-types.collection.get",
             "inventory-storage.classification-types.collection.get",
             "inventory-storage.instance-types.collection.get",
@@ -239,9 +241,7 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
-            "inventory-storage.preceding-succeeding-titles.item.post",
-            "converter-storage.field-protection-settings.get",
-            "converter-storage.jobprofilesnapshots.get"
+            "inventory-storage.preceding-succeeding-titles.item.post"
           ]
         },
         {
