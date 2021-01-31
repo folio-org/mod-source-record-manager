@@ -123,7 +123,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Mock
   private JournalService mockedJournalService;
   @Spy
-  ReceivedRecordService receivedRecordService;
+  RecordsPublishingService recordsPublishingService;
 
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
@@ -155,11 +155,11 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, mockedJournalService, receivedRecordService, kafkaConfig);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, mockedJournalService, recordsPublishingService, kafkaConfig);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingParametersProvider, mappingRuleCache, kafkaConfig);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     journalService = new JournalServiceImpl(journalRecordDao);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService, journalService);
     HashMap<String, String> headers = new HashMap<>();

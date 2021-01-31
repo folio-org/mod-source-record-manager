@@ -14,7 +14,7 @@ import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
-import org.folio.services.ReceivedRecordService;
+import org.folio.services.RecordsPublishingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -29,12 +29,12 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LoggerFactory.getLogger(StoredMarcChunksKafkaHandler.class);
 
-  private ReceivedRecordService receivedRecordService;
+  private RecordsPublishingService recordsPublishingService;
   private Vertx vertx;
 
-  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("receivedRecordsProcessingService") ReceivedRecordService receivedRecordService,
+  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                       @Autowired Vertx vertx) {
-    this.receivedRecordService = receivedRecordService;
+    this.recordsPublishingService = recordsPublishingService;
     this.vertx = vertx;
   }
 
@@ -49,13 +49,11 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
 
     try {
       String unzipped = ZIPArchiver.unzip(event.getEventPayload());
-      LOGGER.info("Received stored records payload {}", unzipped);
       RecordsBatchResponse recordsBatchResponse = new JsonObject(unzipped).mapTo(RecordsBatchResponse.class);
-      LOGGER.info("Received stored records {}", recordsBatchResponse);
       List<Record> storedRecords = recordsBatchResponse.getRecords();
 
       LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
-      return receivedRecordService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
+      return recordsPublishingService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
         okapiConnectionParams, DI_SRS_MARC_BIB_RECORD_CREATED.value())
         .compose(b -> {
           LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}",correlationId, chunkNumber);
@@ -65,7 +63,7 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
           return Future.failedFuture(th);
         });
     } catch (IOException e) {
-      LOGGER.error("Can't process the kafka record: ", e);
+      LOGGER.error("Can't process kafka record: ", e);
       return Future.failedFuture(e);
     }
   }

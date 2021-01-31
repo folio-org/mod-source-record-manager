@@ -32,7 +32,6 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.InstancesBatchResponse;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -116,7 +115,6 @@ public abstract class AbstractRestTest {
   protected static final String SNAPSHOT_SERVICE_URL = "/source-storage/snapshots";
   protected static final String RECORDS_SERVICE_URL = "/source-storage/batch/records";
   protected static final String RECORD_SERVICE_URL = "/source-storage/records";
-  protected static final String INVENTORY_URL = "/inventory/instances/batch";
   protected static final String PARSED_RECORDS_COLLECTION_URL = "/source-storage/batch/parsed-records";
   protected static final String PROFILE_SNAPSHOT_URL = "/data-import-profiles/jobProfileSnapshots";
   protected static final String PUBSUB_PUBLISH_URL = "/pubsub/publish";
@@ -161,7 +159,7 @@ public abstract class AbstractRestTest {
     WireMockConfiguration.wireMockConfig()
       .dynamicPort()
       .notifier(new Slf4jNotifier(true))
-      .extensions(new RequestToResponseTransformer(), new InstancesBatchResponseTransformer())
+      .extensions(new RequestToResponseTransformer())
   );
 
   @ClassRule
@@ -262,8 +260,6 @@ public abstract class AbstractRestTest {
       .willReturn(WireMock.ok()));
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(RECORD_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok().withBody(record)));
-    WireMock.stubFor(WireMock.post(INVENTORY_URL)
-      .willReturn(WireMock.created().withHeader("location", UUID.randomUUID().toString())));
     WireMock.stubFor(WireMock.put(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
       .willReturn(WireMock.ok()));
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
@@ -372,34 +368,4 @@ public abstract class AbstractRestTest {
     }
   }
 
-  /**
-   * It takes a request, remove one instance from it and return it as a response.
-   */
-  public static class InstancesBatchResponseTransformer extends ResponseTransformer {
-
-    public static final String NAME = "instances-batch-response-transformer";
-
-    @Override
-    public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-      InstancesBatchResponse batchResponse = new JsonObject(request.getBodyAsString()).mapTo(InstancesBatchResponse.class);
-      removeOneInstance(batchResponse);
-      return Response.Builder.like(response).but().body(JsonObject.mapFrom(batchResponse).toString()).build();
-    }
-
-    private void removeOneInstance(InstancesBatchResponse batchResponse) {
-      if (!batchResponse.getInstances().isEmpty()) {
-        batchResponse.getInstances().remove(1);
-      }
-    }
-
-    @Override
-    public String getName() {
-      return NAME;
-    }
-
-    @Override
-    public boolean applyGlobally() {
-      return false;
-    }
-  }
 }

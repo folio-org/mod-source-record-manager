@@ -31,10 +31,10 @@ import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
-@Service("receivedRecordsProcessingService")
-public class ReceivedRecordsEventHandler implements ReceivedRecordService {
+@Service("recordsPublishingService")
+public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ReceivedRecordsEventHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RecordsPublishingServiceImpl.class);
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
@@ -45,10 +45,10 @@ public class ReceivedRecordsEventHandler implements ReceivedRecordService {
   @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
 
-  public ReceivedRecordsEventHandler(@Autowired JobExecutionService jobExecutionService,
-                                     @Autowired MappingParametersProvider mappingParametersProvider,
-                                     @Autowired MappingRuleCache mappingRuleCache,
-                                     @Autowired KafkaConfig kafkaConfig) {
+  public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
+                                      @Autowired MappingParametersProvider mappingParametersProvider,
+                                      @Autowired MappingRuleCache mappingRuleCache,
+                                      @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionService = jobExecutionService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
@@ -75,7 +75,6 @@ public class ReceivedRecordsEventHandler implements ReceivedRecordService {
     Promise<Boolean> promise = Promise.promise();
     List<Future> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
-
     try {
       for (Record record : createdRecords) {
         if (isRecordReadyToSend(record)) {
@@ -128,7 +127,7 @@ public class ReceivedRecordsEventHandler implements ReceivedRecordService {
   }
 
   /**
-   * Prepares eventPayload with createdRecord and profileSnapshotWrapper
+   * Prepares eventPayload with record and profileSnapshotWrapper
    *
    * @param record                 record to send
    * @param profileSnapshotWrapper profileSnapshotWrapper to send

@@ -1,73 +1,36 @@
 package org.folio.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.KafkaConfig;
-import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenChunkProcessingServiceImpl.class);
-  private static final AtomicInteger indexer = new AtomicInteger();
-
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
-  private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleCache mappingRuleCache;
-  private KafkaConfig kafkaConfig;
-
-  @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
-  private int maxDistributionNum;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
                                                @Autowired ChangeEngineService changeEngineService,
-                                               @Autowired JobExecutionProgressService jobExecutionProgressService,
-                                               @Autowired MappingParametersProvider mappingParametersProvider,
-                                               @Autowired MappingRuleCache mappingRuleCache,
-                                               @Autowired KafkaConfig kafkaConfig) {
+                                               @Autowired JobExecutionProgressService jobExecutionProgressService) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
-    this.mappingParametersProvider = mappingParametersProvider;
-    this.mappingRuleCache = mappingRuleCache;
-    this.kafkaConfig = kafkaConfig;
   }
 
   @Override

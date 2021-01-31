@@ -39,7 +39,7 @@ public class DataImportJournalConsumersVerticle extends AbstractVerticle {
   @Qualifier("newKafkaConfig")
   private KafkaConfig kafkaConfig;
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.loadLimit:5}")
+  @Value("${srm.kafka.DataImportJournalConsumer.loadLimit:5}")
   private int loadLimit;
 
   private List<KafkaConsumerWrapper<String, String>> consumerWrappersList = new ArrayList<>(events.size());

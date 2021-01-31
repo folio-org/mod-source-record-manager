@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
@@ -79,11 +78,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
-  private ReceivedRecordService receivedRecordService;
+  private RecordsPublishingService recordsPublishingService;
   private MappingRuleCache mappingRuleCache;
   private KafkaConfig kafkaConfig;
 
-  @Value("${srm.kafka.ParsedRecordsKafkaHandler.maxDistributionNum:100}")
+  @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
@@ -91,14 +90,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
-                                 @Autowired ReceivedRecordService receivedRecordService,
+                                 @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.hrIdFieldService = hrIdFieldService;
     this.mappingRuleCache = mappingRuleCache;
     this.journalService = journalService;
-    this.receivedRecordService = receivedRecordService;
+    this.recordsPublishingService = recordsPublishingService;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -110,8 +109,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
     if (updateMarcActionExists) {
-      LOGGER.info("Records have not been sent to the record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
-      receivedRecordService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, "DI_SRS_MARC_BIB_RECORD_RECEIVED");
+      LOGGER.info("Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      recordsPublishingService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, "DI_MARC_BIB_FOR_UPDATE_RECEIVED");
       promise.complete(parsedRecords);
     } else {
       saveRecords(params, jobExecution, parsedRecords)
@@ -235,9 +234,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Saves parsed records in record-storage
+   * Saves parsed records in mod-source-record-storage
    *
-   * @param params        - okapi params for connecting record-storage
+   * @param params        - okapi params
    * @param jobExecution  - job execution related to records
    * @param parsedRecords - parsed records
    */

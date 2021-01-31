@@ -1,19 +1,14 @@
 package org.folio.services.afterprocessing;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.folio.rest.jaxrs.model.Instance;
 import org.folio.rest.jaxrs.model.Record;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addControlledFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
 
 @Service
 public class HrIdFieldServiceImpl implements HrIdFieldService {
@@ -41,15 +36,4 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
     return "(" + valueFrom003 + ")" + valueFrom001;
   }
 
-  @Override
-  public void fillHrIdFieldInMarcRecord(List<Pair<Record, Instance>> list) {
-    list.stream().parallel().forEach(recordInstancePair -> {
-      String hrId = recordInstancePair.getValue().getHrid();
-      if (StringUtils.isNotEmpty(hrId)) {
-        removeField(recordInstancePair.getKey(), TAG_001);
-        removeField(recordInstancePair.getKey(), TAG_003);
-        addControlledFieldToMarcRecord(recordInstancePair.getKey(), TAG_001, hrId);
-      }
-    });
-  }
 }

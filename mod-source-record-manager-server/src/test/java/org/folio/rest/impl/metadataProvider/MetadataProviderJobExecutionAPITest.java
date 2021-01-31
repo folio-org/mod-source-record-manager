@@ -41,6 +41,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static java.util.Arrays.asList;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
@@ -229,9 +230,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     List<JobExecution> jobExecutions = jobExecutionCollection.getJobExecutions();
     Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
-    Assert.assertThat(jobExecutions.get(0).getProgress().getTotal(), greaterThan(jobExecutions.get(1).getProgress().getTotal()));
-    Assert.assertThat(jobExecutions.get(1).getProgress().getTotal(), greaterThan(jobExecutions.get(2).getProgress().getTotal()));
-    Assert.assertThat(jobExecutions.get(2).getProgress().getTotal(), greaterThan(jobExecutions.get(3).getProgress().getTotal()));
+    assertThat(jobExecutions.get(0).getProgress().getTotal(), greaterThan(jobExecutions.get(1).getProgress().getTotal()));
+    assertThat(jobExecutions.get(1).getProgress().getTotal(), greaterThan(jobExecutions.get(2).getProgress().getTotal()));
+    assertThat(jobExecutions.get(2).getProgress().getTotal(), greaterThan(jobExecutions.get(3).getProgress().getTotal()));
   }
 
   @Test
@@ -239,12 +240,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnJobExecutionLogWithSuccessfulResultsWhenInstanceWereSaved(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
@@ -302,7 +301,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL).willReturn(serverError()));
@@ -352,12 +351,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnJobExecutionLogWithFailedResultWhenInstanceWasNotSaved(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(INVENTORY_URL).willReturn(serverError()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -391,16 +389,16 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JobExecutionLogDto.class);
 
-    Assert.assertThat(jobExecutionLogDto.getJobExecutionId(), is(jobExec.getId()));
-    Assert.assertThat(jobExecutionLogDto.getJobExecutionResultLogs().size(), is(2));
+    assertThat(jobExecutionLogDto.getJobExecutionId(), is(jobExec.getId()));
+    assertThat(jobExecutionLogDto.getJobExecutionResultLogs().size(), is(2));
 
     List<ActionLog> resultLogs = jobExecutionLogDto.getJobExecutionResultLogs();
-    Assert.assertThat(resultLogs, everyItem(hasProperty("actionType", is(ActionType.CREATE.value()))));
-    Assert.assertThat(resultLogs, hasItem(allOf(
+    assertThat(resultLogs, everyItem(hasProperty("actionType", is(ActionType.CREATE.value()))));
+    assertThat(resultLogs, hasItem(allOf(
       hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC.value())),
       hasProperty("totalCompleted", is(1)),
       hasProperty("totalFailed", is(0)))));
-    Assert.assertThat(resultLogs, hasItem(allOf(
+    assertThat(resultLogs, hasItem(allOf(
       hasProperty("entityType", is(EntityType.INSTANCE.value())),
       hasProperty("totalCompleted", is(0)),
       hasProperty("totalFailed", is(1)))));
@@ -420,12 +418,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
@@ -460,16 +456,16 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JobExecutionLogDto.class);
 
-    Assert.assertThat(jobExecutionLogDto.getJobExecutionId(), is(jobExec.getId()));
-    Assert.assertThat(jobExecutionLogDto.getJobExecutionResultLogs().size(), is(2));
+    assertThat(jobExecutionLogDto.getJobExecutionId(), is(jobExec.getId()));
+    assertThat(jobExecutionLogDto.getJobExecutionResultLogs().size(), is(2));
 
     List<ActionLog> resultLogs = jobExecutionLogDto.getJobExecutionResultLogs();
-    Assert.assertThat(resultLogs, everyItem(hasProperty("actionType", is(ActionType.CREATE.value()))));
-    Assert.assertThat(resultLogs, hasItem(allOf(
+    assertThat(resultLogs, everyItem(hasProperty("actionType", is(ActionType.CREATE.value()))));
+    assertThat(resultLogs, hasItem(allOf(
       hasProperty("entityType", is(EntityType.MARC_BIBLIOGRAPHIC.value())),
       hasProperty("totalCompleted", is(1)),
       hasProperty("totalFailed", is(1)))));
-    Assert.assertThat(resultLogs, hasItem(allOf(
+    assertThat(resultLogs, hasItem(allOf(
       hasProperty("entityType", is(EntityType.INSTANCE.value())),
       hasProperty("totalCompleted", is(1)),
       hasProperty("totalFailed", is(0)))));
@@ -479,7 +475,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     RestAssured.given()
@@ -506,12 +502,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnJournalRecordsSortedBySourceRecordOrder(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
@@ -556,10 +550,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .extract().response().body().as(JournalRecordCollection.class);
     async.complete();
 
-    Assert.assertThat(journalRecords.getTotalRecords(), is(4));
-    Assert.assertThat(journalRecords.getJournalRecords().size(), is(4));
+    assertThat(journalRecords.getTotalRecords(), is(4));
+    assertThat(journalRecords.getJournalRecords().size(), is(4));
     Assert.assertEquals(journalRecords.getJournalRecords().get(0).getSourceRecordOrder(), journalRecords.getJournalRecords().get(1).getSourceRecordOrder());
-    Assert.assertThat(journalRecords.getJournalRecords().get(1).getSourceRecordOrder(), greaterThan(journalRecords.getJournalRecords().get(2).getSourceRecordOrder()));
+    assertThat(journalRecords.getJournalRecords().get(1).getSourceRecordOrder(), greaterThan(journalRecords.getJournalRecords().get(2).getSourceRecordOrder()));
     Assert.assertEquals(journalRecords.getJournalRecords().get(2).getSourceRecordOrder(), journalRecords.getJournalRecords().get(3).getSourceRecordOrder());
   }
 
@@ -567,7 +561,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnEmptyListWhenProcessingWasNotStarted() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     JournalRecordCollection journalRecords = RestAssured.given()
@@ -578,8 +572,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JournalRecordCollection.class);
 
-    Assert.assertThat(journalRecords.getTotalRecords(), is(0));
-    Assert.assertThat(journalRecords.getJournalRecords().size(), is(0));
+    assertThat(journalRecords.getTotalRecords(), is(0));
+    assertThat(journalRecords.getJournalRecords().size(), is(0));
   }
 
   @Test
@@ -597,7 +591,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnBadRequestWhenParameterSortByIsInvalid() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     RestAssured.given()
@@ -614,13 +608,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnJournalRecordsWithTitleWhenSortedBySourceRecordOrder2(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    MatcherAssert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
     String expectedRecordTitle = "The Journal of ecclesiastical history.";
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(INVENTORY_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
@@ -666,7 +658,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .extract().response().body().as(JournalRecordCollection.class).getJournalRecords()
       .stream()
       .filter(journalRecord -> journalRecord.getEntityType().equals(EntityType.MARC_BIBLIOGRAPHIC))
-      .forEach(journalRecord -> MatcherAssert.assertThat(journalRecord.getTitle(), is(expectedRecordTitle)));
+      .forEach(journalRecord -> assertThat(journalRecord.getTitle(), is(expectedRecordTitle)));
     async.complete();
   }
 
