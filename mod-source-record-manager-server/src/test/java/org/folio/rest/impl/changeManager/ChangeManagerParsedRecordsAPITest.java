@@ -28,7 +28,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
-@Ignore
 public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
   private final String SOURCE_RECORDS_URL = "/source-storage/source-records/";
