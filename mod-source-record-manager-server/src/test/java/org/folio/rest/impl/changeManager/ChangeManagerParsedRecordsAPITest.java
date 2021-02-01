@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
