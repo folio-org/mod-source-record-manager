@@ -3,7 +3,6 @@ package org.folio.verticle;
 import org.folio.kafka.AsyncRecordHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,9 +26,4 @@ public class DataImportConsumersVerticle extends AbstractConsumersVerticle {
     return this.dataImportKafkaHandler;
   }
 
-  //TODO: get rid of this workaround with global spring context
-  @Deprecated
-  public static void setSpringGlobalContext(AbstractApplicationContext springGlobalContext) {
-    DataImportConsumersVerticle.springGlobalContext = springGlobalContext;
-  }
 }

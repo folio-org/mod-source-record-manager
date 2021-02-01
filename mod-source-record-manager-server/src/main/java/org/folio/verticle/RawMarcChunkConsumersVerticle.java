@@ -3,7 +3,6 @@ package org.folio.verticle;
 import org.folio.kafka.AsyncRecordHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,12 +23,6 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
   @Override
   public AsyncRecordHandler<String, String> getHandler() {
     return this.rawMarcChunksKafkaHandler;
-  }
-
-  //TODO: get rid of this workaround with global spring context
-  @Deprecated
-  public static void setSpringGlobalContext(AbstractApplicationContext springGlobalContext) {
-    RawMarcChunkConsumersVerticle.springGlobalContext = springGlobalContext;
   }
 
 }

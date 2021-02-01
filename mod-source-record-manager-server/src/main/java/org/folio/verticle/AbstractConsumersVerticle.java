@@ -21,7 +21,7 @@ import java.util.List;
 public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
   //TODO: get rid of this workaround with global spring context
-  protected static AbstractApplicationContext springGlobalContext;
+  private static AbstractApplicationContext springGlobalContext;
 
   private static final GlobalLoadSensor globalLoadSensor = new GlobalLoadSensor();
 
@@ -65,6 +65,12 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
     consumerWrappersList.forEach(consumerWrapper -> consumerWrapper
       .stop()
       .onComplete(ar -> stopPromise.complete()));
+  }
+
+  //TODO: get rid of this workaround with global spring context
+  @Deprecated
+  public static void setSpringGlobalContext(AbstractApplicationContext springGlobalContext) {
+    AbstractConsumersVerticle.springGlobalContext = springGlobalContext;
   }
 
   public abstract List<String> getEvents();
