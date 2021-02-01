@@ -3781,6 +3781,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -3890,6 +3891,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -4522,6 +4524,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "u",
@@ -5010,6 +5013,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
