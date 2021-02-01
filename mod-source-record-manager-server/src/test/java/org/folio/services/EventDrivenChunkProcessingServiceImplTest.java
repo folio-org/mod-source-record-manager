@@ -79,6 +79,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
+// TODO fix in scope of MODSOURMAN-400
 @Ignore
 public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest {
 
