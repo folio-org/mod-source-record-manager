@@ -198,7 +198,7 @@ curl -w '\n' -X POST -D -   \
 ### Post records to parsing
 
 To initiate records parsing one should send POST request containing RawRecordsDto, which contains raw records list ("initialRecords" field)
-to **/change-manager/jobExecutions/{jobExecutionId}/records?defaultMapping=true** 
+to **/change-manager/jobExecutions/{jobExecutionId}/records** 
 The list of records can contain records in different formats for example:  "MARC_RAW", "MARC_JSON", "MARC_XML". \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of previous request.
 ```
@@ -208,7 +208,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @rawRecordsDto.json \
-   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records?defaultMapping=true
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
 ```
 
 ##### example of rawRecordsDto.json to parse marc records in raw format
@@ -306,7 +306,7 @@ JobExecution state will be updated
 
 ### Finishing raw records parsing
 To indicate the end of raw records transferring for parsing one should send POST request containing last RawRecordsDto
-to **/change-manager/jobExecutions/{jobExecutionId}/records?defaultMapping=true**. \
+to **/change-manager/jobExecutions/{jobExecutionId}/records**. \
 {jobExecutionId} - JobExecution id, which can be retrieved from response of JobExecution creation request.
 The last RawRecordsDto should contain empty records list ("initialRecords" field), appropriate record format value 
 in "contentType" field (for example MARC_RAW) and field "last" = true.
@@ -318,7 +318,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @lastRawRecordsDto.json \
-   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records?defaultMapping=true
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
 ```
 
 ##### lastRawRecordsDto.json

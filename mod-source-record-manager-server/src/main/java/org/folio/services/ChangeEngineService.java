@@ -11,7 +11,7 @@ import java.util.List;
 public interface ChangeEngineService {
 
   /**
-   * Parse raw records and save parsed result or errors to mod-source-storage
+   * Parse raw records and save parsed result or errors to mod-source--record-storage
    *
    * @param chunk         - {@link RawRecordsDto} chunk with list of raw records for parse
    * @param jobExecution  - JobExecution which records should be parsed

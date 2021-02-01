@@ -10,7 +10,7 @@ import java.util.List;
  */
 public final class RecordParserBuilder {
 
-  private static List<RecordParser> rawRecordParsers = Arrays.asList(new MarcRecordParser(), new JsonRecordParser(), new XmlRecordParser());
+  private static List<RecordParser> rawRecordParsers = Arrays.asList(new MarcRecordParser(), new JsonRecordParser(), new XmlRecordParser(), new EdifactRecordParser());
 
   private RecordParserBuilder() {
   }

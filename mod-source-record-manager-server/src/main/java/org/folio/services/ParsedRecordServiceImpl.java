@@ -25,7 +25,7 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_NOT_FOUND;
 import static org.folio.HttpStatus.HTTP_OK;
-import static org.folio.services.util.EventHandlingUtil.sendEventWithPayload;
+import static org.folio.services.util.EventHandlingUtil.sendEventWithPayloadToPubSub;
 
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
@@ -95,7 +95,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               .withRecordState(SourceRecordState.RecordState.IN_PROGRESS)
               .withSourceRecordId(parsedRecordDto.getId());
             return sourceRecordStateService.save(sourceRecordState, params.getTenantId())
-              .compose(s -> sendEventWithPayload(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
+              .compose(s -> sendEventWithPayloadToPubSub(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
                 QM_RECORD_UPDATED_EVENT_TYPE, params));
           } else {
             return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));

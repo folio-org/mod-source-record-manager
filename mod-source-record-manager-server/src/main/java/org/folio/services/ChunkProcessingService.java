@@ -15,4 +15,5 @@ public interface ChunkProcessingService {
    * @return - true if chunk was processed correctly
    */
   Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params);
+
 }

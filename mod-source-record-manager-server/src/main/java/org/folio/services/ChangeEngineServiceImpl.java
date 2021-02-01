@@ -2,18 +2,19 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.Try;
-import org.folio.rest.client.SourceStorageBatchClient;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
@@ -21,6 +22,7 @@ import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -28,7 +30,6 @@ import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldService;
@@ -39,6 +40,7 @@ import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
@@ -50,43 +52,54 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
-import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_MARC_BIB_RECORDS_CHUNK_PARSED;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  private static final String CAN_T_CREATE_NEW_RECORDS_MSG = "Can't create new records with JobExecution id: %s in source-record-storage, response code %s";
   private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
-  private static final String CAN_NOT_RETRIEVE_A_RESPONSE_MSG = "Can not retrieve a response. Reason is: %s";
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
+  private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
+  private RecordsPublishingService recordsPublishingService;
   private MappingRuleCache mappingRuleCache;
+  private KafkaConfig kafkaConfig;
+
+  @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
+  private int maxDistributionNum;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired HrIdFieldService hrIdFieldService,
+                                 @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
-                                 @Autowired MappingRuleCache mappingRuleCache) {
+                                 @Autowired RecordsPublishingService recordsPublishingService,
+                                 @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
-    this.journalService = journalService;
     this.hrIdFieldService = hrIdFieldService;
     this.mappingRuleCache = mappingRuleCache;
+    this.journalService = journalService;
+    this.recordsPublishingService = recordsPublishingService;
+    this.kafkaConfig = kafkaConfig;
   }
 
   @Override
@@ -97,10 +110,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
     if (updateMarcActionExists) {
-      LOGGER.info("Records have not been sent to the record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      LOGGER.info("Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      recordsPublishingService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value());
       promise.complete(parsedRecords);
     } else {
-      postRecords(params, jobExecution, parsedRecords)
+      saveRecords(params, jobExecution, parsedRecords)
         .onComplete(postAr -> {
           if (postAr.failed()) {
             StatusDto statusDto = new StatusDto()
@@ -181,10 +195,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withDescription(parsedResult.getErrors().encode()));
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
-          String matchedId = getValue(record, "999", 's');
-          if (matchedId != null){
-            record.setMatchedId(matchedId);
-            record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+          if (jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
+            String matchedId = getValue(record, "999", 's');
+            if (matchedId != null) {
+              record.setMatchedId(matchedId);
+              record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+            }
           }
         }
         return record;
@@ -219,50 +235,34 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   /**
-   * Saves parsed records in record-storage
+   * Saves parsed records in mod-source-record-storage
    *
-   * @param params        - okapi params for connecting record-storage
+   * @param params        - okapi params
    * @param jobExecution  - job execution related to records
    * @param parsedRecords - parsed records
    */
-  private Future<List<Record>> postRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
+  private Future<List<Record>> saveRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
 
-    return Try.itDo((Promise<List<Record>> promise) -> {
-      SourceStorageBatchClient client = new SourceStorageBatchClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    RecordCollection recordCollection = new RecordCollection()
+      .withRecords(parsedRecords)
+      .withTotalRecords(parsedRecords.size());
 
-      RecordCollection recordCollection = new RecordCollection()
-        .withRecords(parsedRecords)
-        .withTotalRecords(parsedRecords.size());
+    List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
 
-      client.postSourceStorageBatchRecords(recordCollection, response -> {
-        if (isStatus(response, HTTP_CREATED)) {
-          response.bodyHandler(it ->
-            promise.handle(
-              Try.itGet(() -> {
-                List<Record> createdRecords = it.toJsonObject().mapTo(RecordsBatchResponse.class).getRecords();
-                buildJournalRecordsForProcessedRecords(parsedRecords, createdRecords, CREATE, params.getTenantId())
-                  .onComplete(recordsAr -> journalService.saveBatch(new JsonArray(recordsAr.result()), params.getTenantId()));
-                return createdRecords;
-              })
-                .recover(ex -> Future.failedFuture(format(CAN_NOT_RETRIEVE_A_RESPONSE_MSG, ex.getMessage())))
-            )
-          );
-        } else {
-          buildJournalRecordsForProcessedRecords(parsedRecords, Collections.emptyList(), CREATE, params.getTenantId())
-            .onComplete(recordsAr -> journalService.saveBatch(new JsonArray(recordsAr.result()), params.getTenantId()));
-          String message = format(CAN_T_CREATE_NEW_RECORDS_MSG, jobExecution.getId(), response.statusCode());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
-    }).recover(e -> Future.failedFuture(format("Error during POST new records: %s", e.getMessage())));
-  }
+    kafkaHeaders.add(new KafkaHeaderImpl("jobExecutionId", jobExecution.getId()));
 
-  public static boolean isStatus(HttpClientResponse response, HttpStatus status) {
-    return response.statusCode() == status.toInt();
+    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+
+    return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_MARC_BIB_RECORDS_CHUNK_PARSED.value(),
+      kafkaHeaders, kafkaConfig, key)
+      .compose(ar -> buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE, params.getTenantId())
+        .compose(journalRecords -> {
+          journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
+          return Future.succeededFuture();
+        }));
   }
 
   /**
@@ -318,7 +318,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withJobExecutionId(record.getSnapshotId())
         .withSourceRecordOrder(record.getOrder())
         .withSourceId(record.getId())
-        .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+        .withEntityType(inferJournalRecordEntityType(record))
         .withEntityId(record.getId())
         .withActionType(actionType)
         .withActionDate(new Date())
@@ -331,6 +331,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       journalRecords.add(JsonObject.mapFrom(journalRecord));
     }
     return journalRecords;
+  }
+
+  private JournalRecord.EntityType inferJournalRecordEntityType(Record record) {
+    switch (record.getRecordType()) {
+      case EDIFACT:
+        return JournalRecord.EntityType.EDIFACT;
+      case MARC:
+      default:
+        return JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+    }
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {

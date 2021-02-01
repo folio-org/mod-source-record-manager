@@ -1,7 +1,9 @@
 package org.folio.services;
 
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.io.FileUtils;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.parsers.ParsedResult;
@@ -10,12 +12,72 @@ import org.folio.services.parsers.RecordParserBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class ParserTest {
+
+  private static final String EDIFACT_RECORD_FOLDER_PATH = "src/test/resources/records/edifact";
+
+  private static final String RAW_EDIFACT_RECORD =
+    "UNA:+,? '" +
+    "UNB+UNOA:2+FHPEDAL+HUBERGMBH+990802:1557+9908021557'" +
+    "UNH+INVOIC0001+INVOIC:D:93A:UN'" +
+    "BGM+380+9908001+9'" +
+    "DTM+3:19990802:102'" +
+    "RFF+ON:O0010001'" +
+    "DTM+4:19999715:102'" +
+    "NAD+SE++Fahrradhandel Pedal++Wagingerstr. 5+München++81549'" +
+    "NAD+BY++Huber GmbH++Obstgasse 2+München++81549'" +
+    "LIN+1++4711.001'" +
+    "IMD+F++:::Fahrrad, Damen'" +
+    "QTY+47:1:PCE'" +
+    "MOA+66:750'" +
+    "PRI+AAA:750'" +
+    "LIN+2++4711.002'" +
+    "IMD+F++:::Luftpumpe, Stand-'" +
+    "QTY+47:1:PCE'" +
+    "MOA+66:19,9'" +
+    "PRI+AAA:19,9'" +
+    "LIN+3++4711.003'" +
+    "IMD+F++:::Ersatzventil'" +
+    "QTY+47:3:PCE'" +
+    "MOA+66:7,5'" +
+    "PRI+AAA:2,5'" +
+    "UNS+S'" +
+    "MOA+79:777,4'" +
+    "MOA+124:124,38'" +
+    "MOA+128:901,78'" +
+    "TAX+7+VAT+++:::16+S'" +
+    "UNT+28+INVOIC0001'" +
+    "UNZ+1+9908021557'";
+
+  private static final String RAW_EDIFACT_INCORRECT_RECORD =
+    "UNA:+.? '" +
+    "UNB+UNOC:2+1694510:1943+10" +
+    "UNH+30+INVOIC:D:96A:UN:EAN008'" +
+    "BGM+380+475463'" +
+    "DTM+137:20130919:102'" +
+    "CUX+2:USD:4'" +
+    "ALC+C++++TX::28:TAX'" +
+    "MOA+8:69.09'" +
+    "LIN+1++9780199588459:EN'" +
+    "IMD+L+050+:::BLACK MARKET BRITAIN, 1939-1955.'" +
+    "IMD+L+010+:::ROODHOUSE, MARK'" +
+    "IMD+L+110+:::OXFORD'" +
+    "QTY+47:1'" +
+    "MOA+203:103.13'" +
+    "PRI+AAB:125'" +
+    "PRI+AAA:103.13'" +
+    "RFF+LI:POL-17653'" +
+    "RFF+SLI:99954761992'" +
+    "UNS+S'" +
+    "CNT+1:19'" +
+    "CNT+2:19'" +
+    "MOA+9:1818.28'" +
+    "MOA+79:1818.28'" +
+    "UNT+217+33'";
 
   private static final String RAW_MARC_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006" +
     "502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500" +
@@ -69,7 +131,67 @@ public class ParserTest {
   public static final String XML_MARC_RECORD_PATH = "src/test/resources/org/folio/services/parsers/xmlMarcRecord.xml";
 
   @Test
-  public void parseRawRecord(TestContext testContext) {
+  public void parseRawEdifactRecords(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+    File sourceRecordsDirectory = new File(EDIFACT_RECORD_FOLDER_PATH);
+    String[] extensions = new String[] { "edi" };
+    FileUtils.listFiles(sourceRecordsDirectory, extensions, false).stream()
+      .map(File::getPath)
+      .forEach(path -> {
+        try {
+          String record = new String(FileUtils.readFileToByteArray(new File(path)));
+          ParsedResult result = parser.parseRecord(record);
+          testContext.assertFalse(result.isHasError());
+          testContext.assertNotNull(result.getParsedRecord());
+          testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+        } catch (IOException e) {
+          testContext.fail(e);
+        }
+      });
+  }
+
+  @Test
+  public void parseRawEdifactRecord(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(RAW_EDIFACT_RECORD);
+    testContext.assertFalse(result.isHasError());
+    testContext.assertNotNull(result.getParsedRecord());
+    testContext.assertNotEquals(result.getParsedRecord().encode(), "");
+  }
+
+  @Test
+  public void parseEdifactRawErrorSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(RAW_EDIFACT_INCORRECT_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseEdifactEmptySource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(EMPTY_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseNullEdifactRawSource(TestContext testContext) {
+    RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
+
+    ParsedResult result = parser.parseRecord(NULL_RECORD);
+    testContext.assertTrue(result.isHasError());
+    testContext.assertNotNull(result.getErrors());
+    testContext.assertNotEquals(result.getErrors().encode(), "");
+  }
+
+  @Test
+  public void parseRawMarcRecord(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(RAW_MARC_RECORD);
@@ -79,7 +201,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseRawErrorSource(TestContext testContext) {
+  public void parseMarcRawErrorSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(RAW_INCORRECT_RECORD);
@@ -89,7 +211,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parsEmptySource(TestContext testContext) {
+  public void parseMarcEmptySource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
@@ -99,7 +221,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parsNullSource(TestContext testContext) {
+  public void parseNullMarcRawSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_RAW);
 
     ParsedResult result = parser.parseRecord(NULL_RECORD);
@@ -109,7 +231,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonRecord(TestContext testContext) {
+  public void parseMarcJsonRecord(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(JSON_MARC_RECORD);
@@ -119,7 +241,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonErrorSource(TestContext testContext) {
+  public void parseMarcJsonErrorSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(JSON_INCORRECT_RECORD);
@@ -129,7 +251,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseJsonEmptySource(TestContext testContext) {
+  public void parseMarcJsonEmptySource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(EMPTY_RECORD);
@@ -139,7 +261,7 @@ public class ParserTest {
   }
 
   @Test
-  public void parseNullSource(TestContext testContext) {
+  public void parseNullMarcJsonSource(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.MARC_JSON);
 
     ParsedResult result = parser.parseRecord(NULL_RECORD);
