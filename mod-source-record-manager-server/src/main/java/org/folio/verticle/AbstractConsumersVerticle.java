@@ -69,7 +69,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
     consumerWrappersList.forEach(consumerWrapper ->
       futures.add(consumerWrapper.stop()));
 
-    CompositeFuture.all(futures).onComplete(ar -> stopPromise.complete());
+    CompositeFuture.join(futures).onComplete(ar -> stopPromise.complete());
   }
 
   //TODO: get rid of this workaround with global spring context
