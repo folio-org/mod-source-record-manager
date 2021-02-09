@@ -36,9 +36,6 @@ public class ChangeManagerImpl implements ChangeManager {
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
-  @Qualifier("restChunkProcessingService")
-  private ChunkProcessingService restChunkProcessingService;
-  @Autowired
   @Qualifier("eventDrivenChunkProcessingService")
   private ChunkProcessingService eventDrivenChunkProcessingService;
   @Autowired
@@ -169,13 +166,12 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void postChangeManagerJobExecutionsRecordsById(String id, boolean defaultMapping, RawRecordsDto entity, Map<String, String> okapiHeaders,
+  public void postChangeManagerJobExecutionsRecordsById(String id, RawRecordsDto entity, Map<String, String> okapiHeaders,
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        ChunkProcessingService chunkProcessingService = defaultMapping ? restChunkProcessingService : eventDrivenChunkProcessingService;
-        chunkProcessingService.processChunk(entity, id, params)
+        eventDrivenChunkProcessingService.processChunk(entity, id, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

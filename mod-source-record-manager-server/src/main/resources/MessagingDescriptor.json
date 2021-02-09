@@ -1,12 +1,6 @@
 {
   "publications": [
     {
-      "eventType": "DI_SRS_MARC_BIB_RECORD_CREATED",
-      "description": "Created SRS Marc Bibliographic Record",
-      "eventTTL": 1,
-      "signed": false
-    },
-    {
       "eventType": "QM_RECORD_UPDATED",
       "description": "Updated Marc Bibliographic Record",
       "eventTTL": 1,
@@ -14,18 +8,6 @@
     }
   ],
   "subscriptions": [
-    {
-      "eventType": "DI_INVENTORY_INSTANCE_CREATED",
-      "callbackAddress": "/change-manager/handlers/created-inventory-instance"
-    },
-    {
-      "eventType": "DI_COMPLETED",
-      "callbackAddress": "/change-manager/handlers/processing-result"
-    },
-    {
-      "eventType": "DI_ERROR",
-      "callbackAddress": "/change-manager/handlers/processing-result"
-    },
     {
       "eventType": "QM_INVENTORY_INSTANCE_UPDATED",
       "callbackAddress": "/change-manager/handlers/qm-completed"

@@ -3781,6 +3781,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -3796,8 +3797,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -3887,6 +3891,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -3912,8 +3917,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -4516,6 +4524,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "u",
@@ -4524,8 +4533,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -5001,6 +5013,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -5024,8 +5037,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }

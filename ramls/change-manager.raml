@@ -23,9 +23,6 @@ types:
   record: !include raml-storage/schemas/dto/record.json
   recordCollection: !include raml-storage/schemas/dto/recordCollection.json
   jobProfileInfo: !include raml-storage/schemas/common/profileInfo.json
-  instance: !include instance.json
-  instances: !include instances.json
-  instancesBatchResponse: !include instances-batch-response.json
   userInfo: !include raml-storage/schemas/common/userInfo.json
   journalRecord: !include raml-storage/schemas/mod-source-record-manager/journalRecord.json
   dataImportEventTypes: !include raml-storage/schemas/common/dataImportEventTypes.json
@@ -168,11 +165,6 @@ resourceTypes:
         post:
           is: [validate]
           description: "Receive chunk of raw records"
-          queryParameters:
-            defaultMapping:
-              description: Boolean value which defines a mapping
-              type: boolean
-              default: false
           body:
             application/json:
               schema: rawRecordsDto
