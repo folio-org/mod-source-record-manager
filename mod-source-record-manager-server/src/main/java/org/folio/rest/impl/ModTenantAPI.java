@@ -39,7 +39,7 @@ public class ModTenantAPI extends TenantAPI {
   @Validate
   @Override
   public void postTenant(TenantAttributes entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context context) {
-    super.postTenant(entity, headers, postTenantAr -> {
+    super.postTenantSync(entity, headers, postTenantAr -> {
       if (postTenantAr.failed()) {
         handler.handle(postTenantAr);
       } else {

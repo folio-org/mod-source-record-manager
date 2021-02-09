@@ -86,22 +86,18 @@ public class InitAPIImpl implements InitAPI {
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
-        .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
     vertx.deployVerticle("org.folio.verticle.StoredMarcChunkConsumersVerticle",
       new DeploymentOptions()
-        .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
 
     vertx.deployVerticle("org.folio.verticle.DataImportConsumersVerticle",
       new DeploymentOptions()
-        .setWorker(true)
         .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
 
     vertx.deployVerticle("org.folio.verticle.DataImportJournalConsumersVerticle",
       new DeploymentOptions()
-        .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
     return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),

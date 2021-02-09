@@ -289,7 +289,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
-    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.stream(row.getStringArray(columnName)).collect(Collectors.toList());
+    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.stream(row.getArrayOfStrings(columnName)).collect(Collectors.toList());
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {
