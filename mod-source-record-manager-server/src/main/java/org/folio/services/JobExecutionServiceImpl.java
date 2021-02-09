@@ -1,12 +1,12 @@
 package org.folio.services;
 
-import io.vertx.core.CompositeFuture;
+import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
 
 import org.apache.commons.io.FilenameUtils;
@@ -37,6 +37,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -59,7 +60,7 @@ import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 @Service
 public class JobExecutionServiceImpl implements JobExecutionService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
@@ -93,9 +94,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
-          Future savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
-          Future savedSnapshotsFuture = saveSnapshots(snapshots, params);
-          return CompositeFuture.all(savedJsonExecutionsFuture, savedSnapshotsFuture)
+          Future<List<String>> savedJsonExecutionsFuture = saveJobExecutions(jobExecutions, params.getTenantId());
+          Future<List<String>> savedSnapshotsFuture = saveSnapshots(snapshots, params);
+          return GenericCompositeFuture.all(Arrays.asList(savedJsonExecutionsFuture, savedSnapshotsFuture))
             .map(new InitJobExecutionsRsDto()
               .withParentJobExecutionId(parentJobExecutionId)
               .withJobExecutions(jobExecutions));
@@ -366,12 +367,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions, String tenantId) {
-    List<Future> savedJobExecutionFutures = new ArrayList<>();
+    List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
-    return CompositeFuture.all(savedJobExecutionFutures).map(compositeFuture -> compositeFuture.result().list());
+    return GenericCompositeFuture.all(savedJobExecutionFutures).map(genericCompositeFuture -> genericCompositeFuture.result().list());
   }
 
   /**
@@ -382,13 +383,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @param params    object-wrapper with params necessary to connect to OKAPI
    * @return future
    */
-  private Future saveSnapshots(List<Snapshot> snapshots, OkapiConnectionParams params) {
-    List<Future> postedSnapshotFutures = new ArrayList<>();
+  private Future<List<String>> saveSnapshots(List<Snapshot> snapshots, OkapiConnectionParams params) {
+    List<Future<String>> postedSnapshotFutures = new ArrayList<>();
     for (Snapshot snapshot : snapshots) {
       Future<String> postedSnapshotFuture = postSnapshot(snapshot, params);
       postedSnapshotFutures.add(postedSnapshotFuture);
     }
-    return CompositeFuture.all(postedSnapshotFutures).map(compositeFuture -> compositeFuture.result().list());
+    return GenericCompositeFuture.all(postedSnapshotFutures).map(genericCompositeFuture -> genericCompositeFuture.result().list());
   }
 
   /**
@@ -405,7 +406,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     try {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
-          LOGGER.error("Error during post for new Snapshot.", response.statusMessage());
+          LOGGER.error("Error during post for new Snapshot. Status message: {}", response.statusMessage());
           promise.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
         } else {
           response.bodyHandler(buffer -> promise.complete(buffer.toString()));
@@ -446,7 +447,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error during update for Snapshot with id {}", e, jobExecution.getId());
+      LOGGER.error("Error during update for Snapshot with id {}", jobExecution.getId(), e);
       promise.fail(e);
     }
     return promise.future();
@@ -490,7 +491,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error deleting records from SRS for Job Execution {}", e, jobExecutionId);
+      LOGGER.error("Error deleting records from SRS for Job Execution {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future();

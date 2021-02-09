@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.events.utils.ZIPArchiver;
@@ -39,7 +39,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 @Service
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RecordProcessedEventHandlingServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   public static final String FAILED_EVENT_KEY = "FAILED_EVENT";
   public static final String ERROR_KEY = "ERROR_MSG";
 
@@ -63,7 +63,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     try {
       dataImportEventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(eventContent), DataImportEventPayload.class);
     } catch (IOException e) {
-      LOGGER.error("Failed to unzip event {}", e, eventContent);
+      LOGGER.error("Failed to unzip event {}", eventContent, e);
       promise.fail(e);
       return promise.future();
     }
@@ -76,14 +76,14 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
-            LOGGER.error("Failed to handle {} event", ar.cause(), eventType);
+            LOGGER.error("Failed to handle {} event", eventType,  ar.cause());
             updateJobStatusToError(jobExecutionId, params).onComplete(statusAr -> promise.fail(ar.cause()));
           } else {
             promise.complete(true);
           }
         });
     } catch (Exception e) {
-      LOGGER.error("Failed to handle event {}", e, eventContent);
+      LOGGER.error("Failed to handle event {}", eventContent, e);
       updateJobStatusToError(jobExecutionId, params);
       promise.fail(e);
     }
@@ -102,7 +102,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       return dataImportEventPayload.getContext().get(FAILED_EVENT_KEY);
     }
     List<String> eventsChain = dataImportEventPayload.getEventsChain();
-    return eventsChain.size() > 0 ? eventsChain.get(eventsChain.size() - 1) : null;
+    return !eventsChain.isEmpty() ? eventsChain.get(eventsChain.size() - 1) : null;
   }
 
   private void saveJournalRecord(DataImportEventPayload dataImportEventPayload) {
@@ -114,7 +114,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
 
       journalService.save(JsonObject.mapFrom(journalRecord), dataImportEventPayload.getTenant());
     } catch (JournalRecordMapperException e) {
-      LOGGER.error("Error journal record saving for event payload {}", e, dataImportEventPayload);
+      LOGGER.error("Error journal record saving for event payload {}", dataImportEventPayload, e);
       e.printStackTrace();
     }
   }

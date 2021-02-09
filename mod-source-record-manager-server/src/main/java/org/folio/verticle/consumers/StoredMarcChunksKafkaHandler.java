@@ -3,8 +3,8 @@ package org.folio.verticle.consumers;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -27,7 +27,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 @Component
 @Qualifier("StoredMarcChunksKafkaHandler")
 public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(StoredMarcChunksKafkaHandler.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private RecordsPublishingService recordsPublishingService;
   private Vertx vertx;
@@ -59,7 +59,7 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
           LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}",correlationId, chunkNumber);
           return Future.succeededFuture(correlationId);
         }, th -> {
-          LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId: {} chunkNumber: {}", th, correlationId, chunkNumber);
+          LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId: {} chunkNumber: {}", correlationId, chunkNumber, th);
           return Future.failedFuture(th);
         });
     } catch (IOException e) {

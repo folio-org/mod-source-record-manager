@@ -2,8 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -81,7 +81,7 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 @Repository
 public class JournalRecordDaoImpl implements JournalRecordDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JournalRecordDaoImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");

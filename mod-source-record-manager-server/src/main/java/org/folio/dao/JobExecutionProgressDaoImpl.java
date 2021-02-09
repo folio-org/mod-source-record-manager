@@ -3,8 +3,8 @@ package org.folio.dao;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
@@ -32,7 +32,7 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 @Repository
 public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionProgressDaoImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "job_execution_progress";
   public static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";

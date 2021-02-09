@@ -5,8 +5,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -32,7 +32,7 @@ import static java.lang.String.format;
 
 public class ChangeManagerImpl implements ChangeManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired

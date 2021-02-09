@@ -1,15 +1,17 @@
 package org.folio.rest.impl;
 
+import java.util.Arrays;
+
 import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
+import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.resource.interfaces.InitAPI;
@@ -25,7 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class InitAPIImpl implements InitAPI {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ModTenantAPI.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
   private int rawMarcChunkConsumerInstancesNumber;
@@ -102,9 +104,9 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
-    return CompositeFuture.all(deployRawMarcChunkConsumer.future(),
+    return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
-      deployDataImportJournalConsumer.future());
+      deployDataImportJournalConsumer.future()));
   }
 }

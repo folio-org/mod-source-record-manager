@@ -5,8 +5,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataProviderImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired

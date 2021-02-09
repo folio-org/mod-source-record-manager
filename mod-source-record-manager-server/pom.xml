@@ -345,7 +345,7 @@
         <version>1.12.6</version>
         <configuration>
           <verbose>true</verbose>
-          <complianceLevel>1.8</complianceLevel>
+          <complianceLevel>11</complianceLevel>
           <includes>
             <include>**/impl/*.java</include>
             <include>**/*.aj</include>

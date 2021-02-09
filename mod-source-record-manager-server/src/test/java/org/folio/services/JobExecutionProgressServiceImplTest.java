@@ -1,5 +1,7 @@
 package org.folio.services;
 
+import org.folio.okapi.common.GenericCompositeFuture;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -23,7 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
@@ -108,7 +110,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto -> {
         Future<JobExecutionProgress> future1 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
         Future<JobExecutionProgress> future2 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
-        return CompositeFuture.join(future1, future2);
+        return GenericCompositeFuture.join(Arrays.asList(future1, future2));
       });
 
     future.onComplete(ar -> {

@@ -6,8 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
@@ -25,7 +25,7 @@ import org.folio.util.pubsub.PubSubClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ModTenantAPI extends TenantAPI {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ModTenantAPI.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String GRANT_SEQUENCES_PERMISSION_PATTERN = "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %s TO %s;";
 

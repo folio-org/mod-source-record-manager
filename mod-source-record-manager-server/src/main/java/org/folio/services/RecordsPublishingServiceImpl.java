@@ -1,13 +1,13 @@
 package org.folio.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vertx.core.CompositeFuture;
+import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -34,7 +34,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 @Service("recordsPublishingService")
 public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RecordsPublishingServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
@@ -73,7 +73,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params, String eventType) {
     Promise<Boolean> promise = Promise.promise();
-    List<Future> futures = new ArrayList<>();
+    List<Future<Boolean>> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
     try {
       for (Record record : createdRecords) {
@@ -90,7 +90,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       futures.add(Future.failedFuture(e));
     }
 
-    CompositeFuture.join(futures).onComplete(ar -> {
+    GenericCompositeFuture.join(futures).onComplete(ar -> {
       if (ar.failed()) {
         LOGGER.error("Error publishing events with records", ar.cause());
         promise.fail(ar.cause());

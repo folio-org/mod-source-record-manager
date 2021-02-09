@@ -5,8 +5,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
@@ -30,7 +30,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventWithPayloadToPu
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ParsedRecordServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String QM_RECORD_UPDATED_EVENT_TYPE = "QM_RECORD_UPDATED";
 

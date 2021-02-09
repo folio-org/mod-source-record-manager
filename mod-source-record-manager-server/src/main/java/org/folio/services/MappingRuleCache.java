@@ -6,8 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.MappingRuleDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
 @Component
 public class MappingRuleCache {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MappingRuleCache.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private MappingRuleDao mappingRuleDao;
   private AsyncLoadingCache<String, Optional<JsonObject>> cache;
@@ -39,7 +39,7 @@ public class MappingRuleCache {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
     executor.execute(() -> mappingRuleDao.get(tenantId).onComplete(ar -> {
       if (ar.failed()) {
-        LOG.error("Failed to load mapping rules for tenant '{}' from data base", ar.cause(), tenantId);
+        LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", tenantId, ar.cause());
         future.completeExceptionally(ar.cause());
         return;
       }
