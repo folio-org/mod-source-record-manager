@@ -202,7 +202,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
-      if (response.statusCode() == HTTP_CREATED.toInt()) {
+      if (response.result().statusCode() == HTTP_CREATED.toInt()) {
         response.bodyHandler(body ->
           promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
       } else {
@@ -405,11 +405,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
-        if (response.statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
+        if (response.result().statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.error("Error during post for new Snapshot. Status message: {}", response.statusMessage());
-          promise.fail(new HttpStatusException(response.statusCode(), "Error during post for new Snapshot."));
+          promise.fail(new HttpStatusException(response.result().statusCode(), "Error during post for new Snapshot."));
         } else {
-          response.bodyHandler(buffer -> promise.complete(buffer.toString()));
+          response.result().bodyHandler(buffer -> promise.complete(buffer.toString()));
         }
       });
     } catch (Exception e) {
@@ -482,12 +482,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.deleteSourceStorageSnapshotsByJobExecutionId(jobExecutionId, null, response -> {
-        if (response.statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
+        if (response.result().statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
           promise.complete(true);
         } else {
           String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
           LOGGER.error(message);
-          promise.fail(new HttpStatusException(response.statusCode(), message));
+          promise.fail(new HttpStatusException(response.result().statusCode(), message));
         }
       });
     } catch (Exception e) {
