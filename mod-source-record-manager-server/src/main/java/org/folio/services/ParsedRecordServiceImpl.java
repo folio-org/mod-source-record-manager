@@ -53,8 +53,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     SourceStorageSourceRecordsClient client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
-        if (HTTP_OK.toInt() == response.result().statusCode()) {
-          response.result().body(body -> Try
+        if (HTTP_OK.toInt() == response.statusCode()) {
+          response.body(body -> Try
             .itGet(() -> mapSourceRecordToParsedRecordDto(body))
             .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
               .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
@@ -69,8 +69,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
           );
         } else {
           String message = format("Error retrieving Record by instanceId: '%s', response code %s, %s",
-            instanceId, response.result().statusCode(), response.result().statusMessage());
-          if (HTTP_NOT_FOUND.toInt() == response.result().statusCode()) {
+            instanceId, response.statusCode(), response.result().statusMessage());
+          if (HTTP_NOT_FOUND.toInt() == response.statusCode()) {
             promise.fail(new NotFoundException(message));
           } else {
             promise.fail(message);
