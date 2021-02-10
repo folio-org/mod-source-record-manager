@@ -203,7 +203,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.result().statusCode() == HTTP_CREATED.toInt()) {
-        response.bodyHandler(body ->
+        response.result().bodyHandler(body ->
           promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
@@ -428,7 +428,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), null, snapshot, response -> {
-        if (response.statusCode() == HttpStatus.HTTP_OK.toInt()) {
+        if (response.result().statusCode() == HttpStatus.HTTP_OK.toInt()) {
           promise.complete(jobExecution);
         } else {
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
