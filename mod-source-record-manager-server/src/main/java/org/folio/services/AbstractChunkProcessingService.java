@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -29,7 +30,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+    Promise<Boolean> promise = Promise.promise();
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
+      // TODO KS set id from RawRecordsDto
       .withId(UUID.randomUUID().toString())
       .withJobExecutionId(jobExecutionId)
       .withLast(incomingChunk.getRecordsMetadata().getLast())
@@ -37,8 +40,13 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       .withChunkSize(incomingChunk.getInitialRecords().size())
       .withCreatedDate(new Date());
 
-    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(records -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params));
+    // TODO KS skip chunk if violates unique constraint
+    jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+      .onFailure(th -> promise.complete(false))
+      .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params)
+        .onComplete(res -> promise.complete(true)));
+
+    return promise.future();
   }
 
   /**
