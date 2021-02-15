@@ -202,11 +202,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
-      if (response.statusCode() == HTTP_CREATED.toInt()) {
-        response.bodyHandler(body ->
-          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
+      if (response.result().statusCode() == HTTP_CREATED.toInt()) {
+        JsonObject entry = response.result().bodyAsJsonObject();
+        promise.handle(Try.itGet(() -> entry.mapTo(ProfileSnapshotWrapper.class)));
       } else {
-        String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
+        String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.result().statusCode());
         LOGGER.error(message);
         promise.fail(message);
       }
