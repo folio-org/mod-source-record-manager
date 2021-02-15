@@ -54,8 +54,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
         if (HTTP_OK.toInt() == response.result().statusCode()) {
-          response.result().bodyAsBuffer(body -> Try
-            .itGet(() -> mapSourceRecordToParsedRecordDto(body))
+          Buffer bodyAsBuffer = response.result().bodyAsBuffer();
+          Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
             .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
               .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
               .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto.withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
@@ -65,8 +65,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               } else {
                 promise.fail(parsedRecordDtoAsyncResult.cause());
               }
-            })
-          );
+            });
         } else {
           String message = format("Error retrieving Record by instanceId: '%s', response code %s, %s",
             instanceId, response.result().statusCode(), response.result().statusMessage());
