@@ -7,6 +7,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
@@ -19,6 +20,7 @@ import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -36,6 +38,8 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
 
   private Vertx vertx = Vertx.vertx();
   @Spy
