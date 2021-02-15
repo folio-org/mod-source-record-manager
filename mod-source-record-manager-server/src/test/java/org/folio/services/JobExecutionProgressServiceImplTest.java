@@ -1,10 +1,13 @@
 package org.folio.services;
 
+import org.folio.okapi.common.GenericCompositeFuture;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
@@ -17,13 +20,14 @@ import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
@@ -34,6 +38,8 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
 
   private Vertx vertx = Vertx.vertx();
   @Spy
@@ -108,7 +114,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto -> {
         Future<JobExecutionProgress> future1 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
         Future<JobExecutionProgress> future2 = jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID);
-        return CompositeFuture.join(future1, future2);
+        return GenericCompositeFuture.join(Arrays.asList(future1, future2));
       });
 
     future.onComplete(ar -> {

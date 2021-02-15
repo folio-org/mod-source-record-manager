@@ -1,8 +1,8 @@
 package org.folio.services.parsers;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 
 
@@ -11,7 +11,7 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
  */
 public class JsonRecordParser implements RecordParser {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JsonRecordParser.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {

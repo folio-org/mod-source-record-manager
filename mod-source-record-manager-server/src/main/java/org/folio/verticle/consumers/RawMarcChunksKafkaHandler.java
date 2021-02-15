@@ -3,8 +3,8 @@ package org.folio.verticle.consumers;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -25,7 +25,7 @@ import java.util.List;
 @Qualifier("RawMarcChunksKafkaHandler")
 public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RawMarcChunksKafkaHandler.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
   private Vertx vertx;
@@ -55,7 +55,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
           LOGGER.debug("RawRecordsDto processing has been completed correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
           return Future.succeededFuture(record.key());
         }, th -> {
-          LOGGER.error("RawRecordsDto processing has failed with errors correlationId: {} chunkNumber: {} - {}", th, correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
+          LOGGER.error("RawRecordsDto processing has failed with errors correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata(), th);
           return Future.failedFuture(th);
         });
 

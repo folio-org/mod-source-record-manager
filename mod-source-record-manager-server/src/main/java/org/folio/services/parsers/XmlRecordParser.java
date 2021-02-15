@@ -1,8 +1,8 @@
 package org.folio.services.parsers;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcXmlReader;
@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
  * Record parser implementation for records in MARC XML format. Uses marc4j library
  */
 public class XmlRecordParser implements RecordParser {
-  private static final Logger LOGGER = LoggerFactory.getLogger(XmlRecordParser.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {

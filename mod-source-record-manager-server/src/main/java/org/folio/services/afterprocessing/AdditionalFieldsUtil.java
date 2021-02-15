@@ -1,8 +1,8 @@
 package org.folio.services.afterprocessing;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.jaxrs.model.Record;
 import org.marc4j.MarcJsonReader;
@@ -30,7 +30,7 @@ public final class AdditionalFieldsUtil {
 
   public static final String TAG_999 = "999";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalFieldsUtil.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final char INDICATOR = 'f';
 
   private AdditionalFieldsUtil() {

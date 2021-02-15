@@ -3,8 +3,8 @@ package org.folio.dao;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.SourceRecordState;
@@ -26,7 +26,7 @@ import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 
 @Repository
 public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SourceRecordStateDaoImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "source_records_state";
   private static final String ID_FIELD = "'sourceRecordId'";
@@ -46,7 +46,7 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       promise.fail(e);
     }
     return promise.future()
-      .map(s-> s.getResults())
+      .map(Results::getResults)
       .map(sourceRecordStates -> sourceRecordStates.isEmpty() ? Optional.empty() : Optional.of(sourceRecordStates.get(0)));
   }
 

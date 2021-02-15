@@ -3,8 +3,8 @@ package org.folio.rest.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.FileSource;
-import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
@@ -158,7 +158,7 @@ public abstract class AbstractRestTest {
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
       .dynamicPort()
-      .notifier(new Slf4jNotifier(true))
+      .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
 
