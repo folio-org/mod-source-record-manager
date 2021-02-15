@@ -1,21 +1,20 @@
 package org.folio.services;
 
-import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
-
-import org.apache.commons.io.FilenameUtils;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
 import org.folio.rest.jaxrs.model.File;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -202,11 +200,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
-      if (response.statusCode() == HTTP_CREATED.toInt()) {
-        response.bodyHandler(body ->
-          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
+      if (response.result().statusCode() == HTTP_CREATED.toInt()) {
+          promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
       } else {
-        String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
+        String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.result().statusCode());
         LOGGER.error(message);
         promise.fail(message);
       }
@@ -409,7 +406,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           LOGGER.error("Error during post for new Snapshot. Status message: {}", response.result().statusMessage());
           promise.fail(new HttpStatusException(response.result().statusCode(), "Error during post for new Snapshot."));
         } else {
-          response.result().bodyAsBuffer();
+          promise.complete(response.result().bodyAsString());
         }
       });
     } catch (Exception e) {
