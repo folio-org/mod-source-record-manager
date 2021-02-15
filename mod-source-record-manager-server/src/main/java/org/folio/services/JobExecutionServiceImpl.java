@@ -203,8 +203,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.statusCode() == HTTP_CREATED.toInt()) {
-        JsonObject entry = response.bodyAsJsonObject();
-        promise.handle(Try.itGet(() -> entry.mapTo(ProfileSnapshotWrapper.class)));
+        response.bodyHandler(body ->
+          promise.handle(Try.itGet(() -> body.toJsonObject().mapTo(ProfileSnapshotWrapper.class))));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.statusCode());
         LOGGER.error(message);
