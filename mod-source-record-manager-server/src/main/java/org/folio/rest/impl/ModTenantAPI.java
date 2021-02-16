@@ -14,11 +14,8 @@ import io.vertx.sqlclient.RowSet;
 import java.util.Map;
 import javax.ws.rs.core.Response;
 
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.annotations.Validate;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.PostgresClient;
-import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.MappingRuleService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.util.pubsub.PubSubClientUtils;
@@ -34,12 +31,6 @@ public class ModTenantAPI extends TenantAPI {
 
   public ModTenantAPI() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
-  }
-
-  @Validate
-  @Override
-  public void postTenant(TenantAttributes tenantAttributes, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context context) {
-    super.postTenantSync(tenantAttributes, headers, handler, context);
   }
 
   @Override
