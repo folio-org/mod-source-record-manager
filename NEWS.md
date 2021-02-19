@@ -9,6 +9,7 @@
 * [MODDICORE-114](https://issues.folio.org/browse/MODDICORE-114) Add MARC-Instance default mappings for 880 fields .
 * [MODDSOURMAN-377](https://issues.folio.org/browse/MODSOURMAN-377) Update 5xx Notes mappings to indicate staff only for some notes.
 * [MODDSOURMAN-402](https://issues.folio.org/browse/MODSOURMAN-402) Upgrade to RAML Module Builder 32.x.
+* [MODDSOURMAN-409](https://issues.folio.org/browse/MODSOURMAN-409) Make tenant API asynchronous.
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working

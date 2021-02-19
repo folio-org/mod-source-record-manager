@@ -37,6 +37,7 @@ import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
+import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
@@ -229,7 +230,23 @@ public abstract class AbstractRestTest {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
         tenantAttributes.setModuleTo(PubSubClientUtils.constructModuleName());
-        tenantClient.postTenant(tenantAttributes, postTenantAr -> async.complete());
+        tenantClient.postTenant(tenantAttributes, res2 -> {
+          if (res2.result().statusCode() == 204) {
+            return;
+          }
+          if (res2.result().statusCode() == 201) {
+            tenantClient.getTenantByOperationId(res2.result().bodyAsJson(TenantJob.class).getId(), 60000, context.asyncAssertSuccess(res3 -> {
+              context.assertTrue(res3.bodyAsJson(TenantJob.class).getComplete());
+              String error = res3.bodyAsJson(TenantJob.class).getError();
+              if (error != null) {
+                context.assertEquals("Failed to make post tenant. Received status code 400", error);
+              }
+            }));
+          } else {
+            context.assertEquals("Failed to make post tenant. Received status code 400", res2.result().bodyAsString());
+          }
+          async.complete();
+        });
       } catch (Exception e) {
         e.printStackTrace();
       }
