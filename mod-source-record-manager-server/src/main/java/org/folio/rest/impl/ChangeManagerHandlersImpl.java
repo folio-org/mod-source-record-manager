@@ -6,8 +6,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.rest.jaxrs.resource.ChangeManagerHandlers;
@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class ChangeManagerHandlersImpl implements ChangeManagerHandlers {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChangeManagerHandlersImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
   private static final String RECORD_ID_KEY = "RECORD_ID";
   private static final ObjectMapper MAPPER = new ObjectMapper();

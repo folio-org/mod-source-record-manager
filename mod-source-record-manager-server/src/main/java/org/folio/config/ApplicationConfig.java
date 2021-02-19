@@ -1,8 +1,8 @@
 package org.folio.config;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConfig;
 import org.folio.services.journal.JournalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
   "org.folio.services",
   "org.folio.verticle"})
 public class ApplicationConfig {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationConfig.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${KAFKA_HOST:kafka}")
   private String kafkaHost;

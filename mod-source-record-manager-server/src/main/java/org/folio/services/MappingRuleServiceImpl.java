@@ -5,8 +5,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import org.folio.dao.MappingRuleDao;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Service
 public class MappingRuleServiceImpl implements MappingRuleService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_RULES_PATH = "rules/rules.json";
   private MappingRuleDao mappingRuleDao;

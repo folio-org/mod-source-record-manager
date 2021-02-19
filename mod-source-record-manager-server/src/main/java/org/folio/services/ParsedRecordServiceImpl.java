@@ -5,8 +5,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
@@ -30,7 +30,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventWithPayloadToPu
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ParsedRecordServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String QM_RECORD_UPDATED_EVENT_TYPE = "QM_RECORD_UPDATED";
 
@@ -53,9 +53,9 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     SourceStorageSourceRecordsClient client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
-        if (HTTP_OK.toInt() == response.statusCode()) {
-          response.bodyHandler(body -> Try
-            .itGet(() -> mapSourceRecordToParsedRecordDto(body))
+        if (HTTP_OK.toInt() == response.result().statusCode()) {
+          Buffer bodyAsBuffer = response.result().bodyAsBuffer();
+          Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
             .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
               .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
               .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto.withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
@@ -65,12 +65,11 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               } else {
                 promise.fail(parsedRecordDtoAsyncResult.cause());
               }
-            })
-          );
+            });
         } else {
           String message = format("Error retrieving Record by instanceId: '%s', response code %s, %s",
-            instanceId, response.statusCode(), response.statusMessage());
-          if (HTTP_NOT_FOUND.toInt() == response.statusCode()) {
+            instanceId, response.result().statusCode(), response.result().statusMessage());
+          if (HTTP_NOT_FOUND.toInt() == response.result().statusCode()) {
             promise.fail(new NotFoundException(message));
           } else {
             promise.fail(message);

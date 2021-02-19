@@ -2,8 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
@@ -33,7 +33,7 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 @Repository
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(JobExecutionSourceChunkDaoImpl.class);
+  public static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "'id'";
   private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";

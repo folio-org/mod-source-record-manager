@@ -5,8 +5,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,7 +69,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
