@@ -187,6 +187,8 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
+    CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
+    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
     deployVerticle(context);
   }
 
@@ -280,9 +282,6 @@ public abstract class AbstractRestTest {
     String record = TestUtil.readFileFromPath(RECORD_PATH);
 
     PowerMockito.mockStatic(PubSubClientUtils.class);
-
-    CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
-    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any())).willReturn(future);
 
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
