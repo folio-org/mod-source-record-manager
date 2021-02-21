@@ -75,6 +75,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.powermock.modules.testng.PowerMockTestCase;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -82,7 +83,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PubSubClientUtils.class)
 @PowerMockIgnore({"org.mockito.*"})
-public abstract class AbstractRestTest {
+public abstract class AbstractRestTest extends PowerMockTestCase {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
@@ -195,7 +196,8 @@ public abstract class AbstractRestTest {
     runDatabase();
     PowerMockito.mockStatic(PubSubClientUtils.class);
     CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
-    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
+    PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).thenReturn(future);
+    //BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
     deployVerticle(context);
   }
 
