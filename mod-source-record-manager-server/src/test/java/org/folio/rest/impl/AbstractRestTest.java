@@ -187,8 +187,10 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
+    PowerMockito.mockStatic(PubSubClientUtils.class);
     CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
     BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
+    PowerMockito.verifyStatic(PubSubClientUtils.class);
     deployVerticle(context);
   }
 
