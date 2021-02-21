@@ -190,7 +190,6 @@ public abstract class AbstractRestTest {
     PowerMockito.mockStatic(PubSubClientUtils.class);
     CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
     BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
-    PowerMockito.verifyStatic(PubSubClientUtils.class);
     deployVerticle(context);
   }
 
