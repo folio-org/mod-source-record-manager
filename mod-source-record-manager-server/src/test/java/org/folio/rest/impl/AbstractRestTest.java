@@ -71,14 +71,17 @@ import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 
 /**
  * Abstract test for the REST API testing needs.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PubSubClientUtils.class)
+@PowerMockIgnore({"org.mockito.*"})
 public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
@@ -174,6 +177,9 @@ public abstract class AbstractRestTest {
       .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
+
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
 
   @ClassRule
   public static EmbeddedKafkaCluster cluster = provisionWith(useDefaults());
