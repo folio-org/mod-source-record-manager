@@ -282,7 +282,7 @@ public abstract class AbstractRestTest {
     PowerMockito.mockStatic(PubSubClientUtils.class);
 
     CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
-    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
+    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any())).willReturn(future);
 
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
