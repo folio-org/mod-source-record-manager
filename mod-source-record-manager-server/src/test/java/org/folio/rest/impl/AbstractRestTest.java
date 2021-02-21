@@ -41,17 +41,21 @@ import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.sql.DriverManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -64,9 +68,17 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 /**
  * Abstract test for the REST API testing needs.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(PubSubClientUtils.class)
 public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
@@ -266,6 +278,11 @@ public abstract class AbstractRestTest {
       .build();
 
     String record = TestUtil.readFileFromPath(RECORD_PATH);
+
+    PowerMockito.mockStatic(PubSubClientUtils.class);
+
+    CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
+    BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
 
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
