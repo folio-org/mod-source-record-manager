@@ -51,7 +51,6 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.sql.DriverManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -73,7 +72,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.powermock.modules.testng.PowerMockTestCase;
 
 /**
@@ -191,8 +189,8 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
     PowerMockito.mockStatic(PubSubClientUtils.class);
-    CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
-    PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).thenReturn(future);
+    PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class)))
+      .thenReturn(CompletableFuture.completedFuture(true));
     deployVerticle(context);
   }
 
