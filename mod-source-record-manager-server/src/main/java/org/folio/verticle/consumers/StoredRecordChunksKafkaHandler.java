@@ -32,8 +32,8 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Component
-@Qualifier("StoredMarcChunksKafkaHandler")
-public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+@Qualifier("StoredRecordChunksKafkaHandler")
+public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
@@ -44,7 +44,7 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
   private RecordsPublishingService recordsPublishingService;
   private Vertx vertx;
 
-  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
+  public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                       @Autowired Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
     this.vertx = vertx;
