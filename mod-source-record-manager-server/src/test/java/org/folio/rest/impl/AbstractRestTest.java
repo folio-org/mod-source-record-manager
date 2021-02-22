@@ -193,7 +193,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
     PowerMockito.mockStatic(PubSubClientUtils.class);
     CompletableFuture<Boolean> future = CompletableFuture.completedFuture(true);
     PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).thenReturn(future);
-    //BDDMockito.given(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class))).willReturn(future);
     deployVerticle(context);
   }
 
