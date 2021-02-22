@@ -17,9 +17,9 @@ public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticl
 
   @Override
   public List<String> getEvents() {
-    return Arrays.asList(new String[] {
+    return Arrays.asList(
       DI_PARSED_MARC_BIB_RECORDS_CHUNK_SAVED.value()
-    });
+    );
   }
 
   @Override
