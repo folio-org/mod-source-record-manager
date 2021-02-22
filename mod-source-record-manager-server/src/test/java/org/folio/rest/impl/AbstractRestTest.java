@@ -68,7 +68,6 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -178,9 +177,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
       .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
-
-  @Rule
-  public PowerMockRule rule = new PowerMockRule();
 
   @ClassRule
   public static EmbeddedKafkaCluster cluster = provisionWith(useDefaults());
