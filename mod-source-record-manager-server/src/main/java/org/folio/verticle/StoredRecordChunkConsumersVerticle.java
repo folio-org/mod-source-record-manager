@@ -4,10 +4,10 @@ import org.folio.kafka.AsyncRecordHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_MARC_BIB_RECORDS_CHUNK_SAVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
 
 public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticle {
 
@@ -17,9 +17,7 @@ public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticl
 
   @Override
   public List<String> getEvents() {
-    return Arrays.asList(
-      DI_PARSED_MARC_BIB_RECORDS_CHUNK_SAVED.value()
-    );
+    return Collections.singletonList(DI_PARSED_RECORDS_CHUNK_SAVED.value());
   }
 
   @Override
