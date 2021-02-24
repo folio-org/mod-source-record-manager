@@ -1,5 +1,5 @@
 ### Introduction
-The source-record-manager (SRM) converts MARC records to Inventory instances while handling incoming data. The process of converting a MARC record into an Instance object is usually called **MARC-to-Instance mapping**. 
+The process of converting a MARC record into an Instance object is usually called **MARC-to-Instance mapping**. 
 
 Conversion logic is defined by mapping rules and these rules are described in JSON. Mapping rules basically have functions for data normalization (trimming leading whitespaces, removing slashes, removing ending punctuation) and the assigning target Inventory fields to the values of the incoming MARC record.
 #### *This document describes structure of rules, flags, real use cases and REST API to work with.*
