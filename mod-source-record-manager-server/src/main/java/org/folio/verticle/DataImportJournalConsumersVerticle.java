@@ -27,7 +27,6 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
   @Qualifier("DataImportJournalKafkaHandler")
   private AsyncRecordHandler<String, String> dataImportJournalKafkaHandler;
 
-  //TODO MODSOURMAN-384
   @Override
   public List<String> getEvents() {
     return List.of(

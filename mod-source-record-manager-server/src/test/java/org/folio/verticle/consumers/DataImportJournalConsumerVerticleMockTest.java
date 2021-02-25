@@ -19,6 +19,8 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
+import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,15 +42,25 @@ import java.util.UUID;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest {
+
+  public static final String ENTITY_TYPE_KEY = "entityType";
+  public static final String ACTION_TYPE_KEY = "actionType";
+  public static final String ACTION_STATUS_KEY = "actionStatus";
+  public static final String ENV_KEY = "folio";
 
   @Spy
   private Vertx vertx = Vertx.vertx();
@@ -119,9 +131,45 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
 
     JsonObject jsonObject = journalRecordCaptor.getValue();
-    Assert.assertEquals("Entity Type:", "INSTANCE", jsonObject.getString("entityType"));
-    Assert.assertEquals("Action Type:", "CREATE", jsonObject.getString("actionType"));
-    Assert.assertEquals("Action Status:", "COMPLETED", jsonObject.getString("actionStatus"));
+    Assert.assertEquals("Entity Type:", EntityType.INSTANCE.value(), jsonObject.getString(ENTITY_TYPE_KEY));
+    Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
+    Assert.assertEquals("Action Status:", ActionStatus.COMPLETED.value(), jsonObject.getString(ACTION_STATUS_KEY));
+
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessCompletedEvent(TestContext context) throws IOException {
+    Async async = context.async();
+
+    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
+      put(HOLDINGS.value(), recordJson.encode());
+      put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    }};
+
+    // given
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_COMPLETED.value())
+      .withProfileSnapshot(profileSnapshotWrapperResponse)
+      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID)
+      .withToken("token")
+      .withEventsChain(List.of(DI_INVENTORY_HOLDING_UPDATED.value()));
+
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
+
+    JsonObject jsonObject = journalRecordCaptor.getValue();
+    Assert.assertEquals("Entity Type:", HOLDINGS.value(), jsonObject.getString(ENTITY_TYPE_KEY));
+    Assert.assertEquals("Action Type:", ActionType.UPDATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
+    Assert.assertEquals("Action Status:", ActionStatus.COMPLETED.value(), jsonObject.getString(ACTION_STATUS_KEY));
 
     async.complete();
   }
@@ -133,7 +181,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
       put(INSTANCE.value(), recordJson.encode());
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-      put("ERROR", "Error creating inventory Instance.");
+      put(ERROR_KEY, "Error creating inventory Instance.");
     }};
 
     // given
@@ -156,22 +204,23 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
 
     JsonObject jsonObject = journalRecordCaptor.getValue();
-    Assert.assertEquals("Entity Type:", "INSTANCE", jsonObject.getString("entityType"));
-    Assert.assertEquals("Action Type:", "CREATE", jsonObject.getString("actionType"));
-    Assert.assertEquals("Action Status:", "COMPLETED", jsonObject.getString("actionStatus"));
+    Assert.assertEquals("Entity Type:", EntityType.INSTANCE.value(), jsonObject.getString(ENTITY_TYPE_KEY));
+    Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
+    Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
 
     async.complete();
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
-    String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, record.getEventType());
+    String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withEventPayload(ZIPArchiver.zip(Json.encode(record)));
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 
   private ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
-    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord =
+      new ConsumerRecord(ENV_KEY, 0, 0, topic, Json.encode(event));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));

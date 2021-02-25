@@ -50,10 +50,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     LOGGER.debug("Event was received: {}", event.getEventType());
     try {
       DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-
-      //TODO MODSOURMAN-384
       JournalParams journalParams = JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
-
       JournalRecord journalRecord =
         JournalUtil.buildJournalRecordByEvent(eventPayload,
           journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
