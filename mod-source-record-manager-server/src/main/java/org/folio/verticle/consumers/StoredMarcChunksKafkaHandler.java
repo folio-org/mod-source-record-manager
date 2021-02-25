@@ -1,11 +1,12 @@
 package org.folio.verticle.consumers;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
+import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -13,18 +14,15 @@ import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.RecordsPublishingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import io.vertx.kafka.client.producer.KafkaHeader;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_EDIFACT_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
@@ -32,19 +30,19 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Component
-@Qualifier("StoredRecordChunksKafkaHandler")
-public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+@Qualifier("StoredMarcChunksKafkaHandler")
+public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
-
-  private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
-    MARC, DI_SRS_MARC_BIB_RECORD_CREATED,
-    EDIFACT, DI_EDIFACT_RECORD_CREATED
-  );
 
   private RecordsPublishingService recordsPublishingService;
   private Vertx vertx;
 
-  public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
+  private static final Map<Record.RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
+    MARC, DI_SRS_MARC_BIB_RECORD_CREATED,
+    EDIFACT, DI_EDIFACT_RECORD_CREATED
+  );
+
+  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                       @Autowired Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
     this.vertx = vertx;
