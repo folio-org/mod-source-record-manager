@@ -90,7 +90,7 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.StoredMarcChunkConsumersVerticle",
+    vertx.deployVerticle("org.folio.verticle.StoredRecordChunkConsumersVerticle",
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);

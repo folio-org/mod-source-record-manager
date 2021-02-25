@@ -68,19 +68,11 @@ import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTI
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.testng.PowerMockTestCase;
 
 /**
  * Abstract test for the REST API testing needs.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(PubSubClientUtils.class)
-@PowerMockIgnore({"org.mockito.*"})
-public abstract class AbstractRestTest extends PowerMockTestCase {
+public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
@@ -188,9 +180,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
-    PowerMockito.mockStatic(PubSubClientUtils.class);
-    PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class)))
-      .thenReturn(CompletableFuture.completedFuture(true));
     deployVerticle(context);
   }
 
@@ -255,7 +244,7 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
               context.assertTrue(res3.bodyAsJson(TenantJob.class).getComplete());
               String error = res3.bodyAsJson(TenantJob.class).getError();
               if (error != null) {
-                context.assertEquals("Failed to make post tenant. Received status code 400", error);
+                context.assertTrue(error.contains("EventDescriptor was not registered for eventType"));
               }
             }));
           } else {
@@ -282,8 +271,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
       .build();
 
     String record = TestUtil.readFileFromPath(RECORD_PATH);
-
-    PowerMockito.mockStatic(PubSubClientUtils.class);
 
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
