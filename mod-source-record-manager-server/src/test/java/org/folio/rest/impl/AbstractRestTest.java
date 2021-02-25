@@ -13,6 +13,7 @@ import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
+
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
@@ -25,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
+
 import org.folio.TestUtil;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
@@ -43,6 +45,7 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.pubsub.PubSubClientUtils;
+import org.folio.util.pubsub.exceptions.ModuleRegistrationException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -67,20 +70,10 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.testng.PowerMockTestCase;
-
 /**
  * Abstract test for the REST API testing needs.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(PubSubClientUtils.class)
-@PowerMockIgnore({"org.mockito.*"})
-public abstract class AbstractRestTest extends PowerMockTestCase {
+public abstract class AbstractRestTest {
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
@@ -188,9 +181,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
-    PowerMockito.mockStatic(PubSubClientUtils.class);
-    PowerMockito.when(PubSubClientUtils.registerModule(Mockito.any(OkapiConnectionParams.class)))
-      .thenReturn(CompletableFuture.completedFuture(true));
     deployVerticle(context);
   }
 
@@ -255,7 +245,7 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
               context.assertTrue(res3.bodyAsJson(TenantJob.class).getComplete());
               String error = res3.bodyAsJson(TenantJob.class).getError();
               if (error != null) {
-                context.assertEquals("Failed to make post tenant. Received status code 400", error);
+                context.assertTrue(error.contains("EventDescriptor was not registered for eventType"));
               }
             }));
           } else {
@@ -282,8 +272,6 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
       .build();
 
     String record = TestUtil.readFileFromPath(RECORD_PATH);
-
-    PowerMockito.mockStatic(PubSubClientUtils.class);
 
     WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.created().withBody(postedSnapshotResponseBody)));
