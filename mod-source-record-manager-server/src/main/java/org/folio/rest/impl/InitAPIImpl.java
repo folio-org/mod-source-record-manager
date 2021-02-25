@@ -20,7 +20,7 @@ import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
-import org.folio.verticle.StoredMarcChunkConsumersVerticle;
+import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +32,7 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
   private int rawMarcChunkConsumerInstancesNumber;
 
+  // TODO: srm.kafka.StoredMarcChunkConsumer should be refactored
   @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
   private int storedMarcChunkConsumerInstancesNumber;
 
@@ -75,7 +76,7 @@ public class InitAPIImpl implements InitAPI {
   private Future<?> deployConsumersVerticles(Vertx vertx) {
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    StoredMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
@@ -89,7 +90,7 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.StoredMarcChunkConsumersVerticle",
+    vertx.deployVerticle("org.folio.verticle.StoredRecordChunkConsumersVerticle",
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
