@@ -1,38 +1,50 @@
 package org.folio.verticle.consumers;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.events.utils.ZIPArchiver;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.RecordsPublishingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.List;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
+import io.vertx.kafka.client.producer.KafkaHeader;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_EDIFACT_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 
 @Component
-@Qualifier("StoredMarcChunksKafkaHandler")
-public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+@Qualifier("StoredRecordChunksKafkaHandler")
+public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
+
+  private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
+    MARC, DI_SRS_MARC_BIB_RECORD_CREATED,
+    EDIFACT, DI_EDIFACT_RECORD_CREATED
+  );
 
   private RecordsPublishingService recordsPublishingService;
   private Vertx vertx;
 
-  public StoredMarcChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
+  public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                       @Autowired Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
     this.vertx = vertx;
@@ -52,9 +64,14 @@ public class StoredMarcChunksKafkaHandler implements AsyncRecordHandler<String, 
       RecordsBatchResponse recordsBatchResponse = new JsonObject(unzipped).mapTo(RecordsBatchResponse.class);
       List<Record> storedRecords = recordsBatchResponse.getRecords();
 
+      // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
+      DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
+        ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
+        : DI_SRS_MARC_BIB_RECORD_CREATED;
+
       LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
       return recordsPublishingService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
-        okapiConnectionParams, DI_SRS_MARC_BIB_RECORD_CREATED.value())
+        okapiConnectionParams, eventType.value())
         .compose(b -> {
           LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}",correlationId, chunkNumber);
           return Future.succeededFuture(correlationId);
