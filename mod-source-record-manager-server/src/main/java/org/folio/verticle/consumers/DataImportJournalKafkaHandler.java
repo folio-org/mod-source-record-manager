@@ -5,10 +5,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
@@ -18,11 +18,14 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
+import org.folio.verticle.consumers.util.JournalParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static org.folio.verticle.consumers.util.JournalParams.JournalParamsEnum;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
@@ -33,8 +36,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
   private JournalService journalService;
 
   public DataImportJournalKafkaHandler(@Autowired Vertx vertx,
-                                       @Autowired @Qualifier("journalServiceProxy")
-                                         JournalService journalService) {
+                                       @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.vertx = vertx;
     this.journalService = journalService;
   }
@@ -48,9 +50,14 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     LOGGER.debug("Event was received: {}", event.getEventType());
     try {
       DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
+
       //TODO MODSOURMAN-384
-      JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload, JournalRecord.ActionType.CREATE,
-        JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
+      JournalParams journalParams = JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+      JournalRecord journalRecord =
+        JournalUtil.buildJournalRecordByEvent(eventPayload,
+          journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
+
       journalService.save(JsonObject.mapFrom(journalRecord), okapiConnectionParams.getTenantId());
       result.complete();
     } catch (Exception e) {
@@ -59,4 +66,5 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     }
     return result.future();
   }
+
 }

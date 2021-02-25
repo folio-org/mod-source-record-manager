@@ -3,12 +3,14 @@ package org.folio.services.journal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.Date;
 
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -31,11 +33,12 @@ public class JournalUtil {
     String entityAsString = event.getContext().get(entityType.value());
     String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
     if (isAnyEmpty(entityAsString, recordAsString)) {
-      throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),
-        INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
+      throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
     return buildJournalRecord(event, actionType, entityType, actionStatus);
   }
+
+  public static final String ERROR_KEY = "ERROR";
 
   public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                  JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
@@ -58,6 +61,11 @@ public class JournalUtil {
       if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
         journalRecord.setEntityHrId(entityJson.getString("hrid"));
       }
+
+      if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+        journalRecord.setError(eventPayload.getContext().get(ERROR_KEY));
+      }
+
       return journalRecord;
     } catch (Exception e) {
       throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);

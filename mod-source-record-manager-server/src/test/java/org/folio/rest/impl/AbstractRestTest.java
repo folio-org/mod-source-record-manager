@@ -86,12 +86,12 @@ public abstract class AbstractRestTest extends PowerMockTestCase {
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
   private static final String JOB_EXECUTION_PROGRESS_TABLE = "job_execution_progress";
-  private static final String TOKEN = "token";
+  protected static final String TOKEN = "token";
   private static final String HTTP_PORT = "http.port";
   private static int port;
   private static String useExternalDatabase;
   private static final String postedSnapshotResponseBody = UUID.randomUUID().toString();
-  private static Vertx vertx;
+  protected static Vertx vertx;
   protected static final String TENANT_ID = "diku";
   protected static RequestSpecification spec;
 

@@ -113,7 +113,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       LOGGER.error("Error saving JournalRecord entity", e);
       promise.fail(e);
     }
-    return promise.future().map(journalRecord.getId());
+    return promise.future().map(journalRecord.getId())
+      .onFailure(e -> LOGGER.error("Error saving JournalRecord entity", e));
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {

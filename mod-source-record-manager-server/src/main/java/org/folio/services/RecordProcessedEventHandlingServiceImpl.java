@@ -72,7 +72,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     try {
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
       jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progress -> changeProgressAccordingToEventType(progress, eventType), params.getTenantId())
-        .onSuccess(ar -> saveJournalRecordIfNecessary(dataImportEventPayload))
+        //.onSuccess(ar -> saveJournalRecordIfNecessary(dataImportEventPayload))
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
@@ -88,35 +88,6 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       promise.fail(e);
     }
     return promise.future();
-  }
-
-  private void saveJournalRecordIfNecessary(DataImportEventPayload dataImportEventPayload) {
-    String lastEvent = retrieveLastResultEvent(dataImportEventPayload);
-    if (lastEvent != null && DataImportEventTypes.valueOf(lastEvent) == DI_INVENTORY_ITEM_UPDATED) {
-      saveJournalRecord(dataImportEventPayload);
-    }
-  }
-
-  private String retrieveLastResultEvent(DataImportEventPayload dataImportEventPayload) {
-    if (dataImportEventPayload.getEventType().equals(DI_ERROR.value())) {
-      return dataImportEventPayload.getContext().get(FAILED_EVENT_KEY);
-    }
-    List<String> eventsChain = dataImportEventPayload.getEventsChain();
-    return !eventsChain.isEmpty() ? eventsChain.get(eventsChain.size() - 1) : null;
-  }
-
-  private void saveJournalRecord(DataImportEventPayload dataImportEventPayload) {
-    try {
-      String errorMessage = dataImportEventPayload.getContext().get(ERROR_KEY);
-      JournalRecord journalRecord = dataImportEventPayload.getEventType().equals(DI_ERROR.value())
-        ? JournalUtil.buildJournalRecord(dataImportEventPayload, UPDATE, ITEM, ERROR, errorMessage)
-        : JournalUtil.buildJournalRecord(dataImportEventPayload, UPDATE, ITEM, COMPLETED);
-
-      journalService.save(JsonObject.mapFrom(journalRecord), dataImportEventPayload.getTenant());
-    } catch (JournalRecordMapperException e) {
-      LOGGER.error("Error journal record saving for event payload {}", dataImportEventPayload, e);
-      e.printStackTrace();
-    }
   }
 
   private Future<JobExecution> updateJobStatusToError(String jobExecutionId, OkapiConnectionParams params) {
