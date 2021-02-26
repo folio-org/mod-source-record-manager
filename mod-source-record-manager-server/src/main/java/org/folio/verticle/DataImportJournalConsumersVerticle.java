@@ -30,7 +30,6 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
   @Override
   public List<String> getEvents() {
     return List.of(
-      //DI_SRS_MARC_BIB_RECORD_CREATED.value()
       DI_SRS_MARC_BIB_RECORD_UPDATED.value(),
       DI_SRS_MARC_BIB_RECORD_MODIFIED.value(),
       DI_SRS_MARC_BIB_RECORD_NOT_MATCHED.value(),

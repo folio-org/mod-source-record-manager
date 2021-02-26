@@ -72,7 +72,6 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     try {
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
       jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progress -> changeProgressAccordingToEventType(progress, eventType), params.getTenantId())
-        //.onSuccess(ar -> saveJournalRecordIfNecessary(dataImportEventPayload))
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
