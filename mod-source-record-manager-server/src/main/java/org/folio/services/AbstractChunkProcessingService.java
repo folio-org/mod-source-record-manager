@@ -14,6 +14,8 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
 
+import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
+
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
@@ -29,22 +31,21 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
-    Promise<Boolean> promise = Promise.promise();
-    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
-      .withId(incomingChunk.getId())
-      .withJobExecutionId(jobExecutionId)
-      .withLast(incomingChunk.getRecordsMetadata().getLast())
-      .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
-      .withChunkSize(incomingChunk.getInitialRecords().size())
-      .withCreatedDate(new Date());
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExecution -> {
+          JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
+            .withId(incomingChunk.getId())
+            .withJobExecutionId(jobExecutionId)
+            .withLast(incomingChunk.getRecordsMetadata().getLast())
+            .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
+            .withChunkSize(incomingChunk.getInitialRecords().size())
+            .withCreatedDate(new Date());
 
-    // TODO KS skip chunk if violates unique constraint
-    jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .onFailure(th -> promise.complete(false))
-      .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params)
-        .onComplete(res -> promise.complete(true)));
-
-    return promise.future();
+          return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+            .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params)).map(true)
+            .onFailure(th -> Future.succeededFuture(false));
+        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
   /**

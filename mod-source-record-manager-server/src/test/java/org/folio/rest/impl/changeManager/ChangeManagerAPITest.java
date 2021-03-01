@@ -905,7 +905,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + UUID.randomUUID().toString() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
   @Test
