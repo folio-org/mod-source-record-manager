@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -14,7 +13,6 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
 
-import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
