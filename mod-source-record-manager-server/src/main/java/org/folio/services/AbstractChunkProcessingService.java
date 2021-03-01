@@ -12,7 +12,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
-import java.util.UUID;
+
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
@@ -29,16 +29,21 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
-    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
-      .withId(UUID.randomUUID().toString())
-      .withJobExecutionId(jobExecutionId)
-      .withLast(incomingChunk.getRecordsMetadata().getLast())
-      .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
-      .withChunkSize(incomingChunk.getInitialRecords().size())
-      .withCreatedDate(new Date());
+    return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .compose(optionalJobExecution -> optionalJobExecution
+        .map(jobExecution -> {
+          JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
+            .withId(incomingChunk.getId())
+            .withJobExecutionId(jobExecutionId)
+            .withLast(incomingChunk.getRecordsMetadata().getLast())
+            .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
+            .withChunkSize(incomingChunk.getInitialRecords().size())
+            .withCreatedDate(new Date());
 
-    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(records -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecutionId, params));
+          return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+            .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params)).map(true)
+            .onFailure(th -> Future.succeededFuture(false));
+        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
   /**

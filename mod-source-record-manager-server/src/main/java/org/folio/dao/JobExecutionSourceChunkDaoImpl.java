@@ -46,7 +46,12 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   @Override
   public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
     Promise<String> promise = Promise.promise();
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, promise);
+    try {
+      pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, promise);
+    } catch (Exception e) {
+      LOGGER.error("Failed to save JobExecutionSourceChunk", e);
+      promise.fail(e);
+    }
     return promise.future();
   }
 
