@@ -1,8 +1,6 @@
 package org.folio.services.progress;
 
 import io.vertx.core.Future;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.springframework.beans.factory.annotation.Autowired;

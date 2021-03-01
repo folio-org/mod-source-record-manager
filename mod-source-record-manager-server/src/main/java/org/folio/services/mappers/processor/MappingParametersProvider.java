@@ -2,7 +2,7 @@ package org.folio.services.mappers.processor;
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.vertx.core.CompositeFuture;
+import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -181,7 +181,7 @@ public class MappingParametersProvider {
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
 
 
-    return CompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
+    return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
       contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
       issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
       illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,

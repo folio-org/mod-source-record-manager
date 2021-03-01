@@ -1,16 +1,22 @@
 package org.folio.services;
 
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import io.vertx.kafka.client.producer.KafkaHeader;
-import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
@@ -43,33 +49,29 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_MARC_BIB_RECORDS_CHUNK_PARSED;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChangeEngineServiceImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
@@ -256,7 +258,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
 
-    return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_MARC_BIB_RECORDS_CHUNK_PARSED.value(),
+    return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
       kafkaHeaders, kafkaConfig, key)
       .compose(ar -> buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE, params.getTenantId())
         .compose(journalRecords -> {

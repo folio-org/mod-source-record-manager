@@ -1,9 +1,8 @@
 package org.folio.services.parsers;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.marc4j.MarcError;
 import org.marc4j.MarcJsonWriter;
@@ -23,7 +22,7 @@ import java.util.List;
  * Raw record parser implementation for MARC format. Use marc4j library
  */
 public final class MarcRecordParser implements RecordParser {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarcRecordParser.class);
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   @Override

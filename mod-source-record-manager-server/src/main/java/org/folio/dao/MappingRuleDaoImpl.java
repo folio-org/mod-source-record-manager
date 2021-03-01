@@ -3,8 +3,8 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
@@ -19,7 +19,7 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
 public class MappingRuleDaoImpl implements MappingRuleDao {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MappingRuleDaoImpl.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";

@@ -3,8 +3,8 @@ package org.folio.dao.util;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 
@@ -18,7 +18,7 @@ public final class DbUtil {
   private DbUtil() {
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(DbUtil.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   /**
    * Executes passed action in transaction
@@ -43,7 +43,7 @@ public final class DbUtil {
           postgresClient.endTx(tx.future(), endTx -> promise.complete(result.result()));
         } else {
           postgresClient.rollbackTx(tx.future(), r -> {
-            LOG.error("Rollback transaction", result.cause());
+            LOGGER.error("Rollback transaction", result.cause());
             promise.fail(result.cause());
           });
         }

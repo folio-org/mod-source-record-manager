@@ -136,12 +136,11 @@ There are two ways to import records into source-record-storage via source-recor
 * Using UI application - user has to upload file and start file processing, mod-data-import provides API for this functionality, see [FileUploadApi](https://github.com/folio-org/mod-data-import/blob/master/FileUploadApi.md) and [File processing API](https://github.com/folio-org/mod-data-import/blob/master/FileProcessingApi.md).
 * Using CLI tools - Postman, curl, SoapUI. This option is preferable if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
 
-In both ways mod-source-record-manager maps MARC records to Inventory instances and sends instances to mod-inventory. For more details see [RuleProcessorApi](RuleProcessorApi.md).
-
 To import records using CLI tools one has to follow steps below:
 1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
-2. Send RawRecordsDto containing records list and field last=false.
-3. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total number of records in field "counter".
+2. Set JobProfile to JobExecution to trigger building of the JobProfileSnapshot
+3. Send RawRecordsDto containing records list and field last=false.
+4. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total number of records in field "counter".
 
 **NOTE**: Jobs with imported records directly via API will show up in the Data Import log without a file name.
 
@@ -162,14 +161,14 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
-    "files": [],
-    "sourceType": "ONLINE",
-    "jobProfileInfo": {
-      "id": "c8f98545-898c-4f48-a494-3ab6736a3243",
-      "name": "Default job profile",
-      "dataType": "MARC"
-    },
-    "userId": "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+  "files": [],
+  "sourceType": "ONLINE",
+  "jobProfileInfo": {
+    "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
+    "name": "Default - Create instance and SRS MARC Bib",
+    "dataType": "MARC"
+  },
+  "userId": "a0086f7e-61b6-5c2d-9e1b-b268063a44b3"
 }
 ```
 
@@ -177,23 +176,59 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
-  "parentJobExecutionId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-  "jobExecutions" : [ {
-    "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-    "hrId" : "86030",
-    "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-    "subordinationType" : "PARENT_SINGLE",
-    "jobProfileInfo" : {
-      "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
-      "name" : "Default job profile",
-      "dataType" : "MARC"
-    },
-    "status" : "NEW",
-    "uiStatus" : "INITIALIZATION",
-    "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
-  } ]
+  "parentJobExecutionId": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+  "jobExecutions": [
+    {
+      "id": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+      "hrId": 88,
+      "parentJobId": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+      "subordinationType": "PARENT_SINGLE",
+      "jobProfileInfo": {
+        "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
+        "name": "Default - Create instance and SRS MARC Bib",
+        "dataType": "MARC"
+      },
+      "runBy": {
+        "firstName": "DIKU",
+        "lastName": "ADMINISTRATOR"
+      },
+      "progress": {
+        "current": 1,
+        "total": 100
+      },
+      "startedDate": "2021-02-24T08:30:08.709+0000",
+      "status": "NEW",
+      "uiStatus": "INITIALIZATION",
+      "userId": "a0086f7e-61b6-5c2d-9e1b-b268063a44b3"
+    }
+  ]
 }
 ```
+
+### Set JobProfile to JobExecution
+
+Send PUT request with JobProfile info to **/change-manager/jobExecutions/{jobExecutionId}/jobProfile**
+
+```
+curl -w '\n' -X POST -D -   \
+   -H "Content-type: application/json"   \
+   -H "x-okapi-tenant: diku"  \
+   -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
+   -d @jobProfileInfo.json \
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/647c2dee-70a8-4ae8-aba4-81579ee17e58/jobProfile
+```
+
+##### JobProfileInfo.json 
+
+```
+{
+  "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
+  "name": "Default - Create instance and SRS MARC Bib",
+  "dataType": "MARC"
+}
+```
+
+Response body will contain jobProfileSnapshotWrapper 
 
 ### Post records to parsing
 
@@ -208,7 +243,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @rawRecordsDto.json \
-   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/647c2dee-70a8-4ae8-aba4-81579ee17e58/records
 ```
 
 ##### example of rawRecordsDto.json to parse marc records in raw format
@@ -280,14 +315,14 @@ If records parsing was successfully initiated, there won't be any content in the
 JobExecution state will be updated
 ```
 {
-  "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-  "hrId" : "86030",
-  "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-  "subordinationType" : "PARENT_SINGLE",
-  "jobProfileInfo" : {
-    "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
-    "name" : "Default job profile",
-    "dataType" : "MARC"
+  "id": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+  "hrId": 88,
+  "parentJobId": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+  "subordinationType": "PARENT_SINGLE",
+  "jobProfileInfo": {
+    "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
+    "name": "Default - Create instance and SRS MARC Bib",
+    "dataType": "MARC"
   },
   "runBy" : {
     "firstName" : "DIKU",
@@ -300,7 +335,7 @@ JobExecution state will be updated
   "startedDate" : "2019-05-15T14:36:00.776+0000",
   "status" : "PARSING_IN_PROGRESS",
   "uiStatus" : "PREPARING_FOR_PREVIEW",
-  "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+  "userId" : "a0086f7e-61b6-5c2d-9e1b-b268063a44b3"
 }
 ```
 
@@ -318,7 +353,7 @@ curl -w '\n' -X POST -D -   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
    -d @lastRawRecordsDto.json \
-   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/647c2dee-70a8-4ae8-aba4-81579ee17e58/records
 ```
 
 ##### lastRawRecordsDto.json
@@ -340,16 +375,15 @@ Successful response won't have any content (HTTP status 204).
 
 JobExecution state will be changed
 ```
-{
-  "id" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-  "hrId" : "86030",
-  "parentJobId" : "9ded4e45-9ed0-4a4f-95bd-5407854c4d18",
-  "subordinationType" : "PARENT_SINGLE",
-  "jobProfileInfo" : {
-    "id" : "c8f98545-898c-4f48-a494-3ab6736a3243",
-    "name" : "Default job profile",
-    "dataType" : "MARC"
-  },
+  "id": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+  "hrId": 88,
+  "parentJobId": "647c2dee-70a8-4ae8-aba4-81579ee17e58",
+  "subordinationType": "PARENT_SINGLE",
+  "jobProfileInfo": {
+    "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
+    "name": "Default - Create instance and SRS MARC Bib",
+    "dataType": "MARC"
+  }, 
   "runBy" : {
     "firstName" : "DIKU",
     "lastName" : "ADMINISTRATOR"
@@ -362,7 +396,7 @@ JobExecution state will be changed
   "completedDate" : "2019-05-15T14:56:23.387+0000",
   "status" : "COMMITTED",
   "uiStatus" : "RUNNING_COMPLETE",
-  "userId" : "952d9764-c0a9-5d81-9c2e-cd93c2600990"
+  "userId" : "a0086f7e-61b6-5c2d-9e1b-b268063a44b3"
 }
 ```
 
@@ -376,7 +410,7 @@ curl -w '\n' -X DELETE -D -   \
    -H "Accept: */*"   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
-   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/9ded4e45-9ed0-4a4f-95bd-5407854c4d18/records
+   https://folio-testing-okapi.dev.folio.org:443/change-manager/jobExecutions/647c2dee-70a8-4ae8-aba4-81579ee17e58/records
 ```
 
 Successful response contains no content (HTTP status 204).

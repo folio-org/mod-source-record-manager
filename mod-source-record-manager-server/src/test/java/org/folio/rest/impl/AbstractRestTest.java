@@ -3,8 +3,8 @@ package org.folio.rest.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.FileSource;
-import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseTransformer;
@@ -37,20 +37,24 @@ import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.TenantAttributes;
+import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -62,6 +66,8 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+
+import org.mockito.Mockito;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -158,7 +164,7 @@ public abstract class AbstractRestTest {
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
       .dynamicPort()
-      .notifier(new Slf4jNotifier(true))
+      .notifier(new ConsoleNotifier(true))
       .extensions(new RequestToResponseTransformer())
   );
 
@@ -229,7 +235,23 @@ public abstract class AbstractRestTest {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
         tenantAttributes.setModuleTo(PubSubClientUtils.constructModuleName());
-        tenantClient.postTenant(tenantAttributes, postTenantAr -> async.complete());
+        tenantClient.postTenant(tenantAttributes, res2 -> {
+          if (res2.result().statusCode() == 204) {
+            return;
+          }
+          if (res2.result().statusCode() == 201) {
+            tenantClient.getTenantByOperationId(res2.result().bodyAsJson(TenantJob.class).getId(), 60000, context.asyncAssertSuccess(res3 -> {
+              context.assertTrue(res3.bodyAsJson(TenantJob.class).getComplete());
+              String error = res3.bodyAsJson(TenantJob.class).getError();
+              if (error != null) {
+                context.assertTrue(error.contains("EventDescriptor was not registered for eventType"));
+              }
+            }));
+          } else {
+            context.assertEquals("Failed to make post tenant. Received status code 400", res2.result().bodyAsString());
+          }
+          async.complete();
+        });
       } catch (Exception e) {
         e.printStackTrace();
       }

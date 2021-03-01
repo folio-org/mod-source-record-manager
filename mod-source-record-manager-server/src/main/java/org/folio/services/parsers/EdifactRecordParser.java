@@ -14,8 +14,8 @@ import org.folio.rest.jaxrs.model.Segment;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamReader;
 import io.xlate.edi.stream.EDIStreamValidationError;
@@ -25,7 +25,7 @@ import io.xlate.edi.stream.EDIStreamValidationError;
  */
 public final class EdifactRecordParser implements RecordParser {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EdifactRecordParser.class);
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {

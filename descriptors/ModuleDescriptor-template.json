@@ -394,7 +394,7 @@
     },
     {
       "id": "_tenant",
-      "version": "1.2",
+      "version": "2.0",
       "interfaceType": "system",
       "handlers": [
         {
@@ -410,9 +410,9 @@
         },
         {
           "methods": [
-            "DELETE"
+            "DELETE", "GET"
           ],
-          "pathPattern": "/_/tenant"
+          "pathPattern": "/_/tenant/{id}"
         }
       ]
     },

@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -18,6 +19,7 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
@@ -35,6 +37,8 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionDaoImplTest extends AbstractRestTest {
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
 
   private Vertx vertx = Vertx.vertx();
   @Spy
