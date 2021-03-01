@@ -32,8 +32,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
     Promise<Boolean> promise = Promise.promise();
     JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
-      // TODO KS set id from RawRecordsDto
-      .withId(UUID.randomUUID().toString())
+      .withId(incomingChunk.getId())
       .withJobExecutionId(jobExecutionId)
       .withLast(incomingChunk.getRecordsMetadata().getLast())
       .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
