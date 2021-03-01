@@ -23,7 +23,7 @@ public class JournalParams {
     this.journalActionStatus = journalActionStatus;
   }
 
-  private interface IJournalParams<H> {
+  private interface IJournalParams {
     JournalParams getJournalParams(DataImportEventPayload eventPayload);
   }
 

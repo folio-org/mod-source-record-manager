@@ -1,6 +1,3 @@
-## xxxx-xx-xx
-* [MODSOURMAN-384](https://issues.folio.org/browse/MODSOURMAN-384) Implement writing entities processing information to the log
-
 ## 2020-11-29 v3.0.0-SNAPSHOT
 * [MODSOURMAN-338](https://issues.folio.org/browse/MODSOURMAN-338) Change chunk processing to use kafka
 * [MODSOURCE-177](https://issues.folio.org/browse/MODSOURCE-177) Use kafka to save chunks of parsed records in SRS
@@ -14,6 +11,7 @@
 * [MODDSOURMAN-402](https://issues.folio.org/browse/MODSOURMAN-402) Upgrade to RAML Module Builder 32.x.
 * [MODDSOURMAN-409](https://issues.folio.org/browse/MODSOURMAN-409) Make tenant API asynchronous.
 * [MODDSOURMAN-395](https://issues.folio.org/browse/MODSOURMAN-395) Add personal data disclosure form.
+* [MODSOURMAN-384](https://issues.folio.org/browse/MODSOURMAN-384) Implement writing entities processing information to the log
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working
