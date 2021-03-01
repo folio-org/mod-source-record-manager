@@ -1619,6 +1619,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldMarkJobExecutionAsErrorIfRecordsWereNotDeleted(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
