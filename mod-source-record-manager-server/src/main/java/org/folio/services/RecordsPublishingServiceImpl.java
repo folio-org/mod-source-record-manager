@@ -13,7 +13,9 @@ import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.processor.MappingParametersProvider;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
@@ -140,7 +143,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
                                                      JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params,
                                                      String eventType) {
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
-    dataImportEventPayloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    dataImportEventPayloadContext.put(inferEntityType(record).value(), Json.encode(record));
     dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
     dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
 
@@ -153,5 +156,15 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       .withOkapiUrl(params.getOkapiUrl())
       .withTenant(params.getTenantId())
       .withToken(params.getToken());
+  }
+
+  private EntityType inferEntityType(Record record) {
+    switch (record.getRecordType()) {
+      case EDIFACT:
+        return EDIFACT_INVOICE;
+      case MARC:
+      default:
+        return MARC_BIBLIOGRAPHIC;
+    }
   }
 }
