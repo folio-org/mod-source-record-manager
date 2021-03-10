@@ -58,7 +58,8 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
     });
     List<Future<Void>> futures = new ArrayList<>();
     consumerWrappersList.forEach(consumerWrapper ->
-      futures.add(consumerWrapper.start(getHandler(), PubSubClientUtils.constructModuleName())));
+      futures.add(consumerWrapper.start(getHandler(),
+        PubSubClientUtils.constructModuleName() + "_" + getClass().getSimpleName())));
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
   }
