@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
 
+import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
@@ -42,6 +43,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_INVENTORY_ITEM_CREATED.value(),
       DI_INVENTORY_ITEM_UPDATED.value(),
       DI_INVENTORY_ITEM_NOT_MATCHED.value(),
+      DI_INVOICE_CREATED.value(),
       DI_COMPLETED.value(),
       DI_ERROR.value()
     );

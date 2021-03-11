@@ -69,19 +69,19 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   private JournalRecordDaoImpl journalRecordDao;
 
   @Spy
-  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
+  private final PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
 
   @Spy
-  private JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
+  private final JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
 
   @Captor
   private ArgumentCaptor<JsonObject> journalRecordCaptor;
 
   private DataImportJournalKafkaHandler dataImportJournalKafkaHandler;
 
-  private String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
+  private final String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
 
-  private JobExecution jobExecution = new JobExecution()
+  private final JobExecution jobExecution = new JobExecution()
     .withId(jobExecutionUUID)
     .withHrId(1000)
     .withParentJobId(jobExecutionUUID)
