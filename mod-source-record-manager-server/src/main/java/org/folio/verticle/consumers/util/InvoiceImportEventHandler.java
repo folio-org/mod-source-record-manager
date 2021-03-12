@@ -1,5 +1,6 @@
 package org.folio.verticle.consumers.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.folio.DataImportEventPayload;
@@ -15,7 +16,7 @@ public class InvoiceImportEventHandler implements SpecificEventHandler {
 
   @Override
   public void handle(JournalService journalService, DataImportEventPayload eventPayload, String tenantId)
-    throws JournalRecordMapperException {
+    throws JournalRecordMapperException, JsonProcessingException {
     List<JournalRecord> journalRecords = InvoiceUtil.buildJournalRecordByEvent(eventPayload);
     List<JsonObject> jsonObjects = new ArrayList<>();
     journalRecords.forEach(journalRecord -> jsonObjects.add(JsonObject.mapFrom(journalRecord)));

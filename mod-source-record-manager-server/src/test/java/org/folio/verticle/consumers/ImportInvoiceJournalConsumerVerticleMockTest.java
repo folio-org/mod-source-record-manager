@@ -66,6 +66,7 @@ import static org.folio.services.journal.InvoiceUtil.FIELD_ID;
 import static org.folio.services.journal.InvoiceUtil.FIELD_INVOICE_LINES;
 import static org.folio.services.journal.InvoiceUtil.FIELD_INVOICE_LINE_NUMBER;
 import static org.folio.services.journal.InvoiceUtil.FIELD_VENDOR_INVOICE_NO;
+import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_ERRORS_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
@@ -242,6 +243,46 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     Assert.assertEquals("Invoice: ", ActionStatus.ERROR.value(), jsonArray.getJsonObject(0).getString(ACTION_STATUS));
     Assert.assertTrue(jsonArray.getJsonObject(1).getString(ERROR).length() > 0);
     Assert.assertEquals("Invoice line 1:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(1).getString(ACTION_STATUS));
+    Assert.assertTrue(jsonArray.getJsonObject(2).getString(ERROR).length() > 0);
+    Assert.assertEquals("Invoice line 2:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(2).getString(ACTION_STATUS));
+
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessInvoiceLineErrorEvent(TestContext context) throws IOException, JournalRecordMapperException {
+    Async async = context.async();
+
+    // given
+    HashMap<String, String> payloadContext = new HashMap<>();
+
+    Record record = new Record().withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
+    payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
+
+    payloadContext.put(INVOICE.value(), Json.encode(INVOICE_JSON));
+    payloadContext.put(INVOICE_LINES_KEY, Json.encode(INVOICE_LINES_JSON));
+    payloadContext.put(INVOICE_LINES_ERRORS_KEY,
+      Json.encode(new JsonObject().put("2", "EventProcessingException: Error during invoice lines creation")));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withTenant(DI_POST_INVOICE_LINES_SUCCESS_TENANT)
+      .withOkapiUrl(OKAPI_URL)
+      .withToken(TOKEN)
+      .withContext(payloadContext)
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
+
+    Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
+
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    Mockito.verify(journalService).saveBatch(invoiceRecordCaptor.capture(), Mockito.anyString());
+
+    JsonArray jsonArray = invoiceRecordCaptor.getValue();
+    Assert.assertEquals(3, jsonArray.size());
     Assert.assertTrue(jsonArray.getJsonObject(2).getString(ERROR).length() > 0);
     Assert.assertEquals("Invoice line 2:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(2).getString(ACTION_STATUS));
 
