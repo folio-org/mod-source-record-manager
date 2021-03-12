@@ -18,6 +18,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 
@@ -35,6 +36,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_SRS_MARC_BIB_RECORD_NOT_MATCHED.value(),
       DI_INVENTORY_INSTANCE_CREATED.value(),
       DI_INVENTORY_INSTANCE_UPDATED.value(),
+      DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.value(),
       DI_INVENTORY_INSTANCE_NOT_MATCHED.value(),
       DI_INVENTORY_HOLDING_CREATED.value(),
       DI_INVENTORY_HOLDING_UPDATED.value(),

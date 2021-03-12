@@ -61,6 +61,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED);
       }
     },
+    DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING {
+      @Override
+      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
+        return new JournalParams(JournalRecord.ActionType.UPDATE,
+          JournalRecord.EntityType.INSTANCE,
+          JournalRecord.ActionStatus.COMPLETED);
+      }
+    },
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
