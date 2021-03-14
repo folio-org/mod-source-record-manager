@@ -51,7 +51,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     if (rawRecordsDto.getInitialRecords() != null
       && rawRecordsDto.getInitialRecords().size() == 1
       && rawRecordsDto.getRecordsMetadata() != null
-      && rawRecordsDto.getRecordsMetadata().getTotal() == 1) {
+      && (rawRecordsDto.getRecordsMetadata().getTotal() == null || rawRecordsDto.getRecordsMetadata().getTotal() == 1)) {
       rawRecordsDto.getInitialRecords().get(0).setOrder(0);
     }
   }
