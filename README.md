@@ -250,6 +250,7 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
+  "id": "22fafcc3-f582-493d-88b0-3c538480cd83" // for each chunk we need to have and unique uuid
   "recordsMetadata": {
     "last": false,
     "counter": 3,
@@ -274,6 +275,7 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
+ "id": "22fafcc3-f582-493d-88b0-3c538480cd83" // for each chunk we need to have and unique uuid
   "recordsMetadata": {
     "last": false,
     "counter": 1,
@@ -292,6 +294,7 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
+ "id": "22fafcc3-f582-493d-88b0-3c538480cd83" // for each chunk we need to have and unique uuid
   "recordsMetadata": {
     "last": false,
     "counter": 2,
@@ -360,6 +363,7 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
+ "id": "22fafcc3-f582-493d-88b0-3c538480cd83" // for each chunk we need to have and unique uuid
   "recordsMetadata": {
     "last": true,
     "counter": 3,

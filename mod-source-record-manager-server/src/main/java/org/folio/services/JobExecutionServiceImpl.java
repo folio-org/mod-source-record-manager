@@ -22,6 +22,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
+import static org.folio.HttpStatus.HTTP_OK;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
@@ -179,20 +182,22 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
-    return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-      if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-        throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
-      }
-      return createJobProfileSnapshotWrapper(jobProfile, params)
-        .map(profileSnapshotWrapper -> jobExecution
-          .withJobProfileInfo(jobProfile)
-          .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
-    }, params.getTenantId())
-      .recover(throwable -> {
-        StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
-        return updateJobExecutionStatus(jobExecutionId, statusDto, params)
-          .compose(ar -> Future.failedFuture(throwable));
-      });
+    return loadJobProfileById(jobProfile.getId(), params)
+      .map(profile-> jobProfile.withName(profile.getName()))
+      .compose(v-> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+        if (jobExecution.getJobProfileSnapshotWrapper() != null) {
+          throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
+        }
+        return createJobProfileSnapshotWrapper(jobProfile, params)
+          .map(profileSnapshotWrapper -> jobExecution
+            .withJobProfileInfo(jobProfile)
+            .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
+      }, params.getTenantId())
+        .recover(throwable -> {
+          StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
+          return updateJobExecutionStatus(jobExecutionId, statusDto, params)
+            .compose(ar -> Future.failedFuture(throwable));
+        }));
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
@@ -208,6 +213,26 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         promise.fail(message);
       }
     });
+    return promise.future();
+  }
+
+  private Future<JobProfile> loadJobProfileById(String jobProfileId, OkapiConnectionParams params) {
+    Promise<JobProfile> promise = Promise.promise();
+    DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    try {
+      client.getDataImportProfilesJobProfilesById(jobProfileId, false, null, response -> {
+        if (response.result().statusCode() == HTTP_OK.toInt()) {
+          promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(JobProfile.class)));
+        } else {
+          String message = String.format("Error loading JobProfile by JobProfile id '%s', response code %s", jobProfileId, response.result().statusCode());
+          LOGGER.error(message);
+          promise.fail(message);
+        }
+      });
+    } catch (UnsupportedEncodingException e) {
+      LOGGER.error(e);
+      promise.fail(e);
+    }
     return promise.future();
   }
 
