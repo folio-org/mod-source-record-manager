@@ -67,4 +67,14 @@ public class EventTypeHandlerSelectorTest {
     Assert.assertTrue(eventTypeHandlerSelector.getHandler(eventPayload) instanceof InvoiceImportEventHandler);
   }
 
+  @Test
+  public void shouldReturnInvoiceImportEventHandlerForInvoiceCompleted() {
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_COMPLETED.value())
+      .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
+
+    Assert.assertTrue(eventTypeHandlerSelector.getHandler(eventPayload) instanceof InvoiceImportEventHandler);
+  }
+
 }

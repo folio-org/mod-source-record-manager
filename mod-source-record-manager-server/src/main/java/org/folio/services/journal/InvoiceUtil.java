@@ -1,6 +1,7 @@
 package org.folio.services.journal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import org.folio.DataImportEventPayload;
@@ -17,7 +18,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dao.JobExecutionSourceChunkDaoImpl.LOGGER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.JournalRecord.*;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
@@ -101,20 +103,21 @@ public class InvoiceUtil {
     throws JournalRecordMapperException, JsonProcessingException {
 
     HashMap<String, String> errorInvoiceLinesMap = initErrorInvoiceLinesMap(eventPayload);
-
     LinkedList<JournalRecord> invoiceLines = new LinkedList<>();
     try {
       String recordAsString = eventPayload.getContext().get(INVOICE_LINES_KEY);
       JsonObject jsonInvoiceLineCollection = new JsonObject(recordAsString);
-      jsonInvoiceLineCollection.getJsonArray(FIELD_INVOICE_LINES).forEach(invoiceLine -> {
 
-        String invoiceLineNumber = ((JsonObject) invoiceLine).getString(FIELD_INVOICE_LINE_NUMBER);
-        String description = ((JsonObject) invoiceLine).getString(FIELD_DESCRIPTION);
+      int sz = jsonInvoiceLineCollection.getJsonArray(FIELD_INVOICE_LINES).size();
+      for (int i = 0; i < sz; i++) {
+        JsonObject invoiceLine = jsonInvoiceLineCollection.getJsonArray(FIELD_INVOICE_LINES).getJsonObject(i);
+        String invoiceLineNumber = getInvoiceLinesNumber(invoiceLine, i);
+        String description = invoiceLine.getString(FIELD_DESCRIPTION);
 
         JournalRecord journalRecord = new JournalRecord()
           .withJobExecutionId(eventPayload.getJobExecutionId())
           .withSourceId(sourceId)
-          .withEntityId(((JsonObject) invoiceLine).getString(FIELD_ID))
+          .withEntityId(invoiceLine.getString(FIELD_ID))
           .withEntityHrId(invoiceNo + "-" + invoiceLineNumber)
           .withSourceRecordOrder(Integer.valueOf(invoiceLineNumber))
           .withEntityType(INVOICE)
@@ -127,11 +130,19 @@ public class InvoiceUtil {
             eventPayload.getContext().get(ERROR_KEY) : errorInvoiceLinesMap.getOrDefault(invoiceLineNumber, ""));
 
         invoiceLines.add(journalRecord);
-      });
+      }
       return invoiceLines;
     } catch (Exception e) {
       throw new JournalRecordMapperException(INVOICE_LINE_MAPPING_EXCEPTION_MSG, e);
     }
+  }
+
+  private static String getInvoiceLinesNumber(JsonObject invoiceLine, Integer id) {
+    String invoiceLineNumber = invoiceLine.getString(FIELD_INVOICE_LINE_NUMBER);
+    if ((invoiceLineNumber == null) || (invoiceLineNumber.trim().isEmpty())) {
+      invoiceLineNumber = String.valueOf(id + 1);
+    }
+    return invoiceLineNumber;
   }
 
   private static HashMap<String, String> initErrorInvoiceLinesMap(DataImportEventPayload eventPayload)
@@ -139,7 +150,8 @@ public class InvoiceUtil {
 
     String errorInvoiceLines = eventPayload.getContext().get(INVOICE_LINES_ERRORS_KEY);
     if (isNotEmpty(errorInvoiceLines)) {
-      return new ObjectMapper().readValue(errorInvoiceLines, HashMap.class);
+      return new ObjectMapper().readValue(errorInvoiceLines, new TypeReference<>() {
+      });
     }
     return new HashMap<>();
   }

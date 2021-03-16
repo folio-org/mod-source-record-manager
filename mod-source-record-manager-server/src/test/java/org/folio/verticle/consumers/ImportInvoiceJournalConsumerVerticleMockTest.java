@@ -178,6 +178,20 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     // given
     HashMap<String, String> payloadContext = new HashMap<>();
 
+    JsonObject INVOICE_LINES_JSON = new JsonObject()
+      .put(FIELD_INVOICE_LINES, new JsonArray()
+        .add(new JsonObject()
+          .put(FIELD_ID, UUID.randomUUID().toString())
+          .put(FIELD_DESCRIPTION, "Some description")
+          .put(FIELD_INVOICE_LINE_NUMBER, "")
+          .put("invoiceId", INVOICE_ID))
+        .add(new JsonObject()
+          .put(FIELD_ID, UUID.randomUUID().toString())
+          .put(FIELD_DESCRIPTION, "Some description 2")
+          .put(FIELD_INVOICE_LINE_NUMBER, null)
+          .put("invoiceId", INVOICE_ID)))
+      .put("totalRecords", 2);
+
     Record record = new Record().withId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
     payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
@@ -216,6 +230,46 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
   @Test
   public void shouldProcessInvoiceLineErrorEvent(TestContext context) throws IOException, JournalRecordMapperException {
+    Async async = context.async();
+
+    // given
+    HashMap<String, String> payloadContext = new HashMap<>();
+
+    Record record = new Record().withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
+    payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
+
+    payloadContext.put(INVOICE.value(), Json.encode(INVOICE_JSON));
+    payloadContext.put(INVOICE_LINES_KEY, Json.encode(INVOICE_LINES_JSON));
+    payloadContext.put(INVOICE_LINES_ERRORS_KEY,
+      Json.encode(new JsonObject().put("2", "EventProcessingException: Error during invoice lines creation")));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withTenant(DI_POST_INVOICE_LINES_SUCCESS_TENANT)
+      .withOkapiUrl(OKAPI_URL)
+      .withToken(TOKEN)
+      .withContext(payloadContext)
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
+
+    Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
+
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    Mockito.verify(journalService).saveBatch(invoiceRecordCaptor.capture(), Mockito.anyString());
+
+    JsonArray jsonArray = invoiceRecordCaptor.getValue();
+    Assert.assertEquals(3, jsonArray.size());
+    Assert.assertTrue(jsonArray.getJsonObject(2).getString(ERROR).length() > 0);
+    Assert.assertEquals("Invoice line 2:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(2).getString(ACTION_STATUS));
+
+    async.complete();
+  }
+
+  @Test
+  public void shouldProcessInvoiceErrorWithoutInvoiceLineOrderEvent(TestContext context) throws IOException {
     Async async = context.async();
 
     // given
