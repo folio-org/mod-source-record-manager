@@ -29,6 +29,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+    prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
@@ -44,6 +45,15 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params)).map(true)
             .onFailure(th -> Future.succeededFuture(false));
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
+
+  private void prepareChunk(RawRecordsDto rawRecordsDto) {
+    if (rawRecordsDto.getInitialRecords() != null
+      && rawRecordsDto.getInitialRecords().size() == 1
+      && rawRecordsDto.getRecordsMetadata() != null
+      && (rawRecordsDto.getRecordsMetadata().getTotal() == null || rawRecordsDto.getRecordsMetadata().getTotal() == 1)) {
+      rawRecordsDto.getInitialRecords().get(0).setOrder(0);
+    }
   }
 
   /**

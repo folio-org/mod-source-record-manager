@@ -14,6 +14,8 @@
 * [MODSOURMAN-384](https://issues.folio.org/browse/MODSOURMAN-384) Implement writing entities processing information to the log
 * [MODSOURCE-248](https://issues.folio.org/browse/MODSOURCE-248) Incoming MARC Bib with 003, but no 001 should not create an 035[BUGFIX]
 * [MODSOURMAN-410](https://issues.folio.org/browse/MODSOURMAN-410) Expand data import log functionality for EDIFACT records.
+* [MODSOURMAN-414](https://issues.folio.org/browse/MODSOURMAN-414) Add record sequence number to the summary log screen for OCLC single record imports
+* [MODDATAIMP-370](https://issues.folio.org/browse/MODDATAIMP-370) OCLC single record import: Updates don't work, and the Create action uses the wrong job profile
 
 ## 2020-11-20 v2.4.3
 * [MODSOURCE-213](https://issues.folio.org/browse/MODSOURCE-213) MARC updates for selected fields is not working
