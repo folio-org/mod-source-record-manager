@@ -6,6 +6,7 @@ import org.folio.DataImportEventTypes;
 import java.util.List;
 import java.util.Map;
 
+import static org.folio.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 
@@ -21,8 +22,9 @@ public class EventTypeHandlerSelector {
 
   public SpecificEventHandler getHandler(DataImportEventPayload eventPayload) {
     DataImportEventTypes eventType = DataImportEventTypes.valueOf(eventPayload.getEventType());
-    if (DI_INVOICE_CREATED == eventType ||
-      (DI_ERROR == eventType && isLastOperationIs(DI_INVOICE_CREATED.value(), eventPayload.getEventsChain()))) {
+    if (DI_INVOICE_CREATED == eventType
+      || (DI_ERROR == eventType && isLastOperationIs(DI_INVOICE_CREATED.value(), eventPayload.getEventsChain()))
+      || (DI_COMPLETED == eventType && isLastOperationIs(DI_INVOICE_CREATED.value(), eventPayload.getEventsChain()))) {
       return handlers.get(DI_INVOICE_CREATED.value());
     }
     return handlers.get(DEFAULT_HANDLER_KEY);

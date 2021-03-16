@@ -14,9 +14,7 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
-import org.folio.MappingProfile;
 import org.folio.ParsedRecord;
 import org.folio.Record;
 import org.folio.dao.JobExecutionDaoImpl;
@@ -28,10 +26,7 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.MappingDetail;
-import org.folio.rest.jaxrs.model.MappingRule;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RepeatableSubfieldMapping;
 import org.folio.services.journal.JournalService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,21 +36,16 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.folio.ActionProfile.Action.CREATE;
 import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.INVOICE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.journal.InvoiceUtil.FIELD_DESCRIPTION;
@@ -89,49 +79,10 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
     .withUserId(UUID.randomUUID().toString());
 
-  private ActionProfile actionProfile = new ActionProfile()
-    .withId(UUID.randomUUID().toString())
-    .withAction(CREATE)
-    .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
-
-  private MappingProfile mappingProfile = new MappingProfile()
-    .withId(UUID.randomUUID().toString())
-    .withIncomingRecordType(EDIFACT_INVOICE)
-    .withExistingRecordType(INVOICE)
-    .withMappingDetails(new MappingDetail()
-      .withMappingFields(List.of(
-        new MappingRule().withPath("invoice.vendorInvoiceNo").withValue("BGM+380+[1]").withEnabled("true"),
-        new MappingRule().withPath("invoice.currency").withValue("CUX+2[2]").withEnabled("true"),
-        new MappingRule().withPath("invoice.status").withValue("\"Open\"").withEnabled("true"),
-        new MappingRule().withPath("invoice.invoiceLines[]").withEnabled("true")
-          .withRepeatableFieldAction(MappingRule.RepeatableFieldAction.EXTEND_EXISTING)
-          .withSubfields(List.of(new RepeatableSubfieldMapping()
-            .withOrder(0)
-            .withPath("invoice.invoiceLines[]")
-            .withFields(List.of(
-              new MappingRule().withPath("invoice.invoiceLines[].subTotal")
-                .withValue("MOA+203[2]"),
-              new MappingRule().withPath("invoice.invoiceLines[].quantity")
-                .withValue("QTY+47[2]")
-            )))))));
-
   private ProfileSnapshotWrapper profileSnapshotWrapper = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
-    .withContentType(JOB_PROFILE)
-    .withContent(JsonObject.mapFrom(jobProfile).getMap())
-    .withChildSnapshotWrappers(Collections.singletonList(
-      new ProfileSnapshotWrapper()
-        .withId(UUID.randomUUID().toString())
-        .withProfileId(actionProfile.getId())
-        .withContentType(ACTION_PROFILE)
-        .withContent(JsonObject.mapFrom(actionProfile).getMap())
-        .withChildSnapshotWrappers(Collections.singletonList(
-          new ProfileSnapshotWrapper()
-            .withId(UUID.randomUUID().toString())
-            .withProfileId(mappingProfile.getId())
-            .withContentType(MAPPING_PROFILE)
-            .withContent(JsonObject.mapFrom(mappingProfile).getMap())))));
+    .withContentType(JOB_PROFILE);
 
   @Before
   public void setUp() {

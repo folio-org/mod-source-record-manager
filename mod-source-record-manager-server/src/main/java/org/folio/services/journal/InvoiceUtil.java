@@ -37,6 +37,8 @@ public class InvoiceUtil {
 
   public static final String JOURNAL_RECORD = "journalRecord";
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s and/or %s data";
+  private static final String INVOICE_MAPPING_EXCEPTION_MSG = "Can`t map invoice: ";
+  private static final String INVOICE_LINE_MAPPING_EXCEPTION_MSG = "Can`t map invoice line: ";
 
   public static LinkedList<JournalRecord> buildJournalRecordByEvent(DataImportEventPayload event)
     throws JournalRecordMapperException, JsonProcessingException {
@@ -58,7 +60,8 @@ public class InvoiceUtil {
     Map<String, Object> journalInvoiceRecord = buildInvoiceRecord(event);
     journalRecords.add((JournalRecord) journalInvoiceRecord.get(JOURNAL_RECORD));
     journalRecords.addAll(buildInvoiceLineRecords(event, (String) journalInvoiceRecord.get(FIELD_INVOICE_NO),
-      (String) journalInvoiceRecord.get(FIELD_SOURCE_ID), event.getContext().containsKey(ERROR_KEY)));
+      (String) journalInvoiceRecord.get(FIELD_SOURCE_ID),
+      event.getContext().containsKey(ERROR_KEY) && (!event.getContext().containsKey(INVOICE_LINES_ERRORS_KEY))));
 
     return journalRecords;
   }
@@ -74,7 +77,7 @@ public class InvoiceUtil {
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(eventPayload.getJobExecutionId())
         .withSourceId(edifactRecord.getId())
-        .withSourceRecordOrder(0)
+        .withSourceRecordOrder(edifactRecord.getOrder())
         .withEntityType(INVOICE)
         .withEntityId(invoiceJson.getString(FIELD_ID))
         .withTitle("Invoice")
@@ -89,7 +92,7 @@ public class InvoiceUtil {
       return Map.of(FIELD_INVOICE_NO, invoiceJson.getString(FIELD_VENDOR_INVOICE_NO),
         FIELD_SOURCE_ID, edifactRecord.getId(), JOURNAL_RECORD, journalRecord);
     } catch (Exception e) {
-      throw new JournalRecordMapperException(JournalUtil.INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);
+      throw new JournalRecordMapperException(INVOICE_MAPPING_EXCEPTION_MSG, e);
     }
   }
 
@@ -127,7 +130,7 @@ public class InvoiceUtil {
       });
       return invoiceLines;
     } catch (Exception e) {
-      throw new JournalRecordMapperException(JournalUtil.INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);
+      throw new JournalRecordMapperException(INVOICE_LINE_MAPPING_EXCEPTION_MSG, e);
     }
   }
 
