@@ -1563,6 +1563,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneRecordHasNoOrder() throws InterruptedException, IOException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
         .withLast(true)
         .withCounter(7)
