@@ -26,6 +26,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.folio.TestUtil;
+import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -41,20 +42,17 @@ import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.NetworkUtils;
-import org.folio.rest.util.OkapiConnectionParams;
 import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -64,10 +62,9 @@ import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.useDefaults;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-
-import org.mockito.Mockito;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -127,7 +124,9 @@ public abstract class AbstractRestTest {
   protected static final String okapiUserIdHeader = UUID.randomUUID().toString();
   private static final String KAFKA_HOST = "KAFKA_HOST";
   private static final String KAFKA_PORT = "KAFKA_PORT";
-  private static final String OKAPI_URL_ENV = "OKAPI_URL";
+  private static final String KAFKA_ENV = "ENV";
+  private static final String KAFKA_ENV_VALUE = "test-env";
+  public static final String OKAPI_URL_ENV = "OKAPI_URL";
   private static final int PORT = NetworkUtils.nextFreePort();
   protected static final String OKAPI_URL = "http://localhost:" + PORT;
 
@@ -169,15 +168,16 @@ public abstract class AbstractRestTest {
   );
 
   @ClassRule
-  public static EmbeddedKafkaCluster cluster = provisionWith(useDefaults());
+  public static EmbeddedKafkaCluster kafkaCluster = provisionWith(useDefaults());
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
     vertx = Vertx.vertx();
-    String[] hostAndPort = cluster.getBrokerList().split(":");
+    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
 
     System.setProperty(KAFKA_HOST, hostAndPort[0]);
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
+    System.setProperty(KAFKA_ENV, KAFKA_ENV_VALUE);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
     runDatabase();
     deployVerticle(context);
@@ -388,6 +388,10 @@ public abstract class AbstractRestTest {
     public boolean applyGlobally() {
       return false;
     }
+  }
+
+  protected String formatToKafkaTopicName(String eventType) {
+    return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), TENANT_ID, eventType);
   }
 
 }

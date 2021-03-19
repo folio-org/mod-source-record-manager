@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
@@ -48,11 +49,15 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   private void prepareChunk(RawRecordsDto rawRecordsDto) {
-    if (rawRecordsDto.getInitialRecords() != null
-      && rawRecordsDto.getInitialRecords().size() == 1
-      && rawRecordsDto.getRecordsMetadata() != null
-      && (rawRecordsDto.getRecordsMetadata().getTotal() == null || rawRecordsDto.getRecordsMetadata().getTotal() == 1)) {
-      rawRecordsDto.getInitialRecords().get(0).setOrder(0);
+    boolean isAnyRecordHasNoOrder = rawRecordsDto.getInitialRecords().stream()
+      .anyMatch(initialRecord -> initialRecord.getOrder() == null);
+
+    if (rawRecordsDto.getInitialRecords() != null && isAnyRecordHasNoOrder) {
+      int firstRecordOrderOfCurrentChunk = rawRecordsDto.getRecordsMetadata().getCounter() - rawRecordsDto.getInitialRecords().size();
+
+      for (InitialRecord initialRecord : rawRecordsDto.getInitialRecords()) {
+        initialRecord.setOrder(firstRecordOrderOfCurrentChunk++);
+      }
     }
   }
 
