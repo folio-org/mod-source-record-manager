@@ -13,6 +13,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
 import static org.folio.dataimport.util.marc.MarcRecordType.AUTHORITY;
 import static org.folio.dataimport.util.marc.MarcRecordType.BIB;
 import static org.folio.dataimport.util.marc.MarcRecordType.HOLDING;
@@ -68,9 +69,17 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
       case EDIFACT:
         return EDIFACT_INVOICE;
       case MARC:
+        requireNonNull(record.getParsedRecord(), "Parsed record is null");
+        requireNonNull(record.getParsedRecord().getContent(), "Parsed record content is null");
+
         MarcRecordType type = analyzer.process(new JsonObject(record.getParsedRecord().getContent().toString()));
 
-        return MARC_TO_ENTITY_TYPE.getOrDefault(type, MARC_BIBLIOGRAPHIC);
+        EntityType entityType = MARC_TO_ENTITY_TYPE.get(type);
+        if (entityType == null) {
+          throw new IllegalStateException("Unsupported Marc record type");
+        }
+
+        return entityType;
       default:
         throw new IllegalStateException("Unexpected record type: " + record.getRecordType());
     }
