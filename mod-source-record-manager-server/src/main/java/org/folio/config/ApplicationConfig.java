@@ -3,6 +3,7 @@ package org.folio.config;
 import io.vertx.core.Vertx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.services.journal.JournalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,10 @@ public class ApplicationConfig {
   @Bean(value = "journalServiceProxy")
   public JournalService journalServiceProxy() {
     return JournalService.createProxy(vertx);
+  }
+
+  @Bean
+  public MarcRecordAnalyzer marcRecordAnalyzer() {
+    return new MarcRecordAnalyzer();
   }
 }
