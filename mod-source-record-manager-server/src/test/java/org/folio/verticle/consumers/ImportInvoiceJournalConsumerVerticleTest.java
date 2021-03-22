@@ -37,9 +37,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
@@ -54,6 +56,7 @@ import static org.folio.services.journal.InvoiceUtil.FIELD_ID;
 import static org.folio.services.journal.InvoiceUtil.FIELD_INVOICE_LINES;
 import static org.folio.services.journal.InvoiceUtil.FIELD_INVOICE_LINE_NUMBER;
 import static org.folio.services.journal.InvoiceUtil.FIELD_VENDOR_INVOICE_NO;
+import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_ERRORS_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 import static org.folio.verticle.consumers.ImportInvoiceJournalConsumerVerticleMockTest.DI_POST_INVOICE_LINES_SUCCESS_TENANT;
 import static org.folio.verticle.consumers.ImportInvoiceJournalConsumerVerticleMockTest.EDIFACT_PARSED_CONTENT;
@@ -117,8 +120,13 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
       .put(FIELD_ID, UUID.randomUUID().toString())
       .put(FIELD_DESCRIPTION, "Some description 2")
       .put(FIELD_INVOICE_LINE_NUMBER, "2")
+      .put("invoiceId", INVOICE_ID))
+    .add(new JsonObject()
+      .put(FIELD_ID, UUID.randomUUID().toString())
+      .put(FIELD_DESCRIPTION, "Some description 3")
+      .put(FIELD_INVOICE_LINE_NUMBER, "3")
       .put("invoiceId", INVOICE_ID)))
-    .put("totalRecords", 2);
+    .put("totalRecords", 3);
 
   @Test
   public void testJournalInventoryInstanceCreatedAction(TestContext context) throws IOException {
@@ -127,21 +135,26 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     // given
     HashMap<String, String> payloadContext = new HashMap<>();
 
-    Record record = new Record().withId(UUID.randomUUID().toString())
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withOrder(0)
       .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
     payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
 
     payloadContext.put(INVOICE.value(), Json.encode(INVOICE_JSON));
     payloadContext.put(INVOICE_LINES_KEY, Json.encode(INVOICE_LINES_JSON));
+    payloadContext.put(INVOICE_LINES_ERRORS_KEY,
+      Json.encode(new JsonObject().put("3", "EventProcessingException: Error during invoice lines creation")));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DI_INVOICE_CREATED.value())
+      .withEventType(DI_ERROR.value())
       .withTenant(DI_POST_INVOICE_LINES_SUCCESS_TENANT)
       .withJobExecutionId(jobExecution.getId())
       .withOkapiUrl(OKAPI_URL)
       .withToken(TOKEN)
       .withContext(payloadContext)
-      .withProfileSnapshot(profileSnapshotWrapper);
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
 
     // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
@@ -153,7 +166,7 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
       if (ar.succeeded()) {
         context.assertTrue(ar.succeeded());
         Assert.assertNotNull(ar.result());
-        Assert.assertEquals(Optional.of(3), Optional.ofNullable(ar.result().getJobExecutionResultLogs().get(0).getTotalCompleted()));
+        Assert.assertEquals(Optional.of(4), Optional.ofNullable(ar.result().getJobExecutionResultLogs().get(0).getTotalCompleted()));
       }
     });
     async.complete();

@@ -28,12 +28,15 @@ public class InvoiceUtil {
   public static final String INVOICE_LINES_KEY = "INVOICE_LINES";
   public static final String INVOICE_LINES_ERRORS_KEY = "INVOICE_LINES_ERRORS";
 
+  public static final String INVOICE_TITLE = "INVOICE";
+
   public static final String FIELD_DESCRIPTION = "description";
   public static final String FIELD_FOLIO_INVOICE_NO = "folioInvoiceNo";
   public static final String FIELD_ID = "id";
   public static final String FIELD_INVOICE_LINE_NUMBER = "invoiceLineNumber";
   public static final String FIELD_INVOICE_LINES = "invoiceLines";
   public static final String FIELD_INVOICE_NO = "invoiceNo";
+  public static final String FIELD_INVOICE_ORDER = "invoiceOrder";
   public static final String FIELD_SOURCE_ID = "sourceId";
   public static final String FIELD_VENDOR_INVOICE_NO = "vendorInvoiceNo";
 
@@ -61,9 +64,10 @@ public class InvoiceUtil {
     LinkedList<JournalRecord> journalRecords = new LinkedList<>();
     Map<String, Object> journalInvoiceRecord = buildInvoiceRecord(event);
     journalRecords.add((JournalRecord) journalInvoiceRecord.get(JOURNAL_RECORD));
-    journalRecords.addAll(buildInvoiceLineRecords(event, (String) journalInvoiceRecord.get(FIELD_INVOICE_NO),
-      (String) journalInvoiceRecord.get(FIELD_SOURCE_ID),
-      event.getContext().containsKey(ERROR_KEY) && (!event.getContext().containsKey(INVOICE_LINES_ERRORS_KEY))));
+    journalRecords.addAll(buildInvoiceLineRecords(event,
+      (String) journalInvoiceRecord.get(FIELD_INVOICE_NO),
+      (Integer) journalInvoiceRecord.get(FIELD_INVOICE_ORDER),
+      (String) journalInvoiceRecord.get(FIELD_SOURCE_ID), isInvoiceIncorrect(event)));
 
     return journalRecords;
   }
@@ -75,31 +79,37 @@ public class InvoiceUtil {
 
       String recordAsString = eventPayload.getContext().get(INVOICE.value());
       JsonObject invoiceJson = new JsonObject(recordAsString);
+      Integer invoiceOrder = edifactRecord.getOrder() != null ? edifactRecord.getOrder() : 0;
 
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(eventPayload.getJobExecutionId())
         .withSourceId(edifactRecord.getId())
-        .withSourceRecordOrder(edifactRecord.getOrder())
+        .withSourceRecordOrder(invoiceOrder)
         .withEntityType(INVOICE)
         .withEntityId(invoiceJson.getString(FIELD_ID))
-        .withTitle("Invoice")
+        .withTitle(INVOICE_TITLE)
         .withEntityHrId(invoiceJson.getString(FIELD_FOLIO_INVOICE_NO))
         .withActionType(ActionType.CREATE)
         .withActionDate(new Date())
-        .withActionStatus(eventPayload.getEventType().equals(DI_ERROR.value()) ?
-          ActionStatus.ERROR : ActionStatus.COMPLETED)
+        .withActionStatus(isInvoiceIncorrect(eventPayload) ? ActionStatus.ERROR : ActionStatus.COMPLETED)
         .withError(eventPayload.getEventType().equals(DI_ERROR.value()) ?
           eventPayload.getContext().get(ERROR_KEY) : "");
 
       return Map.of(FIELD_INVOICE_NO, invoiceJson.getString(FIELD_VENDOR_INVOICE_NO),
-        FIELD_SOURCE_ID, edifactRecord.getId(), JOURNAL_RECORD, journalRecord);
+        FIELD_SOURCE_ID, edifactRecord.getId(),
+        FIELD_INVOICE_ORDER, invoiceOrder,
+        JOURNAL_RECORD, journalRecord);
     } catch (Exception e) {
       throw new JournalRecordMapperException(INVOICE_MAPPING_EXCEPTION_MSG, e);
     }
   }
 
+  private static boolean isInvoiceIncorrect(DataImportEventPayload eventPayload) {
+    return eventPayload.getContext().containsKey(ERROR_KEY) && !eventPayload.getContext().containsKey(INVOICE_LINES_ERRORS_KEY);
+  }
+
   private static LinkedList<JournalRecord> buildInvoiceLineRecords(DataImportEventPayload eventPayload,
-                                                                   String invoiceNo, String sourceId, boolean isInvoiceIncorrect)
+                                                                   String invoiceNo, Integer invoiceOrder, String sourceId, boolean isInvoiceIncorrect)
     throws JournalRecordMapperException, JsonProcessingException {
 
     HashMap<String, String> errorInvoiceLinesMap = initErrorInvoiceLinesMap(eventPayload);
@@ -119,7 +129,7 @@ public class InvoiceUtil {
           .withSourceId(sourceId)
           .withEntityId(invoiceLine.getString(FIELD_ID))
           .withEntityHrId(invoiceNo + "-" + invoiceLineNumber)
-          .withSourceRecordOrder(Integer.valueOf(invoiceLineNumber))
+          .withSourceRecordOrder((invoiceOrder + 1) * 10 + Integer.parseInt(invoiceLineNumber))
           .withEntityType(INVOICE)
           .withTitle(description)
           .withActionType(ActionType.CREATE)

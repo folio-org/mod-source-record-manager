@@ -62,6 +62,7 @@ import static org.folio.services.journal.InvoiceUtil.FIELD_INVOICE_LINE_NUMBER;
 import static org.folio.services.journal.InvoiceUtil.FIELD_VENDOR_INVOICE_NO;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_ERRORS_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
+import static org.folio.services.journal.InvoiceUtil.INVOICE_TITLE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 @RunWith(VertxUnitRunner.class)
@@ -140,7 +141,9 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     // given
     HashMap<String, String> payloadContext = new HashMap<>();
 
-    Record record = new Record().withId(UUID.randomUUID().toString())
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withOrder(0)
       .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
     payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
 
@@ -164,7 +167,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
     JsonArray jsonArray = invoiceRecordCaptor.getValue();
     Assert.assertEquals(3, jsonArray.size());
-    Assert.assertEquals("Invoice title:", "Invoice", jsonArray.getJsonObject(0).getString("title"));
+    Assert.assertEquals("Invoice title:", INVOICE_TITLE, jsonArray.getJsonObject(0).getString("title"));
     Assert.assertEquals("Invoice line 1 -> title:", "Some description", jsonArray.getJsonObject(1).getString("title"));
     Assert.assertEquals("Invoice line 2 -> title:", "Some description 2", jsonArray.getJsonObject(2).getString("title"));
 
@@ -192,7 +195,9 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
           .put("invoiceId", INVOICE_ID)))
       .put("totalRecords", 2);
 
-    Record record = new Record().withId(UUID.randomUUID().toString())
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withOrder(0)
       .withParsedRecord(new ParsedRecord().withContent(EDIFACT_PARSED_CONTENT));
     payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
 
