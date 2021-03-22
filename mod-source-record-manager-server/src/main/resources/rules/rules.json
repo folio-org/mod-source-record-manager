@@ -4477,30 +4477,30 @@
   ],
   "561": [
     {
-      "target": "notes.instanceNoteTypeId",
-      "description": "Instance note type id",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "set_note_type_id",
-              "parameter": {
-                "name": "Ownership and Custodial History note"
-              }
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Ownership and Custodial History note"
+                  }
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "entity": [
+        },
         {
           "target": "notes.note",
           "description": "Ownership and Custodial History",

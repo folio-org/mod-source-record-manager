@@ -238,7 +238,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       JobLogEntryDto jobLogEntryDto = new JobLogEntryDto()
         .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
         .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+        .withSourceRecordOrder(row.getString(SOURCE_RECORD_ORDER))
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
         .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))

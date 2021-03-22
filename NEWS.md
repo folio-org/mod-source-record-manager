@@ -1,4 +1,7 @@
-## 2020-11-29 v3.0.0-SNAPSHOT
+## 2021-03-18 v3.0.1-SNAPSHOT
+* [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
+
+## 2021-03-18 v3.0.0
 * [MODSOURMAN-338](https://issues.folio.org/browse/MODSOURMAN-338) Change chunk processing to use kafka
 * [MODSOURCE-177](https://issues.folio.org/browse/MODSOURCE-177) Use kafka to save chunks of parsed records in SRS
 * [MODSOURMAN-380](https://issues.folio.org/browse/MODSOURMAN-380) Expand journalRecord entity with "title" property
