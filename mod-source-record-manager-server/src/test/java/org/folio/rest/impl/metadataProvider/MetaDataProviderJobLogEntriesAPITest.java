@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -259,8 +260,8 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(3))
         .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
 
-      context.assertTrue(jobLogEntries.get(0).getSourceRecordOrder() > jobLogEntries.get(1).getSourceRecordOrder());
-      context.assertTrue(jobLogEntries.get(1).getSourceRecordOrder() > jobLogEntries.get(2).getSourceRecordOrder());
+      context.assertTrue(Integer.parseInt(jobLogEntries.get(0).getSourceRecordOrder()) > Integer.parseInt(jobLogEntries.get(1).getSourceRecordOrder()));
+      context.assertTrue(Integer.parseInt(jobLogEntries.get(1).getSourceRecordOrder()) > Integer.parseInt(jobLogEntries.get(2).getSourceRecordOrder()));
       async.complete();
     }));
   }
@@ -311,13 +312,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId1))
         .body("entries[0].sourceRecordTitle", is(recordTitle1))
-        .body("entries[0].sourceRecordOrder", is(1));
+        .body("entries[0].sourceRecordOrder", is("1"));
 
       async.complete();
     }));
   }
-
-
 
   @Test
   public void shouldReturnEmptyDtoIfHasNoLogRecordsBySpecifiedJobIdAndRecordId() {
@@ -478,6 +477,80 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
         .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
         .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnNotEmptyListWithInvoicesLines(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    String invoiceLineDescription = "Some description";
+    String invoiceLineId = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(invoiceLineDescription + "1"))
+        .body("entries[0].sourceRecordOrder", is(invoiceLineId + "-1"));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnNotEmptyListWithInvoicesLinesThatContainsError(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    String invoiceLineDescription = "Some description";
+    String invoiceLineId = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, ERROR, "Exception"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(invoiceLineDescription + "1"))
+        .body("entries[0].sourceRecordOrder", is(invoiceLineId + "-1"))
+        .body("entries[2].sourceRecordTitle", is(invoiceLineDescription + "3"))
+        .body("entries[2].sourceRecordOrder", is(invoiceLineId + "-3"))
+        .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
+
+      Assert.assertEquals("Exception", jobLogEntries.get(2).getError());
+      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(2).getInvoiceActionStatus());
 
       async.complete();
     }));
