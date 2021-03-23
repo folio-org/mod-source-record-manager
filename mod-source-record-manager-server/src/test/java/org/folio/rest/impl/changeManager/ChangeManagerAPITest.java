@@ -12,14 +12,17 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -53,6 +56,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
@@ -67,6 +71,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
@@ -1553,6 +1558,59 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     verify(0, getRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
+  }
+
+  @Test
+  public void shouldFillInRecordOrderIfAtLeastOneRecordHasNoOrder() throws InterruptedException, IOException {
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(7)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_1),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2).withOrder(5),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3).withOrder(6)));
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+
+    RecordCollection processedRecords = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    assertEquals(3, processedRecords.getRecords().size());
+
+    assertEquals(4, processedRecords.getRecords().get(0).getOrder().intValue());
+    assertEquals(5, processedRecords.getRecords().get(1).getOrder().intValue());
+    assertEquals(6, processedRecords.getRecords().get(2).getOrder().intValue());
   }
 
   @Test
