@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
@@ -29,6 +30,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+    prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
@@ -44,6 +46,19 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params)).map(true)
             .onFailure(th -> Future.succeededFuture(false));
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
+
+  private void prepareChunk(RawRecordsDto rawRecordsDto) {
+    boolean isAnyRecordHasNoOrder = rawRecordsDto.getInitialRecords().stream()
+      .anyMatch(initialRecord -> initialRecord.getOrder() == null);
+
+    if (rawRecordsDto.getInitialRecords() != null && isAnyRecordHasNoOrder) {
+      int firstRecordOrderOfCurrentChunk = rawRecordsDto.getRecordsMetadata().getCounter() - rawRecordsDto.getInitialRecords().size();
+
+      for (InitialRecord initialRecord : rawRecordsDto.getInitialRecords()) {
+        initialRecord.setOrder(firstRecordOrderOfCurrentChunk++);
+      }
+    }
   }
 
   /**

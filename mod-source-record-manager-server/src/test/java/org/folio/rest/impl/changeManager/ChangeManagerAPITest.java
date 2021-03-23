@@ -12,19 +12,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
@@ -52,6 +56,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
@@ -66,6 +71,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
@@ -97,6 +103,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String RAW_RECORD_RESULTING_IN_PARSING_ERROR = "01247nam  2200313zu 450000100110000000300080001100500170001905\u001F222\u001E1 \u001FaAriáes, Philippe.\u001E10\u001FaWestern attitudes toward death\u001Fh[electronic resource] :\u001Fbfrom the Middle Ages to the present /\u001Fcby Philippe Ariáes ; translated by Patricia M. Ranum.\u001E  \u001FaJohn Hopkins Paperbacks ed.\u001E  \u001FaBaltimore :\u001FbJohns Hopkins University Press,\u001Fc1975.\u001E  \u001Fa1 online resource.\u001E1 \u001FaThe Johns Hopkins symposia in comparative history ;\u001Fv4th\u001E  \u001FaDescription based on online resource; title from digital title page (viewed on Mar. 7, 2013).\u001E 0\u001FaDeath.\u001E2 \u001FaEbrary.\u001E 0\u001FaJohns Hopkins symposia in comparative history ;\u001Fv4th.\u001E40\u001FzConnect to e-book on Ebrary\u001Fuhttp://gateway.library.qut.edu.au/login?url=http://site.ebrary.com/lib/qut/docDetail.action?docID=10635130\u001E  \u001Fa.o1346565x\u001E  \u001Fa130307\u001Fb2095\u001Fe2095\u001Ff243966\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
   private static final String RAW_RECORD_WITH_999_ff_s_SUBFIELD = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
+  private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
     JobExecution.SubordinationType.PARENT_SINGLE,
@@ -111,10 +118,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .withStatus(JobExecution.Status.NEW)
     .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
     .withSourcePath("importMarc.mrc")
-    .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+    .withJobProfileInfo(new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Marc jobs profile"))
     .withUserId(UUID.randomUUID().toString());
 
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
+    .withId(UUID.randomUUID().toString())
     .withRecordsMetadata(new RecordsMetadata()
       .withLast(false)
       .withCounter(15)
@@ -148,6 +156,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+DEFAULT_JOB_PROFILE_ID+"?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_JOB_PROFILE_ID).withName("Default job profile")))));
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+JOB_PROFILE_ID+"?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("not default job profile")))));
   }
 
   @Test
@@ -181,7 +193,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
     requestDto.setJobProfileInfo(new JobProfileInfo()
-      .withId(UUID.randomUUID().toString())
+      .withId(DEFAULT_JOB_PROFILE_ID)
       .withDataType(JobProfileInfo.DataType.MARC)
       .withName("Test Profile"));
 
@@ -307,7 +319,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution singleParent = createdJobExecutions.get(0);
     assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
-    singleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    singleParent.setJobProfileInfo(new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
@@ -700,7 +712,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution multipleParent = createdJobExecutions.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
 
-    multipleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    multipleParent.setJobProfileInfo(new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(multipleParent).toString())
@@ -777,7 +789,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnNotFoundOnSetJobProfileInfo() {
-    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("marc");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -807,7 +819,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("marc");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -836,7 +848,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
       .willReturn(serverError()));
 
-    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("marc");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -863,7 +875,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    JobProfileInfo jobProfile = new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("marc");
+    JobProfileInfo jobProfile = new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Default job profile");
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobProfile).toString())
@@ -925,7 +937,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -984,7 +996,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1043,7 +1055,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1147,7 +1159,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1202,7 +1214,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1250,7 +1262,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1300,7 +1312,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1373,7 +1385,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     JobExecution singleParent = createdJobExecutions.get(0);
     assertThat(singleParent.getSubordinationType(), is(JobExecution.SubordinationType.PARENT_SINGLE));
 
-    singleParent.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"));
+    singleParent.setJobProfileInfo(new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Marc jobs profile"));
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(singleParent).toString())
@@ -1444,7 +1456,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1516,7 +1528,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1546,6 +1558,59 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     verify(0, getRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
+  }
+
+  @Test
+  public void shouldFillInRecordOrderIfAtLeastOneRecordHasNoOrder() throws InterruptedException, IOException {
+    RawRecordsDto rawRecordsDto = new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withRecordsMetadata(new RecordsMetadata()
+        .withLast(true)
+        .withCounter(7)
+        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+      .withInitialRecords(asList(
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_1),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2).withOrder(5),
+        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3).withOrder(6)));
+
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+
+    RecordCollection processedRecords = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    assertEquals(3, processedRecords.getRecords().size());
+
+    assertEquals(4, processedRecords.getRecords().get(0).getOrder().intValue());
+    assertEquals(5, processedRecords.getRecords().get(1).getOrder().intValue());
+    assertEquals(6, processedRecords.getRecords().get(2).getOrder().intValue());
   }
 
   @Test
@@ -1736,7 +1801,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1783,7 +1848,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
@@ -1833,7 +1898,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(UUID.randomUUID().toString())
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)

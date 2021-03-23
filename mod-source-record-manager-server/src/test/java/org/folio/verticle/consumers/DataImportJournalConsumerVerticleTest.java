@@ -190,10 +190,12 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     // then
     Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
     future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
+      if (ar.succeeded()) {
+        context.assertTrue(ar.succeeded());
+        Assert.assertNotNull(ar.result());
+      }
     });
+    async.complete();
   }
 
   @Test
