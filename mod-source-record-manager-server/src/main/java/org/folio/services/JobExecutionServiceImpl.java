@@ -84,8 +84,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String errorMessage = "Received files must not be empty";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
-    } else if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE) && jobExecutionsRqDto.getJobProfileInfo() == null) {
-      String errorMessage = "Received jobProfileInfo must not be empty";
+    } else if (!jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE) && jobExecutionsRqDto.getJobProfileInfo() == null) {
+      String errorMessage = "Received jobProfileInfo must not be empty when source type not ONLINE";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
@@ -265,7 +265,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-      if (jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+      if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
         jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
       }
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
