@@ -294,18 +294,25 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void testInitJobExecutionsWithoutJobProfileAndFiles() {
-    // given
+  public void testInitJobExecutionsWithoutJobProfileAndWithFile() {
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.setUserId(UUID.randomUUID().toString());
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(okapiUserIdHeader);
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
-
-    // when
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH)
-      .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+      .when().post(JOB_EXECUTION_PATH).then().statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
