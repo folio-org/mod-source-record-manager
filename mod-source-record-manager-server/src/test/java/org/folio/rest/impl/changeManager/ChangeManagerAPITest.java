@@ -259,6 +259,56 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void testInitJobExecutionsWithoutJobProfileAndOnline() {
+    // given
+    int expectedJobExecutionsNumber = 1;
+
+    // when
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(okapiUserIdHeader);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
+
+    InitJobExecutionsRsDto response = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().log().all()
+      .post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
+
+    // then
+    String actualParentJobExecutionId = response.getParentJobExecutionId();
+    List<JobExecution> actualJobExecutions = response.getJobExecutions();
+
+    Assert.assertNotNull(actualParentJobExecutionId);
+    assertEquals(expectedJobExecutionsNumber, actualJobExecutions.size());
+
+    JobExecution parentSingle = actualJobExecutions.get(0);
+    Assert.assertNotNull(parentSingle);
+    assertEquals(JobExecution.SubordinationType.PARENT_SINGLE, parentSingle.getSubordinationType());
+    Assert.assertNotNull(parentSingle.getId());
+    Assert.assertNotNull(parentSingle.getParentJobId());
+    Assert.assertTrue(parentTypes.contains(parentSingle.getSubordinationType()));
+    assertEquals(parentSingle.getId(), parentSingle.getParentJobId());
+    assertEquals(JobExecution.Status.NEW, parentSingle.getStatus());
+    Assert.assertNotNull(parentSingle.getRunBy().getFirstName());
+    Assert.assertNotNull(parentSingle.getRunBy().getLastName());
+  }
+
+  @Test
+  public void testInitJobExecutionsWithoutJobProfileAndFiles() {
+    // given
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.setUserId(UUID.randomUUID().toString());
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
   public void testInitJobExecutionsWith2Files() {
     // given
     int expectedParentJobExecutions = 1;
