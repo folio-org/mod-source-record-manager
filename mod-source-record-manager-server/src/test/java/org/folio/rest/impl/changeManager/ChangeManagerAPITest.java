@@ -359,21 +359,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void testInitJobExecutionsWithNoProfile() {
-    // given
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.setUserId(UUID.randomUUID().toString());
-    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
-
-    // when
-    RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH)
-      .then().statusCode(HttpStatus.SC_BAD_REQUEST);
-  }
-
-  @Test
   public void shouldReturnBadRequestOnPutWhenNoJobExecutionPassedInBody() {
     RestAssured.given()
       .spec(spec)
