@@ -84,8 +84,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String errorMessage = "Received files must not be empty";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
-    } else if (!jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE) && jobExecutionsRqDto.getJobProfileInfo() == null) {
-      String errorMessage = "Received jobProfileInfo must not be empty when source type not ONLINE";
+    } else if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.FILES) && jobExecutionsRqDto.getJobProfileInfo() == null) {
+      String errorMessage = "Received jobProfileInfo must not be empty when source type FILES";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
