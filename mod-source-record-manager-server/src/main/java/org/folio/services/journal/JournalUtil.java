@@ -43,8 +43,9 @@ public class JournalUtil {
                                                  JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       String recordAsString = eventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value());
-      String entityAsString = eventPayload.getContext().get(entityType.value());
       Record record = new ObjectMapper().readValue(recordAsString, Record.class);
+
+      String entityAsString = eventPayload.getContext().get(entityType.value());
       JsonObject entityJson = new JsonObject(entityAsString);
 
       JournalRecord journalRecord = new JournalRecord()

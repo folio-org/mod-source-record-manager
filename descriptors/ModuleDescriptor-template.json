@@ -82,7 +82,7 @@
   "provides": [
     {
       "id": "source-manager-job-executions",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": [
@@ -179,7 +179,7 @@
     },
     {
       "id": "source-manager-records",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": [

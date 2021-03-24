@@ -15,17 +15,13 @@ import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalService;
-import org.folio.services.journal.JournalUtil;
-import org.folio.verticle.consumers.util.JournalParams;
+import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
-import static org.folio.verticle.consumers.util.JournalParams.JournalParamsEnum;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
@@ -34,6 +30,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
 
   private Vertx vertx;
   private JournalService journalService;
+  private EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector();
 
   public DataImportJournalKafkaHandler(@Autowired Vertx vertx,
                                        @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
@@ -50,12 +47,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     LOGGER.debug("Event was received: {}", event.getEventType());
     try {
       DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-      JournalParams journalParams = JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
-      JournalRecord journalRecord =
-        JournalUtil.buildJournalRecordByEvent(eventPayload,
-          journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
-
-      journalService.save(JsonObject.mapFrom(journalRecord), okapiConnectionParams.getTenantId());
+      eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
       result.complete();
     } catch (Exception e) {
       LOGGER.error("Error during processing journal event", e);
