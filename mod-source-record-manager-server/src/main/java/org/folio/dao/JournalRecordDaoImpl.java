@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_TYPE;
@@ -59,6 +60,7 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_NUMBER;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
@@ -238,7 +240,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       JobLogEntryDto jobLogEntryDto = new JobLogEntryDto()
         .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
         .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-        .withSourceRecordOrder(row.getString(SOURCE_RECORD_ORDER))
+        .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS)) ?
+          row.getInteger(SOURCE_RECORD_ORDER).toString() : row.getString(INVOICE_LINE_NUMBER))
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
         .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
