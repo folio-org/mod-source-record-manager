@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,10 +84,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
     if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.FILES) && jobExecutionsRqDto.getFiles().isEmpty()) {
       String errorMessage = "Received files must not be empty";
-      LOGGER.error(errorMessage);
-      return Future.failedFuture(new BadRequestException(errorMessage));
-    } else if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE) && jobExecutionsRqDto.getJobProfileInfo() == null) {
-      String errorMessage = "Received jobProfileInfo must not be empty";
       LOGGER.error(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
@@ -265,7 +263,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     String userId = dto.getUserId();
     if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
       JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-      if (jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+      if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
         jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
       }
       return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
@@ -323,11 +321,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
-              UserInfo userInfo = new UserInfo()
-                .withFirstName(userPersonalInfo.getString("firstName"))
-                .withLastName(userPersonalInfo.getString("lastName"))
-                .withUserName(jsonUser.getString("username"));
-              promise.complete(userInfo);
+              if (userPersonalInfo == null) {
+                String errorMessage = "There are no personal data for the current user: " + userId;
+                LOGGER.error(errorMessage);
+                promise.fail(errorMessage);
+              } else {
+                UserInfo userInfo = new UserInfo()
+                  .withFirstName(userPersonalInfo.getString("firstName"))
+                  .withLastName(userPersonalInfo.getString("lastName"))
+                  .withUserName(jsonUser.getString("username"));
+                promise.complete(userInfo);
+              }
             }
           }
         }
