@@ -137,7 +137,7 @@ There are two ways to import records into source-record-storage via source-recor
 * Using CLI tools - Postman, curl, SoapUI. This option is preferable if user wants to process records directly without uploading files, and mod-source-record-manager provides API for this.
 
 To import records using CLI tools one has to follow steps below:
-1. Create JobExecution containing: jobProfileInfo, sourceType="ONLINE" and empty files list.
+1. Create JobExecution containing: sourceType="ONLINE" "userId".
 2. Set JobProfile to JobExecution to trigger building of the JobProfileSnapshot
 3. Send RawRecordsDto containing records list and field last=false.
 4. Complete data import by sending last RawRecordsDto containing empty records list, field last=true and total number of records in field "counter".
@@ -161,13 +161,7 @@ curl -w '\n' -X POST -D -   \
 
 ```
 {
-  "files": [],
   "sourceType": "ONLINE",
-  "jobProfileInfo": {
-    "id": "6409dcff-71fa-433a-bc6a-e70ad38a9604",
-    "name": "Default - Create instance and SRS MARC Bib",
-    "dataType": "MARC"
-  },
   "userId": "a0086f7e-61b6-5c2d-9e1b-b268063a44b3"
 }
 ```
