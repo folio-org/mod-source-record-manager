@@ -50,17 +50,18 @@ FROM (
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
                 count(journal_records.source_id) OVER () AS total_count
          FROM journal_records
-         WHERE journal_records.job_execution_id = ''%s'' and entity_type != ''INVOICE''
+         WHERE journal_records.job_execution_id = ''%s'' and
+               entity_type in (''MARC_BIBLIOGRAPHIC'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'')
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
      ) AS records_actions
          LEFT JOIN (SELECT journal_records.source_id, journal_records.error
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%s'') AS rec_errors
-                   ON rec_errors.source_id = records_actions.source_id AND rec_errors.error != ''''
+            ON rec_errors.source_id = records_actions.source_id AND rec_errors.error != ''''
          LEFT JOIN (SELECT journal_records.source_id, journal_records.title
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%s'') AS rec_titles
-                   ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+            ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 
 UNION
 
