@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -319,11 +321,17 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
-              UserInfo userInfo = new UserInfo()
-                .withFirstName(userPersonalInfo.getString("firstName"))
-                .withLastName(userPersonalInfo.getString("lastName"))
-                .withUserName(jsonUser.getString("username"));
-              promise.complete(userInfo);
+              if (userPersonalInfo == null) {
+                String errorMessage = "There are no personal data for the current user: " + userId;
+                LOGGER.error(errorMessage);
+                promise.fail(errorMessage);
+              } else {
+                UserInfo userInfo = new UserInfo()
+                  .withFirstName(userPersonalInfo.getString("firstName"))
+                  .withLastName(userPersonalInfo.getString("lastName"))
+                  .withUserName(jsonUser.getString("username"));
+                promise.complete(userInfo);
+              }
             }
           }
         }
