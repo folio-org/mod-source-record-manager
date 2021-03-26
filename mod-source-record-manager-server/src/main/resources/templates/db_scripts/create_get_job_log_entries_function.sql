@@ -20,11 +20,11 @@ $$ LANGUAGE plpgsql;
 
 -- Script to create function to get data import job log entries (jobLogEntry).
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint)
 AS $$
 BEGIN
     RETURN QUERY EXECUTE format('
-SELECT records_actions.job_execution_id, records_actions.source_id, (records_actions.source_record_order :: text) as source_record_order,
+SELECT records_actions.job_execution_id, records_actions.source_id, records_actions.source_record_order, '''' as invoiceline_number,
        rec_titles.title,
        CASE
            WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
@@ -65,7 +65,7 @@ FROM (
 
 UNION
 
-SELECT records_actions.job_execution_id, records_actions.source_id, entity_hrid as source_record_order, title,
+SELECT records_actions.job_execution_id, records_actions.source_id, source_record_order, entity_hrid as invoiceline_number, title,
        CASE
            WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
            WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
@@ -78,7 +78,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, entity_hrid 
        get_entity_status(invoice_actions, invoice_errors_number) AS invoice_action_status,
        error, records_actions.total_count
 FROM (
-         SELECT journal_records.source_id, entity_hrid, journal_records.job_execution_id, title, error,
+         SELECT journal_records.source_id, journal_records.job_execution_id, source_record_order, entity_hrid, title, error,
                 array[]::varchar[] AS marc_actions,
                 cast(0 as integer) AS marc_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_actions,
