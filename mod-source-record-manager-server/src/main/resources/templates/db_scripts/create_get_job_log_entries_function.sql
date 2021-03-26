@@ -18,6 +18,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Request to delete the old version of get_job_log_entries with a different return format.
+DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
+
 -- Script to create function to get data import job log entries (jobLogEntry).
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint)
