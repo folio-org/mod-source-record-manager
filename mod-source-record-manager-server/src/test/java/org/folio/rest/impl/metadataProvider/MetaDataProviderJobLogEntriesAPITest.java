@@ -33,6 +33,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
@@ -44,6 +45,7 @@ import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(VertxUnitRunner.class)
 public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
@@ -438,16 +440,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String orderId = UUID.randomUUID().toString();
     String orderHrid = "o001";
 
-    String invoiceId = UUID.randomUUID().toString();
-    String invoiceHrid = "inv001";
-
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, orderId, orderHrid, null,  0, CREATE, ORDER, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, null,  0, CREATE, INVOICE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -474,9 +472,116 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedOrderInfo.idList[0]", is(orderId))
         .body("relatedOrderInfo.hridList[0]", is(orderHrid))
         .body("relatedOrderInfo.error", emptyOrNullString())
+        .body("relatedInvoiceInfo.idList", empty())
+        .body("relatedInvoiceInfo.hridList", empty())
+        .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceAndInvoiceLinesData(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceId = UUID.randomUUID().toString();
+    String invoiceHrid = "228D126";
+    String invoiceVendorNumber = "0704159";
+    String invoiceLineId1 = UUID.randomUUID().toString();
+    String invoiceLineId2 = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId2, invoiceVendorNumber + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceVendorNumber + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, ERROR, "error msg"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", nullValue())
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList.size", is(0))
+        .body("relatedInstanceInfo.hridList.size", is(0))
+        .body("relatedInstanceInfo.error", nullValue())
+        .body("relatedHoldingsInfo.idList.size", is(0))
+        .body("relatedHoldingsInfo.hridList.size", is(0))
+        .body("relatedHoldingsInfo.error", emptyOrNullString())
+        .body("relatedItemInfo.idList.size", is(0))
+        .body("relatedItemInfo.hridList.size", is(0))
+        .body("relatedItemInfo.error", emptyOrNullString())
+        .body("relatedOrderInfo.idList.size", is(0))
+        .body("relatedOrderInfo.hridList.size", is(0))
+        .body("relatedOrderInfo.error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
         .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
-        .body("relatedInvoiceInfo.error", emptyOrNullString());
+        .body("relatedInvoiceInfo.error", emptyOrNullString())
+        .body("relatedInvoiceLinesInfo.size", is(3))
+        .body("relatedInvoiceLinesInfo[0].id", is(invoiceLineId1))
+        .body("relatedInvoiceLinesInfo[1].id", is(invoiceLineId2))
+        .body("relatedInvoiceLinesInfo[2].id", nullValue())
+        .body("relatedInvoiceLinesInfo[0].error", emptyOrNullString())
+        .body("relatedInvoiceLinesInfo[1].error", emptyOrNullString())
+        .body("relatedInvoiceLinesInfo[2].error", not(emptyOrNullString()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceLinesInfoWithErrors(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceId = UUID.randomUUID().toString();
+    String invoiceHrid = "228D126";
+    String invoiceVendorNumber = "0704159";
+    String invoiceLineId1 = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+    String errorMsg1 = "error-msg-1";
+    String errorMsg2 = "error-msg-2";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceVendorNumber + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, ERROR, errorMsg1))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceVendorNumber + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, ERROR, errorMsg2))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", nullValue())
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
+        .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
+        .body("relatedInvoiceInfo.error", emptyOrNullString())
+        .body("relatedInvoiceLinesInfo.size", is(3))
+        .body("relatedInvoiceLinesInfo[0].id", is(invoiceLineId1))
+        .body("relatedInvoiceLinesInfo[1].id", nullValue())
+        .body("relatedInvoiceLinesInfo[2].id", nullValue())
+        .body("relatedInvoiceLinesInfo[0].error", emptyOrNullString())
+        .body("relatedInvoiceLinesInfo[1].error", is(errorMsg1))
+        .body("relatedInvoiceLinesInfo[2].error", is(errorMsg2));
 
       async.complete();
     }));
