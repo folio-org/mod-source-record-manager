@@ -42,6 +42,8 @@ public final class JournalRecordsColumns {
   public static final String INVOICE_ENTITY_ID = "invoice_entity_id";
   public static final String INVOICE_ENTITY_HRID = "invoice_entity_hrid";
   public static final String INVOICE_ENTITY_ERROR = "invoice_entity_error";
+  public static final String INVOICE_LINES_ENTITY_ID = "invoice_lines_entity_id";
+  public static final String INVOICE_LINES_ENTITY_ERROR = "invoice_lines_entity_error";
 
 
   private JournalRecordsColumns() {

@@ -2,12 +2,11 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
@@ -19,12 +18,12 @@ import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.ProcessedEntityInfo;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RelatedInvoiceLinesInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -59,6 +59,8 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINES_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINES_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
@@ -277,7 +279,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
         ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
       .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR)));
+        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
+      .withRelatedInvoiceLinesInfo(constructInvoiceLinesInfo(row)));
     return recordProcessingLogSummary;
   }
 
@@ -287,6 +290,15 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withIdList(constructListFromColumn(row, ids))
       .withHridList(constructListFromColumn(row, hrids))
       .withError(row.getString(error));
+  }
+
+  private List<RelatedInvoiceLinesInfo> constructInvoiceLinesInfo(Row row) {
+    ArrayList<RelatedInvoiceLinesInfo> invoiceLinesInfoList = new ArrayList<>();
+    constructListFromColumn(row, INVOICE_LINES_ENTITY_ID).forEach(invoiceLineId -> invoiceLinesInfoList.add(new RelatedInvoiceLinesInfo().withId(invoiceLineId)));
+
+    List<String> invoiceLinesErrors = constructListFromColumn(row, INVOICE_LINES_ENTITY_ERROR);
+    IntStream.range(0, invoiceLinesErrors.size()).forEach(i -> invoiceLinesInfoList.get(i).withError(invoiceLinesErrors.get(i)));
+    return invoiceLinesInfoList;
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
