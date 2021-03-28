@@ -189,12 +189,12 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-pubsub-client</artifactId>
-      <version>2.0.1</version>
+      <version>2.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-kafka-wrapper</artifactId>
-      <version>2.0.1</version>
+      <version>2.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -498,6 +498,7 @@
             -Dio.netty.tryReflectionSetAccessible=true
             --illegal-access=warn
           </argLine>
+          <testFailureIgnore>true</testFailureIgnore>
         </configuration>
       </plugin>
 
