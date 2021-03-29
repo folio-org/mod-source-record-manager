@@ -1,6 +1,7 @@
 ## 2021-03-18 v3.0.1-SNAPSHOT
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
 * [MODSOURMAN-422](https://issues.folio.org/browse/MODSOURMAN-422) Add record sequence number for records posted direct via API if it is not set
+* [MODDATAIMP-388](https://issues.folio.org/browse/MODDATAIMP-388) Import job is not completed on file parsing error[BUGFIX]
 
 ## 2021-03-18 v3.0.0
 * [MODSOURMAN-338](https://issues.folio.org/browse/MODSOURMAN-338) Change chunk processing to use kafka

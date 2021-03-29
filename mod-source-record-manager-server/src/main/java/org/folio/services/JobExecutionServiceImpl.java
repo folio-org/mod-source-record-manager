@@ -349,7 +349,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withSourcePath(fileName)
       .withFileName(FilenameUtils.getName(fileName))
       .withProgress(new Progress()
-        .withCurrent(1)
+        .withCurrent(0)
         .withTotal(100))
       .withUserId(userId)
       .withStartedDate(new Date());

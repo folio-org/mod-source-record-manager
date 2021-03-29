@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -11,11 +10,10 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.processor.MappingParametersProvider;
@@ -30,8 +28,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
@@ -43,6 +39,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   private JobExecutionService jobExecutionService;
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleCache mappingRuleCache;
+  private DataImportPayloadContextBuilder payloadContextBuilder;
   private KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
@@ -51,10 +48,12 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
                                       @Autowired MappingParametersProvider mappingParametersProvider,
                                       @Autowired MappingRuleCache mappingRuleCache,
+                                      @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
                                       @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionService = jobExecutionService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
+    this.payloadContextBuilder = payloadContextBuilder;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -142,29 +141,17 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   private DataImportEventPayload prepareEventPayload(Record record, ProfileSnapshotWrapper profileSnapshotWrapper,
                                                      JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params,
                                                      String eventType) {
-    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>();
-    dataImportEventPayloadContext.put(inferEntityType(record).value(), Json.encode(record));
-    dataImportEventPayloadContext.put("MAPPING_RULES", mappingRules.encode());
-    dataImportEventPayloadContext.put("MAPPING_PARAMS", Json.encode(mappingParameters));
+    HashMap<String, String> context = payloadContextBuilder.buildFrom(record, mappingRules, mappingParameters);
 
     return new DataImportEventPayload()
       .withEventType(eventType)
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
-      .withContext(dataImportEventPayloadContext)
+      .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
       .withTenant(params.getTenantId())
       .withToken(params.getToken());
   }
 
-  private EntityType inferEntityType(Record record) {
-    switch (record.getRecordType()) {
-      case EDIFACT:
-        return EDIFACT_INVOICE;
-      case MARC:
-      default:
-        return MARC_BIBLIOGRAPHIC;
-    }
-  }
 }
