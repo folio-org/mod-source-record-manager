@@ -11,6 +11,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -44,10 +45,10 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ORDER;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(VertxUnitRunner.class)
@@ -590,11 +591,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String invoiceLineDescription = "Some description";
     String invoiceLineId = "0704159";
 
-    Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, COMPLETED, null))
+    CompositeFuture future = GenericCompositeFuture.all(List.of(
+      createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "228D126", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null).map(JournalRecord::getId),
+      createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null).map(JournalRecord::getId),
+      createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null).map(JournalRecord::getId),
+      createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, COMPLETED, null).map(JournalRecord::getId)))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -606,11 +607,18 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(3))
         .body("totalRecords", is(3))
-        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries*.jobExecutionId", everyItem(is(createdJobExecution.getId())))
+        .body("entries*.sourceRecordId", everyItem(is(sourceRecordId)))
         .body("entries[0].sourceRecordTitle", is(invoiceLineDescription + "1"))
+        .body("entries[1].sourceRecordTitle", is(invoiceLineDescription + "2"))
+        .body("entries[2].sourceRecordTitle", is(invoiceLineDescription + "3"))
         .body("entries[0].sourceRecordOrder", is(invoiceLineId + "-1"))
-        .body("entries[0].invoiceLineJournalRecordId", notNullValue());
+        .body("entries[1].sourceRecordOrder", is(invoiceLineId + "-2"))
+        .body("entries[2].sourceRecordOrder", is(invoiceLineId + "-3"))
+        // skip result at 0 index, since it is invoice related journal record id
+        .body("entries[0].invoiceLineJournalRecordId", is(future.resultAt(1).toString()))
+        .body("entries[1].invoiceLineJournalRecordId", is(future.resultAt(2).toString()))
+        .body("entries[2].invoiceLineJournalRecordId", is(future.resultAt(3).toString()));
 
       async.complete();
     }));
