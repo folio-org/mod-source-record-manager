@@ -6,6 +6,7 @@ public final class JournalRecordsColumns {
   public static final String JOB_EXECUTION_ID = "job_execution_id";
   public static final String SOURCE_ID = "source_id";
   public static final String SOURCE_RECORD_ORDER = "source_record_order";
+  public static final String INVOICE_LINE_NUMBER = "invoiceline_number";
   public static final String TITLE = "title";
   public static final String ENTITY_TYPE = "entity_type";
   public static final String ACTION_TYPE = "action_type";
