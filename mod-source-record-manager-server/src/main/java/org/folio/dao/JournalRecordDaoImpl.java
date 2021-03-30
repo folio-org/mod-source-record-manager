@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -58,9 +57,11 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_JOURNAL_RECORD_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
@@ -248,6 +249,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
         .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
         .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+        .withInvoiceLineJournalRecordId(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID) != null
+          ? row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString() : null)
         .withError(row.getString(ERROR));
 
       jobLogEntryDtoCollection
@@ -295,14 +298,14 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private RelatedInvoiceLineInfo constructInvoiceLineInfo(Row row) {
     return new RelatedInvoiceLineInfo()
+      .withActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_LINE_ACTION_STATUS)))
       .withId(row.getValue(INVOICE_LINE_ENTITY_ID) != null ? row.getValue(INVOICE_LINE_ENTITY_ID).toString() : null)
-//      .withHrid(row.getString(INVOICE_LINE_ENTITY_HRID))
       .withFullInvoiceLineNumber(row.getString(INVOICE_LINE_ENTITY_HRID))
       .withError(row.getString(INVOICE_LINE_ENTITY_ERROR));
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
-    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.stream(row.getArrayOfStrings(columnName)).collect(Collectors.toList());
+    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.asList(row.getArrayOfStrings(columnName));
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {
