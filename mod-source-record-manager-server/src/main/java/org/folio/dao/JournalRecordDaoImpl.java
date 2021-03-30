@@ -18,7 +18,7 @@ import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.ProcessedEntityInfo;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
-import org.folio.rest.jaxrs.model.RelatedInvoiceLinesInfo;
+import org.folio.rest.jaxrs.model.RelatedInvoiceLineInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -59,8 +58,9 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINES_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINES_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
@@ -264,23 +264,24 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     }
     resultSet.forEach(row ->
       recordProcessingLogSummary
-      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-      .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
-      .withSourceRecordTitle(row.getString(TITLE))
-      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-      .withError(row.getString(SOURCE_ENTITY_ERROR))
-      .withRelatedInstanceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
-      .withRelatedHoldingsInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_ENTITY_ERROR))
-      .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
-      .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
-      .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
-      .withRelatedInvoiceLinesInfo(constructInvoiceLinesInfo(row)));
+        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+        .withSourceRecordTitle(row.getString(TITLE))
+        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+        .withError(row.getString(SOURCE_ENTITY_ERROR))
+        .withRelatedInstanceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
+        .withRelatedHoldingsInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_ENTITY_ERROR))
+        .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
+        .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
+        .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
+        .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row)));
+
     return recordProcessingLogSummary;
   }
 
@@ -292,13 +293,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withError(row.getString(error));
   }
 
-  private List<RelatedInvoiceLinesInfo> constructInvoiceLinesInfo(Row row) {
-    ArrayList<RelatedInvoiceLinesInfo> invoiceLinesInfoList = new ArrayList<>();
-    constructListFromColumn(row, INVOICE_LINES_ENTITY_ID).forEach(invoiceLineId -> invoiceLinesInfoList.add(new RelatedInvoiceLinesInfo().withId(invoiceLineId)));
-
-    List<String> invoiceLinesErrors = constructListFromColumn(row, INVOICE_LINES_ENTITY_ERROR);
-    IntStream.range(0, invoiceLinesErrors.size()).forEach(i -> invoiceLinesInfoList.get(i).withError(invoiceLinesErrors.get(i)));
-    return invoiceLinesInfoList;
+  private RelatedInvoiceLineInfo constructInvoiceLineInfo(Row row) {
+    return new RelatedInvoiceLineInfo()
+      .withId(row.getValue(INVOICE_LINE_ENTITY_ID) != null ? row.getValue(INVOICE_LINE_ENTITY_ID).toString() : null)
+//      .withHrid(row.getString(INVOICE_LINE_ENTITY_HRID))
+      .withFullInvoiceLineNumber(row.getString(INVOICE_LINE_ENTITY_HRID))
+      .withError(row.getString(INVOICE_LINE_ENTITY_ERROR));
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {

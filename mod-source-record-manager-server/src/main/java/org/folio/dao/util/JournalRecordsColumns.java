@@ -24,6 +24,7 @@ public final class JournalRecordsColumns {
   public static final String ITEM_ACTION_STATUS = "item_action_status";
   public static final String ORDER_ACTION_STATUS = "order_action_status";
   public static final String INVOICE_ACTION_STATUS = "invoice_action_status";
+  public static final String INVOICE_LINE_ACTION_STATUS = "invoice_line_action_status";
   public static final String TOTAL_COUNT = "total_count";
 
   public static final String SOURCE_ENTITY_ERROR = "source_entity_error";
@@ -42,8 +43,9 @@ public final class JournalRecordsColumns {
   public static final String INVOICE_ENTITY_ID = "invoice_entity_id";
   public static final String INVOICE_ENTITY_HRID = "invoice_entity_hrid";
   public static final String INVOICE_ENTITY_ERROR = "invoice_entity_error";
-  public static final String INVOICE_LINES_ENTITY_ID = "invoice_lines_entity_id";
-  public static final String INVOICE_LINES_ENTITY_ERROR = "invoice_lines_entity_error";
+  public static final String INVOICE_LINE_ENTITY_ID = "invoice_line_entity_id";
+  public static final String INVOICE_LINE_ENTITY_HRID = "invoice_line_entity_hrid";
+  public static final String INVOICE_LINE_ENTITY_ERROR = "invoice_line_entity_error";
 
 
   private JournalRecordsColumns() {
