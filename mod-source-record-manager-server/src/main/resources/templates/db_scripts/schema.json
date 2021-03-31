@@ -121,12 +121,12 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_log_entries_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.0.1"
+      "fromModuleVersion": "mod-source-record-manager-3.0.5"
     },
     {
       "run": "after",
       "snippetPath": "create_get_record_processing_log_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-2.5.0"
+      "fromModuleVersion": "mod-source-record-manager-3.0.5"
     }
   ]
 }
