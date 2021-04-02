@@ -118,7 +118,7 @@ resourceTypes:
               example: "Bad request"
   /jobLogEntries/{jobExecutionId}/records/{recordId}:
     get:
-      description: get record processing log dto by job execution id and record id
+      description: get record processing log dto by job execution id and record id (to get EDIFACT import log data a journal record id is expected)
       responses:
         200:
           body:

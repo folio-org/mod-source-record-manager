@@ -23,7 +23,7 @@ DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint, invoice_line_journal_record_id uuid)
 AS $$
 BEGIN
     RETURN QUERY EXECUTE format('
@@ -38,7 +38,8 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        get_entity_status(holdings_actions, holdings_errors_number) AS holdings_action_status,
        get_entity_status(item_actions, item_errors_number) AS item_action_status,
        get_entity_status(order_actions, order_errors_number) AS order_action_status,
-       null AS invoice_action_status, rec_errors.error, records_actions.total_count
+       null AS invoice_action_status, rec_errors.error, records_actions.total_count,
+       null AS invoiceLineJournalRecordId
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                 array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type = ''MARC_BIBLIOGRAPHIC'') AS marc_actions,
@@ -79,18 +80,19 @@ SELECT records_actions.job_execution_id, records_actions.source_id, source_recor
        null AS item_action_status,
        null AS order_action_status,
        get_entity_status(invoice_actions, invoice_errors_number) AS invoice_action_status,
-       error, records_actions.total_count
+       error, records_actions.total_count, invoiceLineJournalRecordId
 FROM (
          SELECT journal_records.source_id, journal_records.job_execution_id, source_record_order, entity_hrid, title, error,
                 array[]::varchar[] AS marc_actions,
                 cast(0 as integer) AS marc_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''INVOICE'' AND journal_records.error != '''') AS invoice_errors_number,
-                count(journal_records.source_id) OVER () AS total_count
+                count(journal_records.source_id) OVER () AS total_count,
+                id AS invoiceLineJournalRecordId
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
-                  entity_hrid, title, error
+                  entity_hrid, title, error, id
      ) AS records_actions
 ORDER BY %I %s
 LIMIT %s OFFSET %s;',
