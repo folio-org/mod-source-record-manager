@@ -172,7 +172,8 @@
             "change-manager.jobexecutions.put"
           ],
           "modulePermissions": [
-            "converter-storage.jobprofilesnapshots.post"
+            "converter-storage.jobprofilesnapshots.post",
+            "converter-storage.jobprofile.get"
           ]
         }
       ]
