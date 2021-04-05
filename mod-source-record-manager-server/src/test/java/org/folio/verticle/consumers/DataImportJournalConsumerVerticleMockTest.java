@@ -60,6 +60,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public static final String ENTITY_TYPE_KEY = "entityType";
   public static final String ACTION_TYPE_KEY = "actionType";
   public static final String ACTION_STATUS_KEY = "actionStatus";
+  public static final String SOURCE_RECORD_ID_KEY = "sourceId";
   public static final String ENV_KEY = "folio";
 
   @Spy
@@ -209,6 +210,39 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
 
     async.complete();
+  }
+
+  @Test
+  public void shouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents() throws IOException {
+    // given
+    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
+      put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+      put(ERROR_KEY, "java.lang.IllegalStateException: Unsupported Marc record type");
+    }};
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID)
+      .withToken("token");
+
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // when
+    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
+
+    // then
+    JsonObject jsonObject = journalRecordCaptor.getValue();
+    Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonObject.getString(ENTITY_TYPE_KEY));
+    Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
+    Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
+    Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonObject.getString(SOURCE_RECORD_ID_KEY));
+    Assert.assertNotNull(jsonObject.getString("error"));
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
