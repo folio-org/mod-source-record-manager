@@ -1,3 +1,6 @@
+## 2021-04-05 v3.0.2
+* [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to `/change-manager/jobExecutions/{id}/jobProfile`
+
 ## 2021-03-28 v3.0.1
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
 * [MODSOURMAN-422](https://issues.folio.org/browse/MODSOURMAN-422) Add record sequence number for records posted direct via API if it is not set
