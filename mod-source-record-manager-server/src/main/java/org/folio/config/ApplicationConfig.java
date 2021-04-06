@@ -35,7 +35,7 @@ public class ApplicationConfig {
   private String envId;
   @Value("${srm.kafkacache.cleanup.interval.ms:3600000}")
   private long cacheCleanupIntervalMillis;
-  @Value("${srm.kafkacache.expiration.time.hours:1}")
+  @Value("${srm.kafkacache.expiration.time.hours:3}")
   private int cachedEventExpirationTimeHours;
 
   @Bean(name = "newKafkaConfig")
