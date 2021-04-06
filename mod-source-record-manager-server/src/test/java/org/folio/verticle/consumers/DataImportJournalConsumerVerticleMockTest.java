@@ -53,6 +53,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
+import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest {
@@ -230,13 +231,13 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
 
+    // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
-    // when
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
-
     // then
+    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
+
     JsonObject jsonObject = journalRecordCaptor.getValue();
     Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonObject.getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
