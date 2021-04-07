@@ -3,6 +3,8 @@
 
 ## 2021-04-05 v3.0.2
 * [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to `/change-manager/jobExecutions/{id}/jobProfile`
+* [MODDATAIMP-403](https://issues.folio.org/browse/MODDATAIMP-403) Some data import jobs stuck on folio-snapshot-load
+* [MODSOURMAN-428](https://issues.folio.org/browse/MODSOURMAN-428) Ensure exactly one delivery approach for handler receiving stored records
 
 ## 2021-03-28 v3.0.1
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
