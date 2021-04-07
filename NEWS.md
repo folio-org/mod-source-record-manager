@@ -1,5 +1,6 @@
 ## 2021-03-18 v3.0.2-SNAPSHOT
 * [MODSOURMAN-420](https://issues.folio.org/browse/MODSOURMAN-420) Expand endpoint for retrieving recordProcessingLogDto to provide data for Invoice JSON screen
+* [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
 * [MODDATAIMP-403](https://issues.folio.org/browse/MODDATAIMP-403) Some data import jobs stuck on folio-snapshot-load
 
 ## 2021-03-28 v3.0.1

@@ -2,6 +2,8 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
@@ -74,6 +76,10 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
     Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
     try {
+      if(StringUtils.isBlank(id)) {
+        LOGGER.warn("Can't retrieve JobExecutionSourceChunk by empty id.");
+        return promise.future().map(Optional.empty());
+      }
       Criteria idCrit = constructCriteria(ID_FIELD, id);
       pgClientFactory.createInstance(tenantId)
         .get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, promise);
