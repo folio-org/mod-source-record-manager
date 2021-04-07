@@ -60,7 +60,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
         .withSnapshotId(jobExec.getId())
         .withParsedRecord(new ParsedRecord().withContent(parsedContentWithInvalidRecordTypeValue))));
 
-    Event event = new Event().withEventPayload(ZIPArchiver.zip(Json.encode(recordsBatch)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(recordsBatch)));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("42", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_TOKEN_HEADER, TOKEN, UTF_8);
