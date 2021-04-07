@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
@@ -35,6 +39,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final AtomicInteger indexer = new AtomicInteger();
+  private static final String ERROR_MSG_KEY = "ERROR";
 
   private JobExecutionService jobExecutionService;
   private MappingParametersProvider mappingParametersProvider;
@@ -77,19 +82,21 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
-    try {
-      for (Record record : createdRecords) {
+
+    for (Record record : createdRecords) {
+      String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+      try {
         if (isRecordReadyToSend(record)) {
-          String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params, eventType);
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
-          futures.add(booleanFuture);
+          futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
         }
+      } catch (Exception e) {
+        LOGGER.error("Error publishing event with record", e);
+        futures.add(Future.<Boolean>failedFuture(e)
+          .onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
       }
-    } catch (Exception e) {
-      LOGGER.error("Error publishing event with record", e);
-      futures.add(Future.failedFuture(e));
     }
 
     GenericCompositeFuture.join(futures).onComplete(ar -> {
@@ -101,6 +108,25 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       promise.complete(true);
     });
     return promise.future();
+  }
+
+  private void sendEventWithRecordPublishingError(Record record, JobExecution jobExecution, OkapiConnectionParams params, String errorMsg, KafkaConfig kafkaConfig, String key) {
+    String sourceRecordKey = MARC.equals(record.getRecordType()) ? MARC_BIBLIOGRAPHIC.value() : EDIFACT_INVOICE.value();
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
+      .withJobExecutionId(record.getSnapshotId())
+      .withOkapiUrl(params.getOkapiUrl())
+      .withTenant(params.getTenantId())
+      .withToken(params.getToken())
+      .withContext(new HashMap<>() {{
+        put(sourceRecordKey, Json.encode(record));
+        put(ERROR_MSG_KEY, errorMsg);
+      }});
+
+    sendEventToKafka(params.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key)
+      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for record with id {}", record.getId(), th));
   }
 
   /**
