@@ -14,6 +14,7 @@ import org.folio.DataImportEventPayload;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -30,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -53,7 +55,15 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest {
@@ -72,6 +82,9 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
   @Spy
   private final PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
+
+  @Mock
+  private KafkaInternalCache kafkaInternalCache;
 
   @Spy
   private final JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
@@ -102,7 +115,8 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
+    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
   }
 
   @Test
@@ -246,9 +260,31 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertNotNull(jsonObject.getString("error"));
   }
 
+  @Test
+  public void shouldProcessEventWhenKafkaCacheContainsEventId() throws IOException {
+    // given
+    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(true);
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(new HashMap<>())
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID);
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
+    verify(kafkaInternalCache, times(1)).containsByKey(anyString());
+    verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+  }
+
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
-    Event event = new Event().withEventPayload(ZIPArchiver.zip(Json.encode(record)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(record)));
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
