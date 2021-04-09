@@ -1,6 +1,8 @@
+## 2021-XX-XX v3.0.3-SNAPSHOT
+* [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
+
 ## 2021-04-05 v3.0.2
 * [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to `/change-manager/jobExecutions/{id}/jobProfile`
-* [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
 
 ## 2021-03-28 v3.0.1
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
