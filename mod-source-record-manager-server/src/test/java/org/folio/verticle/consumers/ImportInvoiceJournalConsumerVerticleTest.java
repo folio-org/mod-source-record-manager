@@ -20,6 +20,7 @@ import org.folio.Record;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -64,6 +65,7 @@ import static org.folio.verticle.consumers.ImportInvoiceJournalConsumerVerticleM
 @RunWith(VertxUnitRunner.class)
 public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
 
+  private KafkaInternalCache kafkaInternalCache;
   private JournalService journalService;
   private JobExecutionDaoImpl jobExecutionDao;
   private JournalRecordDao journalRecordDao;
@@ -99,7 +101,10 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     journalService = getBeanFromSpringContext(vertx, org.folio.services.journal.JournalServiceImpl.class);
     Assert.assertNotNull(journalService);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, journalService);
+    kafkaInternalCache = getBeanFromSpringContext(vertx, KafkaInternalCache.class);
+    Assert.assertNotNull(kafkaInternalCache);
+
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
   }
 
   String INVOICE_ID = UUID.randomUUID().toString();
