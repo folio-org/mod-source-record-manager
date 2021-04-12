@@ -13,6 +13,7 @@ import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.journal.JournalService;
@@ -23,19 +24,25 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static java.lang.String.format;
+
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
 public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final String EVENT_ID_PREFIX = DataImportJournalKafkaHandler.class.getSimpleName();
 
   private Vertx vertx;
   private JournalService journalService;
+  private KafkaInternalCache kafkaInternalCache;
   private EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector();
 
   public DataImportJournalKafkaHandler(@Autowired Vertx vertx,
+                                       @Autowired KafkaInternalCache kafkaInternalCache,
                                        @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
     this.vertx = vertx;
     this.journalService = journalService;
+    this.kafkaInternalCache = kafkaInternalCache;
   }
 
   @Override
@@ -45,10 +52,15 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     Event event = new JsonObject(record.value()).mapTo(Event.class);
     LOGGER.debug("Event was received: {}", event.getEventType());
+    String handlerBasedEventId = format("%s-%s", EVENT_ID_PREFIX, event.getId());
+
     try {
-      DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-      eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
-      result.complete();
+      if (!kafkaInternalCache.containsByKey(handlerBasedEventId)) {
+        kafkaInternalCache.putToCache(handlerBasedEventId);
+        DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
+        eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
+      }
+      result.complete(record.key());
     } catch (Exception e) {
       LOGGER.error("Error during processing journal event", e);
       result.fail(e);

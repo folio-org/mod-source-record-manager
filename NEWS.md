@@ -1,15 +1,18 @@
-## 2021-XX-XX v3.0.3-SNAPSHOT
+## 2021-03-18 v3.0.3-SNAPSHOT
+* [MODSOURMAN-420](https://issues.folio.org/browse/MODSOURMAN-420) Expand endpoint for retrieving recordProcessingLogDto to provide data for Invoice JSON screen
 * [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
+* [MODSOURMAN-435](https://issues.folio.org/browse/MODSOURMAN-435) Some data import jobs stuck on folio-snapshot-load
+* [MODSOURMAN-428](https://issues.folio.org/browse/MODSOURMAN-428) Ensure exactly one delivery approach for handler receiving stored records
+* [MODSOURMAN-430](https://issues.folio.org/browse/MODSOURMAN-430) Ensure exactly one delivery approach for for data import log handler
 
 ## 2021-04-05 v3.0.2
-* [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to `/change-manager/jobExecutions/{id}/jobProfile`
-* [MODDATAIMP-403](https://issues.folio.org/browse/MODDATAIMP-403) Some data import jobs stuck on folio-snapshot-load
-* [MODSOURMAN-428](https://issues.folio.org/browse/MODSOURMAN-428) Ensure exactly one delivery approach for handler receiving stored records
+* [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to /change-manager/jobExecutions/{id}/jobProfile
 
 ## 2021-03-28 v3.0.1
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
 * [MODSOURMAN-422](https://issues.folio.org/browse/MODSOURMAN-422) Add record sequence number for records posted direct via API if it is not set
 * [MODDATAIMP-388](https://issues.folio.org/browse/MODDATAIMP-388) Import job is not completed on file parsing error
+
 * [MODSOURMAN-407](https://issues.folio.org/browse/MODSOURMAN-407) Make jobProfileInfo not required for creating JobExecution
 * [MODSOURMAN-384](https://issues.folio.org/browse/MODSOURMAN-384) Implement writing entities processing information to the log
 * [MODSOURMAN-410](https://issues.folio.org/browse/MODSOURMAN-410) Expand data import log functionality for EDIFACT records
