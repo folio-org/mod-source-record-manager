@@ -64,10 +64,12 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
     Event event = Json.decodeValue(record.value(), Event.class);
 
-    try {
-      String unzipped = ZIPArchiver.unzip(event.getEventPayload());
-      RecordsBatchResponse recordsBatchResponse = Json.decodeValue(unzipped, RecordsBatchResponse.class);
-      List<Record> storedRecords = recordsBatchResponse.getRecords();
+    if (!kafkaInternalCache.containsByKey(event.getId())) {
+      try {
+        kafkaInternalCache.putToCache(event.getId());
+        String unzipped = ZIPArchiver.unzip(event.getEventPayload());
+        RecordsBatchResponse recordsBatchResponse = new JsonObject(unzipped).mapTo(RecordsBatchResponse.class);
+        List<Record> storedRecords = recordsBatchResponse.getRecords();
 
         // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
         DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
