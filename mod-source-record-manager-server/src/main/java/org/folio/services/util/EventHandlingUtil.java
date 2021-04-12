@@ -4,11 +4,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
@@ -20,8 +20,11 @@ import org.folio.util.pubsub.PubSubClientUtils;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public final class EventHandlingUtil {
+
+  public static final String CORRELATION_ID_HEADER = "correlationId";
 
   private EventHandlingUtil() {
   }
@@ -100,8 +103,10 @@ public final class EventHandlingUtil {
     String topicName = KafkaTopicNameHelper.formatTopicName(kafkaConfig.getEnvId(), KafkaTopicNameHelper.getDefaultNameSpace(),
       tenantId, eventType);
 
+    List<KafkaHeader> headersWithoutCorrelationId = kafkaHeaders.stream().filter(header -> !header.key().equals(CORRELATION_ID_HEADER)).collect(Collectors.toList());
     KafkaProducerRecord<String, String> record = KafkaProducerRecord.create(topicName, key, Json.encode(event));
-    record.addHeaders(kafkaHeaders);
+    record.addHeaders(headersWithoutCorrelationId);
+    record.addHeader(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
 
     Promise<Boolean> promise = Promise.promise();
 
