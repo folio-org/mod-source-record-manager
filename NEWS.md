@@ -1,9 +1,12 @@
-## 2021-03-18 v3.0.2-SNAPSHOT
+## 2021-03-18 v3.0.3-SNAPSHOT
 * [MODSOURMAN-420](https://issues.folio.org/browse/MODSOURMAN-420) Expand endpoint for retrieving recordProcessingLogDto to provide data for Invoice JSON screen
 * [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
-* [MODDATAIMP-403](https://issues.folio.org/browse/MODDATAIMP-403) Some data import jobs stuck on folio-snapshot-load
+* [MODSOURMAN-435](https://issues.folio.org/browse/MODSOURMAN-435) Some data import jobs stuck on folio-snapshot-load
 * [MODSOURMAN-428](https://issues.folio.org/browse/MODSOURMAN-428) Ensure exactly one delivery approach for handler receiving stored records
 * [MODSOURMAN-430](https://issues.folio.org/browse/MODSOURMAN-430) Ensure exactly one delivery approach for for data import log handler
+
+## 2021-04-05 v3.0.2
+* [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to /change-manager/jobExecutions/{id}/jobProfile
 
 ## 2021-03-28 v3.0.1
 * [MODSOURMAN-421](https://issues.folio.org/browse/MODSOURMAN-421) Syntax problem for 561 field in default mapping rules
