@@ -228,39 +228,6 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents() throws IOException {
-    // given
-    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
-      put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-      put(ERROR_KEY, "java.lang.IllegalStateException: Unsupported Marc record type");
-    }};
-
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withJobExecutionId(jobExecution.getId())
-      .withContext(dataImportEventPayloadContext)
-      .withOkapiUrl(OKAPI_URL)
-      .withTenant(TENANT_ID)
-      .withToken("token");
-
-    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
-
-    JsonObject jsonObject = journalRecordCaptor.getValue();
-    Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonObject.getString(ENTITY_TYPE_KEY));
-    Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
-    Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
-    Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonObject.getString(SOURCE_RECORD_ID_KEY));
-    Assert.assertNotNull(jsonObject.getString("error"));
-  }
-
-  @Test
   public void shouldProcessEventWhenKafkaCacheContainsEventId() throws IOException {
     // given
     when(kafkaInternalCache.containsByKey(anyString())).thenReturn(true);
