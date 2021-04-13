@@ -17,7 +17,6 @@ import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.journal.JournalService;
-import org.folio.services.util.EventHandlingUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +25,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.folio.services.util.EventHandlingUtil.CORRELATION_ID_HEADER;
+import static org.folio.services.RecordsPublishingServiceImpl.CORRELATION_ID_HEADER;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")

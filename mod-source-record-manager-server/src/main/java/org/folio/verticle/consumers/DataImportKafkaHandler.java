@@ -4,23 +4,22 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
-import org.folio.services.util.EventHandlingUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static org.folio.services.util.EventHandlingUtil.CORRELATION_ID_HEADER;
+import static org.folio.services.RecordsPublishingServiceImpl.CORRELATION_ID_HEADER;
 
 @Component
 @Qualifier("DataImportKafkaHandler")
