@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.folio.services.RecordsPublishingServiceImpl.CORRELATION_ID_HEADER;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
@@ -50,8 +51,9 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     Promise<String> result = Promise.promise();
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+    String correlationId = okapiConnectionParams.getHeaders().get(CORRELATION_ID_HEADER);
     Event event = new JsonObject(record.value()).mapTo(Event.class);
-    LOGGER.debug("Event was received: {}", event.getEventType());
+    LOGGER.debug("Event was received with correlationId: {} event type: {}", correlationId, event.getEventType());
     String handlerBasedEventId = format("%s-%s", EVENT_ID_PREFIX, event.getId());
 
     try {

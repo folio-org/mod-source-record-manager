@@ -25,6 +25,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -38,8 +39,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final AtomicInteger indexer = new AtomicInteger();
+  public static final String CORRELATION_ID_HEADER = "correlationId";
   private static final String ERROR_MSG_KEY = "ERROR";
+  private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
   private MappingParametersProvider mappingParametersProvider;
@@ -88,6 +90,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       try {
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params, eventType);
+          params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
           futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
