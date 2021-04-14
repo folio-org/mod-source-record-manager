@@ -2,6 +2,7 @@ package org.folio.rest.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.admin.NotFoundException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.common.FileSource;
@@ -19,6 +20,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -48,10 +50,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -179,6 +183,7 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(KAFKA_ENV, KAFKA_ENV_VALUE);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
+    System.setProperty("srm.job.execution.cache.expire.seconds", "60");
     runDatabase();
     deployVerticle(context);
   }
@@ -392,6 +397,23 @@ public abstract class AbstractRestTest {
 
   protected String formatToKafkaTopicName(String eventType) {
     return KafkaTopicNameHelper.formatTopicName(KAFKA_ENV_VALUE, getDefaultNameSpace(), TENANT_ID, eventType);
+  }
+
+  protected  <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
+
+    String parentVerticleUUID = vertx.deploymentIDs().stream()
+      .filter(v -> !((VertxImpl) vertx).getDeployment(v).isChild())
+      .findFirst()
+      .orElseThrow(() -> new NotFoundException("Couldn't find the parent verticle."));
+
+    Optional<Object> context = Optional.of(((VertxImpl) vtx).getDeployment(parentVerticleUUID).getContexts().stream()
+      .findFirst().map(v -> v.get("springContext")))
+      .orElseThrow(() -> new NotFoundException("Couldn't find the spring context."));
+
+    if (context.isPresent()) {
+      return ((AnnotationConfigApplicationContext) context.get()).getBean(clazz);
+    }
+    throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
   }
 
 }

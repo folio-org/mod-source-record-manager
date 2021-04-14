@@ -256,21 +256,4 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     return consumerRecord;
   }
 
-  private <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
-
-    String parentVerticleUUID = vertx.deploymentIDs().stream()
-      .filter(v -> !((VertxImpl) vertx).getDeployment(v).isChild())
-      .findFirst()
-      .orElseThrow(() -> new NotFoundException("Couldn't find the parent verticle."));
-
-    Optional<Object> context = Optional.of(((VertxImpl) vtx).getDeployment(parentVerticleUUID).getContexts().stream()
-      .findFirst().map(v -> v.get("springContext")))
-      .orElseThrow(() -> new NotFoundException("Couldn't find the spring context."));
-
-    if (context.isPresent()) {
-      return ((AnnotationConfigApplicationContext) context.get()).getBean(clazz);
-    }
-    throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
-  }
-
 }
