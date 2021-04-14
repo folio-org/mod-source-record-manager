@@ -22,6 +22,7 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.JobExecutionsCache;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -75,6 +76,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnEmptyListIfNoJobExecutionsExist() {
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -106,6 +108,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
     int givenJobExecutionsNumber = createdJobExecution.size();
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     int expectedJobExecutionsNumber = givenJobExecutionsNumber - 1;
     RestAssured.given()
       .spec(spec)
