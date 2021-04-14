@@ -36,12 +36,6 @@ public class JobExecutionsCache {
     cache = buildCache();
   }
 
-  /**
-   * Returns mapping rules associated with specified tenant id
-   *
-   * @param tenantId tenant id
-   * @return optional with mapping rules
-   */
   public Future<JobExecutionCollection> get(String tenantId, String cqlQuery, int offset, int limit) {
     Promise<JobExecutionCollection> promise = Promise.promise();
     cache.get(Pair.of(tenantId, cqlQuery)).whenComplete((jobExecutionOptional, e) -> {
