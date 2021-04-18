@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -11,11 +10,11 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.mappers.processor.MappingParametersProvider;
@@ -27,6 +26,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -38,6 +38,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  public static final String CORRELATION_ID_HEADER = "correlationId";
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
@@ -83,6 +84,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
         if (isRecordReadyToSend(record)) {
           String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params, eventType);
+          params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
           futures.add(booleanFuture);
