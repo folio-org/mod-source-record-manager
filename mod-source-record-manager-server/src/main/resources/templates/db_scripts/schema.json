@@ -10,15 +10,29 @@
           "tOps": "ADD",
           "caseSensitive": false,
           "removeAccents": true
+        },
+        {
+          "fieldName": "status",
+          "tOps": "ADD",
+          "caseSensitive": false,
+          "removeAccents": true
         }
       ],
       "index": [
         {
           "fieldName": "id",
           "tOps": "ADD"
+        },
+        {
+          "fieldName": "uiStatus",
+          "tOps": "ADD"
         }
+
       ],
       "fullTextIndex": [
+        {
+          "fieldName": "subordinationType"
+        },
         {
           "fieldName": "subordinationType"
         }
