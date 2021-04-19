@@ -17,6 +17,11 @@
           "fieldName": "id",
           "tOps": "ADD"
         }
+      ],
+      "fullTextIndex": [
+        {
+          "fieldName": "subordinationType"
+        }
       ]
     },
     {
