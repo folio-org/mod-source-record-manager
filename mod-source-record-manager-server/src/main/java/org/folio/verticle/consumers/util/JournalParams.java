@@ -1,6 +1,8 @@
 package org.folio.verticle.consumers.util;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 import java.util.Arrays;
@@ -8,6 +10,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 
 public class JournalParams {
 
@@ -56,7 +62,7 @@ public class JournalParams {
     DI_INVENTORY_INSTANCE_CREATED {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.CREATE,
+        return new JournalParams(CREATE,
           JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED);
       }
@@ -88,7 +94,7 @@ public class JournalParams {
     DI_INVENTORY_HOLDING_CREATED {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.CREATE,
+        return new JournalParams(CREATE,
           JournalRecord.EntityType.HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED);
       }
@@ -112,7 +118,7 @@ public class JournalParams {
     DI_INVENTORY_ITEM_CREATED {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.CREATE,
+        return new JournalParams(CREATE,
           JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED);
       }
@@ -143,11 +149,15 @@ public class JournalParams {
     DI_ERROR {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
+        if (CollectionUtils.isEmpty(eventPayload.getEventsChain())) {
+          JournalRecord.EntityType sourceRecordType = eventPayload.getContext().containsKey(EDIFACT_INVOICE.value())
+            ? JournalRecord.EntityType.EDIFACT : JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+          return new JournalParams(CREATE, sourceRecordType, ERROR);
+        }
+
         String lastEventType = eventPayload.getEventsChain().stream().reduce((first, second) -> second).get();
         JournalParams journalParams = JournalParamsEnum.getValue(lastEventType).getJournalParams(eventPayload);
-        return new JournalParams(journalParams.journalActionType,
-          journalParams.journalEntityType,
-          JournalRecord.ActionStatus.ERROR);
+        return new JournalParams(journalParams.journalActionType, journalParams.journalEntityType, ERROR);
       }
     };
 

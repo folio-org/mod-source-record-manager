@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGe
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
+import org.folio.services.JobExecutionsCache;
 import org.folio.services.JournalRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Autowired
   private JournalRecordService journalRecordService;
   private String tenantId;
+  @Autowired
+  private JobExecutionsCache jobExecutionsCache;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -40,7 +43,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionService.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId)
+        jobExecutionsCache.get(tenantId, query, offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -72,7 +75,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJournalRecordsByJobExecutionId(String jobExecutionId, String sortBy, MetadataProviderJournalRecordsJobExecutionIdGetOrder order,
-    Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+                                                                Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     vertxContext.runOnContext(v -> {
       try {
@@ -92,7 +95,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobLogEntriesByJobExecutionId(String jobExecutionId, String sortBy, MetadataProviderJobLogEntriesJobExecutionIdGetOrder order,
-    int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+                                                               int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     vertxContext.runOnContext(v -> {
       try {

@@ -19,6 +19,7 @@ import org.folio.Record;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -34,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -64,6 +66,8 @@ import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_ERRORS_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_TITLE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTest {
@@ -86,6 +90,9 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
   @Spy
   private JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
+
+  @Mock
+  private KafkaInternalCache kafkaInternalCache;
 
   @Captor
   private ArgumentCaptor<JsonArray> invoiceRecordCaptor;
@@ -131,7 +138,8 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, journalService);
+    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
   }
 
   @Test
@@ -234,7 +242,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   }
 
   @Test
-  public void shouldProcessInvoiceLineErrorEvent(TestContext context) throws IOException, JournalRecordMapperException {
+  public void shouldProcessInvoiceLineErrorEvent(TestContext context) throws IOException {
     Async async = context.async();
 
     // given

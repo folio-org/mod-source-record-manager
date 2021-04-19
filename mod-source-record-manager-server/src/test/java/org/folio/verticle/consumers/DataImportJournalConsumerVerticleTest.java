@@ -18,6 +18,7 @@ import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -60,6 +61,7 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
 
+  private KafkaInternalCache kafkaInternalCache;
   private JournalService journalService;
   private JobExecutionDaoImpl jobExecutionDao;
   private JournalRecordDao journalRecordDao;
@@ -100,7 +102,10 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     journalService = getBeanFromSpringContext(vertx, org.folio.services.journal.JournalServiceImpl.class);
     Assert.assertNotNull(journalService);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, journalService);
+    kafkaInternalCache = getBeanFromSpringContext(vertx, KafkaInternalCache.class);
+    Assert.assertNotNull(kafkaInternalCache);
+
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
   }
 
   @Test
@@ -249,23 +254,6 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
     return consumerRecord;
-  }
-
-  private <T> T getBeanFromSpringContext(Vertx vtx, Class<T> clazz) {
-
-    String parentVerticleUUID = vertx.deploymentIDs().stream()
-      .filter(v -> !((VertxImpl) vertx).getDeployment(v).isChild())
-      .findFirst()
-      .orElseThrow(() -> new NotFoundException("Couldn't find the parent verticle."));
-
-    Optional<Object> context = Optional.of(((VertxImpl) vtx).getDeployment(parentVerticleUUID).getContexts().stream()
-      .findFirst().map(v -> v.get("springContext")))
-      .orElseThrow(() -> new NotFoundException("Couldn't find the spring context."));
-
-    if (context.isPresent()) {
-      return ((AnnotationConfigApplicationContext) context.get()).getBean(clazz);
-    }
-    throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
   }
 
 }
