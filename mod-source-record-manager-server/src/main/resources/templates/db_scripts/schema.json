@@ -8,6 +8,10 @@
         {
           "fieldName": "id",
           "tOps": "ADD"
+        },
+        {
+          "fieldName": "subordinationType",
+          "tOps": "ADD"
         }
       ]
     },
