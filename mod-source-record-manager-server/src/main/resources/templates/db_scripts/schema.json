@@ -4,20 +4,6 @@
       "tableName": "job_executions",
       "fromModuleVersion": "mod-source-record-manager-0.1.0",
       "withMetadata": false,
-      "ginIndex": [
-        {
-          "fieldName": "subordinationType",
-          "tOps": "ADD",
-          "caseSensitive": false,
-          "removeAccents": true
-        },
-        {
-          "fieldName": "status",
-          "tOps": "ADD",
-          "caseSensitive": false,
-          "removeAccents": true
-        }
-      ],
       "index": [
         {
           "fieldName": "id",
