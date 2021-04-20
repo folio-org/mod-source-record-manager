@@ -2,7 +2,7 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-0.1.0",
+      "fromModuleVersion": "mod-source-record-manager-3.0.5",
       "withMetadata": false,
       "index": [
         {
