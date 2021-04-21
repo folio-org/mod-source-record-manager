@@ -6,6 +6,7 @@
 * [MODSOURMAN-430](https://issues.folio.org/browse/MODSOURMAN-430) Ensure exactly one delivery approach for for data import log handler
 * [MODSOURMAN-437](https://issues.folio.org/browse/MODSOURMAN-437) Add logging for event correlationId
 * [MODSOURMAN-436](https://issues.folio.org/browse/MODSOURMAN-436) Slow Query Invoked on DI Home Page
+* [MODSOURMAN-442](https://issues.folio.org/browse/MODSOURMAN-442) Add indices for the job_executions table in srm
 
 ## 2021-04-05 v3.0.2
 * [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to /change-manager/jobExecutions/{id}/jobProfile
