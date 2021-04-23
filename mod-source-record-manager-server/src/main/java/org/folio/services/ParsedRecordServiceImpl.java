@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.SourceStorageSourceRecordsClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
@@ -94,7 +95,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               .withRecordState(SourceRecordState.RecordState.IN_PROGRESS)
               .withSourceRecordId(parsedRecordDto.getId());
             return sourceRecordStateService.save(sourceRecordState, params.getTenantId())
-              .compose(s -> sendEventWithPayloadToPubSub(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId),
+              .compose(s -> sendEventWithPayloadToPubSub(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId, params),
                 QM_RECORD_UPDATED_EVENT_TYPE, params));
           } else {
             return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));
@@ -115,15 +116,23 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   }
 
   private String prepareEventPayload(ParsedRecordDto parsedRecordDto, JsonObject mappingRules,
-                                     MappingParameters mappingParameters, String snapshotId) {
+                                     MappingParameters mappingParameters, String snapshotId,
+                                     OkapiConnectionParams params) {
     HashMap<String, String> eventPayload = new HashMap<>();
     eventPayload.put("PARSED_RECORD_DTO", Json.encode(parsedRecordDto));
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
     eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
     eventPayload.put("RECORD_ID", parsedRecordDto.getId());
-
+    eventPayload.put("USER_CONTEXT", getUserContext(params).encode());
     return Json.encode(eventPayload);
+  }
+
+  private JsonObject getUserContext(OkapiConnectionParams params) {
+    var userContext = new JsonObject();
+    userContext.put("userId", params.getHeaders().get(XOkapiHeaders.USER_ID));
+    userContext.put("token", params.getToken());
+    return userContext;
   }
 
 }
