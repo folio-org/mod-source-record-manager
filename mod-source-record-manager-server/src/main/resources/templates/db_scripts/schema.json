@@ -2,7 +2,7 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-3.0.6",
+      "fromModuleVersion": "mod-source-record-manager-3.1.0",
       "withMetadata": false,
       "index": [
         {
@@ -29,7 +29,7 @@
     },
     {
       "tableName": "job_execution_source_chunks",
-      "fromModuleVersion": "mod-source-record-manager-3.0.6",
+      "fromModuleVersion": "mod-source-record-manager-3.1.0",
       "withMetadata": false,
       "index": [
         {
