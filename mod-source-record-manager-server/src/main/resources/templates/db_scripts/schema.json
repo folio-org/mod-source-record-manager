@@ -2,7 +2,7 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-3.0.5",
+      "fromModuleVersion": "mod-source-record-manager-3.1.0",
       "withMetadata": false,
       "index": [
         {
@@ -12,8 +12,11 @@
         {
           "fieldName": "uiStatus",
           "tOps": "ADD"
+        },
+        {
+          "fieldName": "jobProfileInfo.id",
+          "tOps": "ADD"
         }
-
       ],
       "fullTextIndex": [
         {
@@ -26,7 +29,7 @@
     },
     {
       "tableName": "job_execution_source_chunks",
-      "fromModuleVersion": "mod-source-record-manager-1.2.0",
+      "fromModuleVersion": "mod-source-record-manager-3.1.0",
       "withMetadata": false,
       "index": [
         {
@@ -35,6 +38,10 @@
         },
         {
           "fieldName": "jobExecutionId",
+          "tOps": "ADD"
+        },
+        {
+          "fieldName": "last",
           "tOps": "ADD"
         }
       ],

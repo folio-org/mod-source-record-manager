@@ -1,12 +1,21 @@
-## 2021-03-18 v3.0.3-SNAPSHOT
+## XXXX-XX-XX v3.1.0-SNAPSHOT
+* [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
+* [MODSOURMAN-448](https://issues.folio.org/browse/MODSOURMAN-448) Update default field mapping for 647 field
+* [MODSOURMAN-453](https://issues.folio.org/browse/MODSOURMAN-453)  Add index for the " job_execution_source_chunks"
+
+## 2021-04-22 v3.0.5
 * [MODSOURMAN-420](https://issues.folio.org/browse/MODSOURMAN-420) Expand endpoint for retrieving recordProcessingLogDto to provide data for Invoice JSON screen
-* [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function [BUGFIX]
-* [MODSOURMAN-435](https://issues.folio.org/browse/MODSOURMAN-435) Some data import jobs stuck on folio-snapshot-load
+* [MODSOURMAN-437](https://issues.folio.org/browse/MODSOURMAN-437) Add logging for event correlationId
+* [MODSOURMAN-442](https://issues.folio.org/browse/MODSOURMAN-442) Add indices for the job_executions table in srm
+* [MODSOURMAN-441](https://issues.folio.org/browse/MODSOURMAN-441) Update QM-event with user context
+
+##2021-04-14 v3.0.4
+* [MODSOURMAN-436](https://issues.folio.org/browse/MODSOURMAN-436) Slow Query Invoked on DI Home Page
+
+## 2021-04-12 v3.0.3
+* [MODSOURMAN-419](https://issues.folio.org/browse/MODSOURMAN-419) SQL Exception WRT count function
 * [MODSOURMAN-428](https://issues.folio.org/browse/MODSOURMAN-428) Ensure exactly one delivery approach for handler receiving stored records
 * [MODSOURMAN-430](https://issues.folio.org/browse/MODSOURMAN-430) Ensure exactly one delivery approach for for data import log handler
-* [MODSOURMAN-437](https://issues.folio.org/browse/MODSOURMAN-437) Add logging for event correlationId
-* [MODSOURMAN-436](https://issues.folio.org/browse/MODSOURMAN-436) Slow Query Invoked on DI Home Page
-* [MODSOURMAN-442](https://issues.folio.org/browse/MODSOURMAN-442) Add indices for the job_executions table in srm
 
 ## 2021-04-05 v3.0.2
 * [MODSOURMAN-429](https://issues.folio.org/browse/MODSOURMAN-429) Add permission to /change-manager/jobExecutions/{id}/jobProfile
