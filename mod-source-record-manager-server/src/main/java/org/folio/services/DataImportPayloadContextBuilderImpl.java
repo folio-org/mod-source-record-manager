@@ -68,20 +68,25 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
     switch (record.getRecordType()) {
       case EDIFACT:
         return EDIFACT_INVOICE;
-      case MARC:
-        requireNonNull(record.getParsedRecord(), "Parsed record is null");
-        requireNonNull(record.getParsedRecord().getContent(), "Parsed record content is null");
-
-        MarcRecordType type = analyzer.process(new JsonObject(record.getParsedRecord().getContent().toString()));
-
-        EntityType entityType = MARC_TO_ENTITY_TYPE.get(type);
-        if (entityType == null) {
-          throw new IllegalStateException("Unsupported Marc record type");
-        }
-
-        return entityType;
+      case MARC_BIB:
+      case MARC_HOLDING:
+      case MARC_AUTHORITY:
+        return getEntityType(record);
       default:
         throw new IllegalStateException("Unexpected record type: " + record.getRecordType());
     }
+  }
+
+  private EntityType getEntityType(Record record) {
+    requireNonNull(record.getParsedRecord(), "Parsed record is null");
+    requireNonNull(record.getParsedRecord().getContent(), "Parsed record content is null");
+
+    MarcRecordType type = analyzer.process(new JsonObject(record.getParsedRecord().getContent().toString()));
+
+    EntityType entityType = MARC_TO_ENTITY_TYPE.get(type);
+    if (entityType == null) {
+      throw new IllegalStateException("Unsupported Marc record type");
+    }
+    return entityType;
   }
 }

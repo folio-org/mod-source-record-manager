@@ -1,10 +1,24 @@
 package org.folio.services;
 
+import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.ws.rs.NotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -20,20 +34,6 @@ import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
 public class RecordsPublishingServiceImpl implements RecordsPublishingService {
@@ -114,7 +114,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   }
 
   private void sendEventWithRecordPublishingError(Record record, JobExecution jobExecution, OkapiConnectionParams params, String errorMsg, KafkaConfig kafkaConfig, String key) {
-    String sourceRecordKey = MARC.equals(record.getRecordType()) ? MARC_BIBLIOGRAPHIC.value() : EDIFACT_INVOICE.value();
+    String sourceRecordKey = getSourceRecordKey(record);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
@@ -130,6 +130,20 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
     sendEventToKafka(params.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for record with id {}", record.getId(), th));
+  }
+
+  private String getSourceRecordKey(Record record) {
+    switch (record.getRecordType()) {
+      case MARC_BIB:
+        return MARC_BIBLIOGRAPHIC.value();
+      case MARC_AUTHORITY:
+        return MARC_AUTHORITY.value();
+      case MARC_HOLDING:
+        return MARC_HOLDINGS.value();
+      case EDIFACT:
+      default:
+        return EDIFACT_INVOICE.value();
+    }
   }
 
   /**
