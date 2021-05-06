@@ -30,7 +30,7 @@ import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -66,6 +66,9 @@ import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
@@ -206,7 +209,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withDescription(parsedResult.getErrors().encode()));
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
-          if (jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
+          if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_BIB)
+            || jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_AUTHORITY)
+            || jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_HOLDING)) {
             String matchedId = getValue(record, "999", 's');
             if (StringUtils.isNotBlank(matchedId)) {
               record.setMatchedId(matchedId);
@@ -218,6 +223,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               String instanceHrid = getValue(record, TAG_001, ' ');
               if (isNotBlank(instanceHrid)) {
                 record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+              }
+              if (StringUtils.isNotBlank(instanceId)) {
+                record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
               }
             }
           }
@@ -244,7 +252,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
-      if (Record.RecordType.MARC.equals(recordType)) {
+      if (MARC_BIB.equals(recordType) || MARC_AUTHORITY.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
@@ -352,7 +360,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     switch (record.getRecordType()) {
       case EDIFACT:
         return JournalRecord.EntityType.EDIFACT;
-      case MARC:
+      case MARC_AUTHORITY:
+        return JournalRecord.EntityType.MARC_AUTHORITY;
+      case MARC_HOLDING:
+        return JournalRecord.EntityType.MARC_HOLDINGS;
+      case MARC_BIB:
       default:
         return JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
     }

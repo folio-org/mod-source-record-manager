@@ -5,6 +5,7 @@
 * [MODSOURCE-278](https://issues.folio.org/browse/MODSOURCE-278) Move logging of the records creation information to the handler receiving saved records
 * [MODSOURMAN-471](https://issues.folio.org/browse/MODSOURMAN-471) Migrate QM-flow to Kafka
 * [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-471) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
+* [MODSOURMAN-477](https://issues.folio.org/browse/MODSOURMAN-477) Store MARC Authority record
 
 ## 2021-05-xx v3.0.6-SNAPSHOT
 * [MODSOURCE-295](https://issues.folio.org/browse/MODSOURCE-295) Set instanceHrid to externalIdsHolder when 999ff$i is present
