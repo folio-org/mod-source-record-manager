@@ -131,7 +131,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private JsonArray buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional, String tenantId) {
-    EntityType entityType = storedRecords.get(0).getRecordType() == EDIFACT ? EntityType.EDIFACT : EntityType.MARC_BIBLIOGRAPHIC;
+    EntityType entityType = getEntityType(storedRecords);
     JsonArray journalRecords = new JsonArray();
 
     String titleFieldTag = null;
@@ -168,6 +168,20 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
       journalRecords.add(JsonObject.mapFrom(journalRecord));
     }
     return journalRecords;
+  }
+
+  private EntityType getEntityType(List<Record> storedRecords) {
+    switch (storedRecords.get(0).getRecordType()) {
+      case EDIFACT:
+        return EntityType.EDIFACT;
+      case MARC_AUTHORITY:
+        return EntityType.MARC_AUTHORITY;
+      case MARC_HOLDING:
+        return EntityType.MARC_HOLDINGS;
+      case MARC_BIB:
+      default:
+        return EntityType.MARC_BIBLIOGRAPHIC;
+    }
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
