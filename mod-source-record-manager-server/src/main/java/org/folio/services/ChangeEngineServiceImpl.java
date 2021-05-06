@@ -209,10 +209,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             if (StringUtils.isNotBlank(matchedId)) {
               record.setMatchedId(matchedId);
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
-              String instanceId = getValue(record, "999", 'i');
-              if (StringUtils.isNotBlank(instanceId)) {
-                record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
-              }
+            }
+            String instanceId = getValue(record, "999", 'i');
+            if (StringUtils.isNotBlank(instanceId)) {
+              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
             }
           }
         }
