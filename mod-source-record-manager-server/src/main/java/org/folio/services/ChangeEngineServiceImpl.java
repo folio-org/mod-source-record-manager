@@ -265,11 +265,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
       kafkaHeaders, kafkaConfig, key)
-      .compose(ar -> buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE, params.getTenantId())
-        .compose(journalRecords -> {
-          journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
-          return Future.succeededFuture();
-        }));
+      .map(parsedRecords);
   }
 
   /**
