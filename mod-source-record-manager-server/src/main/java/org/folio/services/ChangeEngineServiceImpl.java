@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
 import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -207,6 +208,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             if (matchedId != null) {
               record.setMatchedId(matchedId);
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+              String instanceId = getValue(record, "999", 'i');
+              if (instanceId != null) {
+                record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+              }
             }
           }
         }
