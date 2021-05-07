@@ -35,7 +35,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   private final String INSTANCE_ID_QUERY_PARAM = "instanceId";
 
   @Test
-  @Ignore
+  @Ignore("Need to remove ignore and uncomment recordType when MODSOURCE-279 will be merge in SRS module")
   public void shouldReturnParsedRecordDtoIfSourceRecordExists(TestContext testContext) {
     Async async = testContext.async();
 
@@ -44,7 +44,6 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withRecordId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
-      // Uncomment when MODSOURCE-279 will be merge in SRS module
 //      .withRecordType(SourceRecord.RecordType.MARC_BIB)
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
 

@@ -77,11 +77,11 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
     }
   }
 
-  private EntityType getEntityType(Record record) {
-    requireNonNull(record.getParsedRecord(), "Parsed record is null");
-    requireNonNull(record.getParsedRecord().getContent(), "Parsed record content is null");
+  private EntityType getEntityType(Record marcRecord) {
+    requireNonNull(marcRecord.getParsedRecord(), "Parsed record is null");
+    requireNonNull(marcRecord.getParsedRecord().getContent(), "Parsed record content is null");
 
-    MarcRecordType type = analyzer.process(new JsonObject(record.getParsedRecord().getContent().toString()));
+    MarcRecordType type = analyzer.process(new JsonObject(marcRecord.getParsedRecord().getContent().toString()));
 
     EntityType entityType = MARC_TO_ENTITY_TYPE.get(type);
     if (entityType == null) {
