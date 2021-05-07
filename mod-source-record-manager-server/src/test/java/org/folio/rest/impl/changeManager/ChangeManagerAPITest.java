@@ -1596,7 +1596,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_HOLDING);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType marcHolding)
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType dataType)
     throws InterruptedException, IOException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
@@ -1619,7 +1619,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(marcHolding))
+        .withDataType(dataType))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
