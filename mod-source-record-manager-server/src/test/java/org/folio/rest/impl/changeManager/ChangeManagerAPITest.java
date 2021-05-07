@@ -1583,20 +1583,20 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneMarcAuthorityMarcRecordHasNoOrder(DataType.MARC_BIB);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_BIB);
   }
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneMarcAuthorityMarcRecordHasNoOrder(DataType.MARC_AUTHORITY);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_AUTHORITY);
   }
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneMarcAuthorityMarcRecordHasNoOrder(DataType.MARC_HOLDING);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_HOLDING);
   }
 
-  private void fillInRecordOrderIfAtLeastOneMarcAuthorityMarcRecordHasNoOrder(DataType marcHolding)
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType marcHolding)
     throws InterruptedException, IOException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
