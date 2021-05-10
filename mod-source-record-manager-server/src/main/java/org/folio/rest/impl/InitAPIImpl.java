@@ -19,6 +19,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
+import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:5}")
   private int dataImportJournalConsumerInstancesNumber;
+
+  @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:5}")
+  private int quickMarcUpdateConsumerInstancesNumber;
 
   @Autowired
   @Qualifier("journalService")
@@ -79,11 +83,13 @@ public class InitAPIImpl implements InitAPI {
     StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    QuickMarcUpdateConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
+    Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
@@ -104,6 +110,11 @@ public class InitAPIImpl implements InitAPI {
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
+
+    vertx.deployVerticle("org.folio.verticle.QuickMarcUpdateConsumersVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(quickMarcUpdateConsumerInstancesNumber), deployQuickMarcUpdateConsumer);
 
     return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
