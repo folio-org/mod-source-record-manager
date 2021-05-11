@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +26,7 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
 import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -204,9 +206,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
             String matchedId = getValue(record, "999", 's');
-            if (matchedId != null) {
+            if (StringUtils.isNotBlank(matchedId)) {
               record.setMatchedId(matchedId);
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+            }
+            String instanceId = getValue(record, "999", 'i');
+            if (StringUtils.isNotBlank(instanceId)) {
+              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
             }
           }
         }
