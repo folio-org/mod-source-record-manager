@@ -1,5 +1,7 @@
 package org.folio.verticle.consumers;
 
+import static java.lang.String.format;
+
 import static org.folio.kafka.KafkaHeaderUtils.kafkaHeadersToMap;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
@@ -32,22 +35,31 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
+  private static final String EVENT_ID_PREFIX = QuickMarcUpdateKafkaHandler.class.getSimpleName();
 
+  private final KafkaInternalCache kafkaInternalCache;
   private final SourceRecordStateService sourceRecordStateService;
   private final Vertx vertx;
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
-    OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(record.headers()), vertx);
-    var tenantId = okapiConnectionParams.getTenantId();
     var event = Json.decodeValue(record.value(), Event.class);
-    var eventType = event.getEventType();
-    return getEventPayload(event)
-      .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
-      .compose(s -> Future.succeededFuture(record.key()), th -> {
-        log.error("Update record state was failed while handle {} event", eventType);
-        return Future.failedFuture(th);
-      });
+    String cacheEventId = format("%s-%s", EVENT_ID_PREFIX, event.getId());
+
+    if (!kafkaInternalCache.containsByKey(cacheEventId)) {
+      kafkaInternalCache.putToCache(cacheEventId);
+      OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(record.headers()), vertx);
+      var tenantId = okapiConnectionParams.getTenantId();
+      var eventType = event.getEventType();
+      return getEventPayload(event)
+        .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
+        .compose(s -> Future.succeededFuture(record.key()), th -> {
+          log.error("Update record state was failed while handle {} event", eventType);
+          return Future.failedFuture(th);
+        });
+    } else {
+      return Future.succeededFuture(record.key());
+    }
   }
 
   private Future<SourceRecordState> updateSourceState(HashMap<String, String> eventPayload, String eventType,
