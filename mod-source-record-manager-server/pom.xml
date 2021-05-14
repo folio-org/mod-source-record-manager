@@ -201,10 +201,14 @@
       <artifactId>mod-data-import-converter-storage-client</artifactId>
       <version>1.10.0</version>
     </dependency>
+    <!--    THE VERSION OF LIBRARY MUST BE CHANGED BACK ONCE TESTING ON RANCHER IS COMPLETE-->
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>3.1.0-SNAPSHOT</version>
+<!--      <version>3.1.0-SNAPSHOT</version>-->
+      <scope>system</scope>
+      <version>3.1.0.0-SNAPSHOT</version>
+      <systemPath>${project.basedir}/lib/data-import-processing-core-fat.jar</systemPath>
     </dependency>
   </dependencies>
   <build>
