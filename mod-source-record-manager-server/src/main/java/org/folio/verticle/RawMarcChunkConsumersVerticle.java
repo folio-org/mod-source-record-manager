@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.Collections;
 import java.util.List;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_MARC_BIB_RECORDS_CHUNK_READ;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
 public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
 
@@ -17,7 +17,7 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
 
   @Override
   public List<String> getEvents() {
-    return Collections.singletonList(DI_RAW_MARC_BIB_RECORDS_CHUNK_READ.value());
+    return Collections.singletonList(DI_RAW_RECORDS_CHUNK_READ.value());
   }
 
   @Override
