@@ -89,6 +89,31 @@ curl -w '\n' -X POST -D -   \
     http://localhost:9130/_/proxy/tenants/<tenant_name>/modules
 ```
 
+## Interaction with Kafka
+
+
+There are several properties that should be set for modules that interact with Kafka: **KAFKA_HOST, KAFKA_PORT, OKAPI_URL, ENV**(unique env ID).
+After setup, it is good to check logs in all related modules for errors. Data import consumers and producers work in separate verticles that are set up in RMB's InitAPI for each module. That would be the first place to check deploy/install logs.
+
+**Environment variables** that can be adjusted for this module and default values:
+* "_kafkacache.topic.number.partitions_": 1
+* "_kafkacache.topic.replication.factor_": 1
+* "_kafkacache.log.retention.ms_": 18000000
+* "_kafkacache.topic_": events_cache
+* "_srm.kafkacache.cleanup.interval.ms_": 3600000
+* "_srm.kafkacache.expiration.time.hours_": 3
+* "_srm.kafka.RawMarcChunkConsumer.instancesNumber_": 5
+* "_srm.kafka.StoredMarcChunkConsumer.instancesNumber_": 5
+* "_srm.kafka.DataImportConsumersVerticle.instancesNumber_": 5
+* "_srm.kafka.DataImportJournalConsumersVerticle.instancesNumber_": 5
+* "_srm.kafka.RawChunksKafkaHandler.maxDistributionNum_": 100
+* "_srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum_": 100
+* "_srm.kafka.DataImportConsumer.loadLimit_": 5
+
+#### Note
+**These variables are relevant for the **Iris** release. Module version: 3.0.0 (3.0.1, 3.0.2, 3.0.3, 3.0.4, 3.0.5).**
+
+
 ## REST Client
 
 Provides RMB generated Client to call the module's endpoints. The Client is packaged into the lightweight jar.
