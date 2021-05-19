@@ -21,6 +21,8 @@ import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
 import org.folio.services.ParsedRecordService;
 import org.folio.spring.SpringContextUtil;
+
+import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -98,7 +100,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to get JobExecution by id", e, id);
+        LOGGER.error(getMessage("Failed to get JobExecution by id", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -177,7 +179,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to process chunk of RawRecords with JobExecution id {}", e, id);
+        LOGGER.error(getMessage("Failed to process chunk of RawRecords with JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -195,7 +197,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to delete records for JobExecution id {}", e, id);
+        LOGGER.error(getMessage("Failed to delete records for JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -212,7 +214,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve parsed record by instanceId {}", e, instanceId);
+        LOGGER.error(getMessage("Failed to retrieve parsed record by instanceId {}", e, instanceId));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -229,9 +231,13 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to update parsed record with id {}", e, id);
+        LOGGER.error(getMessage("Failed to update parsed record with id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
+  }
+
+  private ParameterizedMessage getMessage(String pattern, Exception e, String... params) {
+    return new ParameterizedMessage(pattern, new Object[] {params}, e);
   }
 }

@@ -1,65 +1,76 @@
 package org.folio.services;
 
+import static io.vertx.core.Future.failedFuture;
+import static java.lang.String.format;
+
+import static org.folio.HttpStatus.HTTP_NOT_FOUND;
+import static org.folio.HttpStatus.HTTP_OK;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+import static org.folio.verticle.consumers.util.QMEventTypes.QM_RECORD_UPDATED;
+
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.ws.rs.NotFoundException;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
-import org.folio.okapi.common.XOkapiHeaders;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.SourceStorageSourceRecordsClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.mappers.processor.MappingParametersProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
-import java.util.HashMap;
-import java.util.UUID;
-
-import static java.lang.String.format;
-import static org.folio.HttpStatus.HTTP_NOT_FOUND;
-import static org.folio.HttpStatus.HTTP_OK;
-import static org.folio.services.util.EventHandlingUtil.sendEventWithPayloadToPubSub;
-
+@Log4j2
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
 
-  private static final Logger LOGGER = LogManager.getLogger();
+  private static final AtomicInteger indexer = new AtomicInteger();
 
-  private static final String QM_RECORD_UPDATED_EVENT_TYPE = "QM_RECORD_UPDATED";
+  private final MappingParametersProvider mappingParametersProvider;
+  private final MappingRuleCache mappingRuleCache;
+  private final SourceRecordStateService sourceRecordStateService;
+  private final KafkaConfig kafkaConfig;
 
-  private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleCache mappingRuleCache;
-  private SourceRecordStateService sourceRecordStateService;
+  @Value("${srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum:100}")
+  private int maxDistributionNum;
 
-  public ParsedRecordServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
-                                 @Autowired MappingRuleCache mappingRuleCache,
-                                 @Autowired SourceRecordStateService sourceRecordStateService
-  ) {
+  public ParsedRecordServiceImpl(MappingParametersProvider mappingParametersProvider,
+                                 MappingRuleCache mappingRuleCache,
+                                 SourceRecordStateService sourceRecordStateService, KafkaConfig kafkaConfig) {
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
     this.sourceRecordStateService = sourceRecordStateService;
+    this.kafkaConfig = kafkaConfig;
   }
 
   @Override
   public Future<ParsedRecordDto> getRecordByInstanceId(String instanceId, OkapiConnectionParams params) {
     Promise<ParsedRecordDto> promise = Promise.promise();
-    SourceStorageSourceRecordsClient client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
+    var client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
       client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
         if (HTTP_OK.toInt() == response.result().statusCode()) {
           Buffer bodyAsBuffer = response.result().bodyAsBuffer();
           Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
             .compose(parsedRecordDto -> sourceRecordStateService.get(parsedRecordDto.getId(), params.getTenantId())
-              .map(sourceRecordStateOptional -> sourceRecordStateOptional.orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
-              .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto.withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
+              .map(sourceRecordStateOptional -> sourceRecordStateOptional
+                .orElse(new SourceRecordState().withRecordState(SourceRecordState.RecordState.ACTUAL)))
+              .compose(sourceRecordState -> Future.succeededFuture(parsedRecordDto
+                .withRecordState(ParsedRecordDto.RecordState.valueOf(sourceRecordState.getRecordState().name())))))
             .onComplete(parsedRecordDtoAsyncResult -> {
               if (parsedRecordDtoAsyncResult.succeeded()) {
                 promise.complete(parsedRecordDtoAsyncResult.result());
@@ -78,7 +89,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Failed to GET Record from SRS", e);
+      log.error("Failed to GET Record from SRS", e);
       promise.fail(e);
     }
     return promise.future();
@@ -91,16 +102,28 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
       .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
         .compose(rulesOptional -> {
           if (rulesOptional.isPresent()) {
-            SourceRecordState sourceRecordState = new SourceRecordState()
-              .withRecordState(SourceRecordState.RecordState.IN_PROGRESS)
-              .withSourceRecordId(parsedRecordDto.getId());
-            return sourceRecordStateService.save(sourceRecordState, params.getTenantId())
-              .compose(s -> sendEventWithPayloadToPubSub(prepareEventPayload(parsedRecordDto, rulesOptional.get(), mappingParameters, snapshotId, params),
-                QM_RECORD_UPDATED_EVENT_TYPE, params));
+            return updateRecord(parsedRecordDto, snapshotId, mappingParameters, rulesOptional.get(), params);
           } else {
-            return Future.failedFuture(format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED_EVENT_TYPE, params.getTenantId()));
+            var message = format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED.name(),
+              params.getTenantId());
+            log.error(message);
+            return failedFuture(message);
           }
         }));
+  }
+
+  private Future<Boolean> updateRecord(ParsedRecordDto parsedRecordDto, String snapshotId,
+                                       MappingParameters mappingParameters, JsonObject mappingRules,
+                                       OkapiConnectionParams params) {
+    var sourceRecordState = new SourceRecordState()
+      .withRecordState(SourceRecordState.RecordState.IN_PROGRESS)
+      .withSourceRecordId(parsedRecordDto.getId());
+    var tenantId = params.getTenantId();
+    var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
+    var eventPayload = prepareEventPayload(parsedRecordDto, mappingRules, mappingParameters, snapshotId);
+    return sourceRecordStateService.save(sourceRecordState, tenantId)
+      .compose(s -> sendEventToKafka(tenantId, eventPayload, QM_RECORD_UPDATED.name(), kafkaHeaders, kafkaConfig, key));
   }
 
   private ParsedRecordDto mapSourceRecordToParsedRecordDto(Buffer body) {
@@ -116,23 +139,14 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   }
 
   private String prepareEventPayload(ParsedRecordDto parsedRecordDto, JsonObject mappingRules,
-                                     MappingParameters mappingParameters, String snapshotId,
-                                     OkapiConnectionParams params) {
+                                     MappingParameters mappingParameters, String snapshotId) {
     HashMap<String, String> eventPayload = new HashMap<>();
     eventPayload.put("PARSED_RECORD_DTO", Json.encode(parsedRecordDto));
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
     eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
     eventPayload.put("RECORD_ID", parsedRecordDto.getId());
-    eventPayload.put("USER_CONTEXT", getUserContext(params).encode());
     return Json.encode(eventPayload);
-  }
-
-  private JsonObject getUserContext(OkapiConnectionParams params) {
-    var userContext = new JsonObject();
-    userContext.put("userId", params.getHeaders().get(XOkapiHeaders.USER_ID));
-    userContext.put("token", params.getToken());
-    return userContext;
   }
 
 }
