@@ -213,9 +213,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
             }
             String instanceId = getValue(record, "999", 'i');
-            String instanceHrid = getValue(record, TAG_001, ' ');
-            if (isNotBlank(instanceId) && isNotBlank(instanceHrid)) {
-              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceHrid(instanceHrid));
+            if (isNotBlank(instanceId)) {
+              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+              String instanceHrid = getValue(record, TAG_001, ' ');
+              if (isNotBlank(instanceHrid)) {
+                record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+              }
             }
           }
         }
