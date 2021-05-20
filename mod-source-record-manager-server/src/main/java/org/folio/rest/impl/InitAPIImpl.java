@@ -30,20 +30,20 @@ public class InitAPIImpl implements InitAPI {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:3}")
   private int rawMarcChunkConsumerInstancesNumber;
 
   // TODO: srm.kafka.StoredMarcChunkConsumer should be refactored
-  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:5}")
+  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:3}")
   private int storedMarcChunkConsumerInstancesNumber;
 
-  @Value("${srm.kafka.DataImportConsumersVerticle.instancesNumber:5}")
+  @Value("${srm.kafka.DataImportConsumersVerticle.instancesNumber:3}")
   private int dataImportConsumerInstancesNumber;
 
-  @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:5}")
+  @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:3}")
   private int dataImportJournalConsumerInstancesNumber;
 
-  @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:5}")
+  @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
   private int quickMarcUpdateConsumerInstancesNumber;
 
   @Autowired
