@@ -206,13 +206,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(JobProfileInfo.DataType.MARC)) {
             String matchedId = getValue(record, "999", 's');
-            if (StringUtils.isNotBlank(matchedId)) {
+            if (matchedId != null) {
               record.setMatchedId(matchedId);
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
-            }
-            String instanceId = getValue(record, "999", 'i');
-            if (StringUtils.isNotBlank(instanceId)) {
-              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
             }
           }
         }
