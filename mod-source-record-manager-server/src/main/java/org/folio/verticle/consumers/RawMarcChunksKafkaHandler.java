@@ -2,6 +2,7 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,7 +45,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
-    Event event = new JsonObject(record.value()).mapTo(Event.class);
+    Event event = Json.decodeValue(record.value(), Event.class);
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
