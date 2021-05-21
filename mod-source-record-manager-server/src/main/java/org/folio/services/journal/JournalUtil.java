@@ -40,9 +40,12 @@ public class JournalUtil {
     String entityAsString = context.get(entityType.value());
     String recordAsString = extractRecord(context);
 
-    if (isAnyEmpty(entityAsString, recordAsString)) {
-      throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
+    if(INSTANCE.equals(entityType)) {
+      if (isAnyEmpty(entityAsString, recordAsString)) {
+        throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
+      }
     }
+
     return buildJournalRecord(event, actionType, entityType, actionStatus);
   }
 
