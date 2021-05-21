@@ -39,10 +39,17 @@ public class JournalUtil {
     return buildJournalRecord(event, actionType, entityType, actionStatus);
   }
 
+  private static String extractRecord(HashMap<String, String> context) {
+    return Optional.of(context.get(MARC_BIBLIOGRAPHIC.value()))
+      .or(() -> Optional.of(context.get(MARC_AUTHORITY.value())))
+      .or(() -> Optional.of(context.get(MARC_HOLDINGS.value())))
+      .orElse(EMPTY);
+  }
+
   public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                  JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
-      String recordAsString = eventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value());
+      String recordAsString = extractRecord(eventPayload.getContext());
       Record record = new ObjectMapper().readValue(recordAsString, Record.class);
 
       String entityAsString = eventPayload.getContext().get(entityType.value());

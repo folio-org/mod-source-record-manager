@@ -462,7 +462,7 @@
                     <Main-Class>org.folio.rest.RestLauncher</Main-Class>
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
                     <Multi-Release>true</Multi-Release>
-                    <Class-Path>lib/data-import-processing-core-fat.jar lib/mod-data-import-converter-storage-client-1.11.0-SNAPSHOT.jar</Class-Path>
+                    <Class-Path>lib/data-import-processing-core-fat.jar lib/mod-data-import-converter-storage-client-1.11.0-SNAPSHOT.jar </Class-Path>
                   </manifestEntries>
                 </transformer>
               </transformers>
