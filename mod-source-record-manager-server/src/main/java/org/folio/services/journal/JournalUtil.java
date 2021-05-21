@@ -47,9 +47,9 @@ public class JournalUtil {
   }
 
   private static String extractRecord(HashMap<String, String> context) {
-    return Optional.of(context.get(MARC_BIBLIOGRAPHIC.value()))
-      .or(() -> Optional.of(context.get(MARC_AUTHORITY.value())))
-      .or(() -> Optional.of(context.get(MARC_HOLDINGS.value())))
+    return Optional.ofNullable(context.get(MARC_BIBLIOGRAPHIC.value()))
+      .or(() -> Optional.ofNullable(context.get(MARC_AUTHORITY.value())))
+      .or(() -> Optional.ofNullable(context.get(MARC_HOLDINGS.value())))
       .orElse(EMPTY);
   }
 
