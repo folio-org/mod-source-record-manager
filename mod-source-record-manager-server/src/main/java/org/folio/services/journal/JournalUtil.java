@@ -8,13 +8,18 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Optional;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 
 /**
  * Journal util class for building specific 'JournalRecord'-objects, based on parameters.
@@ -31,8 +36,10 @@ public class JournalUtil {
 
   public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload event, JournalRecord.ActionType actionType,
                                                         JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
-    String entityAsString = event.getContext().get(entityType.value());
-    String recordAsString = event.getContext().get(MARC_BIBLIOGRAPHIC.value());
+    var context = event.getContext();
+    String entityAsString = context.get(entityType.value());
+    String recordAsString = extractRecord(context);
+
     if (isAnyEmpty(entityAsString, recordAsString)) {
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
     }
