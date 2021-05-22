@@ -1,4 +1,4 @@
-## 2021-05-22 v3.0.6-SNAPSHOT
+## 2021-05-22 v3.0.6
 * [MODSOURMAN-457](https://issues.folio.org/browse/MODSOURMAN-457) Issue with Database migration for Iris release
 * [MODSOURCE-278](https://issues.folio.org/browse/MODSOURCE-278) Move logging of the records creation information to the handler receiving saved records
 * [MODSOURCE-295](https://issues.folio.org/browse/MODSOURCE-295) Set instanceHrid to externalIdsHolder when 999ff$i is present
