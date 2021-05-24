@@ -2,6 +2,8 @@ package org.folio.services.journal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -29,7 +31,7 @@ public class JournalUtil {
   public static final String ERROR_KEY = "ERROR";
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
-
+  private static final Logger LOGGER = LogManager.getLogger();
   private JournalUtil() {
 
   }
@@ -39,6 +41,8 @@ public class JournalUtil {
     var context = event.getContext();
     String entityAsString = context.get(entityType.value());
     String recordAsString = extractRecord(context);
+    LOGGER.info("ENTITY TYPE: {}", entityType);
+    LOGGER.info("RECORD: {}", recordAsString);
 
     if(INSTANCE.equals(entityType)) {
       if (isAnyEmpty(entityAsString, recordAsString)) {
