@@ -41,6 +41,7 @@ public class JournalUtil {
     var context = event.getContext();
     String entityAsString = context.get(entityType.value());
     String recordAsString = extractRecord(context);
+    LOGGER.info("EVENT : {}", event.getEventType());
     LOGGER.info("ENTITY TYPE: {}", entityType);
     LOGGER.info("RECORD: {}", recordAsString);
 
