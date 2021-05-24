@@ -189,7 +189,10 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
     return new DataImportEventPayload()
       .withEventType(eventType)
       .withProfileSnapshot(profileSnapshotWrapper)
-      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(
+        MARC_AUTHORITY.equals(record.getRecordType())
+          ? new ProfileSnapshotWrapper()
+          : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
