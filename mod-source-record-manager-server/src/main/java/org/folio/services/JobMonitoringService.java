@@ -16,12 +16,13 @@ public interface JobMonitoringService {
    * Searches for {@link JobMonitoring} by jobExecutionId
    *
    * @param jobExecutionId jobExecution id
-   * @return future with optional of JobMonitoring
+   * @return future with Optional of JobMonitoring.
+   * Returns succeeded future with an empty Optional if the entity does not exist by the given
    */
   Future<Optional<JobMonitoring>> getByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
-   * Saves {@link JobMonitoring} to database
+   * Saves {@link JobMonitoring}
    *
    * @param jobMonitoring {@link JobMonitoring} to save
    * @return future with the id of entity
