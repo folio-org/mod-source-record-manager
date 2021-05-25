@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import org.folio.dao.JobMonitoringDao;
 import org.folio.rest.jaxrs.model.JobMonitoring;
 
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Optional;
  * JobMonitoring Service interface.
  *
  * @see JobMonitoring
+ * @see JobMonitoringDao
  */
 public interface JobMonitoringService {
   /**
