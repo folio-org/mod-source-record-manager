@@ -191,7 +191,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(
         MARC_AUTHORITY.equals(record.getRecordType())
-          ? null
+          ? new ProfileSnapshotWrapper()
           : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
