@@ -97,6 +97,11 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertEquals(expectedTotalRecords, progress.getTotal());
       jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
         context.assertTrue(optionalJobMonitoring.isPresent());
+        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
+        context.assertNotNull(jobMonitoring.getId());
+        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
+        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
+        context.assertFalse(jobMonitoring.getNotificationSent());
         async.complete();
       });
     });
@@ -158,7 +163,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
         context.assertTrue(optionalJobMonitoring.isPresent());
         JobMonitoring jobMonitoring = optionalJobMonitoring.get();
         context.assertNotNull(jobMonitoring.getId());
-        context.assertNotNull(jobMonitoring.getJobExecutionId());
+        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
         context.assertNotNull(jobMonitoring.getLastEventTimestamp());
         context.assertFalse(jobMonitoring.getNotificationSent());
         async.complete();
