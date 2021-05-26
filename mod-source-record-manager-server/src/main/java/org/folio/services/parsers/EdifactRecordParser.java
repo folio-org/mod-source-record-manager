@@ -35,7 +35,6 @@ public final class EdifactRecordParser implements RecordParser {
 
     List<JsonObject> errorList = new ArrayList<>();
     boolean buildingComposite = false;
-    boolean skipInvalidCode = false;
 
     try (
       InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
@@ -63,10 +62,6 @@ public final class EdifactRecordParser implements RecordParser {
             buildingComposite = false;
             break;
           case ELEMENT_DATA:
-            if(skipInvalidCode) {
-              skipInvalidCode = false;
-              continue;
-            }
             Segment lastSegment = segments.get(segments.size() - 1);
             if(!buildingComposite) {
               lastSegment
@@ -80,9 +75,7 @@ public final class EdifactRecordParser implements RecordParser {
                 .withData(reader.getText()));
             break;
           case ELEMENT_DATA_ERROR:
-            if(EDIStreamValidationError.INVALID_CODE_VALUE == reader.getErrorType()) {
-              skipInvalidCode = true;
-            } else {
+            if(EDIStreamValidationError.INVALID_CODE_VALUE != reader.getErrorType()) {
               errorList.add(processParsingEventError(reader));
             }
             break;
