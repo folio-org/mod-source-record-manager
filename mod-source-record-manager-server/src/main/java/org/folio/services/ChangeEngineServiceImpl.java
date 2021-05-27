@@ -224,9 +224,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               if (isNotBlank(instanceHrid)) {
                 record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
               }
-              if (StringUtils.isNotBlank(instanceId)) {
-                record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
-              }
             }
           }
         }
