@@ -199,18 +199,12 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-data-import-converter-storage-client</artifactId>
-      <scope>system</scope>
       <version>1.11.0-SNAPSHOT</version>
-      <systemPath>${project.basedir}/lib/mod-data-import-converter-storage-client-1.11.0-SNAPSHOT.jar</systemPath>
     </dependency>
-    <!--    THE VERSION OF LIBRARY MUST BE CHANGED BACK ONCE TESTING ON RANCHER IS COMPLETE-->
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-<!--      <version>3.1.0-SNAPSHOT</version>-->
-      <scope>system</scope>
-      <version>3.1.0.0-SNAPSHOT</version>
-      <systemPath>${project.basedir}/lib/data-import-processing-core-fat.jar</systemPath>
+      <version>3.1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
@@ -462,7 +456,6 @@
                     <Main-Class>org.folio.rest.RestLauncher</Main-Class>
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
                     <Multi-Release>true</Multi-Release>
-                    <Class-Path>lib/data-import-processing-core-fat.jar lib/mod-data-import-converter-storage-client-1.11.0-SNAPSHOT.jar </Class-Path>
                   </manifestEntries>
                 </transformer>
               </transformers>

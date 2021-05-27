@@ -60,7 +60,6 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
       if (!kafkaInternalCache.containsByKey(handlerBasedEventId)) {
         kafkaInternalCache.putToCache(handlerBasedEventId);
         DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-        LOGGER.debug("LOGGING EVENT: {}", eventPayload);
         eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
       }
       result.complete(record.key());
