@@ -55,22 +55,6 @@
       "version": "1.0"
     },
     {
-      "id": "pubsub-event-types",
-      "version": "0.1"
-    },
-    {
-      "id": "pubsub-publishers",
-      "version": "0.1"
-    },
-    {
-      "id": "pubsub-subscribers",
-      "version": "0.1"
-    },
-    {
-      "id": "pubsub-publish",
-      "version": "0.1"
-    },
-    {
       "id": "data-import-converter-storage",
       "version": "1.2"
     },
@@ -306,8 +290,7 @@
             "inventory-storage.locations.collection.get",
             "converter-storage.field-protection-settings.get",
             "inventory-storage.instances.item.get",
-            "inventory-storage.instances.item.put",
-            "pubsub.publish.post"
+            "inventory-storage.instances.item.put"
           ]
         }
       ]
@@ -370,30 +353,6 @@
       ]
     },
     {
-      "id": "source-manager-event-handlers",
-      "version": "1.0",
-      "handlers": [
-        {
-          "methods": [
-            "POST"
-          ],
-          "pathPattern": "/change-manager/handlers/qm-completed",
-          "permissionsRequired": [
-            "pubsub.events.post"
-          ]
-        },
-        {
-          "methods": [
-            "POST"
-          ],
-          "pathPattern": "/change-manager/handlers/qm-error",
-          "permissionsRequired": [
-            "pubsub.events.post"
-          ]
-        }
-      ]
-    },
-    {
       "id": "_tenant",
       "version": "2.0",
       "interfaceType": "system",
@@ -402,12 +361,7 @@
           "methods": [
             "POST"
           ],
-          "pathPattern": "/_/tenant",
-          "modulePermissions": [
-            "pubsub.event-types.post",
-            "pubsub.publishers.post",
-            "pubsub.subscribers.post"
-          ]
+          "pathPattern": "/_/tenant"
         },
         {
           "methods": [

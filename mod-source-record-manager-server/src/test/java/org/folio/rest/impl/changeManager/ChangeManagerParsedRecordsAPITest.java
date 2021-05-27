@@ -8,17 +8,26 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
+
+import org.folio.kafka.KafkaConfig;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
+import org.folio.verticle.consumers.util.QMEventTypes;
+
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
@@ -27,12 +36,37 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static org.hamcrest.Matchers.is;
 
+import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
   private final String SOURCE_RECORDS_URL = "/source-storage/source-records/";
   private final String PARSED_RECORDS_URL = "/change-manager/parsedRecords";
   private final String INSTANCE_ID_QUERY_PARAM = "instanceId";
+
+  private static final String KAFKA_HOST = "KAFKA_HOST";
+  private static final String KAFKA_PORT = "KAFKA_PORT";
+  private static final String KAFKA_ENV = "ENV";
+  private static final String KAFKA_ENV_ID = "test-env";
+
+  KafkaConfig kafkaConfig;
+
+  @Before
+  public void setUp() throws Exception {
+    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    System.setProperty(KAFKA_HOST, hostAndPort[0]);
+    System.setProperty(KAFKA_PORT, hostAndPort[1]);
+    System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
+    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
+
+    kafkaConfig = KafkaConfig.builder()
+      .kafkaHost(hostAndPort[0])
+      .kafkaPort(hostAndPort[1])
+      .envId(KAFKA_ENV_ID)
+      .build();
+  }
 
   @Test
   @Ignore("Need to remove ignore and uncomment recordType when MODSOURCE-279 will be merge in SRS module")
@@ -122,7 +156,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldUpdateParsedRecordOnPut(TestContext testContext) {
+  public void shouldUpdateParsedRecordOnPut(TestContext testContext) throws InterruptedException {
     Async async = testContext.async();
 
     ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
@@ -139,9 +173,16 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
       .then()
       .statusCode(HttpStatus.SC_ACCEPTED);
+
+    String observeTopic =
+      formatTopicName(kafkaConfig.getEnvId(), getDefaultNameSpace(), TENANT_ID, QMEventTypes.QM_RECORD_UPDATED.name());
+    kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+    
     async.complete();
   }
-
+  
   @Test
   public void shouldReturnErrorOnPutIfFailedToSendEvent(TestContext testContext) {
     Async async = testContext.async();

@@ -60,6 +60,7 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
@@ -80,6 +81,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
+  private static final String TAG_001 = "001";
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -216,8 +218,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
             }
             String instanceId = getValue(record, "999", 'i');
-            if (StringUtils.isNotBlank(instanceId)) {
+            if (isNotBlank(instanceId)) {
               record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+              String instanceHrid = getValue(record, TAG_001, ' ');
+              if (isNotBlank(instanceHrid)) {
+                record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+              }
             }
           }
         }
