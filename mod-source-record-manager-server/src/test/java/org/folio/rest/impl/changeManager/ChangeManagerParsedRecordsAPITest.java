@@ -179,6 +179,31 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
     kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
+    
+    async.complete();
+  }
+  
+  @Test
+  public void shouldReturnErrorOnPutIfFailedToSendEvent(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC_BIB)
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
+
+    WireMock.stubFor(post(PUBSUB_PUBLISH_URL)
+      .willReturn(WireMock.serverError()));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     async.complete();
   }
     @Test
