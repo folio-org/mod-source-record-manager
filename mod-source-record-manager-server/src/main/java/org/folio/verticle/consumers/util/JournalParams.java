@@ -139,6 +139,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED);
       }
     },
+    DI_SRS_MARC_AUTHORITY_RECORD_CREATED {
+      @Override
+      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
+        return new JournalParams(JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.MARC_AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED);
+      }
+    },
     DI_COMPLETED {
       @Override
       public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
