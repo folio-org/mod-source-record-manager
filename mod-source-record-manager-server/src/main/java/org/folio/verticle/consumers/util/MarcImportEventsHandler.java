@@ -7,20 +7,24 @@ import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 
+import java.util.Optional;
+
 public class MarcImportEventsHandler implements SpecificEventHandler {
 
   @Override
   public void handle(JournalService journalService, DataImportEventPayload eventPayload, String tenantId)
     throws JournalRecordMapperException {
 
-    JournalParams journalParams =
+    Optional<JournalParams> journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
-    JournalRecord journalRecord =
-      JournalUtil.buildJournalRecordByEvent(eventPayload,
+    if (journalParamsOptional.isPresent()) {
+      JournalParams journalParams = journalParamsOptional.get();
+      JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-    journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
+      journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
+    }
   }
 
 }
