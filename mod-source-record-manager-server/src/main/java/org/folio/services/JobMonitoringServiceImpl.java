@@ -28,9 +28,14 @@ public class JobMonitoringServiceImpl implements JobMonitoringService {
   }
 
   @Override
-  public Future<String> save(JobMonitoring jobMonitoring, String tenantId) {
-    jobMonitoring.withId(UUID.randomUUID().toString());
-    return jobMonitoringDao.save(jobMonitoring, tenantId);
+  public Future<JobMonitoring> saveNew(String jobExecutionId, String tenantId) {
+    JobMonitoring jobMonitoring = new JobMonitoring();
+    jobMonitoring.setId(UUID.randomUUID().toString());
+    jobMonitoring.setJobExecutionId(jobExecutionId);
+    jobMonitoring.setLastEventTimestamp(new Date());
+    jobMonitoring.setNotificationSent(false);
+    return jobMonitoringDao.save(jobMonitoring, tenantId)
+      .map(jobMonitoring);
   }
 
   @Override

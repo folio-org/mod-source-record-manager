@@ -25,7 +25,6 @@ import org.mockito.Spy;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
@@ -87,13 +86,10 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
   @Test
   public void shouldSaveJobMonitoring(TestContext context) {
     Async async = context.async();
-    JobMonitoring givenJobMonitoring = new JobMonitoring();
-    givenJobMonitoring.setLastEventTimestamp(new Date());
-    givenJobMonitoring.setNotificationSent(true);
 
     Future<Optional<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobMonitoringService.save(givenJobMonitoring.withJobExecutionId(initJobExecutionsRsDto.getParentJobExecutionId()), TENANT_ID))
-      .compose(id -> jobMonitoringService.getByJobExecutionId(givenJobMonitoring.getJobExecutionId(), TENANT_ID));
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      .compose(jobMonitoring -> jobMonitoringService.getByJobExecutionId(jobMonitoring.getJobExecutionId(), TENANT_ID));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -102,9 +98,9 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
       JobMonitoring savedJobMonitoring = optionalJobMonitoring.get();
 
       context.assertNotNull(savedJobMonitoring.getId());
-      context.assertEquals(givenJobMonitoring.getJobExecutionId(), savedJobMonitoring.getJobExecutionId());
-      context.assertEquals(givenJobMonitoring.getLastEventTimestamp(), savedJobMonitoring.getLastEventTimestamp());
-      context.assertEquals(givenJobMonitoring.getNotificationSent(), savedJobMonitoring.getNotificationSent());
+      context.assertNotNull(savedJobMonitoring.getJobExecutionId());
+      context.assertNotNull(savedJobMonitoring.getLastEventTimestamp());
+      context.assertFalse(savedJobMonitoring.getNotificationSent());
       async.complete();
     });
   }
@@ -112,14 +108,12 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
   @Test
   public void shouldUpdateJobMonitoring(TestContext context) {
     Async async = context.async();
-    JobMonitoring givenJobMonitoring = new JobMonitoring();
-    givenJobMonitoring.setLastEventTimestamp(new Date());
-    givenJobMonitoring.setNotificationSent(true);
 
     Future<Optional<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobMonitoringService.save(givenJobMonitoring.withJobExecutionId(initJobExecutionsRsDto.getParentJobExecutionId()), TENANT_ID))
-      .compose(id -> jobMonitoringService.updateByJobExecutionId(givenJobMonitoring.getJobExecutionId(), Timestamp.valueOf(LocalDateTime.now()), false, TENANT_ID))
-      .compose(id -> jobMonitoringService.getByJobExecutionId(givenJobMonitoring.getJobExecutionId(), TENANT_ID));
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID)
+        .compose(jobMonitoring -> jobMonitoringService.updateByJobExecutionId(jobMonitoring.getJobExecutionId(), Timestamp.valueOf(LocalDateTime.now()), true, TENANT_ID))
+        .compose(updated -> jobMonitoringService.getByJobExecutionId(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      );
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -128,9 +122,9 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
 
       JobMonitoring savedJobMonitoring = optionalJobMonitoring.get();
       context.assertNotNull(savedJobMonitoring.getId());
-      context.assertEquals(givenJobMonitoring.getJobExecutionId(), savedJobMonitoring.getJobExecutionId());
-      context.assertNotEquals(givenJobMonitoring.getLastEventTimestamp(), savedJobMonitoring.getLastEventTimestamp());
-      context.assertNotEquals(givenJobMonitoring.getNotificationSent(), savedJobMonitoring.getNotificationSent());
+      context.assertNotNull(savedJobMonitoring.getJobExecutionId());
+      context.assertNotNull(savedJobMonitoring.getLastEventTimestamp());
+      context.assertTrue(savedJobMonitoring.getNotificationSent());
       async.complete();
     });
   }
@@ -138,14 +132,12 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
   @Test
   public void shouldDeleteJobMonitoring(TestContext context) {
     Async async = context.async();
-    JobMonitoring givenJobMonitoring = new JobMonitoring();
-    givenJobMonitoring.setLastEventTimestamp(new Date());
-    givenJobMonitoring.setNotificationSent(true);
 
     Future<Optional<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobMonitoringService.save(givenJobMonitoring.withJobExecutionId(initJobExecutionsRsDto.getParentJobExecutionId()), TENANT_ID))
-      .compose(id -> jobMonitoringService.deleteByJobExecutionId(givenJobMonitoring.getJobExecutionId(), TENANT_ID))
-      .compose(id -> jobMonitoringService.getByJobExecutionId(givenJobMonitoring.getJobExecutionId(), TENANT_ID));
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID)
+        .compose(jobMonitoring -> jobMonitoringService.deleteByJobExecutionId(jobMonitoring.getJobExecutionId(), TENANT_ID))
+        .compose(deleted -> jobMonitoringService.getByJobExecutionId(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      );
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());

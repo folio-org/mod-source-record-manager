@@ -35,11 +35,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
         if (jobExecutionProgress == null) {
           return Future.succeededFuture();
         }
-        JobMonitoring jobMonitoring = new JobMonitoring();
-        jobMonitoring.setJobExecutionId(jobExecutionProgress.getJobExecutionId());
-        jobMonitoring.setLastEventTimestamp(new Date());
-        jobMonitoring.setNotificationSent(false);
-        return jobMonitoringService.save(jobMonitoring, tenantId)
+        return jobMonitoringService.saveNew(jobExecutionId, tenantId)
           .map(jobExecutionProgress);
       });
   }

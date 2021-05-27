@@ -24,12 +24,12 @@ public interface JobMonitoringService {
   Future<Optional<JobMonitoring>> getByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
-   * Saves {@link JobMonitoring}
+   * Creates and saves the new {@link JobMonitoring} entity
    *
-   * @param jobMonitoring {@link JobMonitoring} to save
-   * @return future with the id of entity
+   * @param jobExecutionId  job execution id
+   * @return future with the entity
    */
-  Future<String> save(JobMonitoring jobMonitoring, String tenantId);
+  Future<JobMonitoring> saveNew(String jobExecutionId, String tenantId);
 
   /**
    * Updates {@link JobMonitoring} by the given jobExecutionId
