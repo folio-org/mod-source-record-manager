@@ -14,6 +14,7 @@ import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.MappingRuleCache;
@@ -49,7 +50,9 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
 
-  private static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
+  private static final String MARC_BIB_RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
+  private static final String MARC_AUTHORITY_RECORD_PATH = "src/test/resources/org/folio/rest/marcAuthorityRecord.json";
+  private static final String MARC_HOLDING_RECORD_PATH = "src/test/resources/org/folio/rest/marcHoldingRecord.json";
   private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/rules.json";
   private static final String TENANT_ID = "diku";
 
@@ -108,9 +111,24 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldWriteSavedRecordsInfoToImportJournal() throws IOException {
+  public void shouldWriteSavedMarcBibRecordsInfoToImportJournal() throws IOException {
+    writeSavedMarcRecordsInfoToImportJournal(MARC_BIB_RECORD_PATH, EntityType.MARC_BIBLIOGRAPHIC);
+  }
+
+  @Test
+  public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournal() throws IOException {
+    writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
+  }
+
+  @Test
+  public void shouldWriteSavedMarcHoldingRecordsInfoToImportJournal() throws IOException {
+    writeSavedMarcRecordsInfoToImportJournal(MARC_HOLDING_RECORD_PATH, EntityType.MARC_HOLDINGS);
+  }
+
+  private void writeSavedMarcRecordsInfoToImportJournal(String marcBibRecordPath, EntityType marcBibliographic)
+    throws IOException {
     // given
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(marcBibRecordPath), Record.class);
 
     RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
       .withRecords(List.of(record))
@@ -124,7 +142,8 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
     when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
     when(mappingRuleCache.get(TENANT_ID)).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
-    when(recordsPublishingService.sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
+    when(recordsPublishingService
+      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -137,7 +156,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     assertEquals(1, journalRecordsCaptor.getValue().size());
     JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
     assertEquals(record.getId(), journalRecord.getSourceId());
-    assertEquals(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
+    assertEquals(marcBibliographic, journalRecord.getEntityType());
     assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
     assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());

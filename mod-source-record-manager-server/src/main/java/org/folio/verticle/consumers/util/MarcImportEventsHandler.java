@@ -12,7 +12,6 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   @Override
   public void handle(JournalService journalService, DataImportEventPayload eventPayload, String tenantId)
     throws JournalRecordMapperException {
-
     JournalParams journalParams =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
@@ -22,5 +21,4 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
   }
-
 }
