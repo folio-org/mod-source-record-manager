@@ -1,4 +1,4 @@
-## 2021-XX-XX v3.0.7
+## 2021-05-28 v3.0.7
 * [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-480) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
 
 ## 2021-05-22 v3.0.6
