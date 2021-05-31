@@ -26,5 +26,4 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
     }
   }
-
 }
