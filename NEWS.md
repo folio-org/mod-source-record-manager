@@ -1,3 +1,6 @@
+## 2021-06-16 v3.0.8-SNAPSHOT
+* [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
+
 ## 2021-05-28 v3.0.7
 * [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-480) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
 

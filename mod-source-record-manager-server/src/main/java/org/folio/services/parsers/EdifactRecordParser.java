@@ -18,7 +18,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.xlate.edi.stream.EDIInputFactory;
 import io.xlate.edi.stream.EDIStreamReader;
-import io.xlate.edi.stream.EDIStreamValidationError;
+
+import static io.xlate.edi.stream.EDIInputFactory.EDI_VALIDATE_CONTROL_CODE_VALUES;
 
 /**
  * Raw record parser implementation for EDIFACT format. Use staedi library
@@ -29,17 +30,18 @@ public final class EdifactRecordParser implements RecordParser {
 
   @Override
   public ParsedResult parseRecord(String rawRecord) {
+    EDIInputFactory ediInputFactory = EDIInputFactory.newFactory();
+    ediInputFactory.setProperty(EDI_VALIDATE_CONTROL_CODE_VALUES, false);
     ParsedResult result = new ParsedResult();
 
     List<Segment> segments = new ArrayList<>();
 
     List<JsonObject> errorList = new ArrayList<>();
     boolean buildingComposite = false;
-    boolean skipInvalidCode = false;
 
     try (
       InputStream stream = new ByteArrayInputStream(rawRecord.getBytes());
-      EDIStreamReader reader = EDIInputFactory.newFactory().createEDIStreamReader(stream);
+      EDIStreamReader reader = ediInputFactory.createEDIStreamReader(stream);
     ) {
       while (reader.hasNext()) {
         switch (reader.next()) {
@@ -63,10 +65,6 @@ public final class EdifactRecordParser implements RecordParser {
             buildingComposite = false;
             break;
           case ELEMENT_DATA:
-            if(skipInvalidCode) {
-              skipInvalidCode = false;
-              continue;
-            }
             Segment lastSegment = segments.get(segments.size() - 1);
             if(!buildingComposite) {
               lastSegment
@@ -80,11 +78,7 @@ public final class EdifactRecordParser implements RecordParser {
                 .withData(reader.getText()));
             break;
           case ELEMENT_DATA_ERROR:
-            if(EDIStreamValidationError.INVALID_CODE_VALUE == reader.getErrorType()) {
-              skipInvalidCode = true;
-            } else {
-              errorList.add(processParsingEventError(reader));
-            }
+            errorList.add(processParsingEventError(reader));
             break;
           case SEGMENT_ERROR:
           case ELEMENT_OCCURRENCE_ERROR:
@@ -122,7 +116,7 @@ public final class EdifactRecordParser implements RecordParser {
    * Build json representation of EDIFACT error
    *
    * @param tag - event tag
-   * @param tamessageg - error message
+   * @param message - error message
    * @return - JsonObject with error descriptions
    */
   private JsonObject buildErrorObject(String tag, String message) {
