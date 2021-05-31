@@ -7,6 +7,7 @@ import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +49,7 @@ public class DataImportPayloadContextBuilderImplTest {
   @Test
   public void shouldBuildContextForMarcAuthorityRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"authority\"}");
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(RecordType.MARC_AUTHORITY);
     record.setParsedRecord(parsedRecord);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.AUTHORITY);
@@ -61,7 +62,7 @@ public class DataImportPayloadContextBuilderImplTest {
   @Test
   public void shouldBuildContextForMarcBibRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"bibliographic\"}");
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(Record.RecordType.MARC_BIB);
     record.setParsedRecord(parsedRecord);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.BIB);
@@ -78,7 +79,7 @@ public class DataImportPayloadContextBuilderImplTest {
   @Test
   public void shouldBuildContextForMarcHoldingRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"holding\"}");
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(RecordType.MARC_HOLDING);
     record.setParsedRecord(parsedRecord);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.HOLDING);
@@ -107,7 +108,7 @@ public class DataImportPayloadContextBuilderImplTest {
 
   @Test
   public void shouldThrowNPEIfParsedRecordIsNullAndRecordIsMarc() {
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(Record.RecordType.MARC_BIB);
 
     assertThrows("Parsed record is null", NullPointerException.class,
         () -> builder.buildFrom(record, rules, params));
@@ -115,7 +116,7 @@ public class DataImportPayloadContextBuilderImplTest {
 
   @Test
   public void shouldThrowNPEIfParsedRecordContentIsNullAndRecordIsMarc() {
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(Record.RecordType.MARC_BIB);
     record.setParsedRecord(new ParsedRecord());
 
     assertThrows("Parsed record content is null", NullPointerException.class,
@@ -125,7 +126,7 @@ public class DataImportPayloadContextBuilderImplTest {
   @Test
   public void shouldThrowExceptionIfMarcTypeUnsupported() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"NA\"}");
-    record.setRecordType(Record.RecordType.MARC);
+    record.setRecordType(RecordType.MARC_BIB);
     record.setParsedRecord(parsedRecord);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.NA);
@@ -137,7 +138,7 @@ public class DataImportPayloadContextBuilderImplTest {
   private static ParsedRecord parsedRecord(String content) {
     return new ParsedRecord().withContent(content);
   }
-  
+
   private static JsonObject toJson(ParsedRecord parsedRecord) {
     return new JsonObject(parsedRecord.getContent().toString());
   }

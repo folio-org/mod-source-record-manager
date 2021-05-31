@@ -32,6 +32,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
@@ -154,7 +155,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private JobProfileInfo jobProfileInfo = new JobProfileInfo()
     .withName("MARC records")
     .withId(jobProfile.getId())
-    .withDataType(JobProfileInfo.DataType.MARC);
+    .withDataType(DataType.MARC_BIB);
 
   @Before
   public void setUp() throws IOException {

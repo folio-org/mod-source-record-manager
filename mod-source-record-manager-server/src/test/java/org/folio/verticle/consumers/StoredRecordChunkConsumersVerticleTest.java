@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,7 +55,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     RecordsBatchResponse recordsBatch = new RecordsBatchResponse()
       .withTotalRecords(1)
       .withRecords(List.of(new Record()
-        .withRecordType(MARC)
+        .withRecordType(MARC_BIB)
         .withId(UUID.randomUUID().toString())
         .withSnapshotId(jobExec.getId())
         .withParsedRecord(new ParsedRecord().withContent(parsedContentWithInvalidRecordTypeValue))));

@@ -77,7 +77,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withRecordId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
-      .withRecordType(SourceRecord.RecordType.MARC)
+      .withRecordType(SourceRecord.RecordType.MARC_BIB)
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
@@ -162,7 +162,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
-      .withRecordType(ParsedRecordDto.RecordType.MARC)
+      .withRecordType(ParsedRecordDto.RecordType.MARC_BIB)
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
 
     RestAssured.given()
@@ -178,7 +178,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
     kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
+
     async.complete();
   }
-
 }
