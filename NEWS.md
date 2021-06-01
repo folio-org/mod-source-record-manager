@@ -6,6 +6,7 @@
 * [MODSOURMAN-471](https://issues.folio.org/browse/MODSOURMAN-471) Migrate QM-flow to Kafka
 * [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-471) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
 * [MODSOURMAN-477](https://issues.folio.org/browse/MODSOURMAN-477) Store MARC Authority record
+* [MODSOURMAN-458](https://issues.folio.org/browse/MODSOURMAN-458) Support monitoring table creation and data insertion
 
 ## 2021-05-xx v3.0.7-SNAPSHOT
 * [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
