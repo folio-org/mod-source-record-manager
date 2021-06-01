@@ -1,6 +1,7 @@
 package org.folio.verticle;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -34,7 +35,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class JobMonitoringWatchdogVerticleTest {
 
-  private static final String TENANT_ID = "testing";
+  private static final String TENANT_ID1 = "testing1";
+  private static final String TENANT_ID2 = "testing2";
   private static final String UUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
 
   private final JobProfileInfo jobProfileInfo = new JobProfileInfo()
@@ -70,7 +72,8 @@ public class JobMonitoringWatchdogVerticleTest {
   public void setUp() throws NoSuchFieldException {
     MockitoAnnotations.initMocks(this);
     LocalMap<String, String> tenants = vertx.sharedData().getLocalMap("tenants");
-    tenants.put("tenant", TENANT_ID);
+    tenants.put(TENANT_ID1, TENANT_ID1);
+    tenants.put(TENANT_ID2, TENANT_ID2);
 
     FieldSetter.setField(jobMonitoringWatchdogVerticle,
       jobMonitoringWatchdogVerticle.getClass().getSuperclass().getDeclaredField("watchdogTimestamp"), 200L);
@@ -82,7 +85,7 @@ public class JobMonitoringWatchdogVerticleTest {
     // given
     Promise<Void> promise = Promise.promise();
     when(jobMonitoringService.getAll(anyString())).thenReturn(Future.succeededFuture(List.of(givenJobMonitoring)));
-    when(jobExecutionService.getJobExecutionById(UUID, TENANT_ID))
+    when(jobExecutionService.getJobExecutionById(eq(UUID), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
 
     // when
@@ -91,8 +94,10 @@ public class JobMonitoringWatchdogVerticleTest {
     Thread.sleep(2000);
 
     // then
-    verify(jobMonitoringService, atLeastOnce()).getAll(anyString());
-    verify(jobExecutionService, atLeastOnce()).getJobExecutionById(UUID, TENANT_ID);
+    verify(jobMonitoringService, atLeastOnce()).getAll(TENANT_ID1);
+    verify(jobMonitoringService, atLeastOnce()).getAll(TENANT_ID2);
+    verify(jobExecutionService, atLeastOnce()).getJobExecutionById(UUID, TENANT_ID1);
+    verify(jobExecutionService, atLeastOnce()).getJobExecutionById(UUID, TENANT_ID2);
 
   }
 
