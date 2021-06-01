@@ -59,6 +59,7 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
         );
       })
     );
+    startPromise.complete();
   }
 
   protected void declareSpringContext() {
