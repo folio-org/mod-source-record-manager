@@ -3,7 +3,6 @@ package org.folio.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -12,12 +11,9 @@ import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
-import org.folio.services.journal.JournalUtil;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,16 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 
 @Service
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
@@ -46,14 +35,17 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
   private JournalService journalService;
+  private JobMonitoringService jobMonitoringService;
 
 
   public RecordProcessedEventHandlingServiceImpl(@Autowired JobExecutionProgressService jobExecutionProgressService,
                                                  @Autowired JobExecutionService jobExecutionService,
-                                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService) {
+                                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
+                                                 @Autowired JobMonitoringService jobMonitoringService) {
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.jobExecutionService = jobExecutionService;
     this.journalService = journalService;
+    this.jobMonitoringService = jobMonitoringService;
   }
 
   @Override
@@ -121,7 +113,9 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
                 .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
                 .withTotal(progress.getTotal()));
 
-            return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params).map(true);
+            return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
+              .compose(ar -> jobMonitoringService.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
+              .map(true);
           })
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
     }
