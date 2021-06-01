@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import java.util.List;
 import org.folio.dao.JobMonitoringDao;
 import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,11 @@ public class JobMonitoringServiceImpl implements JobMonitoringService {
   @Override
   public Future<Optional<JobMonitoring>> getByJobExecutionId(String jobExecutionId, String tenantId) {
     return jobMonitoringDao.getByJobExecutionId(jobExecutionId, tenantId);
+  }
+
+  @Override
+  public Future<List<JobMonitoring>> getAll(String tenantId) {
+    return jobMonitoringDao.findAll(tenantId);
   }
 
   @Override

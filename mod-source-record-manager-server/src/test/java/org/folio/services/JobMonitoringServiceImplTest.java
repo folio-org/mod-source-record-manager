@@ -1,11 +1,23 @@
 package org.folio.services;
 
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
@@ -143,6 +155,28 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
       context.assertTrue(ar.succeeded());
       Optional<JobMonitoring> optionalJobMonitoring = ar.result();
       context.assertTrue(optionalJobMonitoring.isEmpty());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldFindAllJobMonitoring(TestContext context) {
+    Async async = context.async();
+    JobMonitoring givenJobMonitoring = new JobMonitoring();
+    givenJobMonitoring.setLastEventTimestamp(new Date());
+    givenJobMonitoring.setNotificationSent(true);
+
+    Future<List<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      .compose(initJobExecutionsRsDto2 ->jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
+      .compose(initJobExecutionsRsDto2 -> jobMonitoringService.saveNew(initJobExecutionsRsDto2.getParentJobExecutionId(), TENANT_ID))
+      .compose(list -> jobMonitoringService.getAll(TENANT_ID));
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      List<JobMonitoring> jobMonitors = ar.result();
+      context.assertTrue(!jobMonitors.isEmpty());
+      context.assertTrue(jobMonitors.size() == 2);
       async.complete();
     });
   }

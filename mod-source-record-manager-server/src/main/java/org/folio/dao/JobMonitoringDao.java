@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import java.util.List;
 import org.folio.rest.jaxrs.model.JobMonitoring;
 
 import java.util.Date;
@@ -19,6 +20,13 @@ public interface JobMonitoringDao {
    * @return future with optional of JobMonitoring
    */
   Future<Optional<JobMonitoring>> getByJobExecutionId(String jobExecutionId, String tenantId);
+
+  /**
+   * Searches all {@link JobMonitoring}
+   *
+   * @return future with list of JobMonitoring
+   */
+  Future<List<JobMonitoring>> findAll(String tenantId);
 
   /**
    * Saves {@link JobMonitoring} to database
