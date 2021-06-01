@@ -156,7 +156,7 @@
     {
       "run": "after",
       "snippet": "CREATE TABLE IF NOT EXISTS job_monitoring (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), last_event_timestamp timestamp, notification_sent boolean);",
-      "fromModuleVersion": "mod-source-record-manager-3.0.6"
+      "fromModuleVersion": "mod-source-record-manager-3.1.0"
     }
   ]
 }
