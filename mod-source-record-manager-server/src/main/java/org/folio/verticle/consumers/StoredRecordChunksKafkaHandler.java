@@ -38,11 +38,15 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_EDIFACT_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")
@@ -51,7 +55,9 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
   private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
-    MARC, DI_SRS_MARC_BIB_RECORD_CREATED,
+    MARC_BIB, DI_SRS_MARC_BIB_RECORD_CREATED,
+    MARC_AUTHORITY, DI_SRS_MARC_AUTHORITY_RECORD_CREATED,
+    MARC_HOLDING, DI_SRS_MARC_HOLDING_RECORD_CREATED,
     EDIFACT, DI_EDIFACT_RECORD_CREATED
   );
 
@@ -125,7 +131,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private JsonArray buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional, String tenantId) {
-    EntityType entityType = storedRecords.get(0).getRecordType() == EDIFACT ? EntityType.EDIFACT : EntityType.MARC_BIBLIOGRAPHIC;
+    EntityType entityType = getEntityType(storedRecords);
     JsonArray journalRecords = new JsonArray();
 
     String titleFieldTag = null;
@@ -162,6 +168,20 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
       journalRecords.add(JsonObject.mapFrom(journalRecord));
     }
     return journalRecords;
+  }
+
+  private EntityType getEntityType(List<Record> storedRecords) {
+    switch (storedRecords.get(0).getRecordType()) {
+      case EDIFACT:
+        return EntityType.EDIFACT;
+      case MARC_AUTHORITY:
+        return EntityType.MARC_AUTHORITY;
+      case MARC_HOLDING:
+        return EntityType.MARC_HOLDINGS;
+      case MARC_BIB:
+      default:
+        return EntityType.MARC_BIBLIOGRAPHIC;
+    }
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
