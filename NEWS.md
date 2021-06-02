@@ -8,6 +8,7 @@
 * [MODSOURMAN-477](https://issues.folio.org/browse/MODSOURMAN-477) Store MARC Authority record
 * [MODSOURMAN-458](https://issues.folio.org/browse/MODSOURMAN-458) Support monitoring table creation and data insertion
 * [MODSOURMAN-460](https://issues.folio.org/browse/MODSOURMAN-460) Implement watchdog timer to monitor table
+* [MODSOURMAN-485](https://issues.folio.org/browse/MODSOURMAN-485) Update interface version
 
 ## 2021-05-xx v3.0.7-SNAPSHOT
 * [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
