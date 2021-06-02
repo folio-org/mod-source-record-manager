@@ -162,9 +162,6 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
   @Test
   public void shouldFindAllJobMonitoring(TestContext context) {
     Async async = context.async();
-    JobMonitoring givenJobMonitoring = new JobMonitoring();
-    givenJobMonitoring.setLastEventTimestamp(new Date());
-    givenJobMonitoring.setNotificationSent(true);
 
     Future<List<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
