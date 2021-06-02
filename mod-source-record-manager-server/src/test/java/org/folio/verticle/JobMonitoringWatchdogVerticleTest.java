@@ -83,13 +83,12 @@ public class JobMonitoringWatchdogVerticleTest {
   @Test
   public void shouldPrintWarnLogWhenJobIsStacked() throws InterruptedException {
     // given
-    Promise<Void> promise = Promise.promise();
     when(jobMonitoringService.getAll(anyString())).thenReturn(Future.succeededFuture(List.of(givenJobMonitoring)));
     when(jobExecutionService.getJobExecutionById(eq(UUID), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(jobExecution)));
 
     // when
-    jobMonitoringWatchdogVerticle.start(promise);
+    jobMonitoringWatchdogVerticle.start();
 
     Thread.sleep(2000);
 
@@ -104,12 +103,11 @@ public class JobMonitoringWatchdogVerticleTest {
   @Test
   public void shouldNotPrintWarnLogWhenJobIsNotStacked() {
     // given
-    Promise<Void> promise = Promise.promise();
     givenJobMonitoring.withLastEventTimestamp(new Date(Long.MAX_VALUE));
     when(jobMonitoringService.getAll(anyString())).thenReturn(Future.succeededFuture(List.of(givenJobMonitoring)));
 
     // when
-    jobMonitoringWatchdogVerticle.start(promise);
+    jobMonitoringWatchdogVerticle.start();
 
     // then
     verify(jobExecutionService, never()).getJobExecutionById(anyString(), anyString());
@@ -118,11 +116,10 @@ public class JobMonitoringWatchdogVerticleTest {
   @Test
   public void shouldNotPrintWarnLogWhenJobMonitoringTableIsEmpty() {
     // given
-    Promise<Void> promise = Promise.promise();
     when(jobMonitoringService.getAll(anyString())).thenReturn(Future.succeededFuture(List.of()));
 
     // when
-    jobMonitoringWatchdogVerticle.start(promise);
+    jobMonitoringWatchdogVerticle.start();
 
     // then
     verify(jobExecutionService, never()).getJobExecutionById(anyString(), anyString());

@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.Set;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
 import io.vertx.core.shareddata.LocalMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,35 +35,43 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
   private JobExecutionService jobExecutionService;
 
   @Value("${job.monitoring.watchdog.timestamp}")
-  private Long watchdogTimestamp;
+  private long watchdogTimestamp;
+  private long timerId;
 
   public static void setSpringContext(AbstractApplicationContext springContext) {
     JobMonitoringWatchdogVerticle.springGlobalContext = springContext;
   }
 
   @Override
-  public void start(Promise<Void> startPromise) {
+  public void start() {
     declareSpringContext();
 
-    vertx.setPeriodic(watchdogTimestamp, handler -> getTenants()
-      .forEach(tenantId -> {
-        LOGGER.info("Check tenant [{}] for stacked jobs", tenantId);
-        jobMonitoringService.getAll(tenantId).onSuccess(jobMonitors ->
-          jobMonitors.forEach(jobMonitoring -> {
-            long lastEventTimestamp = getDifferenceTimestamp(jobMonitoring.getLastEventTimestamp());
-            if (lastEventTimestamp >= watchdogTimestamp) {
-              findJobExecutionById(tenantId, jobMonitoring);
-            }
-          })
-        );
-      })
-    );
-    startPromise.complete();
+    timerId = vertx.setPeriodic(watchdogTimestamp, handler -> monitorJobExecutionProgress());
+  }
+
+  @Override
+  public void stop() throws Exception {
+    vertx.cancelTimer(timerId);
+    super.stop();
   }
 
   protected void declareSpringContext() {
     context.put("springContext", springGlobalContext);
     SpringContextUtil.autowireDependencies(this, context);
+  }
+
+  private void monitorJobExecutionProgress() {
+    getTenants().forEach(tenantId -> {
+      LOGGER.info("Check tenant [{}] for stacked jobs", tenantId);
+      jobMonitoringService.getAll(tenantId).onSuccess(jobMonitors ->
+        jobMonitors.forEach(jobMonitoring -> {
+          long lastEventTimestamp = getDifferenceTimestamp(jobMonitoring.getLastEventTimestamp());
+          if (lastEventTimestamp >= watchdogTimestamp) {
+            findJobExecutionById(tenantId, jobMonitoring);
+          }
+        })
+      );
+    });
   }
 
   private Set<String> getTenants() {
