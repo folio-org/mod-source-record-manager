@@ -1,12 +1,15 @@
 package org.folio.verticle;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+
+import javax.ws.rs.NotFoundException;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.shareddata.LocalMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -21,11 +24,11 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.JobMonitoringService;
 import org.folio.spring.SpringContextUtil;
 
+@Log4j2
 @Component
 @PropertySource("classpath:application.properties")
 public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static AbstractApplicationContext springGlobalContext;
 
   @Autowired
@@ -34,8 +37,8 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
   @Autowired
   private JobExecutionService jobExecutionService;
 
-  @Value("${job.monitoring.watchdog.timestamp}")
-  private long watchdogTimestamp;
+  @Value("${job.monitoring.inactive.interval.max.ms}")
+  private long maxInactiveInterval;
   private long timerId;
 
   public static void setSpringContext(AbstractApplicationContext springContext) {
@@ -46,7 +49,7 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
   public void start() {
     declareSpringContext();
 
-    timerId = vertx.setPeriodic(watchdogTimestamp, handler -> monitorJobExecutionProgress());
+    timerId = vertx.setPeriodic(maxInactiveInterval, handler -> monitorJobExecutionsProgress());
   }
 
   @Override
@@ -60,17 +63,13 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
     SpringContextUtil.autowireDependencies(this, context);
   }
 
-  private void monitorJobExecutionProgress() {
+  private void monitorJobExecutionsProgress() {
     getTenants().forEach(tenantId -> {
-      LOGGER.info("Check tenant [{}] for stacked jobs", tenantId);
-      jobMonitoringService.getAll(tenantId).onSuccess(jobMonitors ->
-        jobMonitors.forEach(jobMonitoring -> {
-          long lastEventTimestamp = getDifferenceTimestamp(jobMonitoring.getLastEventTimestamp());
-          if (lastEventTimestamp >= watchdogTimestamp) {
-            findJobExecutionById(tenantId, jobMonitoring);
-          }
-        })
-      );
+      log.debug("Check tenant [{}] for stacked jobs", tenantId);
+      jobMonitoringService.getInactiveJobMonitors(maxInactiveInterval, tenantId)
+        .onSuccess(jobMonitors ->
+          jobMonitors.forEach(jobMonitoring -> sendNotificationForInactiveJob(tenantId, jobMonitoring))
+        );
     });
   }
 
@@ -79,21 +78,31 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
     return tenants.keySet();
   }
 
-  private long getDifferenceTimestamp(Date lastEventTimestamp) {
-    return new Date().toInstant().toEpochMilli() - lastEventTimestamp.toInstant().toEpochMilli();
+  private void sendNotificationForInactiveJob(String tenantId, JobMonitoring jobMonitoring) {
+    String jobExecutionId = jobMonitoring.getJobExecutionId();
+    jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
+      .map(getJobExecutionOrFail(jobExecutionId))
+      .onSuccess(jobExecution -> printNotificationWarnLog(jobExecution, tenantId))
+      .onSuccess(jobExecution -> changeNotificationFlagToTrue(jobMonitoring, tenantId));
   }
 
-  private void findJobExecutionById(String tenantId, JobMonitoring jobMonitoring) {
-    jobExecutionService.getJobExecutionById(jobMonitoring.getJobExecutionId(), tenantId)
-      .onSuccess(optionalJobExec -> optionalJobExec.ifPresent(jobExecution -> printWarnLog(jobExecution, tenantId)));
+  private Function<Optional<JobExecution>, JobExecution> getJobExecutionOrFail(String jobExecutionId) {
+    return optJob -> optJob.orElseThrow(() -> new NotFoundException(
+      String.format("Couldn't find JobExecution with id %s", jobExecutionId)));
   }
 
-  private void printWarnLog(JobExecution jobExecution, String tenantId) {
-    LOGGER.warn("Data Import Job with jobExecutionId = {} not progressing for tenant = {}, "
+  private void printNotificationWarnLog(JobExecution jobExecution, String tenantId) {
+    log.warn("Data Import Job with jobExecutionId = {} not progressing for tenant = {}, "
         + "current time = {}, run by = {}, file name = {}, job profile info = {}, start date = {}, stop date = {}",
       jobExecution.getId(), tenantId, new Date(), getRunBy(jobExecution), jobExecution.getFileName(),
       getJobProfileInfo(jobExecution), jobExecution.getStartedDate(), jobExecution.getCompletedDate()
     );
+  }
+
+  private void changeNotificationFlagToTrue(JobMonitoring jobMonitoring, String tenantId) {
+    String jobExecutionId = jobMonitoring.getJobExecutionId();
+    Date lastEventTimestamp = jobMonitoring.getLastEventTimestamp();
+    jobMonitoringService.updateByJobExecutionId(jobExecutionId, lastEventTimestamp, true, tenantId);
   }
 
   private String getRunBy(JobExecution jobExecution) {

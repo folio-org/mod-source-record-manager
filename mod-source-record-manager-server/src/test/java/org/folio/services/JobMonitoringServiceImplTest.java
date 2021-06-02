@@ -13,7 +13,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -33,17 +32,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 @RunWith(VertxUnitRunner.class)
 public class JobMonitoringServiceImplTest extends AbstractRestTest {
@@ -168,6 +156,25 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
       .compose(initJobExecutionsRsDto2 ->jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
       .compose(initJobExecutionsRsDto2 -> jobMonitoringService.saveNew(initJobExecutionsRsDto2.getParentJobExecutionId(), TENANT_ID))
       .compose(list -> jobMonitoringService.getAll(TENANT_ID));
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      List<JobMonitoring> jobMonitors = ar.result();
+      context.assertTrue(!jobMonitors.isEmpty());
+      context.assertTrue(jobMonitors.size() == 2);
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldFindAllInactiveJobMonitors(TestContext context) {
+    Async async = context.async();
+
+    Future<List<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      .compose(initJobExecutionsRsDto2 ->jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
+      .compose(initJobExecutionsRsDto2 -> jobMonitoringService.saveNew(initJobExecutionsRsDto2.getParentJobExecutionId(), TENANT_ID))
+      .compose(list -> jobMonitoringService.getInactiveJobMonitors(1L, TENANT_ID));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());

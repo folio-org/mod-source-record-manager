@@ -27,10 +27,18 @@ public interface JobMonitoringService {
   /**
    * Searches all {@link JobMonitoring}
    *
-   * @return future with Optional of JobMonitoring.
+   * @return future with JobMonitoring list.
    * Returns succeeded future with list of entities
    */
   Future<List<JobMonitoring>> getAll(String tenantId);
+
+  /**
+   * Searches all {@link JobMonitoring} that are stuck and notification was nat sent
+   *
+   * @param maxInactiveInterval the maximum time after which the job can be considered stuck
+   * @return future with JobMonitoring list.
+   */
+  Future<List<JobMonitoring>> getInactiveJobMonitors(Long maxInactiveInterval, String tenantId);
 
   /**
    * Creates and saves the new {@link JobMonitoring} entity
