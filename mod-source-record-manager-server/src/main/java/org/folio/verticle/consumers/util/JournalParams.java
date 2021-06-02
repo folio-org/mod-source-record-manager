@@ -2,11 +2,11 @@ package org.folio.verticle.consumers.util;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,142 +30,146 @@ public class JournalParams {
   }
 
   private interface IJournalParams {
-    JournalParams getJournalParams(DataImportEventPayload eventPayload);
+    Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload);
   }
 
   public enum JournalParamsEnum implements IJournalParams {
 
     DI_SRS_MARC_BIB_RECORD_UPDATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.UPDATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_SRS_MARC_BIB_RECORD_MODIFIED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.MODIFY,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MODIFY,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_SRS_MARC_BIB_RECORD_NOT_MATCHED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.NON_MATCH,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_INSTANCE_CREATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(CREATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.INSTANCE,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.UPDATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
           JournalRecord.EntityType.INSTANCE,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.UPDATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
           JournalRecord.EntityType.INSTANCE,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_INSTANCE_NOT_MATCHED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.NON_MATCH,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.INSTANCE,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_HOLDING_CREATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(CREATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.HOLDINGS,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_HOLDING_UPDATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.UPDATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
           JournalRecord.EntityType.HOLDINGS,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_HOLDING_NOT_MATCHED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.NON_MATCH,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.HOLDINGS,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_ITEM_CREATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(CREATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
           JournalRecord.EntityType.ITEM,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_ITEM_UPDATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.UPDATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
           JournalRecord.EntityType.ITEM,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_INVENTORY_ITEM_NOT_MATCHED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.NON_MATCH,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.ITEM,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_SRS_MARC_AUTHORITY_RECORD_CREATED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
-        return new JournalParams(JournalRecord.ActionType.CREATE,
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
-          JournalRecord.ActionStatus.COMPLETED);
+          JournalRecord.ActionStatus.COMPLETED));
       }
     },
     DI_COMPLETED {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         String lastEventType = eventPayload.getEventsChain().stream().reduce((first, second) -> second).get();
-        return JournalParamsEnum.getValue(lastEventType).getJournalParams(eventPayload);
+        JournalParamsEnum journalParamsEnumItem = NAMES.get(lastEventType);
+        if (journalParamsEnumItem != null) {
+          return journalParamsEnumItem.getJournalParams(eventPayload);
+        }
+        return Optional.empty();
       }
     },
     DI_ERROR {
       @Override
-      public JournalParams getJournalParams(DataImportEventPayload eventPayload) {
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         if (CollectionUtils.isEmpty(eventPayload.getEventsChain())) {
           JournalRecord.EntityType sourceRecordType = eventPayload.getContext().containsKey(EDIFACT_INVOICE.value())
             ? JournalRecord.EntityType.EDIFACT : JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-          return new JournalParams(CREATE, sourceRecordType, ERROR);
+          return Optional.of(new JournalParams(CREATE, sourceRecordType, ERROR));
         }
 
         String lastEventType = eventPayload.getEventsChain().stream().reduce((first, second) -> second).get();
-        JournalParams journalParams = JournalParamsEnum.getValue(lastEventType).getJournalParams(eventPayload);
-        return new JournalParams(journalParams.journalActionType, journalParams.journalEntityType, ERROR);
+        return JournalParamsEnum.getValue(lastEventType).getJournalParams(eventPayload)
+          .map(journalParams -> new JournalParams(journalParams.journalActionType, journalParams.journalEntityType, ERROR));
       }
     };
 
