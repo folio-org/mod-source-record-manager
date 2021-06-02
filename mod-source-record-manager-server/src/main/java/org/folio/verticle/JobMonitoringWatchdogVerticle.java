@@ -91,17 +91,17 @@ public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
   private void printWarnLog(JobExecution jobExecution, String tenantId) {
     LOGGER.warn("Data Import Job with jobExecutionId = {} not progressing for tenant = {}, "
         + "current time = {}, run by = {}, file name = {}, job profile info = {}, start date = {}, stop date = {}",
-      jobExecution.getId(), tenantId, new Date(), printRunBy(jobExecution), jobExecution.getFileName(),
-      printJobProfile(jobExecution), jobExecution.getStartedDate(), jobExecution.getCompletedDate()
+      jobExecution.getId(), tenantId, new Date(), getRunBy(jobExecution), jobExecution.getFileName(),
+      getJobProfileInfo(jobExecution), jobExecution.getStartedDate(), jobExecution.getCompletedDate()
     );
   }
 
-  private String printRunBy(JobExecution jobExecution) {
+  private String getRunBy(JobExecution jobExecution) {
     RunBy runBy = jobExecution.getRunBy();
     return runBy != null ? runBy.getFirstName() + " " + runBy.getLastName() : null;
   }
 
-  private Object printJobProfile(JobExecution jobExecution) {
+  private String getJobProfileInfo(JobExecution jobExecution) {
     JobProfileInfo jobProfileInfo = jobExecution.getJobProfileInfo();
     return jobProfileInfo != null ? String.format("jobProfileInfoId: '%s', name: '%s', dataType: '%s'",
       jobProfileInfo.getId(), jobProfileInfo.getName(), jobProfileInfo.getDataType()) : null;
