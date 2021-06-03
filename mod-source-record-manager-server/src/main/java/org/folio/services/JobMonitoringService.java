@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import java.util.List;
 import org.folio.dao.JobMonitoringDao;
 import org.folio.rest.jaxrs.model.JobMonitoring;
 
@@ -22,6 +23,22 @@ public interface JobMonitoringService {
    * Returns succeeded future with an empty Optional if the entity does not exist by the given
    */
   Future<Optional<JobMonitoring>> getByJobExecutionId(String jobExecutionId, String tenantId);
+
+  /**
+   * Searches all {@link JobMonitoring}
+   *
+   * @return future with JobMonitoring list.
+   * Returns succeeded future with list of entities
+   */
+  Future<List<JobMonitoring>> getAll(String tenantId);
+
+  /**
+   * Searches all {@link JobMonitoring} that are stuck and notification was nat sent
+   *
+   * @param maxInactiveInterval the maximum time after which the job can be considered stuck
+   * @return future with JobMonitoring list.
+   */
+  Future<List<JobMonitoring>> getInactiveJobMonitors(Long maxInactiveInterval, String tenantId);
 
   /**
    * Creates and saves the new {@link JobMonitoring} entity

@@ -19,6 +19,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
+import org.folio.verticle.JobMonitoringWatchdogVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:3}")
   private int dataImportJournalConsumerInstancesNumber;
+
+  @Value("${srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber:1}")
+  private int jobExecutionWatchdogInstanceNumber;
 
   @Autowired
   @Qualifier("journalService")
@@ -79,11 +83,13 @@ public class InitAPIImpl implements InitAPI {
     StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    JobMonitoringWatchdogVerticle.setSpringContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
+    Promise<String> deployJobExecutionWatchdog = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
@@ -105,9 +111,15 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
+    vertx.deployVerticle("org.folio.verticle.JobMonitoringWatchdogVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(jobExecutionWatchdogInstanceNumber), deployJobExecutionWatchdog);
+
     return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
-      deployDataImportJournalConsumer.future()));
+      deployDataImportJournalConsumer.future(),
+      deployJobExecutionWatchdog.future()));
   }
 }

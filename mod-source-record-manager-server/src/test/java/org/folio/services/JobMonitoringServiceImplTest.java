@@ -1,19 +1,27 @@
 package org.folio.services;
 
+import static java.lang.String.format;
+
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.folio.dao.JobExecutionDaoImpl;
-import org.folio.dao.JobMonitoringDaoImpl;
-import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.JobMonitoring;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,16 +30,14 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobMonitoringDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobMonitoring;
 
 @RunWith(VertxUnitRunner.class)
 public class JobMonitoringServiceImplTest extends AbstractRestTest {
@@ -66,6 +72,20 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
     headers.put(OKAPI_TOKEN_HEADER, "token");
     params = new OkapiConnectionParams(headers, vertx);
+  }
+
+  @After
+  public void tearDown(TestContext context) {
+    Async async = context.async();
+    String query = format("DELETE FROM %s.%s", convertToPsqlStandard(TENANT_ID), "job_monitoring");
+    postgresClientFactory.createInstance(TENANT_ID).execute(query)
+      .onComplete(event -> {
+        if (event.succeeded()) {
+          async.complete();
+        } else {
+          context.fail();
+        }
+      });
   }
 
   @Test
@@ -145,5 +165,45 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
       context.assertTrue(optionalJobMonitoring.isEmpty());
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldFindAllJobMonitoring(TestContext context) {
+    Async async = context.async();
+
+    Future<List<JobMonitoring>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      .compose(initJobExecutionsRsDto2 ->jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
+      .compose(initJobExecutionsRsDto2 -> jobMonitoringService.saveNew(initJobExecutionsRsDto2.getParentJobExecutionId(), TENANT_ID))
+      .compose(list -> jobMonitoringService.getAll(TENANT_ID));
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      List<JobMonitoring> jobMonitors = ar.result();
+      context.assertTrue(!jobMonitors.isEmpty());
+      context.assertTrue(jobMonitors.size() == 2);
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldFindAllInactiveJobMonitors(TestContext context) {
+    Async async = context.async();
+
+    var future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobMonitoringService.saveNew(initJobExecutionsRsDto.getParentJobExecutionId(), TENANT_ID))
+      .compose(initJobExecutionsRsDto2 ->jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
+      .compose(initJobExecutionsRsDto2 -> jobMonitoringService.saveNew(initJobExecutionsRsDto2.getParentJobExecutionId(), TENANT_ID));
+
+    vertx.setTimer(10L, timerId -> future
+      .compose(list -> jobMonitoringService.getInactiveJobMonitors(1L, TENANT_ID))
+      .onComplete(ar -> {
+        context.assertTrue(ar.succeeded());
+        List<JobMonitoring> jobMonitors = ar.result();
+        context.assertTrue(!jobMonitors.isEmpty());
+        System.out.println(jobMonitors.size());
+        context.assertTrue(jobMonitors.size() == 2);
+        async.complete();
+      }));
   }
 }

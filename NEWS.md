@@ -3,6 +3,7 @@
 * [MODSOURMAN-454](https://issues.folio.org/browse/MODSOURMAN-454) Excessive CPU usage in a system with no user activity
 * [MODSOURMAN-456](https://issues.folio.org/browse/MODSOURMAN-456) Ignore event that is not supposed to be saved to data import journal
 * [MODSOURMAN-458](https://issues.folio.org/browse/MODSOURMAN-458) Support monitoring table creation and data insertion
+* [MODSOURMAN-460](https://issues.folio.org/browse/MODSOURMAN-460) Implement watchdog timer to monitor table
 
 ## 2021-05-28 v3.0.7
 * [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-480) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
