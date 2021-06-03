@@ -2,7 +2,7 @@ stages:
 - name: Build
   steps:
   - runScriptConfig:
-      image: maven:3-adoptopenjdk-11
+      image: maven:3.6.3-openjdk-11
       shellScript: mvn package -DskipTests -Djava.util.logging.config.file=vertx-default-jul-logging.properties
 - name: Build Docker with DIND
   steps:
