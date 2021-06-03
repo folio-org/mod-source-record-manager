@@ -111,6 +111,7 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum_": 100
   * "_srm.kafka.DataImportConsumer.loadLimit_": 5
 * Relevant for the **Juniper** release, module versions from 3.1.0:
+  * "_srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber_": 1
   * "_srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber_": 5
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
 
