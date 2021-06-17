@@ -89,11 +89,11 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         if (saveAr.succeeded()) {
           client.endTx(tx.future(), endTx -> promise.complete(saveAr.result()));
         } else {
-          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, saveAr.cause());
           if (ValidationHelper.isDuplicate(saveAr.cause().getMessage())) {
             client.rollbackTx(tx.future(), r -> promise.complete());
             return;
           }
+          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, saveAr.cause());
           client.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
         }
       });
