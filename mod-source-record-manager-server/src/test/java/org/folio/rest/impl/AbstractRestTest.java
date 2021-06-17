@@ -85,7 +85,7 @@ public abstract class AbstractRestTest {
   private static String useExternalDatabase;
   private static final String postedSnapshotResponseBody = UUID.randomUUID().toString();
   protected static Vertx vertx;
-  protected static final String TENANT_ID = "diku";
+  protected static final String TENANT_ID = "d";
   protected static RequestSpecification spec;
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
