@@ -11,7 +11,7 @@
 * [MODSOURMAN-485](https://issues.folio.org/browse/MODSOURMAN-485) Update interface version
 
 ## 2021-05-xx v3.0.7-SNAPSHOT
-* [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
+* [MODSOURCE-301](https://issues.folio.org/git browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
 * [MODSOURMAN-454](https://issues.folio.org/browse/MODSOURMAN-454) Excessive CPU usage in a system with no user activity
 
 ## 2021-05-22 v3.0.6
