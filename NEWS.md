@@ -1,3 +1,5 @@
+## xxxx-xx-xx v3.2.0-SNAPSHOT
+
 ## 2021-06-17 v3.1.0
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
 * [MODSOURMAN-448](https://issues.folio.org/browse/MODSOURMAN-448) Update default field mapping for 647 field
@@ -10,9 +12,15 @@
 * [MODSOURMAN-460](https://issues.folio.org/browse/MODSOURMAN-460) Implement watchdog timer to monitor table
 * [MODSOURMAN-485](https://issues.folio.org/browse/MODSOURMAN-485) Update interface version
 
-## 2021-05-xx v3.0.7-SNAPSHOT
+## 2021-06-18 v3.0.8
 * [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
 * [MODSOURMAN-454](https://issues.folio.org/browse/MODSOURMAN-454) Excessive CPU usage in a system with no user activity
+* [MODSOURMAN-456](https://issues.folio.org/browse/MODSOURMAN-456) Ignore event that is not supposed to be saved to data import journal
+* [MODSOURMAN-458](https://issues.folio.org/browse/MODSOURMAN-458) Support monitoring table creation and data insertion
+* [MODSOURMAN-460](https://issues.folio.org/browse/MODSOURMAN-460) Implement watchdog timer to monitor table
+
+## 2021-05-28 v3.0.7
+* [MODSOURMAN-480](https://issues.folio.org/browse/MODSOURMAN-480) Create jobs with match profiles that include records with 999 fields cause errors in the srs-instance relationship
 
 ## 2021-05-22 v3.0.6
 * [MODSOURMAN-457](https://issues.folio.org/browse/MODSOURMAN-457) Issue with Database migration for Iris release
