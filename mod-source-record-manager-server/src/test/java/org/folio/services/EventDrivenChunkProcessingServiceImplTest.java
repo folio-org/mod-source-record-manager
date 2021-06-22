@@ -20,6 +20,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
@@ -117,6 +118,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   JobExecutionServiceImpl jobExecutionService;
   @InjectMocks
   @Spy
+  private MarcRecordAnalyzer marcRecordAnalyzer;
+  @InjectMocks
+  @Spy
   JobExecutionProgressDaoImpl jobExecutionProgressDao;
   @Spy
   @InjectMocks
@@ -157,11 +161,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
+    marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, new JournalServiceImpl(journalRecordDao), recordsPublishingService, kafkaConfig);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, mappingRuleCache, new JournalServiceImpl(journalRecordDao), recordsPublishingService, kafkaConfig);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
     HashMap<String, String> headers = new HashMap<>();
