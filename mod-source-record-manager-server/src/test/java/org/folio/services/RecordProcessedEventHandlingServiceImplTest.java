@@ -20,6 +20,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
@@ -111,6 +112,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @InjectMocks
   @Spy
   private JobExecutionServiceImpl jobExecutionService;
+  @Spy
+  private MarcRecordAnalyzer marcRecordAnalyzer;
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
@@ -162,7 +165,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, hrIdFieldService, mappingRuleCache, mockedJournalService, recordsPublishingService, kafkaConfig);
+    marcRecordAnalyzer = new MarcRecordAnalyzer();
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, mappingRuleCache, mockedJournalService, recordsPublishingService, kafkaConfig);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
