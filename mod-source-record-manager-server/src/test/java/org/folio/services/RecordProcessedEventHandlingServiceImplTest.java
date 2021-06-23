@@ -155,7 +155,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private JobProfileInfo jobProfileInfo = new JobProfileInfo()
     .withName("MARC records")
     .withId(jobProfile.getId())
-    .withDataType(DataType.MARC_BIB);
+    .withDataType(DataType.MARC);
 
   @Before
   public void setUp() throws IOException {

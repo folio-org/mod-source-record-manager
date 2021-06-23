@@ -195,7 +195,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.ONLINE);
     requestDto.setJobProfileInfo(new JobProfileInfo()
       .withId(DEFAULT_JOB_PROFILE_ID)
-      .withDataType(JobProfileInfo.DataType.MARC_BIB)
+      .withDataType(JobProfileInfo.DataType.MARC)
       .withName("Test Profile"));
 
     InitJobExecutionsRsDto response = RestAssured.given()
@@ -959,7 +959,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1018,7 +1018,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1077,7 +1077,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1181,7 +1181,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1236,7 +1236,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1284,7 +1284,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1334,7 +1334,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1478,7 +1478,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1550,7 +1550,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1583,17 +1583,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_BIB);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC);
   }
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_AUTHORITY);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC);
   }
 
   @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC_HOLDING);
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType.MARC);
   }
 
   private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(DataType dataType)
@@ -1670,7 +1670,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1740,7 +1740,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1795,7 +1795,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1839,7 +1839,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1886,7 +1886,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
@@ -1936,7 +1936,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(DataType.MARC_BIB))
+        .withDataType(DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
