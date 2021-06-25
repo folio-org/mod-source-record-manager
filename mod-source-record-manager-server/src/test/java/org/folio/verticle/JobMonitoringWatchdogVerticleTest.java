@@ -20,6 +20,7 @@ import java.util.Optional;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.LocalMap;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,13 +47,13 @@ public class JobMonitoringWatchdogVerticleTest {
 
   private final JobProfileInfo jobProfileInfo = new JobProfileInfo()
     .withId(UUID)
-    .withDataType(DataType.MARC_BIB)
+    .withDataType(DataType.MARC)
     .withName("Marc jobs profile");
 
   private final JobExecution jobExecution = new JobExecution()
     .withId(UUID)
     .withFileName("Job execution")
-    .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR")).withJobProfileInfo(jobProfileInfo)
+    .withRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"))
     .withJobProfileInfo(jobProfileInfo);
 
   private final JobMonitoring givenJobMonitoring = new JobMonitoring()
