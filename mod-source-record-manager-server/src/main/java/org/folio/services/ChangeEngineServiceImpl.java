@@ -1,5 +1,27 @@
 package org.folio.services;
 
+import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
+import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -10,9 +32,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.NotFoundException;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -20,6 +40,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
+import org.folio.dataimport.util.marc.MarcRecordType;
+import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -37,6 +60,7 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
@@ -51,29 +75,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.producer.KafkaHeader;
-import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
-
-import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.ObjectUtils.allNotNull;
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
-
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
@@ -82,10 +83,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
   private static final String TAG_001 = "001";
+  private static final String MARC_FORMAT = "MARC_";
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
+  private RecordAnalyzer marcRecordAnalyzer;
   private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
   private RecordsPublishingService recordsPublishingService;
@@ -97,6 +100,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
+                                 @Autowired MarcRecordAnalyzer marcRecordAnalyzer,
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired MappingRuleCache mappingRuleCache,
                                  @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
@@ -104,6 +108,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
+    this.marcRecordAnalyzer = marcRecordAnalyzer;
     this.hrIdFieldService = hrIdFieldService;
     this.mappingRuleCache = mappingRuleCache;
     this.journalService = journalService;
@@ -194,10 +199,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
         String recordId = UUID.randomUUID().toString();
+        MarcRecordType marcRecordType = marcRecordAnalyzer.process(parsedResult.getParsedRecord());
+        LOGGER.info("Marc record analyzer parsed record with id = {} and type = {}", recordId, marcRecordType);
         Record record = new Record()
           .withId(recordId)
           .withMatchedId(recordId)
-          .withRecordType(Record.RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value()))
+          .withRecordType(RecordType.valueOf(MARC_FORMAT + marcRecordType.name()))
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
           .withGeneration(0)
