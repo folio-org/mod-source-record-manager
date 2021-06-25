@@ -1,6 +1,7 @@
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
 * [MODSOURMAN-501](https://issues.folio.org/browse/MODSOURMAN-501) Change dataType to have have common type for MARC related subtypes
+* Update data-import-processing-core dependency to v3.1.1
 
 ## 2021-06-17 v3.1.0
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
