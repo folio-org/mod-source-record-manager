@@ -66,7 +66,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .body(new JobProfileInfo()
         .withName("MARC records")
         .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC_BIB))
+        .withDataType(JobProfileInfo.DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExecution.getId() + JOB_PROFILE_PATH)
       .then()

@@ -216,9 +216,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .withDescription(parsedResult.getErrors().encode()));
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
-          if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_BIB)
-            || jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_AUTHORITY)
-            || jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC_HOLDING)) {
+          if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
             String matchedId = getValue(record, "999", 's');
             if (StringUtils.isNotBlank(matchedId)) {
               record.setMatchedId(matchedId);
