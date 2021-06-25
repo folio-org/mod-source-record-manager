@@ -160,7 +160,7 @@
     },
     {
       "run": "after",
-      "snippet": "migrate_data_type_to_marc.sql",
+      "snippetPath": "migrate_data_type_to_marc.sql",
       "fromModuleVersion": "mod-source-record-manager-3.1.0"
     }
   ]
