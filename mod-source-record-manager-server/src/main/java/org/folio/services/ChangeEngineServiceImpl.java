@@ -126,12 +126,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (updateMarcActionExists) {
       LOGGER.info("Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
       recordsPublishingService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
-        .compose(ar -> buildJournalRecordsForProcessedRecords(parsedRecords, parsedRecords, CREATE, params.getTenantId())
-          .compose(journalRecords -> {
-            journalService.saveBatch(new JsonArray(journalRecords), params.getTenantId());
-            promise.complete(parsedRecords);
-            return Future.succeededFuture();
-          }));
+        .onSuccess(ar -> promise.complete(parsedRecords))
+        .onFailure(promise::fail);
     } else {
       saveRecords(params, jobExecution, parsedRecords)
         .onComplete(postAr -> {

@@ -1,14 +1,14 @@
 package org.folio.verticle.consumers.util;
 
 import org.folio.DataImportEventPayload;
-import org.folio.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.DataImportEventTypes.DI_COMPLETED;
-import static org.folio.DataImportEventTypes.DI_ERROR;
-import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
 
 public class EventTypeHandlerSelector {
 
