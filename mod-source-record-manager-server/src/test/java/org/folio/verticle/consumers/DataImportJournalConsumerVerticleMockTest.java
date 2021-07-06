@@ -11,6 +11,7 @@ import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
+import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
@@ -20,8 +21,10 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,6 +51,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -73,6 +77,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public static final String ACTION_STATUS_KEY = "actionStatus";
   public static final String SOURCE_RECORD_ID_KEY = "sourceId";
   public static final String ENV_KEY = "folio";
+  public static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
 
   @Spy
   private Vertx vertx = Vertx.vertx();
@@ -96,6 +101,8 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
   private final String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
 
+  private Record record;
+
   private final JobExecution jobExecution = new JobExecution()
     .withId(jobExecutionUUID)
     .withHrId(1000)
@@ -113,10 +120,11 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     .put("order", 1);
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     MockitoAnnotations.initMocks(this);
     dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
     when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
+    record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
   }
 
   @Test
@@ -258,6 +266,34 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
     Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonObject.getString(SOURCE_RECORD_ID_KEY));
     Assert.assertNotNull(jsonObject.getString("error"));
+  }
+
+  @Test
+  public void shouldFillTitleOnRecordModifiedEventProcessing() throws IOException {
+    // given
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID)
+      .withContext(new HashMap<>() {{
+        put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+      }});
+
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
+    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
+
+    JournalRecord journalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
+    Assert.assertEquals("Action Type:", ActionType.MODIFY, journalRecord.getActionType());
+    Assert.assertEquals("Action Status:", ActionStatus.COMPLETED, journalRecord.getActionStatus());
+    Assert.assertEquals("Title:", "The Journal of ecclesiastical history.", journalRecord.getTitle());
   }
 
   @Test
