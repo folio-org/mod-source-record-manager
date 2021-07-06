@@ -3,7 +3,6 @@ package org.folio.services.progress;
 import io.vertx.core.Future;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.services.JobMonitoringService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,8 +41,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
 
   @Override
   public Future<JobExecutionProgress> updateJobExecutionProgress(String jobExecutionId, UnaryOperator<JobExecutionProgress> progressMutator, String tenantId) {
-    return jobExecutionProgressDao.updateByJobExecutionId(jobExecutionId, progressMutator, tenantId)
-      .compose(jobExecutionProgress -> jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId)
-        .map(jobExecutionProgress));
+    jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId);
+    return jobExecutionProgressDao.updateByJobExecutionId(jobExecutionId, progressMutator, tenantId);
   }
 }
