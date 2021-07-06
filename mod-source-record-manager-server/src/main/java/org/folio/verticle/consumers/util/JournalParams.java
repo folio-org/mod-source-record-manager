@@ -147,6 +147,22 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_LOG_SRS_MARC_BIB_RECORD_CREATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_LOG_SRS_MARC_BIB_RECORD_UPDATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_COMPLETED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
