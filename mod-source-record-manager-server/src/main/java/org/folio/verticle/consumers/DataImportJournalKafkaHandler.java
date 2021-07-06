@@ -36,7 +36,6 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
   private Vertx vertx;
   private JournalService journalService;
   private KafkaInternalCache kafkaInternalCache;
-//  private EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector();
   private EventTypeHandlerSelector eventTypeHandlerSelector;
 
   public DataImportJournalKafkaHandler(@Autowired Vertx vertx,
@@ -46,7 +45,6 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     this.vertx = vertx;
     this.journalService = journalService;
     this.kafkaInternalCache = kafkaInternalCache;
-
     this.eventTypeHandlerSelector = eventTypeHandlerSelector;
   }
 
