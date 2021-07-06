@@ -17,6 +17,7 @@
     <jackson.version>2.10.5.1</jackson.version>
     <jackson.jaxb.version>2.9.9</jackson.jaxb.version>
     <lombok.version>1.18.12</lombok.version>
+    <testcontainers.version>1.15.3</testcontainers.version>
   </properties>
 
   <dependencyManagement>
@@ -40,6 +41,24 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>kafka</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.xlate</groupId>
       <artifactId>staedi</artifactId>
       <version>1.16.0</version>
@@ -58,11 +77,6 @@
           <artifactId>kafka-clients</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka-clients</artifactId>
-      <version>2.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
