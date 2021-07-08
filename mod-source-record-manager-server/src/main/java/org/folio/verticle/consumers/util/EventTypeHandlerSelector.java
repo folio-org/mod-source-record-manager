@@ -1,23 +1,27 @@
 package org.folio.verticle.consumers.util;
 
 import org.folio.DataImportEventPayload;
-import org.folio.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.DataImportEventTypes.DI_COMPLETED;
-import static org.folio.DataImportEventTypes.DI_ERROR;
-import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
 
+@Component
 public class EventTypeHandlerSelector {
 
   public static final String DEFAULT_HANDLER_KEY = "DEFAULT";
   private final Map<String, SpecificEventHandler> handlers;
 
-  public EventTypeHandlerSelector() {
+  @Autowired
+  public EventTypeHandlerSelector(MarcImportEventsHandler marcImportEventsHandler) {
     this.handlers = Map.of(DI_INVOICE_CREATED.toString(), new InvoiceImportEventHandler(),
-      DEFAULT_HANDLER_KEY, new MarcImportEventsHandler());
+      DEFAULT_HANDLER_KEY, marcImportEventsHandler);
   }
 
   public SpecificEventHandler getHandler(DataImportEventPayload eventPayload) {

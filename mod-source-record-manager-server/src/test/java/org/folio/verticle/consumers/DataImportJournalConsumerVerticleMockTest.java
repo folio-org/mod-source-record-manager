@@ -1,5 +1,6 @@
 package org.folio.verticle.consumers;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -11,6 +12,7 @@ import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
+import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
@@ -20,9 +22,14 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalServiceImpl;
+import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
+import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +47,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
@@ -48,6 +56,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -55,8 +64,6 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,6 +80,8 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public static final String ACTION_STATUS_KEY = "actionStatus";
   public static final String SOURCE_RECORD_ID_KEY = "sourceId";
   public static final String ENV_KEY = "folio";
+  public static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
+  public static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/rules.json";
 
   @Spy
   private Vertx vertx = Vertx.vertx();
@@ -85,6 +94,13 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
   @Mock
   private KafkaInternalCache kafkaInternalCache;
+
+  @Mock
+  private MappingRuleCache mappingRuleCache;
+
+  @Spy
+  @InjectMocks
+  private MarcImportEventsHandler marcImportEventsHandler;
 
   @Spy
   private final JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
@@ -112,10 +128,16 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     .put("snapshotId", jobExecutionUUID)
     .put("order", 1);
 
+  private Record record;
+
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     MockitoAnnotations.initMocks(this);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
+    EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
+    record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
+    JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
+    when(mappingRuleCache.get(anyString())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
   }
 
@@ -258,6 +280,34 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
     Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonObject.getString(SOURCE_RECORD_ID_KEY));
     Assert.assertNotNull(jsonObject.getString("error"));
+  }
+
+  @Test
+  public void shouldFillTitleOnRecordModifiedEventProcessing() throws IOException {
+    // given
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID)
+      .withContext(new HashMap<>() {{
+        put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+      }});
+
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
+    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
+
+    JournalRecord journalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
+    Assert.assertEquals("Action Type:", ActionType.MODIFY, journalRecord.getActionType());
+    Assert.assertEquals("Action Status:", ActionStatus.COMPLETED, journalRecord.getActionStatus());
+    Assert.assertEquals("Title:", "The Journal of ecclesiastical history.", journalRecord.getTitle());
   }
 
   @Test

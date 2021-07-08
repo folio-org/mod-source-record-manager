@@ -25,8 +25,11 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalServiceImpl;
+import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
+import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,6 +97,12 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   @Mock
   private KafkaInternalCache kafkaInternalCache;
 
+  @Mock
+  private MappingRuleCache mappingRuleCache;
+
+  @InjectMocks
+  private MarcImportEventsHandler marcImportEventsHandler;
+
   @Captor
   private ArgumentCaptor<JsonArray> invoiceRecordCaptor;
 
@@ -139,7 +148,8 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
+    EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
   }
 
   @Test

@@ -1,9 +1,6 @@
 package org.folio.verticle.consumers;
 
-import com.github.tomakehurst.wiremock.admin.NotFoundException;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -29,11 +26,11 @@ import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.services.journal.JournalService;
+import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -104,7 +101,10 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     kafkaInternalCache = getBeanFromSpringContext(vertx, KafkaInternalCache.class);
     Assert.assertNotNull(kafkaInternalCache);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
+    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(vertx, EventTypeHandlerSelector.class);
+    Assert.assertNotNull(eventTypeHandlerSelector);
+
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
   }
 
   String INVOICE_ID = UUID.randomUUID().toString();
