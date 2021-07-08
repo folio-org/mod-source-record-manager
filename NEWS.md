@@ -1,4 +1,5 @@
-## xxxx-xx-xx v3.2.0-SNAPSHOT
+## 2021-07-06 v3.2.0-SNAPSHOT
+* [MODSOURMAN-509](https://issues.folio.org/browse/MODSOURMAN-509) Data import stopped process before finishing: deadlock for "job_monitoring"
 
 ## 2021-06-17 v3.1.0
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
