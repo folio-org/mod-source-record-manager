@@ -27,6 +27,7 @@ import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.services.journal.JournalService;
+import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +106,10 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     kafkaInternalCache = getBeanFromSpringContext(vertx, KafkaInternalCache.class);
     Assert.assertNotNull(kafkaInternalCache);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, journalService);
+    EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(vertx, EventTypeHandlerSelector.class);
+    Assert.assertNotNull(eventTypeHandlerSelector);
+
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
   }
 
   @Test

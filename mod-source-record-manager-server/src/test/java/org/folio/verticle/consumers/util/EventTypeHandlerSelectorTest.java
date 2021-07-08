@@ -17,7 +17,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTA
 @RunWith(BlockJUnit4ClassRunner.class)
 public class EventTypeHandlerSelectorTest {
 
-  EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector();
+  EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(new MarcImportEventsHandler(null));
 
   @Test
   public void shouldReturnMarcImportEventHandler() {
