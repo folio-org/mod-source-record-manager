@@ -1,6 +1,13 @@
 ## 2021-07-06 v3.2.0-SNAPSHOT
 * [MODSOURMAN-509](https://issues.folio.org/browse/MODSOURMAN-509) Data import stopped process before finishing: deadlock for "job_monitoring"
 
+## xxxx-xx-xx v3.1.2-SNAPSHOT
+* [MODSOURMAN-508](https://issues.folio.org/browse/MODSOURMAN-508) Log details for Inventory single record imports for Overlays
+
+## 2021-06-25 v3.1.1
+* [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
+* [MODSOURMAN-501](https://issues.folio.org/browse/MODSOURMAN-501) Change dataType to have have common type for MARC related subtypes
+
 ## 2021-06-17 v3.1.0
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
 * [MODSOURMAN-448](https://issues.folio.org/browse/MODSOURMAN-448) Update default field mapping for 647 field
