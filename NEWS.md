@@ -1,10 +1,12 @@
+## 2021-07-15 v3.1.2
+* [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
+
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
 * [MODSOURMAN-501](https://issues.folio.org/browse/MODSOURMAN-501) Change dataType to have have common type for MARC related subtypes
 * Update data-import-processing-core dependency to v3.1.2
 
 ## 2021-06-17 v3.1.0
-* [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
 * [MODSOURMAN-448](https://issues.folio.org/browse/MODSOURMAN-448) Update default field mapping for 647 field
 * [MODSOURMAN-453](https://issues.folio.org/browse/MODSOURMAN-453) Add index for the "job_execution_source_chunks"
