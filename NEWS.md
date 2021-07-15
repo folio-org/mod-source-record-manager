@@ -1,5 +1,6 @@
 ## 2021-07-15 v3.0.9
 * [MODSOURMAN-509](https://issues.folio.org/browse/MODSOURMAN-509) Data import stopped process before finishing: deadlock for "job_monitoring"
+* Update data-import-processing-core to v3.0.4
 
 ## 2021-06-18 v3.0.8
 * [MODSOURCE-301](https://issues.folio.org/browse/MODSOURCE-301) Cannot import GOBI EDIFACT invoice
