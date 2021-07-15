@@ -42,8 +42,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
 
   @Override
   public Future<JobExecutionProgress> updateJobExecutionProgress(String jobExecutionId, UnaryOperator<JobExecutionProgress> progressMutator, String tenantId) {
-    return jobExecutionProgressDao.updateByJobExecutionId(jobExecutionId, progressMutator, tenantId)
-      .compose(jobExecutionProgress -> jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId)
-        .map(jobExecutionProgress));
+    jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId);
+    return jobExecutionProgressDao.updateByJobExecutionId(jobExecutionId, progressMutator, tenantId);
   }
 }
