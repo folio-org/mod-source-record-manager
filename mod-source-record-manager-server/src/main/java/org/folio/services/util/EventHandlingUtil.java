@@ -17,13 +17,13 @@ import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.util.pubsub.PubSubClientUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public final class EventHandlingUtil {
-  private final static ConcurrentMap<String, KafkaProducer<String, String>> KAFKA_PRODUCERS = new ConcurrentHashMap<>();
+  private final static Map<String, KafkaProducer<String, String>> KAFKA_PRODUCERS = new HashMap<>();
 
   private EventHandlingUtil() {
   }
@@ -67,7 +67,10 @@ public final class EventHandlingUtil {
 
     String correlationId = extractCorrelationId(kafkaHeaders);
     String producerName = eventType + "_Producer";
-    KafkaProducer<String, String> producer = getKafkaProducer(producerName, kafkaConfig);
+    KafkaProducer<String, String> producer = KAFKA_PRODUCERS.computeIfAbsent(
+      producerName,
+      kafkaProducer -> KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps())
+    );
 
     producer.write(record, war -> {
       producer.end();
@@ -89,15 +92,5 @@ public final class EventHandlingUtil {
       .findFirst()
       .map(header -> header.value().toString())
       .orElse(null);
-  }
-
-  private static KafkaProducer<String, String> getKafkaProducer(String producerName, KafkaConfig kafkaConfig) {
-    if (KAFKA_PRODUCERS.containsKey(producerName)) {
-      return KAFKA_PRODUCERS.get(producerName);
-    } else {
-      KafkaProducer<String, String> kafkaProducer = KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
-      KAFKA_PRODUCERS.put(producerName, kafkaProducer);
-      return kafkaProducer;
-    }
   }
 }
