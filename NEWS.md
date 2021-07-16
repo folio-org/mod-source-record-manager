@@ -1,5 +1,6 @@
 ## 2021-07-06 v3.2.0-SNAPSHOT
 * [MODSOURMAN-509](https://issues.folio.org/browse/MODSOURMAN-509) Data import stopped process before finishing: deadlock for "job_monitoring"
+* [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message sent
 
 ## xxxx-xx-xx v3.1.2-SNAPSHOT
 * [MODSOURMAN-508](https://issues.folio.org/browse/MODSOURMAN-508) Log details for Inventory single record imports for Overlays

@@ -17,10 +17,13 @@ import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.util.pubsub.PubSubClientUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public final class EventHandlingUtil {
+  private final static Map<String, KafkaProducer<String, String>> KAFKA_PRODUCERS = new HashMap<>();
 
   private EventHandlingUtil() {
   }
@@ -64,11 +67,13 @@ public final class EventHandlingUtil {
 
     String correlationId = extractCorrelationId(kafkaHeaders);
     String producerName = eventType + "_Producer";
-    KafkaProducer<String, String> producer =
-      KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
+    KafkaProducer<String, String> producer = KAFKA_PRODUCERS.computeIfAbsent(
+      producerName,
+      kafkaProducer -> KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps())
+    );
 
     producer.write(record, war -> {
-      producer.end(ear -> producer.close());
+      producer.end();
       if (war.succeeded()) {
         LOGGER.info("Event with type: {} and correlationId: {} was sent to kafka", eventType, correlationId);
         promise.complete(true);
@@ -88,5 +93,4 @@ public final class EventHandlingUtil {
       .map(header -> header.value().toString())
       .orElse(null);
   }
-
 }
