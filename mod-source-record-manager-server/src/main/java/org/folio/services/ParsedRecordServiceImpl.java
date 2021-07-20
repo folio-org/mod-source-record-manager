@@ -5,13 +5,11 @@ import static java.lang.String.format;
 
 import static org.folio.HttpStatus.HTTP_NOT_FOUND;
 import static org.folio.HttpStatus.HTTP_OK;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 import static org.folio.verticle.consumers.util.QMEventTypes.QM_RECORD_UPDATED;
 
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.ws.rs.NotFoundException;
 
 import io.vertx.core.Future;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
-import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.client.SourceStorageSourceRecordsClient;
@@ -43,18 +40,18 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   private final MappingParametersProvider mappingParametersProvider;
   private final MappingRuleCache mappingRuleCache;
   private final SourceRecordStateService sourceRecordStateService;
-  private final KafkaConfig kafkaConfig;
+  private final QuickMarcEventProducerService producerService;
 
   @Value("${srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
 
   public ParsedRecordServiceImpl(MappingParametersProvider mappingParametersProvider,
                                  MappingRuleCache mappingRuleCache,
-                                 SourceRecordStateService sourceRecordStateService, KafkaConfig kafkaConfig) {
+                                 SourceRecordStateService sourceRecordStateService, QuickMarcEventProducerService producerService) {
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
     this.sourceRecordStateService = sourceRecordStateService;
-    this.kafkaConfig = kafkaConfig;
+    this.producerService = producerService;
   }
 
   @Override
@@ -123,7 +120,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
     var eventPayload = prepareEventPayload(parsedRecordDto, mappingRules, mappingParameters, snapshotId);
     return sourceRecordStateService.save(sourceRecordState, tenantId)
-      .compose(s -> sendEventToKafka(tenantId, eventPayload, QM_RECORD_UPDATED.name(), kafkaHeaders, kafkaConfig, key));
+      .compose(s -> producerService.sendEvent(eventPayload, QM_RECORD_UPDATED.name(), key, tenantId, kafkaHeaders));
   }
 
   private ParsedRecordDto mapSourceRecordToParsedRecordDto(Buffer body) {
