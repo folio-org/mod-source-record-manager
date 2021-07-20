@@ -186,12 +186,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
         String recordId = UUID.randomUUID().toString();
-        MarcRecordType marcRecordType = marcRecordAnalyzer.process(parsedResult.getParsedRecord());
-        LOGGER.info("Marc record analyzer parsed record with id = {} and type = {}", recordId, marcRecordType);
         Record record = new Record()
           .withId(recordId)
           .withMatchedId(recordId)
-          .withRecordType(RecordType.valueOf(MARC_FORMAT + marcRecordType.name()))
+          .withRecordType(inferRecordType(jobExecution, parsedResult, recordId))
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
           .withGeneration(0)
@@ -231,6 +229,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
         }
       }).collect(Collectors.toList());
+  }
+
+  private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId) {
+    if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
+      MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
+      LOGGER.info("Marc record analyzer parsed record with id = {} and type = {}", recordId, marcRecordType);
+      return RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
+    }
+
+    return RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value());
   }
 
   /**
