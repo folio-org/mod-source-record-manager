@@ -5,14 +5,18 @@ import static java.lang.String.format;
 import static org.folio.kafka.KafkaHeaderUtils.kafkaHeadersToMap;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
+import static org.folio.verticle.consumers.util.QMEventTypes.QM_COMPLETED;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
+import io.vertx.kafka.client.producer.KafkaHeader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,8 +28,10 @@ import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
+import org.folio.services.QuickMarcEventProducerService;
 import org.folio.services.SourceRecordStateService;
 import org.folio.verticle.consumers.util.QMEventTypes;
+import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 
 @Component
 @Log4j2
@@ -34,11 +40,13 @@ import org.folio.verticle.consumers.util.QMEventTypes;
 public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, String> {
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
+  private static final String ERROR_KEY = "ERROR";
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
   private static final String EVENT_ID_PREFIX = QuickMarcUpdateKafkaHandler.class.getSimpleName();
 
   private final KafkaInternalCache kafkaInternalCache;
   private final SourceRecordStateService sourceRecordStateService;
+  private final QuickMarcEventProducerService producerService;
   private final Vertx vertx;
 
   @Override
@@ -48,10 +56,12 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
 
     if (!kafkaInternalCache.containsByKey(cacheEventId)) {
       kafkaInternalCache.putToCache(cacheEventId);
-      OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(record.headers()), vertx);
+      var kafkaHeaders = record.headers();
+      var okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(kafkaHeaders), vertx);
       var tenantId = okapiConnectionParams.getTenantId();
       var eventType = event.getEventType();
       return getEventPayload(event)
+        .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
         .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
         .compose(s -> Future.succeededFuture(record.key()), th -> {
           log.error("Update record state was failed while handle {} event", eventType);
@@ -62,7 +72,16 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
     }
   }
 
-  private Future<SourceRecordState> updateSourceState(HashMap<String, String> eventPayload, String eventType,
+  private Future<Map<String, String>> sendQmCompletedEvent(Map<String, String> eventPayload,
+                                                           String tenantId, List<KafkaHeader> kafkaHeaders) {
+    var recordId = eventPayload.get(RECORD_ID_KEY);
+    var errorMessage = eventPayload.get(ERROR_KEY);
+    var qmCompletedEventPayload = new QmCompletedEventPayload(recordId, errorMessage);
+    return producerService.sendEvent(Json.encode(qmCompletedEventPayload), QM_COMPLETED.name(), null, tenantId, kafkaHeaders)
+      .map(v -> eventPayload);
+  }
+
+  private Future<SourceRecordState> updateSourceState(Map<String, String> eventPayload, String eventType,
                                                       String tenantId) {
     log.debug("Event was received for {}: {}", eventType, eventPayload);
     var recordId = eventPayload.get(RECORD_ID_KEY);
@@ -74,7 +93,7 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   }
 
   @SuppressWarnings("unchecked")
-  private Future<HashMap<String, String>> getEventPayload(Event event) {
+  private Future<Map<String, String>> getEventPayload(Event event) {
     try {
       var eventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), HashMap.class);
       return Future.succeededFuture(eventPayload);
