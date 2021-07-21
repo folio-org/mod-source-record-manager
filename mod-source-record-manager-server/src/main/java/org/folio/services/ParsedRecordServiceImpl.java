@@ -120,7 +120,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
     var eventPayload = prepareEventPayload(parsedRecordDto, mappingRules, mappingParameters, snapshotId);
     return sourceRecordStateService.save(sourceRecordState, tenantId)
-      .compose(s -> producerService.sendEvent(eventPayload, QM_RECORD_UPDATED.name(), key, tenantId, kafkaHeaders));
+      .compose(s -> producerService.sendEventWithZipping(eventPayload, QM_RECORD_UPDATED.name(), key, tenantId, kafkaHeaders));
   }
 
   private ParsedRecordDto mapSourceRecordToParsedRecordDto(Buffer body) {
