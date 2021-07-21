@@ -4,6 +4,7 @@
 
 ## xxxx-xx-xx v3.1.2-SNAPSHOT
 * [MODSOURMAN-508](https://issues.folio.org/browse/MODSOURMAN-508) Log details for Inventory single record imports for Overlays
+* [MODSOURMAN-527](https://issues.folio.org/browse/MODSOURMAN-527) Cannot import EDIFACT invoices
 
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
