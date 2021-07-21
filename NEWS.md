@@ -2,6 +2,7 @@
 * [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
 * [MODSOURMAN-508](https://issues.folio.org/browse/MODSOURMAN-508) Log details for Inventory single record imports for Overlays
 * [MODSOURMAN-527](https://issues.folio.org/browse/MODSOURMAN-527) Cannot import EDIFACT invoices
+* Update data-import-processing-core dependency to v3.1.3
 
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
