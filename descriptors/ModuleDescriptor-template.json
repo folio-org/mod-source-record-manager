@@ -218,7 +218,11 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
-            "inventory-storage.preceding-succeeding-titles.item.post"
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.collection.get",
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.preceding-succeeding-titles.item.delete"
           ]
         },
         {
@@ -290,7 +294,13 @@
             "inventory-storage.locations.collection.get",
             "converter-storage.field-protection-settings.get",
             "inventory-storage.instances.item.get",
-            "inventory-storage.instances.item.put"
+            "inventory-storage.instances.item.put",
+            "pubsub.publish.post",
+            "inventory-storage.preceding-succeeding-titles.collection.get",
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.preceding-succeeding-titles.item.delete"
           ]
         }
       ]
