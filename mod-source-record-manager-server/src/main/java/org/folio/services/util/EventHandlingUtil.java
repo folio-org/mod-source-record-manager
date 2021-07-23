@@ -42,7 +42,7 @@ public final class EventHandlingUtil {
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
     Event event;
     try {
-      event = createEvent(eventPayload, eventType, tenantId);
+      event = createEvent(eventPayload, eventType, tenantId, true);
     } catch (IOException e) {
       LOGGER.error("Failed to construct an event for eventType {}", eventType, e);
       return Future.failedFuture(e);
@@ -91,11 +91,11 @@ public final class EventHandlingUtil {
       tenantId, eventType);
   }
 
-  public static Event createEvent(String eventPayload, String eventType, String tenantId) throws IOException {
+  public static Event createEvent(String eventPayload, String eventType, String tenantId, boolean isZipped) throws IOException {
     return new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(eventType)
-      .withEventPayload(ZIPArchiver.zip(eventPayload))
+      .withEventPayload(isZipped ? ZIPArchiver.zip(eventPayload) : eventPayload)
       .withEventMetadata(new EventMetadata()
         .withTenantId(tenantId)
         .withEventTTL(1)

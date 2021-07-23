@@ -11,7 +11,7 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 public interface QuickMarcEventProducerService {
 
   /**
-   * Publishes an event with each of the passed records to the specified topic
+   * Publishes an event with each of the passed records to the specified topic without zipping eventPayload
    *
    * @param eventPayload payload
    * @param eventType    event type
@@ -22,4 +22,17 @@ public interface QuickMarcEventProducerService {
    */
   Future<Boolean> sendEvent(String eventPayload, String eventType, String key, String tenantId,
                             List<KafkaHeader> kafkaHeaders);
+
+  /**
+   * Publishes an event with each of the passed records to the specified topic with zipping eventPayload
+   *
+   * @param eventPayload payload
+   * @param eventType    event type
+   * @param key          key with which the specified event
+   * @param tenantId     tenant id
+   * @param kafkaHeaders kafka headers
+   * @return true if successful
+   */
+  Future<Boolean> sendEventWithZipping(String eventPayload, String eventType, String key, String tenantId,
+                                       List<KafkaHeader> kafkaHeaders);
 }
