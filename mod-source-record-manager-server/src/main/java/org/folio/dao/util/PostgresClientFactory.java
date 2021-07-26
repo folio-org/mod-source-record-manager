@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostgresClientFactory {
 
-  private Vertx vertx;
+  public Vertx vertx;
 
   public PostgresClientFactory(@Autowired Vertx vertx) {
     this.vertx = vertx;
