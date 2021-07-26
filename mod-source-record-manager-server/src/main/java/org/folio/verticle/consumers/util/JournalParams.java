@@ -163,6 +163,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_HOLDING_RECORD_CREATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.MARC_HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_COMPLETED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
