@@ -34,18 +34,21 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
                                    @Autowired Vertx vertx) {
+    LOGGER.info("RawMarcChunksKafkaHandler.constructor");
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
     this.vertx = vertx;
   }
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+    LOGGER.info("RawMarcChunksKafkaHandler.handle");
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
     Event event = Json.decodeValue(record.value(), Event.class);
+    LOGGER.debug("RawMarcChunksKafkaHandler:: event : {}", event.getEventType());
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);

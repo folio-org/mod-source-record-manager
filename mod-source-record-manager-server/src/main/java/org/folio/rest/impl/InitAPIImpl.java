@@ -56,6 +56,7 @@ public class InitAPIImpl implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
+    LOGGER.info("InitAPIImpl.init");
     try {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
@@ -76,12 +77,14 @@ public class InitAPIImpl implements InitAPI {
   }
 
   private void initJournalService(Vertx vertx) {
+    LOGGER.info("InitAPIImpl.initJournalService");
     new ServiceBinder(vertx)
       .setAddress(JournalService.JOURNAL_RECORD_SERVICE_ADDRESS)
       .register(JournalService.class, journalService);
   }
 
   private Future<?> deployConsumersVerticles(Vertx vertx) {
+    LOGGER.info("InitAPIImpl.deployConsumersVerticles");
     //TODO: get rid of this workaround with global spring context
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
