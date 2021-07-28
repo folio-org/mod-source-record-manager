@@ -1,11 +1,16 @@
 ## 2021-07-06 v3.2.0-SNAPSHOT
-* [MODSOURMAN-509](https://issues.folio.org/browse/MODSOURMAN-509) Data import stopped process before finishing: deadlock for "job_monitoring"
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message sent
+* [MODSOURMAN-524](https://issues.folio.org/browse/MODSOURMAN-524) Support MARC Holdings
 
-## xxxx-xx-xx v3.1.2-SNAPSHOT
+## XXXX-XX-XX v3.1.3
+* [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
+
+## 2021-07-21 v3.1.2
+* [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
 * [MODSOURMAN-508](https://issues.folio.org/browse/MODSOURMAN-508) Log details for Inventory single record imports for Overlays
 * [MODSOURMAN-527](https://issues.folio.org/browse/MODSOURMAN-527) Cannot import EDIFACT invoices
+* Update data-import-processing-core dependency to v3.1.3
 
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type

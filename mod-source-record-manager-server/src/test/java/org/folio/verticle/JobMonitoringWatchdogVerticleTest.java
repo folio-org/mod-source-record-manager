@@ -27,8 +27,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobMonitoring;
@@ -81,8 +81,7 @@ public class JobMonitoringWatchdogVerticleTest {
     tenants.put(TENANT_ID1, TENANT_ID1);
     tenants.put(TENANT_ID2, TENANT_ID2);
 
-    FieldSetter.setField(jobMonitoringWatchdogVerticle,
-      jobMonitoringWatchdogVerticle.getClass().getSuperclass().getDeclaredField("maxInactiveInterval"), 200L);
+    ReflectionTestUtils.setField(jobMonitoringWatchdogVerticle,"maxInactiveInterval", 200L);
     doNothing().when(jobMonitoringWatchdogVerticle).declareSpringContext();
   }
 
