@@ -40,8 +40,11 @@ public class ApplicationConfig {
 
   @Bean(name = "newKafkaConfig")
   public KafkaConfig kafkaConfigBean() {
+    LOGGER.info("ENV variable value is: {}", System.getenv("ENV"));
+    LOGGER.info("EnvId resolved by Spring: {}", envId);
+
     KafkaConfig kafkaConfig = KafkaConfig.builder()
-      .envId(envId)
+      .envId(envId.equalsIgnoreCase("folio") ? "folijet": "folijet")
       .kafkaHost(kafkaHost)
       .kafkaPort(kafkaPort)
       .okapiUrl(okapiUrl)
