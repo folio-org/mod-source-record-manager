@@ -1,9 +1,6 @@
 package org.folio.verticle.consumers;
 
-import com.github.tomakehurst.wiremock.admin.NotFoundException;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -32,13 +29,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -51,6 +46,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTA
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -147,6 +143,34 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withProfileSnapshot(profileSnapshotWrapperResponse)
+      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(dataImportEventPayloadContext)
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID)
+      .withToken(TOKEN);
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
+    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      Assert.assertNotNull(ar.result());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws IOException {
+    Async async = context.async();
+
+    // given
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED.value())
       .withProfileSnapshot(profileSnapshotWrapperResponse)
       .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(jobExecution.getId())

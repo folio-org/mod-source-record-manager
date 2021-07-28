@@ -79,6 +79,26 @@ public class AdditionalFieldsUtilTest {
   }
 
   @Test
+  public void shouldReturnNullIfFieldNotFound() {
+    // given
+    Record record = new Record().withParsedRecord(new ParsedRecord().withContent("{}"));
+    // when
+    String value = AdditionalFieldsUtil.getControlFieldValue(record, "001");
+    // then
+    Assert.assertNull(value);
+  }
+
+  @Test
+  public void shouldReturnNullIfFailedToParse() {
+    // given
+    Record record = new Record().withParsedRecord(new ParsedRecord().withContent("{fake-record}"));
+    // when
+    String value = AdditionalFieldsUtil.getControlFieldValue(record, "001");
+    // then
+    Assert.assertNull(value);
+  }
+
+  @Test
   public void shouldNotAddInstanceIdSubfieldIfNoFieldsInParsedRecordContent() {
     // given
     Record record = new Record();

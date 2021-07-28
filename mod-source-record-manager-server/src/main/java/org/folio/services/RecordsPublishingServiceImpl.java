@@ -6,6 +6,7 @@ import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -190,7 +191,8 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       .withEventType(eventType)
       .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(
-        MARC_AUTHORITY.equals(record.getRecordType())
+        // TODO check for Holdings should be removed after implementing linkage with mod-inventory holdings records
+        MARC_AUTHORITY.equals(record.getRecordType()) || MARC_HOLDING.equals(record.getRecordType())
           ? new ProfileSnapshotWrapper()
           : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())

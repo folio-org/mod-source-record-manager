@@ -1,5 +1,30 @@
 package org.folio.services;
 
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.NotFoundException;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -11,6 +36,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
@@ -37,35 +66,9 @@ import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldService;
-import org.folio.services.journal.JournalService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.ws.rs.NotFoundException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -74,16 +77,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
   private static final String TAG_001 = "001";
+  private static final String TAG_004 = "004";
   private static final String MARC_FORMAT = "MARC_";
   private static final AtomicInteger indexer = new AtomicInteger();
+  private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
+    "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
   private RecordAnalyzer marcRecordAnalyzer;
-  private JournalService journalService;
   private HrIdFieldService hrIdFieldService;
   private RecordsPublishingService recordsPublishingService;
-  private MappingRuleCache mappingRuleCache;
   private KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
@@ -93,30 +97,31 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired MarcRecordAnalyzer marcRecordAnalyzer,
                                  @Autowired HrIdFieldService hrIdFieldService,
-                                 @Autowired MappingRuleCache mappingRuleCache,
-                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
     this.hrIdFieldService = hrIdFieldService;
-    this.mappingRuleCache = mappingRuleCache;
-    this.journalService = journalService;
     this.recordsPublishingService = recordsPublishingService;
     this.kafkaConfig = kafkaConfig;
   }
 
   @Override
-  public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params) {
+  public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution,
+                                                                  String sourceChunkId, OkapiConnectionParams params) {
     Promise<List<Record>> promise = Promise.promise();
-    List<Record> parsedRecords = parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId, params.getTenantId());
+    List<Record> parsedRecords =
+      parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
+        params.getTenantId());
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
     if (updateMarcActionExists) {
-      LOGGER.info("Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
-      recordsPublishingService.sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
+      LOGGER.info(
+        "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+      recordsPublishingService
+        .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
         .onSuccess(ar -> promise.complete(parsedRecords))
         .onFailure(promise::fail);
     } else {
@@ -134,9 +139,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               });
             jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
               .compose(optional -> optional
-                .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+                .map(sourceChunk -> jobExecutionSourceChunkDao
+                  .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
                 .orElseThrow(() -> new NotFoundException(String.format(
-                  "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found", sourceChunkId))))
+                  "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
+                  sourceChunkId))))
               .onComplete(ar -> promise.fail(postAr.cause()));
           } else {
             promise.complete(parsedRecords);
@@ -173,7 +180,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param tenantId      - tenant id
    * @return - list of records with parsed or error data
    */
-  private List<Record> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType, JobExecution jobExecution, String sourceChunkId, String tenantId) {
+  private List<Record> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
+                                    JobExecution jobExecution, String sourceChunkId, String tenantId) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
@@ -202,19 +210,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
-            String matchedId = getValue(record, "999", 's');
-            if (StringUtils.isNotBlank(matchedId)) {
-              record.setMatchedId(matchedId);
-              record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
-            }
-            String instanceId = getValue(record, "999", 'i');
-            if (isNotBlank(instanceId)) {
-              record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
-              String instanceHrid = getValue(record, TAG_001, ' ');
-              if (isNotBlank(instanceHrid)) {
-                record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
-              }
-            }
+            postProcessMarcRecord(record, rawRecord);
           }
         }
         return record;
@@ -224,11 +220,50 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao.update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
+              .map(sourceChunk -> jobExecutionSourceChunkDao
+                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
               .orElseThrow(() -> new NotFoundException(format(
-                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found", sourceChunkId))));
+                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
+                sourceChunkId))));
         }
       }).collect(Collectors.toList());
+  }
+
+  private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
+    String matchedId = getValue(record, TAG_999, 's');
+    if (StringUtils.isNotBlank(matchedId)) {
+      record.setMatchedId(matchedId);
+      record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+    }
+
+    var recordType = record.getRecordType();
+    if (recordType == MARC_BIB) {
+      postProcessMarcBibRecord(record);
+    } else if (recordType == MARC_HOLDING) {
+      postProcessMarcHoldingsRecord(record, rawRecord);
+    }
+  }
+
+  private void postProcessMarcBibRecord(Record record) {
+    String instanceId = getValue(record, TAG_999, 'i');
+    if (isNotBlank(instanceId)) {
+      record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+      String instanceHrid = getControlFieldValue(record, TAG_001);
+      if (isNotBlank(instanceHrid)) {
+        record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+      }
+    }
+  }
+
+  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord) {
+    if (isBlank(getControlFieldValue(record, TAG_004))) {
+      LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+      record.setParsedRecord(null);
+      record.setErrorRecord(new ErrorRecord()
+        .withContent(rawRecord)
+        .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
+      );
+    }
   }
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId) {
@@ -265,7 +300,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param jobExecution  - job execution related to records
    * @param parsedRecords - parsed records
    */
-  private Future<List<Record>> saveRecords(OkapiConnectionParams params, JobExecution jobExecution, List<Record> parsedRecords) {
+  private Future<List<Record>> saveRecords(OkapiConnectionParams params, JobExecution jobExecution,
+                                           List<Record> parsedRecords) {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
