@@ -91,17 +91,17 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
       //LOGGER.info(client.getConnectionConfig().encodePrettily());
 
-//      String db = client.getConnectionConfig().getString("database");
-//      String host = client.getConnectionConfig().getString("host");
-//      String port = client.getConnectionConfig().getString("port");
-//      String username = client.getConnectionConfig().getString("username");
-//      String password = client.getConnectionConfig().getString("password");
-//
-//      PgConnectOptions co = new PgConnectOptions().setPort(Integer.parseInt(port)).setHost(host)
-//        .setDatabase(db).setUser(username).setPassword(password);
-//
-//      PgPool pgPool = PgPool.pool(pgClientFactory.vertx, co, new PoolOptions().setMaxSize(5));
-//      privateStringField.set(client, pgPool);
+      String db = client.getConnectionConfig().getString("database");
+      String host = client.getConnectionConfig().getString("host");
+      String port = client.getConnectionConfig().getString("port");
+      String username = client.getConnectionConfig().getString("username");
+      String password = client.getConnectionConfig().getString("password");
+
+      PgConnectOptions co = new PgConnectOptions().setPort(Integer.parseInt(port)).setHost(host)
+        .setDatabase(db).setUser(username).setPassword(password);
+
+      PgPool pgPool = PgPool.pool(pgClientFactory.vertx, co, new PoolOptions().setMaxSize(5));
+      privateStringField.set(client, pgPool);
 
       client.select(preparedQuery, promise);
       LOGGER.info("JobExecutionDaoImpl.getJobExecutionsWithoutParentMultiple.finish");
