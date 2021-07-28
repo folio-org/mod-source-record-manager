@@ -24,6 +24,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 
 public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticle {
 
@@ -49,6 +50,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_INVOICE_CREATED.value(),
       DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value(),
       DI_LOG_SRS_MARC_BIB_RECORD_UPDATED.value(),
+      DI_SRS_MARC_HOLDING_RECORD_CREATED.value(),
       DI_COMPLETED.value(),
       DI_ERROR.value()
     );

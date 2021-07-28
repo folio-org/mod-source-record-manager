@@ -204,6 +204,33 @@ public final class AdditionalFieldsUtil {
    * @param tag    tag of data field
    * @return value from the specified field, or null
    */
+  public static String getControlFieldValue(Record record, String tag) {
+    if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
+      MarcReader reader = buildMarcReader(record);
+      try {
+        if (reader.hasNext()) {
+          org.marc4j.marc.Record marcRecord = reader.next();
+          return marcRecord.getControlFields().stream()
+            .filter(controlField -> controlField.getTag().equals(tag))
+            .findFirst()
+            .map(ControlField::getData)
+            .orElse(null);
+        }
+      } catch (Exception e) {
+        LOGGER.error("Error during the search a field in the record", e);
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extracts value from specified field
+   *
+   * @param record record
+   * @param tag    tag of data field
+   * @return value from the specified field, or null
+   */
   public static String getValue(Record record, String tag, char subfield) {
     if (record != null && record.getParsedRecord() != null && record.getParsedRecord().getContent() != null) {
       MarcReader reader = buildMarcReader(record);
