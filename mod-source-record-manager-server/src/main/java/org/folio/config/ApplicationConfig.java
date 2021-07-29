@@ -47,8 +47,8 @@ public class ApplicationConfig {
 
     KafkaConfig kafkaConfig = KafkaConfig.builder()
       .envId(envId)
-      .kafkaHost(kafkaHost)
-      .kafkaPort(kafkaPort)
+      .kafkaHost("kafka")
+      .kafkaPort("9092")
       .okapiUrl(okapiUrl)
       .replicationFactor(replicationFactor)
       .maxRequestSize(maxRequestSize)
