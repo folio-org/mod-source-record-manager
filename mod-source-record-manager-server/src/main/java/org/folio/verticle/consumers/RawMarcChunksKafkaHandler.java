@@ -41,14 +41,13 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
-    LOGGER.info("RawMarcChunksKafkaHandler.handle");
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
     Event event = Json.decodeValue(record.value(), Event.class);
-    LOGGER.info("RawMarcChunksKafkaHandler:: event : {}", event.getEventType());
+    LOGGER.info("Starting handling of raw mark chunks from Kafka for event type: {}", event.getEventType());
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
