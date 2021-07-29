@@ -2,6 +2,8 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -20,7 +22,7 @@ import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
 
 @Service("eventDrivenChunkProcessingService")
 public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessingService {
-
+  private static final Logger LOGGER = LogManager.getLogger();
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
 
@@ -35,6 +37,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
+    LOGGER.info("EventDrivenChunkProcessingServiceImpl:: processRawRecordsChunk");
     Promise<Boolean> promise = Promise.promise();
 
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())

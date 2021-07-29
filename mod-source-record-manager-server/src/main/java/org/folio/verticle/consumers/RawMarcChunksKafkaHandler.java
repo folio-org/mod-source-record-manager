@@ -48,15 +48,16 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
     Event event = Json.decodeValue(record.value(), Event.class);
-    LOGGER.debug("RawMarcChunksKafkaHandler:: event : {}", event.getEventType());
+    LOGGER.info("RawMarcChunksKafkaHandler:: event : {}", event.getEventType());
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
-      LOGGER.debug("RawRecordsDto has been received, starting processing correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
+      LOGGER.info("RawRecordsDto has been received, starting processing correlationId: {} chunkNumber: {} - {}", correlationId,
+        chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
-          LOGGER.debug("RawRecordsDto processing has been completed correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
+          LOGGER.info("RawRecordsDto processing has been completed correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
           return Future.succeededFuture(record.key());
         }, th -> {
           LOGGER.error("RawRecordsDto processing has failed with errors correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata(), th);
