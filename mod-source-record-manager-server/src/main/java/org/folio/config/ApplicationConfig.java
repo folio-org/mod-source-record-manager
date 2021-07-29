@@ -42,11 +42,11 @@ public class ApplicationConfig {
 
   @Bean(name = "newKafkaConfig")
   public KafkaConfig kafkaConfigBean() {
-    LOGGER.info("ENV variable value is: {}", System.getenv("ENV"));
-    LOGGER.info("EnvId resolved by Spring: {}", envId);
+    LOGGER.info("ENV variable value equals: {}", System.getenv("ENV"));
+    LOGGER.info("EnvId resolved by Spring equals : {}", envId);
 
     KafkaConfig kafkaConfig = KafkaConfig.builder()
-      .envId(envId.equalsIgnoreCase("folio") ? "folijet": "folijet")
+      .envId(envId)
       .kafkaHost(kafkaHost)
       .kafkaPort(kafkaPort)
       .okapiUrl(okapiUrl)
