@@ -37,7 +37,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
-    LOGGER.info("EventDrivenChunkProcessingServiceImpl:: processRawRecordsChunk");
+    LOGGER.info("EventDrivenChunkProcessingServiceImpl:: processRawRecordsChunk for jobExecutionId: {}", jobExecutionId);
     Promise<Boolean> promise = Promise.promise();
 
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
