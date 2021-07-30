@@ -30,7 +30,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
   @Override
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
-    LOGGER.info("AbstractChunkProcessingService:: processChunk for jobExecutionId: {}", jobExecutionId);
+    LOGGER.debug("AbstractChunkProcessingService:: processChunk for jobExecutionId: {}", jobExecutionId);
     prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
