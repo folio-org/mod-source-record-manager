@@ -40,7 +40,7 @@ public final class EventHandlingUtil {
    */
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
-    LOGGER.info("EventHandlingUtil:: sendEventToKafka for eventType: {}", eventType);
+    LOGGER.info("Starting to send event to Kafka for eventType: {}", eventType);
     Event event;
     try {
       event = createEvent(eventPayload, eventType, tenantId, true);

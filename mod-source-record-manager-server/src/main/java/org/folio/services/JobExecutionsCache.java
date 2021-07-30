@@ -49,12 +49,11 @@ public class JobExecutionsCache {
         } else {
           jobExecutionService.getJobExecutionsWithoutParentMultiple(cqlQuery, offset, limit, tenantId)
             .onSuccess(ar -> {
-              LOGGER.info("getJobExecutionsWithoutParentMultiple.onSuccess");
               put(tenantId, cqlQuery, ar);
               promise.complete(ar);
             })
             .onFailure(cause -> {
-              LOGGER.info("getJobExecutionsWithoutParentMultiple.onFailure");
+              LOGGER.error("Failure to get job executions without parent", cause);
               promise.fail(cause);
             });
         }

@@ -77,34 +77,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      LOGGER.info("JobExecutionDaoImpl.getJobExecutionsWithoutParentMultiple.start");
       StringBuilder cqlQuery = new StringBuilder("subordinationType=\"\" NOT subordinationType=").append(PARENT_MULTIPLE);
       if (StringUtils.isNotEmpty(query)) {
         cqlQuery.append(" and ").append(query);
       }
       SqlSelect sqlSelect = new CQL2PgJSON(TABLE_NAME + ".jsonb").toSql(cqlQuery.toString());
       String preparedQuery = prepareQueryGetJobWithoutParentMultiple(sqlSelect, limit, offset, convertToPsqlStandard(tenantId));
-      PostgresClient client = pgClientFactory.createInstance(tenantId);
-
-      Field privateStringField = PostgresClient.class.getDeclaredField("client");
-      privateStringField.setAccessible(true);
-
-      //LOGGER.info(client.getConnectionConfig().encodePrettily());
-
-      String db = client.getConnectionConfig().getString("database");
-      String host = client.getConnectionConfig().getString("host");
-      String port = client.getConnectionConfig().getString("port");
-      String username = client.getConnectionConfig().getString("username");
-      String password = client.getConnectionConfig().getString("password");
-
-      PgConnectOptions co = new PgConnectOptions().setPort(Integer.parseInt(port)).setHost(host)
-        .setDatabase(db).setUser(username).setPassword(password);
-
-      PgPool pgPool = PgPool.pool(pgClientFactory.vertx, co, new PoolOptions().setMaxSize(5));
-      privateStringField.set(client, pgPool);
-
-      client.select(preparedQuery, promise);
-      LOGGER.info("JobExecutionDaoImpl.getJobExecutionsWithoutParentMultiple.finish");
+      pgClientFactory.createInstance(tenantId).select(preparedQuery, promise);
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
       promise.fail(e);

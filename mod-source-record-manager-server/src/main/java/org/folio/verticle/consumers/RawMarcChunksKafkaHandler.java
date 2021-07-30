@@ -34,7 +34,6 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
                                    @Autowired Vertx vertx) {
-    LOGGER.info("RawMarcChunksKafkaHandler.constructor");
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
     this.vertx = vertx;
   }
@@ -47,7 +46,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
     Event event = Json.decodeValue(record.value(), Event.class);
-    LOGGER.info("Starting handling of raw mark chunks from Kafka for event type: {}", event.getEventType());
+    LOGGER.info("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
