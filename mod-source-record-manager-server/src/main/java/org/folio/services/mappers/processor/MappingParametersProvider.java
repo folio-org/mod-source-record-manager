@@ -2,12 +2,16 @@ package org.folio.services.mappers.processor;
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+
+import org.apache.commons.lang.StringUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+
 import org.folio.AlternativeTitleType;
 import org.folio.Alternativetitletypes;
 import org.folio.CallNumberType;
@@ -64,6 +68,8 @@ import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -101,6 +107,7 @@ public class MappingParametersProvider {
   private static final String LOAN_TYPES_URL = "/loan-types?limit=" + SETTING_LIMIT;
   private static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=" + SETTING_LIMIT;
   private static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=" + SETTING_LIMIT;
+  private static final String TENANT_CONFIGURATION_ZONE_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -127,6 +134,9 @@ public class MappingParametersProvider {
   private static final String LOAN_TYPES_RESPONSE_PARAM = "loantypes";
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
   private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
+
+  private static final String CONFIGS_VALUE_RESPONSE = "configs";
+  private static final String VALUE_RESPONSE = "value";
 
   private static final int CACHE_EXPIRATION_TIME_IN_SECONDS = 60;
 
@@ -179,13 +189,14 @@ public class MappingParametersProvider {
     Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
+    Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
 
 
     return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
-      contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
-      issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
-      illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-      loanTypesFuture, itemNoteTypesFuture, marcFieldProtectionSettingsFuture))
+        contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
+        issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
+        illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
+        loanTypesFuture, itemNoteTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -215,6 +226,7 @@ public class MappingParametersProvider {
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
+          .withTenantConfiguration(tenantConfigurationFuture.result())
       );
   }
 
@@ -650,6 +662,7 @@ public class MappingParametersProvider {
     });
     return promise.future();
   }
+
   /**
    * Requests for Issuance modes from application Settings (mod-inventory-storage)
    * *
@@ -671,6 +684,36 @@ public class MappingParametersProvider {
       }
     });
     return promise.future();
+  }
+
+  /**
+   * Requests for tenant configuration from mod-configuration.
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return tenant configuration
+   */
+  private Future<String> getTenantConfiguration(OkapiConnectionParams params) {
+    Promise<String> promise = Promise.promise();
+    RestUtil.doRequest(params, TENANT_CONFIGURATION_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
+      if (RestUtil.validateAsyncResult(ar, promise)) {
+        JsonObject response = ar.result().getJson();
+        if (ifConfigResponseIsValid(response)) {
+          String timeZone = response.getJsonArray(CONFIGS_VALUE_RESPONSE).getJsonObject(0).getString(VALUE_RESPONSE);
+          promise.complete(timeZone);
+        } else {
+          promise.complete(StringUtils.EMPTY);
+        }
+      }
+    });
+    return promise.future();
+  }
+
+  private boolean ifConfigResponseIsValid(JsonObject response) {
+    return response != null && response.containsKey(CONFIGS_VALUE_RESPONSE)
+      && response.getJsonArray(CONFIGS_VALUE_RESPONSE) != null
+      && !response.getJsonArray(CONFIGS_VALUE_RESPONSE).isEmpty()
+      && response.getJsonArray(CONFIGS_VALUE_RESPONSE).getJsonObject(0) != null;
   }
 
   /**
