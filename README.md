@@ -116,7 +116,7 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
 
 #### Note:
-From v 3.1.3 there is a brand-new  environment variable which defines limit for retrieving data to filling mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
+From v 3.1.3 there is a brand-new  environment variable which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
 
 
 ## REST Client
