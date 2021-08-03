@@ -66,6 +66,7 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
@@ -81,32 +82,10 @@ import java.util.function.Function;
  */
 @Component
 public class MappingParametersProvider {
-  private static final int SETTING_LIMIT = 500;
-  private static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=" + SETTING_LIMIT;
-  private static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_TYPES_URL = "/instance-types?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_FORMATS_URL = "/instance-formats?limit=" + SETTING_LIMIT;
-  private static final String CONTRIBUTOR_TYPES_URL = "/contributor-types?limit=" + SETTING_LIMIT;
-  private static final String CONTRIBUTOR_NAME_TYPES_URL = "/contributor-name-types?limit=" + SETTING_LIMIT;
-  private static final String ELECTRONIC_ACCESS_URL = "/electronic-access-relationships?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_NOTE_TYPES_URL = "/instance-note-types?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_ALTERNATIVE_TITLE_TYPES_URL = "/alternative-title-types?limit=" + SETTING_LIMIT;
-  private static final String ISSUANCE_MODES_URL = "/modes-of-issuance?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_STATUSES_URL = "/instance-statuses?limit=" + SETTING_LIMIT;
-  private static final String NATURE_OF_CONTENT_TERMS_URL = "/nature-of-content-terms?limit=" + SETTING_LIMIT;
-  private static final String INSTANCE_RELATIONSHIP_TYPES_URL = "/instance-relationship-types?limit=" + SETTING_LIMIT;
-  private static final String HOLDINGS_TYPES_URL = "/holdings-types?limit=" + SETTING_LIMIT;
-  private static final String HOLDINGS_NOTE_TYPES_URL = "/holdings-note-types?limit=" + SETTING_LIMIT;
-  private static final String ILL_POLICIES_URL = "/ill-policies?limit=" + SETTING_LIMIT;
-  private static final String CALL_NUMBER_TYPES_URL = "/call-number-types?limit=" + SETTING_LIMIT;
-  private static final String STATISTICAL_CODES_URL = "/statistical-codes?limit=" + SETTING_LIMIT;
-  private static final String STATISTICAL_CODE_TYPES_URL = "/statistical-code-types?limit=" + SETTING_LIMIT;
-  private static final String LOCATIONS_URL = "/locations?limit=" + SETTING_LIMIT;
-  private static final String MATERIAL_TYPES_URL = "/material-types?limit=" + SETTING_LIMIT;
-  private static final String ITEM_DAMAGED_STATUSES_URL = "/item-damaged-statuses?limit=" + SETTING_LIMIT;
-  private static final String LOAN_TYPES_URL = "/loan-types?limit=" + SETTING_LIMIT;
-  private static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=" + SETTING_LIMIT;
-  private static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=" + SETTING_LIMIT;
+
+  @Value("${srm.mapping.parameters.settings.limit:1000}")
+  private int settingsLimit;
+
   private static final String TENANT_CONFIGURATION_ZONE_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
@@ -238,7 +217,8 @@ public class MappingParametersProvider {
    */
   private Future<List<IdentifierType>> getIdentifierTypes(OkapiConnectionParams params) {
     Promise<List<IdentifierType>> promise = Promise.promise();
-    RestUtil.doRequest(params, IDENTIFIER_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String identifierTypesUrl = "/identifier-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, identifierTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
@@ -260,7 +240,8 @@ public class MappingParametersProvider {
    */
   private Future<List<ClassificationType>> getClassificationTypes(OkapiConnectionParams params) {
     Promise<List<ClassificationType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CLASSIFICATION_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String classificationTypesUrl = "/classification-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, classificationTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
@@ -282,7 +263,8 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceType>> getInstanceTypes(OkapiConnectionParams params) {
     Promise<List<InstanceType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceTypesUrl = "/instance-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
@@ -304,7 +286,8 @@ public class MappingParametersProvider {
    */
   private Future<List<ElectronicAccessRelationship>> getElectronicAccessRelationships(OkapiConnectionParams params) {
     Promise<List<ElectronicAccessRelationship>> promise = Promise.promise();
-    RestUtil.doRequest(params, ELECTRONIC_ACCESS_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String electronicAccessUrl = "/electronic-access-relationships?limit=" + settingsLimit;
+    RestUtil.doRequest(params, electronicAccessUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
@@ -326,7 +309,8 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceFormat>> getInstanceFormats(OkapiConnectionParams params) {
     Promise<List<InstanceFormat>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_FORMATS_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceFormatsUrl = "/instance-formats?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceFormatsUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
@@ -348,7 +332,8 @@ public class MappingParametersProvider {
    */
   private Future<List<ContributorType>> getContributorTypes(OkapiConnectionParams params) {
     Promise<List<ContributorType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CONTRIBUTOR_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String contributorTypesUrl = "/contributor-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, contributorTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
@@ -370,7 +355,8 @@ public class MappingParametersProvider {
    */
   private Future<List<ContributorNameType>> getContributorNameTypes(OkapiConnectionParams params) {
     Promise<List<ContributorNameType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CONTRIBUTOR_NAME_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String contributorNameTypesUrl = "/contributor-name-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, contributorNameTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
@@ -393,7 +379,8 @@ public class MappingParametersProvider {
    */
   private Future<List<InstanceNoteType>> getInstanceNoteTypes(OkapiConnectionParams params) {
     Promise<List<InstanceNoteType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_NOTE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceNoteTypesUrl = "/instance-note-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
@@ -409,7 +396,8 @@ public class MappingParametersProvider {
 
   private Future<List<AlternativeTitleType>> getAlternativeTitleTypes(OkapiConnectionParams params) {
     Promise<List<AlternativeTitleType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_ALTERNATIVE_TITLE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceAlternativeTitleTypesUrl = "/alternative-title-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceAlternativeTitleTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
@@ -425,7 +413,8 @@ public class MappingParametersProvider {
 
   private Future<List<NatureOfContentTerm>> getNatureOfContentTerms(OkapiConnectionParams params) {
     Promise<List<NatureOfContentTerm>> promise = Promise.promise();
-    RestUtil.doRequest(params, NATURE_OF_CONTENT_TERMS_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String natureOfContentTermsUrl = "/nature-of-content-terms?limit=" + settingsLimit;
+    RestUtil.doRequest(params, natureOfContentTermsUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM)) {
@@ -441,7 +430,8 @@ public class MappingParametersProvider {
 
   private Future<List<InstanceStatus>> getInstanceStatuses(OkapiConnectionParams params) {
     Promise<List<InstanceStatus>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_STATUSES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceStatusesUrl = "/instance-statuses?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceStatusesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_STATUSES_RESPONSE_PARAM)) {
@@ -457,7 +447,8 @@ public class MappingParametersProvider {
 
   private Future<List<InstanceRelationshipType>> getInstanceRelationshipTypes(OkapiConnectionParams params) {
     Promise<List<InstanceRelationshipType>> promise = Promise.promise();
-    RestUtil.doRequest(params, INSTANCE_RELATIONSHIP_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String instanceRelationshipTypesUrl =  "/instance-relationship-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, instanceRelationshipTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM)) {
@@ -473,7 +464,8 @@ public class MappingParametersProvider {
 
   private Future<List<HoldingsType>> getHoldingsTypes(OkapiConnectionParams params) {
     Promise<List<HoldingsType>> promise = Promise.promise();
-    RestUtil.doRequest(params, HOLDINGS_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String holdingsTypesUrl = "/holdings-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, holdingsTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(HOLDINGS_TYPES_RESPONSE_PARAM)) {
@@ -489,7 +481,8 @@ public class MappingParametersProvider {
 
   private Future<List<HoldingsNoteType>> getHoldingsNoteTypes(OkapiConnectionParams params) {
     Promise<List<HoldingsNoteType>> promise = Promise.promise();
-    RestUtil.doRequest(params, HOLDINGS_NOTE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String holdingsNoteTypesUrl = "/holdings-note-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, holdingsNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(HOLDINGS_NOTE_TYPES_RESPONSE_PARAM)) {
@@ -505,7 +498,8 @@ public class MappingParametersProvider {
 
   private Future<List<IllPolicy>> getIllPolicies(OkapiConnectionParams params) {
     Promise<List<IllPolicy>> promise = Promise.promise();
-    RestUtil.doRequest(params, ILL_POLICIES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String illPoliciesUrl = "/ill-policies?limit=" + settingsLimit;
+    RestUtil.doRequest(params, illPoliciesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ILL_POLICIES_RESPONSE_PARAM)) {
@@ -521,7 +515,8 @@ public class MappingParametersProvider {
 
   private Future<List<CallNumberType>> getCallNumberTypes(OkapiConnectionParams params) {
     Promise<List<CallNumberType>> promise = Promise.promise();
-    RestUtil.doRequest(params, CALL_NUMBER_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String callNumberTypesUrl = "/call-number-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, callNumberTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(CALL_NUMBER_TYPES_RESPONSE_PARAM)) {
@@ -537,7 +532,8 @@ public class MappingParametersProvider {
 
   private Future<List<StatisticalCode>> getStatisticalCodes(OkapiConnectionParams params) {
     Promise<List<StatisticalCode>> promise = Promise.promise();
-    RestUtil.doRequest(params, STATISTICAL_CODES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String statisticalCodesUrl = "/statistical-codes?limit=" + settingsLimit;
+    RestUtil.doRequest(params, statisticalCodesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(STATISTICAL_CODES_RESPONSE_PARAM)) {
@@ -553,7 +549,8 @@ public class MappingParametersProvider {
 
   private Future<List<StatisticalCodeType>> getStatisticalCodeTypes(OkapiConnectionParams params) {
     Promise<List<StatisticalCodeType>> promise = Promise.promise();
-    RestUtil.doRequest(params, STATISTICAL_CODE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String statisticalCodeTypesUrl = "/statistical-code-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, statisticalCodeTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(STATISTICAL_CODE_TYPES_RESPONSE_PARAM)) {
@@ -569,7 +566,8 @@ public class MappingParametersProvider {
 
   private Future<List<Location>> getLocations(OkapiConnectionParams params) {
     Promise<List<Location>> promise = Promise.promise();
-    RestUtil.doRequest(params, LOCATIONS_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String locationsUrl = "/locations?limit=" + settingsLimit;
+    RestUtil.doRequest(params, locationsUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(LOCATIONS_RESPONSE_PARAM)) {
@@ -585,7 +583,8 @@ public class MappingParametersProvider {
 
   private Future<List<Mtype>> getMaterialTypes(OkapiConnectionParams params) {
     Promise<List<Mtype>> promise = Promise.promise();
-    RestUtil.doRequest(params, MATERIAL_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String materialTypesUrl = "/material-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, materialTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(MATERIALS_TYPES_RESPONSE_PARAM)) {
@@ -601,7 +600,8 @@ public class MappingParametersProvider {
 
   private Future<List<ItemDamageStatus>> getItemDamagedStatuses(OkapiConnectionParams params) {
     Promise<List<ItemDamageStatus>> promise = Promise.promise();
-    RestUtil.doRequest(params, ITEM_DAMAGED_STATUSES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String itemDamagedStatusesUrl = "/item-damaged-statuses?limit=" + settingsLimit;
+    RestUtil.doRequest(params, itemDamagedStatusesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ITEM_DAMAGED_STATUSES_RESPONSE_PARAM)) {
@@ -617,7 +617,8 @@ public class MappingParametersProvider {
 
   private Future<List<Loantype>> getLoanTypes(OkapiConnectionParams params) {
     Promise<List<Loantype>> promise = Promise.promise();
-    RestUtil.doRequest(params, LOAN_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String loanTypesUrl = "/loan-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, loanTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(LOAN_TYPES_RESPONSE_PARAM)) {
@@ -633,7 +634,8 @@ public class MappingParametersProvider {
 
   private Future<List<ItemNoteType>> getItemNoteTypes(OkapiConnectionParams params) {
     Promise<List<ItemNoteType>> promise = Promise.promise();
-    RestUtil.doRequest(params, ITEM_NOTE_TYPES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String itemNoteTypesUrl = "/item-note-types?limit=" + settingsLimit;
+    RestUtil.doRequest(params, itemNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ITEM_NOTE_TYPES_RESPONSE_PARAM)) {
@@ -649,7 +651,8 @@ public class MappingParametersProvider {
 
   private Future<List<MarcFieldProtectionSetting>> getMarcFieldProtectionSettings(OkapiConnectionParams params) {
     Promise<List<MarcFieldProtectionSetting>> promise = Promise.promise();
-    RestUtil.doRequest(params, FIELD_PROTECTION_SETTINGS_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String fieldProtectionSettingsUrl = "/field-protection-settings/marc?limit=" + settingsLimit;
+    RestUtil.doRequest(params, fieldProtectionSettingsUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM)) {
@@ -672,7 +675,8 @@ public class MappingParametersProvider {
    */
   private Future<List<IssuanceMode>> getIssuanceModes(OkapiConnectionParams params) {
     Promise<List<IssuanceMode>> promise = Promise.promise();
-    RestUtil.doRequest(params, ISSUANCE_MODES_URL, HttpMethod.GET, null).onComplete(ar -> {
+    String issuanceModesUrl = "/modes-of-issuance?limit=" + settingsLimit;
+    RestUtil.doRequest(params, issuanceModesUrl, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         JsonObject response = ar.result().getJson();
         if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {

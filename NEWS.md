@@ -1,5 +1,6 @@
 ## 2021-07-21 v3.1.3-SNAPSHOT
 * [MODDICORE-166](https://issues.folio.org/browse/MODDICORE-166)  Near the day boundary data import calculates today incorrectly.
+* [MODSOURMAN-535](https://issues.folio.org/browse/MODSOURMAN-535) Data import can't retrieve location with code "olin".
 
 ## 2021-07-21 v3.1.2
 * [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
