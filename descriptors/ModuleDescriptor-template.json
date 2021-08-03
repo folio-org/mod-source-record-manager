@@ -218,7 +218,8 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
-            "inventory-storage.preceding-succeeding-titles.item.post"
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -290,7 +291,8 @@
             "inventory-storage.locations.collection.get",
             "converter-storage.field-protection-settings.get",
             "inventory-storage.instances.item.get",
-            "inventory-storage.instances.item.put"
+            "inventory-storage.instances.item.put",
+            "configuration.entries.collection.get"
           ]
         }
       ]
