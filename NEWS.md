@@ -2,7 +2,7 @@
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message sent
 * [MODSOURMAN-524](https://issues.folio.org/browse/MODSOURMAN-524) Support MARC Holdings
-* [MODDICORE-505](https://issues.folio.org/browse/MODDATAIMP-505)  Update Folijet Rancher
+* Improved logging
 
 ## XXXX-XX-XX v3.1.3
 * [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
