@@ -6,6 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.JobExecutionCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class JobExecutionsCache {
+
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private Integer expireInSeconds;
   private JobExecutionService jobExecutionService;
@@ -48,7 +52,10 @@ public class JobExecutionsCache {
               put(tenantId, cqlQuery, ar);
               promise.complete(ar);
             })
-            .onFailure(promise::fail);
+            .onFailure(cause -> {
+              LOGGER.error("Failure to get job executions without parent", cause);
+              promise.fail(cause);
+            });
         }
       } else {
         promise.fail(e);

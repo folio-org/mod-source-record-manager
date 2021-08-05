@@ -50,6 +50,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   private static final String KAFKA_PORT = "KAFKA_PORT";
   private static final String KAFKA_ENV = "ENV";
   private static final String KAFKA_ENV_ID = "test-env";
+  private static final String KAFKA_MAX_REQUEST_SIZE = "MAX_REQUEST_SIZE";
 
   KafkaConfig kafkaConfig;
 
@@ -60,6 +61,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
+    System.setProperty(KAFKA_MAX_REQUEST_SIZE, "1048576");
 
     kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])

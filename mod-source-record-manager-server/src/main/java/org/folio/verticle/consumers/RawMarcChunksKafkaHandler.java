@@ -46,10 +46,12 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
 
     Event event = Json.decodeValue(record.value(), Event.class);
+    LOGGER.debug("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
 
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
-      LOGGER.debug("RawRecordsDto has been received, starting processing correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
+      LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} correlationId: {} chunkNumber: {} - {}",
+        okapiConnectionParams.getHeaders().get("jobExecutionId"), correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
