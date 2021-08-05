@@ -271,17 +271,21 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
       marcRecordSearchRequest.setFieldsSearchExpression("001.value = '" + controlFieldValue + "'");
       try {
-        sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, result -> {
-          if (result.succeeded()) {
-            var response = result.result();
-            LOGGER.info("Response from SRS: " + response.body().toString());
-            System.out.println("Response from SRS: " + response.body().toString());
+        sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
+          if (asyncResult.succeeded()) {
+            var body = asyncResult.result().body();
+            LOGGER.info("Response from SRS: {}", body);
+            var object = new JsonObject(body);
+            var records = object.getJsonArray("records");
+            if (records.isEmpty()) {
+              LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+              record.setParsedRecord(null);
+              record.setErrorRecord(new ErrorRecord()
+                .withContent(rawRecord)
+                .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
+            }
           } else {
-            LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
-            record.setParsedRecord(null);
-            record.setErrorRecord(new ErrorRecord()
-              .withContent(rawRecord)
-              .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
+            LOGGER.error("Error during call post request to SRS ");
           }
         });
       } catch (Exception e) {
