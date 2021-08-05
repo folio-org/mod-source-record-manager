@@ -285,7 +285,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
             }
           } else {
-            LOGGER.error("Error during call post request to SRS ");
+            LOGGER.error("Error during call post request to SRS");
           }
         });
       } catch (Exception e) {
