@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.NotFoundException;
 
 import io.vertx.core.Future;
@@ -47,6 +46,7 @@ import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
+import org.folio.rest.client.SourceStorageStreamClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
@@ -56,6 +56,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
+import org.folio.rest.jaxrs.model.MarcRecordSearchRequest;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
@@ -113,7 +114,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Promise<List<Record>> promise = Promise.promise();
     List<Record> parsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
-        params.getTenantId());
+        params.getTenantId(), params);
     fillParsedRecordsWithAdditionalFields(parsedRecords);
     boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
@@ -178,10 +179,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param jobExecution  - job execution of record's parsing
    * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param tenantId      - tenant id
+   * @param okapiParams
    * @return - list of records with parsed or error data
    */
   private List<Record> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
-                                    JobExecution jobExecution, String sourceChunkId, String tenantId) {
+                                    JobExecution jobExecution, String sourceChunkId, String tenantId, OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Collections.emptyList();
     }
@@ -210,7 +212,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
-            postProcessMarcRecord(record, rawRecord);
+            postProcessMarcRecord(record, rawRecord, okapiParams);
           }
         }
         return record;
@@ -229,7 +231,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
   }
 
-  private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
+  private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
     String matchedId = getValue(record, TAG_999, 's');
     if (StringUtils.isNotBlank(matchedId)) {
       record.setMatchedId(matchedId);
@@ -240,7 +242,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (recordType == MARC_BIB) {
       postProcessMarcBibRecord(record);
     } else if (recordType == MARC_HOLDING) {
-      postProcessMarcHoldingsRecord(record, rawRecord);
+      postProcessMarcHoldingsRecord(record, rawRecord, okapiParams);
     }
   }
 
@@ -255,15 +257,44 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord) {
-    if (isBlank(getControlFieldValue(record, TAG_004))) {
+  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
+    var controlFieldValue = getControlFieldValue(record, TAG_004);
+    if (isBlank(controlFieldValue)) {
       LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
         .withContent(rawRecord)
         .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
+    } else {
+      SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
+      MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
+      marcRecordSearchRequest.setFieldsSearchExpression("001.value = '" + controlFieldValue + "'");
+      try {
+        sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, result -> {
+          if (result.succeeded()) {
+            var response = result.result();
+            LOGGER.info("Response from SRS: " + response.body().toString());
+            System.out.println("Response from SRS: " + response.body().toString());
+          } else {
+            LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+            record.setParsedRecord(null);
+            record.setErrorRecord(new ErrorRecord()
+              .withContent(rawRecord)
+              .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
+          }
+        });
+      } catch (Exception e) {
+        LOGGER.error("Error during call post request to SRS ", e.getCause());
+      }
     }
+  }
+
+  private SourceStorageStreamClient getSourceStorageStreamClient(OkapiConnectionParams okapiParams) {
+    var token = okapiParams.getToken();
+    var okapiUrl = okapiParams.getOkapiUrl();
+    var tenantId = okapiParams.getTenantId();
+    return new SourceStorageStreamClient(okapiUrl, tenantId, token);
   }
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId) {
