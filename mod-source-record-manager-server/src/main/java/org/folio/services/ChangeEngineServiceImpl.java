@@ -275,21 +275,21 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           if (asyncResult.succeeded()) {
             var body = asyncResult.result().body();
             LOGGER.info("Response from SRS with MARC Bib 001 field: {} and body: {}", controlFieldValue, body);
-            var object = new JsonObject(body);
-            var records = object.getJsonArray("records");
+            var records = body.toJsonObject().getJsonArray("records");
             if (records.isEmpty()) {
               LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
               record.setParsedRecord(null);
               record.setErrorRecord(new ErrorRecord()
                 .withContent(rawRecord)
                 .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
+              throw new NotFoundException(HOLDINGS_004_TAG_ERROR_MESSAGE);
             }
           } else {
             LOGGER.error("Error during call post request to SRS");
           }
         });
       } catch (Exception e) {
-        LOGGER.error("Error during call post request to SRS ", e.getCause());
+        LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
       }
     }
   }
