@@ -1,7 +1,6 @@
 package org.folio.services;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
@@ -259,7 +258,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
     var controlFieldValue = getControlFieldValue(record, TAG_004);
-    if (isBlank(controlFieldValue)) {
+//    if (isBlank(controlFieldValue)) {
+    // TODO test async call to SRS
+    if (controlFieldValue.equals("in00000000319")) {
       LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
