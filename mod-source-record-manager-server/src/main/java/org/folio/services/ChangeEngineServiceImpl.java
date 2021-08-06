@@ -274,7 +274,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
           if (asyncResult.succeeded()) {
             var body = asyncResult.result().body();
-            LOGGER.info("Response from SRS with MARC Bib 001 field: {} and body: {}", controlFieldValue, body);
+            LOGGER.info("Response from SRS with MARC bib 001 field: {} and body: {}", controlFieldValue, body);
             var object = new JsonObject(body);
             var records = object.getJsonArray("records");
             if (records.isEmpty()) {
