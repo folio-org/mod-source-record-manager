@@ -2,6 +2,7 @@ package org.folio.services;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
@@ -258,9 +259,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
     var controlFieldValue = getControlFieldValue(record, TAG_004);
-//    if (isBlank(controlFieldValue)) {
-    // TODO test async call to SRS
-    if (controlFieldValue.equals("in00000000319")) {
+    if (isBlank(controlFieldValue)) {
       LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
@@ -276,14 +275,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           if (asyncResult.succeeded()) {
             var body = asyncResult.result().body();
             LOGGER.info("Response from SRS with MARC Bib 001 field: {} and body: {}", controlFieldValue, body);
-            var records = body.toJsonObject().getJsonArray("records");
+            var object = new JsonObject(body);
+            var records = object.getJsonArray("records");
             if (records.isEmpty()) {
               LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
               record.setParsedRecord(null);
               record.setErrorRecord(new ErrorRecord()
                 .withContent(rawRecord)
                 .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
-              throw new NotFoundException(HOLDINGS_004_TAG_ERROR_MESSAGE);
             }
           } else {
             LOGGER.error("Error during call post request to SRS");
