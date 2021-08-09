@@ -5,8 +5,12 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -17,6 +21,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,6 +55,7 @@ import org.folio.rest.client.SourceStorageStreamClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
@@ -212,7 +218,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
-            postProcessMarcRecord(record, rawRecord, okapiParams);
+            postProcessMarcRecord(record, rawRecord, okapiParams, jobExecution);
           }
         }
         return record;
@@ -231,7 +237,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
   }
 
-  private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
+  private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
     String matchedId = getValue(record, TAG_999, 's');
     if (StringUtils.isNotBlank(matchedId)) {
       record.setMatchedId(matchedId);
@@ -242,7 +248,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (recordType == MARC_BIB) {
       postProcessMarcBibRecord(record);
     } else if (recordType == MARC_HOLDING) {
-      postProcessMarcHoldingsRecord(record, rawRecord, okapiParams);
+      postProcessMarcHoldingsRecord(record, rawRecord, okapiParams, jobExecution);
     }
   }
 
@@ -257,8 +263,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams) {
+  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
     var controlFieldValue = getControlFieldValue(record, TAG_004);
+    String sourceRecordKey = getSourceRecordKey(record);
+    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution, sourceRecordKey);
+    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     if (isBlank(controlFieldValue)) {
       LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
@@ -266,6 +275,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withContent(rawRecord)
         .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
+      sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
+        KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+        .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+
     } else {
       SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
       MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
@@ -283,6 +296,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               record.setErrorRecord(new ErrorRecord()
                 .withContent(rawRecord)
                 .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
+
+              sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
+                KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+                .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
             }
           } else {
             LOGGER.error("Error during call post request to SRS");
@@ -291,6 +308,34 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       } catch (Exception e) {
         LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
       }
+    }
+  }
+
+  private DataImportEventPayload getDataImportPayload(Record record, OkapiConnectionParams okapiParams, JobExecution jobExecution, String sourceRecordKey) {
+    return new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
+      .withJobExecutionId(record.getSnapshotId())
+      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withTenant(okapiParams.getTenantId())
+      .withToken(okapiParams.getToken())
+      .withContext(new HashMap<>() {{
+        put(sourceRecordKey, Json.encode(record));
+        put("ERROR", HOLDINGS_004_TAG_ERROR_MESSAGE);
+      }});
+  }
+
+  private String getSourceRecordKey(Record record) {
+    switch (record.getRecordType()) {
+      case MARC_BIB:
+        return MARC_BIBLIOGRAPHIC.value();
+      case MARC_AUTHORITY:
+        return MARC_AUTHORITY.value();
+      case MARC_HOLDING:
+        return MARC_HOLDINGS.value();
+      case EDIFACT:
+      default:
+        return EDIFACT_INVOICE.value();
     }
   }
 
