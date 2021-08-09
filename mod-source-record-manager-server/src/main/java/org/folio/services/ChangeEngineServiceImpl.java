@@ -255,11 +255,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       postProcessMarcBibRecord(record);
     } else if (recordType == MARC_HOLDING) {
       postProcessMarcHoldingsRecord(record, rawRecord, okapiParams, jobExecution);
-      try {
-        Thread.sleep(5000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
     }
   }
 
@@ -276,25 +271,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
     var controlFieldValue = getControlFieldValue(record, TAG_004);
-    String sourceRecordKey = getSourceRecordKey(record);
-    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution, sourceRecordKey);
+    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     if (isBlank(controlFieldValue)) {
-      LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
-      record.setParsedRecord(null);
-      record.setErrorRecord(new ErrorRecord()
-        .withContent(rawRecord)
-        .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
-      );
-      marcHoldingsToDelete.add(record);
-      sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
-        KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
-        .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
-
+      populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
     } else {
       SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
-      MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
-      marcRecordSearchRequest.setFieldsSearchExpression("001.value = '" + controlFieldValue + "'");
+      MarcRecordSearchRequest marcRecordSearchRequest = getMarcRecordSearchRequest(controlFieldValue);
       try {
         sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
           if (asyncResult.succeeded()) {
@@ -303,15 +286,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             var object = new JsonObject(body);
             var records = object.getJsonArray("records");
             if (records.isEmpty()) {
-              LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
-              record.setParsedRecord(null);
-              record.setErrorRecord(new ErrorRecord()
-                .withContent(rawRecord)
-                .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
-              marcHoldingsToDelete.add(record);
-              sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
-                KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
-                .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+              populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
             }
           } else {
             LOGGER.error("Error during call post request to SRS");
@@ -323,7 +298,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private DataImportEventPayload getDataImportPayload(Record record, OkapiConnectionParams okapiParams, JobExecution jobExecution, String sourceRecordKey) {
+  private MarcRecordSearchRequest getMarcRecordSearchRequest(String controlFieldValue) {
+    MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
+    marcRecordSearchRequest.setFieldsSearchExpression("001.value = '" + controlFieldValue + "'");
+    return marcRecordSearchRequest;
+  }
+
+  private void populateMarcHoldingsToDelete(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, DataImportEventPayload eventPayload, String key) {
+    LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+    record.setParsedRecord(null);
+    record.setErrorRecord(new ErrorRecord()
+      .withContent(rawRecord)
+      .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
+    );
+    marcHoldingsToDelete.add(record);
+    LOGGER.info("Marc Holdings with id: {}, should be deleted. Count of records to delete: {}", record, marcHoldingsToDelete);
+    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
+      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+  }
+
+  private DataImportEventPayload getDataImportPayload(Record record, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+    String sourceRecordKey = getSourceRecordKey(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
