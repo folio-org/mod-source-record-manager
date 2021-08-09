@@ -255,6 +255,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       postProcessMarcBibRecord(record);
     } else if (recordType == MARC_HOLDING) {
       postProcessMarcHoldingsRecord(record, rawRecord, okapiParams, jobExecution);
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 
