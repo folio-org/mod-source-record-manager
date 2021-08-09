@@ -51,6 +51,10 @@
       "version": "1.0"
     },
     {
+      "id": "instance-preceding-succeeding-titles",
+      "version": "0.2"
+    },
+    {
       "id": "alternative-title-types",
       "version": "1.0"
     },
@@ -292,6 +296,7 @@
             "converter-storage.field-protection-settings.get",
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.put",
+            "inventory-storage.instances.preceding-succeeding-titles.collection.put",
             "configuration.entries.collection.get"
           ]
         }
