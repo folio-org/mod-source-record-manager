@@ -1,8 +1,8 @@
 package org.folio.services;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
@@ -20,6 +20,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControl
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -89,6 +90,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
+  private List<Record> marcHoldingsToDelete = new ArrayList<>();
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -198,7 +200,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
-    return rawRecords.stream()
+    marcHoldingsToDelete = new ArrayList<>();
+    var records = rawRecords.stream()
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
         String recordId = UUID.randomUUID().toString();
@@ -235,6 +238,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 sourceChunkId))));
         }
       }).collect(Collectors.toList());
+    LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
+    records.removeAll(marcHoldingsToDelete);
+    return records;
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
@@ -275,6 +281,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withContent(rawRecord)
         .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
+      marcHoldingsToDelete.add(record);
       sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
         KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
         .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
@@ -296,7 +303,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               record.setErrorRecord(new ErrorRecord()
                 .withContent(rawRecord)
                 .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode()));
-
+              marcHoldingsToDelete.add(record);
               sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
                 KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
                 .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
