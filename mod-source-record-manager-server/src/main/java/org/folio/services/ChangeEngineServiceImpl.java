@@ -121,45 +121,47 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution,
                                                                   String sourceChunkId, OkapiConnectionParams params) {
     Promise<List<Record>> promise = Promise.promise();
-    List<Record> parsedRecords =
+    Future<List<Record>> futureParsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
         params.getTenantId(), params);
-    fillParsedRecordsWithAdditionalFields(parsedRecords);
-    boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
+    futureParsedRecords.onSuccess(parsedRecords-> {
+      fillParsedRecordsWithAdditionalFields(parsedRecords);
+      boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
-    if (updateMarcActionExists) {
-      LOGGER.info(
-        "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
-      recordsPublishingService
-        .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
-        .onSuccess(ar -> promise.complete(parsedRecords))
-        .onFailure(promise::fail);
-    } else {
-      saveRecords(params, jobExecution, parsedRecords)
-        .onComplete(postAr -> {
-          if (postAr.failed()) {
-            StatusDto statusDto = new StatusDto()
-              .withStatus(StatusDto.Status.ERROR)
-              .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-            jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-              .onComplete(r -> {
-                if (r.failed()) {
-                  LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
-                }
-              });
-            jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-              .compose(optional -> optional
-                .map(sourceChunk -> jobExecutionSourceChunkDao
-                  .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-                .orElseThrow(() -> new NotFoundException(String.format(
-                  "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
-                  sourceChunkId))))
-              .onComplete(ar -> promise.fail(postAr.cause()));
-          } else {
-            promise.complete(parsedRecords);
-          }
-        });
-    }
+      if (updateMarcActionExists) {
+        LOGGER.info(
+          "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+        recordsPublishingService
+          .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
+          .onSuccess(ar -> promise.complete(parsedRecords))
+          .onFailure(promise::fail);
+      } else {
+        saveRecords(params, jobExecution, parsedRecords)
+          .onComplete(postAr -> {
+            if (postAr.failed()) {
+              StatusDto statusDto = new StatusDto()
+                .withStatus(StatusDto.Status.ERROR)
+                .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+              jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
+                .onComplete(r -> {
+                  if (r.failed()) {
+                    LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
+                  }
+                });
+              jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+                .compose(optional -> optional
+                  .map(sourceChunk -> jobExecutionSourceChunkDao
+                    .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+                  .orElseThrow(() -> new NotFoundException(String.format(
+                    "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
+                    sourceChunkId))))
+                .onComplete(ar -> promise.fail(postAr.cause()));
+            } else {
+              promise.complete(parsedRecords);
+            }
+          });
+      }
+    }).onFailure(th -> LOGGER.error("Error parsing records: {}", th.getMessage()));
     return promise.future();
   }
 
@@ -191,10 +193,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param okapiParams
    * @return - list of records with parsed or error data
    */
-  private List<Record> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
+  private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
                                     JobExecution jobExecution, String sourceChunkId, String tenantId, OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
-      return Collections.emptyList();
+      return Future.succeededFuture(Collections.emptyList());
     }
     RecordParser parser = RecordParserBuilder.buildParser(recordContentType);
     MutableInt counter = new MutableInt();
@@ -246,14 +248,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       futures.add(future);
     });
 
-    CompositeFuture.all(futures).
-      compose(as -> {
+    return CompositeFuture.all(futures)
+      .compose(as -> {
         records.removeAll(marcHoldingsToDelete);
-        return Future.succeededFuture();
+        LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
+        return Future.succeededFuture(records);
       });
-
-    LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
-    return records;
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
