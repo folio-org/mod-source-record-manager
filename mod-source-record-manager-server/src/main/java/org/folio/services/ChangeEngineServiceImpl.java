@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -201,6 +202,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
     marcHoldingsToDelete = new ArrayList<>();
+    List<Future> futures = new ArrayList<>();
     var records = rawRecords.stream()
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
@@ -238,8 +240,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 sourceChunkId))));
         }
       }).collect(Collectors.toList());
+
+    records.forEach(record -> {
+      var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
+      futures.add(future);
+    });
+
+    CompositeFuture.all(futures).
+      compose(as -> {
+        records.removeAll(marcHoldingsToDelete);
+        return Future.succeededFuture();
+      });
+
     LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
-    records.removeAll(marcHoldingsToDelete);
     return records;
   }
 
@@ -253,8 +266,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var recordType = record.getRecordType();
     if (recordType == MARC_BIB) {
       postProcessMarcBibRecord(record);
-    } else if (recordType == MARC_HOLDING) {
-      postProcessMarcHoldingsRecord(record, rawRecord, okapiParams, jobExecution);
     }
   }
 
@@ -269,9 +280,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+  private Future<Boolean> postProcessMarcHoldingsRecord(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
     var controlFieldValue = getControlFieldValue(record, TAG_004);
     DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
+    Promise<Boolean> promise = Promise.promise();
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     if (isBlank(controlFieldValue)) {
       populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
@@ -287,15 +299,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             var records = object.getJsonArray("records");
             if (records.isEmpty()) {
               populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
+              promise.complete(true);
             }
           } else {
             LOGGER.error("Error during call post request to SRS");
+            promise.fail("Error during call post request to SRS");
+//            promise.complete(false); discuss
           }
         });
       } catch (Exception e) {
         LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
       }
     }
+    return promise.future();
   }
 
   private MarcRecordSearchRequest getMarcRecordSearchRequest(String controlFieldValue) {
@@ -304,7 +320,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return marcRecordSearchRequest;
   }
 
-  private void populateMarcHoldingsToDelete(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, DataImportEventPayload eventPayload, String key) {
+  private void populateMarcHoldingsToDelete(Record record, String rawRecord, OkapiConnectionParams okapiParams, DataImportEventPayload eventPayload, String key) {
     LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
     record.setErrorRecord(new ErrorRecord()

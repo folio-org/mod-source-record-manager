@@ -133,7 +133,7 @@ public class ChangeEngineServiceImplTest {
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
     var actual = serviceFuture.result();
-    assertThat(actual, hasSize(0));
+    assertThat(actual, hasSize(1));
 //    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
 //    assertThat(actual.get(0).getErrorRecord(), notNullValue());
 //    assertThat(actual.get(0).getErrorRecord().getDescription(),
