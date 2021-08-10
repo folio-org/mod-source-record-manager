@@ -4,8 +4,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 
+import io.vertx.ext.web.handler.HttpException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -429,7 +429,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.result().statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.error("Error during post for new Snapshot. Status message: {}", response.result().statusMessage());
-          promise.fail(new HttpStatusException(response.result().statusCode(), "Error during post for new Snapshot."));
+          promise.fail(new HttpException(response.result().statusCode(), "Error during post for new Snapshot."));
         } else {
           promise.complete(response.result().bodyAsString());
         }
@@ -509,7 +509,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         } else {
           String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
           LOGGER.error(message);
-          promise.fail(new HttpStatusException(response.result().statusCode(), message));
+          promise.fail(new HttpException(response.result().statusCode(), "Error during post for new Snapshot."));
         }
       });
     } catch (Exception e) {
