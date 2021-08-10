@@ -250,7 +250,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     return CompositeFuture.all(futures)
       .compose(as -> {
-        records.removeAll(marcHoldingsToDelete);
+        if (!marcHoldingsToDelete.isEmpty()) {
+          records.removeAll(marcHoldingsToDelete);
+        }
         LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
         return Future.succeededFuture(records);
       });
