@@ -161,7 +161,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             }
           });
       }
-    }).onFailure(th -> LOGGER.error("Error parsing records: {}", th.getMessage()));
+    }).onFailure(th -> {
+      LOGGER.error("Error parsing records: {}", th.getMessage());
+    });
     return promise.future();
   }
 
@@ -243,20 +245,21 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
       }).collect(Collectors.toList());
 
-    return CompositeFuture.all(futures)
-      .compose(res -> {
-          records.forEach(record -> {
-            var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
-            futures.add(future);
-          });
-          return Future.succeededFuture(futures);})
-      .compose(as -> {
+    records.forEach(record -> {
+      var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
+      futures.add(future);
+    });
+    Promise<List<Record>> promise = Promise.promise();
+
+    CompositeFuture.any(futures)
+      .onComplete(as -> {
         if (!marcHoldingsToDelete.isEmpty()) {
           records.removeAll(marcHoldingsToDelete);
         }
         LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
-        return Future.succeededFuture(records);
+        promise.complete(records);
       });
+    return promise.future();
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
@@ -291,6 +294,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       if (isBlank(controlFieldValue)) {
         populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
+        promise.complete(record);
       } else {
         SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
         MarcRecordSearchRequest marcRecordSearchRequest = getMarcRecordSearchRequest(controlFieldValue);
@@ -303,14 +307,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
               var records = object.getJsonArray("records");
               if (records.isEmpty()) {
                 populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
-                promise.complete(record);
               }
             } else {
-              LOGGER.error("Error during call post request to SRS");
-              promise.fail("Error during call post request to SRS");
-//            promise.complete();
-//            promise.complete(false);//discuss
+              LOGGER.info("The marc holdings not found in the SRS");
             }
+            promise.complete(record);
           });
         } catch (Exception e) {
           LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
