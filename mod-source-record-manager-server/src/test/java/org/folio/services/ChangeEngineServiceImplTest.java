@@ -9,6 +9,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
+import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +45,7 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.util.EventHandlingUtil;
 
@@ -52,6 +56,11 @@ public class ChangeEngineServiceImplTest {
     "00182cx  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
   private static final String MARC_HOLDINGS_REC_WITHOUT_004 =
     "00162cx  a22000731  4500001000900000005001700009008003300026852002900059\u001E10245123\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+  private static final int PORT = NetworkUtils.nextFreePort();
+  protected static final String OKAPI_URL = "http://localhost:" + PORT;
+  protected static final String TENANT_ID = "diku";
+
+
   @Mock
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   @Mock
@@ -64,13 +73,17 @@ public class ChangeEngineServiceImplTest {
   private RecordsPublishingService recordsPublishingService;
   @Mock
   private KafkaConfig kafkaConfig;
-  private OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
+  private OkapiConnectionParams okapiConnectionParams;
 
   @InjectMocks
   private ChangeEngineServiceImpl service;
 
   @Before
   public void setUp() throws Exception {
+    var okapiHeaders = new HashMap<String, String>();
+    okapiHeaders.put(OKAPI_TENANT_HEADER, TENANT_ID);
+    okapiHeaders.put(OKAPI_URL_HEADER, OKAPI_URL);
+    okapiConnectionParams = new OkapiConnectionParams(okapiHeaders, Vertx.vertx());
     ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
   }
 

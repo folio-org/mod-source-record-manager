@@ -205,8 +205,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
-    marcHoldingsToDelete = new ArrayList<>();
-    List<Future> futures = new ArrayList<>();
     var records = rawRecords.stream()
       .map(rawRecord -> {
         ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
@@ -244,6 +242,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 sourceChunkId))));
         }
       }).collect(Collectors.toList());
+    marcHoldingsToDelete = new ArrayList<>();
+    List<Future> futures = new ArrayList<>();
 
     records.forEach(record -> {
       var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
@@ -315,9 +315,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           });
         } catch (Exception e) {
           LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
+          promise.complete(record);
         }
+        promise.complete(record);
       }
-      return promise.future();
+    } else {
+      promise.complete(record);
     }
     return promise.future();
   }
