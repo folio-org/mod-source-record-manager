@@ -243,12 +243,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
       }).collect(Collectors.toList());
 
-    records.forEach(record -> {
-      var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
-      futures.add(future);
-    });
-
     return CompositeFuture.all(futures)
+      .compose(res -> {
+          records.forEach(record -> {
+            var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
+            futures.add(future);
+          });
+          return Future.succeededFuture(futures);})
       .compose(as -> {
         if (!marcHoldingsToDelete.isEmpty()) {
           records.removeAll(marcHoldingsToDelete);
@@ -282,36 +283,40 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private Future<Boolean> postProcessMarcHoldingsRecord(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
-    var controlFieldValue = getControlFieldValue(record, TAG_004);
-    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
-    Promise<Boolean> promise = Promise.promise();
-    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
-    if (isBlank(controlFieldValue)) {
-      populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
-    } else {
-      SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
-      MarcRecordSearchRequest marcRecordSearchRequest = getMarcRecordSearchRequest(controlFieldValue);
-      try {
-        sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
-          if (asyncResult.succeeded()) {
-            var body = asyncResult.result().body();
-            LOGGER.info("Response from SRS with MARC bib 001 field: {} and body: {}", controlFieldValue, body);
-            var object = new JsonObject(body);
-            var records = object.getJsonArray("records");
-            if (records.isEmpty()) {
-              populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
-              promise.complete(true);
+  private Future<Record> postProcessMarcHoldingsRecord(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+    Promise<Record> promise = Promise.promise();
+    if (record.getRecordType() == MARC_HOLDING) {
+      var controlFieldValue = getControlFieldValue(record, TAG_004);
+      DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
+      String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+      if (isBlank(controlFieldValue)) {
+        populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
+      } else {
+        SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
+        MarcRecordSearchRequest marcRecordSearchRequest = getMarcRecordSearchRequest(controlFieldValue);
+        try {
+          sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
+            if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
+              var body = asyncResult.result().body();
+              LOGGER.info("Response from SRS with MARC bib 001 field: {} and body: {}", controlFieldValue, body);
+              var object = new JsonObject(body);
+              var records = object.getJsonArray("records");
+              if (records.isEmpty()) {
+                populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
+                promise.complete(record);
+              }
+            } else {
+              LOGGER.error("Error during call post request to SRS");
+              promise.fail("Error during call post request to SRS");
+//            promise.complete();
+//            promise.complete(false);//discuss
             }
-          } else {
-            LOGGER.error("Error during call post request to SRS");
-            promise.fail("Error during call post request to SRS");
-//            promise.complete(false); discuss
-          }
-        });
-      } catch (Exception e) {
-        LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
+          });
+        } catch (Exception e) {
+          LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
+        }
       }
+      return promise.future();
     }
     return promise.future();
   }
