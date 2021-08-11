@@ -251,7 +251,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     });
     Promise<List<Record>> promise = Promise.promise();
 
-    CompositeFuture.any(futures)
+    CompositeFuture.all(futures)
       .onComplete(as -> {
         if (!marcHoldingsToDelete.isEmpty()) {
           records.removeAll(marcHoldingsToDelete);
