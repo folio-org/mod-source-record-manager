@@ -317,7 +317,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
           promise.complete(record);
         }
-        promise.complete(record);
+//        promise.complete(record);
       }
     } else {
       promise.complete(record);
