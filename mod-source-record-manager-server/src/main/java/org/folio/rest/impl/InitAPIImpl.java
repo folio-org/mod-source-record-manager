@@ -62,7 +62,7 @@ public class InitAPIImpl implements InitAPI {
       SpringContextUtil.autowireDependencies(this, context);
       initJournalService(vertx);
       deployConsumersVerticles(vertx)
-        .onComplete(car -> {
+        .onSuccess(car -> {
           handler.handle(Future.succeededFuture());
           LOGGER.info("Consumer Verticles were successfully started");
         })
