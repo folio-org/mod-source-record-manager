@@ -1596,10 +1596,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
-  @Test
+/*  @Test
   public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
-  }
+  }*/
 
   private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String correctRawRecord)
     throws InterruptedException, IOException {
