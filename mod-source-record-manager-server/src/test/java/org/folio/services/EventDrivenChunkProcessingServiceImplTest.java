@@ -34,7 +34,6 @@ import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
@@ -130,9 +129,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private JournalRecordDaoImpl journalRecordDao;
   @Spy
   RecordsPublishingService recordsPublishingService;
-  @Spy
-  @InjectMocks
-  private Record.RecordType recordType;
 
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
@@ -161,9 +157,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
-    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString(), recordType)).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
+    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString(), any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     marcRecordAnalyzer = new MarcRecordAnalyzer();
-    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx, recordType);
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx, any());
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
