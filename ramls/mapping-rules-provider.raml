@@ -11,6 +11,9 @@ documentation:
 
 types:
   errors: !include raml-storage/raml-util/schemas/errors.schema
+  recordType:
+    enum: [ marc_bib, marc_holding ]
+    default: marc_bib
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -23,17 +26,21 @@ resourceTypes:
   collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
 
 /mapping-rules:
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            type: string
-      404:
-        description: "Not found"
-        body:
-          text/plain:
-            example: "Not found"
+  /{recordType}:
+    get:
+      is: [validate]
+      displayName: recordType
+      description: get rules by record type
+      responses:
+        200:
+          body:
+            application/json:
+              type: string
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
       500:
         description: "Internal server error"
         body:

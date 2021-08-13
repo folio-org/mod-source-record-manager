@@ -162,6 +162,11 @@
       "run": "after",
       "snippetPath": "migrate_data_type_to_marc.sql",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TYPE rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
+      "fromModuleVersion": "mod-source-record-manager-3.3.0"
     }
   ]
 }

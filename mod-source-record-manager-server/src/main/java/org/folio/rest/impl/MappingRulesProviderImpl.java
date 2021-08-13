@@ -5,6 +5,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.folio.dataimport.util.ExceptionHelper;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.resource.MappingRules;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.MappingRuleService;
@@ -29,12 +30,12 @@ public class MappingRulesProviderImpl implements MappingRules {
   }
 
   @Override
-  public void getMappingRules(Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
-      .compose(ar -> mappingRuleService.get(tenantId))
+      .compose(ar -> mappingRuleService.get(tenantId, Record.RecordType.fromValue(recordType)))
       .map(optionalRules -> optionalRules.orElseThrow(() ->
         new NotFoundException(format("Can not find mapping rules for tenant '%s'", tenantId))))
-      .map(rules -> GetMappingRulesResponse.respond200WithApplicationJson(rules.encode()))
+      .map(rules -> GetMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
       .onComplete(asyncResultHandler);

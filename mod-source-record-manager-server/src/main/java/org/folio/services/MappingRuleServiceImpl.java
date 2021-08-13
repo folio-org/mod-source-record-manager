@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import org.folio.dao.MappingRuleDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +34,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   @Override
-  public Future<Optional<JsonObject>> get(String tenantId) {
-    return mappingRuleDao.get(tenantId);
+  public Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType) {
+    return mappingRuleDao.get(tenantId, recordType);
   }
 
   @Override

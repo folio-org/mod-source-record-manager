@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.MappingRuleDao;
+import org.folio.rest.jaxrs.model.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,16 +29,16 @@ public class MappingRuleCache {
   private AsyncLoadingCache<String, Optional<JsonObject>> cache;
 
   @Autowired
-  public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
+  public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx, Record.RecordType recordType) {
     this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
-      .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
+      .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao, recordType));
   }
 
-  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
+  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao, Record.RecordType recordType) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(tenantId).onComplete(ar -> {
+    executor.execute(() -> mappingRuleDao.get(tenantId, recordType).onComplete(ar -> {
       if (ar.failed()) {
         LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", tenantId, ar.cause());
         future.completeExceptionally(ar.cause());

@@ -341,6 +341,15 @@
         },
         {
           "methods": [
+            "GET"
+          ],
+          "pathPattern": "/mapping-rules/{recordType}",
+          "permissionsRequired": [
+            "mapping-rules.get"
+          ]
+        },
+        {
+          "methods": [
             "PUT"
           ],
           "pathPattern": "/mapping-rules",
