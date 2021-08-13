@@ -29,16 +29,16 @@ public class MappingRuleCache {
   private AsyncLoadingCache<String, Optional<JsonObject>> cache;
 
   @Autowired
-  public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx, Record.RecordType recordType) {
+  public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
     this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
-      .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao, recordType));
+      .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
   }
 
-  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao, Record.RecordType recordType) {
+  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(tenantId, recordType).onComplete(ar -> {
+    executor.execute(() -> mappingRuleDao.get(tenantId, Record.RecordType.MARC_BIB, Record.RecordType.MARC_HOLDING).onComplete(ar -> {
       if (ar.failed()) {
         LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", tenantId, ar.cause());
         future.completeExceptionally(ar.cause());
