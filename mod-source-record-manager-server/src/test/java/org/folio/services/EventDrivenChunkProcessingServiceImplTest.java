@@ -159,7 +159,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     MockitoAnnotations.initMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString(), any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     marcRecordAnalyzer = new MarcRecordAnalyzer();
-    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx, any());
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 

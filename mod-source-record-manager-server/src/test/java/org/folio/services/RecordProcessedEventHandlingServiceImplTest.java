@@ -164,7 +164,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.initMocks(this);
-    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx, any());
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, kafkaConfig);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);

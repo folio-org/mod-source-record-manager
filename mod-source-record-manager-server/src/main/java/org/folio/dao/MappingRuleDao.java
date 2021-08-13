@@ -17,7 +17,7 @@ public interface MappingRuleDao {
    * @param recordType rule type
    * @return optional of rules
    */
-  Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType);
+  Future<Optional<JsonObject>> get(String tenantId, Record.RecordType ... recordType);
 
   /**
    * Saves rules
