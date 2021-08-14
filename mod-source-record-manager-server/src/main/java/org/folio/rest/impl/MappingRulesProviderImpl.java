@@ -24,7 +24,7 @@ public class MappingRulesProviderImpl implements MappingRules {
   @Autowired
   private MappingRuleService mappingRuleService;
 
-  public MappingRulesProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
+  public MappingRulesProviderImpl(Vertx vertx, String tenantId) {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
     this.tenantId = TenantTool.calculateTenantId(tenantId);
   }
