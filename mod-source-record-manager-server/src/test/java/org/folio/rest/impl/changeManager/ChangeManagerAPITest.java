@@ -164,7 +164,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_JOB_PROFILE_ID).withName("Default job profile")))));
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+JOB_PROFILE_ID+"?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("not default job profile")))));
-    WireMock.stubFor(WireMock.post("/source-storage/stream/verify")
+    WireMock.stubFor(WireMock.post("/source-storage/batch/verify")
       .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
   }
 
