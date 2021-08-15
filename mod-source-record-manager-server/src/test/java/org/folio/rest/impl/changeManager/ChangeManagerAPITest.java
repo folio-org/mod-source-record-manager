@@ -164,6 +164,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_JOB_PROFILE_ID).withName("Default job profile")))));
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+JOB_PROFILE_ID+"?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("not default job profile")))));
+    WireMock.stubFor(WireMock.post("/source-storage/stream/verify")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
   }
 
   @Test
@@ -1596,10 +1598,10 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
-//  @Test
-//  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
-//    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
-//  }
+  @Test
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
+  }
 
   private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String correctRawRecord)
     throws InterruptedException, IOException {

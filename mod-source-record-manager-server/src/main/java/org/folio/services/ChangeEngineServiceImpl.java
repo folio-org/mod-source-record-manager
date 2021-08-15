@@ -64,7 +64,6 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.rest.jaxrs.model.MarcRecordSearchRequest;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
@@ -242,23 +241,81 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 sourceChunkId))));
         }
       }).collect(Collectors.toList());
-    marcHoldingsToDelete = new ArrayList<>();
-    List<Future> futures = new ArrayList<>();
 
-    records.forEach(record -> {
-      var future = postProcessMarcHoldingsRecord(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
-      futures.add(future);
-    });
+    //"111111","2222222","in00000000313","in00000000316","in00000000317"
+    var marcHoldingsToVerify = records.stream()
+      .filter(record -> record.getRecordType() == MARC_HOLDING)
+      .map(record -> getControlFieldValue(record, TAG_004))
+      .collect(Collectors.toList());
+
+    //"111111","2222222"
+    var futureIds = verifyMarcHoldings004Fields(marcHoldingsToVerify, okapiParams, jobExecution);
+
     Promise<List<Record>> promise = Promise.promise();
-
-    CompositeFuture.all(futures)
+    CompositeFuture.all(Collections.singletonList(futureIds))
       .onComplete(as -> {
-        if (!marcHoldingsToDelete.isEmpty()) {
-          records.removeAll(marcHoldingsToDelete);
-        }
-        LOGGER.info("Count MARC Holdings to delete: {}, count all records: {}", marcHoldingsToDelete.size(), records.size());
-        promise.complete(records);
+        var invalidMarcBibIds = futureIds.result();
+        LOGGER.info("In the Composite future and return list: {}", invalidMarcBibIds);
+        var recordsWithoutInvalidMarcBib = records.stream()
+          .filter(record -> {
+            if (record.getRecordType() == MARC_HOLDING) {
+              var controlFieldValue = getControlFieldValue(record, TAG_004);
+              return isInvalidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
+            }
+            return true;
+          }).collect(Collectors.toList());
+        LOGGER.info("Total marc bib records: {}, invalid marc bib ids: {}, record without invalid marc bib: {}",
+          records.size(), invalidMarcBibIds.size(), recordsWithoutInvalidMarcBib.size());
+        promise.complete(recordsWithoutInvalidMarcBib);
       });
+    return promise.future();
+  }
+
+  private boolean isInvalidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams, List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
+    if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
+      populateError(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
+      return false;
+    }
+    return true;
+  }
+
+  private void populateError(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
+    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+    LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+    record.setParsedRecord(null);
+    record.setErrorRecord(new ErrorRecord()
+      .withContent(rawRecord)
+      .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
+    );
+    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
+      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+  }
+
+  private Future<List<String>> verifyMarcHoldings004Fields(List<String> marcBibIds, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+    Promise<List<String>> promise = Promise.promise();
+    SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
+    try {
+      sourceStorageStreamClient.postSourceStorageStreamVerify(marcBibIds, asyncResult -> {
+        LOGGER.info("Verify list of marc bib ids: {} ", marcBibIds);
+        List<String> invalidMarcBibIds = new ArrayList<>();
+        if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
+          var body = asyncResult.result().body();
+          LOGGER.info("Response from SRS with invalid MARC Bib ids: {}", body);
+          var object = new JsonObject(body);
+          var ids = object.getJsonArray("invalidMarcBibIds");
+          invalidMarcBibIds = ids.getList();
+          LOGGER.info("List of marc bib ids: {}", invalidMarcBibIds);
+        } else {
+          LOGGER.info("The marc holdings not found in the SRS");
+        }
+        promise.complete(invalidMarcBibIds);
+      });
+    } catch (Exception e) {
+      LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
+      promise.complete(Collections.emptyList());
+    }
     return promise.future();
   }
 
@@ -284,65 +341,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
       }
     }
-  }
-
-  private Future<Record> postProcessMarcHoldingsRecord(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
-    Promise<Record> promise = Promise.promise();
-    if (record.getRecordType() == MARC_HOLDING) {
-      var controlFieldValue = getControlFieldValue(record, TAG_004);
-      DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
-      String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
-      if (isBlank(controlFieldValue)) {
-        populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
-        promise.complete(record);
-      } else {
-        SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
-        MarcRecordSearchRequest marcRecordSearchRequest = getMarcRecordSearchRequest(controlFieldValue);
-        try {
-          sourceStorageStreamClient.postSourceStorageStreamMarcRecordIdentifiers(marcRecordSearchRequest, asyncResult -> {
-            if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
-              var body = asyncResult.result().body();
-              LOGGER.info("Response from SRS with MARC bib 001 field: {} and body: {}", controlFieldValue, body);
-              var object = new JsonObject(body);
-              var records = object.getJsonArray("records");
-              if (records.isEmpty()) {
-                populateMarcHoldingsToDelete(record, rawRecord, okapiParams, eventPayload, key);
-              }
-            } else {
-              LOGGER.info("The marc holdings not found in the SRS");
-            }
-            promise.complete(record);
-          });
-        } catch (Exception e) {
-          LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
-          promise.complete(record);
-        }
-//        promise.complete(record);
-      }
-    } else {
-      promise.complete(record);
-    }
-    return promise.future();
-  }
-
-  private MarcRecordSearchRequest getMarcRecordSearchRequest(String controlFieldValue) {
-    MarcRecordSearchRequest marcRecordSearchRequest = new MarcRecordSearchRequest();
-    marcRecordSearchRequest.setFieldsSearchExpression("001.value = '" + controlFieldValue + "'");
-    return marcRecordSearchRequest;
-  }
-
-  private void populateMarcHoldingsToDelete(Record record, String rawRecord, OkapiConnectionParams okapiParams, DataImportEventPayload eventPayload, String key) {
-    LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
-    record.setParsedRecord(null);
-    record.setErrorRecord(new ErrorRecord()
-      .withContent(rawRecord)
-      .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
-    );
-    marcHoldingsToDelete.add(record);
-    LOGGER.info("Marc Holdings with id: {}, should be deleted. Count of records to delete: {}", record, marcHoldingsToDelete);
-    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
-      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
-      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
   private DataImportEventPayload getDataImportPayload(Record record, OkapiConnectionParams okapiParams, JobExecution jobExecution) {

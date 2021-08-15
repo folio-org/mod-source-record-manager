@@ -1,4 +1,4 @@
-*
+#*
 !Dockerfile
 !docker*
 !mod-source-record-manager-server/target/*.jar

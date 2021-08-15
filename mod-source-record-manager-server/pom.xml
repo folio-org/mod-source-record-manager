@@ -82,6 +82,8 @@
       <groupId>org.folio</groupId>
       <artifactId>mod-source-record-storage-client</artifactId>
       <version>5.2.0-SNAPSHOT</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/mod-source-record-storage-client-5.2.1-SNAPSHOT.jar</systemPath>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -486,6 +488,7 @@
                     <Main-Class>org.folio.rest.RestLauncher</Main-Class>
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
                     <Multi-Release>true</Multi-Release>
+                    <Class-Path>lib/mod-source-record-storage-client-5.2.1-SNAPSHOT.jar</Class-Path>
                   </manifestEntries>
                 </transformer>
               </transformers>
