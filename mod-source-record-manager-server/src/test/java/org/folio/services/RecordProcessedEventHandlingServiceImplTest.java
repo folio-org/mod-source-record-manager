@@ -168,7 +168,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, kafkaConfig);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
-    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
+    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(anyString(), any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     journalService = new JournalServiceImpl(journalRecordDao);

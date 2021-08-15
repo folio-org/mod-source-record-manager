@@ -334,7 +334,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/mapping-rules",
+          "pathPattern": "/mapping-rules/{recordType}",
           "permissionsRequired": [
             "mapping-rules.get"
           ]
