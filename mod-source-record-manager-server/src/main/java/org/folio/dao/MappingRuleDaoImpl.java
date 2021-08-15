@@ -10,6 +10,7 @@ import io.vertx.sqlclient.RowSet;
 
 import java.util.Optional;
 
+import org.folio.Record;
 import org.folio.dao.util.PostgresClientFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -23,17 +24,22 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
 
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";
-  private static final String SELECT_QUERY = "SELECT jsonb FROM %s.%s limit 1";
+  private static final String SELECT_BY_TYPE_QUERY = "SELECT jsonb FROM %s.%s WHERE record_type IN (%s) limit 2";
   private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s')";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<Optional<JsonObject>> get(String tenantId) {
+  public Future<Optional<JsonObject>>get(String tenantId, Record.RecordType ... recordType) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+      String query = format(
+        SELECT_BY_TYPE_QUERY,
+        convertToPsqlStandard(tenantId),
+        TABLE_NAME,
+        String.join(", ", recordType.toString())
+      );
       pgClientFactory.createInstance(tenantId).select(query, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting mapping rules", e);

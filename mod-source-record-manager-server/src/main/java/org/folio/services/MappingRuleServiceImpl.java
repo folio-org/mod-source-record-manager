@@ -4,6 +4,7 @@ import com.google.common.io.Resources;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import org.folio.Record;
 import org.folio.dao.MappingRuleDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,8 +34,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   @Override
-  public Future<Optional<JsonObject>> get(String tenantId) {
-    return mappingRuleDao.get(tenantId);
+  public Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType) {
+    return mappingRuleDao.get(tenantId, recordType);
   }
 
   @Override

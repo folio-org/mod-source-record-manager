@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import org.folio.Record;
 
 import java.util.Optional;
 
@@ -14,9 +15,10 @@ public interface MappingRuleService {
    * Returns rules in JsonObject
    *
    * @param tenantId tenant
+   * @param recordType type of rules (MARC_BIB or MARK_HOLDING)
    * @return optional with rules in JsonObject
    */
-  Future<Optional<JsonObject>> get(String tenantId);
+  Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType);
 
   /**
    * Saves default rules from resources classpath
