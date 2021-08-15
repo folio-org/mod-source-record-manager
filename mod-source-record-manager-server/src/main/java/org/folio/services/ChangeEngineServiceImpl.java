@@ -53,7 +53,7 @@ import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.rest.client.SourceStorageStreamClient;
+import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
@@ -295,9 +295,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<String>> verifyMarcHoldings004Fields(List<String> marcBibIds, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
     Promise<List<String>> promise = Promise.promise();
-    SourceStorageStreamClient sourceStorageStreamClient = getSourceStorageStreamClient(okapiParams);
+    SourceStorageBatchClient sourceStorageBatchClient = getSourceStorageStreamClient(okapiParams);
     try {
-      sourceStorageStreamClient.postSourceStorageStreamVerify(marcBibIds, asyncResult -> {
+      sourceStorageBatchClient.postSourceStorageBatchVerify(marcBibIds, asyncResult -> {
         LOGGER.info("Verify list of marc bib ids: {} ", marcBibIds);
         List<String> invalidMarcBibIds = new ArrayList<>();
         if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
@@ -308,7 +308,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           invalidMarcBibIds = ids.getList();
           LOGGER.info("List of marc bib ids: {}", invalidMarcBibIds);
         } else {
-          LOGGER.info("The marc holdings not found in the SRS");
+          LOGGER.info("The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(), asyncResult.result().statusCode());
         }
         promise.complete(invalidMarcBibIds);
       });
@@ -372,11 +372,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private SourceStorageStreamClient getSourceStorageStreamClient(OkapiConnectionParams okapiParams) {
+  private SourceStorageBatchClient getSourceStorageStreamClient(OkapiConnectionParams okapiParams) {
     var token = okapiParams.getToken();
     var okapiUrl = okapiParams.getOkapiUrl();
     var tenantId = okapiParams.getTenantId();
-    return new SourceStorageStreamClient(okapiUrl, tenantId, token);
+    return new SourceStorageBatchClient(okapiUrl, tenantId, token);
   }
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId) {
