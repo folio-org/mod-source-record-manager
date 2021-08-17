@@ -23,7 +23,8 @@ import java.util.Optional;
 public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
-  private static final String DEFAULT_RULES_PATH = "rules/rules.json";
+  private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
+  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holding_rules.json";
   private MappingRuleDao mappingRuleDao;
   private MappingRuleCache mappingRuleCache;
 
@@ -34,18 +35,23 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   @Override
-  public Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType) {
-    return mappingRuleDao.get(tenantId, recordType);
+  public Future<Optional<JsonObject>> get(String tenantId, String recordType) {
+    Record.RecordType ruleType = null;
+    if ("marc-bib".equals(recordType)) ruleType = Record.RecordType.MARC_BIB;
+    if ("marc-holdings".equals(recordType)) ruleType = Record.RecordType.MARC_HOLDING;
+    return mappingRuleDao.get(tenantId, ruleType);
   }
 
   @Override
-  public Future<Void> saveDefaultRules(String tenantId) {
+  public Future<Void> saveDefaultRules(String tenantId, Record.RecordType recordType) {
     Promise<Void> promise = Promise.promise();
-    Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
+    Optional<String> optionalRules = Optional.empty();
+    if (recordType == Record.RecordType.MARC_BIB) optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
+    if (recordType == Record.RecordType.MARC_HOLDING) optionalRules = readResourceFromPath(DEFAULT_HOLDING_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
       if (isValidJson(rules)) {
-        mappingRuleDao.save(new JsonObject(rules), tenantId).onComplete(ar -> {
+        mappingRuleDao.save(new JsonObject(rules), tenantId, recordType).onComplete(ar -> {
           if (ar.failed()) {
             LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
             promise.fail(ar.cause());
@@ -81,10 +87,11 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     return promise.future();
   }
 
+  //TODO refactor to use recordType
   @Override
   public Future<JsonObject> restore(String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    Optional<String> optionalRules = readResourceFromPath(DEFAULT_RULES_PATH);
+    Optional<String> optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
       update(rules, tenantId).onComplete(promise);

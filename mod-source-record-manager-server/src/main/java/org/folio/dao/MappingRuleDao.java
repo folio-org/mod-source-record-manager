@@ -26,7 +26,7 @@ public interface MappingRuleDao {
    * @param tenantId tenant
    * @return rules id
    */
-  Future<String> save(JsonObject rules, String tenantId);
+  Future<String> save(JsonObject rules, String tenantId, Record.RecordType recordType);
 
   /**
    * Updates rules if exist

@@ -1,26 +1,11 @@
 package org.folio.services;
 
-import static io.vertx.core.Future.failedFuture;
-import static java.lang.String.format;
-
-import static org.folio.HttpStatus.HTTP_NOT_FOUND;
-import static org.folio.HttpStatus.HTTP_OK;
-import static org.folio.verticle.consumers.util.QMEventTypes.QM_RECORD_UPDATED;
-
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.NotFoundException;
-
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.Try;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -30,6 +15,19 @@ import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.ws.rs.NotFoundException;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.vertx.core.Future.failedFuture;
+import static java.lang.String.format;
+import static org.folio.HttpStatus.HTTP_NOT_FOUND;
+import static org.folio.HttpStatus.HTTP_OK;
+import static org.folio.verticle.consumers.util.QMEventTypes.QM_RECORD_UPDATED;
 
 @Log4j2
 @Service

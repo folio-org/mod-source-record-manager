@@ -12,8 +12,7 @@ documentation:
 types:
   errors: !include raml-storage/raml-util/schemas/errors.schema
   recordType:
-    enum: [ marc_bib, marc_holding ]
-    default: marc_bib
+    enum: [ marc-bib, marc-holding ]
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -27,10 +26,10 @@ resourceTypes:
 
 /mapping-rules:
   /{recordType}:
+    displayName: recordType
+    description: get rules by record type
     get:
       is: [validate]
-      displayName: recordType
-      description: get rules by record type
       responses:
         200:
           body:

@@ -81,7 +81,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public static final String SOURCE_RECORD_ID_KEY = "sourceId";
   public static final String ENV_KEY = "folio";
   public static final String RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
-  public static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/rules.json";
+  public static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
 
   @Spy
   private Vertx vertx = Vertx.vertx();

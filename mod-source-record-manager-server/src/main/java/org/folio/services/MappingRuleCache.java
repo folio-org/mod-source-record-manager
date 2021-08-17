@@ -36,6 +36,7 @@ public class MappingRuleCache {
       .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
   }
 
+  //TODO refactor to support MARC_HOLDING rules
   private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
     executor.execute(() -> mappingRuleDao.get(tenantId, Record.RecordType.MARC_BIB).onComplete(ar -> {

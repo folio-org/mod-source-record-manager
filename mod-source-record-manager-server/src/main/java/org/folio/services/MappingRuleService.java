@@ -18,7 +18,7 @@ public interface MappingRuleService {
    * @param recordType type of rules (MARC_BIB or MARK_HOLDING)
    * @return optional with rules in JsonObject
    */
-  Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType);
+  Future<Optional<JsonObject>> get(String tenantId, String recordType);
 
   /**
    * Saves default rules from resources classpath
@@ -26,7 +26,7 @@ public interface MappingRuleService {
    * @param tenantId tenant
    * @return future
    */
-  Future<Void> saveDefaultRules(String tenantId);
+  Future<Void> saveDefaultRules(String tenantId, Record.RecordType recordType);
 
   /**
    * Updates rules
