@@ -1,3 +1,5 @@
+## 2021-08-18 v3.3.0-SNAPSHOT
+* [MODSOURMAN-533](https://issues.folio.org/browse/MODSOURMAN-533) Upgrade to RAML Module Builder 33.x
 ## 2021-07-06 v3.2.0-SNAPSHOT
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message sent
