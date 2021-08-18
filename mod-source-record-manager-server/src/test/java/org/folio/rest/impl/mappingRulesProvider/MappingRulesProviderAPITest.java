@@ -18,16 +18,19 @@ import java.util.Map;
  */
 @RunWith(VertxUnitRunner.class)
 public class MappingRulesProviderAPITest extends AbstractRestTest {
-  private static final String SERVICE_PATH = "/mapping-rules/marc-holdings";
+  private static final String SERVICE_PATH = "/mapping-rules";
+  private static final String MARC_BIB = "/marc-bib";
+  private static final String MARC_HOLDINGS= "/marc-holdings";
+
 
 
   @Test
-  public void shouldReturnDefaultRulesOnGet() {
+  public void shouldReturnDefaultMarcBibRulesOnGet() {
     Map defaultRules =
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
@@ -35,7 +38,30 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
     Assert.assertFalse(defaultRules.isEmpty());
   }
 
-  @Ignore
+  @Test
+  public void shouldReturnDefaultMarcHoldingsRulesOnGet() {
+    Map defaultRules =
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH + MARC_HOLDINGS)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().as(Map.class);
+    Assert.assertNotNull(defaultRules);
+    Assert.assertFalse(defaultRules.isEmpty());
+  }
+
+  @Test
+  public void shouldReturnErrorOnGetByInvalidPath() {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH + "/invalid")
+        .then()
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
   @Test
   public void shouldUpdateDefaultRulesOnPut() {
     // given
@@ -58,7 +84,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .log().everything()
@@ -66,7 +92,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
     Assert.assertEquals(expectedRules.toString(), actualRules);
   }
 
-  @Ignore
+
   @Test
   public void shouldReturnBadRequestWhenSendingRulesInWrongFormatOnPut() {
     // given
@@ -74,7 +100,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
@@ -92,13 +118,14 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
     Assert.assertEquals(expectedDefaultRules.toString(), actualRules.toString());
   }
 
+  @Ignore("Waiting for changes by https://issues.folio.org/browse/MODSOURMAN-543")
   @Test
   public void shouldRestoreDefaultRulesOnPut() {
     // given
@@ -130,7 +157,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .put(SERVICE_PATH + "/restore")
+        .put(SERVICE_PATH)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);

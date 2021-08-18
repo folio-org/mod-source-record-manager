@@ -36,10 +36,11 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<Optional<JsonObject>> get(String tenantId, String recordType) {
-    Record.RecordType ruleType = null;
-    if ("marc-bib".equals(recordType)) ruleType = Record.RecordType.MARC_BIB;
-    if ("marc-holdings".equals(recordType)) ruleType = Record.RecordType.MARC_HOLDING;
-    return mappingRuleDao.get(tenantId, ruleType);
+    switch (recordType){
+      case "marc-bib": return mappingRuleDao.get(tenantId, Record.RecordType.MARC_BIB);
+      case "marc-holdings": return mappingRuleDao.get(tenantId, Record.RecordType.MARC_HOLDING);
+      default: throw new BadRequestException("Only marc-bib or marc-holdings supports");
+    }
   }
 
   @Override
@@ -87,7 +88,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     return promise.future();
   }
 
-  //TODO refactor to use recordType
+  //TODO refactor to use recordType https://issues.folio.org/browse/MODSOURMAN-543
   @Override
   public Future<JsonObject> restore(String tenantId) {
     Promise<JsonObject> promise = Promise.promise();

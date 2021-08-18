@@ -227,6 +227,11 @@
       <artifactId>data-import-processing-core</artifactId>
       <version>3.2.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.folio</groupId>
+      <artifactId>util</artifactId>
+      <version>33.0.3</version>
+    </dependency>
   </dependencies>
   <build>
     <resources>

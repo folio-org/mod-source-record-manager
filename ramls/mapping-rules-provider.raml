@@ -35,11 +35,11 @@ resourceTypes:
           body:
             application/json:
               type: string
-        404:
-          description: "Not found"
+        400:
+          description: "Not supports"
           body:
             text/plain:
-              example: "Not found"
+              example: "Only marc-bib or marc-holdings supports"
         500:
           description: "Internal server error"
           body:
