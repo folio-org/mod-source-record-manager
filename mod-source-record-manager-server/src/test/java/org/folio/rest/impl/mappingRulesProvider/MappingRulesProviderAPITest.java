@@ -18,9 +18,9 @@ import java.util.Map;
  */
 @RunWith(VertxUnitRunner.class)
 public class MappingRulesProviderAPITest extends AbstractRestTest {
-  private static final String SERVICE_PATH = "/mapping-rules/{marc-bib}";
+  private static final String SERVICE_PATH = "/mapping-rules/marc-holdings";
 
-  @Ignore
+
   @Test
   public void shouldReturnDefaultRulesOnGet() {
     Map defaultRules =
@@ -99,7 +99,6 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
     Assert.assertEquals(expectedDefaultRules.toString(), actualRules.toString());
   }
 
-  @Ignore
   @Test
   public void shouldRestoreDefaultRulesOnPut() {
     // given

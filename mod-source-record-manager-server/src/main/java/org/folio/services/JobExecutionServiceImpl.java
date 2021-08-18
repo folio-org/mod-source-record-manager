@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -215,20 +217,15 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private Future<JobProfile> loadJobProfileById(String jobProfileId, OkapiConnectionParams params) {
     Promise<JobProfile> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-
-    try {
-      client.getDataImportProfilesJobProfilesById(jobProfileId, false, null, response -> {
-        if (response.result().statusCode() == HTTP_OK.toInt()) {
-          promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(JobProfile.class)));
-        } else {
-          String message = String.format("Error loading JobProfile by JobProfile id '%s', response code %s", jobProfileId, response.result().statusCode());
-          LOGGER.error(message);
-          promise.fail(message);
-        }
-      });
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
+    client.getDataImportProfilesJobProfilesById(jobProfileId, false, null, response -> {
+      if (response.result().statusCode() == HTTP_OK.toInt()) {
+        promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(JobProfile.class)));
+      } else {
+        String message = String.format("Error loading JobProfile by JobProfile id '%s', response code %s", jobProfileId, response.result().statusCode());
+        LOGGER.error(message);
+        promise.fail(message);
+      }
+    });
 
     return promise.future();
   }

@@ -6,6 +6,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import org.folio.Record;
 import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.services.MappingRuleService;
@@ -13,8 +14,6 @@ import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
-
-import static org.folio.Record.RecordType;
 
 public class ModTenantAPI extends TenantAPI {
 
@@ -33,8 +32,8 @@ public class ModTenantAPI extends TenantAPI {
                            Map<String, String> headers, Context context) {
     return super.loadData(attributes, tenantId, headers, context)
       .compose(num -> setSequencesPermissionForDbUser(context, tenantId)
-        .compose(ar -> mappingRuleService.saveDefaultRules(tenantId, RecordType.MARC_BIB))
-        .compose(ar -> mappingRuleService.saveDefaultRules(tenantId, RecordType.MARC_HOLDING))
+        .compose(ar -> mappingRuleService.saveDefaultRules(tenantId, Record.RecordType.MARC_BIB))
+        .compose(ar -> mappingRuleService.saveDefaultRules(tenantId, Record.RecordType.MARC_HOLDING))
         .compose(ar -> saveTenantId(tenantId, context))
         .map(num));
   }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
@@ -24,10 +25,9 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
 
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";
-  private static final String RULES_TYPE_FIELD = "record_type";
-  private static final String SELECT_BY_TYPE_QUERY = "SELECT jsonb FROM %s.%s WHERE record_type = %s limit 1";
+  private static final String SELECT_BY_TYPE_QUERY = "SELECT jsonb FROM %s.%s WHERE record_type = '%s' limit 1";
   private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s')";
-  private static final String INSERT_QUERY = "INSERT INTO %s.%s (jsonb, record_type) VALUES ($1, $2)";
+  private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, record_type) VALUES ($1, $2, $3)";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -55,17 +55,20 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
 
   @Override
   public Future<String> save(JsonObject rules, String tenantId, Record.RecordType recordType) {
-    Promise<String> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
+    UUID id = UUID.randomUUID();
     try {
       String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
-      Tuple queryParams = Tuple.of(new JsonObject().put(RULES_JSON_FIELD, rules), recordType.toString());
-      pgClientFactory.createInstance(tenantId).execute(query, queryParams);
+      Tuple queryParams = Tuple.of(
+        id,
+        new JsonObject().put(RULES_JSON_FIELD, rules),
+        recordType.toString());
+      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error saving rules", e);
       promise.fail(e);
     }
-    promise.complete();
-    return promise.future();
+    return promise.future().map(id.toString()).onFailure(e -> LOGGER.error("Error saving rules", e));
   }
 
   @Override
