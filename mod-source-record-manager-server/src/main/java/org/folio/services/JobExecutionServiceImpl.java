@@ -509,7 +509,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         } else {
           String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
           LOGGER.error(message);
-          promise.fail(new HttpException(response.result().statusCode(), "Error during post for new Snapshot."));
+          promise.fail(new HttpException(response.result().statusCode(), message));
         }
       });
     } catch (Exception e) {
