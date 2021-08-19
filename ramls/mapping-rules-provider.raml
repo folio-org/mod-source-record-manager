@@ -28,6 +28,9 @@ resourceTypes:
   /{recordType}:
     displayName: recordType
     description: get rules by record type
+    uriParameters:
+      recordType:
+        type: recordType
     get:
       is: [validate]
       responses:

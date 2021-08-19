@@ -1,10 +1,11 @@
 package org.folio.dao;
 
+import java.util.Optional;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import org.folio.Record;
 
-import java.util.Optional;
+import org.folio.Record;
 
 /**
  * Mapping rules DAO
@@ -17,7 +18,7 @@ public interface MappingRuleDao {
    * @param recordType type of rules (MARC_BIB or MARK_HOLDING)
    * @return optional of rules
    */
-  Future<Optional<JsonObject>> get(String tenantId, Record.RecordType recordType);
+  Future<Optional<JsonObject>> get(Record.RecordType recordType, String tenantId);
 
   /**
    * Saves rules
@@ -26,7 +27,7 @@ public interface MappingRuleDao {
    * @param tenantId tenant
    * @return rules id
    */
-  Future<String> save(JsonObject rules, String tenantId, Record.RecordType recordType);
+  Future<String> save(JsonObject rules, Record.RecordType recordType, String tenantId);
 
   /**
    * Updates rules if exist

@@ -1,5 +1,9 @@
 package org.folio.services;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.vertx.core.Future;
@@ -8,14 +12,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.Record;
-import org.folio.dao.MappingRuleDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import org.folio.Record;
+import org.folio.dao.MappingRuleDao;
 
 /**
  * In-memory cache for the mapping rules
@@ -39,7 +40,7 @@ public class MappingRuleCache {
   //TODO refactor to support MARC_HOLDING rules https://issues.folio.org/browse/MODSOURMAN-547
   private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(tenantId, Record.RecordType.MARC_BIB).onComplete(ar -> {
+    executor.execute(() -> mappingRuleDao.get(Record.RecordType.MARC_BIB, tenantId).onComplete(ar -> {
       if (ar.failed()) {
         LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", tenantId, ar.cause());
         future.completeExceptionally(ar.cause());

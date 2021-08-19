@@ -472,7 +472,7 @@ There are 3 REST methods to work with rules.
 |**PUT**| /mapping-rules/ | application/json | Update rules for given tenant |
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
 
-An endpoint support URI path parameters ():
+An endpoint support recordType path parameter with 2 possible values:
 * marc-bib
 * marc-holdings
 
