@@ -9,6 +9,7 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,7 +38,7 @@ public class JournalServiceImplTest {
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
@@ -59,7 +60,7 @@ public class JournalServiceImplTest {
 
     journalService.save(jsonJournalRecord, TENANT_ID);
 
-    verify(journalRecordDao, times(1)).save(journalRecord, TENANT_ID);
+    verify(journalRecordDao, times(1)).save(any(JournalRecord.class), eq(TENANT_ID));
   }
 
   @Test
@@ -86,6 +87,6 @@ public class JournalServiceImplTest {
 
     journalService.saveBatch(jsonArray, TENANT_ID);
 
-    verify(journalRecordDao, times(3)).save(journalRecord, TENANT_ID);
+    verify(journalRecordDao, times(3)).save(any(JournalRecord.class), eq(TENANT_ID));
   }
 }

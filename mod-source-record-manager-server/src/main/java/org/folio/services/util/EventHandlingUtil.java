@@ -1,9 +1,5 @@
 package org.folio.services.util;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -13,13 +9,17 @@ import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.processing.events.utils.PomReaderUtil;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
-import org.folio.util.pubsub.PubSubClientUtils;
+import org.folio.rest.tools.utils.ModuleName;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 public final class EventHandlingUtil {
 
@@ -100,7 +100,12 @@ public final class EventHandlingUtil {
       .withEventMetadata(new EventMetadata()
         .withTenantId(tenantId)
         .withEventTTL(1)
-        .withPublishedBy(PubSubClientUtils.constructModuleName()));
+        .withPublishedBy(constructModuleName()));
+  }
+
+  public static String constructModuleName() {
+    return PomReaderUtil.INSTANCE.constructModuleVersionAndVersion(ModuleName.getModuleName(),
+      ModuleName.getModuleVersion());
   }
 
   public static KafkaProducer<String, String> createProducer(String eventType, KafkaConfig kafkaConfig) {

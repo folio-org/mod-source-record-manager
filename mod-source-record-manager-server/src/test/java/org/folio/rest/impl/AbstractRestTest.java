@@ -29,6 +29,7 @@ import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.postgres.testing.PostgresTesterContainer;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -43,14 +44,15 @@ import org.folio.rest.jaxrs.model.TenantAttributes;
 import org.folio.rest.jaxrs.model.TenantJob;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
+import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
-import org.folio.util.pubsub.PubSubClientUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -71,11 +73,15 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 /**
  * Abstract test for the REST API testing needs.
  */
 public abstract class AbstractRestTest {
+
+  public static final String POSTGRES_IMAGE = "postgres:12-alpine";
+  private static PostgreSQLContainer<?> postgresSQLContainer;
 
   private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
@@ -196,14 +202,14 @@ public abstract class AbstractRestTest {
     Async async = context.async();
     vertx.close(context.asyncAssertSuccess(res -> {
       if (useExternalDatabase.equals("embedded")) {
-        PostgresClient.stopEmbeddedPostgres();
+        PostgresClient.stopPostgresTester();
       }
       async.complete();
     }));
   }
 
   private static void runDatabase() throws Exception {
-    PostgresClient.stopEmbeddedPostgres();
+    PostgresClient.stopPostgresTester();
     PostgresClient.closeAllClients();
     useExternalDatabase = System.getProperty(
       "org.folio.source.record.manager.test.database",
@@ -220,8 +226,16 @@ public abstract class AbstractRestTest {
         PostgresClient.setConfigFilePath(postgresConfigPath);
         break;
       case "embedded":
-        PostgresClient.setIsEmbedded(true);
-        PostgresClient.getInstance(vertx).startEmbeddedPostgres();
+        postgresSQLContainer = new PostgreSQLContainer<>(POSTGRES_IMAGE);
+        postgresSQLContainer.start();
+
+        Envs.setEnv(
+          postgresSQLContainer.getHost(),
+          postgresSQLContainer.getFirstMappedPort(),
+          postgresSQLContainer.getUsername(),
+          postgresSQLContainer.getPassword(),
+          postgresSQLContainer.getDatabaseName()
+        );
         break;
       default:
         String message = "No understood database choice made." +
@@ -242,7 +256,7 @@ public abstract class AbstractRestTest {
     vertx.deployVerticle(RestVerticle.class.getName(), options, deployVerticleAr -> {
       try {
         TenantAttributes tenantAttributes = new TenantAttributes();
-        tenantAttributes.setModuleTo(PubSubClientUtils.constructModuleName());
+        tenantAttributes.setModuleTo(constructModuleName());
         tenantClient.postTenant(tenantAttributes, res2 -> {
           if (res2.result().statusCode() == 204) {
             return;
