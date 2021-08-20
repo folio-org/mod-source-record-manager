@@ -1,17 +1,22 @@
 package org.folio.rest.impl.mappingRulesProvider;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import com.google.common.io.Resources;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
-import org.folio.rest.impl.AbstractRestTest;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Map;
+import org.folio.rest.impl.AbstractRestTest;
 
 /**
  * REST tests for MappingRulesProvider
@@ -21,35 +26,43 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final String SERVICE_PATH = "/mapping-rules";
   private static final String MARC_BIB = "/marc-bib";
   private static final String MARC_HOLDINGS= "/marc-holdings";
+  private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
+  private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
+  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holding_rules.json";
 
 
 
   @Test
-  public void shouldReturnDefaultMarcBibRulesOnGet() {
-    Map defaultRules =
+  public void shouldReturnDefaultMarcBibRulesOnGet() throws IOException {
+    JsonObject expectedRules = new JsonObject(Resources.toString(Resources.getResource(DEFAULT_BIB_RULES_PATH), DEFAULT_RULES_ENCODING));
+    String defaultBibRules =
       RestAssured.given()
         .spec(spec)
         .when()
         .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertNotNull(defaultRules);
-    Assert.assertFalse(defaultRules.isEmpty());
+        .extract().body().asString();
+    Assert.assertNotNull(defaultBibRules);
+    Assert.assertFalse(defaultBibRules.isEmpty());
+    Assert.assertEquals(expectedRules.toString(), defaultBibRules);
+
   }
 
   @Test
-  public void shouldReturnDefaultMarcHoldingsRulesOnGet() {
-    Map defaultRules =
+  public void shouldReturnDefaultMarcHoldingsRulesOnGet() throws IOException {
+    JsonObject expectedRules = new JsonObject(Resources.toString(Resources.getResource(DEFAULT_HOLDING_RULES_PATH), DEFAULT_RULES_ENCODING));
+    JsonObject defaultHoldingsRules =
       RestAssured.given()
         .spec(spec)
         .when()
         .get(SERVICE_PATH + MARC_HOLDINGS)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertNotNull(defaultRules);
-    Assert.assertFalse(defaultRules.isEmpty());
+        .extract().body().as(JsonObject.class);
+    Assert.assertNotNull(defaultHoldingsRules);
+    Assert.assertFalse(defaultHoldingsRules.isEmpty());
+    Assert.assertEquals(expectedRules, defaultHoldingsRules);
   }
 
   @Test

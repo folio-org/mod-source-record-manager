@@ -36,12 +36,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   @Override
-  public Future<Optional<JsonObject>> get(String recordType, String tenantId) {
-    switch (recordType){
-      case "marc-bib": return mappingRuleDao.get(Record.RecordType.MARC_BIB, tenantId);
-      case "marc-holdings": return mappingRuleDao.get(Record.RecordType.MARC_HOLDING, tenantId);
-      default: throw new BadRequestException("Only marc-bib or marc-holdings supports");
-    }
+  public Future<Optional<JsonObject>> get(Record.RecordType recordType, String tenantId) {
+    return mappingRuleDao.get(recordType, tenantId);
   }
 
   @Override
@@ -49,8 +45,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = Optional.empty();
 
-    if (recordType == Record.RecordType.MARC_HOLDING) {
-      optionalRules = readResourceFromPath(DEFAULT_HOLDING_RULES_PATH);
+    if (recordType == Record.RecordType.MARC_BIB) {
+      optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
     }
     else if (recordType == Record.RecordType.MARC_HOLDING) {
       optionalRules = readResourceFromPath(DEFAULT_HOLDING_RULES_PATH);

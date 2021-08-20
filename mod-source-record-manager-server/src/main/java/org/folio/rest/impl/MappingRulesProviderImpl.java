@@ -13,10 +13,10 @@ import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.folio.dataimport.util.ExceptionHelper;
-import org.folio.rest.jaxrs.model.RecordType;
 import org.folio.rest.jaxrs.resource.MappingRules;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.MappingRuleService;
+import org.folio.services.util.QueryPathUtil;
 import org.folio.spring.SpringContextUtil;
 
 public class MappingRulesProviderImpl implements MappingRules {
@@ -31,11 +31,11 @@ public class MappingRulesProviderImpl implements MappingRules {
 
 
   @Override
-  public void getMappingRulesByRecordType(RecordType recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
-      .compose(ar -> mappingRuleService.get(recordType.toString(), tenantId))
+      .compose(ar -> mappingRuleService.get(QueryPathUtil.convert(recordType), tenantId))
       .map(optionalRules -> optionalRules.orElseThrow(() ->
-        new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType, tenantId))))
+        new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType.toString(), tenantId))))
       .map(rules -> GetMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
