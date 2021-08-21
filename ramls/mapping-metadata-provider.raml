@@ -1,0 +1,41 @@
+#%RAML 1.0
+
+title: Mapping Metadata Provider
+version: v1.0
+protocols: [ HTTP, HTTPS ]
+baseUri: http://localhost
+
+documentation:
+  - title: Mapping Metadata Provider API
+    content: API for accessing mapping rules and mapping parameters
+
+types:
+  errors: !include raml-storage/raml-util/schemas/errors.schema
+
+traits:
+  validate: !include raml-storage/raml-util/traits/validation.raml
+  language: !include raml-storage/raml-util/traits/language.raml
+  pageable:  !include raml-storage/raml-util/traits/pageable.raml
+  searchable: !include raml-storage/raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-storage/raml-util/rtypes/collection.raml
+  collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
+
+/mapping-metadata:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: string
+      404:
+        description: "Not found"
+        body:
+          text/plain:
+            example: "Not found"
+      500:
+        description: "Internal server error"
+        body:
+          text/plain:
+            example: "Internal server error"
