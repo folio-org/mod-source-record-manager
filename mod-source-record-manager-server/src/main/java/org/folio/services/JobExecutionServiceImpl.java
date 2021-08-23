@@ -63,7 +63,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionCollectionDto> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId);
   }
 
@@ -119,14 +119,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionCollectionDto> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit, tenantId);
           } else {
-            return Future.succeededFuture(new JobExecutionCollectionDto().withTotalRecords(0));
+            return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
           }
         })
         .orElse(Future.failedFuture(new NotFoundException(

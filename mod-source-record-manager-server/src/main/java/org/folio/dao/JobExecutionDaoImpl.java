@@ -23,7 +23,7 @@ import org.folio.cql2pgjson.model.SqlSelect;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
@@ -71,7 +71,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollectionDto> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       StringBuilder cqlQuery = new StringBuilder("subordinationType=\"\" NOT subordinationType=").append(PARENT_MULTIPLE);
@@ -89,7 +89,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollectionDto> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId) {
     Promise<Results<JobExecutionDto>> promise = Promise.promise();
     try {
       String[] fieldList = {"*"};
@@ -101,7 +101,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       LOGGER.error("Error getting jobExecutions by parent id", e);
       promise.fail(e);
     }
-    return promise.future().map(results -> new JobExecutionCollectionDto()
+    return promise.future().map(results -> new JobExecutionDtoCollection()
       .withJobExecutions(results.getResults())
       .withTotalRecords(results.getResultInfo().getTotalRecords()));
   }
@@ -235,12 +235,12 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return String.format(getJobsWithoutParentMultipleSql, schemaName, whereClause, schemaName, schemaName, whereClause, orderBy, limit, offset);
   }
 
-  private JobExecutionCollectionDto mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
+  private JobExecutionDtoCollection mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
     int totalRecords = resultSet.rowCount() != 0 ? resultSet.iterator().next().getInteger(TOTAL_ROWS_COLUMN) : 0;
     List<JobExecutionDto> jobExecutions = new ArrayList<>();
     resultSet.forEach(row -> jobExecutions.add(mapJsonToJobExecution(row.getValue(JSONB_COLUMN).toString())));
 
-    return new JobExecutionCollectionDto()
+    return new JobExecutionDtoCollection()
       .withJobExecutions(jobExecutions)
       .withTotalRecords(totalRecords);
   }

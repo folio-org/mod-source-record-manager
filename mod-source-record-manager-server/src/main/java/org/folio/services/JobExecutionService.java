@@ -6,7 +6,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
 
@@ -17,7 +17,7 @@ import java.util.Optional;
  *
  * @see JobExecution
  * @see org.folio.dao.JobExecutionDao
- * @see org.folio.rest.jaxrs.model.JobExecutionCollectionDto
+ * @see org.folio.rest.jaxrs.model.JobExecutionDtoCollection
  */
 public interface JobExecutionService {
 
@@ -29,7 +29,7 @@ public interface JobExecutionService {
    * @param limit  maximum number of results to return
    * @return future with JobExecutionCollectionDto
    */
-  Future<JobExecutionCollectionDto> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
 
   /**
    * Performs creation of JobExecution and Snapshot entities
@@ -80,7 +80,7 @@ public interface JobExecutionService {
    * @param limit    maximum number of results to return
    * @return future with collection of child JobExecutions
    */
-  Future<JobExecutionCollectionDto> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId);
 
   /**
    * Updates status for JobExecution and calls source-record-storage to update Snapshot status

@@ -75,7 +75,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .map(InitJobExecutionsRsDto::getJobExecutions)
       .compose(this::createProgressForJobExecutions)
       .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(null, 0, 10, params.getTenantId()))
-      .map(JobExecutionCollectionDto::getJobExecutions);
+      .map(JobExecutionDtoCollection::getJobExecutions);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
