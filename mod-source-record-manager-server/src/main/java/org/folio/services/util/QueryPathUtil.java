@@ -17,11 +17,6 @@ public class QueryPathUtil {
    * @return org.folio.Record.RecordType
    */
   public static Record.RecordType convert(String recordType) {
-    switch (recordType) {
-      case "marc-bib":
-        return Record.RecordType.MARC_BIB;
-      case "marc-holdings": return Record.RecordType.MARC_HOLDING;
-      default: throw new BadRequestException("Only marc-bib or marc-holdings supports");
-    }
+    return Optional.ofNullable(queryToRecordTypeMap.get(recordType));
   }
 }
