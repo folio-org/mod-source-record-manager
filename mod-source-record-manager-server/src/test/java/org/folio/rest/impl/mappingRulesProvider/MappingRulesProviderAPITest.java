@@ -63,12 +63,12 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnErrorOnGetByInvalidPath() {
-      RestAssured.given()
-        .spec(spec)
-        .when()
-        .get(SERVICE_PATH + "/invalid")
-        .then()
-        .statusCode(HttpStatus.SC_BAD_REQUEST);
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(SERVICE_PATH + "/invalid")
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
@@ -84,7 +84,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .spec(spec)
       .body(expectedRules.encode())
       .when()
-      .put(SERVICE_PATH)
+      .put(SERVICE_PATH + MARC_BIB)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .log().everything();
@@ -119,7 +119,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .spec(spec)
       .body(rulesToUpdate)
       .when()
-      .put(SERVICE_PATH)
+      .put(SERVICE_PATH  + MARC_BIB)
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
     // then
