@@ -19,8 +19,8 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>32.1.0</raml-module-builder.version>
-    <vertx.version>4.0.0</vertx.version>
+    <raml-module-builder.version>33.0.2</raml-module-builder.version>
+    <vertx.version>4.1.0</vertx.version>
     <junit.version>4.13</junit.version>
     <rest-assured.version>4.3.1</rest-assured.version>
     <wiremock.version>2.27.2</wiremock.version>
@@ -153,6 +153,14 @@
     <developerConnection>scm:git:git@github.com:folio-org/mod-source-record-manager.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>folio-nexus</id>
+      <name>FOLIO Maven repository</name>
+      <url>https://repository.folio.org/repository/maven-folio</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <repositories>
     <repository>
