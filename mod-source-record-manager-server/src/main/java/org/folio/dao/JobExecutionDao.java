@@ -3,7 +3,7 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 
 import java.util.Optional;
 
@@ -21,9 +21,9 @@ public interface JobExecutionDao {
    * @param query  query string to filter jobExecutions based on matching criteria in fields
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
-   * @return future with {@link JobExecutionCollection}
+   * @return future with {@link org.folio.rest.jaxrs.model.JobExecutionCollectionDto}
    */
-  Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
+  Future<JobExecutionCollectionDto> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
 
   /**
    * Saves {@link JobExecution} to database
@@ -48,9 +48,9 @@ public interface JobExecutionDao {
    * @param query    query string to filter jobExecutions based on matching criteria in fields
    * @param offset   starting index in a list of results
    * @param limit    maximum number of results to return
-   * @return collection of JobExecutions with specified parent id
+   * @return collection of JobExecutionCollection dtos with specified parent id
    */
-  Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId);
+  Future<JobExecutionCollectionDto> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId);
 
   /**
    * Searches for {@link JobExecution} by id

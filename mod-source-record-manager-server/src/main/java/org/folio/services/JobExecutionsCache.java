@@ -8,7 +8,7 @@ import io.vertx.core.Vertx;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class JobExecutionsCache {
   private Integer expireInSeconds;
   private JobExecutionService jobExecutionService;
   // Pair of tenant id and cql query
-  private AsyncLoadingCache<Pair<String, String>, Optional<JobExecutionCollection>> cache;
+  private AsyncLoadingCache<Pair<String, String>, Optional<JobExecutionCollectionDto>> cache;
   private Vertx vertx;
 
   @Autowired
@@ -40,8 +40,8 @@ public class JobExecutionsCache {
     cache = buildCache();
   }
 
-  public Future<JobExecutionCollection> get(String tenantId, String cqlQuery, int offset, int limit) {
-    Promise<JobExecutionCollection> promise = Promise.promise();
+  public Future<JobExecutionCollectionDto> get(String tenantId, String cqlQuery, int offset, int limit) {
+    Promise<JobExecutionCollectionDto> promise = Promise.promise();
     cache.get(Pair.of(tenantId, cqlQuery)).whenComplete((jobExecutionOptional, e) -> {
       if (e == null) {
         if (jobExecutionOptional != null && jobExecutionOptional.isPresent()) {
@@ -64,11 +64,11 @@ public class JobExecutionsCache {
     return promise.future();
   }
 
-  private void put(String tenantId, String cqlQuery, JobExecutionCollection jobExecutionCollection) {
+  private void put(String tenantId, String cqlQuery, JobExecutionCollectionDto jobExecutionCollection) {
     cache.put(Pair.of(tenantId, cqlQuery), CompletableFuture.completedFuture(Optional.of(jobExecutionCollection)));
   }
 
-  private AsyncLoadingCache<Pair<String, String>, Optional<JobExecutionCollection>> buildCache() {
+  private AsyncLoadingCache<Pair<String, String>, Optional<JobExecutionCollectionDto>> buildCache() {
     return Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
       .expireAfterWrite(expireInSeconds, TimeUnit.SECONDS)

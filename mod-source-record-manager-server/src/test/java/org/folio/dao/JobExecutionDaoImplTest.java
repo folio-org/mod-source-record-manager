@@ -9,12 +9,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobExecutionProgress;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 import org.junit.Before;
@@ -76,16 +71,16 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   public void shouldSubstituteJobExecutionProgressToJobExecutions(TestContext context) {
     Async async = context.async();
 
-    Future<List<JobExecution>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+    Future<List<JobExecutionDto>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .map(InitJobExecutionsRsDto::getJobExecutions)
       .compose(this::createProgressForJobExecutions)
       .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(null, 0, 10, params.getTenantId()))
-      .map(JobExecutionCollection::getJobExecutions);
+      .map(JobExecutionCollectionDto::getJobExecutions);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Async async2 = context.async(ar.result().size());
-      for (JobExecution jobExecution : ar.result()) {
+      for (JobExecutionDto jobExecution : ar.result()) {
         jobExecutionProgressDao.getByJobExecutionId(jobExecution.getId(), params.getTenantId()).onComplete(progressAr -> {
           context.assertTrue(progressAr.succeeded());
           context.assertTrue(progressAr.result().isPresent());

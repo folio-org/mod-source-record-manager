@@ -23,7 +23,8 @@ import org.folio.cql2pgjson.model.SqlSelect;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollection;
+import org.folio.rest.jaxrs.model.JobExecutionCollectionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
@@ -70,7 +71,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionCollectionDto> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       StringBuilder cqlQuery = new StringBuilder("subordinationType=\"\" NOT subordinationType=").append(PARENT_MULTIPLE);
@@ -88,19 +89,19 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId) {
-    Promise<Results<JobExecution>> promise = Promise.promise();
+  public Future<JobExecutionCollectionDto> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+    Promise<Results<JobExecutionDto>> promise = Promise.promise();
     try {
       String[] fieldList = {"*"};
       CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
       cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "parentJobId=" + parentId));
       cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "subordinationType=" + CHILD));
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, fieldList, cqlWrapper, true, false, promise);
+      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionDto.class, fieldList, cqlWrapper, true, false, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecutions by parent id", e);
       promise.fail(e);
     }
-    return promise.future().map(results -> new JobExecutionCollection()
+    return promise.future().map(results -> new JobExecutionCollectionDto()
       .withJobExecutions(results.getResults())
       .withTotalRecords(results.getResultInfo().getTotalRecords()));
   }
@@ -234,19 +235,19 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return String.format(getJobsWithoutParentMultipleSql, schemaName, whereClause, schemaName, schemaName, whereClause, orderBy, limit, offset);
   }
 
-  private JobExecutionCollection mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
+  private JobExecutionCollectionDto mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
     int totalRecords = resultSet.rowCount() != 0 ? resultSet.iterator().next().getInteger(TOTAL_ROWS_COLUMN) : 0;
-    List<JobExecution> jobExecutions = new ArrayList<>();
+    List<JobExecutionDto> jobExecutions = new ArrayList<>();
     resultSet.forEach(row -> jobExecutions.add(mapJsonToJobExecution(row.getValue(JSONB_COLUMN).toString())));
 
-    return new JobExecutionCollection()
+    return new JobExecutionCollectionDto()
       .withJobExecutions(jobExecutions)
       .withTotalRecords(totalRecords);
   }
 
-  private JobExecution mapJsonToJobExecution(String jsonAsString) {
+  private JobExecutionDto mapJsonToJobExecution(String jsonAsString) {
     try {
-      return new ObjectMapper().readValue(jsonAsString, JobExecution.class);
+      return new ObjectMapper().readValue(jsonAsString, JobExecutionDto.class);
     } catch (IOException e) {
       LOGGER.error("Error while mapping json to jobExecution", e);
       throw new RuntimeJsonMappingException(e.getMessage());
