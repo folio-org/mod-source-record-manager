@@ -3,6 +3,7 @@ package org.folio.rest.impl;
 import static io.vertx.core.Future.succeededFuture;
 
 import java.util.Map;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 
@@ -33,7 +34,8 @@ public class MappingRulesProviderImpl implements MappingRules {
   @Override
   public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
-      .compose(ar -> mappingRuleService.get(QueryPathUtil.convert(recordType), tenantId))
+      .compose(ar -> mappingRuleService.get(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
+        new BadRequestException("Only marc-bib or marc-holdings supports")), tenantId))
       .map(optionalRules -> optionalRules.orElseThrow(() ->
         new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType.toString(), tenantId))))
       .map(rules -> GetMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
