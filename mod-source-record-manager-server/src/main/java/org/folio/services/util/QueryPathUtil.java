@@ -11,7 +11,7 @@ public class QueryPathUtil {
   }
 
   /**
-   * Convert Sttong param to Folio RecordType enum
+   * Convert string query param to {@link Record.RecordType}
    *
    * @param recordType String param from URL path
    * @return org.folio.Record.RecordType
