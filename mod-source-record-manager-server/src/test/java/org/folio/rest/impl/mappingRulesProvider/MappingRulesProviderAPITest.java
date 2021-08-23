@@ -1,16 +1,20 @@
 package org.folio.rest.impl.mappingRulesProvider;
 
+import java.io.IOException;
+import java.util.Map;
+
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
-import org.folio.rest.impl.AbstractRestTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Map;
+import org.folio.TestUtil;
+import org.folio.rest.impl.AbstractRestTest;
 
 /**
  * REST tests for MappingRulesProvider
@@ -18,19 +22,53 @@ import java.util.Map;
 @RunWith(VertxUnitRunner.class)
 public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final String SERVICE_PATH = "/mapping-rules";
+  private static final String MARC_BIB = "/marc-bib";
+  private static final String MARC_HOLDINGS = "/marc-holdings";
+  private static final String DEFAULT_MARC_BIB_RULES_PATH = "src/main/resources/rules/marc_bib_rules.json";
+  private static final String DEFAULT_MARC_HOLDINGS_RULES_PATH = "src/main/resources/rules/marc_holdings_rules.json";
+
 
   @Test
-  public void shouldReturnDefaultRulesOnGet() {
-    Map defaultRules =
+  public void shouldReturnDefaultMarcBibRulesOnGet() throws IOException {
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_BIB_RULES_PATH));
+    JsonObject defaultBibRules = new JsonObject(
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertNotNull(defaultRules);
-    Assert.assertFalse(defaultRules.isEmpty());
+        .extract().body().asString());
+    Assert.assertNotNull(defaultBibRules);
+    Assert.assertFalse(defaultBibRules.isEmpty());
+    Assert.assertEquals(expectedRules, defaultBibRules);
+
+  }
+
+  @Test
+  public void shouldReturnDefaultMarcHoldingsRulesOnGet() throws IOException {
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_HOLDINGS_RULES_PATH));
+    JsonObject defaultHoldingsRules = new JsonObject(
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH + MARC_HOLDINGS)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().asString());
+    Assert.assertNotNull(defaultHoldingsRules);
+    Assert.assertFalse(defaultHoldingsRules.isEmpty());
+    Assert.assertEquals(expectedRules, defaultHoldingsRules);
+  }
+
+  @Test
+  public void shouldReturnErrorOnGetByInvalidPath() {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH + "/invalid")
+        .then()
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
@@ -55,13 +93,14 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .log().everything()
         .extract().body().asString();
     Assert.assertEquals(expectedRules.toString(), actualRules);
   }
+
 
   @Test
   public void shouldReturnBadRequestWhenSendingRulesInWrongFormatOnPut() {
@@ -70,7 +109,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
@@ -88,13 +127,14 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .get(SERVICE_PATH)
+        .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
     Assert.assertEquals(expectedDefaultRules.toString(), actualRules.toString());
   }
 
+  @Ignore("Waiting for changes by https://issues.folio.org/browse/MODSOURMAN-543")
   @Test
   public void shouldRestoreDefaultRulesOnPut() {
     // given
@@ -126,7 +166,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       RestAssured.given()
         .spec(spec)
         .when()
-        .put(SERVICE_PATH + "/restore")
+        .put(SERVICE_PATH)
         .then()
         .statusCode(HttpStatus.SC_OK)
         .extract().body().as(Map.class);
