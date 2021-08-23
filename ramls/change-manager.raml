@@ -18,7 +18,7 @@ types:
   rawRecordsDto: !include raml-storage/schemas/dto/rawRecordsDto.json
   parsedRecordDto: !include raml-storage/schemas/dto/parsedRecordDto.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
-  jobExecutionCollectionDto: !include raml-storage/schemas/dto/jobExecutionCollectionDto.json
+  jobExecutionDtoCollection: !include raml-storage/schemas/dto/jobExecutionDtoCollection.json
   statusDto: !include raml-storage/schemas/dto/statusDto.json
   snapshot: !include raml-storage/schemas/mod-source-record-storage/snapshot.json
   record: !include raml-storage/schemas/dto/record.json
@@ -100,7 +100,7 @@ resourceTypes:
             200:
               body:
                 application/json:
-                  type: jobExecutionCollectionDto
+                  type: jobExecutionDtoCollection
             404:
               description: "Not found"
               body:
