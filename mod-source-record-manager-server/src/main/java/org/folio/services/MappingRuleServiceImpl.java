@@ -25,7 +25,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
-  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holding_rules.json";
+  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holdings_rules.json";
   private MappingRuleDao mappingRuleDao;
   private MappingRuleCache mappingRuleCache;
 

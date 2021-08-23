@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import static java.lang.String.format;
+
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
     try {
       String query = format(SELECT_BY_TYPE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(recordType.toString());
-      pgClientFactory.createInstance(tenantId).select(query, queryParams,promise);
+      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting mapping rules", e);
       promise.fail(e);

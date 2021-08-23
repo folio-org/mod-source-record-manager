@@ -1,11 +1,8 @@
 package org.folio.rest.impl.mappingRulesProvider;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import com.google.common.io.Resources;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -16,6 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
 
 /**
@@ -25,16 +23,14 @@ import org.folio.rest.impl.AbstractRestTest;
 public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final String SERVICE_PATH = "/mapping-rules";
   private static final String MARC_BIB = "/marc-bib";
-  private static final String MARC_HOLDINGS= "/marc-holdings";
-  private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
-  private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
-  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holding_rules.json";
-
+  private static final String MARC_HOLDINGS = "/marc-holdings";
+  private static final String DEFAULT_MARC_BIB_RULES_PATH = "src/main/resources/rules/marc_bib_rules.json";
+  private static final String DEFAULT_MARC_HOLDINGS_RULES_PATH = "src/main/resources/rules/marc_holdings_rules.json";
 
 
   @Test
   public void shouldReturnDefaultMarcBibRulesOnGet() throws IOException {
-    JsonObject expectedRules = new JsonObject(Resources.toString(Resources.getResource(DEFAULT_BIB_RULES_PATH), DEFAULT_RULES_ENCODING));
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_BIB_RULES_PATH));
     JsonObject defaultBibRules = new JsonObject(
       RestAssured.given()
         .spec(spec)
@@ -51,7 +47,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnDefaultMarcHoldingsRulesOnGet() throws IOException {
-    JsonObject expectedRules = new JsonObject(Resources.toString(Resources.getResource(DEFAULT_HOLDING_RULES_PATH), DEFAULT_RULES_ENCODING));
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_HOLDINGS_RULES_PATH));
     JsonObject defaultHoldingsRules = new JsonObject(
       RestAssured.given()
         .spec(spec)
