@@ -468,9 +468,13 @@ There are 3 REST methods to work with rules.
 
 | Method | URL | Content type | Description |
 | :------------ | :------------ | :------------ | :------------ |
-|**GET**| /mapping-rules | | Get rules for given tenant |
-|**PUT**| /mapping-rules | application/json | Update rules for given tenant |
+|**GET**| /mapping-rules/{recordType} |application/json | Get rules for given tenant by record type |
+|**PUT**| /mapping-rules/ | application/json | Update rules for given tenant |
 |**PUT**| /mapping-rules/restore | application/json | Restore rules to default |
+
+An endpoint support recordType path parameter with 2 possible values:
+* marc-bib
+* marc-holdings
 
 Before working with API make sure you have an HTTP token that is required for sending requests. If you have already logged in the system using UI, just copy token from `Apps/Settings/Developer/Set token/Authentication token` field.
 Also you can log in the system using CLI tools, response returns `x-okapi-token` header with HTTP token.
