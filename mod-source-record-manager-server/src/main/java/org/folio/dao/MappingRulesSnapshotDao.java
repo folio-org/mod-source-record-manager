@@ -32,7 +32,7 @@ public interface MappingRulesSnapshotDao {
    * Deletes rules snapshot
    *
    * @param jobExecutionId JobExecution id
-   * @param tenantId tenant id
+   * @param tenantId       tenant id
    * @return true if deleted successfully
    */
   Future<Boolean> delete(String jobExecutionId, String tenantId);

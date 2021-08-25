@@ -2,6 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -9,6 +10,7 @@ import io.vertx.sqlclient.Tuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -33,7 +35,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
 
   @Override
-  public Future<Optional<JsonObject>> getByJobExecutionId(String jobExecutionId, String tenantId) {
+  public Future<Optional<MappingParameters>> getByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
@@ -42,20 +44,20 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       if (resultSet.rowCount() == 0) {
         return Optional.empty();
       } else {
-        JsonObject rules = new JsonObject(resultSet.iterator().next().getValue("params").toString());
+        MappingParameters rules = new JsonObject(resultSet.iterator().next().getValue("params").toString()).mapTo(MappingParameters.class);
         return Optional.of(rules);
       }
     });
   }
 
   @Override
-  public Future<String> save(JsonObject params, String jobExecutionId, String tenantId) {
+  public Future<String> save(MappingParameters params, String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         UUID.fromString(jobExecutionId),
-        params,
+        Json.encode(params),
         LocalDateTime.now()
       );
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);

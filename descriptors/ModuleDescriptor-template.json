@@ -360,6 +360,21 @@
       ]
     },
     {
+      "id": "mapping-metadata-provider",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/mapping-metadata",
+          "permissionsRequired": [
+            "mapping-metadata.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_tenant",
       "version": "2.0",
       "interfaceType": "system",
@@ -455,6 +470,11 @@
       "description": "Restore existing mapping rules to default for tenant"
     },
     {
+      "permissionName": "mapping-metadata.get",
+      "displayName": "Mapping metadata provider - get mapping metadata",
+      "description": "Get mapping metadata"
+    },
+    {
       "permissionName": "source-records-manager.all",
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
@@ -470,7 +490,8 @@
         "change-manager.parsedrecords.put",
         "mapping-rules.get",
         "mapping-rules.update",
-        "mapping-rules.restore"
+        "mapping-rules.restore",
+        "mapping-metadata.get"
       ],
       "visible": false
     }

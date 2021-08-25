@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Mapping Metadata DTO, contains Mapping rules and Mapping parameters",
+  "type": "object",
+  "properties": {
+    "jobExecutionId": {
+      "type": "string",
+      "description": "UUID of the JobExecution"
+    },
+    "mappingRules": {
+      "type": "string",
+      "description": "Mapping rules"
+    },
+    "mappingParams": {
+      "type": "string",
+      "description": "Mapping parameters"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "jobExecutionId",
+    "mappingRules",
+    "mappingParams"
+  ]
+}

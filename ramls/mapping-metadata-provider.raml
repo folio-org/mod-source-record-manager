@@ -11,6 +11,7 @@ documentation:
 
 types:
   errors: !include raml-storage/raml-util/schemas/errors.schema
+  mappingMetadataDto: !include mappingMetadataDto.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -23,19 +24,20 @@ resourceTypes:
   collection-item: !include raml-storage/raml-util/rtypes/item-collection.raml
 
 /mapping-metadata:
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            type: string
-      404:
-        description: "Not found"
-        body:
-          text/plain:
-            example: "Not found"
-      500:
-        description: "Internal server error"
-        body:
-          text/plain:
-            example: "Internal server error"
+  /{jobExecutionId}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: mappingMetadataDto
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
