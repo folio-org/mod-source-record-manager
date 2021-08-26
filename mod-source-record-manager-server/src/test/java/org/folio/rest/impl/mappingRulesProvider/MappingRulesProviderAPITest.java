@@ -3,6 +3,7 @@ package org.folio.rest.impl.mappingRulesProvider;
 import java.io.IOException;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -27,6 +28,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final String DEFAULT_MARC_BIB_RULES_PATH = "src/main/resources/rules/marc_bib_rules.json";
   private static final String DEFAULT_MARC_HOLDINGS_RULES_PATH = "src/main/resources/rules/marc_holdings_rules.json";
 
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   public void shouldReturnDefaultMarcBibRulesOnGet() throws IOException {
@@ -63,28 +65,24 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnErrorOnGetByInvalidPath() {
-      RestAssured.given()
-        .spec(spec)
-        .when()
-        .get(SERVICE_PATH + "/invalid")
-        .then()
-        .statusCode(HttpStatus.SC_BAD_REQUEST);
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(SERVICE_PATH + "/invalid")
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
-  public void shouldUpdateDefaultRulesOnPut() {
+  public void shouldUpdateDefaultMarcBibRulesOnPut() throws IOException {
     // given
-    JsonObject expectedRules = new JsonObject()
-      .put("999", new JsonArray()
-        .add(new JsonObject()
-          .put("target", "instanceTypeId")));
-
+    String expectedRules = TestUtil.readFileFromPath(DEFAULT_MARC_BIB_RULES_PATH);
     // when
     RestAssured.given()
       .spec(spec)
-      .body(expectedRules.encode())
+      .body(expectedRules)
       .when()
-      .put(SERVICE_PATH)
+      .put(SERVICE_PATH + MARC_BIB)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .log().everything();
@@ -98,40 +96,78 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .log().everything()
         .extract().body().asString();
-    Assert.assertEquals(expectedRules.toString(), actualRules);
+
+    Assert.assertEquals(mapper.readTree(expectedRules), mapper.readTree(actualRules));
   }
 
+  @Test
+  public void shouldUpdateDefaultMarcHoldingsRulesOnPut() throws IOException {
+    // given
+    String expectedRules = TestUtil.readFileFromPath(DEFAULT_MARC_HOLDINGS_RULES_PATH);
+    // when
+    RestAssured.given()
+      .spec(spec)
+      .body(expectedRules)
+      .when()
+      .put(SERVICE_PATH + MARC_HOLDINGS)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .log().everything();
+    // then
+    String actualRules =
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(SERVICE_PATH + MARC_HOLDINGS)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().everything()
+        .extract().body().asString();
+
+    Assert.assertEquals(mapper.readTree(expectedRules), mapper.readTree(actualRules));
+  }
 
   @Test
   public void shouldReturnBadRequestWhenSendingRulesInWrongFormatOnPut() {
     // given
-    Map expectedDefaultRules =
+    String expectedDefaultRules =
       RestAssured.given()
         .spec(spec)
         .when()
         .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
+        .extract().body().asString();
     // when
     String rulesToUpdate = "WRONG-RULES-FORMAT";
     RestAssured.given()
       .spec(spec)
       .body(rulesToUpdate)
       .when()
-      .put(SERVICE_PATH)
+      .put(SERVICE_PATH + MARC_BIB)
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
     // then
-    Map actualRules =
+    String actualRules =
       RestAssured.given()
         .spec(spec)
         .when()
         .get(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertEquals(expectedDefaultRules.toString(), actualRules.toString());
+        .extract().body().asString();
+    Assert.assertEquals(expectedDefaultRules, actualRules);
+  }
+
+  @Test
+  public void shouldReturnErrorOnPutByInvalidPath() {
+    RestAssured.given()
+      .spec(spec)
+      .body("{}")
+      .when()
+      .put(SERVICE_PATH + "/invalid")
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Ignore("Waiting for changes by https://issues.folio.org/browse/MODSOURMAN-543")

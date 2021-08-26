@@ -33,8 +33,9 @@ public interface MappingRuleDao {
    * Updates rules if exist
    *
    * @param rules    rules
+   * @param recordType type of rules (MARC_BIB or MARK_HOLDING)
    * @param tenantId tenant
    * @return updated rules
    */
-  Future<JsonObject> update(JsonObject rules, String tenantId);
+  Future<JsonObject> update(JsonObject rules, Record.RecordType recordType, String tenantId);
 }
