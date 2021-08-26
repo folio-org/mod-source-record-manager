@@ -53,7 +53,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   private static final String MARC_BIB_RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   private static final String MARC_AUTHORITY_RECORD_PATH = "src/test/resources/org/folio/rest/marcAuthorityRecord.json";
   private static final String MARC_HOLDING_RECORD_PATH = "src/test/resources/org/folio/rest/marcHoldingRecord.json";
-  private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/rules.json";
+  private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
   private static final String TENANT_ID = "diku";
 
   private static JsonObject mappingRules;

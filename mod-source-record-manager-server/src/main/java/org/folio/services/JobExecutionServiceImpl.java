@@ -4,8 +4,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.impl.HttpStatusException;
 
+import io.vertx.ext.web.handler.HttpException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,26 +18,13 @@ import org.folio.dataimport.util.Try;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionCollection;
-import org.folio.rest.jaxrs.model.JobProfile;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.Progress;
-import org.folio.rest.jaxrs.model.RunBy;
-import org.folio.rest.jaxrs.model.Snapshot;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,7 +63,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId);
   }
 
@@ -132,14 +119,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit, tenantId);
           } else {
-            return Future.succeededFuture(new JobExecutionCollection().withTotalRecords(0));
+            return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
           }
         })
         .orElse(Future.failedFuture(new NotFoundException(
@@ -429,7 +416,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       client.postSourceStorageSnapshots(null, snapshot, response -> {
         if (response.result().statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.error("Error during post for new Snapshot. Status message: {}", response.result().statusMessage());
-          promise.fail(new HttpStatusException(response.result().statusCode(), "Error during post for new Snapshot."));
+          promise.fail(new HttpException(response.result().statusCode(), "Error during post for new Snapshot."));
         } else {
           promise.complete(response.result().bodyAsString());
         }
@@ -509,7 +496,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         } else {
           String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
           LOGGER.error(message);
-          promise.fail(new HttpStatusException(response.result().statusCode(), message));
+          promise.fail(new HttpException(response.result().statusCode(), message));
         }
       });
     } catch (Exception e) {
