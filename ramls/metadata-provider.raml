@@ -11,7 +11,8 @@ documentation:
 
 types:
   jobExecution: !include raml-storage/schemas/mod-source-record-manager/jobExecution.json
-  jobExecutionCollection: !include raml-storage/schemas/mod-source-record-manager/jobExecutionCollection.json
+  jobExecutionDto: !include raml-storage/schemas/dto/jobExecutionDto.json
+  jobExecutionDtoCollection: !include raml-storage/schemas/dto/jobExecutionDtoCollection.json
   edifactParsedContent: !include raml-storage/schemas/dto/edifactParsedContent.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
@@ -42,7 +43,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobExecutionCollection
+              schema: jobExecutionDtoCollection
         500:
           description: "Internal server error"
           body:
