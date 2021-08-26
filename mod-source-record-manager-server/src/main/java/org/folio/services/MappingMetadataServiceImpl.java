@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import org.folio.Record;
 import org.folio.dao.MappingParamsSnapshotDao;
 import org.folio.dao.MappingRulesSnapshotDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -51,7 +52,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String tenantId) {
-    return mappingRuleService.get(tenantId)
+    return mappingRuleService.get(Record.RecordType.MARC_BIB, tenantId)
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
       .compose(rules -> mappingRulesSnapshotDao.save(rules, jobExecutionId, tenantId)
