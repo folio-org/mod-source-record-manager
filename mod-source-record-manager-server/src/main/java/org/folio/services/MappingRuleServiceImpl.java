@@ -77,10 +77,10 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   @Override
-  public Future<JsonObject> update(String rules, String tenantId) {
+  public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
-      mappingRuleDao.update(new JsonObject(rules), tenantId)
+      mappingRuleDao.update(new JsonObject(rules), recordType, tenantId)
         .onSuccess(updatedRules -> mappingRuleCache.put(tenantId, updatedRules))
         .onComplete(promise);
     } else {
@@ -98,7 +98,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Optional<String> optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
-      update(rules, tenantId).onComplete(promise);
+      update(rules, Record.RecordType.MARC_BIB, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);

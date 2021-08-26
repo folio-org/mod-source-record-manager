@@ -35,9 +35,9 @@ public class MappingRulesProviderImpl implements MappingRules {
   public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
       .compose(ar -> mappingRuleService.get(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
-        new BadRequestException("Only marc-bib or marc-holdings supports")), tenantId))
+        new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
       .map(optionalRules -> optionalRules.orElseThrow(() ->
-        new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType.toString(), tenantId))))
+        new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType, tenantId))))
       .map(rules -> GetMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -46,10 +46,11 @@ public class MappingRulesProviderImpl implements MappingRules {
 
 
   @Override
-  public void putMappingRules(String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putMappingRulesByRecordType(String recordType, String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
-      .compose(ar -> mappingRuleService.update(entity, tenantId))
-      .map(rules -> PutMappingRulesResponse.respond200WithApplicationJson(rules.encode()))
+      .compose(ar -> mappingRuleService.update(entity, QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
+        new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
+      .map(rules -> PutMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
       .onComplete(asyncResultHandler);

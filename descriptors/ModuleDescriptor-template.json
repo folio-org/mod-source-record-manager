@@ -343,7 +343,7 @@
           "methods": [
             "PUT"
           ],
-          "pathPattern": "/mapping-rules",
+          "pathPattern": "/mapping-rules/{recordType}",
           "permissionsRequired": [
             "mapping-rules.update"
           ]
