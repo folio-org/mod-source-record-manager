@@ -34,7 +34,7 @@ resourceTypes:
             application/json:
               type: string
         400:
-          description: "Not "
+          description: "Not supported"
           body:
             text/plain:
               example: "Only marc-bib or marc-holdings supports"
@@ -42,7 +42,7 @@ resourceTypes:
           description: "Internal server error"
           body:
             text/plain:
-              example: "Intesupportedrnal server error"
+              example: "Internal server error"
     put:
       is: [validate]
       body:
