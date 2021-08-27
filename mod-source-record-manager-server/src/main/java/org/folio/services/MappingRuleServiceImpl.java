@@ -45,10 +45,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = Optional.empty();
 
-    if (recordType == Record.RecordType.MARC_BIB) {
+    if (Record.RecordType.MARC_BIB == recordType) {
       optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
-    }
-    else if (recordType == Record.RecordType.MARC_HOLDING) {
+    } else if (Record.RecordType.MARC_HOLDING == recordType) {
       optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
     }
 
@@ -96,9 +95,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Promise<JsonObject> promise = Promise.promise();
     Optional<String> optionalRules = Optional.empty();
 
-    if (recordType == Record.RecordType.MARC_BIB) {
+    if (Record.RecordType.MARC_BIB == recordType) {
       optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
-    } else if (recordType == Record.RecordType.MARC_HOLDING) {
+    } else if (Record.RecordType.MARC_HOLDING == recordType) {
       optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
     }
 
