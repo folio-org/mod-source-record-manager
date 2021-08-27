@@ -32,10 +32,10 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   @Override
-  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
+  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, String recordType, OkapiConnectionParams okapiParams) {
     return retrieveMappingParameters(jobExecutionId, okapiParams)
       .compose(mappingParameters ->
-        retrieveMappingRules(jobExecutionId, okapiParams.getTenantId())
+        retrieveMappingRules(jobExecutionId, recordType, okapiParams.getTenantId())
           .compose(mappingRules -> Future.succeededFuture(
             new MappingMetadataDto()
               .withJobExecutionId(jobExecutionId)
@@ -51,8 +51,8 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   @Override
-  public Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String tenantId) {
-    return mappingRuleService.get(Record.RecordType.MARC_BIB, tenantId)
+  public Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String recordType, String tenantId) {
+    return mappingRuleService.get(Record.RecordType.fromValue(recordType), tenantId)
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
       .compose(rules -> mappingRulesSnapshotDao.save(rules, jobExecutionId, tenantId)
@@ -61,13 +61,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return mappingParamsSnapshotDao.getByJobExecutionId(jobExecutionId, okapiParams.getTenantId())
-      .map(mappingParamsOptional -> mappingParamsOptional.orElseThrow(() ->
-        new NotFoundException(String.format("Mapping parameters snapshot is not found for JobExecution '%s'", jobExecutionId))));
+      .compose(mappingParamsOptional -> mappingParamsOptional
+        .map(Future::succeededFuture).orElseGet(() -> saveMappingParametersSnapshot(jobExecutionId, okapiParams)));
   }
 
-  private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String tenantId) {
+  private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String recordType, String tenantId) {
     return mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId)
-      .map(rulesOptional -> rulesOptional.orElseThrow(() ->
-        new NotFoundException(String.format("Mapping rules snapshot is not found for JobExecution '%s'", jobExecutionId))));
+      .compose(rulesOptional -> rulesOptional
+        .map(Future::succeededFuture).orElseGet(() -> saveMappingRulesSnapshot(jobExecutionId, recordType, tenantId)));
   }
 }

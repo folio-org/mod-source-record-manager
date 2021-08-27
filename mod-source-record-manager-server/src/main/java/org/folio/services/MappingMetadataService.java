@@ -15,10 +15,11 @@ public interface MappingMetadataService {
    * Returns Mapping rules and Mapping parameters in MappingMetadataDto entity
    *
    * @param jobExecutionId jobExecution id
+   * @param recordType     record type
    * @param okapiParams    okapi connection params
    * @return MappingMetadataDto
    */
-  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams);
+  Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, String recordType, OkapiConnectionParams okapiParams);
 
   /**
    * Creates a snapshot of Mapping parameters and saves it to DB
@@ -33,9 +34,10 @@ public interface MappingMetadataService {
    * Creates a snapshot of Mapping rules and saves it to DB
    *
    * @param jobExecutionId jobExecution id
+   * @param recordType     record type
    * @param tenantId       tenantId
    * @return Mapping rules snapshot
    */
-  Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String tenantId);
+  Future<JsonObject> saveMappingRulesSnapshot(String jobExecutionId, String recordType,  String tenantId);
 
 }

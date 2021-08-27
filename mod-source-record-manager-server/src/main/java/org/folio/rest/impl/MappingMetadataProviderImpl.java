@@ -25,12 +25,12 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
   private MappingMetadataService mappingMetadataService;
 
   @Override
-  public void getMappingMetadataByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
+  public void getMappingMetadataByJobExecutionId(String jobExecutionId, String recordType, Map<String, String> okapiHeaders,
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        mappingMetadataService.getMappingMetadataDto(jobExecutionId, params)
+        mappingMetadataService.getMappingMetadataDto(jobExecutionId, recordType, params)
           .map(GetMappingMetadataByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
