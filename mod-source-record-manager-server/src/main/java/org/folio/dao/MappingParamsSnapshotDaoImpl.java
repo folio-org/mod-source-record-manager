@@ -29,7 +29,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static final String TABLE_NAME = "mapping_params_snapshot";
+  private static final String TABLE_NAME = "mapping_params_snapshots";
   private static final String SELECT_QUERY = "SELECT params FROM %s.%s WHERE job_execution_id = $1";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, params, saved_timestamp) VALUES ($1, $2, $3)";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
