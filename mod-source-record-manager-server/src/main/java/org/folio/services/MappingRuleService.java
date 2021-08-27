@@ -43,8 +43,9 @@ public interface MappingRuleService {
   /**
    * Updates existing rules with default rules
    *
-   * @param tenantId tenant
+   * @param tenantId   tenant
+   * @param recordType type of rules (MARC_BIB or MARK_HOLDING)
    * @return restored rules
    */
-  Future<JsonObject> restore(String tenantId);
+  Future<JsonObject> restore(Record.RecordType recordType, String tenantId);
 }

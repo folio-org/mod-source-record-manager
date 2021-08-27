@@ -1,7 +1,6 @@
 package org.folio.rest.impl.mappingRulesProvider;
 
 import java.io.IOException;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
@@ -10,7 +9,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -25,6 +23,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   private static final String SERVICE_PATH = "/mapping-rules";
   private static final String MARC_BIB = "/marc-bib";
   private static final String MARC_HOLDINGS = "/marc-holdings";
+  private static final String RESTORE = "/restore";
   private static final String DEFAULT_MARC_BIB_RULES_PATH = "src/main/resources/rules/marc_bib_rules.json";
   private static final String DEFAULT_MARC_HOLDINGS_RULES_PATH = "src/main/resources/rules/marc_holdings_rules.json";
 
@@ -160,52 +159,74 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnErrorOnPutByInvalidPath() {
-    RestAssured.given()
-      .spec(spec)
-      .body("{}")
-      .when()
-      .put(SERVICE_PATH + "/invalid")
-      .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
-  }
-
-  @Ignore("Waiting for changes by https://issues.folio.org/browse/MODSOURMAN-543")
-  @Test
-  public void shouldRestoreDefaultRulesOnPut() {
+  public void shouldRestoreDefaultMarcBibRules() throws IOException {
     // given
-    Map defaultRules =
-      RestAssured.given()
-        .spec(spec)
-        .when()
-        .get(SERVICE_PATH)
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
-    Assert.assertNotNull(defaultRules);
+    JsonObject defaultRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_BIB_RULES_PATH));
     // when
     JsonObject rulesToUpdate = new JsonObject()
       .put("999", new JsonArray()
         .add(new JsonObject()
           .put("target", "instanceTypeId")));
-    Map updatedRules = RestAssured.given()
-      .spec(spec)
-      .when()
-      .body(rulesToUpdate.encode())
-      .put(SERVICE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .extract().body().as(Map.class);
-    // then
-    Assert.assertNotEquals(defaultRules, updatedRules);
-    Map restoredRules =
+    JsonObject updatedRules = new JsonObject(
       RestAssured.given()
         .spec(spec)
         .when()
-        .put(SERVICE_PATH)
+        .body(rulesToUpdate.encode())
+        .put(SERVICE_PATH + MARC_BIB)
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .extract().body().as(Map.class);
+        .extract().body().asString());
+    Assert.assertNotEquals(defaultRules, updatedRules);
+    // then
+    JsonObject restoredRules = new JsonObject(
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .put(SERVICE_PATH + MARC_BIB + RESTORE)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().asString());
     Assert.assertEquals(defaultRules, restoredRules);
+  }
+
+  @Test
+  public void shouldRestoreDefaultMarcHoldingsRules() throws IOException {
+    // given
+    JsonObject defaultRules = new JsonObject(TestUtil.readFileFromPath(DEFAULT_MARC_HOLDINGS_RULES_PATH));
+    // when
+    JsonObject rulesToUpdate = new JsonObject()
+      .put("999", new JsonArray()
+        .add(new JsonObject()
+          .put("target", "instanceTypeId")));
+    JsonObject updatedRules = new JsonObject(
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .body(rulesToUpdate.encode())
+        .put(SERVICE_PATH + MARC_HOLDINGS)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().asString());
+    Assert.assertNotEquals(defaultRules, updatedRules);
+    // then
+    JsonObject restoredRules = new JsonObject(
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .put(SERVICE_PATH + MARC_HOLDINGS + RESTORE)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().body().asString());
+    Assert.assertEquals(defaultRules, restoredRules);
+  }
+
+  @Test
+  public void shouldReturnErrorOnRestoreByInvalidPath() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .put(SERVICE_PATH + "/invalid" + RESTORE)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 }

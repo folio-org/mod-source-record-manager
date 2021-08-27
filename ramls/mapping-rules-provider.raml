@@ -34,7 +34,7 @@ resourceTypes:
             application/json:
               type: string
         400:
-          description: "Not supported"
+          description: "Not "
           body:
             text/plain:
               example: "Only marc-bib or marc-holdings supports"
@@ -42,7 +42,7 @@ resourceTypes:
           description: "Internal server error"
           body:
             text/plain:
-              example: "Internal server error"
+              example: "Intesupportedrnal server error"
     put:
       is: [validate]
       body:
@@ -63,14 +63,19 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
-  /restore:
+  /{recordType}/restore:
     put:
-      is: [validate]
+      is: [ validate ]
       responses:
         200:
           body:
             application/json:
               type: string
+        400:
+          description: "Not supported"
+          body:
+            text/plain:
+              example: "Only marc-bib or marc-holdings supports"
         500:
           description: "Internal server error"
           body:
