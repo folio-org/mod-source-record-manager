@@ -58,10 +58,11 @@ public class MappingRulesProviderImpl implements MappingRules {
 
 
   @Override
-  public void putMappingRulesRestore(Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putMappingRulesRestoreByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
-      .compose(ar -> mappingRuleService.restore(tenantId))
-      .map(rules -> PutMappingRulesRestoreResponse.respond200WithApplicationJson(rules.encode()))
+      .compose(ar -> mappingRuleService.restore(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
+        new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
+      .map(rules -> PutMappingRulesRestoreByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
       .map(Response.class::cast)
       .otherwise(ExceptionHelper::mapExceptionToResponse)
       .onComplete(asyncResultHandler);

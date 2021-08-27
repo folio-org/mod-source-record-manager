@@ -25,7 +25,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
-  private static final String DEFAULT_HOLDING_RULES_PATH = "rules/marc_holdings_rules.json";
+  private static final String DEFAULT_HOLDINGS_RULES_PATH = "rules/marc_holdings_rules.json";
   private MappingRuleDao mappingRuleDao;
   private MappingRuleCache mappingRuleCache;
 
@@ -45,11 +45,10 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = Optional.empty();
 
-    if (recordType == Record.RecordType.MARC_BIB) {
+    if (Record.RecordType.MARC_BIB == recordType) {
       optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
-    }
-    else if (recordType == Record.RecordType.MARC_HOLDING) {
-      optionalRules = readResourceFromPath(DEFAULT_HOLDING_RULES_PATH);
+    } else if (Record.RecordType.MARC_HOLDING == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
     }
 
     if (optionalRules.isPresent()) {
@@ -91,14 +90,19 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     return promise.future();
   }
 
-  //TODO refactor to use recordType https://issues.folio.org/browse/MODSOURMAN-543
   @Override
-  public Future<JsonObject> restore(String tenantId) {
+  public Future<JsonObject> restore(Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    Optional<String> optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
+    Optional<String> optionalRules = Optional.empty();
+
+    if (Record.RecordType.MARC_BIB == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
+    } else if (Record.RecordType.MARC_HOLDING == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
+    }
+
     if (optionalRules.isPresent()) {
-      String rules = optionalRules.get();
-      update(rules, Record.RecordType.MARC_BIB, tenantId).onComplete(promise);
+      update(optionalRules.get(), recordType, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
       LOGGER.error(errorMessage);
