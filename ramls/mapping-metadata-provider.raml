@@ -26,13 +26,6 @@ resourceTypes:
 /mapping-metadata:
   /{jobExecutionId}:
     get:
-      queryParameters:
-        recordType:
-          description: Specify Record Type
-          type: string
-          example: MARC_BIB, MARC_HOLDING
-          default: MARC_BIB
-          required: true
       responses:
         200:
           body:

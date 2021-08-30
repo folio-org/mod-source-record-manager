@@ -34,10 +34,10 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   }
 
   @Override
-  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, String recordType, OkapiConnectionParams okapiParams) {
+  public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return retrieveMappingParameters(jobExecutionId, okapiParams)
       .compose(mappingParameters ->
-        retrieveMappingRules(jobExecutionId, recordType, okapiParams.getTenantId())
+        retrieveMappingRules(jobExecutionId, okapiParams.getTenantId())
           .compose(mappingRules -> Future.succeededFuture(
             new MappingMetadataDto()
               .withJobExecutionId(jobExecutionId)
@@ -63,13 +63,13 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return mappingParamsSnapshotDao.getByJobExecutionId(jobExecutionId, okapiParams.getTenantId())
-      .compose(mappingParamsOptional -> mappingParamsOptional
-        .map(Future::succeededFuture).orElseGet(() -> saveMappingParametersSnapshot(jobExecutionId, okapiParams)));
+      .map(mappingParamsOptional -> mappingParamsOptional.orElseThrow(() ->
+        new NotFoundException(String.format("Mapping parameters snapshot is not found for JobExecution '%s'", jobExecutionId))));
   }
 
-  private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String recordType, String tenantId) {
+  private Future<JsonObject> retrieveMappingRules(String jobExecutionId, String tenantId) {
     return mappingRulesSnapshotDao.getByJobExecutionId(jobExecutionId, tenantId)
-      .compose(rulesOptional -> rulesOptional
-        .map(Future::succeededFuture).orElseGet(() -> saveMappingRulesSnapshot(jobExecutionId, recordType, tenantId)));
+      .map(rulesOptional -> rulesOptional.orElseThrow(() ->
+        new NotFoundException(String.format("Mapping rules snapshot is not found for JobExecution '%s'", jobExecutionId))));
   }
 }
