@@ -343,7 +343,7 @@
           "methods": [
             "PUT"
           ],
-          "pathPattern": "/mapping-rules",
+          "pathPattern": "/mapping-rules/{recordType}",
           "permissionsRequired": [
             "mapping-rules.update"
           ]
@@ -352,7 +352,7 @@
           "methods": [
             "PUT"
           ],
-          "pathPattern": "/mapping-rules/restore",
+          "pathPattern": "/mapping-rules/{recordType}/restore",
           "permissionsRequired": [
             "mapping-rules.restore"
           ]
