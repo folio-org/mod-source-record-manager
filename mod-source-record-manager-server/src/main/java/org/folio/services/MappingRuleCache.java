@@ -15,8 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import org.folio.Record;
 import org.folio.dao.MappingRuleDao;
+import org.folio.services.entity.MappingRuleCacheKey;
 
 /**
  * In-memory cache for the mapping rules
@@ -27,7 +27,7 @@ public class MappingRuleCache {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private MappingRuleDao mappingRuleDao;
-  private AsyncLoadingCache<String, Optional<JsonObject>> cache;
+  private AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
 
   @Autowired
   public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
@@ -38,11 +38,11 @@ public class MappingRuleCache {
   }
 
   //TODO refactor to support MARC_HOLDING rules https://issues.folio.org/browse/MODSOURMAN-547
-  private CompletableFuture<Optional<JsonObject>> loadMappingRules(String tenantId, Executor executor, MappingRuleDao mappingRuleDao) {
+  private CompletableFuture<Optional<JsonObject>> loadMappingRules(MappingRuleCacheKey key, Executor executor, MappingRuleDao mappingRuleDao) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(Record.RecordType.MARC_BIB, tenantId).onComplete(ar -> {
+    executor.execute(() -> mappingRuleDao.get(key.getRecordType(), key.getTenantId()).onComplete(ar -> {
       if (ar.failed()) {
-        LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", tenantId, ar.cause());
+        LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
         future.completeExceptionally(ar.cause());
         return;
       }
@@ -53,12 +53,12 @@ public class MappingRuleCache {
 
   /**
    * Returns mapping rules associated with specified tenant id
-   * @param  tenantId tenant id
+   * @param  key tenant id
    * @return optional with mapping rules
    */
-  public Future<Optional<JsonObject>> get(String tenantId) {
+  public Future<Optional<JsonObject>> get(MappingRuleCacheKey key) {
     Promise<Optional<JsonObject>> promise = Promise.promise();
-    cache.get(tenantId).whenComplete((rulesOptional, e) -> {
+    cache.get(key).whenComplete((rulesOptional, e) -> {
       if (e == null) {
         promise.complete(rulesOptional);
       } else {
@@ -70,10 +70,10 @@ public class MappingRuleCache {
 
   /**
    * Saves mapping rules in this cache for the specified tenant id
-   * @param tenantId      tenant id
+   * @param key tenant id
    * @param mappingRules  mapping rules
    */
-  public void put(String tenantId, JsonObject mappingRules) {
-    cache.put(tenantId, CompletableFuture.completedFuture(Optional.of(mappingRules)));
+  public void put(MappingRuleCacheKey key, JsonObject mappingRules) {
+    cache.put(key, CompletableFuture.completedFuture(Optional.of(mappingRules)));
   }
 }

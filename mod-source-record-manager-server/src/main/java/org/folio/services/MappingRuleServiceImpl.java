@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import org.folio.Record;
 import org.folio.dao.MappingRuleDao;
+import org.folio.services.entity.MappingRuleCacheKey;
 
 @Service
 public class MappingRuleServiceImpl implements MappingRuleService {
@@ -80,8 +81,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
+      MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, recordType);
       mappingRuleDao.update(new JsonObject(rules), recordType, tenantId)
-        .onSuccess(updatedRules -> mappingRuleCache.put(tenantId, updatedRules))
+        .onSuccess(updatedRules -> mappingRuleCache.put(cacheKey, updatedRules))
         .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
