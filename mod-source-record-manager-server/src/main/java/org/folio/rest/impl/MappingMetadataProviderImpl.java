@@ -4,12 +4,15 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.resource.MappingMetadata;
+import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.MappingMetadataService;
+import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
@@ -24,6 +27,11 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
   @Autowired
   private MappingMetadataService mappingMetadataService;
 
+  public MappingMetadataProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+    this.tenantId = TenantTool.calculateTenantId(tenantId);
+  }
+
   @Override
   public void getMappingMetadataByJobExecutionId(String jobExecutionId, String recordType, Map<String, String> okapiHeaders,
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -36,7 +44,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve MappingMetadataDto entity for JobExecution with id {}", jobExecutionId, e);
+        LOGGER.error("Failed to retrieve MappingMetadataDto entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

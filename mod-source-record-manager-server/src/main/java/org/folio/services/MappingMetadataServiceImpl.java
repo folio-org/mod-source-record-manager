@@ -11,9 +11,11 @@ import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.vertx.core.json.JsonObject;
+import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 
+@Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   private final MappingParametersProvider mappingParametersProvider;
