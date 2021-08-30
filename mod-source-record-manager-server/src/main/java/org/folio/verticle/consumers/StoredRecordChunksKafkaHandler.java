@@ -23,6 +23,7 @@ import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalService;
 import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +120,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
-    mappingRuleCache.get(tenantId).onComplete(rulesAr -> {
+    MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.get(0).getRecordType());
+    mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {
       if (rulesAr.succeeded()) {
         JsonArray journalRecords = buildJournalRecords(storedRecords, rulesAr.result(), tenantId);
         journalService.saveBatch(journalRecords, tenantId);

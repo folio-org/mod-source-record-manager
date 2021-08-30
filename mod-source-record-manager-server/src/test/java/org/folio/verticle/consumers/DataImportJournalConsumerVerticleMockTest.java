@@ -27,6 +27,7 @@ import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.MappingRuleCache;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalServiceImpl;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
@@ -137,7 +138,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
     record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
     JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
-    when(mappingRuleCache.get(anyString())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
   }
 
