@@ -1,17 +1,18 @@
 package org.folio.services.entity;
 
-import java.util.Objects;
 import javax.ws.rs.BadRequestException;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.folio.Record;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 
-@AllArgsConstructor
 @Getter
+@EqualsAndHashCode
+@AllArgsConstructor
 public class MappingRuleCacheKey {
   private String tenantId;
   private Record.RecordType recordType;
@@ -49,18 +50,5 @@ public class MappingRuleCacheKey {
     } else {
       throw new BadRequestException(ERROR_MESSAGE);
     }
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    MappingRuleCacheKey cacheKey = (MappingRuleCacheKey) o;
-    return tenantId.equals(cacheKey.tenantId) && recordType == cacheKey.recordType;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(tenantId, recordType);
   }
 }
