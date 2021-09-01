@@ -75,7 +75,6 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
-import org.folio.services.parsers.RecordParser;
 import org.folio.services.parsers.RecordParserBuilder;
 
 @Service
@@ -90,6 +89,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
+  public static final String MESSAGE_KEY = "message";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -197,16 +197,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
-    RecordParser parser = RecordParserBuilder.buildParser(recordContentType);
-    MutableInt counter = new MutableInt();
+    var parser = RecordParserBuilder.buildParser(recordContentType);
+    var counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
     var records = rawRecords.stream()
       .map(rawRecord -> {
-        ParsedResult parsedResult = parser.parseRecord(rawRecord.getRecord());
-        String recordId = UUID.randomUUID().toString();
-        Record record = new Record()
+        var parsedResult = parser.parseRecord(rawRecord.getRecord());
+        var recordId = UUID.randomUUID().toString();
+        var record = new Record()
           .withId(recordId)
           .withMatchedId(recordId)
           .withRecordType(inferRecordType(jobExecution, parsedResult, recordId))
@@ -254,37 +254,38 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
-  private void filterMarcHoldingsBy004Field(List<Record> records, OkapiConnectionParams okapiParams, JobExecution jobExecution, Promise<List<Record>> promise) {
+  private void filterMarcHoldingsBy004Field(List<Record> recordList, OkapiConnectionParams okapiParams,
+                                            JobExecution jobExecution, Promise<List<Record>> promise) {
     //"111111","2222222","in00000000313","in00000000316","in00000000317"
-    var marcHoldingsToVerify = records.stream()
-      .filter(record -> record.getRecordType() == MARC_HOLDING)
-      .map(record -> getControlFieldValue(record, TAG_004))
+    var marcHoldingsToVerify = recordList.stream()
+      .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
+      .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
       .collect(Collectors.toList());
 
     //"111111","2222222"
-    var futureIds = verifyMarcHoldings004Field(marcHoldingsToVerify, okapiParams, jobExecution);
+    var futureIds = verifyMarcHoldings004Field(marcHoldingsToVerify, okapiParams);
 
     CompositeFuture.all(Collections.singletonList(futureIds))
       .onComplete(as -> {
         var invalidMarcBibIds = futureIds.result();
         LOGGER.info("In the Composite future and return list: {}", invalidMarcBibIds);
-        var recordsWithoutInvalidMarcBib = records.stream()
+        var validMarcBibRecords = recordList.stream()
           .filter(record -> {
             if (record.getRecordType() == MARC_HOLDING) {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
-              return isInvalidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
+              return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
             }
             return true;
           }).collect(Collectors.toList());
         LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, record without invalid marc bib: {}",
-          records.size(), invalidMarcBibIds.size(), recordsWithoutInvalidMarcBib.size());
-        promise.complete(recordsWithoutInvalidMarcBib);
+          recordList.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
+        promise.complete(validMarcBibRecords);
       });
   }
 
-  private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
+  private Future<List<String>> verifyMarcHoldings004Field(List<String> marcBibIds, OkapiConnectionParams okapiParams) {
     Promise<List<String>> promise = Promise.promise();
-    SourceStorageBatchClient sourceStorageBatchClient = getSourceStorageBatchClient(okapiParams);
+    var sourceStorageBatchClient = getSourceStorageBatchClient(okapiParams);
     try {
       sourceStorageBatchClient.postSourceStorageBatchVerifiedRecords(marcBibIds, asyncResult -> {
         LOGGER.info("Verify list of marc bib ids: {} ", marcBibIds);
@@ -308,30 +309,31 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
-  private boolean isInvalidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams, List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
+  private boolean isValidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams,
+                                      List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
-      populateError(record, record.getRawRecord().getContent(), okapiParams, jobExecution);
+      populateError(record, jobExecution, okapiParams);
       return false;
     }
     return true;
   }
 
-  private void populateError(Record record, String rawRecord, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
-    DataImportEventPayload eventPayload = getDataImportPayload(record, okapiParams, jobExecution);
-    String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
+  private void populateError(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
+    var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
+    var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
     record.setErrorRecord(new ErrorRecord()
-      .withContent(rawRecord)
-      .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
+      .withContent(record.getRawRecord().getContent())
+      .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
     );
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
       KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
-  private DataImportEventPayload getDataImportPayload(Record record, OkapiConnectionParams okapiParams, JobExecution jobExecution) {
-    String sourceRecordKey = getSourceRecordKey(record);
+  private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
+    var sourceRecordKey = getSourceRecordKey(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
@@ -398,7 +400,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
         .withContent(rawRecord)
-        .withDescription(new JsonObject().put("message", HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
+        .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
     }
   }

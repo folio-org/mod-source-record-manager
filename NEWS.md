@@ -18,6 +18,7 @@
 * [MODSOURMAN-543](https://issues.folio.org/browse/MODSOURMAN-543) Update existing CLI endpoint PUT
   /mapping-rules/restore to support MARC Holdings default rules
 * [MODSOURMAN-526](https://issues.folio.org/browse/MODSOURMAN-526) Verify persist value in DB during parsing 004 field
+* [MODSOURMAN-544](https://issues.folio.org/browse/MODSOURMAN-544) Validate MARC Holdings 004 field from MARC Bib HRID
 
 ## XXXX-XX-XX v3.1.3
 * [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
