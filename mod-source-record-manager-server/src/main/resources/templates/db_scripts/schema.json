@@ -167,6 +167,16 @@
       "run": "after",
       "snippet": "CREATE TYPE rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS mapping_rules_snapshots (job_execution_id UUID PRIMARY KEY, rules jsonb, saved_timestamp timestamp);",
+      "fromModuleVersion": "mod-source-record-manager-3.2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS mapping_params_snapshots (job_execution_id UUID PRIMARY KEY, params jsonb, saved_timestamp timestamp);",
+      "fromModuleVersion": "mod-source-record-manager-3.2.0"
     }
   ]
 }

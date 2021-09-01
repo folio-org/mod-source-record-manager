@@ -1,6 +1,763 @@
 {
-  "Default holdings rules":[
-    "rule1",
-    "rule2"
+  "001": [
+    {
+      "target": "hrid",
+      "description": "The human readable ID",
+      "subfield": [],
+      "rules": []
+    },
+    {
+      "target": "holdingsTypeId",
+      "description": "",
+      "subfield": [],
+      "rules": [
+        {
+          "description": "Holdings type based on 6 leader`s byte",
+          "conditions": [
+            {
+              "type": "set_holdings_type_id",
+              "LDR": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "035": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "formerIds",
+          "description": "System Control Number",
+          "subfield": [
+            "a"
+          ]
+        }
+      ]
+    }
+  ],
+  "561": [
+    {
+      "entity": [
+        {
+          "target": "notes.holdingsNoteTypeId",
+          "description": "Holdings note type id",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_holdings_note_type_id",
+                  "parameter": {
+                    "name": "Provenance"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.note",
+          "description": "Provenance note data",
+          "applyRulesOnConcatenatedData": true,
+          "subFieldDelimiter": [
+            {
+              "value": " ; ",
+              "subfields": [
+                "a",
+                "u",
+                "3",
+                "5",
+                "6",
+                "8"
+              ]
+            }
+          ],
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "562": [
+    {
+      "entity": [
+        {
+          "target": "notes.holdingsNoteTypeId",
+          "description": "Holdings note type id",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_holdings_note_type_id",
+                  "parameter": {
+                    "name": "Copy note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.note",
+          "description": "Copy note data",
+          "applyRulesOnConcatenatedData": true,
+          "subFieldDelimiter": [
+            {
+              "value": " ; ",
+              "subfields": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "3",
+                "5",
+                "6",
+                "8"
+              ]
+            }
+          ],
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "563": [
+    {
+      "entity": [
+        {
+          "target": "notes.holdingsNoteTypeId",
+          "description": "Holdings note type id",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_holdings_note_type_id",
+                  "parameter": {
+                    "name": "Binding"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.note",
+          "description": "Binding note data",
+          "applyRulesOnConcatenatedData": true,
+          "subFieldDelimiter": [
+            {
+              "value": " ; ",
+              "subfields": [
+                "a",
+                "u",
+                "3",
+                "5",
+                "6",
+                "8"
+              ]
+            }
+          ],
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "583": [
+    {
+      "entity": [
+        {
+          "target": "notes.holdingsNoteTypeId",
+          "description": "Holdings note type id",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "n",
+            "o",
+            "u",
+            "x",
+            "z",
+            "2",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_holdings_note_type_id",
+                  "parameter": {
+                    "name": "Action note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.note",
+          "description": "Action note data",
+          "applyRulesOnConcatenatedData": true,
+          "subFieldDelimiter": [
+            {
+              "value": " ; ",
+              "subfields": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "h",
+                "i",
+                "j",
+                "k",
+                "l",
+                "n",
+                "o",
+                "u",
+                "x",
+                "z",
+                "2",
+                "3",
+                "5",
+                "6",
+                "8"
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.staffOnly",
+          "description": "If true, determines that the note should not be visible for others than staff",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "n",
+            "o",
+            "u",
+            "x",
+            "z",
+            "2",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "rules": [
+            {
+              "conditions": [],
+              "value": "false"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "852": [
+    {
+      "entity": [
+        {
+          "target": "callNumberTypeId",
+          "description": "Call number type, defined by 1st indicator",
+          "subfield": [
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_call_number_type_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "permanentLocationId",
+          "description": "The permanent shelving location",
+          "subfield": [
+            "b"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_permanent_location_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "callNumber",
+          "applyRulesOnConcatenatedData": true,
+          "description": "Call Number identifier",
+          "subfield": [
+            "h",
+            "i"
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": " ",
+              "subfields": [
+                "h",
+                "i"
+              ]
+            }
+          ]
+        },
+        {
+          "target": "callNumberPrefix",
+          "description": "Prefix of the call number",
+          "subfield": [
+            "k"
+          ]
+        },
+        {
+          "target": "shelvingTitle",
+          "description": "Shelving form of title",
+          "subfield": [
+            "l"
+          ]
+        },
+        {
+          "target": "callNumberSuffix",
+          "description": "Suffix of the call number",
+          "subfield": [
+            "m"
+          ]
+        },
+        {
+          "target": "copyNumber",
+          "description": "Range of numbers for copies that have the same location",
+          "subfield": [
+            "t"
+          ]
+        }
+      ]
+    }
+  ],
+  "856": [
+    {
+      "entity": [
+        {
+          "target": "electronicAccess.relationshipId",
+          "applyRulesOnConcatenatedData": true,
+          "description": "Relationship between the electronic resource at the location identified and the item described in the record as a whole",
+          "subfield": [
+            "3",
+            "y",
+            "u",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_electronic_access_relations_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "electronicAccess.uri",
+          "description": "URI",
+          "subfield": [
+            "u"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "electronicAccess.linkText",
+          "description": "Link text",
+          "subfield": [
+            "y"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "electronicAccess.materialsSpecification",
+          "description": "Materials Specified",
+          "subfield": [
+            "3"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "electronicAccess.publicNote",
+          "description": "URL public note",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "866": [
+    {
+      "entity": [
+        {
+          "target": "holdingsStatements.statement",
+          "description": "Textual description of the holdings",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatements.note",
+          "description": "Public note",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatements.staffNote",
+          "description": "Staff note",
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "867": [
+    {
+      "entity": [
+        {
+          "target": "holdingsStatementsForSupplements.statement",
+          "description": "Textual description of the holdings",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatementsForSupplements.note",
+          "description": "Public note",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatementsForSupplements.staffNote",
+          "description": "Staff note",
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "868": [
+    {
+      "entity": [
+        {
+          "target": "holdingsStatementsForIndexes.statement",
+          "description": "Textual description of the holdings",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatementsForIndexes.note",
+          "description": "Public note",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "holdingsStatementsForIndexes.staffNote",
+          "description": "Staff note",
+          "subfield": [
+            "x"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "remove_ending_punc, trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

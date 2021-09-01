@@ -28,14 +28,14 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";
   private static final String SELECT_BY_TYPE_QUERY = "SELECT jsonb FROM %s.%s WHERE record_type = $1 limit 1";
-  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s')";
+  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s') WHERE record_type = $1";
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, record_type) VALUES ($1, $2, $3)";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<Optional<JsonObject>>get(Record.RecordType recordType, String tenantId) {
+  public Future<Optional<JsonObject>> get(Record.RecordType recordType, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(SELECT_BY_TYPE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
@@ -70,10 +70,11 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
   }
 
   @Override
-  public Future<JsonObject> update(JsonObject rules, String tenantId) {
+  public Future<JsonObject> update(JsonObject rules, Record.RecordType recordType, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME, rules);
-    pgClientFactory.createInstance(tenantId).execute(query, promise);
+    Tuple queryParams = Tuple.of(recordType.toString());
+    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     return promise.future().map(rules);
   }
 }
