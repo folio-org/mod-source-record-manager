@@ -17,6 +17,7 @@
   support MARC Holdings default rules
 * [MODSOURMAN-543](https://issues.folio.org/browse/MODSOURMAN-543) Update existing CLI endpoint PUT
   /mapping-rules/restore to support MARC Holdings default rules
+* [MODSOURMAN-547](https://issues.folio.org/browse/MODSOURMAN-547) Update cache for mapping-rules to support MARC Holdings default rules
 * [MODSOURMAN-553](https://issues.folio.org/browse/MODSOURMAN-553) Update GET /change-manager/parsedRecords to have externalId param
 
 ## XXXX-XX-XX v3.1.3

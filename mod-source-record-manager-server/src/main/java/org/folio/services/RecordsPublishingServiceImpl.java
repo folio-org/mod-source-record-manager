@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import static java.lang.String.format;
+
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
@@ -9,19 +10,24 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.NotFoundException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -31,10 +37,8 @@ import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.mappers.processor.MappingParametersProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 @Service("recordsPublishingService")
 public class RecordsPublishingServiceImpl implements RecordsPublishingService {
@@ -70,7 +74,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobOptional -> jobOptional
         .map(jobExecution -> getMappingParameters(jobExecutionId, params)
-          .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
+          .compose(mappingParameters -> mappingRuleCache.get(new MappingRuleCacheKey(params.getTenantId(), records.get(0).getRecordType()))
             .compose(rulesOptional -> {
               if (rulesOptional.isPresent()) {
                 return sendRecords(records, jobExecution, rulesOptional.get(), mappingParameters, params, eventType);

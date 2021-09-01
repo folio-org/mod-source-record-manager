@@ -29,6 +29,7 @@ import org.folio.rest.client.SourceStorageSourceRecordsClient;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.rest.jaxrs.model.SourceRecordState;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 
 @Log4j2
@@ -95,8 +96,9 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   @Override
   public Future<Boolean> updateRecord(ParsedRecordDto parsedRecordDto, OkapiConnectionParams params) {
     String snapshotId = UUID.randomUUID().toString();
+    MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(params.getTenantId(), parsedRecordDto.getRecordType());
     return mappingParametersProvider.get(snapshotId, params)
-      .compose(mappingParameters -> mappingRuleCache.get(params.getTenantId())
+      .compose(mappingParameters -> mappingRuleCache.get(cacheKey)
         .compose(rulesOptional -> {
           if (rulesOptional.isPresent()) {
             return updateRecord(parsedRecordDto, snapshotId, mappingParameters, rulesOptional.get(), params);
