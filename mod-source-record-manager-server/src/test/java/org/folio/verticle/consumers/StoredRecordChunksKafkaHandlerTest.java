@@ -1,5 +1,26 @@
 package org.folio.verticle.consumers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.ws.rs.BadRequestException;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -7,6 +28,15 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
@@ -19,33 +49,8 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalService;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
@@ -116,16 +121,17 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournal() throws IOException {
-    writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
-  }
-
-  @Test
   public void shouldWriteSavedMarcHoldingRecordsInfoToImportJournal() throws IOException {
     writeSavedMarcRecordsInfoToImportJournal(MARC_HOLDING_RECORD_PATH, EntityType.MARC_HOLDINGS);
   }
 
-  private void writeSavedMarcRecordsInfoToImportJournal(String marcBibRecordPath, EntityType marcBibliographic)
+  @Test
+  public void shouldThrowBadRequestWhileSavedMarcAuthorityRecordsInfoToImportJournal() {
+    assertThrows("Only marc-bib or marc-holdings supported", BadRequestException.class,
+      () -> writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY));
+  }
+
+  private void writeSavedMarcRecordsInfoToImportJournal(String marcBibRecordPath, EntityType entityType)
     throws IOException {
     // given
     Record record = Json.decodeValue(TestUtil.readFileFromPath(marcBibRecordPath), Record.class);
@@ -141,7 +147,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
     when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
-    when(mappingRuleCache.get(TENANT_ID)).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
       .thenReturn(Future.succeededFuture(true));
@@ -156,7 +162,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     assertEquals(1, journalRecordsCaptor.getValue().size());
     JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
     assertEquals(record.getId(), journalRecord.getSourceId());
-    assertEquals(marcBibliographic, journalRecord.getEntityType());
+    assertEquals(entityType, journalRecord.getEntityType());
     assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
     assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
