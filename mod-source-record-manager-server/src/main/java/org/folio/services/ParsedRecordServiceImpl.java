@@ -55,11 +55,11 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
   }
 
   @Override
-  public Future<ParsedRecordDto> getRecordByInstanceId(String instanceId, OkapiConnectionParams params) {
+  public Future<ParsedRecordDto> getRecordByExternalId(String externalId, OkapiConnectionParams params) {
     Promise<ParsedRecordDto> promise = Promise.promise();
     var client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.getSourceStorageSourceRecordsById(instanceId, "INSTANCE", response -> {
+      client.getSourceStorageSourceRecordsById(externalId, "EXTERNAL", response -> {
         if (HTTP_OK.toInt() == response.result().statusCode()) {
           Buffer bodyAsBuffer = response.result().bodyAsBuffer();
           Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
@@ -76,8 +76,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
               }
             });
         } else {
-          String message = format("Error retrieving Record by instanceId: '%s', response code %s, %s",
-            instanceId, response.result().statusCode(), response.result().statusMessage());
+          String message = format("Error retrieving Record by externalId: '%s', response code %s, %s",
+            externalId, response.result().statusCode(), response.result().statusMessage());
           if (HTTP_NOT_FOUND.toInt() == response.result().statusCode()) {
             promise.fail(new NotFoundException(message));
           } else {

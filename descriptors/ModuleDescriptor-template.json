@@ -446,7 +446,7 @@
     },
     {
       "permissionName": "change-manager.parsedrecords.get",
-      "displayName": "Change Manager - get parsed records by instanceId",
+      "displayName": "Change Manager - get parsed records by externalId",
       "description": "Get parsed record"
     },
     {
