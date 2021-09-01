@@ -17,6 +17,7 @@
   support MARC Holdings default rules
 * [MODSOURMAN-543](https://issues.folio.org/browse/MODSOURMAN-543) Update existing CLI endpoint PUT
   /mapping-rules/restore to support MARC Holdings default rules
+* [MODSOURMAN-547](https://issues.folio.org/browse/MODSOURMAN-547) Update cache for mapping-rules to support MARC Holdings default rules
 
 ## XXXX-XX-XX v3.1.3
 * [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages

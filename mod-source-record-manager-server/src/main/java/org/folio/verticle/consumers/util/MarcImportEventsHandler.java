@@ -9,6 +9,7 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.MappingRuleCache;
+import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
@@ -57,7 +58,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     if (journalRecord.getEntityType().equals(MARC_BIBLIOGRAPHIC) && StringUtils.isNotBlank(recordAsString)) {
       Record record = Json.decodeValue(recordAsString, Record.class);
       if (record.getParsedRecord() != null) {
-        return mappingRuleCache.get(eventPayload.getTenant())
+        MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(eventPayload.getTenant(), MARC_BIBLIOGRAPHIC);
+        return mappingRuleCache.get(cacheKey)
           .compose(ruleOptional -> ruleOptional
             .map(mappingRules -> retrieveTitle(record, mappingRules))
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))

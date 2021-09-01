@@ -1,5 +1,17 @@
 package org.folio.rest.impl.changeManager;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static org.hamcrest.Matchers.is;
+
+import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
@@ -10,6 +22,9 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.folio.kafka.KafkaConfig;
 import org.folio.rest.impl.AbstractRestTest;
@@ -18,26 +33,6 @@ import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ParsedRecordDto;
 import org.folio.rest.jaxrs.model.SourceRecord;
 import org.folio.verticle.consumers.util.QMEventTypes;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
-import static org.hamcrest.Matchers.is;
-
-import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
-import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 
 @RunWith(VertxUnitRunner.class)
 public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
@@ -157,6 +152,26 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnBadRequestOnPutIfRecordTypeIsNotSupported(TestContext testContext) {
+    Async async = testContext.async();
+
+    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
+        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
+      .withRecordType(ParsedRecordDto.RecordType.MARC_AUTHORITY);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(parsedRecordDto)
+      .when()
+      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+    async.complete();
+  }
+
+  @Test
   public void shouldUpdateParsedRecordOnPut(TestContext testContext) throws InterruptedException {
     Async async = testContext.async();
 
@@ -164,7 +179,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
-      .withRecordType(ParsedRecordDto.RecordType.MARC_BIB)
+      .withRecordType(ParsedRecordDto.RecordType.MARC_HOLDING)
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
 
     RestAssured.given()
