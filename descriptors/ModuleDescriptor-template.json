@@ -223,7 +223,8 @@
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
             "inventory-storage.preceding-succeeding-titles.item.post",
-            "configuration.entries.collection.get"
+            "configuration.entries.collection.get",
+            "source-storage.verified.records"
           ]
         },
         {

@@ -1,8 +1,10 @@
 package org.folio.services;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -134,11 +136,11 @@ public class ChangeEngineServiceImplTest {
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
     var actual = serviceFuture.result();
-    assertThat(actual, hasSize(0));
-//    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
-//    assertThat(actual.get(0).getErrorRecord(), notNullValue());
-//    assertThat(actual.get(0).getErrorRecord().getDescription(),
-//      containsString("The 004 tag of the Holdings doesn't has a link"));
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
+    assertThat(actual.get(0).getErrorRecord(), notNullValue());
+    assertThat(actual.get(0).getErrorRecord().getDescription(),
+      containsString("The 004 tag of the Holdings doesn't has a link"));
   }
 
   @Test

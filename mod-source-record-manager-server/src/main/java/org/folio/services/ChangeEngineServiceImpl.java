@@ -247,8 +247,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
 
     Promise<List<Record>> promise = Promise.promise();
-      List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
-      filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
+
+    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
+    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
 
     return promise.future();
   }
@@ -258,6 +259,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var marcHoldingsIdsToVerify = recordList.stream()
         .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
         .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
+        .filter(StringUtils::isNotBlank)
         .collect(Collectors.toList());
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
@@ -278,7 +280,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .map(Future<List<String>>::result)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
-        LOGGER.info("In the Composite future and return list: {}", invalidMarcBibIds);
+        LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
         var validMarcBibRecords = records.stream()
           .filter(record -> {
             if (record.getRecordType() == MARC_HOLDING) {
@@ -323,7 +325,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                       List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
       populateError(record, jobExecution, okapiParams);
-      return false;
+//      return false;
     }
     return true;
   }
