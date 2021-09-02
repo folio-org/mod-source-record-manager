@@ -39,7 +39,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
 
   private final String SOURCE_RECORDS_URL = "/source-storage/source-records/";
   private final String PARSED_RECORDS_URL = "/change-manager/parsedRecords";
-  private final String INSTANCE_ID_QUERY_PARAM = "instanceId";
+  private final String EXTERNAL_ID_QUERY_PARAM = "externalId";
 
   private static final String KAFKA_HOST = "KAFKA_HOST";
   private static final String KAFKA_PORT = "KAFKA_PORT";
@@ -69,20 +69,20 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   public void shouldReturnParsedRecordDtoIfSourceRecordExists(TestContext testContext) {
     Async async = testContext.async();
 
-    String instanceId = UUID.randomUUID().toString();
+    String externalId = UUID.randomUUID().toString();
     SourceRecord sourceRecord = new SourceRecord()
       .withRecordId(UUID.randomUUID().toString())
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
       .withRecordType(SourceRecord.RecordType.MARC_BIB)
-      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+      .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(externalId));
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
       .willReturn(ok().withBody(JsonObject.mapFrom(sourceRecord).encode())));
 
     RestAssured.given()
       .spec(spec)
-      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .queryParam(EXTERNAL_ID_QUERY_PARAM, externalId)
       .when()
       .get(PARSED_RECORDS_URL)
       .then()
@@ -90,7 +90,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .body("id", is(sourceRecord.getRecordId()))
       .body("parsedRecord.id", is(sourceRecord.getParsedRecord().getId()))
       .body("recordType", is(sourceRecord.getRecordType().value()))
-      .body("externalIdsHolder.instanceId", is(instanceId));
+      .body("externalIdsHolder.instanceId", is(externalId));
     async.complete();
   }
 
@@ -98,14 +98,14 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   public void shouldReturnNotFoundIfThereIsNoSourceRecord(TestContext testContext) {
     Async async = testContext.async();
 
-    String instanceId = UUID.randomUUID().toString();
+    String externalId = UUID.randomUUID().toString();
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
       .willReturn(notFound()));
 
     RestAssured.given()
       .spec(spec)
-      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .queryParam(EXTERNAL_ID_QUERY_PARAM, externalId)
       .when()
       .get(PARSED_RECORDS_URL)
       .then()
@@ -117,14 +117,14 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   public void shouldReturnErrorIfExceptionWasThrown(TestContext testContext) {
     Async async = testContext.async();
 
-    String instanceId = UUID.randomUUID().toString();
+    String externalId = UUID.randomUUID().toString();
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
       .willReturn(ok().withBody("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}")));
 
     RestAssured.given()
       .spec(spec)
-      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .queryParam(EXTERNAL_ID_QUERY_PARAM, externalId)
       .when()
       .get(PARSED_RECORDS_URL)
       .then()
@@ -136,14 +136,14 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   public void shouldReturnErrorIfErrorResponse(TestContext testContext) {
     Async async = testContext.async();
 
-    String instanceId = UUID.randomUUID().toString();
+    String externalId = UUID.randomUUID().toString();
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(SOURCE_RECORDS_URL + ".*"), true))
       .willReturn(serverError()));
 
     RestAssured.given()
       .spec(spec)
-      .queryParam(INSTANCE_ID_QUERY_PARAM, instanceId)
+      .queryParam(EXTERNAL_ID_QUERY_PARAM, externalId)
       .when()
       .get(PARSED_RECORDS_URL)
       .then()
