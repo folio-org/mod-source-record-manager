@@ -1599,12 +1599,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityMarcHoldingRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord)
-    throws InterruptedException, IOException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException, IOException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()

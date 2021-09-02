@@ -72,6 +72,7 @@ public class ChangeEngineServiceImplTest {
   @Before
   public void setUp() throws Exception {
     ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
+    ReflectionTestUtils.setField(service, "batchSize", 100);
   }
 
   @Test

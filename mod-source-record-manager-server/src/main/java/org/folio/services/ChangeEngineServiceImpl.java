@@ -21,15 +21,18 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
+import com.google.common.collect.Lists;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -100,6 +103,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
+
+  @Value("${marc.holdings.batch.size:100}")
+  private int batchSize;
 
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
@@ -241,35 +247,39 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
 
     Promise<List<Record>> promise = Promise.promise();
-    filterMarcHoldingsBy004Field(records, okapiParams, jobExecution, promise);
-
-    //TODO add logic to send marc bib ids not less than chunk size (100 for example)
-   /* records.entrySet().forEach(entry -> {
-      var value = entry.getKey();
-      var recordList = entry.getValue();
-      LOGGER.info("");
-      filterMarcHoldingsBy004Field(recordList, okapiParams, jobExecution, promise);
-    });*/
+      List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
+      filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
 
     return promise.future();
   }
 
-  private void filterMarcHoldingsBy004Field(List<Record> recordList, OkapiConnectionParams okapiParams,
+  private List<Future> executeInBatches(List<Record> recordList, Function<List<String>, Future<List<String>>> batchOperation) {
+    // filter list on MARC_HOLDINGS
+    var marcHoldingsIdsToVerify = recordList.stream()
+        .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
+        .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
+        .collect(Collectors.toList());
+    // split on batches and create list of Futures
+    List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
+    List<Future> futureList = new ArrayList<>();
+    for (List<String> batch : batches) {
+      futureList.add(batchOperation.apply(batch));
+    }
+    return futureList;
+  }
+
+  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future> batchList, OkapiConnectionParams okapiParams,
                                             JobExecution jobExecution, Promise<List<Record>> promise) {
-    //"111111","2222222","in00000000313","in00000000316","in00000000317"
-    var marcHoldingsToVerify = recordList.stream()
-      .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
-      .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
-      .collect(Collectors.toList());
 
-    //"111111","2222222"
-    var futureIds = verifyMarcHoldings004Field(marcHoldingsToVerify, okapiParams);
-
-    CompositeFuture.all(Collections.singletonList(futureIds))
+    CompositeFuture.all(batchList)
       .onComplete(as -> {
-        var invalidMarcBibIds = futureIds.result();
+        var invalidMarcBibIds = batchList
+            .stream()
+            .map(Future<List<String>>::result)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
         LOGGER.info("In the Composite future and return list: {}", invalidMarcBibIds);
-        var validMarcBibRecords = recordList.stream()
+        var validMarcBibRecords = records.stream()
           .filter(record -> {
             if (record.getRecordType() == MARC_HOLDING) {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
@@ -277,8 +287,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             }
             return true;
           }).collect(Collectors.toList());
-        LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, record without invalid marc bib: {}",
-          recordList.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
+        LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
+          records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
         promise.complete(validMarcBibRecords);
       });
   }
@@ -333,7 +343,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
-    var sourceRecordKey = getSourceRecordKey(record);
+    String sourceRecordKey = getSourceRecordKey(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
