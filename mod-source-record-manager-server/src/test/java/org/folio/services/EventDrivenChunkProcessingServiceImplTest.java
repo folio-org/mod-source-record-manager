@@ -41,6 +41,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.dao.MappingParamsSnapshotDao;
+import org.folio.dao.MappingParamsSnapshotDaoImpl;
+import org.folio.dao.MappingRulesSnapshotDao;
+import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -137,6 +141,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private ChunkProcessingService chunkProcessingService;
   private OkapiConnectionParams params;
   private MappingMetadataService mappingMetadataService;
+  private MappingRulesSnapshotDao mappingRulesSnapshotDao;
+  private MappingParamsSnapshotDao mappingParamsSnapshotDao;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -159,7 +165,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Before
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(Record.RecordType.class), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
@@ -167,6 +173,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, kafkaConfig);
+    mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
+    mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();
+    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingMetadataService);
 
     HashMap<String, String> headers = new HashMap<>();
