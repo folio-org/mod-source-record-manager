@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,15 +60,24 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
+    Promise<Boolean> promise = Promise.promise();
     mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
-      .onComplete(ar -> {
-          if (ar.failed()) {
+      .onComplete(arMappingMetadata -> {
+          if (arMappingMetadata.failed()) {
             mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordsList.get(0).getRecordType().toString(), okapiParams.getTenantId())
-              .compose(mappingParameters -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams));
+              .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
+              .onComplete(mappingParameters -> {
+                if(mappingParameters.succeeded()){
+                  promise.complete(true);
+                }else {
+                  String errorMessage = "There is error occurred while saving metadata snapshot for jobExecutionId: " + jobExecutionId;
+                  LOGGER.error(errorMessage);
+                  promise.fail(errorMessage);
+                }});
           }
         }
       );
-    return Future.succeededFuture(true);
+    return promise.future();
   }
 
   private Future<Boolean> initializeJobExecutionProgressIfNecessary(String jobExecutionId, RawRecordsDto incomingChunk, String tenantId) {
