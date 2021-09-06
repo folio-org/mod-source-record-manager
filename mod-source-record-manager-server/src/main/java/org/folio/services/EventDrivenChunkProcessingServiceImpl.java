@@ -66,14 +66,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
           if (arMappingMetadata.failed()) {
             mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordsList.get(0).getRecordType().toString(), okapiParams.getTenantId())
               .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
-              .onComplete(mappingParameters -> {
-                if(mappingParameters.succeeded()){
-                  promise.complete(true);
-                }else {
-                  String errorMessage = "There is error occurred while saving metadata snapshot for jobExecutionId: " + jobExecutionId;
-                  LOGGER.error(errorMessage);
-                  promise.fail(errorMessage);
-                }});
+              .onSuccess(ar -> promise.complete(true))
+              .onFailure(promise::fail);
           }
         }
       );
