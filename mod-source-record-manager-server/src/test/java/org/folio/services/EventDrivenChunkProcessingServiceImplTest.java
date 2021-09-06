@@ -1,5 +1,69 @@
 package org.folio.services;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.RunTestOnContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.DataImportEventPayload;
+import org.folio.Record;
+import org.folio.TestUtil;
+import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
+import org.folio.dao.JobExecutionSourceChunkDaoImpl;
+import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.MappingParamsSnapshotDao;
+import org.folio.dao.MappingParamsSnapshotDaoImpl;
+import org.folio.dao.MappingRuleDaoImpl;
+import org.folio.dao.MappingRulesSnapshotDao;
+import org.folio.dao.MappingRulesSnapshotDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
+import org.folio.kafka.KafkaConfig;
+import org.folio.processing.events.utils.ZIPArchiver;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -22,69 +86,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.RegexPattern;
-import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.folio.dao.MappingParamsSnapshotDao;
-import org.folio.dao.MappingParamsSnapshotDaoImpl;
-import org.folio.dao.MappingRulesSnapshotDao;
-import org.folio.dao.MappingRulesSnapshotDaoImpl;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-
-import org.folio.DataImportEventPayload;
-import org.folio.Record;
-import org.folio.TestUtil;
-import org.folio.dao.JobExecutionDaoImpl;
-import org.folio.dao.JobExecutionProgressDaoImpl;
-import org.folio.dao.JobExecutionSourceChunkDaoImpl;
-import org.folio.dao.JournalRecordDaoImpl;
-import org.folio.dao.MappingRuleDaoImpl;
-import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
-import org.folio.kafka.KafkaConfig;
-import org.folio.processing.events.utils.ZIPArchiver;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
-import org.folio.services.mappers.processor.MappingParametersProvider;
-import org.folio.services.progress.JobExecutionProgressServiceImpl;
-
 @RunWith(VertxUnitRunner.class)
 // TODO fix in scope of MODSOURMAN-400
 @Ignore
@@ -94,10 +95,18 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private static final String RAW_RECORD_RESULTING_IN_PARSING_ERROR = "01247nam  2200313zu 450000100110000000300080001100500170001905\u001F222\u001E1 \u001FaAriáes, Philippe.\u001E10\u001FaWestern attitudes toward death\u001Fh[electronic resource] :\u001Fbfrom the Middle Ages to the present /\u001Fcby Philippe Ariáes ; translated by Patricia M. Ranum.\u001E  \u001FaJohn Hopkins Paperbacks ed.\u001E  \u001FaBaltimore :\u001FbJohns Hopkins University Press,\u001Fc1975.\u001E  \u001Fa1 online resource.\u001E1 \u001FaThe Johns Hopkins symposia in comparative history ;\u001Fv4th\u001E  \u001FaDescription based on online resource; title from digital title page (viewed on Mar. 7, 2013).\u001E 0\u001FaDeath.\u001E2 \u001FaEbrary.\u001E 0\u001FaJohns Hopkins symposia in comparative history ;\u001Fv4th.\u001E40\u001FzConnect to e-book on Ebrary\u001Fuhttp://gateway.library.qut.edu.au/login?url=http://site.ebrary.com/lib/qut/docDetail.action?docID=10635130\u001E  \u001Fa.o1346565x\u001E  \u001Fa130307\u001Fb2095\u001Fe2095\u001Ff243966\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
   private static final String RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
 
-  @Spy
+  private static final String KAFKA_HOST = "KAFKA_HOST";
+  private static final String KAFKA_PORT = "KAFKA_PORT";
+  private static final String KAFKA_ENV = "ENV";
+  private static final String KAFKA_ENV_ID = "test-env";
+  private static final String KAFKA_MAX_REQUEST_SIZE = "MAX_REQUEST_SIZE";
+
+  @Rule
+  public RunTestOnContext rule = new RunTestOnContext();
+  //@Spy
   private Vertx vertx = Vertx.vertx();
 
-  @Spy
+ // @Spy
   KafkaConfig kafkaConfig;
   @Spy
   PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -186,6 +195,18 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    System.setProperty(KAFKA_HOST, hostAndPort[0]);
+    System.setProperty(KAFKA_PORT, hostAndPort[1]);
+    System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
+    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
+    System.setProperty(KAFKA_MAX_REQUEST_SIZE, "1048576");
+    kafkaConfig = KafkaConfig.builder()
+      .kafkaHost(hostAndPort[0])
+      .kafkaPort(hostAndPort[1])
+      .envId(KAFKA_ENV_ID)
+      .build();
   }
 
   @Test
@@ -224,7 +245,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
-
+  @Ignore
   @Test
   public void shouldReturnFailedFutureWhenFailedPostRecordsToRecordsStorage(TestContext context) {
     Async async = context.async();
@@ -246,7 +267,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
-
+@Ignore
   @Test
   public void shouldProcessErrorRawRecord(TestContext context) {
     Async async = context.async();
@@ -273,7 +294,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
-
+@Ignore
   @Test
   public void shouldSendEventsWithSuccessfullyParsedRecords(TestContext context) {
     Async async = context.async();
@@ -304,8 +325,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     });
   }
 
-  @Test
   @Ignore
+  @Test
   public void shouldMarkJobExecutionAsErrorWhenWhenFailedPostRecordsToRecordsStorage(TestContext context) {
     Async async = context.async();
     RawRecordsDto lastRawRecordsDto = new RawRecordsDto()
@@ -340,7 +361,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     });
   }
 
-
+@Ignore
   @Test
   public void shouldNotProcessChunkOfRawRecordsIfChildSnapshotWrapperIsEmpty(TestContext context) {
     Async async = context.async();
