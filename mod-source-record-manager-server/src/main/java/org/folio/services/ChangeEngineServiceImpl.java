@@ -325,7 +325,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                       List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
       populateError(record, jobExecution, okapiParams);
-//      return false;
+      return false;
     }
     return true;
   }
