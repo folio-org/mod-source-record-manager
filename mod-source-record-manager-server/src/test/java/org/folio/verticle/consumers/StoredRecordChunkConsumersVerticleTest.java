@@ -6,7 +6,6 @@ import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
 import org.folio.DataImportEventPayload;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.Event;
@@ -60,7 +59,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
         .withSnapshotId(jobExec.getId())
         .withParsedRecord(new ParsedRecord().withContent(parsedContentWithInvalidRecordTypeValue))));
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(recordsBatch)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(recordsBatch));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("42", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_TOKEN_HEADER, TOKEN, UTF_8);
@@ -80,7 +79,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    DataImportEventPayload eventPayload = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), DataImportEventPayload.class);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
     assertEquals(jobExec.getId(), eventPayload.getJobExecutionId());
     assertEquals(TENANT_ID, eventPayload.getTenant());
