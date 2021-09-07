@@ -13,7 +13,6 @@ import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,13 +49,13 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
-      .compose(records -> mappingMetaDataSave(jobExecutionId, params, records))
+      .compose(records -> saveMappingMetaDataSnapshot(jobExecutionId, params, records))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
   }
 
-  private Future<Boolean> mappingMetaDataSave(String jobExecutionId, OkapiConnectionParams okapiParams, List<Record> recordsList) {
+  private Future<Boolean> saveMappingMetaDataSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams, List<Record> recordsList) {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
