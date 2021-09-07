@@ -1,5 +1,62 @@
 package org.folio.services;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.DataImportEventPayload;
+import org.folio.Record;
+import org.folio.TestUtil;
+import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
+import org.folio.dao.JobExecutionSourceChunkDaoImpl;
+import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.MappingRuleDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
+import org.folio.kafka.KafkaConfig;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -21,65 +78,6 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.RegexPattern;
-import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-
-import org.folio.DataImportEventPayload;
-import org.folio.Record;
-import org.folio.TestUtil;
-import org.folio.dao.JobExecutionDaoImpl;
-import org.folio.dao.JobExecutionProgressDaoImpl;
-import org.folio.dao.JobExecutionSourceChunkDaoImpl;
-import org.folio.dao.JournalRecordDaoImpl;
-import org.folio.dao.MappingRuleDaoImpl;
-import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
-import org.folio.kafka.KafkaConfig;
-import org.folio.processing.events.utils.ZIPArchiver;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
-import org.folio.services.mappers.processor.MappingParametersProvider;
-import org.folio.services.progress.JobExecutionProgressServiceImpl;
 
 @RunWith(VertxUnitRunner.class)
 // TODO fix in scope of MODSOURMAN-400
@@ -198,12 +196,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       context.assertEquals(1, loggedRequests.size());
       Event event = Json.decodeValue(loggedRequests.get(0).getBodyAsString(), Event.class);
-      DataImportEventPayload dataImportEventPayload = null;
-      try {
-        dataImportEventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      DataImportEventPayload dataImportEventPayload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
       context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
       context.assertNotNull(dataImportEventPayload.getCurrentNode());
       context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
