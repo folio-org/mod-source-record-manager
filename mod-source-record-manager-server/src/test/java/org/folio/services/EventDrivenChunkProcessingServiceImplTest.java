@@ -201,6 +201,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, kafkaConfig);
+    changeEngineService.setMaxDistributionNum(100);
 /*    mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
     mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();*/
     //jobExecutionDao = new JobExecutionDaoImpl();
