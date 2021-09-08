@@ -44,8 +44,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             .withCreatedDate(new Date());
 
           return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-            .onSuccess(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params)).map(true)
-            .onFailure(th -> Future.succeededFuture(false));
+            .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params))
+            .recover(th -> Future.succeededFuture(false))
+            .map(true);
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 

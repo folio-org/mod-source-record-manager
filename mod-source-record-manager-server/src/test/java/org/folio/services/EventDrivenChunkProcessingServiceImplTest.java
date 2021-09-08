@@ -81,7 +81,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 // TODO fix in scope of MODSOURMAN-400
-//@Ignore
 public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest {
 
   private static final String CORRECT_RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
@@ -96,11 +95,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
-  //@Spy
-  private Vertx vertx = Vertx.vertx();
 
-  // @Spy
-  private KafkaConfig kafkaConfig;
+  private Vertx vertx = Vertx.vertx();
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy
@@ -145,21 +141,20 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
   @Spy
-  private RecordsPublishingService recordsPublishingService;
-
-  private MappingRuleCache mappingRuleCache;
-  private ChangeEngineService changeEngineService;
-  private ChunkProcessingService chunkProcessingService;
-  private OkapiConnectionParams params;
-  private MappingMetadataService mappingMetadataService;
-  @Spy
   @InjectMocks
   private MappingRulesSnapshotDaoImpl mappingRulesSnapshotDao;
   @Spy
   @InjectMocks
   private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
-  //private JobExecutionDaoImpl jobExecutionDao;
+  @Spy
+  private RecordsPublishingService recordsPublishingService;
 
+  private KafkaConfig kafkaConfig;
+  private MappingRuleCache mappingRuleCache;
+  private ChangeEngineService changeEngineService;
+  private ChunkProcessingService chunkProcessingService;
+  private OkapiConnectionParams params;
+  private MappingMetadataService mappingMetadataService;
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
     .withSourceType(InitJobExecutionsRqDto.SourceType.FILES)
@@ -201,10 +196,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, kafkaConfig);
-    changeEngineService.setMaxDistributionNum(100);
-/*    mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
-    mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();*/
-    //jobExecutionDao = new JobExecutionDaoImpl();
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingMetadataService);
 
@@ -224,36 +215,23 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Test
   public void shouldProcessChunkOfRawRecords(TestContext context) {
     Async async = context.async();
-
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      ArgumentCaptor<StatusDto> captorStatus = ArgumentCaptor.forClass(StatusDto.class);
+      ArgumentCaptor<String> captorJobExecutionId = ArgumentCaptor.forClass(String.class);
+      Mockito.verify(jobExecutionService).updateJobExecutionStatus(captorJobExecutionId.capture(), captorStatus.capture(), isA(OkapiConnectionParams.class));
       Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
-      context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
+      context.assertTrue(PARSING_IN_PROGRESS.equals(captorStatus.getValue().getStatus()));
 
-     /* verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
-      verify(1, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
-      List<LoggedRequest> loggedRequests = findAll(postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
-      context.assertEquals(1, loggedRequests.size());
-      Event event = Json.decodeValue(loggedRequests.get(0).getBodyAsString(), Event.class);
-      DataImportEventPayload dataImportEventPayload = null;
-      try {
-        dataImportEventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      context.assertNotNull(dataImportEventPayload.getProfileSnapshot());
-      context.assertNotNull(dataImportEventPayload.getCurrentNode());
-      context.assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), dataImportEventPayload.getEventType());
-      context.assertEquals(params.getOkapiUrl(), dataImportEventPayload.getOkapiUrl());
-      context.assertEquals(params.getTenantId(), dataImportEventPayload.getTenant());
-      context.assertEquals(params.getToken(), dataImportEventPayload.getToken());
-      context.assertNotNull(dataImportEventPayload.getContext().get(MARC_BIBLIOGRAPHIC.value()));*/
+      mappingMetadataService.getMappingMetadataDto(captorJobExecutionId.getValue(), params)
+        .onComplete(mappingMetadataDtoAsyncResult -> {
+          if (mappingMetadataDtoAsyncResult.succeeded()) {
+            context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(captorJobExecutionId.getValue()));
+          }});
       async.complete();
     });
   }
