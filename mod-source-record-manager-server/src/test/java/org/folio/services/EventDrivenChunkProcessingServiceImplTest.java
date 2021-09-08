@@ -3,7 +3,6 @@ package org.folio.services;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -12,26 +11,22 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.folio.DataImportEventPayload;
 import org.folio.Record;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
+import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
-import org.folio.dao.MappingParamsSnapshotDao;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
-import org.folio.dao.MappingRulesSnapshotDao;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
@@ -60,12 +55,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -73,8 +66,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
@@ -108,8 +99,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   //@Spy
   private Vertx vertx = Vertx.vertx();
 
- // @Spy
-  KafkaConfig kafkaConfig;
+  // @Spy
+  private KafkaConfig kafkaConfig;
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy
@@ -145,6 +136,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   @InjectMocks
   private JobMonitoringServiceImpl jobMonitoringService;
+  @Spy
+  @InjectMocks
+  private JobMonitoringDaoImpl jobMonitoringDao;
   @Spy
   private HrIdFieldServiceImpl hrIdFieldService;
   @Spy
@@ -188,6 +182,18 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.openMocks(this);
+    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    System.setProperty(KAFKA_HOST, hostAndPort[0]);
+    System.setProperty(KAFKA_PORT, hostAndPort[1]);
+    System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
+    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
+    System.setProperty(KAFKA_MAX_REQUEST_SIZE, "1048576");
+    kafkaConfig = KafkaConfig.builder()
+      .kafkaHost(hostAndPort[0])
+      .kafkaPort(hostAndPort[1])
+      .envId(KAFKA_ENV_ID)
+      .build();
+
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(Record.RecordType.class), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
@@ -212,18 +218,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern("/data-import-profiles/jobProfiles/" + ".*"), true))
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
-
-    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
-    System.setProperty(KAFKA_HOST, hostAndPort[0]);
-    System.setProperty(KAFKA_PORT, hostAndPort[1]);
-    System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
-    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
-    System.setProperty(KAFKA_MAX_REQUEST_SIZE, "1048576");
-    kafkaConfig = KafkaConfig.builder()
-      .kafkaHost(hostAndPort[0])
-      .kafkaPort(hostAndPort[1])
-      .envId(KAFKA_ENV_ID)
-      .build();
   }
 
   @Test
@@ -237,9 +231,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      //Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
-      //Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
-      //context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
+      Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
+      context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
 
      /* verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
       verify(1, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
@@ -262,6 +256,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
+
   @Ignore
   @Test
   public void shouldReturnFailedFutureWhenFailedPostRecordsToRecordsStorage(TestContext context) {
@@ -284,7 +279,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
-@Ignore
+
+  @Ignore
   @Test
   public void shouldProcessErrorRawRecord(TestContext context) {
     Async async = context.async();
@@ -311,7 +307,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       async.complete();
     });
   }
-@Ignore
+
+  @Ignore
   @Test
   public void shouldSendEventsWithSuccessfullyParsedRecords(TestContext context) {
     Async async = context.async();
@@ -378,7 +375,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     });
   }
 
-@Ignore
+  @Ignore
   @Test
   public void shouldNotProcessChunkOfRawRecordsIfChildSnapshotWrapperIsEmpty(TestContext context) {
     Async async = context.async();
