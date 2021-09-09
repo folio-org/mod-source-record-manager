@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -23,6 +24,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -166,7 +168,8 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    */
   private DataImportEventPayload prepareEventPayload(Record record, ProfileSnapshotWrapper profileSnapshotWrapper,
                                                      OkapiConnectionParams params, String eventType) {
-    HashMap<String, String> context = payloadContextBuilder.buildFrom(record, profileSnapshotWrapper.getId());
+    HashMap<String, String> context = payloadContextBuilder.buildFrom(record,
+      Objects.isNull(profileSnapshotWrapper) ? StringUtils.EMPTY : profileSnapshotWrapper.getId());
 
     return new DataImportEventPayload()
       .withEventType(eventType)
