@@ -65,6 +65,10 @@
     {
       "id": "modes-of-issuance",
       "version": "1.1"
+    },
+    {
+      "id": "source-storage-batch",
+      "version": "1.1"
     }
   ],
   "provides": [
