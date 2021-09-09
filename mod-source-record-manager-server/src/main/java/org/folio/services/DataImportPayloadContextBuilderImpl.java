@@ -41,19 +41,20 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
   }
 
   @Override
-  public HashMap<String, String> buildFrom(Record record) {
+  public HashMap<String, String> buildFrom(Record record, String profileSnapshotWrapperId) {
     EntityType entityType = detectEntityType(record);
 
-    return createAndPopulateContext(entityType, record);
+    return createAndPopulateContext(entityType, record, profileSnapshotWrapperId);
   }
 
-  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record record) {
+  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record record, String profileSnapshotWrapperId) {
     HashMap<String, String> context = new HashMap<>();
 
     if (entityType == MARC_AUTHORITY) {
       context.put(entityType.value(), Json.encode(record));
     } else {
       context.put(entityType.value(), Json.encode(record));
+      context.put("JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapperId);
     }
     return context;
   }

@@ -4,8 +4,10 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.junit.Before;
@@ -15,13 +17,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
@@ -35,15 +41,33 @@ public class DataImportPayloadContextBuilderImplTest {
   private DataImportPayloadContextBuilderImpl builder;
 
   private Record record;
-  private JsonObject rules;
-  private MappingParameters params;
-
+  private ProfileSnapshotWrapper profileSnapshotWrapper;
 
   @Before
   public void setUp() throws Exception {
     record = new Record();
-    rules = new JsonObject();
-    params = new MappingParameters();
+
+    JobProfile jobProfile = new JobProfile()
+      .withId(UUID.randomUUID().toString())
+      .withName("Create MARC Bibs")
+      .withDataType(JobProfile.DataType.MARC);
+
+    ActionProfile actionProfile = new ActionProfile()
+      .withId(UUID.randomUUID().toString())
+      .withName("Create MARC Bib")
+      .withAction(ActionProfile.Action.CREATE)
+      .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
+
+    profileSnapshotWrapper = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withProfileId(jobProfile.getId())
+      .withContentType(JOB_PROFILE)
+      .withContent(jobProfile)
+      .withChildSnapshotWrappers(Collections.singletonList(
+        new ProfileSnapshotWrapper()
+          .withProfileId(actionProfile.getId())
+          .withContentType(ACTION_PROFILE)
+          .withContent(actionProfile)));
   }
 
   @Test
@@ -54,7 +78,7 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.AUTHORITY);
 
-    HashMap<String, String> context = builder.buildFrom(record);
+    HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
     assertEquals(Map.of(MARC_AUTHORITY.value(), Json.encode(record)), context);
   }
@@ -67,10 +91,11 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.BIB);
 
-    HashMap<String, String> context = builder.buildFrom(record);
+    HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
     assertEquals(Map.of(
-        MARC_BIBLIOGRAPHIC.value(), Json.encode(record)),
+        MARC_BIBLIOGRAPHIC.value(), Json.encode(record),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
         context);
   }
 
@@ -82,10 +107,11 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.HOLDING);
 
-    HashMap<String, String> context = builder.buildFrom(record);
+    HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
     assertEquals(Map.of(
-        MARC_HOLDINGS.value(), Json.encode(record)),
+        MARC_HOLDINGS.value(), Json.encode(record),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
         context);
   }
 
@@ -93,10 +119,11 @@ public class DataImportPayloadContextBuilderImplTest {
   public void shouldBuildContextForEdifactInvoice() {
     record.setRecordType(Record.RecordType.EDIFACT);
 
-    HashMap<String, String> context = builder.buildFrom(record);
+    HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
     assertEquals(Map.of(
-        EDIFACT_INVOICE.value(), Json.encode(record)),
+        EDIFACT_INVOICE.value(), Json.encode(record),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
         context);
   }
 
@@ -105,7 +132,7 @@ public class DataImportPayloadContextBuilderImplTest {
     record.setRecordType(Record.RecordType.MARC_BIB);
 
     assertThrows("Parsed record is null", NullPointerException.class,
-        () -> builder.buildFrom(record));
+        () -> builder.buildFrom(record, profileSnapshotWrapper.getId()));
   }
 
   @Test
@@ -114,7 +141,7 @@ public class DataImportPayloadContextBuilderImplTest {
     record.setParsedRecord(new ParsedRecord());
 
     assertThrows("Parsed record content is null", NullPointerException.class,
-        () -> builder.buildFrom(record));
+        () -> builder.buildFrom(record, profileSnapshotWrapper.getId()));
   }
 
   @Test
@@ -126,7 +153,7 @@ public class DataImportPayloadContextBuilderImplTest {
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.NA);
 
     assertThrows("Unsupported Marc record type", IllegalStateException.class,
-        () -> builder.buildFrom(record));
+        () -> builder.buildFrom(record, profileSnapshotWrapper.getId()));
   }
 
   private static ParsedRecord parsedRecord(String content) {

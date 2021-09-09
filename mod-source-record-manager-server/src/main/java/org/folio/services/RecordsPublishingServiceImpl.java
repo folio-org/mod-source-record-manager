@@ -10,7 +10,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -167,7 +166,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    */
   private DataImportEventPayload prepareEventPayload(Record record, ProfileSnapshotWrapper profileSnapshotWrapper,
                                                      OkapiConnectionParams params, String eventType) {
-    HashMap<String, String> context = payloadContextBuilder.buildFrom(record);
+    HashMap<String, String> context = payloadContextBuilder.buildFrom(record, profileSnapshotWrapper.getId());
 
     return new DataImportEventPayload()
       .withEventType(eventType)
