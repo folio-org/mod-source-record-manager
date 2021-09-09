@@ -54,7 +54,7 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.AUTHORITY);
 
-    HashMap<String, String> context = builder.buildFrom(record, rules, params);
+    HashMap<String, String> context = builder.buildFrom(record);
 
     assertEquals(Map.of(MARC_AUTHORITY.value(), Json.encode(record)), context);
   }
@@ -67,12 +67,10 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.BIB);
 
-    HashMap<String, String> context = builder.buildFrom(record, rules, params);
+    HashMap<String, String> context = builder.buildFrom(record);
 
     assertEquals(Map.of(
-        MARC_BIBLIOGRAPHIC.value(), Json.encode(record),
-        "MAPPING_RULES", rules.encode(),
-        "MAPPING_PARAMS", Json.encode(params)),
+        MARC_BIBLIOGRAPHIC.value(), Json.encode(record)),
         context);
   }
 
@@ -84,12 +82,10 @@ public class DataImportPayloadContextBuilderImplTest {
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.HOLDING);
 
-    HashMap<String, String> context = builder.buildFrom(record, rules, params);
+    HashMap<String, String> context = builder.buildFrom(record);
 
     assertEquals(Map.of(
-        MARC_HOLDINGS.value(), Json.encode(record),
-        "MAPPING_RULES", rules.encode(),
-        "MAPPING_PARAMS", Json.encode(params)),
+        MARC_HOLDINGS.value(), Json.encode(record)),
         context);
   }
 
@@ -97,12 +93,10 @@ public class DataImportPayloadContextBuilderImplTest {
   public void shouldBuildContextForEdifactInvoice() {
     record.setRecordType(Record.RecordType.EDIFACT);
 
-    HashMap<String, String> context = builder.buildFrom(record, rules, params);
+    HashMap<String, String> context = builder.buildFrom(record);
 
     assertEquals(Map.of(
-        EDIFACT_INVOICE.value(), Json.encode(record),
-        "MAPPING_RULES", rules.encode(),
-        "MAPPING_PARAMS", Json.encode(params)),
+        EDIFACT_INVOICE.value(), Json.encode(record)),
         context);
   }
 
@@ -111,7 +105,7 @@ public class DataImportPayloadContextBuilderImplTest {
     record.setRecordType(Record.RecordType.MARC_BIB);
 
     assertThrows("Parsed record is null", NullPointerException.class,
-        () -> builder.buildFrom(record, rules, params));
+        () -> builder.buildFrom(record));
   }
 
   @Test
@@ -120,7 +114,7 @@ public class DataImportPayloadContextBuilderImplTest {
     record.setParsedRecord(new ParsedRecord());
 
     assertThrows("Parsed record content is null", NullPointerException.class,
-        () -> builder.buildFrom(record, rules, params));
+        () -> builder.buildFrom(record));
   }
 
   @Test
@@ -132,7 +126,7 @@ public class DataImportPayloadContextBuilderImplTest {
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.NA);
 
     assertThrows("Unsupported Marc record type", IllegalStateException.class,
-        () -> builder.buildFrom(record, rules, params));
+        () -> builder.buildFrom(record));
   }
 
   private static ParsedRecord parsedRecord(String content) {

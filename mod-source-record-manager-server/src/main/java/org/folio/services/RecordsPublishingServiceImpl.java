@@ -1,33 +1,11 @@
 package org.folio.services;
 
-import static java.lang.String.format;
-
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.NotFoundException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -37,11 +15,29 @@ import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.ws.rs.NotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
-public class RecordsPublishingServiceImpl implements RecordsPublishingService {
+  public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String CORRELATION_ID_HEADER = "correlationId";
@@ -72,20 +68,16 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   @Override
   public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
-      .compose(jobOptional -> jobOptional
-        .map(jobExecution -> getMappingParameters(jobExecutionId, params)
-          .compose(mappingParameters -> mappingRuleCache.get(new MappingRuleCacheKey(params.getTenantId(), records.get(0).getRecordType()))
-            .compose(rulesOptional -> {
-              if (rulesOptional.isPresent()) {
-                return sendRecords(records, jobExecution, rulesOptional.get(), mappingParameters, params, eventType);
-              } else {
-                return Future.failedFuture(format("Can not send events with records, no mapping rules found for tenant %s", params.getTenantId()));
-              }
-            })))
-        .orElse(Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+      .compose(jobExecutionOptional -> {
+        if (jobExecutionOptional.isPresent()) {
+          return sendRecords(records, jobExecutionOptional.get(), params, eventType);
+        } else {
+          return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)));
+        }
+      });
   }
 
-  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params, String eventType) {
+  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType) {
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
@@ -94,7 +86,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
         if (isRecordReadyToSend(record)) {
-          DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params, eventType);
+          DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
           params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
@@ -166,34 +158,19 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   }
 
   /**
-   * Provides external parameters for the MARC-to-Instance mapping process
-   *
-   * @param snapshotId  - snapshotId
-   * @param okapiParams okapi connection parameters
-   * @return mapping parameters
-   */
-  private Future<MappingParameters> getMappingParameters(String snapshotId, OkapiConnectionParams okapiParams) {
-    return mappingParametersProvider.get(snapshotId, okapiParams);
-  }
-
-  /**
    * Prepares eventPayload with record and profileSnapshotWrapper
    *
    * @param record                 record to send
    * @param profileSnapshotWrapper profileSnapshotWrapper to send
-   * @param mappingRules           rules for default instance mapping
-   * @param mappingParameters      mapping parameters
    * @param params                 connection parameters
    * @return dataImportEventPayload
    */
   private DataImportEventPayload prepareEventPayload(Record record, ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                     JsonObject mappingRules, MappingParameters mappingParameters, OkapiConnectionParams params,
-                                                     String eventType) {
-    HashMap<String, String> context = payloadContextBuilder.buildFrom(record, mappingRules, mappingParameters);
+                                                     OkapiConnectionParams params, String eventType) {
+    HashMap<String, String> context = payloadContextBuilder.buildFrom(record);
 
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withProfileSnapshot(profileSnapshotWrapper)
       .withCurrentNode(
         // TODO check for Holdings should be removed after implementing linkage with mod-inventory holdings records
         MARC_AUTHORITY.equals(record.getRecordType()) || MARC_HOLDING.equals(record.getRecordType())

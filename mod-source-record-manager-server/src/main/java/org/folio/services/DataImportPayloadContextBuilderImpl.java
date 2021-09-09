@@ -4,7 +4,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.springframework.stereotype.Component;
@@ -42,25 +41,20 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
   }
 
   @Override
-  public HashMap<String, String> buildFrom(Record record, JsonObject mappingRules,
-      MappingParameters mappingParameters) {
+  public HashMap<String, String> buildFrom(Record record) {
     EntityType entityType = detectEntityType(record);
 
-    return createAndPopulateContext(entityType, record, mappingRules, mappingParameters);
+    return createAndPopulateContext(entityType, record);
   }
 
-  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record record,
-      JsonObject mappingRules, MappingParameters mappingParameters) {
+  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record record) {
     HashMap<String, String> context = new HashMap<>();
 
     if (entityType == MARC_AUTHORITY) {
       context.put(entityType.value(), Json.encode(record));
     } else {
       context.put(entityType.value(), Json.encode(record));
-      context.put("MAPPING_RULES", mappingRules.encode());
-      context.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     }
-
     return context;
   }
 
