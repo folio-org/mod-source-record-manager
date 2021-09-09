@@ -178,11 +178,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     String rules = TestUtil.readFileFromPath(RULES_PATH);
     MockitoAnnotations.openMocks(this);
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
-    System.setProperty(KAFKA_HOST, hostAndPort[0]);
-    System.setProperty(KAFKA_PORT, hostAndPort[1]);
-    System.setProperty(KAFKA_ENV, KAFKA_ENV_ID);
-    System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
-    System.setProperty(KAFKA_MAX_REQUEST_SIZE, "1048576");
     kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
       .kafkaPort(hostAndPort[1])
