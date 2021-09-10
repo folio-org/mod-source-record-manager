@@ -89,6 +89,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     Event event = Json.decodeValue(record.value(), Event.class);
 
     if (!kafkaInternalCache.containsByKey(event.getId())) {
+      try {
         kafkaInternalCache.putToCache(event.getId());
         RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
         List<Record> storedRecords = recordsBatchResponse.getRecords();
@@ -101,7 +102,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
         LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
         saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
         return recordsPublishingService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
-          okapiConnectionParams, eventType.value())
+            okapiConnectionParams, eventType.value())
           .compose(b -> {
             LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
             return Future.succeededFuture(correlationId);
@@ -109,6 +110,10 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
             LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId: {} chunkNumber: {}", correlationId, chunkNumber, th);
             return Future.failedFuture(th);
           });
+      } catch (Exception e) {
+        LOGGER.error("Can't process kafka record: ", e);
+        return Future.failedFuture(e);
+      }
     }
     return Future.succeededFuture(record.key());
   }
