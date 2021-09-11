@@ -50,6 +50,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -156,6 +157,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     .withUserId(okapiUserIdHeader);
 
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
+    .withId(UUID.randomUUID().toString())
     .withRecordsMetadata(new RecordsMetadata()
       .withLast(false)
       .withCounter(15)
@@ -186,6 +188,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, kafkaConfig);
+    ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
+    ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingMetadataService);
 
