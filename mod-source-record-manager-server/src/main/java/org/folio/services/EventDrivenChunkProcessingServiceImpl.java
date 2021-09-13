@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -10,12 +11,15 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+
+import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.PARSING_IN_PROGRESS;
@@ -25,26 +29,50 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   private static final Logger LOGGER = LogManager.getLogger();
   private ChangeEngineService changeEngineService;
   private JobExecutionProgressService jobExecutionProgressService;
+  private MappingMetadataService mappingMetadataService;
 
   public EventDrivenChunkProcessingServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                                @Autowired JobExecutionService jobExecutionService,
                                                @Autowired ChangeEngineService changeEngineService,
-                                               @Autowired JobExecutionProgressService jobExecutionProgressService) {
+                                               @Autowired JobExecutionProgressService jobExecutionProgressService,
+                                               @Autowired MappingMetadataService mappingMetadataService) {
     super(jobExecutionSourceChunkDao, jobExecutionService);
     this.changeEngineService = changeEngineService;
     this.jobExecutionProgressService = jobExecutionProgressService;
+    this.mappingMetadataService = mappingMetadataService;
   }
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
     LOGGER.debug("Starting to process raw records chunk for jobExecutionId: {}", jobExecutionId);
     Promise<Boolean> promise = Promise.promise();
-
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
       .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
+      .compose(records -> saveMappingMetaDataSnapshot(jobExecutionId, params, records))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
+    return promise.future();
+  }
+
+  private Future<Boolean> saveMappingMetaDataSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams, List<Record> recordsList) {
+    if (CollectionUtils.isEmpty(recordsList)) {
+      return Future.succeededFuture(false);
+    }
+    Promise<Boolean> promise = Promise.promise();
+    mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
+      .onSuccess(v -> promise.complete(false))
+      .onFailure(e -> {
+        if (e instanceof NotFoundException) {
+          Record.RecordType recordType = recordsList.get(0).getRecordType();
+          recordType = recordType == Record.RecordType.MARC_HOLDING ? recordType : Record.RecordType.MARC_BIB;
+          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
+            .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
+            .onSuccess(ar -> promise.complete(true))
+            .onFailure(promise::fail);
+        }
+        promise.fail(e);
+      });
     return promise.future();
   }
 
