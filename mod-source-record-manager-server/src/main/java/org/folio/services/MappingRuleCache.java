@@ -26,12 +26,10 @@ public class MappingRuleCache {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private MappingRuleDao mappingRuleDao;
-  private AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
+  private final AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
 
   @Autowired
   public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
-    this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
       .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
