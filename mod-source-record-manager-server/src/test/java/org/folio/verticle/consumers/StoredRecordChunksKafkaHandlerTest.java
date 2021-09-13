@@ -126,9 +126,8 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldThrowBadRequestWhileSavedMarcAuthorityRecordsInfoToImportJournal() {
-    assertThrows("Only marc-bib or marc-holdings supported", BadRequestException.class,
-      () -> writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY));
+  public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournal() throws IOException {
+    writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
   }
 
   private void writeSavedMarcRecordsInfoToImportJournal(String marcBibRecordPath, EntityType entityType)
