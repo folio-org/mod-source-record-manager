@@ -61,16 +61,17 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
     }
     Promise<Boolean> promise = Promise.promise();
     mappingMetadataService.getMappingMetadataDto(jobExecutionId, okapiParams)
-      .onComplete(arMappingMetadata -> {
-        if (arMappingMetadata.failed() && arMappingMetadata.cause() instanceof NotFoundException) {
-          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordsList.get(0).getRecordType().toString(), okapiParams.getTenantId())
+      .onSuccess(v -> promise.complete(false))
+      .onFailure(e -> {
+        if (e instanceof NotFoundException) {
+          Record.RecordType recordType = recordsList.get(0).getRecordType();
+          recordType = recordType == Record.RecordType.MARC_HOLDING ? recordType : Record.RecordType.MARC_BIB;
+          mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .onSuccess(ar -> promise.complete(true))
             .onFailure(promise::fail);
         }
-        if (arMappingMetadata.failed() && !(arMappingMetadata.cause() instanceof NotFoundException)) {
-          promise.future().failed();
-        }
+        promise.fail(e);
       });
     return promise.future();
   }
