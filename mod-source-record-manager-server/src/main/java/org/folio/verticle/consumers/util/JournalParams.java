@@ -51,6 +51,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_BIB_RECORD_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_SRS_MARC_BIB_RECORD_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {

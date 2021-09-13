@@ -65,6 +65,10 @@
     {
       "id": "modes-of-issuance",
       "version": "1.1"
+    },
+    {
+      "id": "source-storage-batch",
+      "version": "1.1"
     }
   ],
   "provides": [
@@ -223,7 +227,9 @@
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
             "inventory-storage.preceding-succeeding-titles.item.post",
-            "configuration.entries.collection.get"
+            "configuration.entries.collection.get",
+            "source-storage.verified.records",
+            "mapping-metadata.get"
           ]
         },
         {
