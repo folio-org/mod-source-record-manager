@@ -21,6 +21,8 @@
 * [MODSOURMAN-553](https://issues.folio.org/browse/MODSOURMAN-553) Update GET /change-manager/parsedRecords to have externalId param
 * [MODSOURMAN-526](https://issues.folio.org/browse/MODSOURMAN-526) Verify persist value in DB during parsing 004 field
 * [MODSOURMAN-544](https://issues.folio.org/browse/MODSOURMAN-544) Validate MARC Holdings 004 field from MARC Bib HRID
+* [MODSOURMAN-546](https://issues.folio.org/browse/MODSOURMAN-546) Support edit Holdings via quickMarc
+* [MODSOURMAN-464](https://issues.folio.org/browse/MODSOURMAN-464) Store snapshots of MappingRules and MappingParams to the database
 * [MODSOURMAN-466](https://issues.folio.org/browse/MODSOURMAN-466) Remove zipping mechanism for data import event payloads
 
 ## XXXX-XX-XX v3.1.3
