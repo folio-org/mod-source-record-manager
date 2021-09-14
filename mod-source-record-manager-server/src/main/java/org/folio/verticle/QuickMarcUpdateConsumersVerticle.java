@@ -15,7 +15,11 @@ public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle 
 
   @Override
   public List<String> getEvents() {
-    return List.of(QMEventTypes.QM_ERROR.name(), QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name());
+    return List.of(
+      QMEventTypes.QM_ERROR.name(),
+      QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name(),
+      QMEventTypes.QM_INVENTORY_HOLDINGS_UPDATED.name()
+    );
   }
 
   @Override
