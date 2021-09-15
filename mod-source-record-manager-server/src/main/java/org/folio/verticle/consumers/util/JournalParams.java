@@ -200,6 +200,8 @@ public class JournalParams {
             sourceRecordType = JournalRecord.EntityType.EDIFACT;
           } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_HOLDINGS.value())) {
             sourceRecordType = JournalRecord.EntityType.MARC_HOLDINGS;
+          } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_AUTHORITY.value())) {
+            sourceRecordType = JournalRecord.EntityType.MARC_AUTHORITY;
           } else sourceRecordType = JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
           return Optional.of(new JournalParams(CREATE, sourceRecordType, ERROR));
         }
