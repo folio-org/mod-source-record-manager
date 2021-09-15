@@ -60,9 +60,9 @@ public class JournalParamsTest {
 
     var journalParams = journalParamsOptional.get();
 
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.MARC_HOLDINGS);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.ERROR);
+    Assert.assertEquals(JournalRecord.EntityType.MARC_HOLDINGS, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test
@@ -76,9 +76,9 @@ public class JournalParamsTest {
 
     var journalParams = journalParamsOptional.get();
 
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.ERROR);
+    Assert.assertEquals(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test
@@ -92,9 +92,9 @@ public class JournalParamsTest {
 
     var journalParams = journalParamsOptional.get();
 
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.EDIFACT);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.ERROR);
+    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test
@@ -107,9 +107,9 @@ public class JournalParamsTest {
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
     var journalParams = journalParamsOptional.get();
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.MARC_AUTHORITY);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.ERROR);
+    Assert.assertEquals(JournalRecord.EntityType.MARC_AUTHORITY, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test
@@ -122,9 +122,9 @@ public class JournalParamsTest {
 
     var journalParams = journalParamsOptional.get();
 
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.MARC_HOLDINGS);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.ERROR);
+    Assert.assertEquals(JournalRecord.EntityType.MARC_HOLDINGS, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.ERROR, journalParams.journalActionStatus);
   }
 
   @Test
@@ -138,9 +138,9 @@ public class JournalParamsTest {
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
     var journalParams = journalParamsOptional.get();
-    Assert.assertEquals(journalParams.journalEntityType, JournalRecord.EntityType.MARC_HOLDINGS);
-    Assert.assertEquals(journalParams.journalActionType, JournalRecord.ActionType.CREATE);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.COMPLETED);
+    Assert.assertEquals(JournalRecord.EntityType.MARC_HOLDINGS, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
   }
 
   @Test
@@ -153,7 +153,7 @@ public class JournalParamsTest {
     var journalParamsOptional =
       JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
 
-    Assert.assertEquals(journalParamsOptional, Optional.empty());
+    Assert.assertEquals(Optional.empty(), journalParamsOptional);
   }
 
   @Test
@@ -254,9 +254,9 @@ public class JournalParamsTest {
 
     var journalParams = journalParamsOptional.get();
 
-    Assert.assertEquals(journalParams.journalEntityType, entityType);
-    Assert.assertEquals(journalParams.journalActionType, actionType);
-    Assert.assertEquals(journalParams.journalActionStatus, JournalRecord.ActionStatus.COMPLETED);
+    Assert.assertEquals(entityType, journalParams.journalEntityType);
+    Assert.assertEquals(actionType, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
   }
 
   @Test(expected = IllegalArgumentException.class)
