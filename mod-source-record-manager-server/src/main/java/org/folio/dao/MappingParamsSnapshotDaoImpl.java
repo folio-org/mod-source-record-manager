@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.persist.PostgresClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -45,7 +46,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       if (resultSet.rowCount() == 0 || resultSet.iterator().next().getValue(PARAMS_FIELD) == null) {
         return Optional.empty();
       } else {
-        MappingParameters rules = new JsonObject(resultSet.iterator().next().getValue(PARAMS_FIELD).toString()).mapTo(MappingParameters.class);
+        MappingParameters rules = resultSet.iterator().next().getJsonObject(PARAMS_FIELD).mapTo(MappingParameters.class);
         return Optional.of(rules);
       }
     });
@@ -58,7 +59,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         UUID.fromString(jobExecutionId),
-        Json.encode(params),
+        JsonObject.mapFrom(params),
         LocalDateTime.now()
       );
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
