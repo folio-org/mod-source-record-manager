@@ -373,7 +373,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/mapping-metadata",
+          "pathPattern": "/mapping-metadata/{jobExecutionId}",
           "permissionsRequired": [
             "mapping-metadata.get"
           ]
