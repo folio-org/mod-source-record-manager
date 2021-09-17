@@ -1,8 +1,8 @@
 package org.folio.verticle.consumers.util;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.folio.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.JournalRecord;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -11,9 +11,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import org.apache.commons.collections4.CollectionUtils;
+
+import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.JournalRecord;
 
 public class JournalParams {
 
@@ -194,8 +195,14 @@ public class JournalParams {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         if (CollectionUtils.isEmpty(eventPayload.getEventsChain())) {
-          JournalRecord.EntityType sourceRecordType = eventPayload.getContext().containsKey(EDIFACT_INVOICE.value())
-            ? JournalRecord.EntityType.EDIFACT : JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+          JournalRecord.EntityType sourceRecordType;
+          if (eventPayload.getContext().containsKey(EDIFACT_INVOICE.value())) {
+            sourceRecordType = JournalRecord.EntityType.EDIFACT;
+          } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_HOLDINGS.value())) {
+            sourceRecordType = JournalRecord.EntityType.MARC_HOLDINGS;
+          } else if (eventPayload.getContext().containsKey(JournalRecord.EntityType.MARC_AUTHORITY.value())) {
+            sourceRecordType = JournalRecord.EntityType.MARC_AUTHORITY;
+          } else sourceRecordType = JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
           return Optional.of(new JournalParams(CREATE, sourceRecordType, ERROR));
         }
 

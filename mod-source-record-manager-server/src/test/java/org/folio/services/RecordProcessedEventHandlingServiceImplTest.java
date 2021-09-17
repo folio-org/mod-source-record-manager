@@ -41,6 +41,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.dao.MappingParamsSnapshotDao;
+import org.folio.dao.MappingParamsSnapshotDaoImpl;
+import org.folio.dao.MappingRulesSnapshotDao;
+import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -143,6 +147,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private JobMonitoringService jobMonitoringService;
   private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
   private OkapiConnectionParams params;
+  private MappingMetadataService mappingMetadataService;
+  private MappingRulesSnapshotDao mappingRulesSnapshotDao;
+  private MappingParamsSnapshotDao mappingParamsSnapshotDao;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -165,14 +172,17 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Before
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, kafkaConfig);
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
+    mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
+    mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();
+    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingMetadataService);
     journalService = new JournalServiceImpl(journalRecordDao);
     jobMonitoringService = new JobMonitoringServiceImpl();
 

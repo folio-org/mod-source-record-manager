@@ -26,27 +26,28 @@ public class MappingRuleCache {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private MappingRuleDao mappingRuleDao;
-  private AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
+  private final AsyncLoadingCache<MappingRuleCacheKey, Optional<JsonObject>> cache;
 
   @Autowired
   public MappingRuleCache(MappingRuleDao mappingRuleDao, Vertx vertx) {
-    this.mappingRuleDao = mappingRuleDao;
     cache = Caffeine.newBuilder()
       .executor(task -> vertx.runOnContext(ar -> task.run()))
       .buildAsync((key, executor) -> loadMappingRules(key, executor, mappingRuleDao));
   }
 
-  private CompletableFuture<Optional<JsonObject>> loadMappingRules(MappingRuleCacheKey key, Executor executor, MappingRuleDao mappingRuleDao) {
+  private CompletableFuture<Optional<JsonObject>> loadMappingRules(MappingRuleCacheKey key, Executor executor,
+                                                                   MappingRuleDao mappingRuleDao) {
     CompletableFuture<Optional<JsonObject>> future = new CompletableFuture<>();
-    executor.execute(() -> mappingRuleDao.get(key.getRecordType(), key.getTenantId()).onComplete(ar -> {
-      if (ar.failed()) {
-        LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
-        future.completeExceptionally(ar.cause());
-        return;
-      }
-      future.complete(ar.result());
-    }));
+    executor.execute(() -> mappingRuleDao.get(key.getRecordType(), key.getTenantId())
+      .map(optional -> optional.isPresent() ? optional : Optional.of(new JsonObject()))
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
+          future.completeExceptionally(ar.cause());
+          return;
+        }
+        future.complete(ar.result());
+      }));
     return future;
   }
 
