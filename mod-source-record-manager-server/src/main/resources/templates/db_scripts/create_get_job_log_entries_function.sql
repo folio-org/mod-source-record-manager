@@ -42,7 +42,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        null AS invoiceLineJournalRecordId
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
-                array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type = ''MARC_BIBLIOGRAPHIC'' OR entity_type = ''MARC_HOLDINGS'' OR entity_type = ''MARC_AUTHORITY'') AS marc_actions,
+                array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
                 count(journal_records.source_id) FILTER (WHERE (entity_type = ''MARC_BIBLIOGRAPHIC'' OR entity_type = ''MARC_HOLDINGS'' OR entity_type = ''MARC_AUTHORITY'') AND journal_records.error != '''') AS marc_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''INSTANCE'') AS instance_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''INSTANCE'' AND journal_records.error != '''') AS instance_errors_number,
