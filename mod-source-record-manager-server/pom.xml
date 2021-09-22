@@ -41,6 +41,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+      <version>2.5.15.RELEASE</version>
+    </dependency>
+    <dependency>
       <groupId>org.folio</groupId>
       <artifactId>postgres-testing</artifactId>
       <version>${raml-module-builder.version}</version>
@@ -216,6 +221,12 @@
       <groupId>org.folio</groupId>
       <artifactId>folio-kafka-wrapper</artifactId>
       <version>2.4.0-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.vertx</groupId>
+          <artifactId>vertx-kafka-client</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>

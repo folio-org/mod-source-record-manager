@@ -27,9 +27,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.postgres.testing.PostgresTesterContainer;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -52,15 +53,15 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -206,6 +207,25 @@ public abstract class AbstractRestTest {
       }
       async.complete();
     }));
+  }
+
+  private ProducerFactory<String, String> producerFactory() {
+    String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
+    Map<String, Object> configProps = new HashMap<>();
+    configProps.put(
+      ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      System.getProperty(hostAndPort[0]) + ":" + System.getProperty(hostAndPort[1]));
+    configProps.put(
+      ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+      StringSerializer.class);
+    configProps.put(
+      ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+      StringSerializer.class);
+    return new DefaultKafkaProducerFactory<>(configProps);
+  }
+
+  protected KafkaTemplate<String, String> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
   }
 
   private static void runDatabase() throws Exception {

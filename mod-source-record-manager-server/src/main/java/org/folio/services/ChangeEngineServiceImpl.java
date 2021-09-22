@@ -18,7 +18,6 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +53,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.dataimport.util.marc.RecordAnalyzer;
-import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.client.SourceStorageBatchClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
@@ -99,10 +97,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private RecordAnalyzer marcRecordAnalyzer;
   private HrIdFieldService hrIdFieldService;
   private RecordsPublishingService recordsPublishingService;
-  private KafkaConfig kafkaConfig;
+  private KafkaProducerService kafkaProducerService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
+  @Value("${ENV:folio}")
+  private String envId;
 
   @Value("${marc.holdings.batch.size:100}")
   private int batchSize;
@@ -112,13 +112,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired MarcRecordAnalyzer marcRecordAnalyzer,
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
-                                 @Autowired KafkaConfig kafkaConfig) {
+                                 @Autowired KafkaProducerService kafkaProducerService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
     this.hrIdFieldService = hrIdFieldService;
     this.recordsPublishingService = recordsPublishingService;
-    this.kafkaConfig = kafkaConfig;
+    this.kafkaProducerService = kafkaProducerService;
   }
 
   @Override
@@ -339,8 +339,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .withContent(record.getRawRecord().getContent())
       .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
     );
-    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
-      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+    kafkaProducerService.sendEvent(okapiParams.getTenantId(), envId, Json.encode(eventPayload), DI_ERROR.value(),
+      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), key)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
@@ -467,8 +467,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
 
-    return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
-      kafkaHeaders, kafkaConfig, key)
-      .map(parsedRecords);
+    return kafkaProducerService.sendEvent(params.getTenantId(), envId, Json.encode(recordCollection),
+      DI_RAW_RECORDS_CHUNK_PARSED.value(), kafkaHeaders, key).map(parsedRecords);
   }
 }
