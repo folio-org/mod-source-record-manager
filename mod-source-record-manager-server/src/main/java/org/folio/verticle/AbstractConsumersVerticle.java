@@ -3,13 +3,9 @@ package org.folio.verticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.GlobalLoadSensor;
-import org.folio.kafka.KafkaConfig;
-import org.folio.kafka.KafkaConsumerWrapper;
-import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.kafka.SubscriptionDefinition;
+import org.folio.kafka.*;
 import org.folio.okapi.common.GenericCompositeFuture;
+import org.folio.services.util.EventHandlingUtil;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,8 +14,6 @@ import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
@@ -60,7 +54,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
     List<Future<Void>> futures = new ArrayList<>();
     consumerWrappersList.forEach(consumerWrapper ->
       futures.add(consumerWrapper.start(getHandler(),
-        constructModuleName() + "_" + getClass().getSimpleName())));
+        EventHandlingUtil.constructModuleName() + "_" + getClass().getSimpleName())));
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
   }

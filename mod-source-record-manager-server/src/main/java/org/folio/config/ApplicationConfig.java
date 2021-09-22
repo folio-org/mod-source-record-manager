@@ -1,6 +1,8 @@
 package org.folio.config;
 
 import io.vertx.core.Vertx;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
@@ -13,6 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -40,6 +48,7 @@ public class ApplicationConfig {
   @Value("${srm.kafkacache.expiration.time.hours:3}")
   private int cachedEventExpirationTimeHours;
 
+  // todo need to be deleted after story to migrate consumers to Spring Kafka
   @Bean(name = "newKafkaConfig")
   public KafkaConfig kafkaConfigBean() {
     KafkaConfig kafkaConfig = KafkaConfig.builder()
@@ -80,4 +89,27 @@ public class ApplicationConfig {
 
     return kafkaInternalCache;
   }
+
+  @Bean
+  public ProducerFactory<String, String> producerFactory() {
+    Map<String, Object> configProps = new HashMap<>();
+    configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      kafkaHost + ":" + kafkaPort);
+    configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+      StringSerializer.class);
+    configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+      StringSerializer.class);
+    configProps.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG,
+      maxRequestSize);
+
+    LOGGER.info("kafkaConfig: " + configProps);
+
+    return new DefaultKafkaProducerFactory<>(configProps);
+  }
+
+  @Bean
+  public KafkaTemplate<String, String> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
+
 }

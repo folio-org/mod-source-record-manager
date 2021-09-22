@@ -7,8 +7,6 @@ import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +27,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
@@ -52,21 +49,23 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
   private MappingParametersProvider mappingParametersProvider;
   private MappingRuleCache mappingRuleCache;
   private DataImportPayloadContextBuilder payloadContextBuilder;
-  private KafkaConfig kafkaConfig;
+  private KafkaProducerService kafkaProducerService;
 
   @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
+  @Value("${ENV:folio}")
+  private String envId;
 
   public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
                                       @Autowired MappingParametersProvider mappingParametersProvider,
                                       @Autowired MappingRuleCache mappingRuleCache,
                                       @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
-                                      @Autowired KafkaConfig kafkaConfig) {
+                                      @Autowired KafkaProducerService kafkaProducerService) {
     this.jobExecutionService = jobExecutionService;
     this.mappingParametersProvider = mappingParametersProvider;
     this.mappingRuleCache = mappingRuleCache;
     this.payloadContextBuilder = payloadContextBuilder;
-    this.kafkaConfig = kafkaConfig;
+    this.kafkaProducerService = kafkaProducerService;
   }
 
   @Override
@@ -96,14 +95,14 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, mappingRules, mappingParameters, params, eventType);
           params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
-          Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
-            eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
-          futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
+          Future<Boolean> booleanFuture = kafkaProducerService.sendEvent(params.getTenantId(), envId, Json.encode(payload),
+            eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), key);
+          futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), key)));
         }
       } catch (Exception e) {
         LOGGER.error("Error publishing event with record", e);
         futures.add(Future.<Boolean>failedFuture(e)
-          .onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
+          .onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), key)));
       }
     }
 
@@ -118,7 +117,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
     return promise.future();
   }
 
-  private void sendEventWithRecordPublishingError(Record record, JobExecution jobExecution, OkapiConnectionParams params, String errorMsg, KafkaConfig kafkaConfig, String key) {
+  private void sendEventWithRecordPublishingError(Record record, JobExecution jobExecution, OkapiConnectionParams params, String errorMsg, String key) {
     String sourceRecordKey = getSourceRecordKey(record);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
@@ -133,7 +132,7 @@ public class RecordsPublishingServiceImpl implements RecordsPublishingService {
         put(ERROR_MSG_KEY, errorMsg);
       }});
 
-    sendEventToKafka(params.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key)
+    kafkaProducerService.sendEvent(params.getTenantId(), envId, Json.encode(eventPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), key)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for record with id {}", record.getId(), th));
   }
 

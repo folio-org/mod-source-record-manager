@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -32,7 +31,6 @@ import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
-import org.folio.kafka.KafkaConfig;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -43,7 +41,6 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.afterprocessing.HrIdFieldService;
-import org.folio.services.util.EventHandlingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChangeEngineServiceImplTest {
@@ -63,7 +60,7 @@ public class ChangeEngineServiceImplTest {
   @Mock
   private RecordsPublishingService recordsPublishingService;
   @Mock
-  private KafkaConfig kafkaConfig;
+  private KafkaProducerService kafkaProducerService;
   private OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
 
   @InjectMocks
@@ -184,10 +181,7 @@ public class ChangeEngineServiceImplTest {
 
   private Future<List<Record>> executeWithKafkaMock(RawRecordsDto rawRecordsDto, JobExecution jobExecution,
                                                     Future<Boolean> eventSentResult) {
-    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
-      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), anyList(), any(), any()))
-        .thenReturn(eventSentResult);
-      return service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams);
-    }
+    when(kafkaProducerService.sendEvent(any(), any(), any(), any(), anyList(), any())).thenReturn(eventSentResult);
+    return service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams);
   }
 }
