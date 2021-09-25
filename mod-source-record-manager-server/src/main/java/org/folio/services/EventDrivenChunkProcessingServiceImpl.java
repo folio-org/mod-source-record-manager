@@ -70,6 +70,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .onSuccess(ar -> promise.complete(true))
             .onFailure(promise::fail);
+          return;
         }
         promise.fail(e);
       });
