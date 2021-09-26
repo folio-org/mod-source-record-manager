@@ -23,6 +23,7 @@
 * [MODSOURMAN-544](https://issues.folio.org/browse/MODSOURMAN-544) Validate MARC Holdings 004 field from MARC Bib HRID
 * [MODSOURMAN-546](https://issues.folio.org/browse/MODSOURMAN-546) Support edit Holdings via quickMarc
 * [MODSOURMAN-464](https://issues.folio.org/browse/MODSOURMAN-464) Store snapshots of MappingRules and MappingParams to the database
+* [MODSOURMAN-563](https://issues.folio.org/browse/MODSOURMAN-563) Add MARC-Instance field mapping for Cancelled system control number
 * [MODSOURMAN-466](https://issues.folio.org/browse/MODSOURMAN-466) Remove zipping mechanism for data import event payloads
 
 ## XXXX-XX-XX v3.1.3

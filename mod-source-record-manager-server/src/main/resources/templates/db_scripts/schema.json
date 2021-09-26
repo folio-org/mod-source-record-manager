@@ -141,12 +141,12 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_log_entries_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.0.2"
+      "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
     {
       "run": "after",
       "snippetPath": "create_get_record_processing_log_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.0.2"
+      "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
     {
       "run": "after",
@@ -165,7 +165,7 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE TYPE rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
+      "snippet": "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rule_type') THEN create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); END IF; END $$; ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
     {
