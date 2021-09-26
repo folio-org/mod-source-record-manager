@@ -134,7 +134,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     futureParsedRecords
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params).map(parsedRecords))
       .onSuccess(parsedRecords -> {
-      LOGGER.info("Invoking fillParsedRecordsWithAdditionalFields()");
       fillParsedRecordsWithAdditionalFields(parsedRecords);
       boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
@@ -173,6 +172,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }
     }).onFailure(th -> {
       LOGGER.error("Error parsing records: {}", th.getMessage());
+      promise.fail(th);
     });
     return promise.future();
   }

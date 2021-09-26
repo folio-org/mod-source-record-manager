@@ -40,6 +40,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -145,6 +146,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   private RecordsPublishingService recordsPublishingService;
 
+  private AutoCloseable mocks;
   private KafkaConfig kafkaConfig;
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
@@ -173,7 +175,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Before
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
-    MockitoAnnotations.openMocks(this);
+    this.mocks = MockitoAnnotations.openMocks(this);
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
     kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
@@ -187,10 +189,10 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
+    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, mappingMetadataService, kafkaConfig);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
-    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
     HashMap<String, String> headers = new HashMap<>();
@@ -204,6 +206,11 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern("/data-import-profiles/jobProfiles/" + ".*"), true))
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    mocks.close();
   }
 
   @Test
@@ -223,9 +230,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
       mappingMetadataService.getMappingMetadataDto(jobExecutionIdCaptor.getValue(), params)
         .onComplete(mappingMetadataDtoAsyncResult -> {
-          if (mappingMetadataDtoAsyncResult.succeeded()) {
-            context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(jobExecutionIdCaptor.getValue()));
-          }});
+          context.assertTrue(mappingMetadataDtoAsyncResult.succeeded());
+          context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(jobExecutionIdCaptor.getValue()));
+        });
       async.complete();
     });
   }
