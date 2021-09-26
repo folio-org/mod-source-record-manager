@@ -65,7 +65,6 @@ import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.Event;
@@ -1648,7 +1647,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
 
     RecordCollection processedRecords = Json
-      .decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(3, processedRecords.getRecords().size());
 
     assertEquals(4, processedRecords.getRecords().get(0).getOrder().intValue());

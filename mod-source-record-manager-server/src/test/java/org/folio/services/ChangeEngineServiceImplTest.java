@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -19,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,15 +66,20 @@ public class ChangeEngineServiceImplTest {
   private RecordsPublishingService recordsPublishingService;
   @Mock
   private KafkaConfig kafkaConfig;
+  @Mock
+  private MappingMetadataService mappingMetadataService;
   private OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
 
   @InjectMocks
   private ChangeEngineServiceImpl service;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(service, "batchSize", 100);
+
+    when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
+      .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
   }
 
   @Test

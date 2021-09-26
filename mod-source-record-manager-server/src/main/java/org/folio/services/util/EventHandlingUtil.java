@@ -29,7 +29,7 @@ public final class EventHandlingUtil {
   private static final Logger LOGGER = LogManager.getLogger();
 
   /**
-   * Prepares and sends event with zipped payload to kafka
+   * Prepares and sends event with payload to kafka
    *
    * @param tenantId     tenant id
    * @param eventPayload eventPayload in String representation
@@ -43,7 +43,7 @@ public final class EventHandlingUtil {
     LOGGER.debug("Starting to send event to Kafka for eventType: {}", eventType);
     Event event;
     try {
-      event = createEvent(eventPayload, eventType, tenantId, true);
+      event = createEvent(eventPayload, eventType, tenantId, false);
     } catch (IOException e) {
       LOGGER.error("Failed to construct an event for eventType {}", eventType, e);
       return Future.failedFuture(e);

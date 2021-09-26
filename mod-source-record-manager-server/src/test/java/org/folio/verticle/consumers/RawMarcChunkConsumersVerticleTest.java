@@ -1,24 +1,5 @@
 package org.folio.verticle.consumers;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
-import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
@@ -28,13 +9,7 @@ import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.http.HttpStatus;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import org.folio.TestUtil;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -46,6 +21,28 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(VertxUnitRunner.class)
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
@@ -99,7 +96,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withLast(false)
         .withTotal(1));
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(chunk)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("42", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
@@ -120,7 +117,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    RecordCollection recordCollection = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
     assertNotNull(record.getExternalIdsHolder());
@@ -157,7 +154,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withLast(false)
         .withTotal(1));
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(chunk)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
@@ -178,7 +175,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    RecordCollection recordCollection = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
     assertEquals(EDIFACT, record.getRecordType());

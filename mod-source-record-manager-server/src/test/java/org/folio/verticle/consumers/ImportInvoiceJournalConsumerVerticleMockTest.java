@@ -20,7 +20,6 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.cache.KafkaInternalCache;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
@@ -333,7 +332,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
-    Event event = new Event().withEventPayload(ZIPArchiver.zip(Json.encode(record)));
+    Event event = new Event().withEventPayload(Json.encode(record));
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }

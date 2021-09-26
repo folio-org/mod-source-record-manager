@@ -40,6 +40,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -145,6 +146,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   private RecordsPublishingService recordsPublishingService;
 
+  private AutoCloseable mocks;
   private KafkaConfig kafkaConfig;
   private MappingRuleCache mappingRuleCache;
   private ChangeEngineService changeEngineService;
@@ -173,7 +175,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Before
   public void setUp() throws IOException {
     String rules = TestUtil.readFileFromPath(RULES_PATH);
-    MockitoAnnotations.openMocks(this);
+    this.mocks = MockitoAnnotations.openMocks(this);
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
     kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
@@ -187,11 +189,11 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
 
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, kafkaConfig);
+    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService, recordsPublishingService, mappingMetadataService, kafkaConfig);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
-    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService, mappingMetadataService);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
@@ -206,6 +208,11 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
   }
 
+  @After
+  public void tearDown() throws Exception {
+    mocks.close();
+  }
+
   @Test
   public void shouldProcessChunkOfRawRecords(TestContext context) {
     Async async = context.async();
@@ -215,17 +222,17 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      ArgumentCaptor<StatusDto> captorStatus = ArgumentCaptor.forClass(StatusDto.class);
-      ArgumentCaptor<String> captorJobExecutionId = ArgumentCaptor.forClass(String.class);
-      Mockito.verify(jobExecutionService).updateJobExecutionStatus(captorJobExecutionId.capture(), captorStatus.capture(), isA(OkapiConnectionParams.class));
+      ArgumentCaptor<StatusDto> statusCaptor = ArgumentCaptor.forClass(StatusDto.class);
+      ArgumentCaptor<String> jobExecutionIdCaptor = ArgumentCaptor.forClass(String.class);
+      Mockito.verify(jobExecutionService).updateJobExecutionStatus(jobExecutionIdCaptor.capture(), statusCaptor.capture(), isA(OkapiConnectionParams.class));
       Mockito.verify(jobExecutionProgressService).initializeJobExecutionProgress(anyString(), eq(rawRecordsDto.getRecordsMetadata().getTotal()), eq(TENANT_ID));
-      context.assertTrue(PARSING_IN_PROGRESS.equals(captorStatus.getValue().getStatus()));
+      context.assertTrue(PARSING_IN_PROGRESS.equals(statusCaptor.getValue().getStatus()));
 
-      mappingMetadataService.getMappingMetadataDto(captorJobExecutionId.getValue(), params)
+      mappingMetadataService.getMappingMetadataDto(jobExecutionIdCaptor.getValue(), params)
         .onComplete(mappingMetadataDtoAsyncResult -> {
-          if (mappingMetadataDtoAsyncResult.succeeded()) {
-            context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(captorJobExecutionId.getValue()));
-          }});
+          context.assertTrue(mappingMetadataDtoAsyncResult.succeeded());
+          context.assertTrue(mappingMetadataDtoAsyncResult.result().getJobExecutionId().equals(jobExecutionIdCaptor.getValue()));
+        });
       async.complete();
     });
   }
@@ -312,8 +319,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     });
   }
 
-  @Ignore
   @Test
+  @Ignore
   public void shouldMarkJobExecutionAsErrorWhenWhenFailedPostRecordsToRecordsStorage(TestContext context) {
     Async async = context.async();
     RawRecordsDto lastRawRecordsDto = new RawRecordsDto()

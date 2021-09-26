@@ -1,5 +1,41 @@
 package org.folio.verticle.consumers;
 
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import org.folio.TestUtil;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.AsyncRecordHandler;
+import org.folio.kafka.cache.KafkaInternalCache;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import org.folio.services.MappingRuleCache;
+import org.folio.services.RecordsPublishingService;
+import org.folio.services.entity.MappingRuleCacheKey;
+import org.folio.services.journal.JournalService;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import javax.ws.rs.BadRequestException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -12,45 +48,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import javax.ws.rs.BadRequestException;
-
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import io.vertx.kafka.client.producer.KafkaHeader;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import org.folio.TestUtil;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.cache.KafkaInternalCache;
-import org.folio.processing.events.utils.ZIPArchiver;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordsBatchResponse;
-import org.folio.services.MappingRuleCache;
-import org.folio.services.RecordsPublishingService;
-import org.folio.services.entity.MappingRuleCacheKey;
-import org.folio.services.journal.JournalService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
@@ -98,7 +95,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
-      .withEventPayload(ZIPArchiver.zip(Json.encode(recordsBatch)));
+      .withEventPayload(Json.encode(recordsBatch));
 
     String expectedKafkaRecordKey = "1";
     when(kafkaRecord.key()).thenReturn(expectedKafkaRecordKey);
@@ -141,7 +138,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
-      .withEventPayload(ZIPArchiver.zip(Json.encode(savedRecordsBatch)));
+      .withEventPayload(Json.encode(savedRecordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
