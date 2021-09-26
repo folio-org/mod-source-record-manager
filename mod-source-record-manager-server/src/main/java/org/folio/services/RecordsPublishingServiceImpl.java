@@ -171,8 +171,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     return new DataImportEventPayload()
       .withEventType(eventType)
       .withCurrentNode(
-        // TODO check for Holdings should be removed after implementing linkage with mod-inventory holdings records
-        MARC_AUTHORITY.equals(record.getRecordType()) || MARC_HOLDING.equals(record.getRecordType())
+        MARC_AUTHORITY.equals(record.getRecordType())
           ? new ProfileSnapshotWrapper()
           : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())

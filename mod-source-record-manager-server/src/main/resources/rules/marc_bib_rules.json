@@ -113,6 +113,48 @@
       ]
     }
   ],
+  "019": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Cancelled system control number",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled system control number",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "020": [
     {
       "entity": [
@@ -463,6 +505,46 @@
           "description": "System Control Number",
           "subfield": [
             "a"
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Cancelled system control number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled system control number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
           ]
         }
       ]
@@ -5673,6 +5755,10 @@
         {
           "value": "--",
           "subfields": [
+            "a",
+            "c",
+            "d",
+            "g",
             "x",
             "y",
             "z",
@@ -6597,8 +6683,8 @@
       "subfield": [
         "6"
       ],
-      "fieldReplacementBy3Digits" : true,
-      "fieldReplacementRule" : [
+      "fieldReplacementBy3Digits": true,
+      "fieldReplacementRule": [
         {
           "sourceDigits": "100",
           "targetField": "700"

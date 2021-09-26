@@ -95,7 +95,7 @@ curl -w '\n' -X POST -D -   \
 There are several properties that should be set for modules that interact with Kafka: **KAFKA_HOST, KAFKA_PORT, OKAPI_URL, ENV**(unique env ID).
 After setup, it is good to check logs in all related modules for errors. Data import consumers and producers work in separate verticles that are set up in RMB's InitAPI for each module. That would be the first place to check deploy/install logs.
 
-**Environment variables** that can be adjusted for this module and default values:
+**System properties** that can be adjusted for this module and default values:
 * Relevant for the **Iris** release, module versions from 3.0.0:
   * "_kafkacache.topic.number.partitions_": 1
   * "_kafkacache.topic.replication.factor_": 1
@@ -116,7 +116,7 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
 
 #### Note:
-From v 3.1.3 there is a brand-new  environment variable which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
+From v 3.1.3 there is a new property which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
 
 
 ## REST Client
