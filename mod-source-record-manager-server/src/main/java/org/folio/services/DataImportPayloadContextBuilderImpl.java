@@ -4,7 +4,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.springframework.stereotype.Component;
@@ -42,38 +41,34 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
   }
 
   @Override
-  public HashMap<String, String> buildFrom(Record record, JsonObject mappingRules,
-      MappingParameters mappingParameters) {
-    EntityType entityType = detectEntityType(record);
+  public HashMap<String, String> buildFrom(Record initialRecord, String profileSnapshotWrapperId) {
+    EntityType entityType = detectEntityType(initialRecord);
 
-    return createAndPopulateContext(entityType, record, mappingRules, mappingParameters);
+    return createAndPopulateContext(entityType, initialRecord, profileSnapshotWrapperId);
   }
 
-  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record record,
-      JsonObject mappingRules, MappingParameters mappingParameters) {
+  private HashMap<String, String> createAndPopulateContext(EntityType entityType, Record initialRecord, String profileSnapshotWrapperId) {
     HashMap<String, String> context = new HashMap<>();
 
     if (entityType == MARC_AUTHORITY) {
-      context.put(entityType.value(), Json.encode(record));
+      context.put(entityType.value(), Json.encode(initialRecord));
     } else {
-      context.put(entityType.value(), Json.encode(record));
-      context.put("MAPPING_RULES", mappingRules.encode());
-      context.put("MAPPING_PARAMS", Json.encode(mappingParameters));
+      context.put(entityType.value(), Json.encode(initialRecord));
+      context.put("JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapperId);
     }
-
     return context;
   }
 
-  private EntityType detectEntityType(Record record) {
-    switch (record.getRecordType()) {
+  private EntityType detectEntityType(Record initialRecord) {
+    switch (initialRecord.getRecordType()) {
       case EDIFACT:
         return EDIFACT_INVOICE;
       case MARC_BIB:
       case MARC_HOLDING:
       case MARC_AUTHORITY:
-        return getEntityType(record);
+        return getEntityType(initialRecord);
       default:
-        throw new IllegalStateException("Unexpected record type: " + record.getRecordType());
+        throw new IllegalStateException("Unexpected record type: " + initialRecord.getRecordType());
     }
   }
 

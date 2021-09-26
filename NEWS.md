@@ -24,6 +24,7 @@
 * [MODSOURMAN-546](https://issues.folio.org/browse/MODSOURMAN-546) Support edit Holdings via quickMarc
 * [MODSOURMAN-464](https://issues.folio.org/browse/MODSOURMAN-464) Store snapshots of MappingRules and MappingParams to the database
 * [MODSOURMAN-563](https://issues.folio.org/browse/MODSOURMAN-563) Add MARC-Instance field mapping for Cancelled system control number
+* [MODSOURMAN-465](https://issues.folio.org/browse/MODSOURMAN-465) Remove MappingRules, MappingParams, and JobProfileSnapshot from the event payload
 * [MODSOURMAN-466](https://issues.folio.org/browse/MODSOURMAN-466) Remove zipping mechanism for data import event payloads
 
 ## XXXX-XX-XX v3.1.3
