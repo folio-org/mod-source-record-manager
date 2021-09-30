@@ -426,14 +426,14 @@
       ]
     },
     {
+      "indicators": {
+        "ind1": "2",
+        "ind2": "*"
+      },
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Resource identifier types",
-          "indicators": {
-            "ind1": "2",
-            "ind2": "*"
-          },
           "subfield": [
             "a"
           ],
@@ -474,15 +474,15 @@
       ]
     },
     {
+      "indicators": {
+        "ind1": "2",
+        "ind2": "*"
+      },
       "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Resource identifier types",
-          "indicators": {
-            "ind1": "2",
-            "ind2": "*"
-          },
           "subfield": [
             "z"
           ],
@@ -523,14 +523,14 @@
       ]
     },
     {
+      "indicators": {
+        "ind1": "1",
+        "ind2": "*"
+      },
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Resource identifier types",
-          "indicators": {
-            "ind1": "1",
-            "ind2": "*"
-          },
           "subfield": [
             "a"
           ],
@@ -571,15 +571,15 @@
       ]
     },
     {
+      "indicators": {
+        "ind1": "1",
+        "ind2": "*"
+      },
       "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Resource identifier types",
-          "indicators": {
-            "ind1": "1",
-            "ind2": "*"
-          },
           "subfield": [
             "z"
           ],
