@@ -26,6 +26,7 @@
 * [MODSOURMAN-563](https://issues.folio.org/browse/MODSOURMAN-563) Add MARC-Instance field mapping for Cancelled system control number
 * [MODSOURMAN-465](https://issues.folio.org/browse/MODSOURMAN-465) Remove MappingRules, MappingParams, and JobProfileSnapshot from the event payload
 * [MODSOURMAN-466](https://issues.folio.org/browse/MODSOURMAN-466) Remove zipping mechanism for data import event payloads
+* [MODDICORE-172](https://issues.folio.org/browse/MODDICORE-172)  Add MARC-Instance field mapping for New identifier types
 
 ## XXXX-XX-XX v3.1.3
 * [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
