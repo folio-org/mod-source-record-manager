@@ -81,7 +81,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-source-record-storage-client</artifactId>
-      <version>5.2.1-SNAPSHOT</version>
+      <version>5.2.0</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -220,12 +220,12 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-data-import-converter-storage-client</artifactId>
-      <version>1.12.0-SNAPSHOT</version>
+      <version>1.12.0</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>3.2.0-SNAPSHOT</version>
+      <version>3.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
