@@ -160,6 +160,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
       .withRecordType(ParsedRecordDto.RecordType.MARC_HOLDING)
+      .withQmRecordVersion("1")
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
 
     RestAssured.given()
