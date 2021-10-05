@@ -303,6 +303,8 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.put",
             "inventory-storage.instances.preceding-succeeding-titles.collection.put",
+            "inventory-storage.holdings.item.get",
+            "inventory-storage.holdings.item.put",
             "configuration.entries.collection.get"
           ]
         }
