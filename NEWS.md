@@ -1,4 +1,4 @@
-## 2021-07-06 v3.2.0-SNAPSHOT
+## 2021-10-06 v3.2.0
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message
   sent
@@ -28,10 +28,12 @@
 * [MODSOURMAN-466](https://issues.folio.org/browse/MODSOURMAN-466) Remove zipping mechanism for data import event payloads
 * [MODDICORE-172](https://issues.folio.org/browse/MODDICORE-172)  Add MARC-Instance field mapping for New identifier types
 
-## XXXX-XX-XX v3.1.3
-* [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
+## 2021-08-04 v3.1.3
 * [MODDICORE-166](https://issues.folio.org/browse/MODDICORE-166)  Near the day boundary data import calculates today incorrectly.
 * [MODSOURMAN-535](https://issues.folio.org/browse/MODSOURMAN-535) Data import can't retrieve location with code "olin".
+* [MODPUBSUB-187](https://issues.folio.org/browse/MODPUBSUB-187) Add support for max.request.size configuration for Kafka messages
+* Update data-import-processing-core dependency to v3.1.4
+* Update folio-kafka-wrapper dependency to v3.1.4
 
 ## 2021-07-21 v3.1.2
 * [MODSOURMAN-513](https://issues.folio.org/browse/MODSOURMAN-513) (Juniper) Data import stopped process before finishing: deadlock for "job_monitoring"
@@ -42,6 +44,7 @@
 ## 2021-06-25 v3.1.1
 * [MODSOURMAN-497](https://issues.folio.org/browse/MODSOURMAN-497) Apply MarcRecordAnalyzer to determine MARC related specific type
 * [MODSOURMAN-501](https://issues.folio.org/browse/MODSOURMAN-501) Change dataType to have have common type for MARC related subtypes
+* Update data-import-processing-core dependency to v3.1.2
 
 ## 2021-06-17 v3.1.0
 * [MODSOURMAN-411](https://issues.folio.org/browse/MODSOURMAN-411) Dynamically define the payload of DI event depending on MARC record type (Bib, Authority, Holding)
