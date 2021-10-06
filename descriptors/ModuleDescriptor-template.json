@@ -227,6 +227,10 @@
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
             "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.collection.get",
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.preceding-succeeding-titles.item.delete",
             "configuration.entries.collection.get",
             "source-storage.verified.records",
             "mapping-metadata.get"
@@ -303,6 +307,11 @@
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.put",
             "inventory-storage.instances.preceding-succeeding-titles.collection.put",
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.collection.get",
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.preceding-succeeding-titles.item.delete",
             "inventory-storage.holdings.item.get",
             "inventory-storage.holdings.item.put",
             "configuration.entries.collection.get"
