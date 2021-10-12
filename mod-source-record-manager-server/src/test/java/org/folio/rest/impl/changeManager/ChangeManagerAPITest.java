@@ -2,12 +2,9 @@ package org.folio.rest.impl.changeManager;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -17,7 +14,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 
@@ -53,7 +49,6 @@ import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -79,13 +74,11 @@ import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.Status;
-import org.folio.services.afterprocessing.AdditionalFieldsUtil;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -103,7 +96,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String CORRECT_RAW_RECORD_2 = "01314nam  22003851a 4500001001100000003000800011005001700019006001800036007001500054008004100069020003200110020003500142040002100177050002000198082001500218100002000233245008900253250001200342260004900354300002300403490002400426500002400450504006200474505009200536650003200628650001400660700002500674710001400699776004000713830001800753856009400771935001500865980003400880981001400914\u001Eybp7406411\u001ENhCcYBP\u001E20120404100627.6\u001Em||||||||d|||||||\u001Ecr||n|||||||||\u001E120329s2011    sz a    ob    001 0 eng d\u001E  \u001Fa2940447241 (electronic bk.)\u001E  \u001Fa9782940447244 (electronic bk.)\u001E  \u001FaNhCcYBP\u001FcNhCcYBP\u001E 4\u001FaZ246\u001Fb.A43 2011\u001E04\u001Fa686.22\u001F222\u001E1 \u001FaAmbrose, Gavin.\u001E14\u001FaThe fundamentals of typography\u001Fh[electronic resource] /\u001FcGavin Ambrose, Paul Harris.\u001E  \u001Fa2nd ed.\u001E  \u001FaLausanne ;\u001FaWorthing :\u001FbAVA Academia,\u001Fc2011.\u001E  \u001Fa1 online resource.\u001E1 \u001FaAVA Academia series\u001E  \u001FaPrevious ed.: 2006.\u001E  \u001FaIncludes bibliographical references (p. [200]) and index.\u001E0 \u001FaType and language -- A few basics -- Letterforms -- Words and paragraphs -- Using type.\u001E 0\u001FaGraphic design (Typography)\u001E 0\u001FaPrinting.\u001E1 \u001FaHarris, Paul,\u001Fd1971-\u001E2 \u001FaEBSCOhost\u001E  \u001FcOriginal\u001Fz9782940411764\u001Fz294041176X\u001E 0\u001FaAVA academia.\u001E40\u001Fuhttp://search.ebscohost.com/login.aspx?direct=true&scope=site&db=nlebk&db=nlabk&AN=430135\u001E  \u001Fa.o13465259\u001E  \u001Fa130307\u001Fb7107\u001Fe7107\u001Ff243965\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
   private static final String CORRECT_RAW_RECORD_3 = "03401nam  22004091i 4500001001200000003000800012005001700020006001800037007001500055008004100070020003200111020003500143020004300178020004000221040002100261050002700282082001900309245016200328300002300490500004700513504005100560505178700611588004702398650003702445650004502482650002902527650003602556700005502592700006102647710002302708730001902731776005902750856011902809935001502928980003402943981001402977\u001Eybp10134220\u001ENhCcYBP\u001E20130220102526.4\u001Em||||||||d|||||||\u001Ecr||n|||||||||\u001E130220s2013    ncu     ob    001 0 eng d\u001E  \u001Fa1476601852 (electronic bk.)\u001E  \u001Fa9781476601854 (electronic bk.)\u001E  \u001Fz9780786471140 (softcover : alk. paper)\u001E  \u001Fz078647114X (softcover : alk. paper)\u001E  \u001FaNhCcYBP\u001FcNhCcYBP\u001E 4\u001FaPN1995.9.V46\u001FbG37 2013\u001E04\u001Fa791.43/656\u001F223\u001E00\u001FaGame on, Hollywood!\u001Fh[electronic resource] :\u001Fbessays on the intersection of video games and cinema /\u001Fcedited by Gretchen Papazian and Joseph Michael Sommers.\u001E  \u001Fa1 online resource.\u001E  \u001FaDescription based on print version record.\u001E  \u001FaIncludes bibliographical references and index.\u001E0 \u001FaIntroduction: manifest narrativity-video games, movies, and art and adaptation / Gretchen Papazian and Joseph Michael Sommers -- The rules of engagement: watching, playing and other narrative processes. Playing the Buffyverse, playing the gothic: genre, gender and cross-media interactivity in Buffy the vampire slayer: chaos bleeds / Katrin Althans -- Dead eye: the spectacle of torture porn in Dead rising / Deborah Mellamphy -- Playing (with) the western: classical Hollywood genres in modern video games / Jason W. Buel -- Game-to-film adaptation and how Prince of Persia: the sands of time negotiates the difference between player and audience / Ben S. Bunting, Jr -- Translation between forms of interactivity: how to build the better adaptation / Marcus Schulzke -- The terms of the tale: time, place and other ideologically constructed conditions. -- Playing (in) the city: the warriors and images of urban disorder / Aubrey Anable -- When did Dante become a scythe-wielding badass? modeling adaption and shifting gender convention in Dante's Inferno / Denise A. Ayo -- \"Some of this happened to the other fellow\": remaking Goldeneye with Daniel Craig / David McGowan -- Zombie stripper geishas in the new global economy: racism and sexism in video games / Stewart Chang -- Stories, stories everywhere (and nowhere just the same): transmedia texts. \"My name is Alan Wake. I'm a writer.\": crafting narrative complexity in the age of transmedia storytelling / Michael Fuchs -- Millions of voices: Star wars, digital games, fictional worlds and franchise canon / Felan Parker -- The hype man as racial stereotype, parody and ghost in Afro samurai / Treaandrea M. Russworm -- Epic nostalgia: narrative play and transmedia storytelling in Disney epic Mickey / Lisa K. Dusenberry.\u001E  \u001FaDescription based on print version record.\u001E 0\u001FaMotion pictures and video games.\u001E 0\u001FaFilm adaptations\u001FxHistory and criticism.\u001E 0\u001FaVideo games\u001FxAuthorship.\u001E 0\u001FaConvergence (Telecommunication)\u001E1 \u001FaPapazian, Gretchen,\u001Fd1968-\u001Feeditor of compilation.\u001E1 \u001FaSommers, Joseph Michael,\u001Fd1976-\u001Feeditor of  compilation.\u001E2 \u001FaEbooks Corporation\u001E0 \u001FaEbook Library.\u001E08\u001FcOriginal\u001Fz9780786471140\u001Fz078647114X\u001Fw(DLC)  2012051432\u001E40\u001FzConnect to e-book on Ebook Library\u001Fuhttp://qut.eblib.com.au.AU/EBLWeb/patron/?target=patron&extendedid=P_1126326_0\u001E  \u001Fa.o13465405\u001E  \u001Fa130307\u001Fb6000\u001Fe6000\u001Ff243967\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D";
   private static final String CORRECT_MARC_HOLDINGS_RAW_RECORD = "00182cx  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
-  private static final String RAW_RECORD_RESULTING_IN_PARSING_ERROR = "01247nam  2200313zu 450000100110000000300080001100500170001905\u001F222\u001E1 \u001FaAriáes, Philippe.\u001E10\u001FaWestern attitudes toward death\u001Fh[electronic resource] :\u001Fbfrom the Middle Ages to the present /\u001Fcby Philippe Ariáes ; translated by Patricia M. Ranum.\u001E  \u001FaJohn Hopkins Paperbacks ed.\u001E  \u001FaBaltimore :\u001FbJohns Hopkins University Press,\u001Fc1975.\u001E  \u001Fa1 online resource.\u001E1 \u001FaThe Johns Hopkins symposia in comparative history ;\u001Fv4th\u001E  \u001FaDescription based on online resource; title from digital title page (viewed on Mar. 7, 2013).\u001E 0\u001FaDeath.\u001E2 \u001FaEbrary.\u001E 0\u001FaJohns Hopkins symposia in comparative history ;\u001Fv4th.\u001E40\u001FzConnect to e-book on Ebrary\u001Fuhttp://gateway.library.qut.edu.au/login?url=http://site.ebrary.com/lib/qut/docDetail.action?docID=10635130\u001E  \u001Fa.o1346565x\u001E  \u001Fa130307\u001Fb2095\u001Fe2095\u001Ff243966\u001Fg1\u001E  \u001FbOM\u001Fcnlnet\u001E\u001D\n";
   private static final String RAW_RECORD_WITH_999_ff_s_SUBFIELD = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
@@ -946,7 +938,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldProcessChunkOfRawRecords(TestContext testContext) throws IOException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -980,16 +971,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
-    String requestBody = findAll(putRequestedFor(urlEqualTo(PARSED_RECORDS_COLLECTION_URL))).get(0).getBodyAsString();
-    RecordCollection recordCollection = new ObjectMapper().readValue(requestBody, RecordCollection.class);
-    assertThat(recordCollection.getRecords().size(), is(not(0)));
-
-    Record updatedRecord = recordCollection.getRecords().get(0);
-    Assert.assertNotNull(updatedRecord.getExternalIdsHolder());
-    Assert.assertNotNull(updatedRecord.getExternalIdsHolder().getInstanceId());
-    Assert.assertEquals(Integer.valueOf(0), updatedRecord.getGeneration());
-    Assert.assertEquals(Record.State.ACTUAL, updatedRecord.getState());
-
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
@@ -999,13 +980,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(15))
+      .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
 
   @Test
-  @Ignore
   public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) throws IOException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1032,22 +1012,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto_2)
+      .body(rawRecordsDto_2.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
-
-    String requestBody = findAll(putRequestedFor(urlEqualTo(PARSED_RECORDS_COLLECTION_URL))).get(0).getBodyAsString();
-    RecordCollection recordCollection = new ObjectMapper().readValue(requestBody, RecordCollection.class);
-    assertThat(recordCollection.getRecords().size(), is(50));
-
-    recordCollection.getRecords().forEach(record -> {
-      Assert.assertNotNull(record.getExternalIdsHolder());
-      Assert.assertNotNull(record.getExternalIdsHolder().getInstanceId());
-    });
-
 
     async = testContext.async();
     RestAssured.given()
@@ -1056,15 +1026,14 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.COMMITTED.name()))
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(50))
+      .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
 
   @Test
-  @Ignore
   public void shouldProcess3ChunksAndRequestForMappingParameters1Time(TestContext testContext) {
     // given
     final int NUMBER_OF_CHUNKS = 3;
@@ -1111,7 +1080,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(15))
+      .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
 
     verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
@@ -1144,7 +1113,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldProcessChunkIfRequestForMappingParametersFails(TestContext testContext) {
     // given
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
@@ -1198,7 +1166,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1215,14 +1183,13 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(15))
+      .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
 
     async.complete();
   }
 
   @Test
-  @Ignore
   public void shouldProcessChunkOfRawRecordsIfAddingAdditionalFieldsFailed(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1252,7 +1219,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1268,13 +1235,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(15))
+      .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
 
   @Test
-  @Ignore
   public void shouldNotParseChunkOfRawRecordsIfRecordListEmpty() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1302,7 +1268,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
         .withRecordsMetadata(new RecordsMetadata()
           .withContentType(RecordsMetadata.ContentType.MARC_RAW)
           .withLast(false)
-          .withCounter(1)))
+          .withCounter(1)).withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1310,7 +1276,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldProcessLastChunkOfRawRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1351,7 +1316,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1366,7 +1331,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-      .body("status", is(JobExecution.Status.COMMITTED.name()));
+      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
     async.complete();
   }
 
@@ -1444,77 +1409,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
-  public void shouldProcessErrorRawRecords(TestContext testContext) {
-    RawRecordsDto rawRecordsDtoContainingError = new RawRecordsDto()
-      .withRecordsMetadata(new RecordsMetadata()
-        .withLast(true)
-        .withCounter(15)
-        .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withInitialRecords(asList(
-        new InitialRecord().withRecord(CORRECT_RAW_RECORD_2),
-        new InitialRecord().withRecord(RAW_RECORD_RESULTING_IN_PARSING_ERROR),
-        new InitialRecord().withRecord(CORRECT_RAW_RECORD_3)));
-
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-    jobExec.setRunBy(new RunBy().withFirstName("DIKU").withLastName("ADMINISTRATOR"));
-    jobExec.setProgress(new Progress().withCurrent(1000).withTotal(1000));
-    jobExec.setStartedDate(new Date());
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(jobExec)
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK).log().all();
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(rawRecordsDtoContainingError)
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-      .body("status", is(JobExecution.Status.ERROR.name()));
-    async.complete();
-  }
-
-  @Test
-  @Ignore
   public void shouldNotPostRecordsToRecordsStorageWhenJobProfileSnapshotContainsUpdateMarcActionProfile(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1566,7 +1460,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1588,7 +1482,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException, IOException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
@@ -1656,7 +1550,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldMarkJobExecutionAsErrorAndDeleteAllAssociatedRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1685,7 +1578,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1722,64 +1615,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .delete(JOB_EXECUTION_PATH + UUID.randomUUID() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
-    async.complete();
-  }
-
-  @Test
-  @Ignore
-  public void shouldMarkJobExecutionAsErrorIfRecordsWereNotDeleted(TestContext testContext) {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true))
-      .willReturn(WireMock.serverError()));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(rawRecordsDto)
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()))
-      .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
 
@@ -1874,7 +1709,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldProcessChunkOfRawRecordsWhenQueryParamIsFalse(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1902,7 +1736,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
-      .body(rawRecordsDto)
+      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
@@ -1918,52 +1752,5 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
     async.complete();
-
-    verify(1, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
-    verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
-  }
-
-  @Test
-  @Ignore
-  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws IOException {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(rawRecordsDto_3)
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    String requestBody = findAll(putRequestedFor(urlEqualTo(PARSED_RECORDS_COLLECTION_URL))).get(0).getBodyAsString();
-    RecordCollection recordCollection = new ObjectMapper().readValue(requestBody, RecordCollection.class);
-    assertThat(recordCollection.getRecords().size(), is(1));
-
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", AdditionalFieldsUtil.getValue(recordCollection.getRecords().get(0), "999", 's'));
-
   }
 }
