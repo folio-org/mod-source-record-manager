@@ -60,13 +60,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
@@ -237,12 +231,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     });
   }
 
-  @Ignore
+//  @Ignore
   @Test
-  public void shouldReturnFailedFutureWhenFailedPostRecordsToRecordsStorage(TestContext context) {
+  public void shouldReturnSucceededFutureWhenFailedPostSnapshotsToRecordsStorage(TestContext context) {
     Async async = context.async();
 
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+    WireMock.stubFor(put(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.serverError()));
 
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
@@ -250,17 +244,14 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
 
     future.onComplete(ar -> {
-      context.assertTrue(ar.failed());
+      context.assertTrue(ar.succeeded());
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
-      Mockito.verify(jobExecutionService, times(2)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
-      context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().get(0).getStatus()));
-      context.assertTrue(ERROR.equals(captor.getAllValues().get(1).getStatus()));
-      verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
+      Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
+      verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
     });
   }
 
-  @Ignore
   @Test
   public void shouldProcessErrorRawRecord(TestContext context) {
     Async async = context.async();
@@ -281,14 +272,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().get(0).getStatus()));
-
-      verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
+      verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
       verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       async.complete();
     });
   }
 
-  @Ignore
   @Test
   public void shouldSendEventsWithSuccessfullyParsedRecords(TestContext context) {
     Async async = context.async();
@@ -312,16 +301,13 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       ArgumentCaptor<StatusDto> captor = ArgumentCaptor.forClass(StatusDto.class);
       Mockito.verify(jobExecutionService).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getValue().getStatus()));
-
-      verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
-      verify(2, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
+      verify(1, postRequestedFor(urlPathEqualTo(SNAPSHOT_SERVICE_URL)));
       async.complete();
     });
   }
 
   @Test
-  @Ignore
-  public void shouldMarkJobExecutionAsErrorWhenWhenFailedPostRecordsToRecordsStorage(TestContext context) {
+  public void shouldMarkJobExecutionAsErrorWhenFailedPostRecordsToRecordsStorage(TestContext context) {
     Async async = context.async();
     RawRecordsDto lastRawRecordsDto = new RawRecordsDto()
       .withRecordsMetadata(new RecordsMetadata()
@@ -331,7 +317,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
         .withContentType(RecordsMetadata.ContentType.MARC_RAW))
       .withInitialRecords(rawRecordsDto.getInitialRecords());
 
-    WireMock.stubFor(WireMock.post(RECORDS_SERVICE_URL)
+    WireMock.stubFor(WireMock.post(SNAPSHOT_SERVICE_URL)
       .willReturn(WireMock.serverError()));
 
     Future<Optional<JobExecution>> jobFuture = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
@@ -340,42 +326,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       .compose(jobExecution -> jobExecutionService.getJobExecutionById(jobExecution.getId(), params.getTenantId()));
 
     jobFuture.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertTrue(ar.result().isPresent());
-      JobExecution jobExecution = ar.result().get();
-      context.assertEquals(JobExecution.Status.ERROR, jobExecution.getStatus());
-      context.assertEquals(JobExecution.UiStatus.ERROR, jobExecution.getUiStatus());
-      context.assertEquals(JobExecution.ErrorStatus.RECORD_UPDATE_ERROR, jobExecution.getErrorStatus());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
-      context.assertNotNull(jobExecution.getStartedDate());
-      context.assertNotNull(jobExecution.getCompletedDate());
-      verify(1, postRequestedFor(urlEqualTo(RECORDS_SERVICE_URL)));
-      verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
-      async.complete();
-    });
-  }
-
-  @Ignore
-  @Test
-  public void shouldNotProcessChunkOfRawRecordsIfChildSnapshotWrapperIsEmpty(TestContext context) {
-    Async async = context.async();
-
-    ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
-      .withId(UUID.randomUUID().toString())
-      .withProfileId(jobProfile.getId())
-      .withContentType(JOB_PROFILE)
-      .withContent(jobProfile)
-      .withChildSnapshotWrappers(Collections.emptyList());
-
-    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.created().withBody(Json.encode(profileSnapshotWrapperResponse))));
-
-    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
-
-    future.onComplete(ar -> {
       context.assertTrue(ar.failed());
+      verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
+      verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       async.complete();
     });
   }
