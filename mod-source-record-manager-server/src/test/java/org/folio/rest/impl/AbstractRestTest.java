@@ -29,7 +29,6 @@ import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.postgres.testing.PostgresTesterContainer;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
