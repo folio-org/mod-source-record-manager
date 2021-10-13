@@ -165,7 +165,7 @@
     },
     {
       "run": "after",
-      "snippet": "DO $$ BEGIN BEGIN create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); EXCEPTION WHEN duplicate_object THEN NULL; END; create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); ; END $$; ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
+      "snippet": "DO $$ BEGIN BEGIN create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); EXCEPTION WHEN duplicate_object THEN NULL; END; END $$; ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
     {
