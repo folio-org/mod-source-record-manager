@@ -1,3 +1,6 @@
+## 2021-10-13 v3.2.1
+* [MODSOURMAN-583](https://issues.folio.org/browse/MODSOURMAN-583) Schema name can't replace in snippet (schema.json)
+
 ## 2021-10-06 v3.2.0
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message
