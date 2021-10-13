@@ -165,7 +165,7 @@
     },
     {
       "run": "after",
-      "snippet": "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE t.typname = 'rule_type' AND n.nspname = '${myuniversity}_${mymodule}') THEN create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); END IF; END $$; ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
+      "snippet": "DO $$ BEGIN BEGIN create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); EXCEPTION WHEN duplicate_object THEN NULL; END; create type rule_type AS ENUM ('MARC_BIB', 'MARC_HOLDING'); ; END $$; ALTER TABLE mapping_rules ADD COLUMN IF NOT EXISTS record_type rule_type NOT NULL DEFAULT 'MARC_BIB';",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
     {
