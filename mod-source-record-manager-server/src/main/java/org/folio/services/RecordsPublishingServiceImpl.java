@@ -86,7 +86,8 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       try {
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
-          params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString());
+          params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString()); //todo:
+          params.getHeaders().set("recordId", record.getId());
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
           futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
