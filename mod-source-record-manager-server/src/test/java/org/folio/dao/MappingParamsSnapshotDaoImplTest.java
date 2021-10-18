@@ -11,7 +11,7 @@ import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingPa
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.junit.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(VertxUnitRunner.class)
@@ -36,20 +37,21 @@ public class MappingParamsSnapshotDaoImplTest extends AbstractRestTest {
   @InjectMocks
   private MappingParamsSnapshotDao mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();
 
+  private AutoCloseable mocksCloseable;
   private MappingParameters mappingParameters;
 
   @Before
   public void setUp(TestContext context) throws IOException {
-    MockitoAnnotations.initMocks(this);
+    this.mocksCloseable = MockitoAnnotations.openMocks(this);
     super.setUp(context);
     mappingParameters = new ObjectMapper().readValue(new File(MARC_PARAMS_PATH), MappingParameters.class);
   }
 
   @Test
-  public void shouldReturnSucceededFutureWhenMappingParametersSnapshotWithSameJobIdExists(TestContext context) {
+  public void shouldReturnSucceededFutureOnSnapshotSaveWhenMappingParametersSnapshotWithSameJobIdExists(TestContext context) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    Assert.assertThat(createdJobExecutions.size(), is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExecution = createdJobExecutions.get(0);
 
     Async async = context.async();
@@ -61,6 +63,11 @@ public class MappingParamsSnapshotDaoImplTest extends AbstractRestTest {
       context.assertEquals(jobExecution.getId(), ar.result());
       async.complete();
     });
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    mocksCloseable.close();
   }
 
 }
