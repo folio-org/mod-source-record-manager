@@ -1,3 +1,6 @@
+## 2021-10-06 v3.2.1-SNAPSHOT
+* [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Kiwi bugfest cannot import a large file; adjust mapping metadata snapshots creation
+
 ## 2021-10-06 v3.2.0
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
 * [MODSOURMAN-517](https://issues.folio.org/browse/MODSOURMAN-517) Change quickMarc producers not to close after message
