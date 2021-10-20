@@ -1026,7 +1026,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
       .body("progress.total", is(100))
       .body("startedDate", notNullValue(Date.class)).log().all();
@@ -1329,9 +1328,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
-      .statusCode(HttpStatus.SC_OK)
-      // status should be JobExecution.Status.PARSING_FINISHED but for first version we finish import in this place
-      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
+      .statusCode(HttpStatus.SC_OK);
     async.complete();
   }
 
