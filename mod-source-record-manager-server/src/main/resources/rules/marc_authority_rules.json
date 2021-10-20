@@ -727,8 +727,8 @@
   ],
   "999": [
     {
-      "target": "uuid",
-      "description": "Authority UUID",
+      "target": "id",
+      "description": "Authority id",
       "subfield": [
         "s"
       ],
