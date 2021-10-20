@@ -166,7 +166,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   }
 
   @Test
-  public void shouldReturnFailedFutureWhenHandleUnzippedEventPayload() throws IOException {
+  public void shouldReturnFailedFutureWhenHandleEncodedEventPayload() {
     var recordId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
 
