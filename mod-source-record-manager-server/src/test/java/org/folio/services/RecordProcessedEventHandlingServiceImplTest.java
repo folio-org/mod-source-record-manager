@@ -2,30 +2,23 @@ package org.folio.services;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
-import static org.folio.rest.jaxrs.model.EntityType.ITEM;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS;
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERROR_KEY;
-import static org.folio.services.RecordProcessedEventHandlingServiceImpl.FAILED_EVENT_KEY;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.*;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -34,12 +27,9 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.*;
 import org.folio.rest.jaxrs.model.*;
-import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,7 +44,6 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
@@ -66,7 +55,6 @@ import org.folio.services.progress.JobExecutionProgressServiceImpl;
 @RunWith(VertxUnitRunner.class)
 public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTest {
 
-  private static final Logger LOGGER = LogManager.getLogger();
   private static final String CORRECT_RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
   private static final String RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
   private static final String KAFKA_ENV_ID = "test-env";
@@ -131,9 +119,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private MappingRulesSnapshotDao mappingRulesSnapshotDao;
   private MappingParamsSnapshotDao mappingParamsSnapshotDao;
   private KafkaConfig kafkaConfig;
-  private EventTypeHandlerSelector eventTypeHandlerSelector;
-
-
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -181,8 +166,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .kafkaPort(hostAndPort[1])
       .envId(KAFKA_ENV_ID)
       .build();
-
-    eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService, journalService, jobMonitoringService);
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
@@ -228,34 +211,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
         context.assertTrue(optionalJobMonitoring.isEmpty());
         async.complete();
       });
-      async.complete();
-    });
-  }
-
-  @Test
-  public void shouldReturnFailedFutureWhenHandleZippedDataImportEventPayload(TestContext context) {
-    // given
-    Async async = context.async();
-    HashMap<String, String> payloadContext = new HashMap<>();
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
-      .withContext(payloadContext);
-
-    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> {
-        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
-      });
-
-    // when
-    Future<JobExecutionProgress> jobFuture = future
-      .compose(ar -> recordProcessedEventHandlingService.handle(encodeWithZip(Json.encode(dataImportEventPayload)), params))
-      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
-
-    // then
-    jobFuture.onComplete(ar -> {
-      context.assertTrue(ar.failed());
       async.complete();
     });
   }
@@ -394,66 +349,4 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       async.complete();
     });
   }
-
-  @Test
-  public void shouldSaveJournalRecordWithErrorStatusOnHandleDIErrorEvent(TestContext context) {
-    // given
-    Async async = context.async();
-    Record record = new Record().withId(UUID.randomUUID().toString());
-    String expectedErrorMessage = "test error message";
-
-    HashMap<String, String> payloadContext = new HashMap<>();
-    payloadContext.put(ITEM.value(), new JsonObject().encode());
-    payloadContext.put(ERROR_KEY, expectedErrorMessage);
-    payloadContext.put(FAILED_EVENT_KEY, DI_INVENTORY_ITEM_UPDATED.value());
-
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withTenant(TENANT_ID)
-      .withEventType(DataImportEventTypes.DI_ERROR.value())
-      .withContext(payloadContext);
-
-    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> {
-        record.setSnapshotId(jobExecution.getId());
-        payloadContext.put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
-        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
-      });
-
-    // when
-    Promise<List<JournalRecord>> promise = Promise.promise();
-    future
-      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> {
-        try {
-          eventTypeHandlerSelector.getHandler(dataImportEventPayload).handle(journalService, dataImportEventPayload, params.getTenantId());
-        } catch (Exception e) {
-          LOGGER.error("Error during map event payload to Journal Record", e);
-        }
-        return Future.succeededFuture(true);
-      }).onComplete(ar -> vertx.setTimer(100, e -> journalRecordDao.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), null, null, TENANT_ID)
-        .onComplete(promise)));
-
-    // then
-    promise.future().onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertEquals(1, ar.result().size());
-      JournalRecord journalRecord = ar.result().get(0);
-      context.assertEquals(dataImportEventPayload.getJobExecutionId(), journalRecord.getJobExecutionId());
-      context.assertEquals(expectedErrorMessage, journalRecord.getError());
-      context.assertEquals(JournalRecord.ActionStatus.ERROR, journalRecord.getActionStatus());
-      context.assertEquals(expectedErrorMessage, journalRecord.getError());
-      async.complete();
-    });
-  }
-
-  private String encodeWithZip(String stringToEncode) {
-    try {
-      return ZIPArchiver.zip(stringToEncode);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
 }
