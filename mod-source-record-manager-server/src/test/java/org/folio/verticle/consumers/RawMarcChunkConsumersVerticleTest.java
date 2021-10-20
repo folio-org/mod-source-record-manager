@@ -11,16 +11,7 @@ import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfile;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,8 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -179,6 +169,80 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
     assertEquals(EDIFACT, record.getRecordType());
+  }
+
+  @Test
+  public void shouldNotObserveValuesWhenEventPayloadNotParsed() throws InterruptedException {
+    // given
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExecution = createdJobExecutions.get(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("Create EDIFACT invoice")
+        .withId(JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.EDIFACT))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExecution.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload("errorPayload");
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecution.getId(), UTF_8);
+
+    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 0)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    assertEquals(0, observedValues.size());
+  }
+
+  @Test
+  public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException, IOException {
+    RawRecordsDto chunk = new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withInitialRecords(List.of(new InitialRecord().withRecord(rawEdifactContent).withOrder(0)))
+      .withRecordsMetadata(new RecordsMetadata()
+        .withContentType(RecordsMetadata.ContentType.EDIFACT_RAW)
+        .withCounter(1)
+        .withLast(false)
+        .withTotal(1));
+
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, UUID.randomUUID().toString(), UTF_8);
+
+    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 0)
+      .with(GROUP_ID_CONFIG, GROUP_ID)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+    assertEquals(0, observedValues.size());
   }
 
 }
