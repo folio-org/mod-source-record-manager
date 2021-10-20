@@ -13,7 +13,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.cache.KafkaInternalCache;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -92,7 +91,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     if (!kafkaInternalCache.containsByKey(event.getId())) {
       try {
         kafkaInternalCache.putToCache(event.getId());
-        RecordsBatchResponse recordsBatchResponse = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), RecordsBatchResponse.class);
+        RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
         List<Record> storedRecords = recordsBatchResponse.getRecords();
 
         // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
@@ -103,7 +102,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
         LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
         saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
         return recordsPublishingService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
-          okapiConnectionParams, eventType.value())
+            okapiConnectionParams, eventType.value())
           .compose(b -> {
             LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
             return Future.succeededFuture(correlationId);
@@ -111,7 +110,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
             LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId: {} chunkNumber: {}", correlationId, chunkNumber, th);
             return Future.failedFuture(th);
           });
-      } catch (IOException e) {
+      } catch (Exception e) {
         LOGGER.error("Can't process kafka record: ", e);
         return Future.failedFuture(e);
       }

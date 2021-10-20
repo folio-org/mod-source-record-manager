@@ -14,7 +14,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.cache.KafkaInternalCache;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.journal.JournalService;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
@@ -61,7 +60,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     try {
       if (!kafkaInternalCache.containsByKey(handlerBasedEventId)) {
         kafkaInternalCache.putToCache(handlerBasedEventId);
-        DataImportEventPayload eventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(event.getEventPayload()), DataImportEventPayload.class);
+        DataImportEventPayload eventPayload = new ObjectMapper().readValue(event.getEventPayload(), DataImportEventPayload.class);
         eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
       }
       result.complete(record.key());

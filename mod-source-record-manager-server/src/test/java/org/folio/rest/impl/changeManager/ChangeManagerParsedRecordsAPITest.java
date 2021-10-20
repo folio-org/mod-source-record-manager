@@ -152,26 +152,6 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnBadRequestOnPutIfRecordTypeIsNotSupported(TestContext testContext) {
-    Async async = testContext.async();
-
-    ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
-      .withId(UUID.randomUUID().toString())
-      .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
-        .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
-      .withRecordType(ParsedRecordDto.RecordType.MARC_AUTHORITY);
-
-    RestAssured.given()
-      .spec(spec)
-      .body(parsedRecordDto)
-      .when()
-      .put(PARSED_RECORDS_URL + "/" + parsedRecordDto.getId())
-      .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
-    async.complete();
-  }
-
-  @Test
   public void shouldUpdateParsedRecordOnPut(TestContext testContext) throws InterruptedException {
     Async async = testContext.async();
 
@@ -180,6 +160,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
       .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())
         .withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"))
       .withRecordType(ParsedRecordDto.RecordType.MARC_HOLDING)
+      .withRelatedRecordVersion("1")
       .withExternalIdsHolder(new ExternalIdsHolder().withInstanceId(UUID.randomUUID().toString()));
 
     RestAssured.given()

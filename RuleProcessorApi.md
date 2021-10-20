@@ -379,6 +379,51 @@ Instance:
 }
 ```
 
+####  Required sub-fields concatenation
+If there is a need to concat special subfields to processed one, its needed to add to the rule `subfieldsToConcat` array
+and list subfields names to be concatenated and use `concat_subfields_by_name` normalization function:
+```json
+MARC Record:
+  "024": {
+    "subfields":[
+         {"a":"Chicago, Illinois"},
+         {"c":"Nashville, Tennessee"},
+         {"f": "Austin Texas"}
+    ], 
+    "ind1":"2", 
+    "ind2":"1"
+    }
+```
+```json
+  Rule:
+  "024": [{
+    "target": "identifiers.value",
+    "description": "Invalid UPC",
+    "subfield": ["a"],
+    "rules": [{
+      "conditions": [{
+        "type": "concat_subfields_by_name",
+          "parameter": {
+            "subfieldsToConcat": [
+              "f"
+            ]
+          }
+        }]
+      }]
+  }]
+```
+An outcome Instance looks like this in Json:
+```json
+Instance: 
+{
+  "identifiers":[
+    {
+      "value":"Chicago, Illinois Austin Texas"
+    }
+  ]
+}
+```
+
 #### Required sub-fields
 Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `requiredSubfield` to define the required subfield needed to trigger the appearance of a target field. In this example, the presence of an 020 subfield "z" in a MARC record is needed in order for the target field, “Invalid ISBN” to appear in the Inventory record.
 ```json
@@ -459,6 +504,69 @@ Rule:
 ```
 `fieldReplacementBy3Digits` property indicates that "fieldReplacement"-logic should be applied here. (There can be added and implemented other properties, not only `...3Digits`)
 `fieldReplacementRule` property contains some additional data for "fieldReplacement"-logic.
+
+####  Processing record fields using indicators
+If there is a need to use matches for indicators of record fields and rules, its needed to add an object `indicators` to a rule
+which process a record field:
+
+```json
+Indicators object to process:
+"indicators": {
+"ind1": "1",
+"ind2": "*"
+}
+```
+
+```json
+MARC Record:
+  "024": {
+    "subfields":[
+         {"a":"Chicago, Illinois"},
+         {"c":"Nashville, Tennessee"},
+         {"f": "Austin Texas"}
+    ], 
+    "ind1":"2", 
+    "ind2":"1"
+    }
+```
+```json
+  Rule:
+  "024": [{
+    "indicators": {
+    "ind1": "2",
+    "ind2": "*"
+    },
+    {
+    "target": "identifiers.value",
+    "description": "Invalid UPC",
+    "subfield": ["a"],
+    "rules": [{
+      "conditions": [{
+        "type": "concat_subfields_by_name",
+          "parameter": {
+            "subfieldsToConcat": [
+              "f"
+            ]
+          }
+        }]
+      }]
+  }}]
+```
+An outcome Instance looks like this in Json:
+```json
+Instance: 
+{
+  "identifiers":[
+    {
+      "value":"Chicago, Illinois Austin Texas"
+    }
+  ]
+}
+```
+In our case, indicator value of record field "ind1" matched with indicator "ind1" value of the rules.
+Indicator value of record field "ind2" is "1" but it also matched because the rule indicator "ind2" value is 
+"*" - wildcard indicator, so any record field indicator value matches to it. In case of such match, 
+the rule will be proceeded.
 
 This mechanism executes in Processor, in data-import-processing-core, while parsing these rules.
 #

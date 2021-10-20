@@ -2,7 +2,6 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -31,7 +30,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
 
   private static final String TABLE_NAME = "mapping_params_snapshots";
   private static final String SELECT_QUERY = "SELECT params FROM %s.%s WHERE job_execution_id = $1";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, params, saved_timestamp) VALUES ($1, $2, $3)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, params, saved_timestamp) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
   private static final String PARAMS_FIELD = "params";
 
@@ -45,7 +44,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       if (resultSet.rowCount() == 0 || resultSet.iterator().next().getValue(PARAMS_FIELD) == null) {
         return Optional.empty();
       } else {
-        MappingParameters rules = new JsonObject(resultSet.iterator().next().getValue(PARAMS_FIELD).toString()).mapTo(MappingParameters.class);
+        MappingParameters rules = resultSet.iterator().next().getJsonObject(PARAMS_FIELD).mapTo(MappingParameters.class);
         return Optional.of(rules);
       }
     });
@@ -58,7 +57,7 @@ public class MappingParamsSnapshotDaoImpl implements MappingParamsSnapshotDao {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
         UUID.fromString(jobExecutionId),
-        Json.encode(params),
+        JsonObject.mapFrom(params),
         LocalDateTime.now()
       );
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);

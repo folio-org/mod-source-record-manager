@@ -4,14 +4,13 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
@@ -47,9 +46,8 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
 
     Event event = Json.decodeValue(record.value(), Event.class);
     LOGGER.debug("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
-
     try {
-      RawRecordsDto rawRecordsDto = new JsonObject(ZIPArchiver.unzip(event.getEventPayload())).mapTo(RawRecordsDto.class);
+      RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
       LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} correlationId: {} chunkNumber: {} - {}",
         okapiConnectionParams.getHeaders().get("jobExecutionId"), correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
@@ -61,8 +59,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
           LOGGER.error("RawRecordsDto processing has failed with errors correlationId: {} chunkNumber: {} - {}", correlationId, chunkNumber, rawRecordsDto.getRecordsMetadata(), th);
           return Future.failedFuture(th);
         });
-
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOGGER.error("Can't process kafka record: ", e);
       return Future.failedFuture(e);
     }

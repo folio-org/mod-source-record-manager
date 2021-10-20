@@ -1,8 +1,5 @@
 package org.folio.services.entity;
 
-import javax.ws.rs.BadRequestException;
-
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -12,12 +9,17 @@ import org.folio.rest.jaxrs.model.ParsedRecordDto;
 
 @Getter
 @EqualsAndHashCode
-@AllArgsConstructor
 public class MappingRuleCacheKey {
+
   private String tenantId;
   private Record.RecordType recordType;
 
-  private static final String ERROR_MESSAGE = "Only marc-bib or marc-holdings supported";
+  public MappingRuleCacheKey(String tenantId, Record.RecordType recordType) {
+    this.tenantId = tenantId;
+    if (Record.RecordType.MARC_BIB.equals(recordType) || Record.RecordType.MARC_HOLDING.equals(recordType)) {
+      this.recordType = recordType;
+    }
+  }
 
   public MappingRuleCacheKey(String tenantId, ParsedRecordDto.RecordType recordType) {
     this.tenantId = tenantId;
@@ -25,8 +27,6 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (ParsedRecordDto.RecordType.MARC_HOLDING.equals(recordType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
-    } else {
-      throw new BadRequestException(ERROR_MESSAGE);
     }
   }
 
@@ -36,8 +36,6 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (JournalRecord.EntityType.MARC_HOLDINGS.equals(entityType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
-    } else {
-      throw new BadRequestException(ERROR_MESSAGE);
     }
   }
 
@@ -47,8 +45,6 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING.equals(recordType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
-    } else {
-      throw new BadRequestException(ERROR_MESSAGE);
     }
   }
 }

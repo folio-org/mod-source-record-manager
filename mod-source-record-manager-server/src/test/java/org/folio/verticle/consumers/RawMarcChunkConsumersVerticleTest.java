@@ -3,14 +3,13 @@ package org.folio.verticle.consumers;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.http.HttpStatus;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.folio.TestUtil;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -65,6 +64,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   public void setUp() {
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + JOB_PROFILE_ID + "?withRelations=false&")
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("Create instance")))));
+    WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
   }
 
   @Test
@@ -95,7 +96,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withLast(false)
         .withTotal(1));
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(chunk)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("42", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
@@ -116,7 +117,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    RecordCollection recordCollection = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
     assertNotNull(record.getExternalIdsHolder());
@@ -153,7 +154,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withLast(false)
         .withTotal(1));
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(ZIPArchiver.zip(Json.encode(chunk)));
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
     KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
     kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
     kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
@@ -174,7 +175,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    RecordCollection recordCollection = Json.decodeValue(ZIPArchiver.unzip(obtainedEvent.getEventPayload()), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
     assertEquals(EDIFACT, record.getRecordType());

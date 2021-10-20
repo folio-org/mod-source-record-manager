@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
@@ -53,9 +52,9 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     Promise<Boolean> promise = Promise.promise();
     DataImportEventPayload dataImportEventPayload;
     try {
-      dataImportEventPayload = new ObjectMapper().readValue(ZIPArchiver.unzip(eventContent), DataImportEventPayload.class);
+      dataImportEventPayload = new ObjectMapper().readValue(eventContent, DataImportEventPayload.class);
     } catch (IOException e) {
-      LOGGER.error("Failed to unzip event {}", eventContent, e);
+      LOGGER.error("Failed to read eventContent {}", eventContent, e);
       promise.fail(e);
       return promise.future();
     }
@@ -67,7 +66,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
-            LOGGER.error("Failed to handle {} event", eventType,  ar.cause());
+            LOGGER.error("Failed to handle {} event", eventType, ar.cause());
             updateJobStatusToError(jobExecutionId, params).onComplete(statusAr -> promise.fail(ar.cause()));
           } else {
             promise.complete(true);
