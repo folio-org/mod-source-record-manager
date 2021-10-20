@@ -1,3 +1,6 @@
+## 2021-xx-xx v3.3.0-SNAPSHOT
+* [MODSOURMAN-577](https://issues.folio.org/browse/MODSOURMAN-577) Optimistic locking: mod-source-record-manager modifications
+
 ## 2021-10-06 v3.2.1-SNAPSHOT
 * [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Kiwi bugfest cannot import a large file; adjust mapping metadata snapshots creation
 
