@@ -54,7 +54,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "job_executions";
-  private static final String ID_FIELD = "'id'";
+  private static final String ID_FIELD = "id";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
   public static final String GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH = "templates/db_scripts/get_job_execution_without_parent_multiple.sql";
   public static final String TOTAL_ROWS_COLUMN = "total_rows";
@@ -110,7 +110,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId) {
     Promise<Results<JobExecution>> promise = Promise.promise();
     try {
-      Criteria idCrit = constructCriteria(ID_FIELD, id);
+      Criteria idCrit = constructCriteria(ID_FIELD, id).setJSONB(false);
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecution by id", e);
@@ -140,7 +140,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId) {
     Promise<JobExecution> promise = Promise.promise();
     try {
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecution.getId());
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecution.getId()).setJSONB(false);
       pgClientFactory.createInstance(tenantId).update(TABLE_NAME, jobExecution, new Criterion(idCrit), true, updateResult -> {
         if (updateResult.failed()) {
           LOGGER.error("Could not update jobExecution with id {}", jobExecution.getId(), updateResult.cause());
@@ -184,7 +184,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       if (selectResult.rowCount() != 1) {
         throw new NotFoundException(rollbackMessage);
       }
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId);
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId).setJSONB(false);
       Promise<Results<JobExecution>> jobExecResult = Promise.promise();
       pgClientFactory.createInstance(tenantId).get(connection.future(), TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
       return jobExecResult.future();

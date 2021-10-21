@@ -35,7 +35,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TABLE_NAME = "job_execution_progress";
-  public static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
+  public static final String JOB_EXECUTION_ID_FIELD = "jobExecutionId";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -43,7 +43,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   @Override
   public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<Results<JobExecutionProgress>> promise = Promise.promise();
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
+    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
     pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true, false, promise);
     return promise.future()
       .map(Results::getResults)
@@ -54,7 +54,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
+    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
     PostgresClient client = pgClientFactory.createInstance(tenantId);
     Future.succeededFuture()
       .compose(v -> {
@@ -66,7 +66,8 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+//          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+          .append(" WHERE jobExecutionId = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
         Promise<RowSet<Row>> selectResult = Promise.promise();
@@ -114,7 +115,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
+    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
 
     Future.succeededFuture()
       .compose(v -> {
@@ -126,7 +127,8 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+//          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
+          .append(" WHERE jobExecutionId = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
         Promise<RowSet<Row>> selectResult = Promise.promise();
