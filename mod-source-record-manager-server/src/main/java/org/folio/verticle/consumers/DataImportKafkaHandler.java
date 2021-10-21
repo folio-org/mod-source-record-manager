@@ -20,8 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static org.folio.services.RecordsPublishingServiceImpl.CORRELATION_ID_HEADER;
-
 @Component
 @Qualifier("DataImportKafkaHandler")
 public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {

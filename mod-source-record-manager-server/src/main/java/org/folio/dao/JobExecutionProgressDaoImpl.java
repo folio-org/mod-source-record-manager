@@ -66,7 +66,6 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-//          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
           .append(" WHERE jobExecutionId = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
@@ -127,7 +126,6 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-//          .append(" WHERE jsonb ->> 'jobExecutionId' = '")
           .append(" WHERE jobExecutionId = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
