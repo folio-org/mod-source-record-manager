@@ -266,7 +266,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       Mockito.verify(jobExecutionService, times(1)).updateJobExecutionStatus(anyString(), captor.capture(), isA(OkapiConnectionParams.class));
       context.assertTrue(PARSING_IN_PROGRESS.equals(captor.getAllValues().get(0).getStatus()));
       verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
-      verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       async.complete();
     });
   }
@@ -321,7 +320,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.failed());
       verify(1, postRequestedFor(urlEqualTo(SNAPSHOT_SERVICE_URL)));
-      verify(0, postRequestedFor(urlEqualTo(PUBSUB_PUBLISH_URL)));
       async.complete();
     });
   }
