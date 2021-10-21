@@ -42,8 +42,6 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
-  private MappingParametersProvider mappingParametersProvider;
-  private MappingRuleCache mappingRuleCache;
   private DataImportPayloadContextBuilder payloadContextBuilder;
   private KafkaConfig kafkaConfig;
 
@@ -51,13 +49,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   private int maxDistributionNum;
 
   public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
-                                      @Autowired MappingParametersProvider mappingParametersProvider,
-                                      @Autowired MappingRuleCache mappingRuleCache,
                                       @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
                                       @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionService = jobExecutionService;
-    this.mappingParametersProvider = mappingParametersProvider;
-    this.mappingRuleCache = mappingRuleCache;
     this.payloadContextBuilder = payloadContextBuilder;
     this.kafkaConfig = kafkaConfig;
   }

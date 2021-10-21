@@ -3,7 +3,7 @@ package org.folio.verticle.consumers;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
@@ -45,7 +45,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
       List<KafkaHeader> kafkaHeaders = record.headers();
       OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-      Event event = new JsonObject(record.value()).mapTo(Event.class);
+      Event event = Json.decodeValue(record.value(), Event.class);
       LOGGER.info("Event was received with recordId: {} event type: {}", recordId, event.getEventType());
 
       if (kafkaInternalCache.containsByKey(recordId)) {
