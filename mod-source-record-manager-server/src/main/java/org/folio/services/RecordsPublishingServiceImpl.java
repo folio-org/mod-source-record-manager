@@ -23,7 +23,6 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -32,14 +31,13 @@ import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
   public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  public static final String CORRELATION_ID_HEADER = "correlationId";
+  public static final String RECORD_ID_HEADER = "recordId";
   private static final String ERROR_MSG_KEY = "ERROR";
   private static final AtomicInteger indexer = new AtomicInteger();
 
@@ -86,8 +84,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       try {
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
-          params.getHeaders().set(CORRELATION_ID_HEADER, UUID.randomUUID().toString()); //todo:
-          params.getHeaders().set("recordId", record.getId());
+          params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
           futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
