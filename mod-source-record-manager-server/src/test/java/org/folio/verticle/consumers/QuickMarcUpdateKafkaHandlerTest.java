@@ -17,10 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -166,5 +163,27 @@ public class QuickMarcUpdateKafkaHandlerTest {
     var actualEventPayload = Json.decodeValue(qmCompletedEventCaptor.getValue(), QmCompletedEventPayload.class);
     assertEquals(recordId, actualEventPayload.getRecordId());
     assertEquals(errorMessage, actualEventPayload.getErrorMessage());
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenHandleEncodedEventPayload() {
+    var recordId = UUID.randomUUID().toString();
+    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
+
+    Map<String, String> eventPayload = new HashMap<>();
+    eventPayload.put("RECORD_ID", recordId);
+    String encodedEventPayload = Base64.getEncoder().encodeToString(Json.encode(eventPayload).getBytes());
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventType(QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name())
+      .withEventPayload(encodedEventPayload);
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
+    when(kafkaInternalCache.containsByKey(contains(event.getId()))).thenReturn(false);
+
+    var future = quickMarcHandler.handle(kafkaRecord);
+    assertTrue(future.failed());
   }
 }
