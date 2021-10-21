@@ -26,7 +26,7 @@ import static org.folio.services.RecordsPublishingServiceImpl.CORRELATION_ID_HEA
 @Qualifier("DataImportKafkaHandler")
 public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final String RECORD_ID_HEADER = "recordId";
+  static final String RECORD_ID_HEADER = "recordId";
 
   private Vertx vertx;
   private EventHandlingService eventHandlingService;
