@@ -177,6 +177,11 @@
       "run": "after",
       "snippet": "CREATE TABLE IF NOT EXISTS mapping_params_snapshots (job_execution_id UUID PRIMARY KEY, params jsonb, saved_timestamp timestamp);",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TYPE rule_type ADD VALUE IF NOT EXISTS 'MARC_AUTHORITY';",
+      "fromModuleVersion": "mod-source-record-manager-3.3.0"
     }
   ]
 }

@@ -35,6 +35,7 @@ public class ModTenantAPI extends TenantAPI {
       .compose(num -> setSequencesPermissionForDbUser(context, tenantId)
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_BIB, tenantId))
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_HOLDING, tenantId))
+        .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_AUTHORITY, tenantId))
         .compose(ar -> saveTenantId(tenantId, context))
         .map(num));
   }

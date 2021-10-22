@@ -35,7 +35,7 @@ public class MappingRulesProviderImpl implements MappingRules {
   public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     succeededFuture()
       .compose(ar -> mappingRuleService.get(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
-        new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
+        new BadRequestException("Only marc-bib, marc-holdings or marc-authority supported")), tenantId))
       .map(optionalRules -> optionalRules.orElseThrow(() ->
         new NotFoundException(String.format("Can not find mapping rules with type '%s' for tenant '%s'", recordType, tenantId))))
       .map(rules -> GetMappingRulesByRecordTypeResponse.respond200WithApplicationJson(rules.encode()))
