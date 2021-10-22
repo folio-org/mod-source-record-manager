@@ -1,13 +1,6 @@
 package org.folio.rest.impl.changeManager;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -47,6 +40,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
+import org.folio.services.afterprocessing.AdditionalFieldsUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -136,6 +130,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   private RawRecordsDto rawRecordsDto_3 = new RawRecordsDto()
+    .withId(UUID.randomUUID().toString())
     .withRecordsMetadata(new RecordsMetadata()
       .withLast(false)
       .withCounter(15)
@@ -1749,5 +1744,53 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()));
     async.complete();
+  }
+
+  @Test
+  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws IOException, InterruptedException {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_3)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(5), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+    RecordCollection recordCollection = Json
+      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    assertEquals(1, recordCollection.getRecords().size());
+    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", AdditionalFieldsUtil.getValue(recordCollection.getRecords().get(0), "999", 's'));
   }
 }
