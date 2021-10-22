@@ -78,14 +78,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .extract().body().asString();
     // when
-    String rulesToUpdate = "WRONG-RULES-FORMAT";
-    RestAssured.given()
-      .spec(spec)
-      .body(rulesToUpdate)
-      .when()
-      .put(SERVICE_PATH + MARC_BIB)
-      .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
+    shouldReturnBadRequestWhenTryToModifiedAuthorityRules("WRONG-RULES-FORMAT", SERVICE_PATH + MARC_BIB);
     // then
     String actualRules =
       RestAssured.given()
@@ -114,6 +107,28 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .put(SERVICE_PATH + "/invalid" + RESTORE)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenTryEditAuthorityRules() throws IOException {
+    shouldReturnBadRequestWhenTryToModifiedAuthorityRules(TestUtil.readFileFromPath(DEFAULT_MARC_AUTHORITY_RULES_PATH),
+      SERVICE_PATH + MARC_AUTHORITY);
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenTryRestoreAuthorityRules() throws IOException {
+    shouldReturnBadRequestWhenTryToModifiedAuthorityRules(TestUtil.readFileFromPath(DEFAULT_MARC_AUTHORITY_RULES_PATH),
+      SERVICE_PATH + MARC_AUTHORITY + RESTORE);
+  }
+
+  private void shouldReturnBadRequestWhenTryToModifiedAuthorityRules(String defaultAuthorityRules, String url) {
+    RestAssured.given()
+      .spec(spec)
+      .body(defaultAuthorityRules)
+      .when()
+      .put(url)
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
