@@ -1,16 +1,25 @@
 package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
+import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.*;
 import org.folio.services.JobExecutionsCache;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.Date;
 import java.util.List;
@@ -18,22 +27,31 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
  */
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
-
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
+
+  @Spy
+  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
+  @Spy
+  @InjectMocks
+  private JournalRecordDaoImpl journalRecordDao;
+
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+  }
 
   @Test
   public void shouldReturnEmptyListIfNoJobExecutionsExist() {
@@ -279,5 +297,91 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK);
 
     return jobExecution;
+  }
+
+  @Test
+  public void shouldReturnJournalRecordsSortedBySourceRecordOrder(TestContext testContext) {
+    Async async = testContext.async();
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String title = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, title, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(testContext::fail);
+
+    future.onComplete(ar -> testContext.verify(v -> {
+      JournalRecordCollection journalRecords = RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=source_record_order&order=desc")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .extract().response().body().as(JournalRecordCollection.class);
+
+      assertThat(journalRecords.getTotalRecords(), is(4));
+      assertThat(journalRecords.getJournalRecords().size(), is(4));
+      Assert.assertEquals(journalRecords.getJournalRecords().get(0).getSourceRecordOrder(), journalRecords.getJournalRecords().get(1).getSourceRecordOrder());
+      assertThat(journalRecords.getJournalRecords().get(1).getSourceRecordOrder(), greaterThan(journalRecords.getJournalRecords().get(2).getSourceRecordOrder()));
+      Assert.assertEquals(journalRecords.getJournalRecords().get(2).getSourceRecordOrder(), journalRecords.getJournalRecords().get(3).getSourceRecordOrder());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnJournalRecordsWithTitleWhenSortedBySourceRecordOrder2(TestContext testContext) {
+    Async async = testContext.async();
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    String expectedRecordTitle = "The Journal of ecclesiastical history.";
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecutions.get(0).getId(), sourceRecordId, null, null, expectedRecordTitle, 2, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(testContext::fail);
+
+    future.onComplete(ar -> testContext.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=source_record_order&order=desc")
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("journalRecords.size()", is(4))
+        .extract().response().body().as(JournalRecordCollection.class).getJournalRecords()
+        .stream()
+        .filter(journalRecord -> journalRecord.getEntityType().equals(EntityType.MARC_BIBLIOGRAPHIC))
+        .forEach(journalRecord -> assertThat(journalRecord.getTitle(), is(expectedRecordTitle)));
+      async.complete();
+    }));
+  }
+
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
+                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage) {
+    JournalRecord journalRecord = new JournalRecord()
+      .withJobExecutionId(jobExecutionId)
+      .withSourceId(sourceId)
+      .withTitle(title)
+      .withSourceRecordOrder(recordOrder)
+      .withEntityType(entityType)
+      .withActionType(actionType)
+      .withActionStatus(actionStatus)
+      .withError(errorMessage)
+      .withActionDate(new Date())
+      .withEntityId(entityId)
+      .withEntityHrId(entityHrid);
+    return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
   }
 }
