@@ -2,8 +2,14 @@
 * [MODSOURMAN-577](https://issues.folio.org/browse/MODSOURMAN-577) Optimistic locking: mod-source-record-manager modifications
 * [MODSOURMAN-573](https://issues.folio.org/browse/MODSOURMAN-573) Create mapping rules for AUTHORITY records
 
-## 2021-10-06 v3.2.1-SNAPSHOT
+## 2021-10-xx v3.2.3-SNAPSHOT
+* [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
+
+## 2021-10-19 v3.2.2
 * [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Kiwi bugfest cannot import a large file; adjust mapping metadata snapshots creation
+
+## 2021-10-13 v3.2.1
+* [MODSOURMAN-583](https://issues.folio.org/browse/MODSOURMAN-583) Schema name can't replace in snippet (schema.json)
 
 ## 2021-10-06 v3.2.0
 * [MODSOURMAN-516](https://issues.folio.org/browse/MODSOURMAN-516) Send QM_COMPLETED event after processing finished
