@@ -29,7 +29,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String FAILED_EVENT_KEY = "FAILED_EVENT";
-  public static final String ERROR_KEY = "ERROR_MSG";
+  public static final String ERROR_KEY = "ERROR";
 
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
