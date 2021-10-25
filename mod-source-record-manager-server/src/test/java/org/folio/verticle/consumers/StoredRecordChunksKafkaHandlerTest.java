@@ -29,7 +29,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.ws.rs.BadRequestException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +36,6 @@ import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -55,6 +53,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   private static final String MARC_BIB_RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
   private static final String MARC_AUTHORITY_RECORD_PATH = "src/test/resources/org/folio/rest/marcAuthorityRecord.json";
   private static final String MARC_HOLDING_RECORD_PATH = "src/test/resources/org/folio/rest/marcHoldingRecord.json";
+  private static final String EDIFACT_RECORD_PATH = "src/test/resources/org/folio/rest/edifactRecord.json";
   private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
   private static final String TENANT_ID = "diku";
 
@@ -114,20 +113,99 @@ public class StoredRecordChunksKafkaHandlerTest {
 
   @Test
   public void shouldWriteSavedMarcBibRecordsInfoToImportJournal() throws IOException {
-    writeSavedMarcRecordsInfoToImportJournal(MARC_BIB_RECORD_PATH, EntityType.MARC_BIBLIOGRAPHIC);
+    writeSavedRecordsInfoToImportJournal(MARC_BIB_RECORD_PATH, EntityType.MARC_BIBLIOGRAPHIC);
   }
 
   @Test
   public void shouldWriteSavedMarcHoldingRecordsInfoToImportJournal() throws IOException {
-    writeSavedMarcRecordsInfoToImportJournal(MARC_HOLDING_RECORD_PATH, EntityType.MARC_HOLDINGS);
+    writeSavedRecordsInfoToImportJournal(MARC_HOLDING_RECORD_PATH, EntityType.MARC_HOLDINGS);
   }
 
   @Test
   public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournal() throws IOException {
-    writeSavedMarcRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
+    writeSavedRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
   }
 
-  private void writeSavedMarcRecordsInfoToImportJournal(String marcBibRecordPath, EntityType entityType)
+  @Test
+  public void shouldWriteSavedEdifactRecordsInfoToImportJournal() throws IOException {
+    writeSavedRecordsInfoToImportJournal(EDIFACT_RECORD_PATH, EntityType.EDIFACT);
+  }
+
+  @Test
+  public void shouldReturnFailedWhenRecordsIsEmpty() throws IOException{
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
+
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
+      .withRecords(List.of())
+      .withTotalRecords(1);
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventPayload(Json.encode(savedRecordsBatch));
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    assertTrue(future.failed());
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenMappingRuleCacheReturnFailed() throws IOException{
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
+
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
+      .withRecords(List.of(record))
+      .withTotalRecords(1);
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventPayload(Json.encode(savedRecordsBatch));
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    assertTrue(future.failed());
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenJobExecutionIdIsEmpty() throws IOException{
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
+
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
+      .withRecords(List.of(record))
+      .withTotalRecords(1);
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventPayload(Json.encode(savedRecordsBatch));
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
+    when(recordsPublishingService
+      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
+      .thenReturn(Future.failedFuture(new Exception()));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    assertTrue(future.failed());
+  }
+
+  private void writeSavedRecordsInfoToImportJournal(String marcBibRecordPath, EntityType entityType)
     throws IOException {
     // given
     Record record = Json.decodeValue(TestUtil.readFileFromPath(marcBibRecordPath), Record.class);

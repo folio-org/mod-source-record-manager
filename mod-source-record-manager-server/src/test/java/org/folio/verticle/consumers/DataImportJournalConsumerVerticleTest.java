@@ -38,14 +38,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -266,6 +259,25 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       Assert.assertNotNull(ar.result());
       async.complete();
     });
+  }
+
+  @Test
+  public void testJournalRecordMappingError(TestContext context) throws IOException, ExecutionException, InterruptedException {
+    Async async = context.async();
+
+    // given
+    String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
+    Event event = new Event().withEventPayload(null).withEventType(DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value()).withId(UUID.randomUUID().toString());
+    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+
+    // when
+    Future<String> future = dataImportJournalKafkaHandler.handle(new KafkaConsumerRecordImpl<>(consumerRecord));
+
+    // then
+    future.onComplete(ar -> {
+        context.assertTrue(ar.failed());
+        async.complete();
+      });
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) {
