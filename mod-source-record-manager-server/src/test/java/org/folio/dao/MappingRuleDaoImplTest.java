@@ -1,13 +1,9 @@
 package org.folio.dao;
 
-import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
