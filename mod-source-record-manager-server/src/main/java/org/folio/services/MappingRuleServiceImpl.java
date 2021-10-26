@@ -74,7 +74,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    isMarcAuthorityRecord(recordType, promise);
+    rejectUnsupportedType(recordType, promise);
     if (isValidJson(rules)) {
       MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, recordType);
       mappingRuleDao.update(new JsonObject(rules), recordType, tenantId)
@@ -91,7 +91,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<JsonObject> restore(Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    isMarcAuthorityRecord(recordType, promise);
+    rejectUnsupportedType(recordType, promise);
     Optional<String> optionalRules = receiveDefaultRules(recordType);
 
     if (optionalRules.isPresent()) {
@@ -116,7 +116,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     return optionalRules;
   }
 
-  private void isMarcAuthorityRecord(Record.RecordType recordType, Promise<JsonObject> promise) {
+  private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
     if(recordType == Record.RecordType.MARC_AUTHORITY){
       String errorMessage = "Can't edit/restore MARC Authority record";
       LOGGER.error(errorMessage);
