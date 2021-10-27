@@ -1981,8 +1981,16 @@
       "description": "Instance type ID",
       "ignoreSubsequentFields": true,
       "ignoreSubsequentSubfields": true,
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
+        "a",
         "b"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": "~",
+          "subfields": ["a","b"]
+        }
       ],
       "rules": [
         {
