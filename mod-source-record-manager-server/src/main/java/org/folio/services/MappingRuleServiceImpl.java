@@ -118,7 +118,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
     if(recordType == Record.RecordType.MARC_AUTHORITY){
-      String errorMessage = "Can't edit/restore MARC Authority record";
+      String errorMessage = "Can't edit/restore MARC Authority default mapping rules";
       LOGGER.error(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     }
