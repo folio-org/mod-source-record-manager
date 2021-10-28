@@ -23,7 +23,10 @@ DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text, source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint, invoice_line_journal_record_id uuid)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
+                  source_record_action_status text, instance_action_status text, holdings_action_status text,
+                  item_action_status text, order_action_status text, invoice_action_status text, error text,
+                  total_count bigint, invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text)
 AS $$
 BEGIN
     RETURN QUERY EXECUTE format('
@@ -39,7 +42,9 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        get_entity_status(item_actions, item_errors_number) AS item_action_status,
        get_entity_status(order_actions, order_errors_number) AS order_action_status,
        null AS invoice_action_status, rec_errors.error, records_actions.total_count,
-       null AS invoiceLineJournalRecordId
+       null AS invoiceLineJournalRecordId,
+       records_actions.source_record_entity_type,
+       records_actions.holdings_entity_hrid
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                 array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
@@ -52,7 +57,9 @@ FROM (
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ITEM'' AND journal_records.error != '''') AS item_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''ORDER'') AS order_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
-                count(journal_records.source_id) OVER () AS total_count
+                count(journal_records.source_id) OVER () AS total_count,
+                (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
+ 				(array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''INSTANCE''))[1] as holdings_entity_hrid
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%s'' and
                entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'')
@@ -80,7 +87,11 @@ SELECT records_actions.job_execution_id, records_actions.source_id, source_recor
        null AS item_action_status,
        null AS order_action_status,
        get_entity_status(invoice_actions, invoice_errors_number) AS invoice_action_status,
-       error, records_actions.total_count, invoiceLineJournalRecordId
+       error,
+       records_actions.total_count,
+       invoiceLineJournalRecordId,
+       records_actions.source_record_entity_type,
+       records_actions.holdings_entity_hrid
 FROM (
          SELECT journal_records.source_id, journal_records.job_execution_id, source_record_order, entity_hrid, title, error,
                 array[]::varchar[] AS marc_actions,
@@ -88,7 +99,9 @@ FROM (
                 array_agg(action_type) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''INVOICE'' AND journal_records.error != '''') AS invoice_errors_number,
                 count(journal_records.source_id) OVER () AS total_count,
-                id AS invoiceLineJournalRecordId
+                id AS invoiceLineJournalRecordId,
+                (array_agg(entity_type) FILTER (WHERE entity_type IN (''EDIFACT'')))[1] AS source_record_entity_type,
+                (array[]::varchar[])[1] as holdings_entity_hrid
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,

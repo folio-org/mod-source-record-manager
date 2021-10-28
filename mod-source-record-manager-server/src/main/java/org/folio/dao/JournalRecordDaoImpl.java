@@ -87,6 +87,7 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  public static final String SOURCE_RECORD_ENTITY_TYPE = "source_record_entity_type";
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
@@ -236,31 +237,44 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private JobLogEntryDtoCollection mapRowSetToJobLogDtoCollection(RowSet<Row> rowSet) {
-    JobLogEntryDtoCollection jobLogEntryDtoCollection = new JobLogEntryDtoCollection()
+    var jobLogEntryDtoCollection = new JobLogEntryDtoCollection()
       .withTotalRecords(0);
 
-    rowSet.forEach(row -> {
-      JobLogEntryDto jobLogEntryDto = new JobLogEntryDto()
-        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-        .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS)) ?
-          row.getInteger(SOURCE_RECORD_ORDER).toString() : row.getString(INVOICE_LINE_NUMBER))
-        .withSourceRecordTitle(row.getString(TITLE))
-        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-        .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
-        .withHoldingsActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
-        .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
-        .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
-        .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
-        .withInvoiceLineJournalRecordId(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID) != null
-          ? row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString() : null)
-        .withError(row.getString(ERROR));
-
+    rowSet.forEach(row ->
       jobLogEntryDtoCollection
         .withTotalRecords(row.getInteger(TOTAL_COUNT))
-        .getEntries().add(jobLogEntryDto);
-    });
+        .getEntries().add(mapJobLogEntryRow(row))
+    );
     return jobLogEntryDtoCollection;
+  }
+
+  private JobLogEntryDto mapJobLogEntryRow(Row row) {
+    final var entityType = mapToEntityType(row.getString(SOURCE_RECORD_ENTITY_TYPE));
+    final var entityHrid = row.getString(HOLDINGS_ENTITY_HRID);
+    return new JobLogEntryDto()
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+      .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
+        ? row.getInteger(SOURCE_RECORD_ORDER).toString()
+        : row.getString(INVOICE_LINE_NUMBER))
+      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid))
+      .withSourceRecordType(entityType)
+      .withSourceRecordHrid(entityHrid)
+      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+      .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
+      .withHoldingsActionStatus(mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS)))
+      .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
+      .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+      .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+      .withInvoiceLineJournalRecordId(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID) != null
+        ? row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString() : null)
+      .withError(row.getString(ERROR));
+  }
+
+  private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String entityHrid) {
+    return JobLogEntryDto.SourceRecordType.MARC_HOLDINGS.equals(entityType)
+        ? "Holdings " + entityHrid
+        : title;
   }
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {
@@ -315,4 +329,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return name == null ? null : org.folio.rest.jaxrs.model.ActionStatus.fromValue(name);
   }
 
+  private JobLogEntryDto.SourceRecordType mapToEntityType(String entityType) {
+    return entityType == null ? null : JobLogEntryDto.SourceRecordType.fromValue(entityType);
+  }
 }
