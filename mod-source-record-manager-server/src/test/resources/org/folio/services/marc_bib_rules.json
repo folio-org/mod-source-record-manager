@@ -113,6 +113,48 @@
       ]
     }
   ],
+  "019": [
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Cancelled system control number",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled system control number",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "020": [
     {
       "entity": [
@@ -333,11 +375,11 @@
   ],
   "024": [
     {
-      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
           "description": "Type for Other Standard Identifier",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
@@ -362,6 +404,7 @@
         {
           "target": "identifiers.value",
           "description": "Other Standard Identifier",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "c",
@@ -381,15 +424,209 @@
           ]
         }
       ]
-    }
-  ],
-  "028": [
+    },
     {
+      "indicators": {
+        "ind1": "2",
+        "ind2": "*"
+      },
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Resource identifier types",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "ISMN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "ISMN",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "concat_subfields_by_name, trim",
+                  "parameter": {
+                    "subfieldsToConcat": [
+                      "q"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "2",
+        "ind2": "*"
+      },
       "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
+          "description": "Type for Resource identifier types",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid ISMN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Invalid ISMN",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "concat_subfields_by_name, trim",
+                  "parameter": {
+                    "subfieldsToConcat": [
+                      "q"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "1",
+        "ind2": "*"
+      },
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Resource identifier types",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "UPC"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "UPC",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "concat_subfields_by_name, trim",
+                  "parameter": {
+                    "subfieldsToConcat": [
+                      "q"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "1",
+        "ind2": "*"
+      },
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Resource identifier types",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Invalid UPC"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Invalid UPC",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "concat_subfields_by_name, trim",
+                  "parameter": {
+                    "subfieldsToConcat": [
+                      "q"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "028": [
+    {
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
           "description": "Type for Publisher Number",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -411,6 +648,7 @@
         {
           "target": "identifiers.value",
           "description": "Publisher Number",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -461,6 +699,46 @@
           "description": "System Control Number",
           "subfield": [
             "a"
+          ]
+        }
+      ]
+    },
+    {
+      "entityPerRepeatedSubfield": true,
+      "entity": [
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Type for Cancelled system control number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled system control number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled system control number",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
           ]
         }
       ]
@@ -1703,8 +1981,16 @@
       "description": "Instance type ID",
       "ignoreSubsequentFields": true,
       "ignoreSubsequentSubfields": true,
+      "applyRulesOnConcatenatedData": true,
       "subfield": [
+        "a",
         "b"
+      ],
+      "subFieldDelimiter": [
+        {
+          "value": "~",
+          "subfields": ["a","b"]
+        }
       ],
       "rules": [
         {
@@ -3779,6 +4065,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -3794,8 +4081,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -3885,6 +4175,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -3910,8 +4201,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -4467,30 +4761,30 @@
   ],
   "561": [
     {
-      "target": "notes.instanceNoteTypeId",
-      "description": "Instance note type id",
-      "subfield": [
-        "a",
-        "u",
-        "3",
-        "5"
-      ],
-      "applyRulesOnConcatenatedData": true,
-      "rules": [
+      "entity": [
         {
-          "conditions": [
+          "target": "notes.instanceNoteTypeId",
+          "description": "Instance note type id",
+          "subfield": [
+            "a",
+            "u",
+            "3",
+            "5"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
             {
-              "type": "set_note_type_id",
-              "parameter": {
-                "name": "Ownership and Custodial History note"
-              }
+              "conditions": [
+                {
+                  "type": "set_note_type_id",
+                  "parameter": {
+                    "name": "Ownership and Custodial History note"
+                  }
+                }
+              ]
             }
           ]
-        }
-      ]
-    },
-    {
-      "entity": [
+        },
         {
           "target": "notes.note",
           "description": "Ownership and Custodial History",
@@ -4514,6 +4808,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "u",
@@ -4522,8 +4817,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -4999,6 +5297,7 @@
         {
           "target": "notes.staffOnly",
           "description": "If true, determines that the note should not be visible for others than staff",
+          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "b",
@@ -5022,8 +5321,11 @@
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -5632,6 +5934,10 @@
       "target": "subjects",
       "description": "Subject Headings",
       "subfield": [
+        "a",
+        "c",
+        "d",
+        "g",
         "x",
         "y",
         "z",
@@ -5651,6 +5957,10 @@
         {
           "value": "--",
           "subfields": [
+            "a",
+            "c",
+            "d",
+            "g",
             "x",
             "y",
             "z",
@@ -6564,6 +6874,34 @@
               ]
             }
           ]
+        }
+      ]
+    }
+  ],
+  "880": [
+    {
+      "target": "",
+      "description": "Field for target post-processing based on first 3 digits in subfield 6",
+      "subfield": [
+        "6"
+      ],
+      "fieldReplacementBy3Digits": true,
+      "fieldReplacementRule": [
+        {
+          "sourceDigits": "100",
+          "targetField": "700"
+        },
+        {
+          "sourceDigits": "110",
+          "targetField": "710"
+        },
+        {
+          "sourceDigits": "111",
+          "targetField": "711"
+        },
+        {
+          "sourceDigits": "245",
+          "targetField": "246"
         }
       ]
     }
