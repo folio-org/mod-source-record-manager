@@ -1,29 +1,25 @@
 {
   "001": [
     {
-      "entity": [
+      "target": "identifiers.value",
+      "description": "Control number",
+      "subfield": [],
+      "rules": []
+    },
+    {
+      "target": "identifiers.identifierTypeId",
+      "description": "Control number",
+      "subfield": [],
+      "rules": [
         {
-          "target": "identifiers.identifierTypeId",
-          "description": "Control number",
-          "subfield": [],
-          "rules": [
+          "conditions": [
             {
-              "conditions": [
-                {
-                  "type": "set_identifier_type_id_by_name",
-                  "parameter": {
-                    "name": "Control number"
-                  }
-                }
-              ]
+              "type": "set_identifier_type_id_by_name",
+              "parameter": {
+                "name": "Control number"
+              }
             }
           ]
-        },
-        {
-          "target": "identifiers.value",
-          "description": "Control number",
-          "subfield": [],
-          "rules": []
         }
       ]
     }

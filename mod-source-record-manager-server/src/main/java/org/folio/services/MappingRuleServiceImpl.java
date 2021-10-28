@@ -27,8 +27,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
   private static final String DEFAULT_HOLDINGS_RULES_PATH = "rules/marc_holdings_rules.json";
-  private MappingRuleDao mappingRuleDao;
-  private MappingRuleCache mappingRuleCache;
+  private static final String DEFAULT_AUTHORITY_RULES_PATH = "rules/marc_authority_rules.json";
+  private final MappingRuleDao mappingRuleDao;
+  private final MappingRuleCache mappingRuleCache;
 
   @Autowired
   public MappingRuleServiceImpl(MappingRuleDao mappingRuleDao, MappingRuleCache mappingRuleCache) {
@@ -44,13 +45,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<Void> saveDefaultRules(Record.RecordType recordType, String tenantId) {
     Promise<Void> promise = Promise.promise();
-    Optional<String> optionalRules = Optional.empty();
-
-    if (Record.RecordType.MARC_BIB == recordType) {
-      optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
-    } else if (Record.RecordType.MARC_HOLDING == recordType) {
-      optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
-    }
+    Optional<String> optionalRules = receiveDefaultRules(recordType);
 
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
@@ -79,6 +74,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
+    rejectUnsupportedType(recordType, promise);
     if (isValidJson(rules)) {
       MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, recordType);
       mappingRuleDao.update(new JsonObject(rules), recordType, tenantId)
@@ -95,13 +91,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<JsonObject> restore(Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    Optional<String> optionalRules = Optional.empty();
-
-    if (Record.RecordType.MARC_BIB == recordType) {
-      optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
-    } else if (Record.RecordType.MARC_HOLDING == recordType) {
-      optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
-    }
+    rejectUnsupportedType(recordType, promise);
+    Optional<String> optionalRules = receiveDefaultRules(recordType);
 
     if (optionalRules.isPresent()) {
       update(optionalRules.get(), recordType, tenantId).onComplete(promise);
@@ -111,6 +102,26 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       promise.fail(new InternalServerErrorException(errorMessage));
     }
     return promise.future();
+  }
+
+  private Optional<String> receiveDefaultRules(Record.RecordType recordType) {
+    Optional<String> optionalRules = Optional.empty();
+    if (Record.RecordType.MARC_BIB == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_BIB_RULES_PATH);
+    } else if (Record.RecordType.MARC_HOLDING == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_HOLDINGS_RULES_PATH);
+    } else if (Record.RecordType.MARC_AUTHORITY == recordType) {
+      optionalRules = readResourceFromPath(DEFAULT_AUTHORITY_RULES_PATH);
+    }
+    return optionalRules;
+  }
+
+  private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
+    if(recordType == Record.RecordType.MARC_AUTHORITY){
+      String errorMessage = "Can't edit/restore MARC Authority default mapping rules";
+      LOGGER.error(errorMessage);
+      promise.fail(new BadRequestException(errorMessage));
+    }
   }
 
   /**

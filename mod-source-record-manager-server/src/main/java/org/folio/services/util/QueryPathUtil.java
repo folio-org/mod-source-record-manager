@@ -7,12 +7,13 @@ import java.util.Optional;
 import org.folio.Record;
 
 public final class QueryPathUtil {
-  private static Map<String, Record.RecordType> queryToRecordTypeMap;
+  private static final Map<String, Record.RecordType> queryToRecordTypeMap;
 
   static {
     queryToRecordTypeMap = new HashMap<>();
     queryToRecordTypeMap.put("marc-bib", Record.RecordType.MARC_BIB);
     queryToRecordTypeMap.put("marc-holdings", Record.RecordType.MARC_HOLDING);
+    queryToRecordTypeMap.put("marc-authority", Record.RecordType.MARC_AUTHORITY);
   }
 
   private QueryPathUtil() {
