@@ -1,3 +1,8 @@
+## 2021-10-29 v3.2.3
+* [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
+* [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b) 
+* Updated data-import-processing-core to v3.2.2
+
 ## 2021-10-19 v3.2.2
 * [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Adjust mapping metadata snapshots creation
 
