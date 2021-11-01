@@ -355,7 +355,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordId", is(sourceRecordId1))
         .body("entries[0].sourceRecordTitle", is(recordTitle1))
         .body("entries[0].sourceRecordOrder", is("1"))
-        .body("entries[0].holdingsRecordHridList.size", is(empty()))
+        .body("entries[0].holdingsRecordHridList", is(empty()))
         .body("entries[0].sourceRecordType", is(MARC_BIBLIOGRAPHIC.value()));
 
       async.complete();
