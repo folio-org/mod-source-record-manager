@@ -12,6 +12,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ORDER;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
@@ -243,6 +244,35 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnHoldingsTitleWithHoldingsHrid(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+        .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, MARC_HOLDINGS, COMPLETED, null))
+        .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "ho00000000001",  null, 0, CREATE, HOLDINGS, COMPLETED, null))
+        .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+          .spec(spec)
+          .when()
+          .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+          .then()
+          .statusCode(HttpStatus.SC_OK)
+          .body("entries.size()", is(1))
+          .body("totalRecords", is(1))
+          .body("entries[0].sourceRecordId", is(sourceRecordId))
+          .body("entries[0].sourceRecordTitle", is("Holdings ho00000000001"))
+          .body("entries[0].holdingsRecordHridList[0]", is("ho00000000001"))
+          .body("entries[0].sourceRecordType", is(MARC_HOLDINGS.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnSortedEntriesWhenSortByParameterSpecified(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -325,7 +355,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordId", is(sourceRecordId1))
         .body("entries[0].sourceRecordTitle", is(recordTitle1))
         .body("entries[0].sourceRecordOrder", is("1"))
-        .body("entries[0].holdingsRecordHridList[0]", is("in00000000001"))
+        .body("entries[0].holdingsRecordHridList.size", is(empty()))
         .body("entries[0].sourceRecordType", is(MARC_BIBLIOGRAPHIC.value()));
 
       async.complete();
