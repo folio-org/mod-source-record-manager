@@ -65,27 +65,21 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
   }
 
   private void sendDiErrorForRecord(String jobExecutionId, Record record, OkapiConnectionParams okapiParams, String errorMsg) {
-    DataImportEventPayload errorPayload = getErrorPayload(jobExecutionId, okapiParams, new HashMap<>() {{
-      put(getSourceRecordKey(record), Json.encode(record));
-      put(ERROR_KEY, errorMsg);
-    }});
+    DataImportEventPayload errorPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(jobExecutionId)
+      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withTenant(okapiParams.getTenantId())
+      .withToken(okapiParams.getToken())
+      .withContext(new HashMap<>() {{
+        put(getSourceRecordKey(record), Json.encode(record));
+        put(ERROR_KEY, errorMsg);
+      }});
 
     okapiParams.getHeaders().set(RECORD_ID_HEADER, record.getId());
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(errorPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}", errorPayload.getJobExecutionId(), record.getId(), th));
-  }
-
-  private DataImportEventPayload getErrorPayload(String jobExecutionId,
-                                                 OkapiConnectionParams params,
-                                                 HashMap<String, String> context) {
-    return new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withJobExecutionId(jobExecutionId)
-      .withOkapiUrl(params.getOkapiUrl())
-      .withTenant(params.getTenantId())
-      .withToken(params.getToken())
-      .withContext(context);
   }
 
   private String getSourceRecordKey(Record record) {
