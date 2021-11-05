@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.ReadKeyValues;
@@ -13,7 +14,26 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.Record;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,16 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(VertxUnitRunner.class)
 public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
@@ -180,7 +190,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
         .observeFor(30, TimeUnit.SECONDS)
         .build());
     }
-    for (String observedValue: observedValues) {
+    for (String observedValue : observedValues) {
       if (observedValue.contains(leader)) {
         result.add(observedValue);
       }
