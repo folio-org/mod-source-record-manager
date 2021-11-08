@@ -3,12 +3,7 @@ package org.folio.verticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.GlobalLoadSensor;
-import org.folio.kafka.KafkaConfig;
-import org.folio.kafka.KafkaConsumerWrapper;
-import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.kafka.SubscriptionDefinition;
+import org.folio.kafka.*;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +50,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .loadLimit(loadLimit)
         .globalLoadSensor(globalLoadSensor)
         .subscriptionDefinition(subscriptionDefinition)
+        .processRecordErrorHandler(getErrorHandler())
         .build());
     });
     List<Future<Void>> futures = new ArrayList<>();
@@ -83,5 +79,16 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   public abstract List<String> getEvents();
 
   public abstract AsyncRecordHandler<String, String> getHandler();
+
+  /**
+   * By default error handler is null and so not invoked by folio-kafka-wrapper for failure cases.
+   * If you need to add error handling logic and send DI_ERROR events - override this method with own error handler
+   * implementation for  particular consumer instance.
+   *
+   * @return error handler
+   */
+  public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+    return null;
+  };
 
 }

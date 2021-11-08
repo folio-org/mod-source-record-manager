@@ -4,17 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.folio.rest.jaxrs.model.*;
+import org.folio.services.exceptions.RecordsProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,10 +24,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
@@ -38,7 +32,6 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String RECORD_ID_HEADER = "recordId";
-  private static final String ERROR_MSG_KEY = "ERROR";
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
@@ -71,6 +64,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType) {
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
+    List<Record> failedRecords = new ArrayList<>();
     ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
 
     for (Record record : createdRecords) {
@@ -79,15 +73,18 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
-          Future<Boolean> booleanFuture = sendEventToKafka(params.getTenantId(), Json.encode(payload),
-            eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key);
-          futures.add(booleanFuture.onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
+          futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
+            eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
         }
       } catch (Exception e) {
-        LOGGER.error("Error publishing event with record", e);
-        futures.add(Future.<Boolean>failedFuture(e)
-          .onFailure(th -> sendEventWithRecordPublishingError(record, jobExecution, params, th.getMessage(), kafkaConfig, key)));
+        LOGGER.error("Error publishing event with record id: {}",record.getId(), e);
+        record.setErrorRecord(new ErrorRecord().withContent(record.getRawRecord()).withDescription(e.getMessage()));
+        failedRecords.add(record);
       }
+    }
+
+    if (CollectionUtils.isNotEmpty(failedRecords)) {
+      futures.add(Future.failedFuture(new RecordsProcessingException(String.format("Failed to process %s records", failedRecords.size()), failedRecords)));
     }
 
     GenericCompositeFuture.join(futures).onComplete(ar -> {
@@ -99,39 +96,6 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       promise.complete(true);
     });
     return promise.future();
-  }
-
-  private void sendEventWithRecordPublishingError(Record record, JobExecution jobExecution, OkapiConnectionParams params, String errorMsg, KafkaConfig kafkaConfig, String key) {
-    String sourceRecordKey = getSourceRecordKey(record);
-
-    DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
-      .withJobExecutionId(record.getSnapshotId())
-      .withOkapiUrl(params.getOkapiUrl())
-      .withTenant(params.getTenantId())
-      .withToken(params.getToken())
-      .withContext(new HashMap<>() {{
-        put(sourceRecordKey, Json.encode(record));
-        put(ERROR_MSG_KEY, errorMsg);
-      }});
-
-    sendEventToKafka(params.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key)
-      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for record with id {}", record.getId(), th));
-  }
-
-  private String getSourceRecordKey(Record record) {
-    switch (record.getRecordType()) {
-      case MARC_BIB:
-        return MARC_BIBLIOGRAPHIC.value();
-      case MARC_AUTHORITY:
-        return MARC_AUTHORITY.value();
-      case MARC_HOLDING:
-        return MARC_HOLDINGS.value();
-      case EDIFACT:
-      default:
-        return EDIFACT_INVOICE.value();
-    }
   }
 
   /**

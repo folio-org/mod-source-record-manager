@@ -1,6 +1,7 @@
 package org.folio.verticle;
 
 import org.folio.kafka.AsyncRecordHandler;
+import org.folio.kafka.ProcessRecordErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -15,6 +16,10 @@ public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticl
   @Qualifier("StoredRecordChunksKafkaHandler")
   private AsyncRecordHandler<String, String> storedRecordChunksKafkaHandler;
 
+  @Autowired
+  @Qualifier("StoredRecordChunksErrorHandler")
+  private ProcessRecordErrorHandler<String, String> errorHandler;
+
   @Override
   public List<String> getEvents() {
     return Collections.singletonList(DI_PARSED_RECORDS_CHUNK_SAVED.value());
@@ -25,4 +30,8 @@ public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticl
     return this.storedRecordChunksKafkaHandler;
   }
 
+  @Override
+  public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+    return this.errorHandler;
+  }
 }

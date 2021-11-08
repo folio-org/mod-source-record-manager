@@ -449,7 +449,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
       MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
       LOGGER.info("Marc record analyzer parsed record with id = {} and type = {}", recordId, marcRecordType);
-      return RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
+      return MarcRecordType.NA == marcRecordType ? null : RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
     }
 
     return RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value());

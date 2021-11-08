@@ -7,20 +7,22 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
+import net.mguenther.kafka.junit.ReadKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
+import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.*;
+import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -31,8 +33,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(VertxUnitRunner.class)
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
@@ -61,52 +62,13 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException, IOException {
     // given
-    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExecution.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-
-    RawRecordsDto chunk = new RawRecordsDto()
-      .withId(UUID.randomUUID().toString())
-      .withInitialRecords(List.of(new InitialRecord().withRecord(RAW_RECORD_WITH_999_ff_field).withOrder(0)))
-      .withRecordsMetadata(new RecordsMetadata()
-        .withContentType(RecordsMetadata.ContentType.MARC_RAW)
-        .withCounter(1)
-        .withLast(false)
-        .withTotal(1));
-
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("42", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecution.getId(), UTF_8);
-
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
     // when
     kafkaCluster.send(request);
 
     // then
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(60, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
@@ -119,52 +81,13 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldParseAndPublishChunkWithEdifactRecord() throws InterruptedException, IOException {
     // given
-    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExecution = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("Create EDIFACT invoice")
-        .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.EDIFACT))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExecution.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-
-    RawRecordsDto chunk = new RawRecordsDto()
-      .withId(UUID.randomUUID().toString())
-      .withInitialRecords(List.of(new InitialRecord().withRecord(rawEdifactContent).withOrder(0)))
-      .withRecordsMetadata(new RecordsMetadata()
-        .withContentType(RecordsMetadata.ContentType.EDIFACT_RAW)
-        .withCounter(1)
-        .withLast(false)
-        .withTotal(1));
-
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecution.getId(), UTF_8);
-
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.EDIFACT, RecordsMetadata.ContentType.EDIFACT_RAW, rawEdifactContent);
 
     // when
     kafkaCluster.send(request);
 
     // then
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(60, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
@@ -174,6 +97,111 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldNotObserveValuesWhenEventPayloadNotParsed() throws InterruptedException {
     // given
+    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, "errorPayload");
+    String jobExecutionId = getJobExecutionId(request);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
+    checkDiErrorEventsSent(jobExecutionId,"Failed to decode:Unrecognized token 'errorPayload': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')");
+  }
+
+  @Test
+  public void shouldCreateErrorRecordsWhenRecordNotParsed() throws InterruptedException {
+    // given
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, "errorPayload");
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    assertEquals(1, recordCollection.getRecords().size());
+    ErrorRecord errorRecord = recordCollection.getRecords().get(0).getErrorRecord();
+    assertTrue(errorRecord.getDescription().contains("org.marc4j.MarcException"));
+  }
+
+  @Test
+  public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException, IOException {
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    String jobExecutionId = UUID.randomUUID().toString();
+
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
+
+    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
+    checkDiErrorEventsSent(jobExecutionId, "Couldn't find JobExecution with id");
+  }
+
+  @Test
+  public void shouldNotSendAnyEventsForDuplicates() throws InterruptedException {
+    // given
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    JobExecutionSourceChunkDao jobExecutionSourceChunkDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionSourceChunkDao.class);
+    jobExecutionSourceChunkDao.save(new JobExecutionSourceChunk()
+      .withId(chunk.getId())
+      .withState(JobExecutionSourceChunk.State.IN_PROGRESS), TENANT_ID);
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
+    String jobExecutionId = getJobExecutionId(request);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
+    checkEventWithTypeWasNotSend(jobExecutionId, DI_ERROR);
+  }
+
+  private SendKeyValues<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
+                                                                   RecordsMetadata.ContentType contentType,
+                                                                   String record) {
+    RawRecordsDto chunk = getChunk(contentType, record);
+
+    return prepareWithSpecifiedEventPayload(dataType, Json.encode(chunk));
+  }
+
+  private SendKeyValues<String, String> prepareWithSpecifiedEventPayload(JobProfileInfo.DataType dataType,
+                                                                         String eventPayload) {
+    String jobExecutionId = emulateJobExecutionIdRequest(dataType);
+
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(eventPayload);
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
+
+    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
+    return SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+  }
+
+  private RawRecordsDto getChunk(RecordsMetadata.ContentType contentType, String record) {
+    return new RawRecordsDto()
+      .withId(UUID.randomUUID().toString())
+      .withInitialRecords(List.of(new InitialRecord().withRecord(record).withOrder(0)))
+      .withRecordsMetadata(new RecordsMetadata()
+        .withContentType(contentType)
+        .withCounter(1)
+        .withLast(false)
+        .withTotal(1));
+  }
+
+  private String emulateJobExecutionIdRequest(JobProfileInfo.DataType dataType) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
@@ -182,67 +210,73 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
-        .withName("Create EDIFACT invoice")
+        .withName("Records name")
         .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.EDIFACT))
+        .withDataType(dataType))
       .when()
       .put(JOB_EXECUTION_PATH + jobExecution.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload("errorPayload");
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecution.getId(), UTF_8);
-
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-
-    // when
-    kafkaCluster.send(request);
-
-    // then
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 0)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
-    assertEquals(0, observedValues.size());
+    return jobExecution.getId();
   }
 
-  @Test
-  public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException, IOException {
-    RawRecordsDto chunk = new RawRecordsDto()
-      .withId(UUID.randomUUID().toString())
-      .withInitialRecords(List.of(new InitialRecord().withRecord(rawEdifactContent).withOrder(0)))
-      .withRecordsMetadata(new RecordsMetadata()
-        .withContentType(RecordsMetadata.ContentType.EDIFACT_RAW)
-        .withCounter(1)
-        .withLast(false)
-        .withTotal(1));
+  private String getJobExecutionId(SendKeyValues<String, String> request) {
+    return new String(request.getRecords().stream()
+      .findFirst()
+      .get()
+      .getHeaders()
+      .lastHeader(JOB_EXECUTION_ID_HEADER).value());
+  }
 
-    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(chunk));
-    KeyValue<String, String> kafkaRecord = new KeyValue<>("1", Json.encode(event));
-    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
-    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
-    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, UUID.randomUUID().toString(), UTF_8);
+  private Event checkEventWithTypeSent(DataImportEventTypes eventType) throws InterruptedException {
+    String topicToObserve = formatToKafkaTopicName(eventType.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .with(GROUP_ID_CONFIG, GROUP_ID)
+      .observeFor(60, TimeUnit.SECONDS)
+      .build());
+    return Json.decodeValue(observedValues.get(0), Event.class);
+  }
 
-    String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
-      .useDefaults();
-
-    // when
-    kafkaCluster.send(request);
-
-    // then
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+  private void checkEventWithTypeWasNotSend(String jobExecutionId, DataImportEventTypes eventType) throws InterruptedException {
+    String topicToObserve = formatToKafkaTopicName(eventType.value());
     List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 0)
       .with(GROUP_ID_CONFIG, GROUP_ID)
-      .observeFor(30, TimeUnit.SECONDS)
+      .observeFor(10, TimeUnit.SECONDS)
       .build());
-    assertEquals(0, observedValues.size());
+
+    List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
+
+    assertEquals(0, testedEventsPayLoads.size());
   }
 
+  private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) throws InterruptedException {
+    String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
+    List<String> observedValues = kafkaCluster.readValues(ReadKeyValues.from(observeTopic).build());
+    if (CollectionUtils.isEmpty(observedValues)) {
+      observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
+        .observeFor(60, TimeUnit.SECONDS)
+        .build());
+    }
+
+    List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
+
+    assertEquals(1, testedEventsPayLoads.size());
+    for (DataImportEventPayload payload: testedEventsPayLoads) {
+      String actualErrorMessage = payload.getContext().get(RawMarcChunksErrorHandler.ERROR_KEY);
+      assertTrue(actualErrorMessage.contains(errorMessage));
+    }
+  }
+
+  private List<DataImportEventPayload> filterObservedValues(String jobExecutionId, List<String> observedValues) {
+    List<DataImportEventPayload> result = new ArrayList<>();
+    for (String observedValue : observedValues) {
+      Event obtainedEvent = Json.decodeValue(observedValue, Event.class);
+      DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+      if (jobExecutionId.equals(eventPayload.getJobExecutionId())) {
+        result.add(eventPayload);
+      }
+    }
+    return result;
+  }
 }
