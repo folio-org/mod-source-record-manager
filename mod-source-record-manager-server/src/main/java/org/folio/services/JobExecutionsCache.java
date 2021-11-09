@@ -48,7 +48,7 @@ public class JobExecutionsCache {
         if (jobExecutionOptional != null && jobExecutionOptional.isPresent()) {
           promise.complete(jobExecutionOptional.get());
         } else {
-          jobExecutionService.getJobExecutionsWithoutParentMultiple(resultingQuery, offset, limit, tenantId)
+          jobExecutionService.getJobExecutionsWithoutParentMultiple(cqlQuery, offset, limit, tenantId)
             .onSuccess(ar -> {
               put(tenantId, resultingQuery, ar);
               promise.complete(ar);
