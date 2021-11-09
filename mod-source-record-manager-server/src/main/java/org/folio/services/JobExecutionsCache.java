@@ -42,14 +42,15 @@ public class JobExecutionsCache {
 
   public Future<JobExecutionDtoCollection> get(String tenantId, String cqlQuery, int offset, int limit) {
     Promise<JobExecutionDtoCollection> promise = Promise.promise();
-    cache.get(Pair.of(tenantId, cqlQuery)).whenComplete((jobExecutionOptional, e) -> {
+    String resultingQuery  = cqlQuery + " LIMIT " + limit + " OFFSET " + offset;
+    cache.get(Pair.of(tenantId, resultingQuery)).whenComplete((jobExecutionOptional, e) -> {
       if (e == null) {
         if (jobExecutionOptional != null && jobExecutionOptional.isPresent()) {
           promise.complete(jobExecutionOptional.get());
         } else {
-          jobExecutionService.getJobExecutionsWithoutParentMultiple(cqlQuery, offset, limit, tenantId)
+          jobExecutionService.getJobExecutionsWithoutParentMultiple(resultingQuery, offset, limit, tenantId)
             .onSuccess(ar -> {
-              put(tenantId, cqlQuery, ar);
+              put(tenantId, resultingQuery, ar);
               promise.complete(ar);
             })
             .onFailure(cause -> {
