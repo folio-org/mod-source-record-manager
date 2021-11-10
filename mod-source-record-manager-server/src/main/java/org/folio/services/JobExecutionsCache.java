@@ -42,14 +42,15 @@ public class JobExecutionsCache {
 
   public Future<JobExecutionDtoCollection> get(String tenantId, String cqlQuery, int offset, int limit) {
     Promise<JobExecutionDtoCollection> promise = Promise.promise();
-    cache.get(Pair.of(tenantId, cqlQuery)).whenComplete((jobExecutionOptional, e) -> {
+    String uniqueQuery = appendLimitAndOffset(cqlQuery, offset, limit);
+    cache.get(Pair.of(tenantId, uniqueQuery)).whenComplete((jobExecutionOptional, e) -> {
       if (e == null) {
-        if (jobExecutionOptional != null && jobExecutionOptional.isPresent()) {
+        if (jobExecutionOptional.isPresent()) {
           promise.complete(jobExecutionOptional.get());
         } else {
           jobExecutionService.getJobExecutionsWithoutParentMultiple(cqlQuery, offset, limit, tenantId)
             .onSuccess(ar -> {
-              put(tenantId, cqlQuery, ar);
+              put(tenantId, uniqueQuery, ar);
               promise.complete(ar);
             })
             .onFailure(cause -> {
@@ -62,6 +63,10 @@ public class JobExecutionsCache {
       }
     });
     return promise.future();
+  }
+
+  private String appendLimitAndOffset(String cqlQuery, int offset, int limit) {
+    return String.format("%s LIMIT %d OFFSET %d", cqlQuery, limit, offset);
   }
 
   private void put(String tenantId, String cqlQuery, JobExecutionDtoCollection jobExecutionCollection) {
