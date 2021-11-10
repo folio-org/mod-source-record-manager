@@ -1,4 +1,4 @@
-##2021-XX-XX v3.2.4
+##2021-11-10 v3.2.4
 * [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
 
 ## 2021-10-29 v3.2.3
