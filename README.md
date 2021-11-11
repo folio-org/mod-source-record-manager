@@ -442,3 +442,26 @@ curl -w '\n' -X DELETE -D -   \
 ```
 
 Successful response contains no content (HTTP status 204).
+
+## MARC-to-Instance mapping workflow
+### When the Data import Action = *Create*:
+#### 1. HRID-001 field logic:
+* Always remove the 001 from the incoming MARC record (Note that there may be field mapping to move the existing 001 to a different field, e.g. move from 001 to 035)
+* Inventory will assign next FOLIO HRID based on the Instance sequential number generator in Inventory and the starting number in Settings
+* Inventory will assign the Instance prefix based on the optional prefix defined in Settings
+* Once the FOLIO HRID is assigned, Inventory will return the HRID to SRS
+* SRS puts the HRID into the 001 field of the SRS record
+* Map that number to the HRID of the corresponding Instance record
+
+#### 2. 999-field logic:
+* After instance was created, to the record will add 2 values:
+  1. To the "*999ff$s*" field - will be added matchedId.
+  2. To the "*999ff$i*" field - will be added instanceId.
+
+### When the Data import action = *Modify* or *Update*:
+### HRID-001 field logic:
+* If the incoming record's 001 matches the 001 in the existing SRS MARC record, then do not make any changes to the 001 or 003 fields of the incoming record
+* If the incoming record's 001 does not match the existing SRS MARC record, then update the 001, 003, and possibly 035 to match the previous version of the record in SRS (that is, move the 001 data to an 035, prefixed by 003 data in parentheses, and make sure the Instance HRID is in the 001 field)
+
+### When overlay (both overlay - via Instance = FOLIO or Instance = MARC):
+The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field/
