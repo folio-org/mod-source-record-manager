@@ -454,7 +454,7 @@ Successful response contains no content (HTTP status 204).
 * Map that number to the HRID of the corresponding Instance record
 
 #### 2. 999-field logic:
-* After instance was created, to the record will add 2 values:
+* After instance was created, to the record will be added 2 values:
   1. To the "*999ff$s*" field - will be added matchedId.
   2. To the "*999ff$i*" field - will be added instanceId.
 
