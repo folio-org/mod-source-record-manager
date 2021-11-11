@@ -446,7 +446,7 @@ Successful response contains no content (HTTP status 204).
 ## MARC-to-Instance mapping workflow
 ### When the Data import Action = *Create*:
 #### 1. HRID-001 field logic:
-* Always remove the 001 from the incoming MARC record (Note that there may be field mapping to move the existing 001 to a different field, e.g. move from 001 to 035)
+* Always removes the 001 from the incoming MARC record (Note that there may be field mapping to move the existing 001 to a different field, e.g. move from 001 to 035)
 * Inventory will assign next FOLIO HRID based on the Instance sequential number generator in Inventory and the starting number in Settings
 * Inventory will assign the Instance prefix based on the optional prefix defined in Settings
 * Once the FOLIO HRID is assigned, Inventory will return the HRID to SRS
