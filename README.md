@@ -464,4 +464,4 @@ Successful response contains no content (HTTP status 204).
 * If the incoming record's 001 does not match the existing SRS MARC record, then update the 001, 003, and possibly 035 to match the previous version of the record in SRS (that is, move the 001 data to an 035, prefixed by 003 data in parentheses, and make sure the Instance HRID is in the 001 field)
 
 ### When overlay (both overlay - via Instance = FOLIO or Instance = MARC):
-The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field/
+The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field.
