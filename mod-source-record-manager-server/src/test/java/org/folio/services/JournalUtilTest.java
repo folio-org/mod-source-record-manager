@@ -121,4 +121,34 @@ public class JournalUtilTest {
     JournalUtil.buildJournalRecordByEvent(eventPayload,
       JournalRecord.ActionType.CREATE, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionStatus.COMPLETED);
   }
+
+  @Test
+  public void shouldBuildJournalRecordWhenNoEntityPresent() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_INVENTORY_HOLDING_NOT_MATCHED")
+      .withContext(context);
+
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      JournalRecord.ActionType.NON_MATCH, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionStatus.COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.getSourceId());
+    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
+    Assert.assertEquals(JournalRecord.EntityType.HOLDINGS, journalRecord.getEntityType());
+    Assert.assertEquals(JournalRecord.ActionType.NON_MATCH, journalRecord.getActionType());
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
+    Assert.assertNotNull(journalRecord.getActionDate());
+  }
 }
