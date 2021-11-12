@@ -1,5 +1,5 @@
-## 2021-11-12 v3.2.5-SNAPSHOT
-* [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity is empty
+## 2021-11-12 v3.2.5
+* [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity non match
 
 ##2021-11-10 v3.2.4
 * [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
