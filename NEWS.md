@@ -4,7 +4,10 @@
 * [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b)
 * [MODSOURMAN-590](https://issues.folio.org/browse/MODSOURMAN-590) Save AUTHORITY rules to database
 * [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
+* [MODSOURMAN-570](https://issues.folio.org/browse/MODSOURMAN-570) Edit MARC Authorities via quickMARC | Handle events properly to Authorities
+* [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity is empty
 * [MODSOURMAN-228](https://issues.folio.org/browse/MODSOURMAN-228) Update the MARC-to-Instance mapping documentation
+
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
