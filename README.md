@@ -457,6 +457,7 @@ Successful response contains no content (HTTP status 204).
 * After instance was created, to the record will be added 2 values:
   1. To the "*999ff$s*" field - will be added matchedId.
   2. To the "*999ff$i*" field - will be added instanceId.
+##### NOTE - This was a basic implementation, but currently there is a change that make 999ff$s = 999ff$i. But, there are some discussion to revert this one. 
 
 ### When the Data import action = *Modify* or *Update*:
 ### HRID-001 field logic:
