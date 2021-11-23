@@ -187,7 +187,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onFailure(e -> {
         if (e instanceof NotFoundException) {
           Record.RecordType recordType = recordsList.get(0).getRecordType();
-          recordType = recordType == Record.RecordType.MARC_HOLDING ? recordType : Record.RecordType.MARC_BIB;
+          recordType = recordType != RecordType.EDIFACT ? recordType : Record.RecordType.MARC_BIB;
           mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .onSuccess(ar -> promise.complete(true))
