@@ -6,11 +6,13 @@ import io.vertx.core.Promise;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.ws.rs.NotFoundException;
 
 import org.folio.dao.util.PostgresClientFactory;
@@ -51,7 +53,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
     try {
       pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, promise);
     } catch (Exception e) {
-      LOGGER.error("Failed to save JobExecutionSourceChunk", e);
+      LOGGER.error("Failed to save JobExecutionSourceChunk with id: {}", jobExecutionChunk.getId(), e);
       promise.fail(e);
     }
     return promise.future();
@@ -76,7 +78,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Optional<JobExecutionSourceChunk>> getById(String id, String tenantId) {
     Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
     try {
-      if(StringUtils.isBlank(id)) {
+      if (StringUtils.isBlank(id)) {
         LOGGER.warn("Can't retrieve JobExecutionSourceChunk by empty id.");
         return promise.future().map(Optional.empty());
       }

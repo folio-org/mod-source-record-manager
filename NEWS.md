@@ -4,6 +4,7 @@
 * [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b)
 * [MODSOURMAN-590](https://issues.folio.org/browse/MODSOURMAN-590) Save AUTHORITY rules to database
 * [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
+* [MODDATAIMP-491](https://issues.folio.org/browse/MODDATAIMP-491) Improve logging to be able to trace the path of each record and file_chunks
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar

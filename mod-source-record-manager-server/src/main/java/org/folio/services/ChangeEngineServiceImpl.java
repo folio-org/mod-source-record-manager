@@ -243,7 +243,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         var record = new Record()
           .withId(recordId)
           .withMatchedId(recordId)
-          .withRecordType(inferRecordType(jobExecution, parsedResult, recordId))
+          .withRecordType(inferRecordType(jobExecution, parsedResult, recordId, sourceChunkId))
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
           .withGeneration(0)
@@ -445,10 +445,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId) {
+  private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId, String chunkId) {
     if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
       MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
-      LOGGER.info("Marc record analyzer parsed record with id = {} and type = {}", recordId, marcRecordType);
+      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}", recordId, marcRecordType, jobExecution.getId(), chunkId, jobExecution.getFileName());
       return MarcRecordType.NA == marcRecordType ? null : RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
     }
 

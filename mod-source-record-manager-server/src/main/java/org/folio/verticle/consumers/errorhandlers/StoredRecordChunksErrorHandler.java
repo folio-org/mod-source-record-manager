@@ -35,6 +35,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
   public static final String ERROR_KEY = "ERROR";
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String RECORD_ID_HEADER = "recordId";
+  private static final String CHUNK_NUMBER = "chunkNumber";
 
   @Autowired
   private Vertx vertx;
@@ -47,24 +48,25 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
 
+
     // process for specific failure processed records from Exception body
     if (throwable instanceof RecordsProcessingException) {
       List<Record> failedRecords = ((RecordsProcessingException) throwable).getFailedRecords();
-      for (Record record: failedRecords) {
-        sendDiErrorForRecord(jobExecutionId, record, okapiParams, record.getErrorRecord().getDescription());
+      for (Record failedRecord: failedRecords) {
+        sendDiErrorForRecord(jobExecutionId, failedRecord, okapiParams, failedRecord.getErrorRecord().getDescription());
       }
 
     } else {
       // process for all other cases that will include all records
       Event event = Json.decodeValue(kafkaConsumerRecord.value(), Event.class);
       RecordsBatchResponse recordCollection = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
-      for (Record record: recordCollection.getRecords()) {
-        sendDiErrorForRecord(jobExecutionId, record, okapiParams, throwable.getMessage());
+      for (Record targetRecord: recordCollection.getRecords()) {
+        sendDiErrorForRecord(jobExecutionId, targetRecord, okapiParams, throwable.getMessage());
       }
     }
   }
 
-  private void sendDiErrorForRecord(String jobExecutionId, Record record, OkapiConnectionParams okapiParams, String errorMsg) {
+  private void sendDiErrorForRecord(String jobExecutionId, Record targetRecord, OkapiConnectionParams okapiParams, String errorMsg) {
     DataImportEventPayload errorPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withJobExecutionId(jobExecutionId)
@@ -72,18 +74,20 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(new HashMap<>() {{
-        put(getSourceRecordKey(record), Json.encode(record));
+        put(getSourceRecordKey(targetRecord), Json.encode(targetRecord));
         put(ERROR_KEY, errorMsg);
       }});
 
-    okapiParams.getHeaders().set(RECORD_ID_HEADER, record.getId());
+    okapiParams.getHeaders().set(RECORD_ID_HEADER, targetRecord.getId());
+
+    String chunkNumber = okapiParams.getHeaders().get(CHUNK_NUMBER);
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(errorPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null)
-      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}", errorPayload.getJobExecutionId(), record.getId(), th));
+      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}, chunkNumber: {}", errorPayload.getJobExecutionId(), targetRecord.getId(), chunkNumber, th));
   }
 
-  private String getSourceRecordKey(Record record) {
-    switch (record.getRecordType()) {
+  private String getSourceRecordKey(Record targetRecord) {
+    switch (targetRecord.getRecordType()) {
       case MARC_BIB:
         return MARC_BIBLIOGRAPHIC.value();
       case MARC_AUTHORITY:
