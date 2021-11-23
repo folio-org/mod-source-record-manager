@@ -6,8 +6,6 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDI
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
@@ -207,16 +205,6 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDING_CREATED, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
-  }
-
-  @Test
-  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityNotMarched() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_NOT_MATCHED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.NON_MATCH);
-  }
-
-  @Test
-  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdated() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_UPDATED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
   }
 
   @Test
