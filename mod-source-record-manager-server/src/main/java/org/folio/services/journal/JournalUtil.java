@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -28,7 +29,7 @@ public class JournalUtil {
 
   public static final String ERROR_KEY = "ERROR";
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
-  private static final String INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'record' or/and 'instance'";
+  private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
   private JournalUtil() {
 
   }
@@ -62,20 +63,23 @@ public class JournalUtil {
       Record record = new ObjectMapper().readValue(recordAsString, Record.class);
 
       String entityAsString = eventPayload.getContext().get(entityType.value());
-      JsonObject entityJson = new JsonObject(entityAsString);
 
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
         .withSourceRecordOrder(record.getOrder())
         .withEntityType(entityType)
-        .withEntityId(entityJson.getString("id"))
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus);
 
-      if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
-        journalRecord.setEntityHrId(entityJson.getString("hrid"));
+      if (!isEmpty(entityAsString)) {
+        JsonObject entityJson = new JsonObject(entityAsString);
+        journalRecord.setEntityId(entityJson.getString("id"));
+
+        if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
+          journalRecord.setEntityHrId(entityJson.getString("hrid"));
+        }
       }
 
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
@@ -84,7 +88,7 @@ public class JournalUtil {
 
       return journalRecord;
     } catch (Exception e) {
-      throw new JournalRecordMapperException(INSTANCE_OR_RECORD_MAPPING_EXCEPTION_MSG, e);
+      throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }
 
@@ -94,3 +98,4 @@ public class JournalUtil {
     return journalRecord.withError(errorMessage);
   }
 }
+

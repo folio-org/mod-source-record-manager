@@ -18,7 +18,8 @@ public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle 
     return List.of(
       QMEventTypes.QM_ERROR.name(),
       QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name(),
-      QMEventTypes.QM_INVENTORY_HOLDINGS_UPDATED.name()
+      QMEventTypes.QM_INVENTORY_HOLDINGS_UPDATED.name(),
+      QMEventTypes.QM_INVENTORY_AUTHORITY_UPDATED.name()
     );
   }
 
