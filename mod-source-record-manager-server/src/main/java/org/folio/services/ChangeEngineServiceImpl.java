@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -186,8 +187,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(v -> promise.complete(false))
       .onFailure(e -> {
         if (e instanceof NotFoundException) {
-          Record.RecordType recordType = recordsList.get(0).getRecordType();
-          recordType = recordType != RecordType.EDIFACT ? recordType : Record.RecordType.MARC_BIB;
+          RecordType recordType = recordsList.get(0).getRecordType();
+          recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
           mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .onSuccess(ar -> promise.complete(true))
