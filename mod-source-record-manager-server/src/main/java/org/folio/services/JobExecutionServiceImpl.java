@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
