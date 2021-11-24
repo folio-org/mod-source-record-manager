@@ -30,9 +30,11 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.NotFoundException;
 
 import com.google.common.collect.Lists;
+
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -40,6 +42,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -134,46 +137,46 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     futureParsedRecords
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params).map(parsedRecords))
       .onSuccess(parsedRecords -> {
-      fillParsedRecordsWithAdditionalFields(parsedRecords);
-      boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
+        fillParsedRecordsWithAdditionalFields(parsedRecords);
+        boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
-      if (updateMarcActionExists) {
-        LOGGER.info(
-          "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
-        recordsPublishingService
-          .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
-          .onSuccess(ar -> promise.complete(parsedRecords))
-          .onFailure(promise::fail);
-      } else {
-        saveRecords(params, jobExecution, parsedRecords)
-          .onComplete(postAr -> {
-            if (postAr.failed()) {
-              StatusDto statusDto = new StatusDto()
-                .withStatus(StatusDto.Status.ERROR)
-                .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-              jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-                .onComplete(r -> {
-                  if (r.failed()) {
-                    LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
-                  }
-                });
-              jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-                .compose(optional -> optional
-                  .map(sourceChunk -> jobExecutionSourceChunkDao
-                    .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-                  .orElseThrow(() -> new NotFoundException(String.format(
-                    "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
-                    sourceChunkId))))
-                .onComplete(ar -> promise.fail(postAr.cause()));
-            } else {
-              promise.complete(parsedRecords);
-            }
-          });
-      }
-    }).onFailure(th -> {
-      LOGGER.error("Error parsing records: {}", th.getMessage());
-      promise.fail(th);
-    });
+        if (updateMarcActionExists) {
+          LOGGER.info(
+            "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
+          recordsPublishingService
+            .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
+            .onSuccess(ar -> promise.complete(parsedRecords))
+            .onFailure(promise::fail);
+        } else {
+          saveRecords(params, jobExecution, parsedRecords)
+            .onComplete(postAr -> {
+              if (postAr.failed()) {
+                StatusDto statusDto = new StatusDto()
+                  .withStatus(StatusDto.Status.ERROR)
+                  .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+                jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
+                  .onComplete(r -> {
+                    if (r.failed()) {
+                      LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
+                    }
+                  });
+                jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+                  .compose(optional -> optional
+                    .map(sourceChunk -> jobExecutionSourceChunkDao
+                      .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+                    .orElseThrow(() -> new NotFoundException(String.format(
+                      "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
+                      sourceChunkId))))
+                  .onComplete(ar -> promise.fail(postAr.cause()));
+              } else {
+                promise.complete(parsedRecords);
+              }
+            });
+        }
+      }).onFailure(th -> {
+        LOGGER.error("Error parsing records: {}", th.getMessage());
+        promise.fail(th);
+      });
     return promise.future();
   }
 
@@ -227,7 +230,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
-                                    JobExecution jobExecution, String sourceChunkId, String tenantId, OkapiConnectionParams okapiParams) {
+                                            JobExecution jobExecution, String sourceChunkId, String tenantId, OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
@@ -285,10 +288,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private List<Future> executeInBatches(List<Record> recordList, Function<List<String>, Future<List<String>>> batchOperation) {
     // filter list on MARC_HOLDINGS
     var marcHoldingsIdsToVerify = recordList.stream()
-        .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
-        .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
-        .filter(StringUtils::isNotBlank)
-        .collect(Collectors.toList());
+      .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
+      .map(recordItem -> getControlFieldValue(recordItem, TAG_004))
+      .filter(StringUtils::isNotBlank)
+      .collect(Collectors.toList());
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
     List<Future> futureList = new ArrayList<>();
@@ -304,10 +307,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     CompositeFuture.all(batchList)
       .onComplete(as -> {
         var invalidMarcBibIds = batchList
-            .stream()
-            .map(Future<List<String>>::result)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+          .stream()
+          .map(Future<List<String>>::result)
+          .flatMap(Collection::stream)
+          .collect(Collectors.toList());
         LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
         var validMarcBibRecords = records.stream()
           .filter(record -> {
@@ -448,7 +451,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId, String chunkId) {
     if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
       MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
-      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}", recordId, marcRecordType, jobExecution.getId(), chunkId, jobExecution.getFileName());
+      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}", recordId, marcRecordType, jobExecution.getId(), chunkId,
+        jobExecution.getFileName() == null ? "No file name" : jobExecution.getFileName());
       return MarcRecordType.NA == marcRecordType ? null : RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
     }
 
