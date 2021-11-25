@@ -633,8 +633,8 @@
   ],
   "511": [
     {
-      "target": "saftMeetingNameTitle",
-      "description": "See also from tracing meeting name title",
+      "target": "saftMeetingName",
+      "description": "See also from tracing meeting name",
       "subfield": [
         "a",
         "c",
@@ -642,6 +642,30 @@
         "n",
         "q",
         "g"
+      ],
+      "rules": []
+    },
+    {
+      "target": "saftMeetingNameTitle",
+      "description": "See also from tracing meeting name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "w"
       ],
       "rules": []
     }
