@@ -5,6 +5,7 @@ import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
@@ -204,6 +205,11 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeHoldingsWhenEventTypeIsDiInventoryHoldingCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_HOLDING_CREATED, JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityCreated() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_CREATED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
   }
 
   @Test
