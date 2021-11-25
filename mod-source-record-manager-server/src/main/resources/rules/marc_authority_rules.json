@@ -771,7 +771,7 @@
       "target": "id",
       "description": "Authority id",
       "subfield": [
-        "s"
+        "i"
       ],
       "rules": []
     }

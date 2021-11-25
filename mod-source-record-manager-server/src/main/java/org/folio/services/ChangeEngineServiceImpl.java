@@ -464,10 +464,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
-      if (MARC_BIB.equals(recordType) || MARC_AUTHORITY.equals(recordType) || MARC_HOLDING.equals(recordType)) {
+      if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+        }
+      } else if (MARC_AUTHORITY.equals(recordType)) {
+        for (Record record : records) {
+          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          String inventoryId = UUID.randomUUID().toString();
+          addFieldToMarcRecord(record, TAG_999, 'i', inventoryId);
+          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId));
         }
       }
     }
