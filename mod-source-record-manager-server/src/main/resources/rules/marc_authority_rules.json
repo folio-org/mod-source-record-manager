@@ -721,6 +721,47 @@
       "rules": []
     }
   ],
+  "667": [
+    {
+      "entity": [
+        {
+          "target": "notes.noteTypeId",
+          "description": "Authority note type id",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_authority_note_type_id",
+                  "parameter": {
+                    "name": "Nonpublic general note"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "notes.note",
+          "description": "Authority note",
+          "subfield": [
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "999": [
     {
       "target": "id",
