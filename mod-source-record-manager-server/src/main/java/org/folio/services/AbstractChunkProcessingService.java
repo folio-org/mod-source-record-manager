@@ -1,10 +1,12 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.pgclient.PgException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
@@ -18,6 +20,7 @@ import java.util.Date;
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
+  private static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   protected JobExecutionService jobExecutionService;
@@ -45,7 +48,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
 
           return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
             .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params))
-            .map(true);
+            .map(true)
+            .recover(throwable -> throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE) ?
+              Future.failedFuture(new ConflictException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecutionId))) :
+              Future.failedFuture(throwable));
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 

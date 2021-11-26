@@ -4,10 +4,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import io.vertx.pgclient.PgException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
@@ -34,7 +34,6 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String RECORD_ID_HEADER = "recordId";
   public static final String CHUNK_ID_HEADER = "chunkId";
-  public static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   @Autowired
   private Vertx vertx;
@@ -44,7 +43,6 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   @Override
   public void handle(Throwable throwable, KafkaConsumerRecord<String, String> record) {
     Event event = Json.decodeValue(record.value(), Event.class);
-    RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
@@ -61,7 +59,8 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
         put(ERROR_KEY, throwable.getMessage());
       }});
 
-    if(isUniqueConstraintViolationException(throwable)) {
+    if(throwable instanceof ConflictException) {
+      RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
       LOGGER.warn("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
     } else {
       sendDiErrorEvent(eventPayload, okapiParams, jobExecutionId, tenantId);
@@ -79,7 +78,4 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {}", jobExecutionId, th));
   }
 
-  private boolean isUniqueConstraintViolationException(Throwable throwable) {
-    return throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE);
-  }
 }
