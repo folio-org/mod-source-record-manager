@@ -7,6 +7,7 @@
 * [MODSOURMAN-570](https://issues.folio.org/browse/MODSOURMAN-570) Edit MARC Authorities via quickMARC | Handle events properly to Authorities
 * [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity is empty
 * [MODSOURMAN-228](https://issues.folio.org/browse/MODSOURMAN-228) Update the MARC-to-Instance mapping documentation
+* [MODSOURMAN-605](https://issues.folio.org/browse/MODSOURMAN-605) Authority: update rules for name-title fields/properties
 * [MODSOURMAN-598](https://issues.folio.org/browse/MODSOURMAN-598) Properly handle DB failures during events processing
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
