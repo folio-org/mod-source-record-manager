@@ -3,6 +3,7 @@ package org.folio.services;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +55,8 @@ public class ChangeEngineServiceImplTest {
     "00182cx  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
   private static final String MARC_HOLDINGS_REC_WITHOUT_004 =
     "00162cx  a22000731  4500001000900000005001700009008003300026852002900059\u001E10245123\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+  private static final String MARC_AUTHORITY_REC_VALID =
+    "01016cz  a2200241n  4500001000800000005001700008008004100025010001700066035002300083035002100106040004300127100002200170375000900192377000800201400002400209400003700233400003000270400004400300667004700344670006800391670009400459670022100553\u001E1000649\u001E20171119085041.0\u001E850103n| azannaabn          |b aaa      \u001E  \u001Fan  84234537 \u001E  \u001Fa(OCoLC)oca01249182\u001E  \u001Fa(DLC)n  84234537\u001E  \u001FaDLC\u001Fbeng\u001Ferda\u001FcDLC\u001FdDLC\u001FdCoU\u001FdDLC\u001FdInU\u001E1 \u001FaEimermacher, Karl\u001E  \u001Famale\u001E  \u001Fager\u001E1 \u001FaAĭmermakher, Karl\u001E1 \u001FaАймермахер, Карл\u001E1 \u001FaAĭmermakher, K.\u001Fq(Karl)\u001E1 \u001FaАймермахер, К.\u001Fq(Карл)\u001E  \u001FaNon-Latin script references not evaluated.\u001E  \u001FaSidur, V. Vadim Sidur, 1980?:\u001Fbp. 3 of cover (Karl Eimermacher)\u001E  \u001FaV tiskakh ideologii, 1992:\u001Fbt.p. verso (Karla Aĭmermakhera) colophon (K. Aĭmermakher)\u001E  \u001FaGoogle, 01-31-02\u001Fbruhr-uni-bochum.de/lirsk/whowho.htm (Prof. Dr. Dr. hc. Karl Eimermacher; Geb. 1938; Institutsleiter und Landesbeauftragter für die Hochschulkontakte des Landes NRW zu den europäischen U-Staaten)\u001E\u001D";
   @Mock
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   @Mock
@@ -68,7 +71,8 @@ public class ChangeEngineServiceImplTest {
   private KafkaConfig kafkaConfig;
   @Mock
   private MappingMetadataService mappingMetadataService;
-  private OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
+
+  private final OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
 
   @InjectMocks
   private ChangeEngineServiceImpl service;
@@ -98,6 +102,25 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
+  }
+
+  @Test
+  public void shouldReturnMarcAuthorityRecordWithAuthorityId() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.AUTHORITY);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    var actual = serviceFuture.result();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityId(), notNullValue());
   }
 
   @Test
