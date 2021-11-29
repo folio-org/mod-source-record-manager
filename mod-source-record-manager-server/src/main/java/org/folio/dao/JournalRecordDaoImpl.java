@@ -42,6 +42,9 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_TYPE;
+import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ENTITY_TYPE;
@@ -267,6 +270,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
         .withHoldingsActionStatus(holdingsActionStatus)
         .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
+        .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
         .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
         .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
         .withInvoiceLineJournalRecordId(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID) != null
@@ -302,7 +306,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
         .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-          "AUTHORITY_ACTION_STATUS", "AUTHORITY_ENTITY_ID", "AUTHORITY_ENTITY_HRID", "AUTHORITY_ENTITY_ERROR")
+          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR)
         )
         .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
@@ -330,7 +334,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private List<String> constructListFromColumn(Row row, String columnName) {
-    return row.getValue(columnName) == null ? Collections.emptyList() : Arrays.asList(row.getArrayOfStrings(columnName));
+    return columnName == null || row.getValue(columnName) == null ? Collections.emptyList() : Arrays.asList(row.getArrayOfStrings(columnName));
   }
 
   private org.folio.rest.jaxrs.model.ActionStatus mapNameToEntityActionStatus(String name) {
