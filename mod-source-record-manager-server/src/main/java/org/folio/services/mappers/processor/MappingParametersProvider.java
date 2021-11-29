@@ -4,6 +4,9 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import org.apache.commons.lang.StringUtils;
+
+import org.folio.AuthorityNoteType;
+import org.folio.Authoritynotetypes;
 import org.folio.okapi.common.GenericCompositeFuture;
 
 import io.vertx.core.Future;
@@ -113,6 +116,7 @@ public class MappingParametersProvider {
   private static final String LOAN_TYPES_RESPONSE_PARAM = "loantypes";
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
   private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
+  private static final String AUTHORITY_NOTE_TYPES_RESPONSE_PARAM = "authorityNoteTypes";
 
   private static final String CONFIGS_VALUE_RESPONSE = "configs";
   private static final String VALUE_RESPONSE = "value";
@@ -167,6 +171,7 @@ public class MappingParametersProvider {
     Future<List<ItemDamageStatus>> itemDamagedStatusesFuture = getItemDamagedStatuses(okapiParams);
     Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
+    Future<List<AuthorityNoteType>> authorityNoteTypesFuture = getAuthorityNoteTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
 
@@ -175,7 +180,7 @@ public class MappingParametersProvider {
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -204,6 +209,7 @@ public class MappingParametersProvider {
           .withItemDamagedStatuses(itemDamagedStatusesFuture.result())
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
+          .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
       );
@@ -661,6 +667,26 @@ public class MappingParametersProvider {
         } else {
           promise.complete(Collections.emptyList());
         }
+      }
+    });
+    return promise.future();
+  }
+
+  private Future<List<AuthorityNoteType>> getAuthorityNoteTypes(OkapiConnectionParams params) {
+    var promise = Promise.<List<AuthorityNoteType>>promise();
+    var authorityNoteTypesUrl = "/authority-note-types?limit=" + settingsLimit;
+
+    RestUtil.doRequest(params, authorityNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
+      if (!RestUtil.validateAsyncResult(ar, promise)) {
+        return;
+      }
+
+      var response = ar.result().getJson();
+      if (response != null && response.containsKey(AUTHORITY_NOTE_TYPES_RESPONSE_PARAM)) {
+        var authorityNoteTypes = response.mapTo(Authoritynotetypes.class).getAuthorityNoteTypes();
+        promise.complete(authorityNoteTypes);
+      } else {
+        promise.complete(Collections.emptyList());
       }
     });
     return promise.future();
