@@ -301,6 +301,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
           HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_ENTITY_ERROR))
         .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
+        .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          "AUTHORITY_ACTION_STATUS", "AUTHORITY_ENTITY_ID", "AUTHORITY_ENTITY_HRID", "AUTHORITY_ENTITY_ERROR")
+        )
         .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
