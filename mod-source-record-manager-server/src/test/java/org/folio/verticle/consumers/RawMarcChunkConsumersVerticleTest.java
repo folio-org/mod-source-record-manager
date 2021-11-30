@@ -6,15 +6,28 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.KeyValue;
-import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.ReadKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
+import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,7 +35,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -33,7 +49,9 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(VertxUnitRunner.class)
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
@@ -164,6 +182,22 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
     // then
     checkEventWithTypeWasNotSend(jobExecutionId, DI_RAW_RECORDS_CHUNK_PARSED);
+    checkEventWithTypeWasNotSend(jobExecutionId, DI_ERROR);
+  }
+
+  @Test
+  public void shouldNotSendDIErrorWhenReceiveDuplicateEvent() throws InterruptedException {
+    // given
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
+    String jobExecutionId = getJobExecutionId(request);
+
+    // when
+    kafkaCluster.send(request);
+    kafkaCluster.send(request);
+
+    // then
+    checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
     checkEventWithTypeWasNotSend(jobExecutionId, DI_ERROR);
   }
 

@@ -11,6 +11,7 @@
 * [MODSOURMAN-605](https://issues.folio.org/browse/MODSOURMAN-605) Authority: update rules for name-title fields/properties
 * [MODSOURMAN-619](https://issues.folio.org/browse/MODSOURMAN-619) Add an Authority info for Import Log for record page
 * [MODSOURMAN-623](https://issues.folio.org/browse/MODSOURMAN-623) Generate IDs for Inventory authority
+* [MODSOURMAN-598](https://issues.folio.org/browse/MODSOURMAN-598) Properly handle DB failures during events processing
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar

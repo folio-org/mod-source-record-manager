@@ -43,10 +43,8 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
-import org.folio.dao.MappingRulesSnapshotDao;
 import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
-import org.folio.dao.MappingParamsSnapshotDao;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
@@ -77,6 +75,7 @@ import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(VertxUnitRunner.class)
 public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTest {
@@ -108,6 +107,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @InjectMocks
   @Spy
   private JobExecutionServiceImpl jobExecutionService;
+  @InjectMocks
   @Spy
   private MarcRecordAnalyzer marcRecordAnalyzer;
   @InjectMocks
@@ -133,6 +133,12 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private MarcImportEventsHandler marcImportEventsHandler;
+  @Spy
+  @InjectMocks
+  private MappingRulesSnapshotDaoImpl mappingRulesSnapshotDao;
+  @Spy
+  @InjectMocks
+  private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
 
   @Spy
   RecordsPublishingService recordsPublishingService;
@@ -142,8 +148,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
   private OkapiConnectionParams params;
   private MappingMetadataService mappingMetadataService;
-  private MappingRulesSnapshotDao mappingRulesSnapshotDao;
-  private MappingParamsSnapshotDao mappingParamsSnapshotDao;
   private KafkaConfig kafkaConfig;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
@@ -174,33 +178,35 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
   @Before
   public void setUp() throws IOException {
-    String rules = TestUtil.readFileFromPath(RULES_PATH);
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
-    MockitoAnnotations.openMocks(this);
-    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
-    marcRecordAnalyzer = new MarcRecordAnalyzer();
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, kafkaConfig);
-    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
-    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
-    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
-    mappingRulesSnapshotDao = new MappingRulesSnapshotDaoImpl();
-    mappingParamsSnapshotDao = new MappingParamsSnapshotDaoImpl();
-    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
-    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
       .kafkaPort(hostAndPort[1])
       .envId(KAFKA_ENV_ID)
       .build();
+    String rules = TestUtil.readFileFromPath(RULES_PATH);
+
+    MockitoAnnotations.openMocks(this);
+
+    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
+    marcRecordAnalyzer = new MarcRecordAnalyzer();
+    mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
+    mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
+    mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
+    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, kafkaConfig);
+    ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
+    ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
+    chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService, journalService, jobMonitoringService);
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
     headers.put(OKAPI_TOKEN_HEADER, "token");
     params = new OkapiConnectionParams(headers, vertx);
+
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-
     WireMock.stubFor(get(new UrlPathPattern(new RegexPattern("/data-import-profiles/jobProfiles/" + ".*"), true))
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
   }
