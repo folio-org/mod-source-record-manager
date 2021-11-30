@@ -9,8 +9,8 @@
 * [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity is empty
 * [MODSOURMAN-228](https://issues.folio.org/browse/MODSOURMAN-228) Update the MARC-to-Instance mapping documentation
 * [MODSOURMAN-605](https://issues.folio.org/browse/MODSOURMAN-605) Authority: update rules for name-title fields/properties
+* [MODSOURMAN-619](https://issues.folio.org/browse/MODSOURMAN-619) Add an Authority info for Import Log for record page
 * [MODSOURMAN-623](https://issues.folio.org/browse/MODSOURMAN-623) Generate IDs for Inventory authority
-
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
