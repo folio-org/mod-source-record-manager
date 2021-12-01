@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 
 import com.google.common.collect.Lists;
-
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -42,8 +42,8 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
@@ -189,8 +189,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(v -> promise.complete(false))
       .onFailure(e -> {
         if (e instanceof NotFoundException) {
-          Record.RecordType recordType = recordsList.get(0).getRecordType();
-          recordType = recordType == Record.RecordType.MARC_HOLDING ? recordType : Record.RecordType.MARC_BIB;
+          RecordType recordType = recordsList.get(0).getRecordType();
+          recordType = Objects.isNull(recordType) || recordType == RecordType.EDIFACT ? MARC_BIB : recordType;
           mappingMetadataService.saveMappingRulesSnapshot(jobExecutionId, recordType.toString(), okapiParams.getTenantId())
             .compose(arMappingRules -> mappingMetadataService.saveMappingParametersSnapshot(jobExecutionId, okapiParams))
             .onSuccess(ar -> promise.complete(true))
@@ -306,23 +306,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     CompositeFuture.all(batchList)
       .onComplete(as -> {
-        var invalidMarcBibIds = batchList
-          .stream()
-          .map(Future<List<String>>::result)
-          .flatMap(Collection::stream)
-          .collect(Collectors.toList());
-        LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
-        var validMarcBibRecords = records.stream()
-          .filter(record -> {
-            if (record.getRecordType() == MARC_HOLDING) {
+        if (IterableUtils.matchesAll(records, record -> record.getRecordType() == MARC_HOLDING)) {
+          var invalidMarcBibIds = batchList
+            .stream()
+            .map(Future<List<String>>::result)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+          LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
+          var validMarcBibRecords = records.stream()
+            .filter(record -> {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
               return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
-            }
-            return true;
-          }).collect(Collectors.toList());
-        LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
-          records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
-        promise.complete(validMarcBibRecords);
+            }).collect(Collectors.toList());
+          LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
+            records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
+          promise.complete(validMarcBibRecords);
+        } else {
+          promise.complete(records);
+        }
       });
   }
 
@@ -467,10 +468,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void fillParsedRecordsWithAdditionalFields(List<Record> records) {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
-      if (MARC_BIB.equals(recordType) || MARC_AUTHORITY.equals(recordType) || MARC_HOLDING.equals(recordType)) {
+      if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+        }
+      } else if (MARC_AUTHORITY.equals(recordType)) {
+        for (Record record : records) {
+          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          String inventoryId = UUID.randomUUID().toString();
+          addFieldToMarcRecord(record, TAG_999, 'i', inventoryId);
+          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId));
         }
       }
     }

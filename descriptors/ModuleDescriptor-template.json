@@ -69,6 +69,10 @@
     {
       "id": "source-storage-batch",
       "version": "1.1"
+    },
+    {
+      "id": "authority-note-types",
+      "version": "1.0"
     }
   ],
   "provides": [
@@ -209,6 +213,7 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.authority-note-types.collection.get",
             "inventory-storage.items.collection.get",
             "inventory-storage.items.item.post",
             "inventory-storage.items.item.put",
@@ -297,6 +302,7 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.authority-note-types.collection.get",
             "inventory-storage.material-types.item.get",
             "inventory-storage.material-types.collection.get",
             "inventory-storage.loan-types.item.get",
@@ -314,6 +320,8 @@
             "inventory-storage.preceding-succeeding-titles.item.delete",
             "inventory-storage.holdings.item.get",
             "inventory-storage.holdings.item.put",
+            "inventory-storage.authority.item.get",
+            "inventory-storage.authority.item.put",
             "configuration.entries.collection.get"
           ]
         }

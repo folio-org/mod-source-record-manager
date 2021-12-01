@@ -1,4 +1,5 @@
 ## 2021-xx-xx v3.3.0-SNAPSHOT
+* [MODSOURMAN-614](https://issues.folio.org/browse/MODSOURMAN-614) Authority: Add mapping rule for note types
 * [MODSOURMAN-577](https://issues.folio.org/browse/MODSOURMAN-577) Optimistic locking: mod-source-record-manager modifications
 * [MODSOURMAN-573](https://issues.folio.org/browse/MODSOURMAN-573) Create mapping rules for AUTHORITY records
 * [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b)
@@ -7,6 +8,10 @@
 * [MODSOURMAN-570](https://issues.folio.org/browse/MODSOURMAN-570) Edit MARC Authorities via quickMARC | Handle events properly to Authorities
 * [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity is empty
 * [MODSOURMAN-228](https://issues.folio.org/browse/MODSOURMAN-228) Update the MARC-to-Instance mapping documentation
+* [MODSOURMAN-605](https://issues.folio.org/browse/MODSOURMAN-605) Authority: update rules for name-title fields/properties
+* [MODSOURMAN-619](https://issues.folio.org/browse/MODSOURMAN-619) Add an Authority info for Import Log for record page
+* [MODSOURMAN-623](https://issues.folio.org/browse/MODSOURMAN-623) Generate IDs for Inventory authority
+* [MODSOURMAN-598](https://issues.folio.org/browse/MODSOURMAN-598) Properly handle DB failures during events processing
 * [MODDATAIMP-491](https://issues.folio.org/browse/MODDATAIMP-491) Improve logging to be able to trace the path of each record and file_chunks
 
 ## 2021-10-xx v3.2.3-SNAPSHOT

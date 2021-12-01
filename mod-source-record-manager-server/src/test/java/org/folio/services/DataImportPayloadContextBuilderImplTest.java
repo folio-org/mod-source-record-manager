@@ -80,7 +80,10 @@ public class DataImportPayloadContextBuilderImplTest {
 
     HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
-    assertEquals(Map.of(MARC_AUTHORITY.value(), Json.encode(record)), context);
+    assertEquals(Map.of(
+        MARC_AUTHORITY.value(), Json.encode(record),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
+      context);
   }
 
   @Test

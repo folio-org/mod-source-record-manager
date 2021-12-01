@@ -1035,10 +1035,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcess3ChunksAndRequestForMappingParameters1Time(TestContext testContext) {
+  public void shouldProcessChunksAndRequestForMappingParameters1Time(TestContext testContext) {
     // given
-    final int NUMBER_OF_CHUNKS = 3;
-
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
@@ -1059,17 +1057,25 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     // when
-    for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-      async = testContext.async();
-      RestAssured.given()
-        .spec(spec)
-        .body(rawRecordsDto)
-        .when()
-        .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-        .then()
-        .statusCode(HttpStatus.SC_NO_CONTENT);
-      async.complete();
-    }
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_CONFLICT);
+    async.complete();
 
     // then
     async = testContext.async();
@@ -1108,6 +1114,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(ITEM_DAMAGED_STATUSES_URL)));
     verify(1, getRequestedFor(urlEqualTo(LOAN_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(ITEM_NOTE_TYPES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(AUTHORITY_NOTE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(FIELD_PROTECTION_SETTINGS_URL)));
     verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATIONS_SETTINGS_URL)));
     async.complete();
@@ -1147,6 +1154,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     WireMock.stubFor(get(ITEM_DAMAGED_STATUSES_URL).willReturn(serverError()));
     WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(serverError()));
+    WireMock.stubFor(get(AUTHORITY_NOTE_TYPES_URL).willReturn(serverError()));
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(serverError()));
     WireMock.stubFor(get(TENANT_CONFIGURATIONS_SETTINGS_URL).willReturn(serverError()));
 
