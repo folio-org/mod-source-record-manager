@@ -55,7 +55,7 @@ public final class EventHandlingUtil {
 
     Promise<Boolean> promise = Promise.promise();
 
-    String correlationId = extractHeader(kafkaHeaders, "correlationId");
+    String chunkId = extractHeader(kafkaHeaders, "chunkId");
     String recordId = extractHeader(kafkaHeaders, "recordId");
 
     String producerName = eventType + "_Producer";
@@ -64,7 +64,7 @@ public final class EventHandlingUtil {
     producer.write(record, war -> {
       producer.end(ear -> producer.close());
       if (war.succeeded()) {
-        logSendingSucceeded(eventType, correlationId, recordId);
+        logSendingSucceeded(eventType, chunkId, recordId);
         promise.complete(true);
       } else {
         Throwable cause = war.cause();
@@ -75,9 +75,9 @@ public final class EventHandlingUtil {
     return promise.future();
   }
 
-  private static void logSendingSucceeded(String eventType, String correlationId, String recordId) {
+  private static void logSendingSucceeded(String eventType, String chunkId, String recordId) {
     if (recordId == null) {
-      LOGGER.info("Event with type: {} and correlationId: {} was sent to kafka", eventType, correlationId);
+      LOGGER.info("Event with type: {} and chunkId: {} was sent to kafka", eventType, chunkId);
     } else {
       LOGGER.info("Event with type: {} and recordId: {} was sent to kafka", eventType, recordId);
     }
