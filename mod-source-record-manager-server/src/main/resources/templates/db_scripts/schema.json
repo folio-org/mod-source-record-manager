@@ -170,6 +170,11 @@
     },
     {
       "run": "after",
+      "snippet": "ALTER TABLE mapping_rules ADD CONSTRAINT unq_record_type UNIQUE (record_type);",
+      "fromModuleVersion": "mod-source-record-manager-3.2.6"
+    },
+    {
+      "run": "after",
       "snippet": "CREATE TABLE IF NOT EXISTS mapping_rules_snapshots (job_execution_id UUID PRIMARY KEY, rules jsonb, saved_timestamp timestamp);",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
