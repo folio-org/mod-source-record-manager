@@ -82,8 +82,9 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
-    String correlationId = okapiConnectionParams.getHeaders().get("correlationId");
+    String chunkId = okapiConnectionParams.getHeaders().get("chunkId");
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
+    String jobExecutionId = okapiConnectionParams.getHeaders().get("jobExecutionId");
 
     Event event = Json.decodeValue(record.value(), Event.class);
 
@@ -98,15 +99,15 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
           : DI_SRS_MARC_BIB_RECORD_CREATED;
 
-        LOGGER.debug("RecordsBatchResponse has been received, starting processing correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
+        LOGGER.debug("RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
         saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
-        return recordsPublishingService.sendEventsWithRecords(storedRecords, okapiConnectionParams.getHeaders().get("jobExecutionId"),
+        return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
             okapiConnectionParams, eventType.value())
           .compose(b -> {
-            LOGGER.debug("RecordsBatchResponse processing has been completed correlationId: {} chunkNumber: {}", correlationId, chunkNumber);
-            return Future.succeededFuture(correlationId);
+            LOGGER.debug("RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+            return Future.succeededFuture(chunkId);
           }, th -> {
-            LOGGER.error("RecordsBatchResponse processing has failed with errors correlationId: {} chunkNumber: {}", correlationId, chunkNumber, th);
+            LOGGER.error("RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
             return Future.failedFuture(th);
           });
       } catch (Exception e) {

@@ -37,7 +37,7 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
 
   @Override
   protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
-    LOGGER.debug("Starting to process raw records chunk for jobExecutionId: {}", jobExecutionId);
+    LOGGER.debug("Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
     Promise<Boolean> promise = Promise.promise();
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))

@@ -2,7 +2,7 @@
 DROP FUNCTION IF EXISTS get_record_processing_log(uuid, uuid);
 
 CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, recordId uuid)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text[], instance_entity_hrid text[], instance_entity_error text, holdings_action_status text, holdings_entity_id text[], holdings_entity_hrid text[], holdings_entity_error text, item_action_status text, item_entity_id text[], item_entity_hrid text[], item_entity_error text, order_action_status text, order_entity_id text[], order_entity_hrid text[], order_entity_error text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text[], instance_entity_hrid text[], instance_entity_error text, holdings_action_status text, holdings_entity_id text[], holdings_entity_hrid text[], holdings_entity_error text, item_action_status text, item_entity_id text[], item_entity_hrid text[], item_entity_error text, authority_action_status text, authority_entity_id text[], authority_entity_error text, order_action_status text, order_entity_id text[], order_entity_hrid text[], order_entity_error text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
 AS $$
 BEGIN
     RETURN QUERY
@@ -30,6 +30,9 @@ BEGIN
 			   records_actions.item_entity_id,
 			   records_actions.item_entity_hrid,
 			   records_actions.item_entity_error[1],
+			         get_entity_status(authority_actions, authority_errors_number)         AS authority_action_status,
+			   records_actions.authority_entity_id,
+			   records_actions.authority_entity_error[1],
                get_entity_status(order_actions, order_errors_number)       AS order_action_status,
 			   records_actions.order_entity_id,
 			   records_actions.order_entity_hrid,
@@ -74,6 +77,12 @@ BEGIN
 			          array_agg(entity_id) FILTER (WHERE entity_type = 'ITEM') AS item_entity_id,
 					  array_agg(error) FILTER (WHERE entity_type = 'ITEM') AS item_entity_error,
 
+					  array_agg(action_type) FILTER (WHERE entity_type = 'AUTHORITY') AS authority_actions,
+                      count(journal_records.source_id) FILTER (WHERE entity_type = 'AUTHORITY' AND journal_records.error != '') AS authority_errors_number,
+
+			          array_agg(entity_id) FILTER (WHERE entity_type = 'AUTHORITY') AS authority_entity_id,
+					  array_agg(error) FILTER (WHERE entity_type = 'AUTHORITY') AS authority_entity_error,
+
                       array_agg(action_type) FILTER (WHERE entity_type = 'ORDER') AS order_actions,
                       count(journal_records.source_id) FILTER (WHERE entity_type = 'ORDER' AND journal_records.error != '') AS order_errors_number,
 
@@ -109,6 +118,9 @@ BEGIN
                    null AS item_entity_id,
                    null AS item_entity_hrid,
                    null AS item_entity_error,
+                   null AS authority_action_status,
+                   null AS authority_entity_id,
+                   null AS authority_entity_error,
                    null AS order_action_status,
                    null AS order_entity_id,
                    null AS order_entity_hrid,

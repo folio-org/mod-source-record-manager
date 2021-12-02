@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
@@ -126,10 +125,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withCurrentNode(
-        MARC_AUTHORITY.equals(record.getRecordType())
-          ? new ProfileSnapshotWrapper()
-          : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
