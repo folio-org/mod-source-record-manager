@@ -19,11 +19,9 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
-import org.folio.util.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -32,7 +30,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dao.util.JobExecutionsColumns.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.CURRENTLY_PROCESSED_FIELD;
@@ -73,8 +70,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_executions_new";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
-  public static final String GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH = "templates/db_scripts/get_job_execution_without_parent_multiple.sql";
-
   private static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1";
 
   private static final String INSERT_SQL =
@@ -115,15 +110,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     "ORDER BY %s %s " +
     "LIMIT $1 OFFSET $2";
 
-  private String getJobsWithoutParentMultipleSql;
-
   @Autowired
   private PostgresClientFactory pgClientFactory;
-
-  @PostConstruct
-  public void init() {
-    getJobsWithoutParentMultipleSql = ResourceUtil.asString(GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH);
-  }
 
   @Override
   public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId) {
