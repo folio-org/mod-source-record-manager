@@ -10,15 +10,16 @@ import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.rest.jaxrs.model.Progress;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.JournalRecordCollection;
-import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.JournalRecordCollection;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionsCache;
 import org.folio.services.Status;
 import org.hamcrest.Matchers;
@@ -36,16 +37,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.greaterThan;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -191,7 +194,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .queryParam("uiStatusAny", JobExecution.UiStatus.RUNNING_COMPLETE)
-      .queryParam("statusAny", Status.COMMITTED)
+      .queryParam("statusAny", Status.COMMITTED, Status.ERROR)
       .queryParam("sortBy", "completed_date")
       .queryParam("order", "desc")
       .get(GET_JOB_EXECUTIONS_PATH)
@@ -237,6 +240,105 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     assertThat(jobExecutions.get(0).getProgress().getTotal(), greaterThan(jobExecutions.get(1).getProgress().getTotal()));
     assertThat(jobExecutions.get(1).getProgress().getTotal(), greaterThan(jobExecutions.get(2).getProgress().getTotal()));
     assertThat(jobExecutions.get(2).getProgress().getTotal(), greaterThan(jobExecutions.get(3).getProgress().getTotal()));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByHrIdOrFileNameOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("hrid", "1")
+      .queryParam("fileName", "*importBib5*")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(2))
+      .body("totalRecords", is(2))
+      .body("jobExecutions*.hrId", hasItem(is(1)))
+      .body("jobExecutions*.fileName", hasItem(is("importBib5.bib")));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByHrIdOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("hrid", "1")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(1))
+      .body("totalRecords", is(1))
+      .body("jobExecutions[0].hrId", is(1));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByFileNameOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("fileName", "*importBib3.bib")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(1))
+      .body("totalRecords", is(1))
+      .body("jobExecutions[0].fileName", is("importBib3.bib"));
+  }
+
+  @Test
+  public void shouldNotReturnJobExecutionsWithoutSpecifiedProfileId() {
+    String profileId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      String id = (i % 2 == 0) ? profileId : UUID.randomUUID().toString();
+      childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
+        .withId(id)
+        .withName("test")
+        .withDataType(MARC));
+      putJobExecution(createdJobExecution.get(i));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("profileIdNotAny", profileId)
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber))
+      .body("jobExecutions*.jobProfileInfo.id", everyItem(not(is(profileId))));
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenInvalidSortableFieldIsSpecified() {
+    constructAndPostInitJobExecutionRqDto(5);
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "obviousWrongField")
+      .queryParam("order", "asc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test

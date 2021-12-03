@@ -1,12 +1,14 @@
 package org.folio.dao;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.jaxrs.model.JobExecution;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.folio.dao.util.JobExecutionsColumns.FILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionsColumns.HRID_FIELD;
 
 public class JobExecutionFilter {
 
@@ -48,8 +50,8 @@ public class JobExecutionFilter {
   }
 
   public String buildWhereClause() {
-    StringBuilder conditionBuilder = new StringBuilder(" TRUE");
-    if (CollectionUtils.isNotEmpty(statusAny)) {
+    StringBuilder conditionBuilder = new StringBuilder("TRUE");
+    if (isNotEmpty(statusAny)) {
       String preparedStatuses = statusAny.stream()
         .map(JobExecution.Status::toString)
         .map(s -> String.format("'%s'", s))
@@ -59,10 +61,14 @@ public class JobExecutionFilter {
         .append(" AND status IN ")
         .append(preparedStatuses);
     }
-    if (CollectionUtils.isNotEmpty(profileIdNotAny)) {
+    if (isNotEmpty(profileIdNotAny)) {
+      List<String> profileIds = profileIdNotAny.stream()
+        .map(s -> String.format("'%s'", s))
+        .collect(Collectors.toList());
+
       conditionBuilder
         .append(" AND job_profile_id NOT IN (")
-        .append(String.join(", ", profileIdNotAny))
+        .append(String.join(", ", profileIds))
         .append(")");
     }
     if (statusNot != null) {
@@ -71,7 +77,7 @@ public class JobExecutionFilter {
         .append(statusNot)
         .append("'");
     }
-    if (CollectionUtils.isNotEmpty(uiStatusAny)) {
+    if (isNotEmpty(uiStatusAny)) {
       String preparedStatuses = uiStatusAny.stream()
         .map(JobExecution.UiStatus::toString)
         .map(s -> String.format("'%s'", s))
@@ -82,16 +88,17 @@ public class JobExecutionFilter {
         .append(preparedStatuses);
     }
     if (isNotEmpty(hrIdPattern) && isNotEmpty(fileNamePattern)) {
-      conditionBuilder.append(String.format(" AND (%s OR %s)", buildLikeCondition("hrid", hrIdPattern),
-        buildLikeCondition("hrid", fileNamePattern)));
-    }
-    if (isNotEmpty(hrIdPattern)) {
-      conditionBuilder.append(" AND ")
-        .append(buildLikeCondition("hrid", hrIdPattern));
-    }
-    if (isNotEmpty(fileNamePattern)) {
-      conditionBuilder.append(" AND ")
-        .append(buildLikeCondition("fileName", fileNamePattern));
+      conditionBuilder.append(String.format(" AND (%s OR %s)", buildLikeCondition(HRID_FIELD, hrIdPattern),
+        buildLikeCondition(FILE_NAME_FIELD, fileNamePattern)));
+    } else {
+      if (isNotEmpty(hrIdPattern)) {
+        conditionBuilder.append(" AND ")
+          .append(buildLikeCondition(HRID_FIELD, hrIdPattern));
+      }
+      if (isNotEmpty(fileNamePattern)) {
+        conditionBuilder.append(" AND ")
+          .append(buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
+      }
     }
 
     return conditionBuilder.toString();
