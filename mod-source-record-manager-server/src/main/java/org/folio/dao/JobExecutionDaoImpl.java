@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.folio.dao.util.JobExecutionsColumns.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.CURRENTLY_PROCESSED_FIELD;
@@ -52,6 +53,7 @@ import static org.folio.dao.util.JobExecutionsColumns.SOURCE_PATH_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.STARTED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.SUBORDINATION_TYPE_FIELD;
+import static org.folio.dao.util.JobExecutionsColumns.TOTAL_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.USER_ID_FIELD;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
@@ -93,7 +95,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
-    "SELECT j.*, cte.*, (p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
+    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
     "LEFT JOIN cte ON true " +
@@ -103,7 +106,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String GET_JOBS_NOT_PARENT_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
-    "SELECT j.*, cte.*, (p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
+    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
     "LEFT JOIN cte ON true " +
@@ -247,22 +251,22 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       jobExecution.getSubordinationType().toString(),
       jobExecution.getSourcePath(),
       jobExecution.getFileName(),
-      jobExecution.getProgress().getCurrent(),
-      jobExecution.getProgress().getTotal(),
-      jobExecution.getStartedDate().toInstant().atOffset(ZoneOffset.UTC),
-      jobExecution.getCompletedDate() != null ? jobExecution.getCompletedDate().toInstant().atOffset(ZoneOffset.UTC) : null,
+      jobExecution.getProgress() == null ? null : jobExecution.getProgress().getCurrent(),
+      jobExecution.getProgress() == null ? null : jobExecution.getProgress().getTotal(),
+      jobExecution.getStartedDate() == null ? null : jobExecution.getStartedDate().toInstant().atOffset(ZoneOffset.UTC),
+      jobExecution.getCompletedDate() == null ? null : jobExecution.getCompletedDate().toInstant().atOffset(ZoneOffset.UTC),
       jobExecution.getStatus().toString(),
       jobExecution.getUiStatus().toString(),
-      jobExecution.getErrorStatus() != null ? jobExecution.getErrorStatus().toString() : null,
-      jobExecution.getRunBy().getFirstName(),
-      jobExecution.getRunBy().getLastName(),
+      jobExecution.getErrorStatus() == null ? null : jobExecution.getErrorStatus().toString(),
+      jobExecution.getRunBy() == null ? null : jobExecution.getRunBy().getFirstName(),
+      jobExecution.getRunBy() == null ? null : jobExecution.getRunBy().getLastName(),
       UUID.fromString(jobExecution.getUserId()),
-      jobExecution.getJobProfileInfo() != null ? UUID.fromString(jobExecution.getJobProfileInfo().getId()) : null,
-      jobExecution.getJobProfileInfo() != null ? jobExecution.getJobProfileInfo().getName() : null,
+      jobExecution.getJobProfileInfo() == null ? null : UUID.fromString(jobExecution.getJobProfileInfo().getId()),
+      jobExecution.getJobProfileInfo() == null ? null : jobExecution.getJobProfileInfo().getName(),
       nonNull(jobExecution.getJobProfileInfo()) && nonNull(jobExecution.getJobProfileInfo().getDataType())
         ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
-      jobExecution.getJobProfileSnapshotWrapper() != null
-        ? JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()) : null);
+      jobExecution.getJobProfileSnapshotWrapper() == null
+        ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()));
   }
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
@@ -326,14 +330,18 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private Progress mapRowToProgress(Row row) {
     Integer processedCount = row.getInteger(CURRENTLY_PROCESSED_FIELD);
+    Integer total = row.getInteger(TOTAL_FIELD);
     if (processedCount == null) {
       processedCount = row.getInteger(PROGRESS_CURRENT_FIELD);
+    }
+    if (total == null) {
+      total = row.getInteger(PROGRESS_TOTAL_FIELD);
     }
 
     return new Progress()
       .withJobExecutionId(row.getValue(ID_FIELD).toString())
       .withCurrent(processedCount)
-      .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD));
+      .withTotal(total);
   }
 
   private JobProfileInfo mapRowToJobProfileInfo(Row row) {

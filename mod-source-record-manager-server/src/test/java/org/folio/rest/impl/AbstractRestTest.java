@@ -82,7 +82,7 @@ public abstract class AbstractRestTest {
   public static final String POSTGRES_IMAGE = "postgres:12-alpine";
   private static PostgreSQLContainer<?> postgresSQLContainer;
 
-  private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
+  private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions_new";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
   private static final String JOB_EXECUTION_PROGRESS_TABLE = "job_execution_progress";

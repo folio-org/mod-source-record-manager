@@ -74,7 +74,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     Future<List<JobExecutionDto>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .map(InitJobExecutionsRsDto::getJobExecutions)
       .compose(this::createProgressForJobExecutions)
-      .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(null, 0, 10, params.getTenantId()))
+      .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(new JobExecutionFilter(), "completed_date", "asc", 0, 10, params.getTenantId()))
       .map(JobExecutionDtoCollection::getJobExecutions);
 
     future.onComplete(ar -> {
