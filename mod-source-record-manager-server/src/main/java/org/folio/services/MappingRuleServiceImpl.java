@@ -5,6 +5,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.function.Function;
+
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 
@@ -23,6 +25,7 @@ import org.folio.services.entity.MappingRuleCacheKey;
 
 @Service
 public class MappingRuleServiceImpl implements MappingRuleService {
+
   private static final Logger LOGGER = LogManager.getLogger();
   private static final Charset DEFAULT_RULES_ENCODING = StandardCharsets.UTF_8;
   private static final String DEFAULT_BIB_RULES_PATH = "rules/marc_bib_rules.json";
@@ -55,14 +58,16 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     if (optionalRules.isPresent()) {
       String rules = optionalRules.get();
       if (isValidJson(rules)) {
-        mappingRuleDao.save(new JsonObject(rules), recordType, tenantId).onComplete(ar -> {
-          if (ar.failed()) {
-            LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
-            promise.fail(ar.cause());
-          } else {
-            promise.complete();
-          }
-        });
+        mappingRuleDao.get(recordType, tenantId)
+          .compose(saveRulesIfNotExist(recordType, tenantId, rules))
+          .onComplete(ar -> {
+            if (ar.failed()) {
+              LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
+              promise.fail(ar.cause());
+            } else {
+              promise.complete();
+            }
+          });
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
         LOGGER.error(errorMessage);
@@ -111,6 +116,17 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       promise.fail(new InternalServerErrorException(errorMessage));
     }
     return promise.future();
+  }
+
+  private Function<Optional<JsonObject>, Future<String>> saveRulesIfNotExist(Record.RecordType recordType,
+                                                                             String tenantId, String defaultRules) {
+    return existedRules -> {
+      if (existedRules.isEmpty()) {
+        return mappingRuleDao.save(new JsonObject(defaultRules), recordType, tenantId);
+      } else {
+        return Future.succeededFuture();
+      }
+    };
   }
 
   /**

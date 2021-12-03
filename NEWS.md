@@ -1,3 +1,6 @@
+## 2021-12-03 v3.2.6
+* [MODDATAIMP-621](https://issues.folio.org/browse/MODDATAIMP-621) Fix saving of default mapping rules
+
 ## 2021-11-12 v3.2.5
 * [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity non match
 
