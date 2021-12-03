@@ -20,6 +20,7 @@ import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.services.JobExecutionsCache;
+import org.folio.services.Status;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -130,9 +131,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("statusNot", "DISCARDED")
+      .queryParam("statusNot", Status.DISCARDED)
       .get(GET_JOB_EXECUTIONS_PATH)
-//      .get(GET_JOB_EXECUTIONS_PATH + "?query=(status=\"\" NOT status=\"DISCARDED\")")
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(expectedNotDiscardedNumber))
@@ -154,17 +154,18 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .queryParam("uiStatusAny", "INITIALIZATION")
+      .queryParam("sortBy", "completed_date")
+      .queryParam("order", "desc")
       .get(GET_JOB_EXECUTIONS_PATH)
-//      .get(GET_JOB_EXECUTIONS_PATH + "?query=(uiStatus==\"INITIALIZATION\") sortBy completedDate/sort.descending")
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JobExecutionDtoCollection.class);
 
     List<JobExecutionDto> jobExecutionDtoList = jobExecutionCollection.getJobExecutions();
     Assert.assertEquals(expectedJobExecutionsNumber, jobExecutionDtoList.size());
-//    Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
-//    Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));
-//    Assert.assertTrue(jobExecutionDtoList.get(2).getCompletedDate().after(jobExecutionDtoList.get(3).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(0).getCompletedDate().after(jobExecutionDtoList.get(1).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(1).getCompletedDate().after(jobExecutionDtoList.get(2).getCompletedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(2).getCompletedDate().after(jobExecutionDtoList.get(3).getCompletedDate()));
   }
 
   @Test
@@ -189,10 +190,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("uiStatusAny", "RUNNING_COMPLETE")
-      .queryParam("statusAny", "COMMITTED")
-//      .get(GET_JOB_EXECUTIONS_PATH + "?query=(uiStatus==\"RUNNING_COMPLETE\" AND status==\"COMMITTED\") sortBy completedDate/sort.descending")
-//      .get(GET_JOB_EXECUTIONS_PATH + "?uiStatusAny=RUNNING_COMPLETE&statusAny==COMMITTED")
+      .queryParam("uiStatusAny", JobExecution.UiStatus.RUNNING_COMPLETE)
+      .queryParam("statusAny", Status.COMMITTED)
+      .queryParam("sortBy", "completed_date")
+      .queryParam("order", "desc")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
@@ -224,7 +225,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTIONS_PATH + "?query=cql.allRecords=1 sortBy progress.total/sort.descending/number")
+      .queryParam("sortBy", "progress_total")
+      .queryParam("order", "desc")
+      .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(JobExecutionDtoCollection.class);
