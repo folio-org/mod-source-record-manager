@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.JobExecutionFilter;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -22,14 +23,14 @@ import java.util.Optional;
 public interface JobExecutionService {
 
   /**
-   * Returns JobExecutionCollectionDto by the input query
+   * Returns JobExecutionCollectionDto by the input filter
    *
-   * @param query  query string to filter entities
+   * @param filter  filter containing conditions by which jobExecutions should be filtered
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    * @return future with JobExecutionCollectionDto
    */
-  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, int offset, int limit, String tenantId);
 
   /**
    * Performs creation of JobExecution and Snapshot entities

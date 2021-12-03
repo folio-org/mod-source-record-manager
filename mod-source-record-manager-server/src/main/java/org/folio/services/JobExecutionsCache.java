@@ -8,6 +8,7 @@ import io.vertx.core.Vertx;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.JobExecutionFilter;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ public class JobExecutionsCache {
 
   private Integer expireInSeconds;
   private JobExecutionService jobExecutionService;
-  // Pair of tenant id and cql query
+  // Pair of tenant id and conditions from JobExecutionFilter
   private AsyncLoadingCache<Pair<String, String>, Optional<JobExecutionDtoCollection>> cache;
   private Vertx vertx;
 
@@ -40,15 +41,15 @@ public class JobExecutionsCache {
     cache = buildCache();
   }
 
-  public Future<JobExecutionDtoCollection> get(String tenantId, String cqlQuery, int offset, int limit) {
+  public Future<JobExecutionDtoCollection> get(String tenantId, JobExecutionFilter filter, int offset, int limit) {
     Promise<JobExecutionDtoCollection> promise = Promise.promise();
-    String uniqueQuery = appendLimitAndOffset(cqlQuery, offset, limit);
+    String uniqueQuery = appendLimitAndOffset(filter, offset, limit);
     cache.get(Pair.of(tenantId, uniqueQuery)).whenComplete((jobExecutionOptional, e) -> {
       if (e == null) {
         if (jobExecutionOptional.isPresent()) {
           promise.complete(jobExecutionOptional.get());
         } else {
-          jobExecutionService.getJobExecutionsWithoutParentMultiple(cqlQuery, offset, limit, tenantId)
+          jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, offset, limit, tenantId)
             .onSuccess(ar -> {
               put(tenantId, uniqueQuery, ar);
               promise.complete(ar);
@@ -65,8 +66,9 @@ public class JobExecutionsCache {
     return promise.future();
   }
 
-  private String appendLimitAndOffset(String cqlQuery, int offset, int limit) {
-    return String.format("%s LIMIT %d OFFSET %d", cqlQuery, limit, offset);
+
+  private String appendLimitAndOffset(JobExecutionFilter filter, int offset, int limit) {
+    return String.format("%s LIMIT %d OFFSET %d", filter.buildWhereClause(), limit, offset);
   }
 
   private void put(String tenantId, String cqlQuery, JobExecutionDtoCollection jobExecutionCollection) {
