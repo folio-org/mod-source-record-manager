@@ -240,13 +240,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return promise.future();
   }
 
-  @Override
-  public Future<Boolean> deleteJobExecutionById(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
-    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, jobExecutionId, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
-  }
-
   private Tuple mapToTuple(JobExecution jobExecution) {
     return Tuple.of(UUID.fromString(jobExecution.getId()),
       jobExecution.getHrId(),
