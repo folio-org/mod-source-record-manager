@@ -42,7 +42,7 @@ public class MappingRuleDaoImplTest extends AbstractRestTest {
   }
 
   @Test
-  public void name(TestContext testContext) {
+  public void testReturnEmptyRulesIfRecordTypeIsNull(TestContext testContext) {
     Async async = testContext.async();
 
     var future = mappingRuleDao.get(null, TENANT_ID);
