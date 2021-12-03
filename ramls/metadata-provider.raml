@@ -36,9 +36,38 @@ resourceTypes:
   /jobExecutions:
     get:
       is: [
-        searchable: {description: "with valid searchable fields", example: "status=RUNNING"},
         pageable
       ]
+      queryParameters:
+        statusAny:
+          description: JobExecution statuses to filter by
+          type: string[]
+          required: false
+        profileIdNotAny:
+          description: Filter by specified job profile ids
+          type: string[]
+          example: ["d0ebb7b0-2f0f-11eb-adc1-0242ac120002", "91f9b8d6-d80e-4727-9783-73fb53e3c786"]
+          required: false
+        statusNot:
+          description: Filter by status not equal to
+          type: string
+          example: COMPLETED
+          required: false
+        uiStatusAny:
+          description: JobExecution statuses to filter by
+          type: string[]
+          example: ["READY_FOR_PREVIEW"]
+          required: false
+        hrId:
+          description: Filter by jobExecution hrid
+          type: string
+          example: "123"
+          required: false
+        fileName:
+          description: Filter by jobExecution file name
+          type: string
+          example: importBib1.bib
+          required: false
       responses:
         200:
           body:

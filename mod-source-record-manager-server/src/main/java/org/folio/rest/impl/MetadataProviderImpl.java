@@ -7,7 +7,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.JobExecutionFilter;
 import org.folio.dataimport.util.ExceptionHelper;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
@@ -20,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
@@ -39,11 +43,14 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobExecutions(String query, int offset, int limit, Map<String, String> okapiHeaders,
+  public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
+                                               List<String> uiStatusAny, String hrId, String fileName,
+                                               int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        jobExecutionsCache.get(tenantId, query, offset, limit)
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName);
+        jobExecutionsCache.get(tenantId, filter, offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -128,5 +135,24 @@ public class MetadataProviderImpl implements MetadataProvider {
       }
     });
 
+  }
+
+  private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
+                                                     List<String> uiStatusAny, String hrIdPattern, String fileNamePattern) {
+    List<JobExecution.Status> statuses = statusAny.stream()
+      .map(JobExecution.Status::fromValue)
+      .collect(Collectors.toList());
+
+    List<JobExecution.UiStatus> uiStatuses = uiStatusAny.stream()
+      .map(JobExecution.UiStatus::fromValue)
+      .collect(Collectors.toList());
+
+    return new JobExecutionFilter()
+      .withStatusAny(statuses)
+      .withProfileIdNotAny(profileIdNotAny)
+      .withStatusNot(statusNot == null ? null : JobExecution.Status.fromValue(statusNot))
+      .withUiStatusAny(uiStatuses)
+      .withHrIdPattern(hrIdPattern)
+      .withFileNamePattern(fileNamePattern);
   }
 }
