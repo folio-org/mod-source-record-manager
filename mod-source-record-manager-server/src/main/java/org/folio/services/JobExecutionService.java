@@ -78,12 +78,11 @@ public interface JobExecutionService {
    * to limit the collection param limit should be explicitly specified
    *
    * @param parentId JobExecution parent id
-   * @param query    query string to filter entities
    * @param offset   starting index in a list of results
    * @param limit    maximum number of results to return
    * @return future with collection of child JobExecutions
    */
-  Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, int offset, int limit, String tenantId);
 
   /**
    * Updates status for JobExecution and calls source-record-storage to update Snapshot status
