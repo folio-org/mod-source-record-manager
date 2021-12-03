@@ -25,12 +25,14 @@ public interface JobExecutionService {
   /**
    * Returns JobExecutionCollectionDto by the input filter
    *
-   * @param filter  filter containing conditions by which jobExecutions should be filtered
+   * @param filter filter containing conditions by which jobExecutions should be filtered
+   * @param sortBy sorting criteria
+   * @param order  sorting direction
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    * @return future with JobExecutionCollectionDto
    */
-  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId);
 
   /**
    * Performs creation of JobExecution and Snapshot entities

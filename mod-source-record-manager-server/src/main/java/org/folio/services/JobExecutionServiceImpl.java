@@ -64,8 +64,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, offset, limit, tenantId);
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, sortBy, order, offset, limit, tenantId);
   }
 
   @Override

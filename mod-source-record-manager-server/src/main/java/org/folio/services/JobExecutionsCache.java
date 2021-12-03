@@ -41,15 +41,15 @@ public class JobExecutionsCache {
     cache = buildCache();
   }
 
-  public Future<JobExecutionDtoCollection> get(String tenantId, JobExecutionFilter filter, int offset, int limit) {
+  public Future<JobExecutionDtoCollection> get(String tenantId, JobExecutionFilter filter, String sortBy, String order, int offset, int limit) {
     Promise<JobExecutionDtoCollection> promise = Promise.promise();
-    String uniqueQuery = appendLimitAndOffset(filter, offset, limit);
+    String uniqueQuery = appendSortAndPagingParams(filter, sortBy, order, offset, limit);
     cache.get(Pair.of(tenantId, uniqueQuery)).whenComplete((jobExecutionOptional, e) -> {
       if (e == null) {
         if (jobExecutionOptional.isPresent()) {
           promise.complete(jobExecutionOptional.get());
         } else {
-          jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, offset, limit, tenantId)
+          jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortBy, order, offset, limit, tenantId)
             .onSuccess(ar -> {
               put(tenantId, uniqueQuery, ar);
               promise.complete(ar);
@@ -67,8 +67,8 @@ public class JobExecutionsCache {
   }
 
 
-  private String appendLimitAndOffset(JobExecutionFilter filter, int offset, int limit) {
-    return String.format("%s LIMIT %d OFFSET %d", filter.buildWhereClause(), limit, offset);
+  private String appendSortAndPagingParams(JobExecutionFilter filter, String sortBy, String order, int offset, int limit) {
+    return String.format("%s sortBy=%s/%s LIMIT %d OFFSET %d", filter.buildWhereClause(), sortBy, order, limit, offset);
   }
 
   private void put(String tenantId, String cqlQuery, JobExecutionDtoCollection jobExecutionCollection) {

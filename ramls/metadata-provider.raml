@@ -68,6 +68,18 @@ resourceTypes:
           type: string
           example: importBib1.bib
           required: false
+        sortBy:
+          description: "sorting jobExecutions by field: completed_date, progress_total, file_name, status, job_profile_name, hrid"
+          example: source_record_order
+          type: string
+          required: false
+          default: completed_date
+        order:
+          description: "sorting direction"
+          example: desc
+          enum: [asc, desc]
+          required: false
+          default: asc
       responses:
         200:
           body:

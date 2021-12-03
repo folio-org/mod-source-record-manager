@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.MetadataProviderJobExecutionsGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
@@ -20,15 +21,20 @@ import org.folio.services.JournalRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final Set<Object> JOB_EXECUTION_SORTABLE_FIELDS =
+    Set.of("completed_date", "progress_total", "status", "hrid", "file_name", "job_profile_name");
+
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
@@ -45,12 +51,14 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName,
+                                               String sortBy, MetadataProviderJobExecutionsGetOrder order,
                                                int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName);
-        jobExecutionsCache.get(tenantId, filter, offset, limit)
+        validateSortableField(sortBy);
+        jobExecutionsCache.get(tenantId, filter, sortBy, order.name(), offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -60,7 +68,6 @@ public class MetadataProviderImpl implements MetadataProvider {
       }
     });
   }
-
   @Override
   public void getMetadataProviderLogsByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -155,4 +162,12 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withHrIdPattern(hrIdPattern)
       .withFileNamePattern(fileNamePattern);
   }
+
+  private void validateSortableField(String field) {
+    if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(field)) {
+      throw new BadRequestException(String.format("The specified field for sorting jobExecutions is invalid: '%s'. Valid sortable fields are: %s",
+        field, JOB_EXECUTION_SORTABLE_FIELDS));
+    }
+  }
+
 }

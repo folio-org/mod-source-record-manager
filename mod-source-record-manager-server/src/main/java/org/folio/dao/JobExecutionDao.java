@@ -18,12 +18,14 @@ public interface JobExecutionDao {
    * Searches for {@link JobExecution} in the db which do not have subordinationType=PARENT_MULTIPLE
    * (only CHILD and PARENT_SINGLE allowed).
    *
-   * @param filter  filter containing conditions by which jobExecutions should be filtered
+   * @param filter filter containing conditions by which jobExecutions should be filtered
+   * @param sortBy sorting criteria
+   * @param order  sorting direction
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    * @return future with {@link org.folio.rest.jaxrs.model.JobExecutionDtoCollection}
    */
-  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId);
 
   /**
    * Saves {@link JobExecution} to database

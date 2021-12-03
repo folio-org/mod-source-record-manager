@@ -38,7 +38,7 @@ import static org.folio.dao.util.JobExecutionsColumns.CURRENTLY_PROCESSED_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.ERROR_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.HRID_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.ID_COLUMN;
+import static org.folio.dao.util.JobExecutionsColumns.ID_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.JOB_PROFILE_DATA_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.JOB_PROFILE_NAME_FIELD;
@@ -70,7 +70,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final String TABLE_NAME = "job_executions_new";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
-  private static final String ID_FIELD = "id";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
   public static final String GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH = "templates/db_scripts/get_job_execution_without_parent_multiple.sql";
 
@@ -123,15 +122,14 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String filterCriteria = filter.buildWhereClause();
-      String sortBy = "completed_date";
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
-      String query2 = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  sortBy, "asc");
-      pgClientFactory.createInstance(tenantId).select(query2, Tuple.of(limit, offset), promise);
+      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  sortBy, order);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
       promise.fail(e);
@@ -285,7 +283,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobExecution mapRowToJobExecution(Row row) {
     return new JobExecution()
-      .withId(row.getValue(ID_COLUMN).toString())
+      .withId(row.getValue(ID_FIELD).toString())
       .withHrId(row.getInteger(HRID_FIELD))
       .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
       .withSubordinationType(JobExecution.SubordinationType.fromValue(row.getString(SUBORDINATION_TYPE_FIELD)))
@@ -302,7 +300,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
       .withUserId(row.getValue(USER_ID_FIELD).toString())
       .withProgress(new Progress()
-        .withJobExecutionId(row.getValue(ID_COLUMN).toString())
+        .withJobExecutionId(row.getValue(ID_FIELD).toString())
         .withCurrent(row.getInteger(PROGRESS_CURRENT_FIELD))
         .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD)))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
@@ -312,7 +310,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobExecutionDto mapRowToJobExecutionDto(Row row) {
     return new JobExecutionDto()
-      .withId(row.getValue(ID_COLUMN).toString())
+      .withId(row.getValue(ID_FIELD).toString())
       .withHrId(row.getInteger(HRID_FIELD))
       .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
       .withSubordinationType(JobExecutionDto.SubordinationType.fromValue(row.getString(SUBORDINATION_TYPE_FIELD)))
@@ -340,7 +338,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
 
     return new Progress()
-      .withJobExecutionId(row.getValue(ID_COLUMN).toString())
+      .withJobExecutionId(row.getValue(ID_FIELD).toString())
       .withCurrent(processedCount)
       .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD));
   }
