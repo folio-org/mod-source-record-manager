@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
@@ -244,38 +245,48 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnFilteredCollectionByHrIdOrFileNameOnGet() {
-    constructAndPostInitJobExecutionRqDto(5);
+    Integer expectedHrid = constructAndPostInitJobExecutionRqDto(5).getJobExecutions().stream()
+      .filter(job -> !job.getSubordinationType().equals(PARENT_MULTIPLE))
+      .findAny()
+      .map(JobExecution::getHrId)
+      .get();
+
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
     getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("hrid", "1")
+      .queryParam("hrid", expectedHrid)
       .queryParam("fileName", "*importBib5*")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(2))
       .body("totalRecords", is(2))
-      .body("jobExecutions*.hrId", hasItem(is(1)))
+      .body("jobExecutions*.hrId", hasItem(is(expectedHrid)))
       .body("jobExecutions*.fileName", hasItem(is("importBib5.bib")));
   }
 
   @Test
   public void shouldReturnFilteredCollectionByHrIdOnGet() {
-    constructAndPostInitJobExecutionRqDto(5);
+    Integer expectedHrid = constructAndPostInitJobExecutionRqDto(5).getJobExecutions().stream()
+      .filter(job -> !job.getSubordinationType().equals(PARENT_MULTIPLE))
+      .findAny()
+      .map(JobExecution::getHrId)
+      .get();
+
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
     getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("hrid", "1")
+      .queryParam("hrid", expectedHrid)
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(1))
       .body("totalRecords", is(1))
-      .body("jobExecutions[0].hrId", is(1));
+      .body("jobExecutions[0].hrId", is(expectedHrid));
   }
 
   @Test
