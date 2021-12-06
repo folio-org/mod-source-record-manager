@@ -88,61 +88,50 @@ public class JobExecutionFilter {
         .map(JobExecution.Status::toString)
         .collect(Collectors.toList());
 
-      conditionBuilder.append(" AND ")
-        .append(buildInCondition(STATUS_FIELD, statuses));
+      addCondition(conditionBuilder, buildInCondition(STATUS_FIELD, statuses));
     }
     if (isNotEmpty(profileIdNotAny)) {
-      conditionBuilder.append(" AND ")
-        .append(buildNotInCondition(JOB_PROFILE_ID_FIELD, profileIdNotAny));
+      addCondition(conditionBuilder, buildNotInCondition(JOB_PROFILE_ID_FIELD, profileIdNotAny));
     }
     if (statusNot != null) {
-      conditionBuilder
-        .append(" AND ")
-        .append(buildNotEqualCondition(STATUS_FIELD, statusNot.toString()));
+      addCondition(conditionBuilder, buildNotEqualCondition(STATUS_FIELD, statusNot.toString()));
     }
     if (isNotEmpty(uiStatusAny)) {
       List<String> uiStatuses = uiStatusAny.stream()
         .map(JobExecution.UiStatus::toString)
         .collect(Collectors.toList());
 
-      conditionBuilder.append(" AND ")
-        .append(buildInCondition(UI_STATUS_FIELD, uiStatuses));
+      addCondition(conditionBuilder, buildInCondition(UI_STATUS_FIELD, uiStatuses));
     }
     if (isNotEmpty(hrIdPattern) && isNotEmpty(fileNamePattern)) {
       conditionBuilder.append(String.format(" AND (%s OR %s)", buildLikeCondition(HRID_FIELD, hrIdPattern),
         buildLikeCondition(FILE_NAME_FIELD, fileNamePattern)));
     } else {
       if (isNotEmpty(hrIdPattern)) {
-        conditionBuilder.append(" AND ")
-          .append(buildLikeCondition(HRID_FIELD, hrIdPattern));
+        addCondition(conditionBuilder, buildLikeCondition(HRID_FIELD, hrIdPattern));
       }
       if (isNotEmpty(fileNamePattern)) {
-        conditionBuilder.append(" AND ")
-          .append(buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
+        addCondition(conditionBuilder, buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
     }
     if (isNotEmpty(profileId)) {
-      conditionBuilder
-        .append(" AND ")
-        .append(buildEqualCondition(JOB_PROFILE_ID_FIELD, profileId));
+      addCondition(conditionBuilder, buildEqualCondition(JOB_PROFILE_ID_FIELD, profileId));
     }
     if (isNotEmpty(userId)) {
-      conditionBuilder
-        .append(" AND ")
-        .append(buildEqualCondition(USER_ID_FIELD, userId));
+      addCondition(conditionBuilder, buildEqualCondition(USER_ID_FIELD, userId));
     }
     if (completedAfter != null) {
-      conditionBuilder
-        .append(" AND ")
-        .append(buildGreaterThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedAfter)));
+      addCondition(conditionBuilder, buildGreaterThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedAfter)));
     }
     if (completedBefore != null) {
-      conditionBuilder
-        .append(" AND ")
-        .append(buildLessThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedBefore)));
+      addCondition(conditionBuilder, buildLessThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedBefore)));
     }
 
     return conditionBuilder.toString();
+  }
+
+  private void addCondition(StringBuilder conditionBuilder, String condition) {
+    conditionBuilder.append(" AND ").append(condition);
   }
 
   private String buildInCondition(String columnName, List<String> values) {
