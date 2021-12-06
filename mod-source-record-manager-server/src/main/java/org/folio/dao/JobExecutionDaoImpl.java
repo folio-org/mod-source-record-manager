@@ -67,7 +67,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static final String TABLE_NAME = "job_executions_new";
+  private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
   private static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1";

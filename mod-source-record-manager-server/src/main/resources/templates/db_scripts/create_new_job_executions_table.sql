@@ -52,8 +52,8 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
--- create table job_executions_new
-CREATE TABLE IF NOT EXISTS job_executions_new (
+-- create table job_execution
+CREATE TABLE IF NOT EXISTS job_execution (
     id uuid PRIMARY KEY,
     hrid bigint,
     parent_job_id uuid,
@@ -77,11 +77,11 @@ CREATE TABLE IF NOT EXISTS job_executions_new (
 );
 
 
--- create job_executions_new_status_idx index
-CREATE INDEX IF NOT EXISTS job_executions_new_status_idx ON job_executions_new USING BTREE (status);
+-- create job_execution_status_idx index
+CREATE INDEX IF NOT EXISTS job_execution_status_idx ON job_execution USING BTREE (status);
 
--- create job_executions_new_completedDate_idx index
-CREATE INDEX IF NOT EXISTS job_executions_new_completedDate_idx ON job_executions_new USING BTREE (completed_date);
+-- create job_execution_completedDate_idx index
+CREATE INDEX IF NOT EXISTS job_execution_complete_date_idx ON job_execution USING BTREE (completed_date);
 
 -- drop references to job_executions.id column
 ALTER TABLE IF EXISTS job_execution_source_chunks DROP CONSTRAINT IF EXISTS jobexecutionid_job_executions_fkey;
