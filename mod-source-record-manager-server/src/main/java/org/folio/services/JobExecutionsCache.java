@@ -68,7 +68,7 @@ public class JobExecutionsCache {
 
 
   private String appendSortAndPagingParams(JobExecutionFilter filter, String sortBy, String order, int offset, int limit) {
-    return String.format("%s sortBy=%s/%s LIMIT %d OFFSET %d", filter.buildWhereClause(), sortBy, order, limit, offset);
+    return String.format("%s sortBy=%s/%s LIMIT %d OFFSET %d", filter.buildCriteria(), sortBy, order, limit, offset);
   }
 
   private void put(String tenantId, String cqlQuery, JobExecutionDtoCollection jobExecutionCollection) {
