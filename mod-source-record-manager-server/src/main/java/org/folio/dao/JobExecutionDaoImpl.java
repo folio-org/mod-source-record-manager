@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.NotFoundException;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
@@ -50,6 +49,7 @@ import static org.folio.dao.util.JobExecutionsColumns.SOURCE_PATH_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.STARTED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.SUBORDINATION_TYPE_FIELD;
+import static org.folio.dao.util.JobExecutionsColumns.TOTAL_COUNT_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.TOTAL_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionsColumns.USER_ID_FIELD;
@@ -261,7 +261,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     JobExecutionDtoCollection jobCollection = new JobExecutionDtoCollection().withTotalRecords(0);
     for (Row row : rowSet) {
       jobCollection.getJobExecutions().add(mapRowToJobExecutionDto(row));
-      jobCollection.setTotalRecords(row.getInteger("total_count"));
+      jobCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
     }
     return jobCollection;
   }
@@ -271,15 +271,15 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withId(row.getValue(ID_FIELD).toString())
       .withHrId(row.getInteger(HRID_FIELD))
       .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
-      .withSubordinationType(JobExecution.SubordinationType.fromValue(row.getString(SUBORDINATION_TYPE_FIELD)))
+      .withSubordinationType(row.get(JobExecution.SubordinationType.class, SUBORDINATION_TYPE_FIELD))
       .withSourcePath(row.getString(SOURCE_PATH_FIELD))
       .withFileName(row.getString(FILE_NAME_FIELD))
-      .withStartedDate(Date.from(row.getLocalDateTime(STARTED_DATE_FIELD).toInstant(ZoneOffset.UTC)))
-      .withCompletedDate(row.getLocalDateTime(COMPLETED_DATE_FIELD) != null
-        ? Date.from(LocalDateTime.parse(row.getLocalDateTime(COMPLETED_DATE_FIELD).toString()).toInstant(ZoneOffset.UTC)) : null)
+      .withStartedDate(Date.from(row.getOffsetDateTime(STARTED_DATE_FIELD).toInstant()))
+      .withCompletedDate(mapRowToCompletedDate(row))
       .withStatus(row.get(JobExecution.Status.class, STATUS_FIELD))
       .withUiStatus(row.get(JobExecution.UiStatus.class, UI_STATUS_FIELD))
-      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) != null ? row.get(JobExecution.ErrorStatus.class, ERROR_STATUS_FIELD) : null)
+      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) == null
+        ? null : row.get(JobExecution.ErrorStatus.class, ERROR_STATUS_FIELD))
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
@@ -289,8 +289,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withCurrent(row.getInteger(PROGRESS_CURRENT_FIELD))
         .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD)))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
-      .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) != null
-        ? row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class) : null);
+      .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) == null
+        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class));
   }
 
   private JobExecutionDto mapRowToJobExecutionDto(Row row) {
@@ -298,22 +298,26 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withId(row.getValue(ID_FIELD).toString())
       .withHrId(row.getInteger(HRID_FIELD))
       .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
-      .withSubordinationType(JobExecutionDto.SubordinationType.fromValue(row.getString(SUBORDINATION_TYPE_FIELD)))
+      .withSubordinationType(row.get(JobExecutionDto.SubordinationType.class, SUBORDINATION_TYPE_FIELD))
       .withSourcePath(row.getString(SOURCE_PATH_FIELD))
       .withFileName(row.getString(FILE_NAME_FIELD))
-      .withStartedDate(Date.from(row.getLocalDateTime(STARTED_DATE_FIELD).toInstant(ZoneOffset.UTC)))
-      .withCompletedDate(row.getLocalDateTime(COMPLETED_DATE_FIELD) != null
-        ? Date.from(LocalDateTime.parse(row.getLocalDateTime(COMPLETED_DATE_FIELD).toString()).toInstant(ZoneOffset.UTC)) : null)
+      .withStartedDate(Date.from(row.getOffsetDateTime(STARTED_DATE_FIELD).toInstant()))
+      .withCompletedDate(mapRowToCompletedDate(row))
       .withStatus(row.get(JobExecutionDto.Status.class, STATUS_FIELD))
       .withUiStatus(row.get(JobExecutionDto.UiStatus.class, UI_STATUS_FIELD))
-      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) != null
-        ? row.get(JobExecutionDto.ErrorStatus.class, ERROR_STATUS_FIELD) : null)
+      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) == null
+        ? null : row.get(JobExecutionDto.ErrorStatus.class, ERROR_STATUS_FIELD))
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
       .withUserId(row.getValue(USER_ID_FIELD).toString())
       .withProgress(mapRowToProgress(row))
       .withJobProfileInfo(mapRowToJobProfileInfo(row));
+  }
+
+  private Date mapRowToCompletedDate(Row row) {
+    return row.getLocalDateTime(COMPLETED_DATE_FIELD) == null
+      ? null : Date.from(row.getOffsetDateTime(COMPLETED_DATE_FIELD).toInstant());
   }
 
   private Progress mapRowToProgress(Row row) {

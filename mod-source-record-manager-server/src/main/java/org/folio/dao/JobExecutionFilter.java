@@ -2,6 +2,8 @@ package org.folio.dao;
 
 import org.folio.rest.jaxrs.model.JobExecution;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,12 +14,17 @@ import static org.folio.dao.util.JobExecutionsColumns.HRID_FIELD;
 
 public class JobExecutionFilter {
 
+  private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   private List<JobExecution.Status> statusAny;
   private List<String> profileIdNotAny;
   private JobExecution.Status statusNot;
   private List<JobExecution.UiStatus> uiStatusAny;
   private String hrIdPattern;
   private String fileNamePattern;
+  private String profileId;
+  private String userId;
+  private Date completedAfter;
+  private Date completedBefore;
 
   public JobExecutionFilter withStatusAny(List<JobExecution.Status> statusIn) {
     this.statusAny = statusIn;
@@ -46,6 +53,26 @@ public class JobExecutionFilter {
 
   public JobExecutionFilter withFileNamePattern(String fileNamePattern) {
     this.fileNamePattern = fileNamePattern;
+    return this;
+  }
+
+  public JobExecutionFilter withProfileId(String profileId) {
+    this.profileId = profileId;
+    return this;
+  }
+
+  public JobExecutionFilter withUserId(String userId) {
+    this.userId = userId;
+    return this;
+  }
+
+  public JobExecutionFilter withCompletedAfter(Date completedAfter) {
+    this.completedAfter = completedAfter;
+    return this;
+  }
+
+  public JobExecutionFilter withCompletedBefore(Date completedBefore) {
+    this.completedBefore = completedBefore;
     return this;
   }
 
@@ -99,6 +126,30 @@ public class JobExecutionFilter {
         conditionBuilder.append(" AND ")
           .append(buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
+    }
+    if (isNotEmpty(profileId)) {
+      conditionBuilder
+        .append(" AND job_profile_id = '")
+        .append(profileId)
+        .append("'");
+    }
+    if (isNotEmpty(userId)) {
+      conditionBuilder
+        .append(" AND user_id = '")
+        .append(userId)
+        .append("'");
+    }
+    if (completedAfter != null) {
+      conditionBuilder
+        .append(" AND completed_date >= '")
+        .append(formatter.format(completedAfter))
+        .append("'");
+    }
+    if (completedBefore != null) {
+      conditionBuilder
+        .append(" AND completed_date <= '")
+        .append(formatter.format(completedBefore))
+        .append("'");
     }
 
     return conditionBuilder.toString();

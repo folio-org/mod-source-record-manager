@@ -31,6 +31,11 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -47,8 +52,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 
 /**
@@ -351,6 +358,107 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
+
+  @Test
+  public void shouldReturnFilteredCollectionByCompletedDateOnGet() {
+    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(8).getJobExecutions().stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    Date dateFrom = new Date();
+    Date dateTo = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      if (i % 2 == 0) {
+        childJobsToUpdate.get(i).setCompletedDate(new Date());
+      } else {
+        childJobsToUpdate.get(i).setCompletedDate(Date.from(dateFrom.toInstant().plus(2, ChronoUnit.DAYS)));
+      }
+      putJobExecution(childJobsToUpdate.get(i));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
+    List<Date> completedDates = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("completedAfter", dateTimeFormatter.format(ZonedDateTime.ofInstant(dateFrom.toInstant(), ZoneOffset.UTC)))
+      .queryParam("completedBefore", dateTimeFormatter.format(ZonedDateTime.ofInstant(dateTo.toInstant(), ZoneOffset.UTC)))
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber))
+      .extract().as(JobExecutionDtoCollection.class)
+      .getJobExecutions().stream()
+      .map(JobExecutionDto::getCompletedDate)
+      .collect(Collectors.toList());
+
+    assertThat(completedDates, everyItem(greaterThanOrEqualTo(dateFrom)));
+    assertThat(completedDates, everyItem(lessThanOrEqualTo((dateTo))));
+
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByProfileIdOnGet() {
+    String profileId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
+    List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      if (i % 2 == 0) {
+        childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
+          .withId(profileId)
+          .withName("test")
+          .withDataType(MARC));
+        putJobExecution(childJobsToUpdate.get(i));
+      }
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("profileId", profileId)
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber))
+      .body("jobExecutions*.jobProfileInfo.id", everyItem(is(profileId)));
+  }
+
+  @Test
+  public void shouldReturnFilteredCollectionByUserIdOnGet() {
+    String userId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
+    List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      if (i % 2 == 0) {
+        childJobsToUpdate.get(i).withUserId(userId);
+        putJobExecution(childJobsToUpdate.get(i));
+      }
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("userId", userId)
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
+      .body("totalRecords", is(expectedJobExecutionsNumber))
+      .body("jobExecutions*.userId", everyItem(is(userId)));
+  }
+
 
   @Test
   public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,12 +52,13 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName,
+                                               String profileId, String userId, Date completedAfter, Date completedBefore,
                                                String sortBy, MetadataProviderJobExecutionsGetOrder order,
                                                int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileId, userId, completedAfter, completedBefore);
         validateSortableField(sortBy);
         jobExecutionsCache.get(tenantId, filter, sortBy, order.name(), offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
@@ -68,6 +70,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       }
     });
   }
+
   @Override
   public void getMetadataProviderLogsByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -145,7 +148,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
-                                                     List<String> uiStatusAny, String hrIdPattern, String fileNamePattern) {
+                                                     List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
+                                                     String profileId, String userId, Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .collect(Collectors.toList());
@@ -160,7 +164,11 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withStatusNot(statusNot == null ? null : JobExecution.Status.fromValue(statusNot))
       .withUiStatusAny(uiStatuses)
       .withHrIdPattern(hrIdPattern)
-      .withFileNamePattern(fileNamePattern);
+      .withFileNamePattern(fileNamePattern)
+      .withProfileId(profileId)
+      .withUserId(userId)
+      .withCompletedAfter(completedAfter)
+      .withCompletedBefore(completedBefore);
   }
 
   private void validateSortableField(String field) {

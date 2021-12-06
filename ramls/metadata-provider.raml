@@ -68,6 +68,24 @@ resourceTypes:
           type: string
           example: importBib1.bib
           required: false
+        profileId:
+          description: Filter by specified job profile id
+          type: string
+          example: d0ebb7b0-2f0f-11eb-adc1-0242ac120002
+          required: false
+        userId:
+          description: Filter by user id
+          type: string
+          example: d0ebb7b0-2f0f-11eb-adc1-0242ac120002
+          required: false
+        completedAfter:
+          description: Start date to filter after, inclusive
+          type: datetime
+          required: false
+        completedBefore:
+          description: End date to filter before, inclusive
+          type: datetime
+          required: false
         sortBy:
           description: "sorting jobExecutions by field: completed_date, progress_total, file_name, status, job_profile_name, hrid"
           example: completed_date
