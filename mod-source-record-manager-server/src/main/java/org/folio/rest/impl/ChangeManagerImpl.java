@@ -35,6 +35,7 @@ import static java.lang.String.format;
 public class ChangeManagerImpl implements ChangeManager {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final String CHUNK_ID_HEADER = "chunkId";
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
@@ -171,6 +172,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        okapiHeaders.put(CHUNK_ID_HEADER, entity.getId());
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         eventDrivenChunkProcessingService.processChunk(entity, id, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
