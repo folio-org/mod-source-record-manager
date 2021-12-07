@@ -26,18 +26,18 @@ public class JobExecutionFilter {
   private List<JobExecution.UiStatus> uiStatusAny;
   private String hrIdPattern;
   private String fileNamePattern;
-  private String profileId;
+  private List<String> profileIdAny;
   private String userId;
   private Date completedAfter;
   private Date completedBefore;
 
-  public JobExecutionFilter withStatusAny(List<JobExecution.Status> statusIn) {
-    this.statusAny = statusIn;
+  public JobExecutionFilter withStatusAny(List<JobExecution.Status> statusAny) {
+    this.statusAny = statusAny;
     return this;
   }
 
-  public JobExecutionFilter withProfileIdNotAny(List<String> profileIdNotIn) {
-    this.profileIdNotAny = profileIdNotIn;
+  public JobExecutionFilter withProfileIdNotAny(List<String> profileIdNotAny) {
+    this.profileIdNotAny = profileIdNotAny;
     return this;
   }
 
@@ -61,8 +61,8 @@ public class JobExecutionFilter {
     return this;
   }
 
-  public JobExecutionFilter withProfileId(String profileId) {
-    this.profileId = profileId;
+  public JobExecutionFilter withProfileIdAny(List<String> profileIdAny) {
+    this.profileIdAny = profileIdAny;
     return this;
   }
 
@@ -114,8 +114,8 @@ public class JobExecutionFilter {
         addCondition(conditionBuilder, buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
     }
-    if (isNotEmpty(profileId)) {
-      addCondition(conditionBuilder, buildEqualCondition(JOB_PROFILE_ID_FIELD, profileId));
+    if (isNotEmpty(profileIdAny)) {
+      addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));
     }
     if (isNotEmpty(userId)) {
       addCondition(conditionBuilder, buildEqualCondition(USER_ID_FIELD, userId));

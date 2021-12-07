@@ -49,6 +49,8 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.any;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -402,33 +404,34 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnFilteredCollectionByProfileIdOnGet() {
-    String profileId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
+    String profileId1 = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
+    String profileId2 = "91f9b8d6-d80e-4727-9783-73fb53e3c786";
     List<JobExecution> childJobsToUpdate = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
       .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
       .collect(Collectors.toList());
 
-    for (int i = 0; i < childJobsToUpdate.size(); i++) {
-      if (i % 2 == 0) {
+    int expectedJobExecutionsNumber = 2;
+    for (int i = 0; i < expectedJobExecutionsNumber; i++) {
+      String profileId = (i % 2 == 0) ? profileId1 : profileId2;
         childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
           .withId(profileId)
           .withName("test")
           .withDataType(MARC));
         putJobExecution(childJobsToUpdate.get(i));
-      }
     }
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    int expectedJobExecutionsNumber = childJobsToUpdate.size() / 2;
     RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("profileId", profileId)
+      .queryParam("profileIdAny", profileId1, profileId2)
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber))
-      .body("jobExecutions*.jobProfileInfo.id", everyItem(is(profileId)));
+      .body("jobExecutions*.jobProfileInfo.id", hasItem(is(profileId1)))
+      .body("jobExecutions*.jobProfileInfo.id", hasItem(is(profileId2)));
   }
 
   @Test

@@ -42,6 +42,7 @@ resourceTypes:
         statusAny:
           description: JobExecution statuses to filter by
           type: string[]
+          example: [COMMITTED, ERROR]
           required: false
         profileIdNotAny:
           description: Filter by specified job profile ids
@@ -68,10 +69,10 @@ resourceTypes:
           type: string
           example: importBib1.bib
           required: false
-        profileId:
-          description: Filter by specified job profile id
-          type: string
-          example: d0ebb7b0-2f0f-11eb-adc1-0242ac120002
+        profileIdAny:
+          description: Filter by specified job profile ids
+          type: string[]
+          example: ["d0ebb7b0-2f0f-11eb-adc1-0242ac120002", "91f9b8d6-d80e-4727-9783-73fb53e3c786"]
           required: false
         userId:
           description: Filter by user id

@@ -52,13 +52,13 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName,
-                                               String profileId, String userId, Date completedAfter, Date completedBefore,
+                                               List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
                                                String sortBy, MetadataProviderJobExecutionsGetOrder order,
                                                int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileId, userId, completedAfter, completedBefore);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
         validateSortableField(sortBy);
         jobExecutionsCache.get(tenantId, filter, sortBy, order.name(), offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
@@ -149,7 +149,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
-                                                     String profileId, String userId, Date completedAfter, Date completedBefore) {
+                                                     List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .collect(Collectors.toList());
@@ -165,7 +165,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withUiStatusAny(uiStatuses)
       .withHrIdPattern(hrIdPattern)
       .withFileNamePattern(fileNamePattern)
-      .withProfileId(profileId)
+      .withProfileIdAny(profileIdAny)
       .withUserId(userId)
       .withCompletedAfter(completedAfter)
       .withCompletedBefore(completedBefore);
