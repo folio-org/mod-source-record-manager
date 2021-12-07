@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final Set<Object> JOB_EXECUTION_SORTABLE_FIELDS =
+  private static final Set<String> JOB_EXECUTION_SORTABLE_FIELDS =
     Set.of("completed_date", "progress_total", "status", "hrid", "file_name", "job_profile_name");
 
   @Autowired
