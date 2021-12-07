@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.folio.dao.util.JobExecutionsColumns.COMPLETED_DATE_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.FILE_NAME_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.HRID_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.JOB_PROFILE_ID_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.STATUS_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.UI_STATUS_FIELD;
-import static org.folio.dao.util.JobExecutionsColumns.USER_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 
 public class JobExecutionFilter {
 
