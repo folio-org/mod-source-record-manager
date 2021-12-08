@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS job_execution (
 CREATE INDEX IF NOT EXISTS job_execution_status_idx ON job_execution USING BTREE (status);
 
 -- create job_execution_completedDate_idx index
-CREATE INDEX IF NOT EXISTS job_execution_complete_date_idx ON job_execution USING BTREE (completed_date);
+CREATE INDEX IF NOT EXISTS job_execution_completed_date_idx ON job_execution USING BTREE (completed_date);
 
 -- drop references to job_executions.id column
 ALTER TABLE IF EXISTS job_execution_source_chunks DROP CONSTRAINT IF EXISTS jobexecutionid_job_executions_fkey;
