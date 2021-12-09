@@ -30,41 +30,41 @@ public final class JobExecutionDBConstants {
 
   public static final String INSERT_SQL =
     "INSERT INTO %s.%s (id, hrid, parent_job_id, subordination_type, source_path, file_name, " +
-      "progress_current, progress_total, started_date, completed_date, status, ui_status, error_status, job_user_first_name, " +
-      "job_user_last_name, user_id, job_profile_id, job_profile_name, job_profile_data_type, job_profile_snapshot_wrapper) " +
-      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)";
+    "progress_current, progress_total, started_date, completed_date, status, ui_status, error_status, job_user_first_name, " +
+    "job_user_last_name, user_id, job_profile_id, job_profile_name, job_profile_data_type, job_profile_snapshot_wrapper) " +
+    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)";
 
   public static final String UPDATE_SQL =
     "UPDATE %s " +
-      "SET id = $1, hrid = $2, parent_job_id = $3, subordination_type = $4, source_path = $5, file_name = $6, " +
-      "progress_current = $7, progress_total = $8, started_date = $9, completed_date = $10, " +
-      "status = $11, ui_status = $12, error_status = $13, job_user_first_name = $14, job_user_last_name = $15, " +
-      "user_id = $16, job_profile_id = $17, job_profile_name = $18, job_profile_data_type = $19, " +
-      "job_profile_snapshot_wrapper = $20 " +
-      "WHERE id = $1";
+    "SET id = $1, hrid = $2, parent_job_id = $3, subordination_type = $4, source_path = $5, file_name = $6, " +
+    "progress_current = $7, progress_total = $8, started_date = $9, completed_date = $10, " +
+    "status = $11, ui_status = $12, error_status = $13, job_user_first_name = $14, job_user_last_name = $15, " +
+    "user_id = $16, job_profile_id = $17, job_profile_name = $18, job_profile_data_type = $19, " +
+    "job_profile_snapshot_wrapper = $20 " +
+    "WHERE id = $1";
 
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
-      "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
-      "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
-      "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
-      "FROM %s j " +
-      "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
-      "LEFT JOIN cte ON true " +
-      "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' " +
-      "LIMIT $2 OFFSET $3";
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
+    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
+    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "FROM %s j " +
+    "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
+    "LEFT JOIN cte ON true " +
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' " +
+    "LIMIT $2 OFFSET $3";
 
   public static final String GET_JOBS_NOT_PARENT_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
-      "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
-      "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
-      "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
-      "FROM %s j " +
-      "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
-      "LEFT JOIN cte ON true " +
-      "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s " +
-      "ORDER BY %s %s " +
-      "LIMIT $1 OFFSET $2";
+    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
+    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
+    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "FROM %s j " +
+    "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
+    "LEFT JOIN cte ON true " +
+    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s " +
+    "ORDER BY %s %s " +
+    "LIMIT $1 OFFSET $2";
 
   private JobExecutionDBConstants() {
   }

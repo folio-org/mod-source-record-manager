@@ -80,7 +80,10 @@ CREATE TABLE IF NOT EXISTS job_execution (
 -- create job_execution_status_idx index
 CREATE INDEX IF NOT EXISTS job_execution_status_idx ON job_execution USING BTREE (status);
 
--- create job_execution_completedDate_idx index
+-- create job_execution_ui_status_idx index
+CREATE INDEX IF NOT EXISTS job_execution_ui_status_idx ON job_execution USING BTREE (ui_status);
+
+-- create job_execution_completed_date_idx index
 CREATE INDEX IF NOT EXISTS job_execution_completed_date_idx ON job_execution USING BTREE (completed_date);
 
 -- drop references to job_executions.id column
