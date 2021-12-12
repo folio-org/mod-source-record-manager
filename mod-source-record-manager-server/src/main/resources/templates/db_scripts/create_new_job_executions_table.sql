@@ -86,6 +86,9 @@ CREATE INDEX IF NOT EXISTS job_execution_ui_status_idx ON job_execution USING BT
 -- create job_execution_completed_date_idx index
 CREATE INDEX IF NOT EXISTS job_execution_completed_date_idx ON job_execution USING BTREE (completed_date);
 
+-- create job_execution_job_profile_id_idx index
+CREATE INDEX IF NOT EXISTS job_execution_job_profile_id_idx ON job_execution USING BTREE (job_profile_id);
+
 -- drop references to job_executions.id column
 ALTER TABLE IF EXISTS job_execution_source_chunks DROP CONSTRAINT IF EXISTS jobexecutionid_job_executions_fkey;
 ALTER TABLE IF EXISTS job_execution_progress DROP CONSTRAINT IF EXISTS jobexecutionid_job_executions_fkey;
