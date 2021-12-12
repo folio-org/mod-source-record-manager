@@ -5,12 +5,13 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionFilter;
+import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.MetadataProviderJobExecutionsGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +35,10 @@ import java.util.stream.Collectors;
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final String INVALID_SORT_PARAMS_MSG = "The specified parameter for sorting jobExecutions is invalid: '%s'. Valid sortable fields are: %s. Valid sorting order values are: asc, desc.";
+  public static final Set<String> SORT_ORDER_VALUES = Set.of("asc", "desc");
   private static final Set<String> JOB_EXECUTION_SORTABLE_FIELDS =
-    Set.of("completed_date", "progress_total", "status", "hrid", "file_name", "job_profile_name");
+    Set.of("completed_date", "progress_total", "status", "hrid", "file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
 
   @Autowired
   private JobExecutionService jobExecutionService;
@@ -53,14 +57,13 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName,
                                                List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
-                                               String sortBy, MetadataProviderJobExecutionsGetOrder order,
-                                               int offset, int limit, Map<String, String> okapiHeaders,
+                                               List<String> sortBy, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
         JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
-        validateSortableField(sortBy);
-        jobExecutionsCache.get(tenantId, filter, sortBy, order.name(), offset, limit)
+        jobExecutionsCache.get(tenantId, filter, sortFields, offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -171,11 +174,18 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withCompletedBefore(completedBefore);
   }
 
-  private void validateSortableField(String field) {
-    if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(field)) {
-      throw new BadRequestException(String.format("The specified field for sorting jobExecutions is invalid: '%s'. Valid sortable fields are: %s",
-        field, JOB_EXECUTION_SORTABLE_FIELDS));
+  private List<SortField> mapSortQueryToSortFields(List<String> sortQuery) {
+    ArrayList<SortField> fields = new ArrayList<>();
+    for (String sortFieldQuery : sortQuery) {
+      String sortField = StringUtils.substringBefore(sortFieldQuery,",");
+      String sortOrder = StringUtils.substringAfter(sortFieldQuery,",");
+
+      if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(sortField) || !SORT_ORDER_VALUES.contains(sortOrder)) {
+        throw new BadRequestException(String.format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
+      }
+      fields.add(new SortField(sortField, sortOrder));
     }
+    return fields;
   }
 
 }

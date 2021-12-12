@@ -2,9 +2,11 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
+import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -19,13 +21,12 @@ public interface JobExecutionDao {
    * (only CHILD and PARENT_SINGLE allowed).
    *
    * @param filter filter containing conditions by which jobExecutions should be filtered
-   * @param sortBy sorting criteria
-   * @param order  sorting direction
+   * @param sortFields fields to sort jobExecutions
    * @param offset starting index in a list of results
    * @param limit  maximum number of results to return
    * @return future with {@link org.folio.rest.jaxrs.model.JobExecutionDtoCollection}
    */
-  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId);
+  Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId);
 
   /**
    * Saves {@link JobExecution} to database

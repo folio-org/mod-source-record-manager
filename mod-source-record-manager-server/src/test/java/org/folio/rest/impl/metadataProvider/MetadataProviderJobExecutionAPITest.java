@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionsCache;
 import org.folio.services.Status;
@@ -57,6 +58,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 
@@ -167,8 +169,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .spec(spec)
       .when()
       .queryParam("uiStatusAny", "INITIALIZATION")
-      .queryParam("sortBy", "completed_date")
-      .queryParam("order", "desc")
+      .queryParam("sortBy", "completed_date,desc")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
@@ -205,8 +206,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .when()
       .queryParam("uiStatusAny", JobExecution.UiStatus.RUNNING_COMPLETE)
       .queryParam("statusAny", Status.COMMITTED, Status.ERROR)
-      .queryParam("sortBy", "completed_date")
-      .queryParam("order", "desc")
+      .queryParam("sortBy", "completed_date,desc")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
@@ -238,8 +238,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
       .spec(spec)
       .when()
-      .queryParam("sortBy", "progress_total")
-      .queryParam("order", "desc")
+      .queryParam("sortBy", "progress_total,desc")
       .get(GET_JOB_EXECUTIONS_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
@@ -250,6 +249,61 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     assertThat(jobExecutions.get(0).getProgress().getTotal(), greaterThan(jobExecutions.get(1).getProgress().getTotal()));
     assertThat(jobExecutions.get(1).getProgress().getTotal(), greaterThan(jobExecutions.get(2).getProgress().getTotal()));
     assertThat(jobExecutions.get(2).getProgress().getTotal(), greaterThan(jobExecutions.get(3).getProgress().getTotal()));
+  }
+
+  @Test
+  public void shouldReturnSortedCollectionByMultipleFieldsOnGet() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      putJobExecution(createdJobExecution.get(i)
+        .withRunBy(new RunBy()
+          .withFirstName("John")
+          .withLastName("Doe-" + i)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size();
+    JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "job_user_first_name,asc")
+      .queryParam("sortBy", "job_user_last_name,desc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    List<JobExecutionDto> jobExecutions = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
+    assertThat(jobExecutions.get(0).getRunBy().getLastName(), greaterThan(jobExecutions.get(1).getRunBy().getLastName()));
+    assertThat(jobExecutions.get(1).getRunBy().getLastName(), greaterThan(jobExecutions.get(2).getRunBy().getLastName()));
+    assertThat(jobExecutions.get(2).getRunBy().getLastName(), greaterThan(jobExecutions.get(3).getRunBy().getLastName()));
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenInvalidSortableFieldIsSpecified() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "obviousWrongField,asc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenSortOrderIsInvalid() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "job_user_first_name,ascending")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
@@ -344,21 +398,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber))
       .body("jobExecutions*.jobProfileInfo.id", everyItem(not(is(profileId))));
-  }
-
-  @Test
-  public void shouldReturnBadRequestWhenInvalidSortableFieldIsSpecified() {
-    constructAndPostInitJobExecutionRqDto(5);
-    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .queryParam("sortBy", "obviousWrongField")
-      .queryParam("order", "asc")
-      .get(GET_JOB_EXECUTIONS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
@@ -461,7 +500,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("totalRecords", is(expectedJobExecutionsNumber))
       .body("jobExecutions*.userId", everyItem(is(userId)));
   }
-
 
   @Test
   public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {

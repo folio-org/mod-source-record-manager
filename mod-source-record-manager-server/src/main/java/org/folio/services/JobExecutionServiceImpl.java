@@ -13,6 +13,7 @@ import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.JobExecutionSourceChunkDao;
+import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
@@ -64,8 +65,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, sortBy, order, offset, limit, tenantId);
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId);
   }
 
   @Override

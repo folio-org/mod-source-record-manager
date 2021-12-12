@@ -88,17 +88,11 @@ resourceTypes:
           type: datetime
           required: false
         sortBy:
-          description: "sorting jobExecutions by field: completed_date, progress_total, file_name, status, job_profile_name, hrid"
-          example: completed_date
-          type: string
+          description: "Sorting jobExecutions by field: completed_date, progress_total, file_name, status, job_profile_name, hrid, job_user_first_name, job_user_last_name"
+          example: ["completed_date,asc"]
+          type: string[]
           required: false
-          default: completed_date
-        order:
-          description: "sorting direction"
-          example: desc
-          enum: [asc, desc]
-          required: false
-          default: asc
+          default: "completed_date,asc"
       responses:
         200:
           body:

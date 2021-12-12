@@ -63,7 +63,7 @@ public final class JobExecutionDBConstants {
     "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
     "LEFT JOIN cte ON true " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s " +
-    "ORDER BY %s %s " +
+    "%s " +
     "LIMIT $1 OFFSET $2";
 
   private JobExecutionDBConstants() {

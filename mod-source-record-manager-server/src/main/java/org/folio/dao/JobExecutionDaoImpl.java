@@ -6,10 +6,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -25,11 +27,14 @@ import org.springframework.stereotype.Repository;
 import javax.ws.rs.NotFoundException;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
@@ -80,13 +85,14 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private PostgresClientFactory pgClientFactory;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, String sortBy, String order, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String filterCriteria = filter.buildCriteria();
+      String orderByClause = buildOrderByClause(sortFields);
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
-      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  sortBy, order);
+      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  orderByClause);
       pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
@@ -316,6 +322,15 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private String formatFullTableName(String tenantId, String table) {
     return format("%s.%s", convertToPsqlStandard(tenantId), table);
+  }
+
+  private String buildOrderByClause(List<SortField> sortFields) {
+    if (CollectionUtils.isEmpty(sortFields)) {
+      return EMPTY;
+    }
+    return sortFields.stream()
+      .map(SortField::toString)
+      .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
   }
 
 }
