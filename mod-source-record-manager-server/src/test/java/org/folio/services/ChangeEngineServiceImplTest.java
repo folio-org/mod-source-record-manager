@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,10 +23,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.producer.KafkaHeader;
+
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -71,6 +77,9 @@ public class ChangeEngineServiceImplTest {
   private KafkaConfig kafkaConfig;
   @Mock
   private MappingMetadataService mappingMetadataService;
+
+  @Captor
+  private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
 
   private final OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
 
@@ -165,6 +174,29 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(0));
+  }
+
+  @Test
+  public void shouldFillRecordIdHeaderForMarkRecordWhen004FieldIsMissing() {
+    var rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
+    var jobExecution = getTestJobExecution();
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    var optionalRecordIdHeader = kafkaHeadersCaptor.getValue().stream()
+      .filter(kafkaHeader -> kafkaHeader.key().equals(RECORD_ID))
+      .findFirst();
+
+    assertTrue(optionalRecordIdHeader.isPresent());
   }
 
   @Test
