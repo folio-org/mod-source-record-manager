@@ -320,8 +320,8 @@
             "inventory-storage.preceding-succeeding-titles.item.delete",
             "inventory-storage.holdings.item.get",
             "inventory-storage.holdings.item.put",
-            "inventory-storage.authority.item.get",
-            "inventory-storage.authority.item.put",
+            "inventory-storage.authorities.item.get",
+            "inventory-storage.authorities.item.put",
             "configuration.entries.collection.get"
           ]
         }
