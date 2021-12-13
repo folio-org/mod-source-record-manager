@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
@@ -31,6 +32,7 @@ import static org.folio.verticle.consumers.DataImportKafkaHandler.RECORD_ID_HEAD
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -67,6 +69,30 @@ public class DataImportKafkaHandlerMockTest {
     // then
     Assert.assertTrue(future.succeeded());
     verify(eventHandlingService, never()).handle(anyString(), any(OkapiConnectionParams.class));
+  }
+
+  @Test
+  public void shouldHandleWhenThereIsNoRecordIdInTheKafkaRecord() {
+    // given
+    Mockito.when(eventHandlingService.handle(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture());
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(UUID.randomUUID().toString())
+      .withContext(new HashMap<>());
+
+    Event event = new Event().withEventType(DI_ERROR.value()).withEventPayload(Json.encode(dataImportEventPayload));
+
+    String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
+    ConsumerRecord<String, String> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
+    KafkaConsumerRecordImpl<String, String> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
+
+    Future<String> future = dataImportKafkaHandler.handle(kafkaRecord);
+
+    // then
+    Assert.assertTrue(future.succeeded());
+    verify(eventHandlingService, times(1)).handle(anyString(), any(OkapiConnectionParams.class));
   }
 
   private KafkaConsumerRecordImpl<String, String> buildKafkaRecord(Event event) {
