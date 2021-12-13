@@ -177,8 +177,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   private List<SortField> mapSortQueryToSortFields(List<String> sortQuery) {
     ArrayList<SortField> fields = new ArrayList<>();
     for (String sortFieldQuery : sortQuery) {
-      String sortField = StringUtils.substringBefore(sortFieldQuery,",");
-      String sortOrder = StringUtils.substringAfter(sortFieldQuery,",");
+      String sortField = StringUtils.substringBefore(sortFieldQuery, ",");
+      String sortOrder = StringUtils.substringAfter(sortFieldQuery, ",");
 
       if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(sortField) || !SORT_ORDER_VALUES.contains(sortOrder)) {
         throw new BadRequestException(String.format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
