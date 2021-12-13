@@ -96,6 +96,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
   public static final String MESSAGE_KEY = "message";
+  private static final String RECORD_ID_HEADER = "recordId";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -364,6 +365,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void populateError(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
     var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
+    eventPayload.getContext().put(RECORD_ID_HEADER, record.getId());
     var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
