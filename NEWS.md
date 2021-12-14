@@ -1,3 +1,6 @@
+## 2021-12-xx v3.2.7-SNAPSHOT
+* [MODSOURMAN-646](https://issues.folio.org/browse/MODSOURMAN-646) Log4j vulnerability correction
+
 ## 2021-12-03 v3.2.6
 * [MODSOURMAN-621](https://issues.folio.org/browse/MODSOURMAN-621) Fix saving of default mapping rules
 
