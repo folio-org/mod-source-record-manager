@@ -78,7 +78,7 @@
   "provides": [
     {
       "id": "source-manager-job-executions",
-      "version": "2.0",
+      "version": "3.0",
       "handlers": [
         {
           "methods": [
