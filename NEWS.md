@@ -1,4 +1,4 @@
-## 2021-12-xx v3.2.7
+## 2021-12-15 v3.2.7
 * [MODSOURMAN-647](https://issues.folio.org/browse/MODSOURMAN-647) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
 * [MODSOURMAN-646](https://issues.folio.org/browse/MODSOURMAN-646) Log4j vulnerability correction
 
