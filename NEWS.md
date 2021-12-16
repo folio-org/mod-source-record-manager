@@ -1,4 +1,4 @@
-## 2021-08-xx v3.1.3
+## 2021-12-16 v3.1.4
 * [MODSOURMAN-648](https://issues.folio.org/browse/MODSOURMAN-648) Log4j vulnerability correction
 
 ## 2021-08-04 v3.1.3
