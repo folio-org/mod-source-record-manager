@@ -1,3 +1,6 @@
+## 2021-08-xx v3.1.3
+* [MODSOURMAN-648](https://issues.folio.org/browse/MODSOURMAN-648) Log4j vulnerability correction
+
 ## 2021-08-04 v3.1.3
 * [MODDICORE-166](https://issues.folio.org/browse/MODDICORE-166)  Near the day boundary data import calculates today incorrectly.
 * [MODSOURMAN-535](https://issues.folio.org/browse/MODSOURMAN-535) Data import can't retrieve location with code "olin".
