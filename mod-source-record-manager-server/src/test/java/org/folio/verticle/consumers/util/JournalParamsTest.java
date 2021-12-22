@@ -2,8 +2,8 @@ package org.folio.verticle.consumers.util;
 
 import static org.folio.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
@@ -216,7 +216,7 @@ public class JournalParamsTest {
 
   @Test
   public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdated() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_MATCHED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_UPDATED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
   }
 
   @Test
