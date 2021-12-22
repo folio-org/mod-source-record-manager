@@ -3,7 +3,7 @@ package org.folio.verticle;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
@@ -50,7 +50,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_INVENTORY_ITEM_CREATED.value(),
       DI_INVENTORY_ITEM_UPDATED.value(),
       DI_INVENTORY_ITEM_NOT_MATCHED.value(),
-      DI_INVENTORY_AUTHORITY_MATCHED.value(),
+      DI_INVENTORY_AUTHORITY_UPDATED.value(),
       DI_INVENTORY_AUTHORITY_NOT_MATCHED.value(),
       DI_INVOICE_CREATED.value(),
       DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value(),

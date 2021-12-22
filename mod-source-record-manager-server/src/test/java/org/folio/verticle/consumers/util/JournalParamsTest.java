@@ -215,8 +215,8 @@ public class JournalParamsTest {
   }
 
   @Test
-  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityMatched() {
-    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_MATCHED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.MATCH);
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdated() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_MATCHED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
   }
 
   @Test
