@@ -76,7 +76,15 @@
             "a",
             "z"
           ],
-          "rules": []
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
