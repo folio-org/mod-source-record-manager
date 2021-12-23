@@ -24,11 +24,18 @@ DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 -- Script to create function to get data import job log entries (jobLogEntry).
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
-                  source_record_action_status text, instance_action_status text, holdings_action_status text,
-                  item_action_status text, authority_action_status text, order_action_status text, invoice_action_status text, error text,
-                  total_count bigint, invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[])
+                  source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text,
+                  authority_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint,
+                  invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[], source_record_order_array integer[])
 AS $$
+DECLARE
+    v_sortingfield text := sortingfield;
 BEGIN
+    v_sortingfield := sortingfield;
+    IF sortingfield = 'source_record_order' THEN
+      v_sortingfield := 'source_record_order_array';
+    END IF;
+
     RETURN QUERY EXECUTE format('
 SELECT records_actions.job_execution_id, records_actions.source_id, records_actions.source_record_order, '''' as invoiceline_number,
        rec_titles.title,
@@ -45,7 +52,8 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        null AS invoice_action_status, rec_errors.error, records_actions.total_count,
        null AS invoiceLineJournalRecordId,
        records_actions.source_record_entity_type,
-       records_actions.holdings_entity_hrid
+       records_actions.holdings_entity_hrid,
+       ARRAY[records_actions.source_record_order] AS source_record_order_array
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                 array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
@@ -95,7 +103,11 @@ SELECT records_actions.job_execution_id, records_actions.source_id, source_recor
        records_actions.total_count,
        invoiceLineJournalRecordId,
        records_actions.source_record_entity_type,
-       records_actions.holdings_entity_hrid
+       records_actions.holdings_entity_hrid,
+       CASE
+           WHEN get_entity_status(invoice_actions, invoice_errors_number) IS NOT null THEN string_to_array(entity_hrid, ''-'')::int[]
+           ELSE ARRAY[source_record_order]
+       END AS source_record_order_array
 FROM (
          SELECT journal_records.source_id, journal_records.job_execution_id, source_record_order, entity_hrid, title, error,
                 array[]::varchar[] AS marc_actions,
@@ -113,6 +125,6 @@ FROM (
      ) AS records_actions
 ORDER BY %I %s
 LIMIT %s OFFSET %s;',
-                                jobExecutionId, jobExecutionId, jobExecutionId, jobExecutionId, sortingField, sortingDir, limitVal, offsetVal);
+                              jobExecutionId, jobExecutionId, jobExecutionId, jobExecutionId, v_sortingField, sortingDir, limitVal, offsetVal);
 END;
 $$ LANGUAGE plpgsql;
