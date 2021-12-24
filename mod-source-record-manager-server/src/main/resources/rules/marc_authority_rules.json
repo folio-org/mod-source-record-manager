@@ -35,8 +35,8 @@
             {
               "type": "char_select",
               "parameter": {
-                "from": 10,
-                "to": 11
+                "from": 11,
+                "to": 12
               }
             }
           ]
