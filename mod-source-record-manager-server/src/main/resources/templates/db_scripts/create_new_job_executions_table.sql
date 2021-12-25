@@ -95,3 +95,40 @@ ALTER TABLE IF EXISTS job_execution_progress DROP CONSTRAINT IF EXISTS jobexecut
 ALTER TABLE IF EXISTS journal_records DROP CONSTRAINT IF EXISTS journal_records_job_execution_id_fkey;
 ALTER TABLE IF EXISTS job_monitoring DROP CONSTRAINT IF EXISTS job_monitoring_job_execution_id_fkey;
 
+
+-- migrate data from "job_executions" to the new "job_execution" table
+INSERT INTO job_execution
+SELECT id,
+       (jsonb ->> 'hrid')::integer                                       AS hrid,
+       (jsonb ->> 'parentJobId')::uuid                                   AS parent_job_id,
+       (jsonb ->> 'subordinationType')::job_execution_subordination_type AS subordination_type,
+       jsonb ->> 'sourcePath'                                            AS source_path,
+       jsonb ->> 'fileName'                                              AS file_name,
+       (jsonb -> 'progress' ->> 'current')::integer                      AS progress_current,
+       (jsonb -> 'progress' ->> 'total')::integer                        AS progress_total,
+       (jsonb ->> 'startedDate')::timestamptz                            AS started_date,
+       (jsonb ->> 'completedDate')::timestamptz                          AS completed_date,
+       (jsonb ->> 'status')::job_execution_status                        AS status,
+       (jsonb ->> 'uiStatus')::job_execution_ui_status                   AS ui_status,
+       (jsonb ->> 'errorStatus')::job_execution_error_status             AS error_status,
+       jsonb -> 'runBy' ->> 'firstName'                                  AS job_user_first_name,
+       jsonb -> 'runBy' ->> 'lastName'                                   AS job_user_last_name,
+       (jsonb ->> 'userId')::uuid                                        AS user_id,
+       (jsonb -> 'jobProfileInfo' ->> 'id')::uuid                        AS job_profile_id,
+       jsonb -> 'jobProfileInfo' ->> 'name'                              AS job_profile_name,
+       jsonb -> 'jobProfileInfo' ->> 'dataType'                          AS job_profile_data_type,
+       jsonb -> 'jobProfileSnapshotWrapper'                              AS job_profile_snapshot_wrapper
+FROM job_executions;
+
+-- create references to job_execution.id column
+ALTER TABLE IF EXISTS job_execution_source_chunks
+ADD CONSTRAINT job_execution_source_chunks_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+
+ALTER TABLE IF EXISTS job_execution_progress
+ADD CONSTRAINT job_execution_progress_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+
+ALTER TABLE IF EXISTS journal_records
+ADD CONSTRAINT journal_records_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
+
+ALTER TABLE IF EXISTS job_monitoring
+ADD CONSTRAINT job_monitoring_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
