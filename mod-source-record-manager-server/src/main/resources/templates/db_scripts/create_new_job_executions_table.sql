@@ -55,13 +55,13 @@ END $$;
 -- create table job_execution
 CREATE TABLE IF NOT EXISTS job_execution (
     id uuid PRIMARY KEY,
-    hrid bigint,
+    hrid integer,
     parent_job_id uuid,
     subordination_type ${myuniversity}_${mymodule}.job_execution_subordination_type,
     source_path text,
     file_name text,
-    progress_current int,
-    progress_total int,
+    progress_current integer,
+    progress_total integer,
     started_date timestamptz,
     completed_date timestamptz,
     status ${myuniversity}_${mymodule}.job_execution_status,
