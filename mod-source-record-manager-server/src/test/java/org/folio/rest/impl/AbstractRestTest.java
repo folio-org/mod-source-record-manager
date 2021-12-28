@@ -48,7 +48,6 @@ import org.folio.rest.tools.utils.NetworkUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -66,7 +65,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.useDefaults;
+import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
@@ -180,12 +179,13 @@ public abstract class AbstractRestTest {
       .extensions(new RequestToResponseTransformer())
   );
 
-  @ClassRule
-  public static EmbeddedKafkaCluster kafkaCluster = provisionWith(useDefaults());
+  public static EmbeddedKafkaCluster kafkaCluster;
 
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
     vertx = Vertx.vertx();
+    kafkaCluster = provisionWith(defaultClusterConfig());
+    kafkaCluster.start();
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
 
     System.setProperty(KAFKA_HOST, hostAndPort[0]);
@@ -204,6 +204,7 @@ public abstract class AbstractRestTest {
       if (useExternalDatabase.equals("embedded")) {
         PostgresClient.stopPostgresTester();
       }
+      kafkaCluster.stop();
       async.complete();
     }));
   }
