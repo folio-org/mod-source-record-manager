@@ -99,7 +99,7 @@ ALTER TABLE IF EXISTS job_monitoring DROP CONSTRAINT IF EXISTS job_monitoring_jo
 -- migrate data from "job_executions" to the new "job_execution" table
 INSERT INTO job_execution
 SELECT id,
-       (jsonb ->> 'hrid')::integer                                       AS hrid,
+       (jsonb ->> 'hrId')::integer                                       AS hrid,
        (jsonb ->> 'parentJobId')::uuid                                   AS parent_job_id,
        (jsonb ->> 'subordinationType')::job_execution_subordination_type AS subordination_type,
        jsonb ->> 'sourcePath'                                            AS source_path,
