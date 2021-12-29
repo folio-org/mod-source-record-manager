@@ -118,17 +118,34 @@ SELECT id,
        jsonb -> 'jobProfileInfo' ->> 'name'                              AS job_profile_name,
        jsonb -> 'jobProfileInfo' ->> 'dataType'                          AS job_profile_data_type,
        jsonb -> 'jobProfileSnapshotWrapper'                              AS job_profile_snapshot_wrapper
-FROM job_executions;
+FROM job_executions
+ON CONFLICT (id) DO NOTHING;
 
--- create references to job_execution.id column
-ALTER TABLE IF EXISTS job_execution_source_chunks
-ADD CONSTRAINT job_execution_source_chunks_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+-- create references to job_execution.id column if they not exist
+DO $$ BEGIN
+    ALTER TABLE IF EXISTS job_execution_source_chunks
+    ADD CONSTRAINT job_execution_source_chunks_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
-ALTER TABLE IF EXISTS job_execution_progress
-ADD CONSTRAINT job_execution_progress_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+DO $$ BEGIN
+    ALTER TABLE IF EXISTS job_execution_progress
+    ADD CONSTRAINT job_execution_progress_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
-ALTER TABLE IF EXISTS journal_records
-ADD CONSTRAINT journal_records_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
+DO $$ BEGIN
+    ALTER TABLE IF EXISTS journal_records
+    ADD CONSTRAINT journal_records_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
-ALTER TABLE IF EXISTS job_monitoring
-ADD CONSTRAINT job_monitoring_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
+DO $$ BEGIN
+    ALTER TABLE IF EXISTS job_monitoring
+    ADD CONSTRAINT job_monitoring_job_execution_id_fkey FOREIGN KEY (job_execution_id) REFERENCES job_execution(id);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
