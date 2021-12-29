@@ -15,6 +15,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
@@ -235,6 +236,11 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibRecordNotMatched() {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_NOT_MATCHED, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.NON_MATCH);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcAuthorityWhenEventTypeIsDiSrsMarcAuthorityRecordNotMatched() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED, JournalRecord.EntityType.MARC_AUTHORITY, JournalRecord.ActionType.NON_MATCH);
   }
 
   @Test

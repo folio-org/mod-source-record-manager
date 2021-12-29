@@ -17,6 +17,7 @@
 * [MODDATAIMP-621](https://issues.folio.org/browse/MODDATAIMP-621) Fix saving of default mapping rules
 * [MODDATAIMP-641](https://issues.folio.org/browse/MODDATAIMP-641) Fix NPE exception and fix the main reason of NPE (recordId = null).
 * [MODSOURMAN-645](https://issues.folio.org/browse/MODSOURMAN-645) Update permissions related to Authority
+* [MODSOURMAN-656](https://issues.folio.org/browse/MODSOURMAN-656) Support Update MARC Authority Action
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
