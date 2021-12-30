@@ -7,13 +7,11 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.services.exceptions.RecordsProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,10 +35,14 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
   public static final String RECORD_ID_HEADER = "recordId";
   private static final String CHUNK_NUMBER = "chunkNumber";
 
+  private final Vertx vertx;
+  private final KafkaConfig kafkaConfig;
+
   @Autowired
-  private Vertx vertx;
-  @Autowired
-  private KafkaConfig kafkaConfig;
+  public StoredRecordChunksErrorHandler(Vertx vertx, KafkaConfig kafkaConfig) {
+    this.vertx = vertx;
+    this.kafkaConfig = kafkaConfig;
+  }
 
   @Override
   public void handle(Throwable throwable, KafkaConsumerRecord<String, String> kafkaConsumerRecord) {
@@ -52,9 +54,12 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
     // process for specific failure processed records from Exception body
     if (throwable instanceof RecordsProcessingException) {
       List<Record> failedRecords = ((RecordsProcessingException) throwable).getFailedRecords();
-      for (Record failedRecord: failedRecords) {
+      for (Record failedRecord : failedRecords) {
         sendDiErrorForRecord(jobExecutionId, failedRecord, okapiParams, failedRecord.getErrorRecord().getDescription());
       }
+
+    } else if (throwable instanceof ConflictException) {
+        LOGGER.warn(throwable.getMessage());
 
     } else {
       // process for all other cases that will include all records

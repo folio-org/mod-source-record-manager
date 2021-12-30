@@ -1,245 +1,120 @@
 package org.folio.verticle.consumers;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.TestUtil;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.cache.KafkaInternalCache;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.*;
+import org.folio.services.EventProcessedService;
+import org.folio.services.EventProcessedServiceImpl;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
-import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalServiceImpl;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
-@RunWith(MockitoJUnitRunner.class)
-public class StoredRecordChunksKafkaHandlerTest {
+@RunWith(VertxUnitRunner.class)
+public class StoredRecordChunksKafkaHandlerTest extends AbstractRestTest {
 
-  private static final String MARC_BIB_RECORD_PATH = "src/test/resources/org/folio/rest/record.json";
-  private static final String MARC_AUTHORITY_RECORD_PATH = "src/test/resources/org/folio/rest/marcAuthorityRecord.json";
-  private static final String MARC_HOLDING_RECORD_PATH = "src/test/resources/org/folio/rest/marcHoldingRecord.json";
-  private static final String EDIFACT_RECORD_PATH = "src/test/resources/org/folio/rest/edifactRecord.json";
-  private static final String MAPPING_RULES_PATH = "src/test/resources/org/folio/services/marc_bib_rules.json";
-  private static final String TENANT_ID = "diku";
+  JournalService journalService;
+  RecordsPublishingService recordsPublishingService;
+  EventProcessedService eventProcessedService;
+  MappingRuleCache mappingRuleCache;
+  StoredRecordChunksKafkaHandler storedRecordChunksKafkaHandler;
 
-  private static JsonObject mappingRules;
+  private String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
 
-  @Mock
-  private RecordsPublishingService recordsPublishingService;
-  @Mock
-  private KafkaInternalCache kafkaInternalCache;
-  @Mock
-  private KafkaConsumerRecord<String, String> kafkaRecord;
-  @Mock
-  private JournalService journalService;
-  @Mock
-  private MappingRuleCache mappingRuleCache;
-  @Captor
-  private ArgumentCaptor<JsonArray> journalRecordsCaptor;
+  private JobExecution jobExecution = new JobExecution()
+    .withId(jobExecutionUUID)
+    .withHrId(1000)
+    .withParentJobId(jobExecutionUUID)
+    .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
+    .withStatus(JobExecution.Status.NEW)
+    .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+    .withSourcePath("importMarc.mrc")
+    .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+    .withUserId(UUID.randomUUID().toString());
 
-  private Vertx vertx = Vertx.vertx();
-  private AsyncRecordHandler<String, String> storedRecordChunksKafkaHandler;
+  private final JsonObject recordJson = new JsonObject()
+    .put("id", UUID.randomUUID().toString())
+    .put("snapshotId", jobExecutionUUID)
+    .put("order", 1)
+    .put("totalRecords", 1);
 
-  @BeforeClass
-  public static void setUpClass() throws IOException {
-    mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
-  }
+  private final HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
+    put(INSTANCE.value(), recordJson.encode());
+    put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+  }};
+
 
   @Before
   public void setUp() {
-    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, kafkaInternalCache, mappingRuleCache, vertx);
+    eventProcessedService = getBeanFromSpringContext(vertx, EventProcessedServiceImpl.class);
+    Assert.assertNotNull(eventProcessedService);
+
+    journalService = getBeanFromSpringContext(vertx, JournalServiceImpl.class);
+    Assert.assertNotNull(journalService);
+
+    recordsPublishingService = getBeanFromSpringContext(vertx, RecordsPublishingService.class);
+    Assert.assertNotNull(recordsPublishingService);
+
+    mappingRuleCache = getBeanFromSpringContext(vertx, MappingRuleCache.class);
+    Assert.assertNotNull(recordsPublishingService);
+
+    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService, mappingRuleCache, vertx);
   }
+
+  private static final String MARC_HOLDING_RECORD_PATH = "src/test/resources/org/folio/rest/marcHoldingRecord.json";
 
   @Test
-  public void shouldNotHandleEventWhenKafkaCacheContainsEventId() throws IOException {
-    // given
-    RecordsBatchResponse recordsBatch = new RecordsBatchResponse()
-      .withRecords(List.of(new Record()))
-      .withTotalRecords(1);
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventPayload(Json.encode(recordsBatch));
-
-    String expectedKafkaRecordKey = "1";
-    when(kafkaRecord.key()).thenReturn(expectedKafkaRecordKey);
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(true);
-
-    // when
-    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
-
-    // then
-    verify(kafkaInternalCache, times(1)).containsByKey(eq(event.getId()));
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
-    assertTrue(future.succeeded());
-    assertEquals(expectedKafkaRecordKey, future.result());
+  public void testProcessingDuplicateEvents(TestContext context) throws IOException {
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord();
+    storedRecordChunksKafkaHandler.handle(kafkaConsumerRecord).onSuccess(
+      res -> {
+        storedRecordChunksKafkaHandler.handle(kafkaConsumerRecord)
+          .onFailure(Assert::assertNotNull);
+      }
+    );
   }
 
-  @Test
-  public void shouldWriteSavedMarcBibRecordsInfoToImportJournal() throws IOException {
-    writeSavedRecordsInfoToImportJournal(MARC_BIB_RECORD_PATH, EntityType.MARC_BIBLIOGRAPHIC);
+  private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord() throws IOException {
+    String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, "DI_SRS_MARC_BIB_RECORD_CREATED");
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(MARC_HOLDING_RECORD_PATH), Record.class);
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse().withRecords(List.of(record)).withTotalRecords(1);
+    Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(savedRecordsBatch));
+    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+    return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 
-  @Test
-  public void shouldWriteSavedMarcHoldingRecordsInfoToImportJournal() throws IOException {
-    writeSavedRecordsInfoToImportJournal(MARC_HOLDING_RECORD_PATH, EntityType.MARC_HOLDINGS);
-  }
-
-  @Test
-  public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournal() throws IOException {
-    writeSavedRecordsInfoToImportJournal(MARC_AUTHORITY_RECORD_PATH, EntityType.MARC_AUTHORITY);
-  }
-
-  @Test
-  public void shouldWriteSavedEdifactRecordsInfoToImportJournal() throws IOException {
-    writeSavedRecordsInfoToImportJournal(EDIFACT_RECORD_PATH, EntityType.EDIFACT);
-  }
-
-  @Test
-  public void shouldReturnFailedWhenRecordsIsEmpty() throws IOException{
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
-
-    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
-      .withRecords(List.of())
-      .withTotalRecords(1);
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventPayload(Json.encode(savedRecordsBatch));
-
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
-
-    // when
-    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
-
-    // then
-    assertTrue(future.failed());
-  }
-
-  @Test
-  public void shouldReturnFailedFutureWhenMappingRuleCacheReturnFailed() throws IOException{
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
-
-    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
-      .withRecords(List.of(record))
-      .withTotalRecords(1);
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventPayload(Json.encode(savedRecordsBatch));
-
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
-
-    // when
-    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
-
-    // then
-    assertTrue(future.failed());
-  }
-
-  @Test
-  public void shouldReturnFailedFutureWhenJobExecutionIdIsEmpty() throws IOException{
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
-
-    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
-      .withRecords(List.of(record))
-      .withTotalRecords(1);
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventPayload(Json.encode(savedRecordsBatch));
-
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
-    when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
-      .thenReturn(Future.failedFuture(new Exception()));
-
-    // when
-    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
-
-    // then
-    assertTrue(future.failed());
-  }
-
-  private void writeSavedRecordsInfoToImportJournal(String marcBibRecordPath, EntityType entityType)
-    throws IOException {
-    // given
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(marcBibRecordPath), Record.class);
-
-    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
-      .withRecords(List.of(record))
-      .withTotalRecords(1);
-
-    Event event = new Event()
-      .withId(UUID.randomUUID().toString())
-      .withEventPayload(Json.encode(savedRecordsBatch));
-
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
-    when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
-      .thenReturn(Future.succeededFuture(true));
-
-    // when
-    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
-
-    // then
-    assertTrue(future.succeeded());
-    verify(journalService, times(1)).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
-
-    assertEquals(1, journalRecordsCaptor.getValue().size());
-    JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
-    assertEquals(record.getId(), journalRecord.getSourceId());
-    assertEquals(entityType, journalRecord.getEntityType());
-    assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
-    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
-    assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
+  private ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
+    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
+    return consumerRecord;
   }
 
 }
