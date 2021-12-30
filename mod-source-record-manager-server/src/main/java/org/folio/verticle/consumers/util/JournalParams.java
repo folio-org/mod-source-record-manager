@@ -132,6 +132,22 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_AUTHORITY_UPDATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_AUTHORITY_NOT_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+          JournalRecord.EntityType.AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_ITEM_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
