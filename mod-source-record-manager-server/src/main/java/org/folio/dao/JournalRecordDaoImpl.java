@@ -28,13 +28,14 @@ import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -273,8 +274,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
         .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
         .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
-        .withInvoiceLineJournalRecordId(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID) != null
-            ? row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString() : null)
+        .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
+            ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
         .withError(row.getString(ERROR));
   }
 
