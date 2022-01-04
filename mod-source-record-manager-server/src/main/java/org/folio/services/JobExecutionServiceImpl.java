@@ -18,7 +18,19 @@ import org.folio.dataimport.util.Try;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.Snapshot;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -304,17 +317,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
-              if (userPersonalInfo == null) {
-                String errorMessage = "There are no personal data for the current user: " + userId;
-                LOGGER.error(errorMessage);
-                promise.fail(errorMessage);
-              } else {
-                UserInfo userInfo = new UserInfo()
-                  .withFirstName(userPersonalInfo.getString("firstName"))
-                  .withLastName(userPersonalInfo.getString("lastName"))
-                  .withUserName(jsonUser.getString("username"));
-                promise.complete(userInfo);
-              }
+              UserInfo userInfo = new UserInfo()
+                .withFirstName(Objects.isNull(userPersonalInfo)
+                  ? jsonUser.getString("username")  : userPersonalInfo.getString("firstName"))
+                .withLastName(Objects.isNull(userPersonalInfo)
+                  ? "SYSTEM" : userPersonalInfo.getString("lastName"))
+                .withUserName(jsonUser.getString("username"));
+              promise.complete(userInfo);
             }
           }
         }
