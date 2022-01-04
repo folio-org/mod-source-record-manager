@@ -31,7 +31,7 @@ AS $$
 DECLARE
     v_sortingfield text := sortingfield;
 BEGIN
-    v_sortingfield := sortingfield;
+-- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
     IF sortingfield = 'source_record_order' THEN
       v_sortingfield := 'source_record_order_array';
     END IF;
