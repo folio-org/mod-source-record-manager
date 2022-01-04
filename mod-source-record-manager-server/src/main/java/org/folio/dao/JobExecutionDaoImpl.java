@@ -1,44 +1,68 @@
 package org.folio.dao;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.PostConstruct;
-import javax.ws.rs.NotFoundException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.folio.cql2pgjson.CQL2PgJSON;
-import org.folio.cql2pgjson.exception.FieldException;
-import org.folio.cql2pgjson.model.SqlSelect;
+import io.vertx.sqlclient.Tuple;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.rest.persist.Criteria.Criteria;
-import org.folio.rest.persist.Criteria.Criterion;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
-import org.folio.rest.persist.cql.CQLWrapper;
-import org.folio.rest.persist.interfaces.Results;
-import org.folio.util.ResourceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import static org.folio.dataimport.util.DaoUtil.constructCriteria;
-import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
-import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
-import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
+import javax.ws.rs.NotFoundException;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_CHILDREN_JOBS_BY_PARENT_ID_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_JOBS_NOT_PARENT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.INSERT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_DATA_TYPE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_FIRST_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_LAST_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.PARENT_ID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.PROFILE_SNAPSHOT_WRAPPER_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.PROGRESS_CURRENT_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.PROGRESS_TOTAL_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.SOURCE_PATH_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.STARTED_DATE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_COUNT_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 /**
@@ -53,111 +77,91 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static final String TABLE_NAME = "job_executions";
-  private static final String ID_FIELD = "id";
+  private static final String TABLE_NAME = "job_execution";
+  private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
-  public static final String GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH = "templates/db_scripts/get_job_execution_without_parent_multiple.sql";
-  public static final String TOTAL_ROWS_COLUMN = "total_rows";
-  private static final String JSONB_COLUMN = "jsonb";
-
-  private String getJobsWithoutParentMultipleSql;
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
 
-  @PostConstruct
-  public void init() {
-    getJobsWithoutParentMultipleSql = ResourceUtil.asString(GET_JOBS_WITHOUT_PARENT_MULTIPLE_QUERY_PATH);
-  }
-
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      StringBuilder cqlQuery = new StringBuilder("subordinationType=\"\" NOT subordinationType=").append(PARENT_MULTIPLE);
-      if (StringUtils.isNotEmpty(query)) {
-        cqlQuery.append(" and ").append(query);
-      }
-      SqlSelect sqlSelect = new CQL2PgJSON(TABLE_NAME + ".jsonb").toSql(cqlQuery.toString());
-      String preparedQuery = prepareQueryGetJobWithoutParentMultiple(sqlSelect, limit, offset, convertToPsqlStandard(tenantId));
-      pgClientFactory.createInstance(tenantId).select(preparedQuery, promise);
+      String filterCriteria = filter.buildCriteria();
+      String orderByClause = buildOrderByClause(sortFields);
+      String jobTable = formatFullTableName(tenantId, TABLE_NAME);
+      String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
+      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  orderByClause);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
       promise.fail(e);
     }
-    return promise.future().map(this::mapResultSetToJobExecutionCollection);
+    return promise.future().map(this::mapToJobExecutionDtoCollection);
   }
 
   @Override
-  public Future<JobExecutionDtoCollection> getChildrenJobExecutionsByParentId(String parentId, String query, int offset, int limit, String tenantId) {
-    Promise<Results<JobExecutionDto>> promise = Promise.promise();
+  public Future<JobExecutionDtoCollection> getChildrenJobExecutionsByParentId(String parentId, int offset, int limit, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String[] fieldList = {"*"};
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "parentJobId=" + parentId));
-      cqlWrapper.addWrapper(getCQLWrapper(TABLE_NAME, "subordinationType=" + CHILD));
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionDto.class, fieldList, cqlWrapper, true, false, promise);
+      String jobTable = formatFullTableName(tenantId, TABLE_NAME);
+      String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
+      String sql = format(GET_CHILDREN_JOBS_BY_PARENT_ID_SQL, jobTable, jobTable, progressTable);
+      Tuple queryParams = Tuple.of(UUID.fromString(parentId), limit, offset);
+      pgClientFactory.createInstance(tenantId).select(sql, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecutions by parent id", e);
       promise.fail(e);
     }
-    return promise.future().map(results -> new JobExecutionDtoCollection()
-      .withJobExecutions(results.getResults())
-      .withTotalRecords(results.getResultInfo().getTotalRecords()));
+    return promise.future().map(this::mapToJobExecutionDtoCollection);
   }
 
   @Override
   public Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId) {
-    Promise<Results<JobExecution>> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      Criteria idCrit = constructCriteria(ID_FIELD, id).setJSONB(false);
-      pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecution.class, new Criterion(idCrit), true, false, promise);
+      String jobTable = formatFullTableName(tenantId, TABLE_NAME);
+      String query = format(GET_BY_ID_SQL, jobTable);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecution by id", e);
       promise.fail(e);
     }
-    return promise.future()
-      .map(Results::getResults)
-      .map(jobExecutions -> jobExecutions.isEmpty() ? Optional.empty() : Optional.of(jobExecutions.get(0)));
+    return promise.future().map(rowSet -> rowSet.rowCount() == 0 ? Optional.empty()
+      : Optional.of(mapRowToJobExecution(rowSet.iterator().next())));
   }
 
   @Override
   public Future<String> save(JobExecution jobExecution, String tenantId) {
-    Promise<String> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     String preparedQuery = String.format(GET_JOB_EXECUTION_HR_ID, PostgresClient.convertToPsqlStandard(tenantId));
     pgClientFactory.createInstance(tenantId).select(preparedQuery, getHrIdAr -> {
       if (getHrIdAr.succeeded() && getHrIdAr.result().iterator().hasNext()) {
         jobExecution.setHrId(getHrIdAr.result().iterator().next().getInteger(0));
-        pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecution.getId(), jobExecution, promise);
+        String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
+        pgClientFactory.createInstance(tenantId).execute(query, mapToTuple(jobExecution), promise);
       } else {
         promise.fail(getHrIdAr.cause());
       }
     });
-    return promise.future();
+    return promise.future().map(jobExecution.getId());
   }
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, String tenantId) {
-    Promise<JobExecution> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
     try {
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecution.getId()).setJSONB(false);
-      pgClientFactory.createInstance(tenantId).update(TABLE_NAME, jobExecution, new Criterion(idCrit), true, updateResult -> {
-        if (updateResult.failed()) {
-          LOGGER.error("Could not update jobExecution with id {}", jobExecution.getId(), updateResult.cause());
-          promise.fail(updateResult.cause());
-        } else if (updateResult.result().rowCount() != 1) {
-          String errorMessage = String.format("JobExecution with id '%s' was not found", jobExecution.getId());
-          LOGGER.error(errorMessage);
-          promise.fail(new NotFoundException(errorMessage));
-        } else {
-          promise.complete(jobExecution);
-        }
-      });
+      String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
+      Tuple queryParams = mapToTuple(jobExecution);
+      pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error updating jobExecution", e);
       promise.fail(e);
     }
-    return promise.future();
+    return promise.future().compose(rowSet -> rowSet.rowCount() != 1
+      ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
   }
 
   @Override
@@ -171,87 +175,162 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         pgClientFactory.createInstance(tenantId).startTx(connection);
         return connection.future();
       }).compose(v -> {
-      StringBuilder selectJobExecutionQuery = new StringBuilder("SELECT jsonb FROM ")
-        .append(PostgresClient.convertToPsqlStandard(tenantId))
-        .append(".")
-        .append(TABLE_NAME)
-        .append(" WHERE id ='")
-        .append(jobExecutionId).append("' LIMIT 1 FOR UPDATE;");
-      Promise<RowSet<Row>> selectResult = Promise.promise();
-      pgClientFactory.createInstance(tenantId).execute(connection.future(), selectJobExecutionQuery.toString(), selectResult);
-      return selectResult.future();
-    }).compose(selectResult -> {
-      if (selectResult.rowCount() != 1) {
-        throw new NotFoundException(rollbackMessage);
-      }
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionId).setJSONB(false);
-      Promise<Results<JobExecution>> jobExecResult = Promise.promise();
-      pgClientFactory.createInstance(tenantId).get(connection.future(), TABLE_NAME, JobExecution.class, new Criterion(idCrit), false, true, jobExecResult);
-      return jobExecResult.future();
-    }).compose(jobExecResult -> {
-      if (jobExecResult.getResults().size() != 1) {
-        throw new NotFoundException(rollbackMessage);
-      }
-      JobExecution jobExecution = jobExecResult.getResults().get(0);
-      mutator.mutate(jobExecution).onComplete(jobExecutionPromise);
-      return jobExecutionPromise.future();
-    }).compose(jobExecution -> {
-      CQLWrapper filter;
-      try {
-        filter = getCQLWrapper(TABLE_NAME, "id==" + jobExecution.getId());
-      } catch (FieldException e) {
-        throw new RuntimeException(e);
-      }
-      Promise<RowSet<Row>> updateHandler = Promise.promise();
-      pgClientFactory.createInstance(tenantId).update(connection.future(), TABLE_NAME, jobExecution, filter, true, updateHandler);
-      return updateHandler.future();
-    }).compose(updateHandler -> {
-      if (updateHandler.rowCount() != 1) {
-        throw new NotFoundException(rollbackMessage);
-      }
-      Promise<Void> endTxFuture = Promise.promise();
-      pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
-      return endTxFuture.future();
-    }).onComplete(v -> {
-      if (v.failed()) {
-        pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(v.cause()));
-        return;
-      }
-      promise.complete(jobExecutionPromise.future().result());
-    });
+        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
+        Promise<RowSet<Row>> selectResult = Promise.promise();
+        pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
+        return selectResult.future();
+      }).compose(rowSet -> {
+        if (rowSet.rowCount() != 1) {
+          throw new NotFoundException(rollbackMessage);
+        }
+        return mutator.mutate(mapRowToJobExecution(rowSet.iterator().next())).onComplete(jobExecutionPromise);
+      }).compose(jobExecution -> {
+        Promise<RowSet<Row>> updateHandler = Promise.promise();
+        String preparedQuery = format(UPDATE_SQL, formatFullTableName(tenantId, TABLE_NAME));
+        Tuple queryParams = mapToTuple(jobExecution);
+        pgClientFactory.createInstance(tenantId).execute(connection.future(), preparedQuery, queryParams, updateHandler);
+        return updateHandler.future();
+      }).compose(updateHandler -> {
+        Promise<Void> endTxFuture = Promise.promise();
+        pgClientFactory.createInstance(tenantId).endTx(connection.future(), endTxFuture);
+        return endTxFuture.future();
+      }).onComplete(ar -> {
+        if (ar.failed()) {
+          pgClientFactory.createInstance(tenantId).rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
+          return;
+        }
+        promise.complete(jobExecutionPromise.future().result());
+      });
     return promise.future();
   }
 
-  @Override
-  public Future<Boolean> deleteJobExecutionById(String jobExecutionId, String tenantId) {
-    Promise<RowSet<Row>> promise = Promise.promise();
-    pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, jobExecutionId, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+  private Tuple mapToTuple(JobExecution jobExecution) {
+    return Tuple.of(UUID.fromString(jobExecution.getId()),
+      jobExecution.getHrId(),
+      UUID.fromString(jobExecution.getParentJobId()),
+      jobExecution.getSubordinationType().toString(),
+      jobExecution.getSourcePath(),
+      jobExecution.getFileName(),
+      jobExecution.getProgress() == null ? null : jobExecution.getProgress().getCurrent(),
+      jobExecution.getProgress() == null ? null : jobExecution.getProgress().getTotal(),
+      jobExecution.getStartedDate() == null ? null : jobExecution.getStartedDate().toInstant().atOffset(ZoneOffset.UTC),
+      jobExecution.getCompletedDate() == null ? null : jobExecution.getCompletedDate().toInstant().atOffset(ZoneOffset.UTC),
+      jobExecution.getStatus().toString(),
+      jobExecution.getUiStatus().toString(),
+      jobExecution.getErrorStatus() == null ? null : jobExecution.getErrorStatus().toString(),
+      jobExecution.getRunBy() == null ? null : jobExecution.getRunBy().getFirstName(),
+      jobExecution.getRunBy() == null ? null : jobExecution.getRunBy().getLastName(),
+      UUID.fromString(jobExecution.getUserId()),
+      jobExecution.getJobProfileInfo() == null ? null : UUID.fromString(jobExecution.getJobProfileInfo().getId()),
+      jobExecution.getJobProfileInfo() == null ? null : jobExecution.getJobProfileInfo().getName(),
+      nonNull(jobExecution.getJobProfileInfo()) && nonNull(jobExecution.getJobProfileInfo().getDataType())
+        ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
+      jobExecution.getJobProfileSnapshotWrapper() == null
+        ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()));
   }
 
-  private String prepareQueryGetJobWithoutParentMultiple(SqlSelect sqlSelect, int limit, int offset, String schemaName) {
-    String whereClause = String.format("WHERE %s ", sqlSelect.getWhere());
-    String orderBy = sqlSelect.getOrderBy().isEmpty() ? StringUtils.EMPTY : String.format("ORDER BY %s", sqlSelect.getOrderBy());
-    return String.format(getJobsWithoutParentMultipleSql, schemaName, whereClause, schemaName, schemaName, whereClause, orderBy, limit, offset);
-  }
-
-  private JobExecutionDtoCollection mapResultSetToJobExecutionCollection(RowSet<Row> resultSet) {
-    int totalRecords = resultSet.rowCount() != 0 ? resultSet.iterator().next().getInteger(TOTAL_ROWS_COLUMN) : 0;
-    List<JobExecutionDto> jobExecutions = new ArrayList<>();
-    resultSet.forEach(row -> jobExecutions.add(mapJsonToJobExecution(row.getValue(JSONB_COLUMN).toString())));
-
-    return new JobExecutionDtoCollection()
-      .withJobExecutions(jobExecutions)
-      .withTotalRecords(totalRecords);
-  }
-
-  private JobExecutionDto mapJsonToJobExecution(String jsonAsString) {
-    try {
-      return new ObjectMapper().readValue(jsonAsString, JobExecutionDto.class);
-    } catch (IOException e) {
-      LOGGER.error("Error while mapping json to jobExecution", e);
-      throw new RuntimeJsonMappingException(e.getMessage());
+  private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
+    JobExecutionDtoCollection jobCollection = new JobExecutionDtoCollection().withTotalRecords(0);
+    for (Row row : rowSet) {
+      jobCollection.getJobExecutions().add(mapRowToJobExecutionDto(row));
+      jobCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
     }
+    return jobCollection;
+  }
+
+  private JobExecution mapRowToJobExecution(Row row) {
+    return new JobExecution()
+      .withId(row.getValue(ID_FIELD).toString())
+      .withHrId(row.getInteger(HRID_FIELD))
+      .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
+      .withSubordinationType(row.get(JobExecution.SubordinationType.class, SUBORDINATION_TYPE_FIELD))
+      .withSourcePath(row.getString(SOURCE_PATH_FIELD))
+      .withFileName(row.getString(FILE_NAME_FIELD))
+      .withStartedDate(Date.from(row.getOffsetDateTime(STARTED_DATE_FIELD).toInstant()))
+      .withCompletedDate(mapRowToCompletedDate(row))
+      .withStatus(row.get(JobExecution.Status.class, STATUS_FIELD))
+      .withUiStatus(row.get(JobExecution.UiStatus.class, UI_STATUS_FIELD))
+      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) == null
+        ? null : row.get(JobExecution.ErrorStatus.class, ERROR_STATUS_FIELD))
+      .withRunBy(new RunBy()
+        .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
+        .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
+      .withUserId(row.getValue(USER_ID_FIELD).toString())
+      .withProgress(new Progress()
+        .withJobExecutionId(row.getValue(ID_FIELD).toString())
+        .withCurrent(row.getInteger(PROGRESS_CURRENT_FIELD))
+        .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD)))
+      .withJobProfileInfo(mapRowToJobProfileInfo(row))
+      .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) == null
+        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class));
+  }
+
+  private JobExecutionDto mapRowToJobExecutionDto(Row row) {
+    return new JobExecutionDto()
+      .withId(row.getValue(ID_FIELD).toString())
+      .withHrId(row.getInteger(HRID_FIELD))
+      .withParentJobId(row.getValue(PARENT_ID_FIELD).toString())
+      .withSubordinationType(row.get(JobExecutionDto.SubordinationType.class, SUBORDINATION_TYPE_FIELD))
+      .withSourcePath(row.getString(SOURCE_PATH_FIELD))
+      .withFileName(row.getString(FILE_NAME_FIELD))
+      .withStartedDate(Date.from(row.getOffsetDateTime(STARTED_DATE_FIELD).toInstant()))
+      .withCompletedDate(mapRowToCompletedDate(row))
+      .withStatus(row.get(JobExecutionDto.Status.class, STATUS_FIELD))
+      .withUiStatus(row.get(JobExecutionDto.UiStatus.class, UI_STATUS_FIELD))
+      .withErrorStatus(row.getString(ERROR_STATUS_FIELD) == null
+        ? null : row.get(JobExecutionDto.ErrorStatus.class, ERROR_STATUS_FIELD))
+      .withRunBy(new RunBy()
+        .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
+        .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
+      .withUserId(row.getValue(USER_ID_FIELD).toString())
+      .withProgress(mapRowToProgress(row))
+      .withJobProfileInfo(mapRowToJobProfileInfo(row));
+  }
+
+  private Date mapRowToCompletedDate(Row row) {
+    return row.getLocalDateTime(COMPLETED_DATE_FIELD) == null
+      ? null : Date.from(row.getOffsetDateTime(COMPLETED_DATE_FIELD).toInstant());
+  }
+
+  private Progress mapRowToProgress(Row row) {
+    Integer processedCount = row.getInteger(CURRENTLY_PROCESSED_FIELD);
+    Integer total = row.getInteger(TOTAL_FIELD);
+    if (processedCount == null) {
+      processedCount = row.getInteger(PROGRESS_CURRENT_FIELD);
+    }
+    if (total == null) {
+      total = row.getInteger(PROGRESS_TOTAL_FIELD);
+    }
+
+    return new Progress()
+      .withJobExecutionId(row.getValue(ID_FIELD).toString())
+      .withCurrent(processedCount)
+      .withTotal(total);
+  }
+
+  private JobProfileInfo mapRowToJobProfileInfo(Row row) {
+    UUID profileId = row.getUUID(JOB_PROFILE_ID_FIELD);
+    if (profileId != null) {
+      return new JobProfileInfo()
+        .withId(profileId.toString())
+        .withName(row.getString(JOB_PROFILE_NAME_FIELD))
+        .withDataType(row.getString(JOB_PROFILE_DATA_TYPE_FIELD) == null
+          ? null : JobProfileInfo.DataType.fromValue(row.getString(JOB_PROFILE_DATA_TYPE_FIELD)));
+    }
+    return null;
+  }
+
+  private String formatFullTableName(String tenantId, String table) {
+    return format("%s.%s", convertToPsqlStandard(tenantId), table);
+  }
+
+  private String buildOrderByClause(List<SortField> sortFields) {
+    if (CollectionUtils.isEmpty(sortFields)) {
+      return EMPTY;
+    }
+    return sortFields.stream()
+      .map(SortField::toString)
+      .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
   }
 
 }

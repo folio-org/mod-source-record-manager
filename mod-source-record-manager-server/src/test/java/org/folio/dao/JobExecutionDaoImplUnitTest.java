@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.Tuple;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.test.GenericHandlerAnswer;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -20,6 +21,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -32,8 +34,6 @@ import static org.mockito.Mockito.when;
 public class JobExecutionDaoImplUnitTest {
 
   private static final String TENANT_ID = "diku";
-
-  private static final String TABLE_NAME = "job_executions";
 
   private JobExecution jobExecution = new JobExecution()
     .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
@@ -67,16 +67,16 @@ public class JobExecutionDaoImplUnitTest {
     int updatedRowsNumber = 1;
     RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(updatedRowsNumber).getMock();
     AsyncResult updateResult = mock(AsyncResult.class);
-    when(updateResult.failed()).thenReturn(false);
+    when(updateResult.succeeded()).thenReturn(true);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
-      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 2))
+      .when(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
 
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
 
-      // then
+    // then
       .onComplete(ar -> {
         Assert.assertTrue(ar.succeeded());
         Assert.assertEquals(jobExecution.getId(), ar.result().getId());
@@ -90,7 +90,7 @@ public class JobExecutionDaoImplUnitTest {
         Assert.assertEquals(jobExecution.getJobProfileInfo().getId(), ar.result().getJobProfileInfo().getId());
         Assert.assertEquals(jobExecution.getJobProfileInfo().getName(), ar.result().getJobProfileInfo().getName());
 
-        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+        verify(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
       });
   }
 
@@ -100,17 +100,17 @@ public class JobExecutionDaoImplUnitTest {
     int numberUpdatedRows = 0;
     RowSet<Row> sqlUpdateResult = when(mock(RowSet.class).rowCount()).thenReturn(numberUpdatedRows).getMock();
     AsyncResult updateResult = mock(AsyncResult.class);
-    when(updateResult.failed()).thenReturn(false);
+    when(updateResult.succeeded()).thenReturn(true);
     when(updateResult.result()).thenReturn(sqlUpdateResult);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
-      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 2))
+      .when(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-      // then
+    // then
       .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
-        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+        verify(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
       });
   }
 
@@ -118,16 +118,16 @@ public class JobExecutionDaoImplUnitTest {
   public void shouldReturnFailedFutureWhenPgClientReturnedFailedFuture() {
     // given
     AsyncResult updateResult = mock(AsyncResult.class);
-    when(updateResult.failed()).thenReturn(true);
+    when(updateResult.succeeded()).thenReturn(false);
 
-    doAnswer(new GenericHandlerAnswer<>(updateResult, 4))
-      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+    doAnswer(new GenericHandlerAnswer<>(updateResult, 2))
+      .when(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-      // then
+    // then
       .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
-        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+        verify(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
       });
   }
 
@@ -135,13 +135,13 @@ public class JobExecutionDaoImplUnitTest {
   public void shouldReturnFailedFutureWhenPgClientThrewException() {
     // given
     doThrow(RuntimeException.class)
-      .when(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+      .when(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
     // when
     jobExecutionDao.updateJobExecution(jobExecution, TENANT_ID)
-      // then
+    // then
       .onComplete(ar -> {
         Assert.assertTrue(ar.failed());
-        verify(pgClient).update(eq(TABLE_NAME), eq(jobExecution), any(Criterion.class), eq(true), any(Handler.class));
+        verify(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
       });
   }
 }
