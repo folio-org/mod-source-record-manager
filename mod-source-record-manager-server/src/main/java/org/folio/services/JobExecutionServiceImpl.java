@@ -65,6 +65,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String GET_USER_URL = "/users?query=id==";
+  private static final String DEFAULT_LASTNAME = "SYSTEM";
   private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
 
@@ -321,7 +322,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 .withFirstName(Objects.isNull(userPersonalInfo)
                   ? jsonUser.getString("username")  : userPersonalInfo.getString("firstName"))
                 .withLastName(Objects.isNull(userPersonalInfo)
-                  ? "SYSTEM" : userPersonalInfo.getString("lastName"))
+                  ? DEFAULT_LASTNAME : userPersonalInfo.getString("lastName"))
                 .withUserName(jsonUser.getString("username"));
               promise.complete(userInfo);
             }
