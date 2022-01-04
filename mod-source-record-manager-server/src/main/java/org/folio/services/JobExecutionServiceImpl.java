@@ -11,7 +11,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.JobExecutionSourceChunkDao;
+import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
@@ -63,8 +65,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId);
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId);
   }
 
   @Override
@@ -119,12 +121,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit, tenantId);
+            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
           }
