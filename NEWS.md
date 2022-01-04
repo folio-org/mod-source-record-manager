@@ -1,4 +1,5 @@
 ## 2021-xx-xx v3.3.0-SNAPSHOT
+* [MODSOURMAN-624](https://issues.folio.org/browse/MODSOURMAN-624) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
 * [MODSOURMAN-614](https://issues.folio.org/browse/MODSOURMAN-614) Authority: Add mapping rule for note types
 * [MODSOURMAN-577](https://issues.folio.org/browse/MODSOURMAN-577) Optimistic locking: mod-source-record-manager modifications
 * [MODSOURMAN-573](https://issues.folio.org/browse/MODSOURMAN-573) Create mapping rules for AUTHORITY records
@@ -14,6 +15,9 @@
 * [MODSOURMAN-598](https://issues.folio.org/browse/MODSOURMAN-598) Properly handle DB failures during events processing
 * [MODDATAIMP-491](https://issues.folio.org/browse/MODDATAIMP-491) Improve logging to be able to trace the path of each record and file_chunks
 * [MODDATAIMP-621](https://issues.folio.org/browse/MODDATAIMP-621) Fix saving of default mapping rules
+* [MODDATAIMP-641](https://issues.folio.org/browse/MODDATAIMP-641) Fix NPE exception and fix the main reason of NPE (recordId = null).
+* [MODSOURMAN-645](https://issues.folio.org/browse/MODSOURMAN-645) Update permissions related to Authority
+* [MODSOURMAN-625](https://issues.folio.org/browse/MODSOURMAN-625) Invoice log detail sort by Record column in Data Import detail log not working properly
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar

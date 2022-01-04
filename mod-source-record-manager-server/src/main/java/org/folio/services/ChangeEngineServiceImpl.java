@@ -95,7 +95,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
+  static final String RECORD_ID = "recordId";
   public static final String MESSAGE_KEY = "message";
+  private static final String RECORD_ID_HEADER = "recordId";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private JobExecutionService jobExecutionService;
@@ -364,6 +366,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void populateError(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
     var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
+    eventPayload.getContext().put(RECORD_ID_HEADER, record.getId());
     var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
     LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
@@ -371,8 +374,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .withContent(record.getRawRecord().getContent())
       .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
     );
-    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(),
-      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, key)
+    var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders());
+    kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID, record.getId()));
+
+    sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
