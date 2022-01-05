@@ -55,7 +55,7 @@ import static org.folio.services.AbstractChunkProcessingService.UNIQUE_CONSTRAIN
 public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
-  private static final String STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID = "4d39ced7-9b67-4bdc-b232-343dbb5b8cef";
+  public static final String STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID = "4d39ced7-9b67-4bdc-b232-343dbb5b8cef";
 
   private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
     MARC_BIB, DI_SRS_MARC_BIB_RECORD_CREATED,
@@ -93,7 +93,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     Event event = Json.decodeValue(record.value(), Event.class);
 
     try {
-      eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, okapiConnectionParams.getTenantId())
+      return eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, okapiConnectionParams.getTenantId())
         .compose(res -> {
           RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
           List<Record> storedRecords = recordsBatchResponse.getRecords();
@@ -114,15 +114,11 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
               LOGGER.error("RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
               return Future.failedFuture(th);
             });
-        }, throwable -> (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
-          Future.failedFuture(new ConflictException(String.format("Event with eventId=%s is already processed.", event.getId()))) :
-          Future.failedFuture(throwable));
+        });
     } catch (Exception e) {
       LOGGER.error("Can't process kafka record: ", e);
       return Future.failedFuture(e);
     }
-
-    return Future.succeededFuture(record.key());
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {

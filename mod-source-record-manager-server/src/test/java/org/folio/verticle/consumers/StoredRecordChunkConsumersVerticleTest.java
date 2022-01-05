@@ -156,6 +156,25 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     assertNotNull(eventPayload.getContext().get(JOB_PROFILE_SNAPSHOT_ID));
   }
 
+  @Test
+  public void shouldObserveOnlySingleEventInCaseOfDuplicates() throws InterruptedException {
+    // given
+    String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
+    RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
+
+    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+
+    // when
+    kafkaCluster.send(request);
+    kafkaCluster.send(request);
+
+    // then
+    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_SRS_MARC_BIB_RECORD_CREATED, 1);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), eventPayload.getEventType());
+  }
+
   private RecordsBatchResponse getRecordsBatchResponse(String parsedContent, Integer totalRecords) {
     List<Record> records = new ArrayList<>();
     for (int i = 0; i < totalRecords; i++) {
