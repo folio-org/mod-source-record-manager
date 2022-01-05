@@ -81,7 +81,7 @@ public abstract class AbstractRestTest {
   public static final String POSTGRES_IMAGE = "postgres:12-alpine";
   private static PostgreSQLContainer<?> postgresSQLContainer;
 
-  private static final String JOB_EXECUTIONS_TABLE_NAME = "job_executions";
+  private static final String JOB_EXECUTIONS_TABLE_NAME = "job_execution";
   private static final String CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
   private static final String JOB_EXECUTION_PROGRESS_TABLE = "job_execution_progress";
@@ -95,7 +95,7 @@ public abstract class AbstractRestTest {
   protected static RequestSpecification spec;
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
-  private static final String GET_USER_URL = "/users?query=id==";
+  protected static final String GET_USER_URL = "/users?query=id==";
   protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=1000";
   protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=1000";
   protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=1000";

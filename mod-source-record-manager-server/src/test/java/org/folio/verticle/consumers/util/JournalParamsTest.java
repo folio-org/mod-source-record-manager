@@ -2,6 +2,8 @@ package org.folio.verticle.consumers.util;
 
 import static org.folio.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
@@ -213,6 +215,15 @@ public class JournalParamsTest {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_CREATED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.CREATE);
   }
 
+  @Test
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityUpdated() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_UPDATED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeAuthorityWhenEventTypeIsDiInventoryAuthorityNonMatched() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_AUTHORITY_NOT_MATCHED, JournalRecord.EntityType.AUTHORITY, JournalRecord.ActionType.NON_MATCH);
+  }
   @Test
   public void shouldPopulateEntityTypeInstanceWhenEventTypeIsDiInventoryInstanceNonMatched() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_INSTANCE_NOT_MATCHED, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.NON_MATCH);

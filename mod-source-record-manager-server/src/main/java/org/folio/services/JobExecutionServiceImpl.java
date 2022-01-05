@@ -11,14 +11,28 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
+import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.JobExecutionSourceChunkDao;
+import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.dataimport.util.Try;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.Snapshot;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -52,6 +67,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String GET_USER_URL = "/users?query=id==";
+  private static final String DEFAULT_LASTNAME = "SYSTEM";
   private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
 
@@ -63,8 +79,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private JournalRecordService journalRecordService;
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(String query, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(query, offset, limit, tenantId);
+  public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId);
   }
 
   @Override
@@ -119,12 +135,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, String query, int offset, int limit, String tenantId) {
+  public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
           if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
-            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), query, offset, limit, tenantId);
+            return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
           }
@@ -304,17 +320,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
-              if (userPersonalInfo == null) {
-                String errorMessage = "There are no personal data for the current user: " + userId;
-                LOGGER.error(errorMessage);
-                promise.fail(errorMessage);
-              } else {
-                UserInfo userInfo = new UserInfo()
-                  .withFirstName(userPersonalInfo.getString("firstName"))
-                  .withLastName(userPersonalInfo.getString("lastName"))
-                  .withUserName(jsonUser.getString("username"));
-                promise.complete(userInfo);
-              }
+              String userName = jsonUser.getString("username");
+              UserInfo userInfo = new UserInfo()
+                .withFirstName(Objects.isNull(userPersonalInfo)
+                  ? userName  : userPersonalInfo.getString("firstName"))
+                .withLastName(Objects.isNull(userPersonalInfo)
+                  ? DEFAULT_LASTNAME : userPersonalInfo.getString("lastName"))
+                .withUserName(userName);
+              promise.complete(userInfo);
             }
           }
         }
