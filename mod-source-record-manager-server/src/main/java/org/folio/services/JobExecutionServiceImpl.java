@@ -320,12 +320,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             } else {
               JsonObject jsonUser = response.getJsonArray("users").getJsonObject(0);
               JsonObject userPersonalInfo = jsonUser.getJsonObject("personal");
+              String userName = jsonUser.getString("username");
               UserInfo userInfo = new UserInfo()
                 .withFirstName(Objects.isNull(userPersonalInfo)
-                  ? jsonUser.getString("username")  : userPersonalInfo.getString("firstName"))
+                  ? userName  : userPersonalInfo.getString("firstName"))
                 .withLastName(Objects.isNull(userPersonalInfo)
                   ? DEFAULT_LASTNAME : userPersonalInfo.getString("lastName"))
-                .withUserName(jsonUser.getString("username"));
+                .withUserName(userName);
               promise.complete(userInfo);
             }
           }
