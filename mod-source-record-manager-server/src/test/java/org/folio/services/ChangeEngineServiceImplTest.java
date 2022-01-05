@@ -130,6 +130,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
     assertThat(actual.get(0).getExternalIdsHolder().getAuthorityId(), notNullValue());
+    assertThat(actual.get(0).getExternalIdsHolder().getAuthorityHrid(), notNullValue());
   }
 
   @Test
