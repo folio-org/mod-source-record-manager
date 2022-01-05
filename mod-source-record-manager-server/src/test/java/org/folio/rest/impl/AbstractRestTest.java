@@ -95,7 +95,7 @@ public abstract class AbstractRestTest {
   protected static RequestSpecification spec;
 
   protected static final String JOB_EXECUTION_PATH = "/change-manager/jobExecutions/";
-  private static final String GET_USER_URL = "/users?query=id==";
+  protected static final String GET_USER_URL = "/users?query=id==";
   protected static final String IDENTIFIER_TYPES_URL = "/identifier-types?limit=1000";
   protected static final String INSTANCE_TYPES_URL = "/instance-types?limit=1000";
   protected static final String CLASSIFICATION_TYPES_URL = "/classification-types?limit=1000";

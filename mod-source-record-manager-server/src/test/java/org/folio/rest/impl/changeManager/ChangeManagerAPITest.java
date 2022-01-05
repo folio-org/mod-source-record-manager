@@ -1,5 +1,39 @@
 package org.folio.rest.impl.changeManager;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -8,6 +42,7 @@ import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -46,38 +81,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static java.util.Arrays.asList;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
-import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -123,6 +126,12 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
     .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
+
+  private final JsonObject userResponse = new JsonObject()
+    .put("users",
+      new JsonArray().add(new JsonObject()
+        .put("username", "diku_admin")))
+    .put("totalRecords", 1);
 
   private RawRecordsDto rawRecordsDto_2;
 
@@ -303,6 +312,49 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(JOB_EXECUTION_PATH)
       .then().statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void testInitJobExecutionsWithUserWithoutPersonalInformation() {
+    // given
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+
+    String stubUserId = UUID.randomUUID().toString();
+    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(stubUserId);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    String parentJobExecutionId = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    JsonObject jsonUser = userResponse.getJsonArray("users").getJsonObject(0);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parentJobExecutionId)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("id", is(parentJobExecutionId))
+      .body("hrId", greaterThanOrEqualTo(0))
+      .body("runBy.firstName", is(jsonUser.getString("username")))
+      .body("runBy.lastName", is("SYSTEM"));
   }
 
   @Test
