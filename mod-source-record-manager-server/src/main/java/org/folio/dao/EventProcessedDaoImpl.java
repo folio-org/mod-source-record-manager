@@ -31,13 +31,13 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
   }
 
   @Override
-  public Future<RowSet<Row>> save(String eventId, String handlerId, String tenantId) {
+  public Future<RowSet<Row>> save(String handlerId, String eventId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
-      pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(eventId, handlerId), promise);
+      pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(handlerId, eventId), promise);
     } catch (Exception e) {
-      LOGGER.error("Failed to save eventId {} to {} with handlerId: {}", eventId, TABLE_NAME, handlerId, e);
+      LOGGER.error("Failed to save handlerId {} and eventId {} combination to table {}", handlerId, eventId, TABLE_NAME, e);
       promise.fail(e);
     }
     return promise.future();

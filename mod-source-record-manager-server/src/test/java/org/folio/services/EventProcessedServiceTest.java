@@ -42,33 +42,33 @@ public class EventProcessedServiceTest {
 
   @Test
   public void shouldCallDaoForSuccessfulCase() {
-    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID)).thenReturn(Future.succeededFuture());
 
-    eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
+    eventProcessedService.collectData(HANDLER_ID, EVENT_ID, TENANT_ID);
 
-    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+    verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
   }
 
   @Test
   public void shouldReturnFailedFutureWithConflictExceptionWhenConstraintViolation() {
-    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID))
+    when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
       .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", UNIQUE_CONSTRAINT_VIOLATION_CODE, "ConstrainViolation")));
 
-    Future<RowSet<Row>> future = eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
+    Future<RowSet<Row>> future = eventProcessedService.collectData(HANDLER_ID, EVENT_ID, TENANT_ID);
 
-    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+    verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof ConflictException);
   }
 
   @Test
   public void shouldReturnFailedFutureWhenDbFails() {
-    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID))
+    when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
       .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", "ERROR_CODE", "DB is unavailable")));
 
-    Future<RowSet<Row>> future = eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
+    Future<RowSet<Row>> future = eventProcessedService.collectData(HANDLER_ID, EVENT_ID, TENANT_ID);
 
-    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+    verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof PgException);
 

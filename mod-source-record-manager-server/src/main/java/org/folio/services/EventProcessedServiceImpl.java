@@ -21,8 +21,8 @@ public class EventProcessedServiceImpl implements EventProcessedService {
   }
 
   @Override
-  public Future<RowSet<Row>> collectData(String eventId, String handlerId, String tenantId) {
-    return eventProcessedDao.save(eventId, handlerId, tenantId)
+  public Future<RowSet<Row>> collectData(String handlerId, String eventId, String tenantId) {
+    return eventProcessedDao.save(handlerId, eventId, tenantId)
       .recover(throwable ->
         (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
           Future.failedFuture(new ConflictException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :

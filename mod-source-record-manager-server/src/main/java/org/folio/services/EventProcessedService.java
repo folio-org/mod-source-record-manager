@@ -10,11 +10,11 @@ public interface EventProcessedService {
    * Collects information is event was handled.
    * Deduplication pattern implementation.
    *
-   * @param eventId id of event
    * @param handlerId id of handler
+   * @param eventId id of event
    * @return future if the event not processed yet
    */
 
-  Future<RowSet<Row>> collectData(String eventId, String handlerId, String tenantId);
+  Future<RowSet<Row>> collectData(String handlerId, String eventId, String tenantId);
 
 }

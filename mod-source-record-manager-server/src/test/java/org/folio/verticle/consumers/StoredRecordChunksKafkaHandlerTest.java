@@ -99,7 +99,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID))
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
       .thenReturn(Future.failedFuture(new ConflictException("Constraint Violation Occurs")));
 
     // when
@@ -143,7 +143,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -166,7 +166,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
 
     // when
@@ -190,7 +190,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
@@ -218,7 +218,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))

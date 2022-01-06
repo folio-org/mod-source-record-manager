@@ -7,11 +7,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import io.vertx.pgclient.PgException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
@@ -92,7 +90,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     Event event = Json.decodeValue(record.value(), Event.class);
 
     try {
-      return eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, okapiConnectionParams.getTenantId())
+      return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
         .compose(res -> {
           RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
           List<Record> storedRecords = recordsBatchResponse.getRecords();

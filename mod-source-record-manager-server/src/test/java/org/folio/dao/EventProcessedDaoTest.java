@@ -34,10 +34,10 @@ public class EventProcessedDaoTest extends AbstractRestTest {
 
   @Test
   public void shouldSaveEventProcessed(TestContext context) {
-    String eventId = UUID.randomUUID().toString();
     String handlerId = UUID.randomUUID().toString();
+    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
-    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(eventId, handlerId, TENANT_ID);
+    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
 
     saveFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -48,13 +48,13 @@ public class EventProcessedDaoTest extends AbstractRestTest {
 
   @Test
   public void shouldThrowConstraintViolation(TestContext context) {
-    String eventId = UUID.randomUUID().toString();
     String handlerId = UUID.randomUUID().toString();
+    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
 
-    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(eventId, handlerId, TENANT_ID);
+    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
     saveFuture.onComplete(ar -> {
-      Future<RowSet<Row>> reSaveFuture = eventProcessedDao.save(eventId, handlerId, TENANT_ID);
+      Future<RowSet<Row>> reSaveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
       reSaveFuture.onComplete(re -> {
         context.assertTrue(re.failed());
         context.assertTrue(re.cause() instanceof  PgException);
