@@ -1,9 +1,15 @@
 package org.folio.services;
 
+import io.vertx.core.Future;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.pgclient.PgException;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.dao.EventProcessedDao;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -12,9 +18,16 @@ import org.mockito.MockitoAnnotations;
 import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.folio.services.AbstractChunkProcessingService.UNIQUE_CONSTRAINT_VIOLATION_CODE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class EventProcessedServiceTest {
+
+  private static final String EVENT_ID = UUID.randomUUID().toString();
+  private static final String HANDLER_ID = UUID.randomUUID().toString();
+  private static final String TENANT_ID = "diku";
 
   @Mock
   private EventProcessedDao eventProcessedDao;
@@ -28,13 +41,36 @@ public class EventProcessedServiceTest {
   }
 
   @Test
-  public void shouldCallDaoToGetProcessedEvent() {
-    String eventId = UUID.randomUUID().toString();
-    String handlerId = UUID.randomUUID().toString();
-    String tenantId = "diku";
+  public void shouldCallDaoForSuccessfulCase() {
+    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID)).thenReturn(Future.succeededFuture());
 
-    eventProcessedService.collectData(eventId, handlerId, tenantId);
+    eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
 
-    verify(eventProcessedDao).save(eventId, handlerId, tenantId);
+    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWithConflictExceptionWhenConstraintViolation() {
+    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID))
+      .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", UNIQUE_CONSTRAINT_VIOLATION_CODE, "ConstrainViolation")));
+
+    Future<RowSet<Row>> future = eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
+
+    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof ConflictException);
+  }
+
+  @Test
+  public void shouldReturnFailedFutureWhenDbFails() {
+    when(eventProcessedDao.save(EVENT_ID, HANDLER_ID, TENANT_ID))
+      .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", "ERROR_CODE", "DB is unavailable")));
+
+    Future<RowSet<Row>> future = eventProcessedService.collectData(EVENT_ID, HANDLER_ID, TENANT_ID);
+
+    verify(eventProcessedDao).save(EVENT_ID, HANDLER_ID, TENANT_ID);
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof PgException);
+
   }
 }

@@ -11,7 +11,6 @@ import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.AsyncRecordHandler;
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
@@ -22,24 +21,32 @@ import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalService;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.*;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
@@ -90,8 +97,6 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(recordsBatch));
 
-    String expectedKafkaRecordKey = "1";
-    when(kafkaRecord.key()).thenReturn(expectedKafkaRecordKey);
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
     when(eventProcessedService.collectData(event.getId(), STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, TENANT_ID))
