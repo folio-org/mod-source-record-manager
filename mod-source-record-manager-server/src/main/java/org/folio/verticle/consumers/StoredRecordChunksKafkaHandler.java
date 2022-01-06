@@ -48,7 +48,6 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.AbstractChunkProcessingService.UNIQUE_CONSTRAINT_VIOLATION_CODE;
 
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")

@@ -57,7 +57,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
     // process for specific failure processed records from Exception body
     if (throwable instanceof RecordsProcessingException) {
       List<Record> failedRecords = ((RecordsProcessingException) throwable).getFailedRecords();
-      for (Record failedRecord : failedRecords) {
+      for (Record failedRecord: failedRecords) {
         sendDiErrorForRecord(jobExecutionId, failedRecord, okapiParams, failedRecord.getErrorRecord().getDescription());
       }
 
