@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -20,6 +19,7 @@ import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
@@ -52,6 +52,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
+  public static final String STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID = "4d39ced7-9b67-4bdc-b232-343dbb5b8cef";
 
   private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
     MARC_BIB, DI_SRS_MARC_BIB_RECORD_CREATED,
@@ -61,19 +62,19 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   );
 
   private RecordsPublishingService recordsPublishingService;
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
   private JournalService journalService;
   private MappingRuleCache mappingRuleCache;
   private Vertx vertx;
 
   public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                         @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
-                                        @Autowired KafkaInternalCache kafkaInternalCache,
+                                        @Autowired @Qualifier("eventProcessedService") EventProcessedService eventProcessedService,
                                         @Autowired MappingRuleCache mappingRuleCache,
                                         @Autowired Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
+    this.eventProcessedService = eventProcessedService;
     this.journalService = journalService;
-    this.kafkaInternalCache = kafkaInternalCache;
     this.mappingRuleCache = mappingRuleCache;
     this.vertx = vertx;
   }
@@ -88,34 +89,33 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
     Event event = Json.decodeValue(record.value(), Event.class);
 
-    if (!kafkaInternalCache.containsByKey(event.getId())) {
-      try {
-        kafkaInternalCache.putToCache(event.getId());
-        RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
-        List<Record> storedRecords = recordsBatchResponse.getRecords();
+    try {
+      return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
+        .compose(res -> {
+          RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
+          List<Record> storedRecords = recordsBatchResponse.getRecords();
 
-        // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
-        DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
-          ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
-          : DI_SRS_MARC_BIB_RECORD_CREATED;
+          // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
+          DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
+            ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
+            : DI_SRS_MARC_BIB_RECORD_CREATED;
 
-        LOGGER.debug("RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
-        saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
-        return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
-            okapiConnectionParams, eventType.value())
-          .compose(b -> {
-            LOGGER.debug("RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
-            return Future.succeededFuture(chunkId);
-          }, th -> {
-            LOGGER.error("RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
-            return Future.failedFuture(th);
-          });
-      } catch (Exception e) {
-        LOGGER.error("Can't process kafka record: ", e);
-        return Future.failedFuture(e);
-      }
+          LOGGER.debug("RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+          saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
+          return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
+              okapiConnectionParams, eventType.value())
+            .compose(b -> {
+              LOGGER.debug("RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+              return Future.succeededFuture(chunkId);
+            }, th -> {
+              LOGGER.error("RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
+              return Future.failedFuture(th);
+            });
+        });
+    } catch (Exception e) {
+      LOGGER.error("Can't process kafka record: ", e);
+      return Future.failedFuture(e);
     }
-    return Future.succeededFuture(record.key());
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {

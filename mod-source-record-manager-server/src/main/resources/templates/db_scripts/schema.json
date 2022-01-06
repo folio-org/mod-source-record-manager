@@ -187,6 +187,11 @@
       "run": "after",
       "snippetPath": "create_new_job_executions_table.sql",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS events_processed (handler_id UUID, event_id UUID, PRIMARY KEY (handler_id, event_id));",
+      "fromModuleVersion": "mod-source-record-manager-3.3.0"
     }
   ]
 }

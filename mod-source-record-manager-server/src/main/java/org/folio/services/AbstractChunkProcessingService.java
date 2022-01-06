@@ -20,7 +20,7 @@ import java.util.Date;
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
-  private static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
+  public static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   protected JobExecutionService jobExecutionService;

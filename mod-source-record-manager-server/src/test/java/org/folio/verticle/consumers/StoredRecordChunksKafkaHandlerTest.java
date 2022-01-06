@@ -9,13 +9,14 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
+import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
@@ -28,24 +29,24 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
@@ -62,11 +63,11 @@ public class StoredRecordChunksKafkaHandlerTest {
   @Mock
   private RecordsPublishingService recordsPublishingService;
   @Mock
-  private KafkaInternalCache kafkaInternalCache;
-  @Mock
   private KafkaConsumerRecord<String, String> kafkaRecord;
   @Mock
   private JournalService journalService;
+  @Mock
+  private EventProcessedService eventProcessedService;
   @Mock
   private MappingRuleCache mappingRuleCache;
   @Captor
@@ -82,11 +83,11 @@ public class StoredRecordChunksKafkaHandlerTest {
 
   @Before
   public void setUp() {
-    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, kafkaInternalCache, mappingRuleCache, vertx);
+    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService, mappingRuleCache, vertx);
   }
 
   @Test
-  public void shouldNotHandleEventWhenKafkaCacheContainsEventId() throws IOException {
+  public void shouldNotHandleEventWhenDuplicateComing() {
     // given
     RecordsBatchResponse recordsBatch = new RecordsBatchResponse()
       .withRecords(List.of(new Record()))
@@ -96,19 +97,18 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(recordsBatch));
 
-    String expectedKafkaRecordKey = "1";
-    when(kafkaRecord.key()).thenReturn(expectedKafkaRecordKey);
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(true);
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
+      .thenReturn(Future.failedFuture(new ConflictException("Constraint Violation Occurs")));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(kafkaInternalCache, times(1)).containsByKey(eq(event.getId()));
     verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
-    assertTrue(future.succeeded());
-    assertEquals(expectedKafkaRecordKey, future.result());
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof ConflictException);
   }
 
   @Test
@@ -132,9 +132,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldReturnFailedWhenRecordsIsEmpty() throws IOException{
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
-
+  public void shouldReturnFailedWhenRecordsIsEmpty() {
     RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
       .withRecords(List.of())
       .withTotalRecords(1);
@@ -145,7 +143,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -168,7 +166,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
 
     // when
@@ -192,7 +190,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
@@ -220,7 +218,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(kafkaInternalCache.containsByKey(eq(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
       .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
