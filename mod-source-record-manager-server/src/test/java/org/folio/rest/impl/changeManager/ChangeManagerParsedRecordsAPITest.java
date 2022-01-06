@@ -50,7 +50,7 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   KafkaConfig kafkaConfig;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
     System.setProperty(KAFKA_HOST, hostAndPort[0]);
     System.setProperty(KAFKA_PORT, hostAndPort[1]);

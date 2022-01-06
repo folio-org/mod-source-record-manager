@@ -58,8 +58,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    jobExecutionDao.init();
-
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
@@ -74,7 +72,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     Future<List<JobExecutionDto>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .map(InitJobExecutionsRsDto::getJobExecutions)
       .compose(this::createProgressForJobExecutions)
-      .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(null, 0, 10, params.getTenantId()))
+      .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(new JobExecutionFilter(), null, 0, 10, params.getTenantId()))
       .map(JobExecutionDtoCollection::getJobExecutions);
 
     future.onComplete(ar -> {

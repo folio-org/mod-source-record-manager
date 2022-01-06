@@ -84,12 +84,6 @@ resourceTypes:
         get:
           description: Get children JobExecutions by parent id, by default returns all existing children JobExecutions, in order to limit the collection parameter limit should be explicitly specified
           is: [
-           searchable: {
-             description:
-               "with valid searchable fields: for example status=PARSING_IN_PROGRESS",
-              example:
-               "status=PARSING_IN_PROGRESS"
-            },
             pageable,
             validate
           ]

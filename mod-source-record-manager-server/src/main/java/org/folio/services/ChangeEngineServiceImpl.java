@@ -6,7 +6,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
@@ -86,6 +86,8 @@ import org.folio.services.parsers.RecordParserBuilder;
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
+  public static final String MESSAGE_KEY = "message";
+  static final String RECORD_ID = "recordId";
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
@@ -95,8 +97,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  static final String RECORD_ID = "recordId";
-  public static final String MESSAGE_KEY = "message";
   private static final String RECORD_ID_HEADER = "recordId";
 
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -137,16 +137,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
         params.getTenantId(), params);
     futureParsedRecords
-      .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params).map(parsedRecords))
+      .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
+        .map(parsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
 
         if (updateMarcActionExists) {
-          LOGGER.info(
-            "Records have not been saved in record-storage, because jobProfileSnapshotWrapper contains action for Marc-Bibliographic update");
-          recordsPublishingService
-            .sendEventsWithRecords(parsedRecords, jobExecution.getId(), params, DI_MARC_BIB_FOR_UPDATE_RECEIVED.value())
+          updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
         } else {
@@ -182,7 +180,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
-  private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList, OkapiConnectionParams okapiParams) {
+  private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc update");
+    return recordsPublishingService
+      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
+  }
+
+  private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
+                                                        OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
       return Future.succeededFuture(false);
     }
@@ -208,7 +213,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
-        && actionProfileMatches(childWrapper, FolioRecord.MARC_BIBLIOGRAPHIC, Action.UPDATE)) {
+        && actionProfileMatches(childWrapper)) {
         return true;
       } else if (containsUpdateMarcActionProfile(childWrapper)) {
         return true;
@@ -217,9 +222,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return false;
   }
 
-  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper, FolioRecord folioRecord, Action action) {
+  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper) {
     ActionProfile actionProfile = new JsonObject((Map) actionProfileWrapper.getContent()).mapTo(ActionProfile.class);
-    return actionProfile.getFolioRecord() == folioRecord && actionProfile.getAction() == action;
+    return (actionProfile.getFolioRecord() == FolioRecord.MARC_BIBLIOGRAPHIC
+      || actionProfile.getFolioRecord() == FolioRecord.MARC_AUTHORITY)
+      && actionProfile.getAction() == Action.UPDATE;
   }
 
   /**
@@ -232,7 +239,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
-                                            JobExecution jobExecution, String sourceChunkId, String tenantId, OkapiConnectionParams okapiParams) {
+                                            JobExecution jobExecution, String sourceChunkId, String tenantId,
+                                            OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
@@ -287,7 +295,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
-  private List<Future> executeInBatches(List<Record> recordList, Function<List<String>, Future<List<String>>> batchOperation) {
+  private List<Future> executeInBatches(List<Record> recordList,
+                                        Function<List<String>, Future<List<String>>> batchOperation) {
     // filter list on MARC_HOLDINGS
     var marcHoldingsIdsToVerify = recordList.stream()
       .filter(recordItem -> recordItem.getRecordType() == MARC_HOLDING)
@@ -344,7 +353,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           invalidMarcBibIds = ids.getList();
           LOGGER.info("List of marc bib ids: {}", invalidMarcBibIds);
         } else {
-          LOGGER.info("The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(), asyncResult.result().statusCode());
+          LOGGER.info("The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
+            asyncResult.result().statusCode());
         }
         promise.complete(invalidMarcBibIds);
       });
@@ -378,10 +388,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID, record.getId()));
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
-      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+      .onFailure(
+        th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
-  private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution, OkapiConnectionParams okapiParams) {
+  private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution,
+                                                      OkapiConnectionParams okapiParams) {
     String sourceRecordKey = getSourceRecordKey(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
@@ -454,10 +466,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     }
   }
 
-  private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId, String chunkId) {
+  private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId,
+                                     String chunkId) {
     if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
       MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
-      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}", recordId, marcRecordType, jobExecution.getId(), chunkId,
+      LOGGER.info(
+        "Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
+        recordId, marcRecordType, jobExecution.getId(), chunkId,
         jobExecution.getFileName() == null ? "No file name" : jobExecution.getFileName());
       return MarcRecordType.NA == marcRecordType ? null : RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
     }
@@ -483,7 +498,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
           String inventoryId = UUID.randomUUID().toString();
           addFieldToMarcRecord(record, TAG_999, 'i', inventoryId);
-          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId));
+          var hrid = getControlFieldValue(record, TAG_001).trim();
+          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
         }
       }
     }

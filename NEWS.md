@@ -17,7 +17,10 @@
 * [MODDATAIMP-621](https://issues.folio.org/browse/MODDATAIMP-621) Fix saving of default mapping rules
 * [MODDATAIMP-641](https://issues.folio.org/browse/MODDATAIMP-641) Fix NPE exception and fix the main reason of NPE (recordId = null).
 * [MODSOURMAN-645](https://issues.folio.org/browse/MODSOURMAN-645) Update permissions related to Authority
-* [MODSOURMAN-638](https://issues.folio.org/browse/MODSOURMAN-638) Remove Kafka cache by handling Constraint Violation Exceptions for StoreRecordsChunksKafkaHandler
+* [MODSOURMAN-625](https://issues.folio.org/browse/MODSOURMAN-625) Invoice log detail sort by Record column in Data Import detail log not working properly
+* [MODSOURMAN-432](https://issues.folio.org/browse/MODSOURMAN-432) Create job execution requires user with "personal" information
+* [MODSOURMAN-656](https://issues.folio.org/browse/MODSOURMAN-656) Support Update MARC Authority Action
+* [MODSOURMAN-638](https://issues.folio.org/browse/MODSOURMAN-638) Remove Kafka cache for StoreRecordsChunksKafkaHandler
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
