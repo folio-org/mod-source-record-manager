@@ -1,12 +1,12 @@
 package org.folio.verticle.consumers;
 
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
@@ -17,13 +17,19 @@ import static org.mockito.Mockito.when;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 
 import java.io.IOException;
-import java.util.*;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.services.EventProcessedService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +38,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
@@ -47,7 +52,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   private static final String TENANT_ID = "test";
 
   @Mock
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
   @Mock
   private SourceRecordStateService sourceRecordStateService;
   @Mock
@@ -63,13 +68,13 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    quickMarcHandler = new QuickMarcUpdateKafkaHandler(kafkaInternalCache, sourceRecordStateService, producerService, vertx);
+    quickMarcHandler =
+      new QuickMarcUpdateKafkaHandler(eventProcessedService, sourceRecordStateService, producerService, vertx);
   }
 
   @Test
-  public void shouldNotHandleEventWhenKafkaCacheContainsEventId() throws IOException {
+  public void shouldNotHandleEventWhenDuplicateComing() throws IOException {
     var recordId = UUID.randomUUID().toString();
-    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
@@ -79,18 +84,17 @@ public class QuickMarcUpdateKafkaHandlerTest {
       .withEventType(QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name())
       .withEventPayload(ZIPArchiver.zip(Json.encode(eventPayload)));
 
-    String expectedKafkaRecordKey = "1";
-    when(kafkaRecord.key()).thenReturn(expectedKafkaRecordKey);
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaInternalCache.containsByKey(contains(event.getId()))).thenReturn(true);
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
+      .thenReturn(Future.failedFuture(new ConflictException("Constraint Violation Occurs")));
 
     var future = quickMarcHandler.handle(kafkaRecord);
 
-    verify(kafkaInternalCache, times(1)).containsByKey(contains(event.getId()));
     verify(producerService, never()).sendEvent(anyString(), anyString(), any(), anyString(), anyList());
     verify(sourceRecordStateService, never()).updateState(anyString(), any(SourceRecordState.RecordState.class), anyString());
-    assertTrue(future.succeeded());
-    assertEquals(expectedKafkaRecordKey, future.result());
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof ConflictException);
   }
 
   @Test
@@ -108,7 +112,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
-    when(kafkaInternalCache.containsByKey(contains(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(producerService.sendEvent(anyString(), anyString(), isNull(), anyString(), anyList()))
       .thenReturn(Future.succeededFuture(true));
     when(sourceRecordStateService.updateState(anyString(), any(SourceRecordState.RecordState.class), anyString()))
@@ -145,7 +149,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
-    when(kafkaInternalCache.containsByKey(contains(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(producerService.sendEvent(anyString(), anyString(), isNull(), anyString(), anyList()))
       .thenReturn(Future.succeededFuture(true));
     when(sourceRecordStateService.updateState(anyString(), any(SourceRecordState.RecordState.class), anyString()))
@@ -181,7 +185,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
-    when(kafkaInternalCache.containsByKey(contains(event.getId()))).thenReturn(false);
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
 
     var future = quickMarcHandler.handle(kafkaRecord);
     assertTrue(future.failed());

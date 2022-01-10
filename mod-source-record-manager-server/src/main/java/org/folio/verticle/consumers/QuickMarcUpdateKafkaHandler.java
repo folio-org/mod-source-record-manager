@@ -1,10 +1,9 @@
 package org.folio.verticle.consumers;
 
-import static java.lang.String.format;
-
 import static org.folio.kafka.KafkaHeaderUtils.kafkaHeadersToMap;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.folio.verticle.consumers.util.QMEventTypes.QM_COMPLETED;
 
 import java.io.IOException;
@@ -19,12 +18,12 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.folio.services.EventProcessedService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
@@ -44,32 +43,30 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
   private static final String EVENT_ID_PREFIX = QuickMarcUpdateKafkaHandler.class.getSimpleName();
 
-  private final KafkaInternalCache kafkaInternalCache;
+  private final EventProcessedService eventProcessedService;
   private final SourceRecordStateService sourceRecordStateService;
   private final QuickMarcEventProducerService producerService;
   private final Vertx vertx;
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
-    var event = Json.decodeValue(record.value(), Event.class);
-    String cacheEventId = format("%s-%s", EVENT_ID_PREFIX, event.getId());
+    var kafkaHeaders = record.headers();
+    var okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(kafkaHeaders), vertx);
+    var tenantId = okapiConnectionParams.getTenantId();
 
-    if (!kafkaInternalCache.containsByKey(cacheEventId)) {
-      kafkaInternalCache.putToCache(cacheEventId);
-      var kafkaHeaders = record.headers();
-      var okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(kafkaHeaders), vertx);
-      var tenantId = okapiConnectionParams.getTenantId();
-      var eventType = event.getEventType();
-      return getEventPayload(event)
-        .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
-        .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
-        .compose(s -> Future.succeededFuture(record.key()), th -> {
-          log.error("Update record state was failed while handle {} event", eventType);
-          return Future.failedFuture(th);
-        });
-    } else {
-      return Future.succeededFuture(record.key());
-    }
+    var event = Json.decodeValue(record.value(), Event.class);
+
+    return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), tenantId)
+      .compose(res -> {
+        var eventType = event.getEventType();
+        return getEventPayload(event)
+          .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
+          .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
+          .compose(s -> Future.succeededFuture(record.key()), th -> {
+            log.error("Update record state was failed while handle {} event", eventType);
+            return Future.failedFuture(th);
+          });
+      });
   }
 
   private Future<Map<String, String>> sendQmCompletedEvent(Map<String, String> eventPayload,
