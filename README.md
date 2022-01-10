@@ -457,7 +457,10 @@ Successful response contains no content (HTTP status 204).
 * After instance was created, to the record will be added 2 values:
   1. To the "*999ff$s*" field - will be added matchedId.
   2. To the "*999ff$i*" field - will be added instanceId.
-##### NOTE - This was a basic implementation, but currently there is a change that make 999ff$s = 999ff$i. But, there are some discussion to revert this one. 
+#### NOTE - when Data Import started using Kafka as a transport (R1 2021 Iris release) the deduplication of events logic was based on assigning same 999ff$s and 999ff$i UUIDs, the approach for deduplication changed (R1 2022 Lotus release), however records imported meanwhile could still have the same 999ff$s and 999ff$i UUIDs
+* MARC Bibs: same 999ff$s and 999ff$i UUIDs for records imported on Iris, Juniper, Kiwi; different UUIDs on pre-Iris HF3 and after Lotus
+* MARC Holdings: same 999ff$s and 999ff$i UUIDs on Kiwi; different UUIDs on Lotus and after
+* MARC Authorities: n/a (only SRS records exist in Kiwi; by the time Inventory Authority records exist in Lotus, it will have been changed)
 
 ### When the Data import action = *Modify* or *Update*:
 ### HRID-001 field logic:
