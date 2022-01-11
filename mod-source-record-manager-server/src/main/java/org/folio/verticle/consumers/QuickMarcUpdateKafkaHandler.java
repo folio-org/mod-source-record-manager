@@ -3,7 +3,6 @@ package org.folio.verticle.consumers;
 import static org.folio.kafka.KafkaHeaderUtils.kafkaHeadersToMap;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
-import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.folio.verticle.consumers.util.QMEventTypes.QM_COMPLETED;
 
 import java.io.IOException;
@@ -18,7 +17,6 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.folio.services.EventProcessedService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -41,31 +39,26 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   private static final String RECORD_ID_KEY = "RECORD_ID";
   private static final String ERROR_KEY = "ERROR";
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
-  private static final String EVENT_ID_PREFIX = QuickMarcUpdateKafkaHandler.class.getSimpleName();
 
-  private final EventProcessedService eventProcessedService;
   private final SourceRecordStateService sourceRecordStateService;
   private final QuickMarcEventProducerService producerService;
   private final Vertx vertx;
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+    var event = Json.decodeValue(record.value(), Event.class);
+    var eventType = event.getEventType();
+
     var kafkaHeaders = record.headers();
     var okapiConnectionParams = new OkapiConnectionParams(kafkaHeadersToMap(kafkaHeaders), vertx);
     var tenantId = okapiConnectionParams.getTenantId();
 
-    var event = Json.decodeValue(record.value(), Event.class);
-
-    return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), tenantId)
-      .compose(res -> {
-        var eventType = event.getEventType();
-        return getEventPayload(event)
-          .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
-          .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
-          .compose(s -> Future.succeededFuture(record.key()), th -> {
-            log.error("Update record state was failed while handle {} event", eventType);
-            return Future.failedFuture(th);
-          });
+    return getEventPayload(event)
+      .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
+      .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
+      .compose(s -> Future.succeededFuture(record.key()), th -> {
+        log.error("Update record state was failed while handle {} event", eventType);
+        return Future.failedFuture(th);
       });
   }
 
