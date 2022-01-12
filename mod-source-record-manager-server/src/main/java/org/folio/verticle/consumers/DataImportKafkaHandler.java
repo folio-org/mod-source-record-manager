@@ -11,11 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
+import org.folio.services.EventProcessedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -27,17 +28,18 @@ import java.util.List;
 public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
   static final String RECORD_ID_HEADER = "recordId";
+  public static final String DATA_IMPORT_KAFKA_HANDLER_UUID = "6713adda-72ce-11ec-90d6-0242ac120003";
 
   private Vertx vertx;
   private EventHandlingService eventHandlingService;
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
 
   public DataImportKafkaHandler(@Autowired Vertx vertx,
                                 @Autowired EventHandlingService eventHandlingService,
-                                @Autowired KafkaInternalCache kafkaInternalCache) {
+                                @Autowired @Qualifier("eventProcessedService") EventProcessedService eventProcessedService) {
     this.vertx = vertx;
     this.eventHandlingService = eventHandlingService;
-    this.kafkaInternalCache = kafkaInternalCache;
+    this.eventProcessedService = eventProcessedService;
   }
 
   @Override
@@ -56,11 +58,21 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
         return result.future();
       }
 
-      if (kafkaInternalCache.containsByKey(recordId)) {
-        return Future.succeededFuture(record.key());
-      }
+      eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
+        .onSuccess(e -> {
+          handleLocalEvent(result, okapiConnectionParams, event);
+          result.future();
+        })
+        .onFailure(e -> {
+          if (e instanceof ConflictException) {
+            LOGGER.info(e.getMessage());
+            result.future();
+          } else {
+            LOGGER.error("Error during processing data-import result. Database connection error: ", e);
+            result.fail(e);
+          }
+        });
 
-      kafkaInternalCache.putToCache(recordId);
       handleLocalEvent(result, okapiConnectionParams, event);
       return result.future();
     } catch (Exception e) {
