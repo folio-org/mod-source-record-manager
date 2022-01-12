@@ -66,14 +66,12 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
         .onFailure(e -> {
           if (e instanceof ConflictException) {
             LOGGER.info(e.getMessage());
-            result.future();
+            result.complete();
           } else {
             LOGGER.error("Error during processing data-import result. Database connection error: ", e);
             result.fail(e);
           }
         });
-
-      handleLocalEvent(result, okapiConnectionParams, event);
       return result.future();
     } catch (Exception e) {
       LOGGER.error("Error during processing data-import result", e);
