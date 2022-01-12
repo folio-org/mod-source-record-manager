@@ -22,6 +22,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.services.EventProcessedService;
 import org.folio.services.journal.JournalService;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.junit.Assert;
@@ -50,7 +51,7 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
 
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
   private JournalService journalService;
   private JobExecutionDaoImpl jobExecutionDao;
   private JournalRecordDao journalRecordDao;
@@ -91,13 +92,13 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     journalService = getBeanFromSpringContext(vertx, org.folio.services.journal.JournalServiceImpl.class);
     Assert.assertNotNull(journalService);
 
-    kafkaInternalCache = getBeanFromSpringContext(vertx, KafkaInternalCache.class);
-    Assert.assertNotNull(kafkaInternalCache);
+    eventProcessedService = getBeanFromSpringContext(vertx, EventProcessedService.class);
+    Assert.assertNotNull(eventProcessedService);
 
     EventTypeHandlerSelector eventTypeHandlerSelector = getBeanFromSpringContext(vertx, EventTypeHandlerSelector.class);
     Assert.assertNotNull(eventTypeHandlerSelector);
 
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
   @Test

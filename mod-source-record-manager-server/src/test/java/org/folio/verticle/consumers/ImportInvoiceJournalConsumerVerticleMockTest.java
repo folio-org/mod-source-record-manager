@@ -1,5 +1,6 @@
 package org.folio.verticle.consumers;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -24,6 +25,7 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalServiceImpl;
@@ -94,7 +96,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   private JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
 
   @Mock
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
 
   @Mock
   private MappingRuleCache mappingRuleCache;
@@ -146,9 +148,9 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
+    when(eventProcessedService.collectData(anyString(), anyString(), anyString())).thenReturn(Future.succeededFuture());
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
   @Test
