@@ -83,6 +83,7 @@ public class DataImportKafkaHandlerMockTest {
 
     // then
     Assert.assertTrue(future.succeeded());
+    Assert.assertTrue(future.isComplete());
     verify(eventHandlingService, never()).handle(anyString(), any(OkapiConnectionParams.class));
   }
 
@@ -112,6 +113,8 @@ public class DataImportKafkaHandlerMockTest {
 
     // then
     Assert.assertTrue(future.succeeded());
+    Assert.assertTrue(future.isComplete());
+
     verify(eventHandlingService, times(1)).handle(anyString(), any(OkapiConnectionParams.class));
   }
 
@@ -141,6 +144,7 @@ public class DataImportKafkaHandlerMockTest {
     // then
     Assert.assertTrue(future.failed());
     Assert.assertTrue(future.cause() instanceof SQLException);
+    Assert.assertTrue(future.isComplete());
     verify(eventHandlingService, never()).handle(anyString(), any(OkapiConnectionParams.class));
   }
 }

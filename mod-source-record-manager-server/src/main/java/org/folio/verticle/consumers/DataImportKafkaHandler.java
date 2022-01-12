@@ -59,10 +59,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
       }
 
       eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
-        .onSuccess(e -> {
-          handleLocalEvent(result, okapiConnectionParams, event);
-          result.future();
-        })
+        .onSuccess(e -> handleLocalEvent(result, okapiConnectionParams, event))
         .onFailure(e -> {
           if (e instanceof ConflictException) {
             LOGGER.info(e.getMessage());
