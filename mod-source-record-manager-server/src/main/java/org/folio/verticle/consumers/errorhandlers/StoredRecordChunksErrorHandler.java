@@ -62,7 +62,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
       }
 
     } else if (throwable instanceof ConflictException) {
-        LOGGER.warn(throwable.getMessage());
+        LOGGER.info(throwable.getMessage());
 
     } else {
       // process for all other cases that will include all records

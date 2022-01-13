@@ -61,7 +61,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
 
     if(throwable instanceof ConflictException) {
       RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
-      LOGGER.warn("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
+      LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
     } else {
       sendDiErrorEvent(eventPayload, okapiParams, jobExecutionId, tenantId);
     }
