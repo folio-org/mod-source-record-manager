@@ -5,7 +5,6 @@ import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ACTUAL;
 import static org.folio.rest.jaxrs.model.SourceRecordState.RecordState.ERROR;
 import static org.folio.verticle.consumers.util.QMEventTypes.QM_COMPLETED;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,7 @@ import java.util.Map;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.DecodeException;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.QuickMarcEventProducerService;
@@ -38,7 +37,6 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
   private static final String ERROR_KEY = "ERROR";
-  private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
 
   private final SourceRecordStateService sourceRecordStateService;
   private final QuickMarcEventProducerService producerService;
@@ -85,11 +83,10 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   @SuppressWarnings("unchecked")
   private Future<Map<String, String>> getEventPayload(Event event) {
     try {
-      var eventPayload = Json.decodeValue(ZIPArchiver.unzip(event.getEventPayload()), HashMap.class);
+      var eventPayload = Json.decodeValue(event.getEventPayload(), HashMap.class);
       return Future.succeededFuture(eventPayload);
-    } catch (IOException e) {
-      log.error(UNZIP_ERROR_MESSAGE, e);
-      return Future.failedFuture(UNZIP_ERROR_MESSAGE);
+    } catch (DecodeException e) {
+      return Future.failedFuture(e);
     }
   }
 }
