@@ -2,6 +2,7 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -127,6 +128,25 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     }
     return promise.future().map(journalRecord.getId())
       .onFailure(e -> LOGGER.error("Error saving JournalRecord entity", e));
+  }
+
+  @Override
+  public Future<List<RowSet<Row>>> saveBatch(JsonArray entities, String tenantId) {
+    Promise<List<RowSet<Row>>> promise = Promise.promise();
+    try {
+      String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+      List<Tuple> tupleList = new ArrayList<>();
+      for (int i = 0; i < entities.size(); i++) {
+        JournalRecord journalRecord = entities.getJsonObject(i).mapTo(JournalRecord.class);
+        journalRecord.setId(UUID.randomUUID().toString());
+        tupleList.add(prepareInsertQueryParameters(journalRecord));
+      }
+      pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
+    } catch (Exception e) {
+      LOGGER.error("Error saving JournalRecord entities", e);
+      promise.fail(e);
+    }
+    return promise.future().onFailure(e -> LOGGER.error("Error saving JournalRecord entities", e));
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
