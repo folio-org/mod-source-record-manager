@@ -333,7 +333,9 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
-    Event event = new Event().withEventPayload(Json.encode(record));
+    Event event = new Event()
+      .withId(Json.encode(UUID.randomUUID().toString()))
+      .withEventPayload(Json.encode(record));
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
