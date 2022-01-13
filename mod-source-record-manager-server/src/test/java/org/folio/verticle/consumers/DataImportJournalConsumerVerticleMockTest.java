@@ -9,14 +9,15 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
+import io.vertx.pgclient.PgException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.exception.ConflictException;
 import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -25,8 +26,10 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalServiceImpl;
+import static org.folio.verticle.consumers.DataImportJournalKafkaHandler.DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Assert;
@@ -67,7 +70,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +94,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   private final PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
 
   @Mock
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
 
   @Mock
   private MappingRuleCache mappingRuleCache;
@@ -133,15 +135,16 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public void setUp() throws IOException {
     MockitoAnnotations.initMocks(this);
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
     record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
     JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
-    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
+    when(eventProcessedService.collectData(eq(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID), anyString(), eq(TENANT_ID)))
+      .thenReturn(Future.succeededFuture());
   }
 
   @Test
-  public void shouldProcessEvent(TestContext context) throws IOException {
+  public void shouldProcessEvent(TestContext context) {
     Async async = context.async();
 
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
@@ -176,7 +179,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldProcessCompletedEvent(TestContext context) throws IOException {
+  public void shouldProcessCompletedEvent(TestContext context) {
     Async async = context.async();
 
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
@@ -212,7 +215,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldProcessErrorEvent(TestContext context) throws IOException {
+  public void shouldProcessErrorEvent(TestContext context) {
     Async async = context.async();
 
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
@@ -249,7 +252,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents() throws IOException {
+  public void shouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents() {
     // given
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
@@ -282,7 +285,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldFillTitleOnRecordModifiedEventProcessing() throws IOException {
+  public void shouldFillTitleOnRecordModifiedEventProcessing() {
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED.value())
@@ -310,9 +313,10 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   }
 
   @Test
-  public void shouldProcessEventWhenKafkaCacheContainsEventId() throws IOException {
+  public void shouldNotProcessEventWhenItAlreadyProcessed() {
     // given
-    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(true);
+    when(eventProcessedService.collectData(eq(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID), anyString(), eq(TENANT_ID)))
+      .thenReturn(Future.failedFuture(new ConflictException("ConstraintViolation occurs")));
     Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
@@ -327,7 +331,27 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    verify(kafkaInternalCache, times(1)).containsByKey(anyString());
+    verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+  }
+
+  @Test
+  public void shouldFailWhenErrorWithDbOccurs() {
+    // given
+    when(eventProcessedService.collectData(eq(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID), anyString(), eq(TENANT_ID)))
+      .thenReturn(Future.failedFuture(new PgException("Connection timeout!", "ERROR", "ERROR", "ERROR")));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(new HashMap<>())
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID);
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
     verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
   }
 
