@@ -68,7 +68,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
             DataImportEventPayload eventPayload = new ObjectMapper().readValue(event.getEventPayload(), DataImportEventPayload.class);
             eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, okapiConnectionParams.getTenantId());
             result.complete(record.key());
-          } catch (JsonProcessingException | JournalRecordMapperException | IllegalArgumentException ex) {
+          } catch (JsonProcessingException | JournalRecordMapperException ex) {
             LOGGER.error("Error during processing journal event", ex);
             result.fail(ex);
           }

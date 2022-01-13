@@ -262,7 +262,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalRecordMappingError(TestContext context) {
+  public void testJournalRecordMappingError(TestContext context) throws IOException, ExecutionException, InterruptedException {
     Async async = context.async();
 
     // given
