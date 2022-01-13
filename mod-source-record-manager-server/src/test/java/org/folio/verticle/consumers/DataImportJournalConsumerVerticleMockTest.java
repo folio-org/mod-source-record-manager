@@ -25,7 +25,6 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.journal.JournalServiceImpl;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
@@ -93,7 +92,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   private final PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
 
   @Mock
-  private EventProcessedService eventProcessedService;
+  private KafkaInternalCache kafkaInternalCache;
 
   @Mock
   private MappingRuleCache mappingRuleCache;
@@ -134,11 +133,11 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public void setUp() throws IOException {
     MockitoAnnotations.initMocks(this);
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
     record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
     JsonObject mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
-    when(eventProcessedService.collectData(anyString(), anyString(), anyString())).thenReturn(Future.succeededFuture());
+    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
   }
 
   @Test
@@ -308,6 +307,28 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Action Type:", ActionType.MODIFY, journalRecord.getActionType());
     Assert.assertEquals("Action Status:", ActionStatus.COMPLETED, journalRecord.getActionStatus());
     Assert.assertEquals("Title:", "The Journal of ecclesiastical history.", journalRecord.getTitle());
+  }
+
+  @Test
+  public void shouldProcessEventWhenKafkaCacheContainsEventId() throws IOException {
+    // given
+    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(true);
+    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
+      .withJobExecutionId(jobExecution.getId())
+      .withContext(new HashMap<>())
+      .withOkapiUrl(OKAPI_URL)
+      .withTenant(TENANT_ID);
+
+    // when
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    // then
+    verify(kafkaInternalCache, times(1)).containsByKey(anyString());
+    verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) {
