@@ -15,6 +15,7 @@ import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
 import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;

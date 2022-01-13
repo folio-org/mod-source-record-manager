@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.folio.services.RecordsPublishingServiceImpl.RECORD_ID_HEADER;
 
 @Component
@@ -76,7 +77,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
         .onFailure(e -> {
           if (e instanceof ConflictException) {
             LOGGER.info(e.getMessage());
-            result.complete(record.key());
+            result.complete();
           } else {
             LOGGER.error("Error during processing data-import result. Database connection error: ", e);
             result.fail(e);
