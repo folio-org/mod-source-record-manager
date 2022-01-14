@@ -27,7 +27,7 @@ public interface JournalRecordDao {
   /**
    * Saves chunk of JournalRecord entities to DB
    *
-   * @param journalRecords  JsonArray of JournalRecord entities to save
+   * @param journalRecords  List of JournalRecord entities to save
    * @param tenantId        tenant id
    * @return future with created JournalRecord entities
    */
