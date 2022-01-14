@@ -37,20 +37,20 @@ public class QuickMarcEventProducerServiceImpl implements QuickMarcEventProducer
   @Override
   public Future<Boolean> sendEvent(String eventPayload, String eventType, String key, String tenantId,
                                    List<KafkaHeader> kafkaHeaders) {
-    return sendEventInternal(eventPayload, eventType, key, tenantId, kafkaHeaders, false);
+    return sendEventInternal(eventPayload, eventType, key, tenantId, kafkaHeaders);
   }
 
   @Override
   public Future<Boolean> sendEventWithZipping(String eventPayload, String eventType, String key, String tenantId,
                                               List<KafkaHeader> kafkaHeaders) {
-    return sendEventInternal(eventPayload, eventType, key, tenantId, kafkaHeaders, true);
+    return sendEventInternal(eventPayload, eventType, key, tenantId, kafkaHeaders);
   }
 
   private Future<Boolean> sendEventInternal(String eventPayload, String eventType, String key, String tenantId,
-                                            List<KafkaHeader> kafkaHeaders, boolean isZipped) {
+                                            List<KafkaHeader> kafkaHeaders) {
     Promise<Boolean> promise = Promise.promise();
     try {
-      var event = createEvent(eventPayload, eventType, tenantId, isZipped);
+      var event = createEvent(eventPayload, eventType, tenantId);
       var topicName = createTopicName(eventType, tenantId, kafkaConfig);
       var record = createProducerRecord(event, key, topicName, kafkaHeaders);
       var producer = kafkaProducers.get(eventType);
