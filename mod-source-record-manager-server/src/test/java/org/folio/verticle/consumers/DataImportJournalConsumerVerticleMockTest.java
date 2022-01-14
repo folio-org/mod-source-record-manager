@@ -72,6 +72,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest {
@@ -328,10 +329,11 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
     verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+    assertTrue(future.succeeded());
   }
 
   @Test
@@ -349,10 +351,12 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
     verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof PgException);
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) {
