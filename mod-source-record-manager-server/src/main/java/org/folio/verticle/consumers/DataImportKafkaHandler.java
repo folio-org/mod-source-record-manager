@@ -36,7 +36,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
 
   public DataImportKafkaHandler(@Autowired Vertx vertx,
                                 @Autowired EventHandlingService eventHandlingService,
-                                @Autowired @Qualifier("eventProcessedService") EventProcessedService eventProcessedService) {
+                                @Autowired EventProcessedService eventProcessedService) {
     this.vertx = vertx;
     this.eventHandlingService = eventHandlingService;
     this.eventProcessedService = eventProcessedService;
