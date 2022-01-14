@@ -9,7 +9,6 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -42,7 +41,7 @@ public class JournalServiceImplTest {
   }
 
   @Test
-  public void shouldCalledDaoOnce() {
+  public void shouldCallSaveOnce() {
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(UUID.randomUUID().toString())
       .withSourceId(UUID.randomUUID().toString())
@@ -64,7 +63,7 @@ public class JournalServiceImplTest {
   }
 
   @Test
-  public void shouldCalledManyTimes() {
+  public void shouldCallSaveBatchOnce() {
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(UUID.randomUUID().toString())
       .withSourceId(UUID.randomUUID().toString())
@@ -83,10 +82,11 @@ public class JournalServiceImplTest {
       .add(jsonJournalRecord)
       .add(jsonJournalRecord);
 
-    when(journalRecordDao.save(any(JournalRecord.class), eq(TENANT_ID))).thenReturn(Future.succeededFuture());
+    when(journalRecordDao.saveBatch(any(), eq(TENANT_ID))).thenReturn(Future.succeededFuture());
 
     journalService.saveBatch(jsonArray, TENANT_ID);
 
-    verify(journalRecordDao, times(3)).save(any(JournalRecord.class), eq(TENANT_ID));
+    verify(journalRecordDao, times(0)).save(any(JournalRecord.class), eq(TENANT_ID));
+    verify(journalRecordDao, times(1)).saveBatch(any(), eq(TENANT_ID));
   }
 }

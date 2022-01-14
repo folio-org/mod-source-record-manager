@@ -7,6 +7,10 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 @Service("journalService")
 public class JournalServiceImpl implements JournalService {
 
@@ -25,9 +29,12 @@ public class JournalServiceImpl implements JournalService {
 
   @Override
   public void saveBatch(JsonArray journalRecords, String tenantId) {
+    List<JournalRecord> journalRecordList = new ArrayList<>();
     for (int i = 0; i < journalRecords.size(); i++) {
       JournalRecord journalRecord = journalRecords.getJsonObject(i).mapTo(JournalRecord.class);
-      journalRecordDao.save(journalRecord, tenantId);
+      journalRecord.setId(UUID.randomUUID().toString());
+      journalRecordList.add(journalRecord);
     }
+    journalRecordDao.saveBatch(journalRecordList, tenantId);
   }
 }
