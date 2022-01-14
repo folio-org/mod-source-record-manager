@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -131,16 +132,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   @Override
-  public Future<List<RowSet<Row>>> saveBatch(JsonArray entities, String tenantId) {
+  public Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId) {
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {
+      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(Collectors.toList());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-      List<Tuple> tupleList = new ArrayList<>();
-      for (int i = 0; i < entities.size(); i++) {
-        JournalRecord journalRecord = entities.getJsonObject(i).mapTo(JournalRecord.class);
-        journalRecord.setId(UUID.randomUUID().toString());
-        tupleList.add(prepareInsertQueryParameters(journalRecord));
-      }
       pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
     } catch (Exception e) {
       LOGGER.error("Error saving JournalRecord entities", e);

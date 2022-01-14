@@ -9,7 +9,6 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalServiceImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -83,11 +82,11 @@ public class JournalServiceImplTest {
       .add(jsonJournalRecord)
       .add(jsonJournalRecord);
 
-    when(journalRecordDao.saveBatch(any(JsonArray.class), eq(TENANT_ID))).thenReturn(Future.succeededFuture());
+    when(journalRecordDao.saveBatch(any(), eq(TENANT_ID))).thenReturn(Future.succeededFuture());
 
     journalService.saveBatch(jsonArray, TENANT_ID);
 
     verify(journalRecordDao, times(0)).save(any(JournalRecord.class), eq(TENANT_ID));
-    verify(journalRecordDao, times(1)).saveBatch(any(JsonArray.class), eq(TENANT_ID));
+    verify(journalRecordDao, times(1)).saveBatch(any(), eq(TENANT_ID));
   }
 }

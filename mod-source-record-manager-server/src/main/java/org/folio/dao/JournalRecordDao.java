@@ -1,7 +1,6 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
@@ -32,7 +31,7 @@ public interface JournalRecordDao {
    * @param tenantId        tenant id
    * @return future with created JournalRecord entities
    */
-  Future<List<RowSet<Row>>> saveBatch(JsonArray journalRecords, String tenantId);
+  Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId);
 
   /**
    * Searches for JournalRecord entities by jobExecutionId and sorts them using specified sort criteria and direction
