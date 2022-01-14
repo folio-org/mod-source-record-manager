@@ -22,6 +22,7 @@
 * [MODSOURMAN-656](https://issues.folio.org/browse/MODSOURMAN-656) Support Update MARC Authority Action
 * [MODSOURMAN-638](https://issues.folio.org/browse/MODSOURMAN-638) Remove Kafka cache for StoreRecordsChunksKafkaHandler
 * [MODSOURMAN-664](https://issues.folio.org/browse/MODSOURMAN-664) Remove Kafka cache for QuickMarcUpdateKafkaHandler
+* [MODSOURMAN-639](https://issues.folio.org/browse/MODSOURMAN-639) Improve performance of saving journal records during import
 * [MODSOURMAN-640](https://issues.folio.org/browse/MODSOURMAN-640) Remove Kafka cache for DataImportJournalKafkaHandler
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
