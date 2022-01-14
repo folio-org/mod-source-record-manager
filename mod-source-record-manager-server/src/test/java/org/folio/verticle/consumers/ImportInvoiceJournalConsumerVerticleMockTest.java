@@ -1,5 +1,6 @@
 package org.folio.verticle.consumers;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -11,22 +12,20 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
-import org.folio.MappingProfile;
 import org.folio.ParsedRecord;
 import org.folio.Record;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.kafka.KafkaTopicNameHelper;
-import org.folio.kafka.cache.KafkaInternalCache;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.services.EventProcessedService;
 import org.folio.services.MappingRuleCache;
-import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalServiceImpl;
+import static org.folio.verticle.consumers.DataImportJournalKafkaHandler.DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Assert;
@@ -48,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.ActionProfile.Action.CREATE;
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
@@ -68,7 +66,6 @@ import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_ERRORS_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_TITLE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
@@ -80,6 +77,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   public static final String ENV_KEY = "folio";
   public static final String ERROR = "error";
   public static final String ACTION_STATUS = "actionStatus";
+  public static final String EVENT_ID = UUID.randomUUID().toString();
 
   @Spy
   private Vertx vertx = Vertx.vertx();
@@ -94,7 +92,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   private JournalServiceImpl journalService = new JournalServiceImpl(journalRecordDao);
 
   @Mock
-  private KafkaInternalCache kafkaInternalCache;
+  private EventProcessedService eventProcessedService;
 
   @Mock
   private MappingRuleCache mappingRuleCache;
@@ -106,16 +104,6 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   private ArgumentCaptor<JsonArray> invoiceRecordCaptor;
 
   private DataImportJournalKafkaHandler dataImportJournalKafkaHandler;
-
-  private ActionProfile actionProfile = new ActionProfile()
-    .withId(UUID.randomUUID().toString())
-    .withAction(CREATE)
-    .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
-
-  private MappingProfile mappingProfile = new MappingProfile()
-    .withId(UUID.randomUUID().toString())
-    .withIncomingRecordType(EDIFACT_INVOICE)
-    .withExistingRecordType(INVOICE);
 
   private ProfileSnapshotWrapper profileSnapshotWrapper = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
@@ -146,13 +134,14 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    when(kafkaInternalCache.containsByKey(anyString())).thenReturn(false);
+    when(eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, EVENT_ID, TENANT_ID))
+      .thenReturn(Future.succeededFuture());
     EventTypeHandlerSelector eventTypeHandlerSelector = new EventTypeHandlerSelector(marcImportEventsHandler);
-    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, kafkaInternalCache, eventTypeHandlerSelector, journalService);
+    dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
   @Test
-  public void shouldProcessEvent(TestContext context) throws IOException, JournalRecordMapperException {
+  public void shouldProcessEvent(TestContext context) throws IOException {
     Async async = context.async();
 
     // given
@@ -192,7 +181,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
   }
 
   @Test
-  public void shouldProcessInvoiceErrorEvent(TestContext context) throws IOException, JournalRecordMapperException {
+  public void shouldProcessInvoiceErrorEvent(TestContext context) throws IOException {
     Async async = context.async();
 
     // given
@@ -332,7 +321,7 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
-    Event event = new Event().withEventPayload(Json.encode(record));
+    Event event = new Event().withId(EVENT_ID).withEventPayload(Json.encode(record));
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }

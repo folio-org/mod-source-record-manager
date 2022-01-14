@@ -12,12 +12,10 @@ import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.processing.events.utils.PomReaderUtil;
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.tools.utils.ModuleName;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,13 +39,7 @@ public final class EventHandlingUtil {
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
     LOGGER.debug("Starting to send event to Kafka for eventType: {}", eventType);
-    Event event;
-    try {
-      event = createEvent(eventPayload, eventType, tenantId, false);
-    } catch (IOException e) {
-      LOGGER.error("Failed to construct an event for eventType {}", eventType, e);
-      return Future.failedFuture(e);
-    }
+    Event event = createEvent(eventPayload, eventType, tenantId);
 
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
 
@@ -102,11 +94,11 @@ public final class EventHandlingUtil {
       tenantId, eventType);
   }
 
-  public static Event createEvent(String eventPayload, String eventType, String tenantId, boolean isZipped) throws IOException {
+  public static Event createEvent(String eventPayload, String eventType, String tenantId) {
     return new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(eventType)
-      .withEventPayload(isZipped ? ZIPArchiver.zip(eventPayload) : eventPayload)
+      .withEventPayload(eventPayload)
       .withEventMetadata(new EventMetadata()
         .withTenantId(tenantId)
         .withEventTTL(1)

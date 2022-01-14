@@ -23,6 +23,7 @@
 * [MODSOURMAN-638](https://issues.folio.org/browse/MODSOURMAN-638) Remove Kafka cache for StoreRecordsChunksKafkaHandler
 * [MODSOURMAN-664](https://issues.folio.org/browse/MODSOURMAN-664) Remove Kafka cache for QuickMarcUpdateKafkaHandler
 * [MODSOURMAN-639](https://issues.folio.org/browse/MODSOURMAN-639) Improve performance of saving journal records during import
+* [MODSOURMAN-640](https://issues.folio.org/browse/MODSOURMAN-640) Remove Kafka cache for DataImportJournalKafkaHandler
 * [MODSOURMAN-641](https://issues.folio.org/browse/MODSOURMAN-641) Remove Kafka cache by handling Constraint Violation Exceptions
 
 ## 2021-10-xx v3.2.3-SNAPSHOT

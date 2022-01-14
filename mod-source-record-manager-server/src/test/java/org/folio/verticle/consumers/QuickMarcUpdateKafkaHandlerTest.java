@@ -14,8 +14,6 @@ import static org.mockito.Mockito.when;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 
-import java.io.IOException;
-
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -34,7 +32,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import org.folio.processing.events.utils.ZIPArchiver;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.SourceRecordState;
 import org.folio.services.QuickMarcEventProducerService;
@@ -67,7 +64,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   }
 
   @Test
-  public void shouldUpdateRecordStateAndSendEventOnHandleQmInventoryInstanceUpdated() throws IOException {
+  public void shouldUpdateRecordStateAndSendEventOnHandleQmInventoryInstanceUpdated() {
     var recordId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
 
@@ -77,7 +74,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(QMEventTypes.QM_INVENTORY_INSTANCE_UPDATED.name())
-      .withEventPayload(ZIPArchiver.zip(Json.encode(eventPayload)));
+      .withEventPayload(Json.encode(eventPayload));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
@@ -101,7 +98,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   }
 
   @Test
-  public void shouldUpdateRecordStateAndSendEventOnHandleQmError() throws IOException {
+  public void shouldUpdateRecordStateAndSendEventOnHandleQmError() {
     var errorMessage = "random error";
     var recordId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
@@ -113,7 +110,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
       .withEventType(QMEventTypes.QM_ERROR.name())
-      .withEventPayload(ZIPArchiver.zip(Json.encode(eventPayload)));
+      .withEventPayload(Json.encode(eventPayload));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(kafkaHeaders);
