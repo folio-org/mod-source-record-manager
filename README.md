@@ -108,7 +108,7 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber_": 1
   * "_srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber_": 5
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
-* Relevant from the **Juniper** release(module version from 5.1.0) to **Kiwi** release(module version from 5.2.0):
+* Relevant from the **Iris** release(module version from 3.0.0) to **Kiwi** release(module version from 3.2.0):
   * "_kafkacache.topic.number.partitions_": 1
   * "_kafkacache.topic.replication.factor_": 1
   * "_kafkacache.log.retention.ms_": 18000000
