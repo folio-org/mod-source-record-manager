@@ -97,12 +97,6 @@ After setup, it is good to check logs in all related modules for errors. Data im
 
 **System properties** that can be adjusted for this module and default values:
 * Relevant for the **Iris** release, module versions from 3.0.0:
-  * "_kafkacache.topic.number.partitions_": 1
-  * "_kafkacache.topic.replication.factor_": 1
-  * "_kafkacache.log.retention.ms_": 18000000
-  * "_kafkacache.topic_": events_cache
-  * "_srm.kafkacache.cleanup.interval.ms_": 3600000
-  * "_srm.kafkacache.expiration.time.hours_": 3
   * "_srm.kafka.RawMarcChunkConsumer.instancesNumber_": 5
   * "_srm.kafka.StoredMarcChunkConsumer.instancesNumber_": 5
   * "_srm.kafka.DataImportConsumersVerticle.instancesNumber_": 5
@@ -114,6 +108,13 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber_": 1
   * "_srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber_": 5
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
+* Relevant for the **Juniper** and **Kiwi** releases, module versions from 3.1.0 to 3.2:
+  * "_kafkacache.topic.number.partitions_": 1
+  * "_kafkacache.topic.replication.factor_": 1
+  * "_kafkacache.log.retention.ms_": 18000000
+  * "_kafkacache.topic_": events_cache
+  * "_srm.kafkacache.cleanup.interval.ms_": 3600000
+  * "_srm.kafkacache.expiration.time.hours_": 3
 
 #### Note:
 From v 3.1.3 there is a new property which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
