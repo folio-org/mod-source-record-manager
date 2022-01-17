@@ -96,7 +96,7 @@ There are several properties that should be set for modules that interact with K
 After setup, it is good to check logs in all related modules for errors. Data import consumers and producers work in separate verticles that are set up in RMB's InitAPI for each module. That would be the first place to check deploy/install logs.
 
 **System properties** that can be adjusted for this module and default values:
-* Relevant for the **Iris** release, module versions from 3.0.0:
+* Relevant from the **Iris** release, module versions from 3.0.0:
   * "_srm.kafka.RawMarcChunkConsumer.instancesNumber_": 5
   * "_srm.kafka.StoredMarcChunkConsumer.instancesNumber_": 5
   * "_srm.kafka.DataImportConsumersVerticle.instancesNumber_": 5
@@ -104,11 +104,11 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafka.RawChunksKafkaHandler.maxDistributionNum_": 100
   * "_srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum_": 100
   * "_srm.kafka.DataImportConsumer.loadLimit_": 5
-* Relevant for the **Juniper** release, module versions from 3.1.0:
+* Relevant from the **Juniper** release, module versions from 3.1.0:
   * "_srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber_": 1
   * "_srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber_": 5
   * "_srm.kafka.QuickMarcUpdateKafkaHandler.maxDistributionNum_": 100
-* Relevant for the **Juniper** and **Kiwi** releases, module versions from 3.1.0 to 3.2:
+* Relevant from the **Juniper** release(module version from 5.1.0) to **Kiwi** release(module version from 5.2.0):
   * "_kafkacache.topic.number.partitions_": 1
   * "_kafkacache.topic.replication.factor_": 1
   * "_kafkacache.log.retention.ms_": 18000000
