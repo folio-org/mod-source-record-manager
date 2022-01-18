@@ -108,6 +108,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_INSTANCE_CREATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(CREATE,
+          JournalRecord.EntityType.INSTANCE,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_INSTANCE_UPDATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
