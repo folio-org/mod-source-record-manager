@@ -18,6 +18,7 @@
     <jackson-databind.version>2.12.6</jackson-databind.version>
     <lombok.version>1.18.20</lombok.version>
     <testcontainers.version>1.15.3</testcontainers.version>
+    <kafkaclients.version>3.0.0</kafkaclients.version>
   </properties>
 
   <dependencyManagement>
@@ -69,14 +70,9 @@
       <version>2.9.1</version>
     </dependency>
     <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-kafka-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.kafka</groupId>
-          <artifactId>kafka-clients</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>${kafkaclients.version}</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -109,7 +105,7 @@
     <dependency>
       <groupId>net.mguenther.kafka</groupId>
       <artifactId>kafka-junit</artifactId>
-      <version>3.0.0</version>
+      <version>${kafkaclients.version}</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
