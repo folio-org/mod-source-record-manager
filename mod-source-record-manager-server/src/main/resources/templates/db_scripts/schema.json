@@ -64,7 +64,7 @@
       "withMetadata": false,
       "foreignKeys": [
         {
-          "fieldName": "jobExecutionId",
+          "fieldName": "job_execution_id",
           "targetTable": "job_executions",
           "tOps": "ADD"
         }
@@ -191,6 +191,11 @@
     {
       "run": "after",
       "snippet": "CREATE TABLE IF NOT EXISTS events_processed (handler_id UUID, event_id UUID, PRIMARY KEY (handler_id, event_id));",
+      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "replace_job_execution_progress_table.sql",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
     }
   ]

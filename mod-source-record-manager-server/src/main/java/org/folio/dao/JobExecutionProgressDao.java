@@ -1,6 +1,8 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 
@@ -38,7 +40,7 @@ public interface JobExecutionProgressDao {
    * @param tenantId tenant id
    * @return future
    */
-  Future<String> save(JobExecutionProgress progress, String tenantId);
+  Future<RowSet<Row>> save(JobExecutionProgress progress, String tenantId);
 
   /**
    * Updates jobExecutionProgress entity by jobExecutionId in database

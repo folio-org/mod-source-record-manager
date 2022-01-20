@@ -6,6 +6,8 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
@@ -92,9 +94,9 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     });
   }
 
-  private Future<String> createProgressForJobExecutions(List<JobExecution> jobExecutions) {
+  private Future<RowSet<Row>> createProgressForJobExecutions(List<JobExecution> jobExecutions) {
     Random random = new Random();
-    Future<String> future = Future.succeededFuture();
+    Future<RowSet<Row>> future = Future.succeededFuture();
 
     for (JobExecution jobExecution : jobExecutions) {
       if (jobExecution.getSubordinationType().equals(CHILD)) {

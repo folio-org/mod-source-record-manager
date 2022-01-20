@@ -3,108 +3,112 @@ package org.folio.dao;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.sqlclient.RowIterator;
+import io.vertx.sqlclient.Tuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.UnaryOperator;
 import javax.ws.rs.NotFoundException;
 
-import org.folio.cql2pgjson.exception.FieldException;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.persist.Criteria.Criteria;
-import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
-import org.folio.rest.persist.cql.CQLWrapper;
-import org.folio.rest.persist.interfaces.Results;
 import org.folio.rest.tools.utils.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import static org.folio.dataimport.util.DaoUtil.constructCriteria;
-import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
+import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
 public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
+  public static final String JOB_EXECUTION_ID_FIELD = "job_execution_id";
+  public static final String TOTAL_RECORDS_COUNT = "total_records_count";
+  public static final String PROCESSED_RECORDS_COUNT = "processed_records_count";
+  public static final String ERROR_RECORDS_COUNT = "error_records_count";
+
   private static final String TABLE_NAME = "job_execution_progress";
-  public static final String JOB_EXECUTION_ID_FIELD = "jobExecutionId";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, total_records_count, processed_records_count, error_records_count) VALUES ($1, $2, $3, $4)";
+  private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
+  private static final String UPDATE_SQL = "UPDATE %s.%s SET job_execution_id = $1, total_records_count = $2, processed_records_count = $3, error_records_count = $4 WHERE job_execution_id = $1";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<Optional<JobExecutionProgress>> getByJobExecutionId(String jobExecutionId, String tenantId) {
-    Promise<Results<JobExecutionProgress>> promise = Promise.promise();
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
-    pgClientFactory.createInstance(tenantId).get(TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), true, false, promise);
-    return promise.future()
-      .map(Results::getResults)
-      .map(progressList -> progressList.isEmpty() ? Optional.empty() : Optional.of(progressList.get(0)));
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = String.format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(jobExecutionId);
+    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+    return promise.future().map(this::mapResultSetToOptionalJobExecutionProgress);
   }
 
   @Override
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
-    PostgresClient client = pgClientFactory.createInstance(tenantId);
+    PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
     Future.succeededFuture()
       .compose(v -> {
-        client.startTx(tx);
+        pgClient.startTx(tx);
         return tx.future();
       })
       .compose(sqlConnection -> {
-        StringBuilder selectProgressQuery = new StringBuilder("SELECT jsonb FROM ")
+        StringBuilder selectProgressQuery = new StringBuilder("SELECT * FROM ")
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-          .append(" WHERE jobExecutionId = '")
+          .append(" WHERE job_execution_id = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
         Promise<RowSet<Row>> selectResult = Promise.promise();
-        client.execute(tx.future(), selectProgressQuery.toString(), selectResult);
+        pgClient.execute(tx.future(), selectProgressQuery.toString(), selectResult);
         return selectResult.future();
       })
       .compose(selectResult -> {
-        Promise<Results<JobExecutionProgress>> getProgressPromise = Promise.promise();
-        client.get(tx.future(), TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), false, true, getProgressPromise);
+        Promise<RowSet<Row>> getProgressPromise = Promise.promise();
+        String query = String.format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+        Tuple queryParams = Tuple.of(jobExecutionId);
+        pgClient.execute(tx.future(), query, queryParams, getProgressPromise);
         return getProgressPromise.future();
       })
       .compose(selectResult -> {
         JobExecutionProgress progress = new JobExecutionProgress()
           .withJobExecutionId(jobExecutionId)
-          .withTotal(totalRecords)
-          .withId(UUID.randomUUID().toString());
-        return selectResult.getResults().isEmpty() ? save(progress, tenantId).map(progress) : Future.succeededFuture(selectResult.getResults().get(0));
+          .withTotal(totalRecords);
+
+        Optional<JobExecutionProgress> optionalJobExecutionProgress = mapResultSetToOptionalJobExecutionProgress(selectResult);
+        return optionalJobExecutionProgress.isEmpty() ? save(progress, tenantId).map(progress) : Future.succeededFuture(optionalJobExecutionProgress.get());
       })
       .onComplete(saveAr -> {
         if (saveAr.succeeded()) {
-          client.endTx(tx.future(), endTx -> promise.complete(saveAr.result()));
+          pgClient.endTx(tx.future(), endTx -> promise.complete(saveAr.result()));
         } else {
           if (ValidationHelper.isDuplicate(saveAr.cause().getMessage())) {
-            client.rollbackTx(tx.future(), r -> promise.complete());
+            pgClient.rollbackTx(tx.future(), r -> promise.complete());
             return;
           }
-          LOGGER.error("Fail to initialize JobExecutionProgress for job with id:" + jobExecutionId, saveAr.cause());
-          client.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
+          LOGGER.error("Fail to initialize JobExecutionProgress for job with job_execution_id:" + jobExecutionId, saveAr.cause());
+          pgClient.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
         }
       });
     return promise.future();
   }
 
   @Override
-  public Future<String> save(JobExecutionProgress progress, String tenantId) {
-    Promise<String> promise = Promise.promise();
-    progress.withId(UUID.randomUUID().toString());
-    pgClientFactory.createInstance(tenantId).save(TABLE_NAME, progress, true, promise);
+  public Future<RowSet<Row>> save(JobExecutionProgress progress, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = String.format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(progress.getJobExecutionId(), progress.getTotal(), progress.getCurrentlySucceeded(), progress.getCurrentlyFailed());
+    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     return promise.future();
   }
 
@@ -114,7 +118,6 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
-    Criteria jobIdCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
 
     Future.succeededFuture()
       .compose(v -> {
@@ -122,11 +125,11 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         return tx.future();
       })
       .compose(sqlConnection -> {
-        StringBuilder selectProgressQuery = new StringBuilder("SELECT jsonb FROM ")
+        StringBuilder selectProgressQuery = new StringBuilder("SELECT * FROM ")
           .append(PostgresClient.convertToPsqlStandard(tenantId))
           .append(".")
           .append(TABLE_NAME)
-          .append(" WHERE jobExecutionId = '")
+          .append(" WHERE job_execution_id = '")
           .append(jobExecutionId)
           .append("' LIMIT 1 FOR UPDATE;");
         Promise<RowSet<Row>> selectResult = Promise.promise();
@@ -134,15 +137,18 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         return selectResult.future();
       })
       .compose(selectResult -> {
-        Promise<Results<JobExecutionProgress>> getProgressPromise = Promise.promise();
-        pgClient.get(tx.future(), TABLE_NAME, JobExecutionProgress.class, new Criterion(jobIdCrit), false, true, getProgressPromise);
+        Promise<RowSet<Row>> getProgressPromise = Promise.promise();
+        String query = String.format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+        Tuple queryParams = Tuple.of(jobExecutionId);
+        pgClient.execute(tx.future(), query, queryParams, getProgressPromise);
         return getProgressPromise.future();
       })
       .map(progressResults -> {
-        if (progressResults.getResults().size() != 1) {
+        Optional<JobExecutionProgress> optionalJobExecutionProgress = mapResultSetToOptionalJobExecutionProgress(progressResults);
+        if (optionalJobExecutionProgress.isEmpty()) {
           throw new NotFoundException(rollbackMessage);
         }
-        return progressMutator.apply(progressResults.getResults().get(0));
+        return progressMutator.apply(optionalJobExecutionProgress.get());
       })
       .compose(mutatedProgress -> updateProgressByJobExecutionId(tx.future(), mutatedProgress, tenantId))
       .onComplete(updateAr -> {
@@ -158,14 +164,23 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   private Future<JobExecutionProgress> updateProgressByJobExecutionId(AsyncResult<SQLConnection> tx, JobExecutionProgress progress, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
-    try {
-      String query = "jobExecutionId==" + progress.getJobExecutionId();
-      CQLWrapper cqlWrapper = getCQLWrapper(TABLE_NAME, query);
-      pgClientFactory.createInstance(tenantId).update(tx, TABLE_NAME, progress, cqlWrapper, true, promise);
-    } catch (FieldException e) {
-      LOGGER.error("Failed to update jobExecutionProgress for jobExecution with id {}", e, progress.getJobExecutionId());
-      promise.fail(e);
-    }
-    return promise.future().map(progress);
+    String query = String.format(UPDATE_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(progress.getJobExecutionId(), progress.getTotal(), progress.getCurrentlySucceeded(), progress.getCurrentlyFailed());
+    pgClientFactory.createInstance(tenantId).execute(tx, query, queryParams, promise);
+    return promise.future().map(progress)
+      .onFailure(e -> LOGGER.error("Failed to update jobExecutionProgress for jobExecution with id {}", progress.getJobExecutionId(), e));
+  }
+
+  private Optional<JobExecutionProgress> mapResultSetToOptionalJobExecutionProgress(RowSet<Row> resultSet) {
+    RowIterator<Row> iterator = resultSet.iterator();
+    return iterator.hasNext() ? Optional.of(mapRowToJobExecutionProgress(iterator.next())) : Optional.empty();
+  }
+
+  private JobExecutionProgress mapRowToJobExecutionProgress(Row row) {
+    return new JobExecutionProgress()
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID_FIELD).toString())
+      .withTotal(row.getInteger(TOTAL_RECORDS_COUNT))
+      .withCurrentlySucceeded(row.getInteger(PROCESSED_RECORDS_COUNT))
+      .withCurrentlyFailed(row.getInteger(ERROR_RECORDS_COUNT));
   }
 }
