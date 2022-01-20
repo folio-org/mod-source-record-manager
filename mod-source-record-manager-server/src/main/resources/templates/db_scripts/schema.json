@@ -64,7 +64,7 @@
       "withMetadata": false,
       "foreignKeys": [
         {
-          "fieldName": "job_execution_id",
+          "fieldName": "jobExecutionId",
           "targetTable": "job_executions",
           "tOps": "ADD"
         }
