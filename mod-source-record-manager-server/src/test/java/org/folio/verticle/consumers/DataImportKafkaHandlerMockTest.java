@@ -9,7 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
@@ -62,7 +62,7 @@ public class DataImportKafkaHandlerMockTest {
   public void shouldSkipEventHandlingWhenDBContainsHandlerAndEventId() {
     // given
     Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID), eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
-      .thenReturn(Future.failedFuture(new ConflictException("Constraint Violation Occurs")));
+      .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())

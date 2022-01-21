@@ -7,7 +7,7 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
@@ -59,7 +59,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
         put(ERROR_KEY, throwable.getMessage());
       }});
 
-    if(throwable instanceof ConflictException) {
+    if(throwable instanceof DuplicateEventException) {
       RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
       LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
     } else {

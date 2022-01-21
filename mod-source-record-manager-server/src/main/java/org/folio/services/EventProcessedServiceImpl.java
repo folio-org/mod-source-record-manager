@@ -5,7 +5,7 @@ import io.vertx.pgclient.PgException;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.dao.EventProcessedDao;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import static org.folio.services.AbstractChunkProcessingService.UNIQUE_CONSTRAINT_VIOLATION_CODE;
@@ -25,7 +25,7 @@ public class EventProcessedServiceImpl implements EventProcessedService {
     return eventProcessedDao.save(handlerId, eventId, tenantId)
       .recover(throwable ->
         (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
-          Future.failedFuture(new ConflictException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :
+          Future.failedFuture(new DuplicateEventException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :
           Future.failedFuture(throwable));
   }
 }
