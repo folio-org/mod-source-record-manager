@@ -37,7 +37,8 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private static final String TABLE_NAME = "job_execution_progress";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, total_records_count, processed_records_count, error_records_count) VALUES ($1, $2, $3, $4)";
   private static final String UPDATE_SQL = "UPDATE %s.%s SET job_execution_id = $1, total_records_count = $2, processed_records_count = $3, error_records_count = $4 WHERE job_execution_id = $1";
-  private static final String SELECT_SQL = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
+  private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
+  private static final String SELECT_FROM_JOB_EXECUTION_PROGRESS = "SELECT * FROM %s.%s WHERE job_execution_id = $1 LIMIT 1 FOR UPDATE";
   private static final String ROLLBACK_MESSAGE = "Rollback transaction. Failed to update jobExecutionProgress with job_execution_id: %s";
   private static final String FAILED_INITIALIZATION_MESSAGE = "Fail to initialize JobExecutionProgress for job with job_execution_id: {}";
 
@@ -49,7 +50,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = buildSelectByJobExecutionIdQuery(tenantId);
     Tuple queryParams = Tuple.of(jobExecutionId);
-    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     return promise.future().map(this::mapResultSetToOptionalJobExecutionProgress);
   }
 
@@ -115,7 +116,8 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     String query = String.format(UPDATE_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(progress.getJobExecutionId(), progress.getTotal(), progress.getCurrentlySucceeded(), progress.getCurrentlyFailed());
     pgClientFactory.createInstance(tenantId).execute(tx, query, queryParams, promise);
-    return promise.future().map(progress);
+    return promise.future().map(progress)
+      .onFailure(e -> LOGGER.error("Failed to update jobExecutionProgress with job_execution_id: {}", progress.getJobExecutionId(), e));
   }
 
   @Override
@@ -128,17 +130,24 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   }
 
   private Future<RowSet<Row>> getSelectResult(Promise<SQLConnection> tx, PostgresClient pgClient, String jobExecutionId, String tenantId) {
+    Tuple queryParams = Tuple.of(jobExecutionId);
+
     return Future.succeededFuture()
       .compose(v -> {
         pgClient.startTx(tx);
         return tx.future();
       })
       .compose(sqlConnection -> {
+        String selectProgressQuery = buildSelectProgressQuery(tenantId);
         Promise<RowSet<Row>> selectResult = Promise.promise();
-        String selectProgressQuery = buildSelectByJobExecutionIdQuery(tenantId);
-        Tuple queryParams = Tuple.of(jobExecutionId);
         pgClient.execute(tx.future(), selectProgressQuery, queryParams, selectResult);
         return selectResult.future();
+      })
+      .compose(selectResult -> {
+        Promise<RowSet<Row>> getProgressPromise = Promise.promise();
+        String query = buildSelectByJobExecutionIdQuery(tenantId);
+        pgClient.execute(tx.future(), query, queryParams, getProgressPromise);
+        return getProgressPromise.future();
       });
   }
 
@@ -155,7 +164,11 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
       .withCurrentlyFailed(row.getInteger(ERROR_RECORDS_COUNT));
   }
 
+  private String buildSelectProgressQuery(String tenantId) {
+    return String.format(SELECT_FROM_JOB_EXECUTION_PROGRESS, PostgresClient.convertToPsqlStandard(tenantId), TABLE_NAME);
+  }
+
   private String buildSelectByJobExecutionIdQuery(String tenantId) {
-    return String.format(SELECT_SQL, PostgresClient.convertToPsqlStandard(tenantId), TABLE_NAME);
+    return String.format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
   }
 }
