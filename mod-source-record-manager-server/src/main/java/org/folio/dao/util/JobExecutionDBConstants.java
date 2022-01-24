@@ -47,7 +47,7 @@ public final class JobExecutionDBConstants {
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
-    "p.processed_records_count + p.error_records_count currently_processed " +
+    "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
@@ -58,7 +58,7 @@ public final class JobExecutionDBConstants {
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
-    "p.processed_records_count + p.error_records_count currently_processed " +
+    "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +

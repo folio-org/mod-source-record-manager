@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS job_execution_progress CASCADE;
 CREATE TABLE IF NOT EXISTS job_execution_progress (
   job_execution_id uuid PRIMARY KEY,
   total_records_count int,
-  processed_records_count int,
+  succeeded_records_count int,
   error_records_count int
 );
 
