@@ -9,7 +9,7 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -100,7 +100,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
-      .thenReturn(Future.failedFuture(new ConflictException("Constraint Violation Occurs")));
+      .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -108,7 +108,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     // then
     verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
     assertTrue(future.failed());
-    assertTrue(future.cause() instanceof ConflictException);
+    assertTrue(future.cause() instanceof DuplicateEventException);
   }
 
   @Test

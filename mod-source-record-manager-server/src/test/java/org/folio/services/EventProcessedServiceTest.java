@@ -6,7 +6,7 @@ import io.vertx.pgclient.PgException;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.dao.EventProcessedDao;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,7 +50,7 @@ public class EventProcessedServiceTest {
   }
 
   @Test
-  public void shouldReturnFailedFutureWithConflictExceptionWhenConstraintViolation() {
+  public void shouldReturnFailedFutureWithDuplicateExceptionWhenConstraintViolation() {
     when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
       .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", UNIQUE_CONSTRAINT_VIOLATION_CODE, "ConstrainViolation")));
 
@@ -58,7 +58,7 @@ public class EventProcessedServiceTest {
 
     verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
     assertTrue(future.failed());
-    assertTrue(future.cause() instanceof ConflictException);
+    assertTrue(future.cause() instanceof DuplicateEventException);
   }
 
   @Test

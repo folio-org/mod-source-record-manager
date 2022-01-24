@@ -16,7 +16,7 @@ import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
@@ -317,7 +317,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   public void shouldNotProcessEventWhenItAlreadyProcessed() {
     // given
     when(eventProcessedService.collectData(eq(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID), anyString(), eq(TENANT_ID)))
-      .thenReturn(Future.failedFuture(new ConflictException("ConstraintViolation occurs")));
+      .thenReturn(Future.failedFuture(new DuplicateEventException("ConstraintViolation occurs")));
     Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
