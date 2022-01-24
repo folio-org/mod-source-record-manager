@@ -1091,7 +1091,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_CONFLICT);
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     async.complete();
 
     // then
