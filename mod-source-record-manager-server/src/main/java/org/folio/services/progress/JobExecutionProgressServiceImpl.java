@@ -24,7 +24,7 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   public Future<JobExecutionProgress> getByJobExecutionId(String jobExecutionId, String tenantId) {
     return jobExecutionProgressDao.getByJobExecutionId(jobExecutionId, tenantId)
       .map(progress -> progress.orElseThrow(() ->
-        new NotFoundException(format("JobExecutionProgress for jobExecution with id '%s' was not found", jobExecutionId))));
+        new NotFoundException(format("JobExecutionProgress for job with job_execution_id %s was not found", jobExecutionId))));
   }
 
   @Override

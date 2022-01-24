@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
@@ -75,7 +75,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
   }
 
   private void processDeduplicationFailure(Promise<String> result, KafkaConsumerRecord<String, String> record, Event event, Throwable e) {
-    if (e instanceof ConflictException) { // duplicate coming, ignore it
+    if (e instanceof DuplicateEventException) { // duplicate coming, ignore it
       LOGGER.info(e.getMessage());
       result.complete(record.key());
     } else {

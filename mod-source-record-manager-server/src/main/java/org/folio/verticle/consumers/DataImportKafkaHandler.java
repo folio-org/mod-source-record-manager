@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
@@ -61,7 +61,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
       eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
         .onSuccess(res -> handleLocalEvent(result, okapiConnectionParams, event))
         .onFailure(e -> {
-          if (e instanceof ConflictException) {
+          if (e instanceof DuplicateEventException) {
             LOGGER.info(e.getMessage());
             result.complete();
           } else {

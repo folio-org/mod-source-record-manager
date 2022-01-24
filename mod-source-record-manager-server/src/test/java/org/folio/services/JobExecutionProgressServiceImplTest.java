@@ -22,7 +22,6 @@ import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,7 +107,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     });
   }
 
-  @Ignore("Test is based on the FK constraint which refers to jobExecution table, so far FK constraint can not be created before data migration to new jobExecution table")
   @Test
   public void shouldReturnFailedFutureWhenJobExecutionDoesNotExist(TestContext context) {
     Async async = context.async();
@@ -170,7 +168,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
         context.assertFalse(jobMonitoring.getNotificationSent());
         async.complete();
       });
-      async.complete();
     });
   }
 

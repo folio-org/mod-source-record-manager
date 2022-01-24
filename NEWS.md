@@ -26,6 +26,7 @@
 * [MODSOURMAN-640](https://issues.folio.org/browse/MODSOURMAN-640) Remove Kafka cache for DataImportJournalKafkaHandler
 * [MODSOURMAN-641](https://issues.folio.org/browse/MODSOURMAN-641) Remove Kafka cache by handling Constraint Violation Exceptions
 * [MODDATAIMP-623](https://issues.folio.org/browse/MODDATAIMP-623) Remove Kafka cache initialization and Maven dependency
+* [MODSOURMAN-668](https://issues.folio.org/browse/MODSOURMAN-668) Restructure job_execution_progress table for DataImportKafkaHandler
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar

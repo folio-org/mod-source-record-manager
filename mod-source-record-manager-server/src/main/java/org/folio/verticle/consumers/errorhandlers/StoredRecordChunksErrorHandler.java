@@ -7,7 +7,7 @@ import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.exception.ConflictException;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
@@ -61,7 +61,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
         sendDiErrorForRecord(jobExecutionId, failedRecord, okapiParams, failedRecord.getErrorRecord().getDescription());
       }
 
-    } else if (throwable instanceof ConflictException) {
+    } else if (throwable instanceof DuplicateEventException) {
         LOGGER.info(throwable.getMessage());
 
     } else {
