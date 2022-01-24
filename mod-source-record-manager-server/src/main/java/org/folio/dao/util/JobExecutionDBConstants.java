@@ -46,10 +46,10 @@ public final class JobExecutionDBConstants {
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
-    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
-    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "SELECT j.*, cte.*, p.total_records_count total, " +
+    "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
-    "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
+    "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
     "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' " +
     "LIMIT $2 OFFSET $3";
@@ -57,10 +57,10 @@ public final class JobExecutionDBConstants {
   public static final String GET_JOBS_NOT_PARENT_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
-    "SELECT j.*, cte.*, p.jsonb -> 'total' total, " +
-    "(p.jsonb -> 'currentlySucceeded')::int + (p.jsonb -> 'currentlyFailed')::int currently_processed " +
+    "SELECT j.*, cte.*, p.total_records_count total, " +
+    "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
-    "LEFT JOIN %s p ON  j.id = p.jobexecutionid " +
+    "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s " +
     "%s " +
