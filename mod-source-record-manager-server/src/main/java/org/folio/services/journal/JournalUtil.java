@@ -30,6 +30,7 @@ public class JournalUtil {
   public static final String ERROR_KEY = "ERROR";
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
+
   private JournalUtil() {
 
   }
@@ -40,7 +41,7 @@ public class JournalUtil {
     String entityAsString = context.get(entityType.value());
     String recordAsString = extractRecord(context);
 
-    if(INSTANCE.equals(entityType)) {
+    if (INSTANCE.equals(entityType)) {
       if (isAnyEmpty(entityAsString, recordAsString)) {
         throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
       }
@@ -59,10 +60,11 @@ public class JournalUtil {
   public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
                                                  JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
-      String recordAsString = extractRecord(eventPayload.getContext());
-      Record record = new ObjectMapper().readValue(recordAsString, Record.class);
+      HashMap<String, String> eventPayloadContext = eventPayload.getContext();
 
-      String entityAsString = eventPayload.getContext().get(entityType.value());
+      String recordAsString = extractRecord(eventPayloadContext);
+      Record record = new ObjectMapper().readValue(recordAsString, Record.class);
+      String entityAsString = eventPayloadContext.get(entityType.value());
 
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
@@ -78,12 +80,22 @@ public class JournalUtil {
         journalRecord.setEntityId(entityJson.getString("id"));
 
         if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
+          if (entityType == HOLDINGS) {
+            journalRecord.setInstanceId(entityJson.getString("instanceId"));
+          }
+          if (entityType == ITEM) {
+            if (eventPayloadContext.containsKey(INSTANCE.value())) {
+              JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
+              journalRecord.setInstanceId(instanceJson.getString("id"));
+            }
+            journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
+          }
           journalRecord.setEntityHrId(entityJson.getString("hrid"));
         }
       }
 
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
-        journalRecord.setError(eventPayload.getContext().get(ERROR_KEY));
+        journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
       }
 
       return journalRecord;
@@ -91,11 +103,4 @@ public class JournalUtil {
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }
-
-  public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
-                                                 JournalRecord.ActionStatus actionStatus, String errorMessage) throws JournalRecordMapperException {
-    JournalRecord journalRecord = buildJournalRecord(eventPayload, actionType, entityType, actionStatus);
-    return journalRecord.withError(errorMessage);
-  }
 }
-

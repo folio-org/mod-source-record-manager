@@ -2,7 +2,6 @@ package org.folio.dao;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonArray;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -56,11 +55,13 @@ import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ID;
 import static org.folio.dao.util.JournalRecordsColumns.ID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
@@ -101,7 +102,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
 
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title, instance_id, holdings_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
@@ -157,7 +158,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       journalRecord.getActionStatus().toString(),
       journalRecord.getError() != null ? journalRecord.getError() : EMPTY,
       Timestamp.from(journalRecord.getActionDate().toInstant()).toLocalDateTime(),
-      journalRecord.getTitle());
+      journalRecord.getTitle(),
+      journalRecord.getInstanceId(),
+      journalRecord.getHoldingsId());
   }
 
   @Override
@@ -229,6 +232,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withTitle(row.getString(TITLE))
       .withEntityType(EntityType.valueOf(row.getString(ENTITY_TYPE)))
       .withEntityId(row.getString(ENTITY_ID))
+      .withInstanceId(row.getString(INSTANCE_ID))
+      .withHoldingsId(row.getString(HOLDINGS_ID))
       .withEntityHrId(row.getString(ENTITY_HRID))
       .withActionType(ActionType.valueOf(row.getString(ACTION_TYPE)))
       .withActionStatus(ActionStatus.valueOf(row.getString(ACTION_STATUS)))
@@ -260,12 +265,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private JobLogEntryDtoCollection mapRowSetToJobLogDtoCollection(RowSet<Row> rowSet) {
     var jobLogEntryDtoCollection = new JobLogEntryDtoCollection()
-        .withTotalRecords(0);
+      .withTotalRecords(0);
 
     rowSet.forEach(row ->
-        jobLogEntryDtoCollection
-            .withTotalRecords(row.getInteger(TOTAL_COUNT))
-            .getEntries().add(mapJobLogEntryRow(row))
+      jobLogEntryDtoCollection
+        .withTotalRecords(row.getInteger(TOTAL_COUNT))
+        .getEntries().add(mapJobLogEntryRow(row))
     );
     return jobLogEntryDtoCollection;
   }
@@ -275,32 +280,32 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     final var entityHrid = row.getArrayOfStrings(HOLDINGS_ENTITY_HRID);
     final var holdingsActionStatus = mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS));
     return new JobLogEntryDto()
-        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-        .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
-            ? row.getInteger(SOURCE_RECORD_ORDER).toString()
-            : row.getString(INVOICE_LINE_NUMBER))
-        .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid, holdingsActionStatus))
-        .withSourceRecordType(entityType)
-        .withHoldingsRecordHridList(ArrayUtils.isEmpty(entityHrid) ? Collections.emptyList() : Arrays.asList(entityHrid))
-        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-        .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
-        .withHoldingsActionStatus(holdingsActionStatus)
-        .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
-        .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
-        .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
-        .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
-        .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
-            ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
-        .withError(row.getString(ERROR));
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+      .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
+        ? row.getInteger(SOURCE_RECORD_ORDER).toString()
+        : row.getString(INVOICE_LINE_NUMBER))
+      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid, holdingsActionStatus))
+      .withSourceRecordType(entityType)
+      .withHoldingsRecordHridList(ArrayUtils.isEmpty(entityHrid) ? Collections.emptyList() : Arrays.asList(entityHrid))
+      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+      .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
+      .withHoldingsActionStatus(holdingsActionStatus)
+      .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
+      .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
+      .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+      .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+      .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
+        ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
+      .withError(row.getString(ERROR));
   }
 
   private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String[] entityHrid,
                                      org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
     return MARC_HOLDINGS.equals(entityType)
-        && org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
-        ? "Holdings " + entityHrid[0]
-        : title;
+      && org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
+      ? "Holdings " + entityHrid[0]
+      : title;
   }
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {
