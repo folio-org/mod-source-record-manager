@@ -87,6 +87,9 @@ public class JournalUtil {
             if (eventPayloadContext.containsKey(INSTANCE.value())) {
               JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
               journalRecord.setInstanceId(instanceJson.getString("id"));
+            } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
+              JsonObject holdingsJson = new JsonObject(eventPayloadContext.get(HOLDINGS.value()));
+              journalRecord.setInstanceId(holdingsJson.getString("instanceId"));
             }
             journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
           }
