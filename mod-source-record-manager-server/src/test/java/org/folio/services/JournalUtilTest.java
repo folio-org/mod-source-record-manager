@@ -16,7 +16,10 @@ import java.util.UUID;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.*;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalUtilTest {

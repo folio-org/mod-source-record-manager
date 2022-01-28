@@ -119,10 +119,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<String> save(JournalRecord journalRecord, String tenantId) {
+    LOGGER.info("Trying to save JournalRecord entity to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       journalRecord.withId(UUID.randomUUID().toString());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+      LOGGER.trace("JournalRecordDaoImpl::save query = {};", query);
       pgClientFactory.createInstance(tenantId).execute(query, prepareInsertQueryParameters(journalRecord), promise);
     } catch (Exception e) {
       LOGGER.error("Error saving JournalRecord entity", e);
@@ -134,10 +136,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId) {
+    LOGGER.info("Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {
       List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(Collectors.toList());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+      LOGGER.trace("JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
       pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
     } catch (Exception e) {
       LOGGER.error("Error saving JournalRecord entities", e);
@@ -165,16 +169,19 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<List<JournalRecord>> getByJobExecutionId(String jobExecutionId, String sortBy, String order, String tenantId) {
+    LOGGER.trace("Trying to get list of JournalRecord entities by jobExecutionId = {} from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       StringBuilder queryBuilder = new StringBuilder(format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE));
       if (sortBy != null) {
         queryBuilder.append(prepareSortingClause(sortBy, order));
       }
+      String query = queryBuilder.toString();
       Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-      pgClientFactory.createInstance(tenantId).select(queryBuilder.toString(), queryParams, promise);
+      LOGGER.trace("JournalRecordDaoImpl::getByJobExecutionId query = {}; tuple = {}", query, queryParams);
+      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting JournalRecords by jobExecution id", e);
+      LOGGER.error("Error getting JournalRecord entities by jobExecutionId = {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future().map(this::mapResultSetToJournalRecordsList);
@@ -182,37 +189,45 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
+    LOGGER.debug("Trying to delete row from the {} table by jobExecutionId = {}", JOURNAL_RECORDS_TABLE, jobExecutionId);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
+    LOGGER.trace("JournalRecordDaoImpl::deleteByJobExecutionId query = {}; tuple = {}", query, queryParams);
     pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     return promise.future().map(updateResult -> updateResult.rowCount() >= 1);
   }
 
   @Override
   public Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId) {
+    LOGGER.trace("Trying to get JobExecutionLogDto entity by jobExecutionId = {} from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
+    LOGGER.trace("JournalRecordDaoImpl::getJobExecutionLogDto query = {}; tuple = {}", query, queryParams);
     pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
     return promise.future().map(this::mapResultSetToJobExecutionLogDto);
   }
 
   @Override
   public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
+    LOGGER.trace("Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
     if (!jobLogEntrySortableFields.contains(sortBy)) {
       return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
     }
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY, jobExecutionId, sortBy, order, limit, offset);
+    LOGGER.trace("JournalRecordDaoImpl::getJobLogEntryDtoCollection query = {};", query);
     pgClientFactory.createInstance(tenantId).select(query, promise);
     return promise.future().map(this::mapRowSetToJobLogDtoCollection);
   }
 
   @Override
   public Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId) {
+    LOGGER.trace("Trying to get RecordProcessingLogDto entity by jobExecutionId = {} and recordId = {}", jobExecutionId, recordId);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY, jobExecutionId, recordId);
+    LOGGER.trace("JournalRecordDaoImpl::getRecordProcessingLogDto query = {};", query);
     pgClientFactory.createInstance(tenantId).select(query, promise);
     return promise.future().map(this::mapRowSetToRecordProcessingLogDto);
   }
