@@ -39,7 +39,7 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (JournalRecord.EntityType.MARC_HOLDINGS.equals(entityType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
-    } else if (JournalRecord.EntityType.AUTHORITY.equals(entityType)) {
+    } else if (JournalRecord.EntityType.MARC_AUTHORITY.equals(entityType)) {
       this.recordType = Record.RecordType.MARC_AUTHORITY;
     }
   }
