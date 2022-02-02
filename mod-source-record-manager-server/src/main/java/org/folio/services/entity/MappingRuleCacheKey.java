@@ -16,7 +16,8 @@ public class MappingRuleCacheKey {
 
   public MappingRuleCacheKey(String tenantId, Record.RecordType recordType) {
     this.tenantId = tenantId;
-    if (Record.RecordType.MARC_BIB.equals(recordType) || Record.RecordType.MARC_HOLDING.equals(recordType)) {
+    if (Record.RecordType.MARC_BIB.equals(recordType) || Record.RecordType.MARC_HOLDING.equals(recordType)
+      || Record.RecordType.MARC_AUTHORITY.equals(recordType)) {
       this.recordType = recordType;
     }
   }
@@ -27,6 +28,8 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (ParsedRecordDto.RecordType.MARC_HOLDING.equals(recordType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
+    } else if (ParsedRecordDto.RecordType.MARC_AUTHORITY.equals(recordType)) {
+      this.recordType = Record.RecordType.MARC_AUTHORITY;
     }
   }
 
@@ -36,6 +39,8 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (JournalRecord.EntityType.MARC_HOLDINGS.equals(entityType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
+    } else if (JournalRecord.EntityType.MARC_AUTHORITY.equals(entityType)) {
+      this.recordType = Record.RecordType.MARC_AUTHORITY;
     }
   }
 
@@ -45,6 +50,8 @@ public class MappingRuleCacheKey {
       this.recordType = Record.RecordType.MARC_BIB;
     } else if (org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING.equals(recordType)) {
       this.recordType = Record.RecordType.MARC_HOLDING;
+    } else if (org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY.equals(recordType)) {
+      this.recordType = Record.RecordType.MARC_AUTHORITY;
     }
   }
 }
