@@ -14,6 +14,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
@@ -59,6 +60,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_LOG_SRS_MARC_BIB_RECORD_UPDATED.value(),
       DI_SRS_MARC_HOLDING_RECORD_CREATED.value(),
       DI_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
+      DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
       DI_COMPLETED.value(),
       DI_ERROR.value()
     );
