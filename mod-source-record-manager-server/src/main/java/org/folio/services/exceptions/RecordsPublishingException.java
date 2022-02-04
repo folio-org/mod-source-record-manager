@@ -5,13 +5,13 @@ import org.folio.rest.jaxrs.model.Record;
 import java.util.List;
 
 /**
- * Exception that accumulates records that processed with errors. This exception used in error handlers to
+ * Exception that accumulates records that published to Kafka with errors. This exception used in error handlers to
  * send DI_ERROR for each failed record.
  */
-public class RecordsProcessingException extends RuntimeException {
+public class RecordsPublishingException extends RuntimeException {
   private List<Record> failedRecords;
 
-  public RecordsProcessingException(String message, List<Record> failedRecords) {
+  public RecordsPublishingException(String message, List<Record> failedRecords) {
     super(message);
     this.failedRecords = failedRecords;
   }

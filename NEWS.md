@@ -1,4 +1,5 @@
 ## 2021-xx-xx v3.3.0-SNAPSHOT
+* [MODINVOICE-356](https://issues.folio.org/browse/MODINVOICE-356) Fix progress bar stuck behaviour after the RecordTooLargeException
 * [MODSOURMAN-624](https://issues.folio.org/browse/MODSOURMAN-624) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
 * [MODSOURMAN-614](https://issues.folio.org/browse/MODSOURMAN-614) Authority: Add mapping rule for note types
 * [MODSOURMAN-577](https://issues.folio.org/browse/MODSOURMAN-577) Optimistic locking: mod-source-record-manager modifications
