@@ -424,6 +424,55 @@ Instance:
 }
 ```
 
+In case you have to stop the concatenation before some subfields, its needed to add the parameter `subfieldsToStopConcat`
+and a list of subfields before which the concatenation should stop:
+```json
+MARC Record:
+  "020": {
+    "subfields":[
+         {"a":"a9780471622673"},
+         {"c":"(acid-free paper)"},
+         {"z": "z0471622672"},
+         {"q":"(acid-free paper)"}
+    ], 
+    "ind1":" ", 
+    "ind2":" "
+    }
+```
+```json
+  Rule:
+  "020": [{
+    "target": "identifiers.value",
+    "description": "Valid ISBN",
+    "subfield": ["a"],
+    "rules": [{
+      "conditions": [{
+        "type": "concat_subfields_by_name, remove_ending_punc, trim",
+          "parameter": {
+            "subfieldsToConcat": [
+              "c", "q"
+            ],
+            "subfieldsToStopConcat": [
+              "z"  
+            ]
+          }
+        }]
+      }]
+  }]
+```
+
+An outcome Instance looks like this in Json:
+```json
+Instance: 
+{
+  "identifiers":[
+    {
+      "value":"a9780471622673 (acid-free paper)"
+    }
+  ]
+}
+```
+
 #### Required sub-fields
 Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `requiredSubfield` to define the required subfield needed to trigger the appearance of a target field. In this example, the presence of an 020 subfield "z" in a MARC record is needed in order for the target field, “Invalid ISBN” to appear in the Inventory record.
 ```json
