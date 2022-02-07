@@ -75,7 +75,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(record.getRecordType())) {
           LOGGER.info("Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, record.getId());
-          payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, tenantId, record)
+          payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, record)
             .compose(payload -> EventHandlingUtil.sendEventToKafka(tenantId, Json.encode(payload), DI_ERROR.value(),
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
           return;

@@ -24,13 +24,11 @@ public interface DiErrorPayloadBuilder {
    * @param throwable throwable that occurs
    * @param okapiParams the okapi params
    * @param jobExecutionId the job execution id
-   * @param tenantId the tenant id
    * @param record the incoming record
    * @return event payload with DI_ERROR event type and error message
    */
   Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
                                                    OkapiConnectionParams okapiParams,
                                                    String jobExecutionId,
-                                                   String tenantId,
                                                    Record record);
 }

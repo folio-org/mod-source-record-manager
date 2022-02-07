@@ -13,6 +13,7 @@ import org.folio.processing.mapping.mapper.reader.record.edifact.EdifactReaderFa
 import org.folio.processing.mapping.mapper.writer.Writer;
 import org.folio.processing.mapping.mapper.writer.WriterFactory;
 import org.folio.processing.mapping.mapper.writer.common.JsonBasedWriter;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -34,8 +35,8 @@ import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 
 @Component
 public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
-  private static final String INVOICE_FIELD = "invoice";
-  private static final String INVOICE_LINES_FIELD = "invoiceLines";
+  public static final String INVOICE_FIELD = "invoice";
+  public static final String INVOICE_LINES_FIELD = "invoiceLines";
 
   private JobExecutionService jobExecutionService;
 
@@ -64,10 +65,9 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
   @Override
   public Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                                                  OkapiConnectionParams okapiParams,
-                                                  String jobExecutionId,
-                                                  String tenantId,
-                                                  Record record) {
+                                                          OkapiConnectionParams okapiParams,
+                                                          String jobExecutionId,
+                                                          Record record) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, okapiParams.getTenantId())
       .compose(jobExecutionOptional -> {
         if (jobExecutionOptional.isPresent()) {
@@ -85,18 +85,9 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
                                                             OkapiConnectionParams okapiParams,
                                                             Record record,
                                                             String jobExecutionId) {
-    HashMap<String, String> context = new HashMap<>();
-    context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
-    context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+    HashMap<String, String> context = getPayloadContext(throwable, record);
 
-    return new DataImportEventPayload()
-      .withEventType(DI_INVOICE_CREATED.value())
-      .withJobExecutionId(jobExecutionId)
-      .withOkapiUrl(okapiParams.getOkapiUrl())
-      .withTenant(okapiParams.getTenantId())
-      .withToken(okapiParams.getToken())
-      .withEventsChain(Lists.newArrayList(DI_INVOICE_CREATED.value()))
-      .withContext(context);
+    return prepareEventPayload(DI_ERROR, okapiParams, jobExecutionId, context);
   }
 
   private DataImportEventPayload prepareEventPayloadForMapping(Throwable throwable,
@@ -105,7 +96,8 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
                                                                JobExecution jobExecution) {
     ProfileSnapshotWrapper profileSnapshot = jobExecution.getJobProfileSnapshotWrapper();
 
-    DataImportEventPayload eventPayload = prepareDiErrorEventPayload(throwable, okapiParams, record, jobExecution.getId());
+    HashMap<String, String> context = getPayloadContext(throwable, record);
+    DataImportEventPayload eventPayload = prepareEventPayload(DI_INVOICE_CREATED, okapiParams, jobExecution.getId(), context);
     eventPayload.setProfileSnapshot(profileSnapshot);
     eventPayload.getEventsChain().add(eventPayload.getEventType());
     while (MAPPING_PROFILE != profileSnapshot.getContentType()) {
@@ -114,6 +106,24 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
     eventPayload.setCurrentNode(profileSnapshot);
     eventPayload.getContext().put(INVOICE.value(), new JsonObject().encode());
     return eventPayload;
+  }
+
+  private DataImportEventPayload prepareEventPayload(DataImportEventTypes eventType, OkapiConnectionParams okapiParams, String jobExecutionId, HashMap<String, String> context) {
+    return new DataImportEventPayload()
+      .withEventType(eventType.value())
+      .withJobExecutionId(jobExecutionId)
+      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withTenant(okapiParams.getTenantId())
+      .withToken(okapiParams.getToken())
+      .withEventsChain(Lists.newArrayList(DI_INVOICE_CREATED.value()))
+      .withContext(context);
+  }
+
+  private HashMap<String, String> getPayloadContext(Throwable throwable, Record record) {
+    HashMap<String, String> context = new HashMap<>();
+    context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
+    context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+    return context;
   }
 
   private DataImportEventPayload mapPayloadWithPopulatingInvoiceDetails(DataImportEventPayload dataImportEventPayload) {

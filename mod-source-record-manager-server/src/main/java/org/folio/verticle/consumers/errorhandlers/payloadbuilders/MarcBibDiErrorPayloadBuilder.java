@@ -42,12 +42,11 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
   @Override
   public Future<DataImportEventPayload> buildEventPayload(Throwable throwable,
-                  OkapiConnectionParams okapiParams,
-                  String jobExecutionId,
-                  String tenantId,
-                  Record record) {
+                                                          OkapiConnectionParams okapiParams,
+                                                          String jobExecutionId,
+                                                          Record record) {
 
-    return mappingRuleCache.get(new MappingRuleCacheKey(tenantId, record.getRecordType()))
+    return mappingRuleCache.get(new MappingRuleCacheKey(okapiParams.getTenantId(), record.getRecordType()))
       .compose(rulesOptional -> {
         DataImportEventPayload diErrorPayload = prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, record);
         if (rulesOptional.isPresent()) {
