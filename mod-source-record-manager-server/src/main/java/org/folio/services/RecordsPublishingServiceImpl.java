@@ -11,8 +11,12 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
-import org.folio.rest.jaxrs.model.*;
-import org.folio.services.exceptions.RecordsProcessingException;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.exceptions.RecordsPublishingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -83,7 +87,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     }
 
     if (CollectionUtils.isNotEmpty(failedRecords)) {
-      futures.add(Future.failedFuture(new RecordsProcessingException(String.format("Failed to process %s records", failedRecords.size()), failedRecords)));
+      futures.add(Future.failedFuture(new RecordsPublishingException(String.format("Failed to process %s records", failedRecords.size()), failedRecords)));
     }
 
     GenericCompositeFuture.join(futures).onComplete(ar -> {

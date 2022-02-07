@@ -31,7 +31,7 @@ import org.folio.services.util.ParsedRecordUtil;
 @Component
 public class MarcImportEventsHandler implements SpecificEventHandler {
 
-  private static final String INSTANCE_TITLE_FIELD_PATH = "title";
+  public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
   private static final Map<JournalRecord.EntityType, BiFunction<ParsedRecord, JsonObject, String>> titleExtractorMap =
     Map.of(
@@ -76,7 +76,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       .orElse(null);
   }
 
-  private static Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
+  public static Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
     return mappingRules.getMap().keySet().stream()
       .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
         .map(o -> (JsonObject) o)
