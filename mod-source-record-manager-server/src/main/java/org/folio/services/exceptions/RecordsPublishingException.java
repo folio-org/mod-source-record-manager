@@ -9,7 +9,7 @@ import java.util.List;
  * send DI_ERROR for each failed record.
  */
 public class RecordsPublishingException extends RuntimeException {
-  private List<Record> failedRecords;
+  private final List<Record> failedRecords;
 
   public RecordsPublishingException(String message, List<Record> failedRecords) {
     super(message);

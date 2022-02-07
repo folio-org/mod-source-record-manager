@@ -118,6 +118,28 @@ public class MarcBibErrorPayloadBuilderTest {
     });
   }
 
+  @Test
+  public void shouldBuildPayloadWhenTitleNotExistsInParsedRecord(TestContext context) throws IOException {
+    Async async = context.async();
+    Record record = new Record().withRecordType(Record.RecordType.MARC_BIB).withParsedRecord(
+      new ParsedRecord().withId(UUID.randomUUID().toString()).withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"));
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
+      .thenReturn(Future.succeededFuture(Optional.of(new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH)))));
+
+    Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
+      getOkapiParams(), JOB_EXECUTION_ID, record);
+
+    payloadFuture.onComplete(ar -> {
+      DataImportEventPayload result = ar.result();
+      assertEquals(DI_ERROR.value(), result.getEventType());
+      assertTrue(result.getContext().containsKey(ERROR_KEY));
+
+      Record resRecordWithNoTitle = getRecordFromContext(result);
+      assertNull(resRecordWithNoTitle.getParsedRecord());
+      async.complete();
+    });
+  }
+
   private OkapiConnectionParams getOkapiParams() {
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost");
