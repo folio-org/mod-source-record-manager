@@ -29,6 +29,7 @@
 * [MODDATAIMP-623](https://issues.folio.org/browse/MODDATAIMP-623) Remove Kafka cache initialization and Maven dependency
 * [MODSOURMAN-668](https://issues.folio.org/browse/MODSOURMAN-668) Restructure job_execution_progress table for DataImportKafkaHandler
 * [MODSOURMAN-675](https://issues.folio.org/browse/MODSOURMAN-675) Data Import handles repeated 020 $a:s in an unexpected manner when creating Instance Identifiers
+* [MODSOURMAN-676](https://issues.folio.org/browse/MODSOURMAN-676) Provide Instance UUID for populating Inventory hotlinks for holdings/items
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
