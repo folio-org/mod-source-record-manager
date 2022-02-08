@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
@@ -14,7 +15,10 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.processing.events.utils.PomReaderUtil;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
+import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.tools.utils.ModuleName;
+import org.folio.services.exceptions.RecordsPublishingException;
+import static org.folio.services.util.RecordConversionUtil.RECORDS;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +65,7 @@ public final class EventHandlingUtil {
       } else {
         Throwable cause = war.cause();
         LOGGER.error("{} write error for event {}:", producerName, eventType, cause);
-        promise.fail(cause);
+        handleKafkaPublishingErrors(promise, eventPayload, cause);
       }
     });
     return promise.future();
@@ -113,5 +117,13 @@ public final class EventHandlingUtil {
   public static KafkaProducer<String, String> createProducer(String eventType, KafkaConfig kafkaConfig) {
     String producerName = eventType + "_Producer";
     return KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
+  }
+
+  private static void handleKafkaPublishingErrors(Promise<Boolean> promise, String eventPayload, Throwable cause) {
+    if (new JsonObject(eventPayload).containsKey(RECORDS)) {
+      RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
+      promise.fail(new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords()));
+    }
+    promise.fail(cause);
   }
 }

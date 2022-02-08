@@ -5,20 +5,25 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
+import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.ExternalIdsHolder;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecord;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.StatusDto;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +53,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.services.util.RecordConversionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -60,28 +66,22 @@ import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.client.SourceStorageBatchClient;
-import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.ErrorRecord;
-import org.folio.rest.jaxrs.model.ExternalIdsHolder;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.rest.jaxrs.model.ParsedRecord;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecord;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
-import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
+
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -394,7 +394,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution,
                                                       OkapiConnectionParams okapiParams) {
-    String sourceRecordKey = getSourceRecordKey(record);
+    EntityType sourceRecordKey = RecordConversionUtil.getEntityType(record);
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withProfileSnapshot(jobExecution.getJobProfileSnapshotWrapper())
@@ -403,23 +403,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(new HashMap<>() {{
-        put(sourceRecordKey, Json.encode(record));
+        put(sourceRecordKey.value(), Json.encode(record));
         put("ERROR", HOLDINGS_004_TAG_ERROR_MESSAGE);
       }});
-  }
-
-  private String getSourceRecordKey(Record record) {
-    switch (record.getRecordType()) {
-      case MARC_BIB:
-        return MARC_BIBLIOGRAPHIC.value();
-      case MARC_AUTHORITY:
-        return MARC_AUTHORITY.value();
-      case MARC_HOLDING:
-        return MARC_HOLDINGS.value();
-      case EDIFACT:
-      default:
-        return EDIFACT_INVOICE.value();
-    }
   }
 
   private SourceStorageBatchClient getSourceStorageBatchClient(OkapiConnectionParams okapiParams) {
