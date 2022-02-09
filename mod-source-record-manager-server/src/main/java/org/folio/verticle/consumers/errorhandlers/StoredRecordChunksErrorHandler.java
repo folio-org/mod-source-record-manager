@@ -15,7 +15,8 @@ import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
-import org.folio.services.exceptions.RecordsProcessingException;
+import org.folio.services.exceptions.RecordsPublishingException;
+import org.folio.services.util.RecordConversionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.EntityType.*;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Component
@@ -55,8 +54,8 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
 
 
     // process for specific failure processed records from Exception body
-    if (throwable instanceof RecordsProcessingException) {
-      List<Record> failedRecords = ((RecordsProcessingException) throwable).getFailedRecords();
+    if (throwable instanceof RecordsPublishingException) {
+      List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
       for (Record failedRecord: failedRecords) {
         sendDiErrorForRecord(jobExecutionId, failedRecord, okapiParams, failedRecord.getErrorRecord().getDescription());
       }
@@ -82,7 +81,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(new HashMap<>() {{
-        put(getSourceRecordKey(targetRecord), Json.encode(targetRecord));
+        put(RecordConversionUtil.getEntityType(targetRecord).value(), Json.encode(targetRecord));
         put(ERROR_KEY, errorMsg);
       }});
 
@@ -92,19 +91,5 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(errorPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null)
       .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}, chunkNumber: {}", errorPayload.getJobExecutionId(), targetRecord.getId(), chunkNumber, th));
-  }
-
-  private String getSourceRecordKey(Record targetRecord) {
-    switch (targetRecord.getRecordType()) {
-      case MARC_BIB:
-        return MARC_BIBLIOGRAPHIC.value();
-      case MARC_AUTHORITY:
-        return MARC_AUTHORITY.value();
-      case MARC_HOLDING:
-        return MARC_HOLDINGS.value();
-      case EDIFACT:
-      default:
-        return EDIFACT_INVOICE.value();
-    }
   }
 }

@@ -14,6 +14,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTA
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
@@ -174,6 +175,11 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiLogSrsMarcBibRecordCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_LOG_SRS_MARC_BIB_RECORD_CREATED, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiLogSrsMarcAuthorityRecordCreated() {
+    populateEntityTypeAndActionTypeByEventType(DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED, JournalRecord.EntityType.MARC_AUTHORITY, JournalRecord.ActionType.CREATE);
   }
 
   @Test
