@@ -1,3 +1,6 @@
+## 2022-02-xx v3.2.8
+* [MODSOURMAN-688](https://issues.folio.org/browse/MODSOURMAN-688) Update folio-kafka-wrapper to v2.4.3 to allow adding ENV prefix to events_cache Kafka topic [KAFKAWRAP-19](https://issues.folio.org/browse/KAFKAWRAP-20)
+
 ## 2021-12-15 v3.2.7
 * [MODSOURMAN-647](https://issues.folio.org/browse/MODSOURMAN-647) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
 * [MODSOURMAN-646](https://issues.folio.org/browse/MODSOURMAN-646) Log4j vulnerability correction
