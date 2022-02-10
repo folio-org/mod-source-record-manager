@@ -1,4 +1,5 @@
 ## 2021-xx-xx v3.3.0-SNAPSHOT
+* [MODSOURMAN-695](https://issues.folio.org/browse/MODSOURMAN-695) Upgrade RMB and Vertx versions that contain fixes for the connection pool
 * [MODINVOICE-356](https://issues.folio.org/browse/MODINVOICE-356) Fix progress bar stuck behaviour after the RecordTooLargeException
 * [MODSOURMAN-624](https://issues.folio.org/browse/MODSOURMAN-624) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
 * [MODSOURMAN-614](https://issues.folio.org/browse/MODSOURMAN-614) Authority: Add mapping rule for note types
