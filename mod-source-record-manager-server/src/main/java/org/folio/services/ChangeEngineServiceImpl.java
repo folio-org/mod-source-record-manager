@@ -81,6 +81,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 
 @Service
@@ -141,10 +142,23 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
-        boolean updateMarcActionExists = containsUpdateMarcActionProfile(jobExecution.getJobProfileSnapshotWrapper());
+
+        boolean updateMarcActionExists = containsMarcActionProfile(
+          jobExecution.getJobProfileSnapshotWrapper()
+          , List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY)
+          , Action.UPDATE);
+
+        boolean deleteMarcActionExists = containsMarcActionProfile(
+          jobExecution.getJobProfileSnapshotWrapper()
+          , List.of(FolioRecord.MARC_AUTHORITY)
+          , Action.DELETE);
 
         if (updateMarcActionExists) {
           updateRecords(parsedRecords, jobExecution, params)
+            .onSuccess(ar -> promise.complete(parsedRecords))
+            .onFailure(promise::fail);
+        } else if (deleteMarcActionExists) {
+          deleteRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
         } else {
@@ -186,6 +200,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
   }
 
+  private Future<Boolean> deleteRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc delete");
+    return recordsPublishingService
+      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value());
+  }
+
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
                                                         OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(recordsList)) {
@@ -209,24 +229,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
-  private boolean containsUpdateMarcActionProfile(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
+                                                  List<FolioRecord> records, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
-        && actionProfileMatches(childWrapper)) {
+        && actionProfileMatches(childWrapper, records, action)) {
         return true;
-      } else if (containsUpdateMarcActionProfile(childWrapper)) {
+      } else if (containsMarcActionProfile(childWrapper, records, action)) {
         return true;
       }
     }
     return false;
   }
 
-  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper) {
+  private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper,
+                                       List<FolioRecord> records, Action action) {
     ActionProfile actionProfile = new JsonObject((Map) actionProfileWrapper.getContent()).mapTo(ActionProfile.class);
-    return (actionProfile.getFolioRecord() == FolioRecord.MARC_BIBLIOGRAPHIC
-      || actionProfile.getFolioRecord() == FolioRecord.MARC_AUTHORITY)
-      && actionProfile.getAction() == Action.UPDATE;
+    return (records.contains(actionProfile.getFolioRecord())) && actionProfile.getAction() == action;
   }
 
   /**
