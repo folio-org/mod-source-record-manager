@@ -39,7 +39,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   public static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
-  private static final String ID_FIELD = "'id'";
+  private static final String ID_FIELD = "id";
   private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
   private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
   private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
@@ -82,7 +82,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
         LOGGER.warn("Can't retrieve JobExecutionSourceChunk by empty id.");
         return promise.future().map(Optional.empty());
       }
-      Criteria idCrit = constructCriteria(ID_FIELD, id);
+      Criteria idCrit = constructCriteria(ID_FIELD, id).setJSONB(false);
       pgClientFactory.createInstance(tenantId)
         .get(TABLE_NAME, JobExecutionSourceChunk.class, new Criterion(idCrit), true, false, promise);
     } catch (Exception e) {
@@ -98,7 +98,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<JobExecutionSourceChunk> update(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
     Promise<JobExecutionSourceChunk> promise = Promise.promise();
     try {
-      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionChunk.getId());
+      Criteria idCrit = constructCriteria(ID_FIELD, jobExecutionChunk.getId()).setJSONB(false);
       pgClientFactory.createInstance(tenantId)
         .update(TABLE_NAME, jobExecutionChunk, new Criterion(idCrit), true, updateResult -> {
           if (updateResult.failed()) {
