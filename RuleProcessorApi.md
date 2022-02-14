@@ -19,7 +19,7 @@ Rule:
 ```
 This rule belongs to the "001" field and handles all the "001" fields from incoming record. It takes value from "001" field and puts it into Instance "hrid" field.
 
-SRM has own schema for Inventory Instance. The schema describes target fields, data types, restrictions and other internal details of Instance. Please, be careful while writing rules - you can put into "target" only fields from the schema, take a look at the  [Instance schema](https://github.com/folio-org/mod-source-record-manager/blob/master/ramls/instance.json) for clear understanding. If the "target" field is specified wrong then the RuleProcessor does not take this rule for mapping.
+SRM has own schema for Inventory Instance. The schema describes target fields, data types, restrictions and other internal details of Instance. Please, be careful while writing rules - you can put into "target" only fields from the schema, take a look at the  [Instance schema](https://github.com/folio-org/data-import-processing-core/blob/master/ramls/instance.json) for clear understanding. If the "target" field is specified wrong then the RuleProcessor does not take this rule for mapping.
 
 ##### NOTE:  MARC records and mapping rules below have been taken intentionally just for demonstration purposes.
 #
@@ -58,7 +58,7 @@ Instance:
 }
 ```
 
-[Here](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/functions/NormalizationFunction.java) are all of the formatting functions defined. The most useful ones are: `trim, capitalize, remove_ending_punc`.
+[Here](https://github.com/folio-org/data-import-processing-core/blob/master/src/main/java/org/folio/processing/mapping/defaultmapper/processor/functions/NormalizationFunction.java) are all of the formatting functions defined. The most useful ones are: `trim, capitalize, remove_ending_punc`.
 
 In most cases there are subfields present within MARC fields. This is important for mapping. Here is an example of a MARC “250” field that contains a “subfield a”, a “subfield b”, and a “subfield 6.”
  ```json
@@ -163,7 +163,7 @@ Instance:
 ```
 
 #### Multiple objects from one field
-Usually, the [Rule Processor](https://github.com/folio-org/mod-source-record-manager/blob/master/mod-source-record-manager-server/src/main/java/org/folio/services/mappers/processor/Processor.java) creates only one instance of the 'target' field for each record field. What if we need to create several objects from single record field ?
+Usually, the [Rule Processor](https://github.com/folio-org/data-import-processing-core/blob/master/src/main/java/org/folio/processing/mapping/defaultmapper/processor/Processor.java) creates only one instance of the 'target' field for each record field. What if we need to create several objects from single record field ?
 ##### New object for group of sub-fields
 In the example below we map several 'publication' elements from a single "264" record field. To do so we have to wrap a rule structure into an `entity`. Let's consider the example below:
  ```json
