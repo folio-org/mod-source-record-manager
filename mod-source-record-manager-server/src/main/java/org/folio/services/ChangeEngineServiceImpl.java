@@ -143,21 +143,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
-        boolean updateMarcActionExists = containsMarcActionProfile(
-          jobExecution.getJobProfileSnapshotWrapper()
-          , List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY)
-          , Action.UPDATE);
-
-        boolean deleteMarcActionExists = containsMarcActionProfile(
-          jobExecution.getJobProfileSnapshotWrapper()
-          , List.of(FolioRecord.MARC_AUTHORITY)
-          , Action.DELETE);
-
-        if (updateMarcActionExists) {
+        if (updateMarcActionExists(jobExecution)) {
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
-        } else if (deleteMarcActionExists) {
+        } else if (deleteMarcActionExists(jobExecution)) {
           deleteRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
@@ -227,6 +217,20 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.fail(e);
       });
     return promise.future();
+  }
+
+  private boolean updateMarcActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper()
+      , List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY)
+      , Action.UPDATE);
+  }
+
+  private boolean deleteMarcActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper()
+      , List.of(FolioRecord.MARC_AUTHORITY)
+      , Action.DELETE);
   }
 
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
