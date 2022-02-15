@@ -122,7 +122,8 @@ public class JobMonitoringDaoImpl implements JobMonitoringDao {
       jobExecutionId
     );
     pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+    return promise.future().map(updateResult -> updateResult.rowCount() == 1)
+      .onFailure(e -> LOGGER.error("Error updating jobMonitoring by jobId: {}", jobExecutionId, e));
   }
 
   @Override
