@@ -14,8 +14,6 @@
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
-    <jackson.version>2.13.0</jackson.version>
-    <jackson-databind.version>2.13.0</jackson-databind.version>
     <lombok.version>1.18.20</lombok.version>
     <testcontainers.version>1.15.3</testcontainers.version>
     <kafkaclients.version>3.1.0</kafkaclients.version>
@@ -158,22 +156,18 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-jaxb-annotations</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
