@@ -1,4 +1,4 @@
-package org.folio.verticle.consumers.errorpayloadbuilders;
+package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;

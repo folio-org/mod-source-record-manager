@@ -244,12 +244,39 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
-    var parser = RecordParserBuilder.buildParser(recordContentType);
     var counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
-    var records = rawRecords.stream()
+    var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, sourceChunkId).stream()
+      .peek(stat -> { //NOSONAR
+        if (counter.incrementAndGet() % partition == 0) {
+          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
+          jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
+            .compose(optional -> optional
+              .map(sourceChunk -> jobExecutionSourceChunkDao
+                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
+              .orElseThrow(() -> new NotFoundException(format(
+                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
+                sourceChunkId))));
+        }
+      }).collect(Collectors.toList());
+
+    Promise<List<Record>> promise = Promise.promise();
+
+    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
+    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
+
+    return promise.future();
+  }
+
+  public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
+                                                          RecordsMetadata.ContentType recordContentType,
+                                                          JobExecution jobExecution,
+                                                          String sourceChunkId) {
+    var parser = RecordParserBuilder.buildParser(recordContentType);
+
+    return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
         var recordId = UUID.randomUUID().toString();
@@ -273,26 +300,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           }
         }
         return record;
-      })
-      .peek(stat -> { //NOSONAR
-        if (counter.incrementAndGet() % partition == 0) {
-          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
-          jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
-            .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao
-                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
-              .orElseThrow(() -> new NotFoundException(format(
-                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
-                sourceChunkId))));
-        }
       }).collect(Collectors.toList());
-
-    Promise<List<Record>> promise = Promise.promise();
-
-    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
-    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
-
-    return promise.future();
   }
 
   private List<Future> executeInBatches(List<Record> recordList,
