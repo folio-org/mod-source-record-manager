@@ -15,6 +15,7 @@ import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
+import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -59,10 +60,12 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
         }, th -> {
           if (th instanceof DuplicateEventException) {
             LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+            return Future.failedFuture(th);
           } else {
             LOGGER.error("RawRecordsDto processing has failed with errors chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
+            return Future.failedFuture(new RawChunkRecordsParsingException(th, rawRecordsDto));
           }
-          return Future.failedFuture(th);
+
         });
     } catch (Exception e) {
       LOGGER.error("Can't process kafka record: ", e);
