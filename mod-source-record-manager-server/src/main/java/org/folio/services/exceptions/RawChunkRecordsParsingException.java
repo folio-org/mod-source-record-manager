@@ -7,7 +7,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
  * It used in error handlers to send DI_ERROR for each failed record from the chunk.
  */
 public class RawChunkRecordsParsingException extends RuntimeException {
-  private RawRecordsDto rawRecordsDto;
+  private final RawRecordsDto rawRecordsDto;
 
   public RawChunkRecordsParsingException(Throwable cause, RawRecordsDto rawRecordsDto) {
     super(cause);
