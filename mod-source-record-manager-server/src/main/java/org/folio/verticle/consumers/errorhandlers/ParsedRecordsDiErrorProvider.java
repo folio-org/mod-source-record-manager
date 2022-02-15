@@ -12,10 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class ParsedRecordsDiErrorProvider {
+
+  private static final String ERROR_SOURCE_CHUNK_ID = "a5fe4e07-d6b3-47c7-9b84-3e4074f7177f";
 
   private JobExecutionService jobExecutionService;
   private ChangeEngineServiceImpl changeEngineService;
@@ -41,7 +42,7 @@ public class ParsedRecordsDiErrorProvider {
       .compose(jobExecutionOptional -> {
         if (jobExecutionOptional.isPresent()) {
           RecordsMetadata.ContentType contentType = rawRecordsDto.getRecordsMetadata().getContentType();
-          return Future.succeededFuture(changeEngineService.getParsedRecordsFromInitialRecords(rawRecordsDto.getInitialRecords(), contentType, jobExecutionOptional.get(), UUID.randomUUID().toString()));
+          return Future.succeededFuture(changeEngineService.getParsedRecordsFromInitialRecords(rawRecordsDto.getInitialRecords(), contentType, jobExecutionOptional.get(), ERROR_SOURCE_CHUNK_ID));
         }
         return Future.succeededFuture(Lists.newArrayList());
       });
