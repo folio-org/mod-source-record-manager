@@ -1,4 +1,4 @@
-## 2022-02-xx v3.2.9
+## 2022-02-24 v3.2.9
 * [MODSOURMAN-706](https://issues.folio.org/browse/MODSOURMAN-706) Error loading MappingParametersSnapshot
 
 ## 2022-02-09 v3.2.8
