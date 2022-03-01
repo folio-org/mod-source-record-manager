@@ -74,6 +74,8 @@ import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
@@ -425,12 +427,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
-    String matchedId = getValue(record, TAG_999, 's');
-    if (StringUtils.isNotBlank(matchedId)) {
-      if (hasIndicator(record, 's')) {
-        record.setMatchedId(matchedId);
-        record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
-      }
+    String matchedId = getValue(record, TAG_999, SUBFIELD_S);
+    if (StringUtils.isNotBlank(matchedId) && hasIndicator(record, SUBFIELD_S)) {
+      record.setMatchedId(matchedId);
+      record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
     }
 
     var recordType = record.getRecordType();
@@ -442,14 +442,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void postProcessMarcBibRecord(Record record) {
-    String instanceId = getValue(record, TAG_999, 'i');
-    if (isNotBlank(instanceId)) {
-      if (hasIndicator(record, 'i')) {
-        record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
-        String instanceHrid = getControlFieldValue(record, TAG_001);
-        if (isNotBlank(instanceHrid)) {
-          record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
-        }
+    String instanceId = getValue(record, TAG_999, SUBFIELD_I);
+    if (isNotBlank(instanceId) && hasIndicator(record, SUBFIELD_I)) {
+      record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+      String instanceHrid = getControlFieldValue(record, TAG_001);
+      if (isNotBlank(instanceHrid)) {
+        record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
       }
     }
   }
@@ -490,13 +488,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
         }
       } else if (MARC_AUTHORITY.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
           String inventoryId = UUID.randomUUID().toString();
-          addFieldToMarcRecord(record, TAG_999, 'i', inventoryId);
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
           var hrid = getControlFieldValue(record, TAG_001).trim();
           record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
         }
