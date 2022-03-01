@@ -76,6 +76,7 @@ import org.folio.services.parsers.RecordParserBuilder;
 
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
@@ -271,9 +272,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
-                                                          RecordsMetadata.ContentType recordContentType,
-                                                          JobExecution jobExecution,
-                                                          String sourceChunkId) {
+                                                         RecordsMetadata.ContentType recordContentType,
+                                                         JobExecution jobExecution,
+                                                         String sourceChunkId) {
     var parser = RecordParserBuilder.buildParser(recordContentType);
 
     return rawRecords.stream()
@@ -426,8 +427,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
     String matchedId = getValue(record, TAG_999, 's');
     if (StringUtils.isNotBlank(matchedId)) {
-      record.setMatchedId(matchedId);
-      record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+      if (hasIndicator(record, 's')) {
+        record.setMatchedId(matchedId);
+        record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
+      }
     }
 
     var recordType = record.getRecordType();
@@ -441,10 +444,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void postProcessMarcBibRecord(Record record) {
     String instanceId = getValue(record, TAG_999, 'i');
     if (isNotBlank(instanceId)) {
-      record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
-      String instanceHrid = getControlFieldValue(record, TAG_001);
-      if (isNotBlank(instanceHrid)) {
-        record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+      if (hasIndicator(record, 'i')) {
+        record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
+        String instanceHrid = getControlFieldValue(record, TAG_001);
+        if (isNotBlank(instanceHrid)) {
+          record.getExternalIdsHolder().setInstanceHrid(instanceHrid);
+        }
       }
     }
   }
