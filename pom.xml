@@ -19,7 +19,7 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>34.0.1-SNAPSHOT</raml-module-builder.version>
+    <raml-module-builder.version>34.0.1-srm-1-SNAPSHOT</raml-module-builder.version>
     <vertx.version>4.2.5</vertx.version>
     <junit.version>4.13.2</junit.version>
     <rest-assured.version>4.3.1</rest-assured.version>
