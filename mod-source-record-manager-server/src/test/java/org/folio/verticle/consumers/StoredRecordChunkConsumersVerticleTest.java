@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -112,6 +113,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
+  @Ignore
   public void shouldPublishCoupleOfSuccessEventsAndCoupleOfDiErrorEvents() throws InterruptedException {
     String correctContent = "{\"leader\":\"00116nam  22000731a 4700\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     String wrongContent = "{\"leader\": \"13113c7m a2200553Ii 4800\"}";
