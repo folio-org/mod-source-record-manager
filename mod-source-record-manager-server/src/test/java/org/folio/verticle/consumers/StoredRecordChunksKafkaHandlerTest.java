@@ -49,6 +49,7 @@ import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
 

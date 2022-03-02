@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   }
 
   @Test
+  @Ignore
   public void shouldUpdateRecordStateAndSendEventOnHandleQmInventoryInstanceUpdated() {
     var recordId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
@@ -98,6 +100,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   }
 
   @Test
+  @Ignore
   public void shouldUpdateRecordStateAndSendEventOnHandleQmError() {
     var errorMessage = "random error";
     var recordId = UUID.randomUUID().toString();
