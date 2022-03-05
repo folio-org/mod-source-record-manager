@@ -35,6 +35,7 @@
 * [MODSOURMAN-682](https://issues.folio.org/browse/MODSOURMAN-682) Consume Authority log event
 * [MODSOURMAN-699](https://issues.folio.org/browse/MODSOURMAN-699) Fix Can`t map 'RECORD' or/and 'MARC_BIBLIOGRAPHIC' statements from logs
 * [MODSOURMAN-714](https://issues.folio.org/browse/MODSOURMAN-714) Legacy 999 (non-ff) fields cause data import failure
+* [MODSOURMAN-719](https://issues.folio.org/browse/MODSOURMAN-719) The 001 is copied to the 035 when the record is updated even though it is unnecessary
 
 ## 2022-02-24 v3.2.9
 * [MODSOURMAN-706](https://issues.folio.org/browse/MODSOURMAN-706) Error loading MappingParametersSnapshot
