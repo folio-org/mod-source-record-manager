@@ -4,6 +4,7 @@ import org.folio.rest.jaxrs.model.Record;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFieldToMarcRecord;
@@ -22,10 +23,13 @@ public class HrIdFieldServiceImpl implements HrIdFieldService {
   @Override
   public void move001valueTo035Field(List<Record> records) {
     records.stream().parallel().forEach(record -> {
-      String valueFrom001 = getValue(record, TAG_001, ' ');
-      String valueFor035 = mergeFieldsFor035(getValue(record, TAG_003, ' '), valueFrom001);
-      if (valueFrom001 != null && !isFieldExist(record, TAG_035, SUBFIELD_FOR_035, valueFor035)) {
-        addDataFieldToMarcRecord(record, TAG_035, INDICATOR_FOR_035, INDICATOR_FOR_035, SUBFIELD_FOR_035, valueFor035);
+      String valueFrom035 = getValue(record, TAG_035, SUBFIELD_FOR_035);
+      if (Objects.isNull(valueFrom035)) {
+        String valueFrom001 = getValue(record, TAG_001, ' ');
+        String valueFor035 = mergeFieldsFor035(getValue(record, TAG_003, ' '), valueFrom001);
+        if (valueFrom001 != null && !isFieldExist(record, TAG_035, SUBFIELD_FOR_035, valueFor035)) {
+          addDataFieldToMarcRecord(record, TAG_035, INDICATOR_FOR_035, INDICATOR_FOR_035, SUBFIELD_FOR_035, valueFor035);
+        }
       }
     });
   }
