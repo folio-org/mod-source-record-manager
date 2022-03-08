@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -30,11 +29,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public final class AdditionalFieldsUtil {
 
   public static final String TAG_999 = "999";
-  public static final char INDICATOR = 'f';
-  public static final char SUBFIELD_I = 'i';
-  public static final char SUBFIELD_S = 's';
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final char INDICATOR = 'f';
 
   private AdditionalFieldsUtil() {
   }
@@ -80,7 +77,7 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
+      LOGGER.error("Failed to add additional subfield {} for field {} to record {}", e, subfield, field, record.getId());
     }
     return result;
   }
@@ -113,7 +110,7 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional controlled field {} to record {}", field, record.getId(), e);
+      LOGGER.error("Failed to add additional controlled field {) to record {}", e, field, record.getId());
     }
     return result;
   }
@@ -147,7 +144,7 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional data field {} to record {}", tag, record.getId(), e);
+      LOGGER.error("Failed to add additional data field {) to record {}", e, tag, record.getId());
     }
     return result;
   }
@@ -286,24 +283,13 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to remove controlled field {} from record {}", field, record.getId(), e);
+      LOGGER.error("Failed to remove controlled field {) from record {}", e, field, record.getId());
     }
     return result;
   }
 
   private static MarcReader buildMarcReader(Record record) {
     return new MarcJsonReader(new ByteArrayInputStream(record.getParsedRecord().getContent().toString().getBytes(StandardCharsets.UTF_8)));
-  }
-
-  public static boolean hasIndicator(Record record, char subfield) {
-    MarcReader reader = buildMarcReader(record);
-    if (reader.hasNext()) {
-      org.marc4j.marc.Record marcRecord = reader.next();
-      VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(TAG_999), INDICATOR, INDICATOR);
-      return Objects.nonNull(variableField)
-        && Objects.nonNull(((DataField) variableField).getSubfield(subfield));
-    }
-    return false;
   }
 
   private static VariableField getSingleFieldByIndicators(List<VariableField> list, char ind1, char ind2) {

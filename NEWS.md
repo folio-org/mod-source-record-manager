@@ -34,7 +34,6 @@
 * [MODSOURMAN-676](https://issues.folio.org/browse/MODSOURMAN-676) Provide Instance UUID for populating Inventory hotlinks for holdings/items
 * [MODSOURMAN-682](https://issues.folio.org/browse/MODSOURMAN-682) Consume Authority log event
 * [MODSOURMAN-699](https://issues.folio.org/browse/MODSOURMAN-699) Fix Can`t map 'RECORD' or/and 'MARC_BIBLIOGRAPHIC' statements from logs
-* [MODSOURMAN-714](https://issues.folio.org/browse/MODSOURMAN-714) Legacy 999 (non-ff) fields cause data import failure
 
 ## 2021-10-xx v3.2.3-SNAPSHOT
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
