@@ -21,7 +21,10 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
@@ -184,7 +187,6 @@ public class JobMonitoringServiceImplTest extends AbstractRestTest {
   }
 
   @Test
-  @Ignore
   public void shouldFindAllInactiveJobMonitors(TestContext context) {
     Async async = context.async();
 
