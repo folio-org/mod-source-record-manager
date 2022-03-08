@@ -202,6 +202,11 @@
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS instance_id text; ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS holdings_id text;",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]
 }

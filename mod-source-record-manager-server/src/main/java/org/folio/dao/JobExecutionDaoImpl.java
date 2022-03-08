@@ -46,6 +46,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.INSERT_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_DATA_TYPE_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_FIRST_NAME_FIELD;
@@ -226,7 +227,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       nonNull(jobExecution.getJobProfileInfo()) && nonNull(jobExecution.getJobProfileInfo().getDataType())
         ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
       jobExecution.getJobProfileSnapshotWrapper() == null
-        ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()));
+        ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()),
+      jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden());
   }
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
@@ -314,6 +316,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       return new JobProfileInfo()
         .withId(profileId.toString())
         .withName(row.getString(JOB_PROFILE_NAME_FIELD))
+        .withHidden(row.getBoolean(JOB_PROFILE_HIDDEN_FIELD))
         .withDataType(row.getString(JOB_PROFILE_DATA_TYPE_FIELD) == null
           ? null : JobProfileInfo.DataType.fromValue(row.getString(JOB_PROFILE_DATA_TYPE_FIELD)));
     }
