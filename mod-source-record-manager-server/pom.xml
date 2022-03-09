@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.folio</groupId>
     <artifactId>mod-source-record-manager</artifactId>
-    <version>3.3.0-SNAPSHOT</version>
+    <version>3.4.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -14,8 +14,6 @@
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
-    <jackson.version>2.13.0</jackson.version>
-    <jackson-databind.version>2.13.0</jackson-databind.version>
     <lombok.version>1.18.20</lombok.version>
     <testcontainers.version>1.15.3</testcontainers.version>
     <kafkaclients.version>3.1.0</kafkaclients.version>
@@ -158,22 +156,18 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-jaxb-annotations</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -216,17 +210,17 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-kafka-wrapper</artifactId>
-      <version>2.5.0-SNAPSHOT</version>
+      <version>2.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-data-import-converter-storage-client</artifactId>
-      <version>1.13.0-SNAPSHOT</version>
+      <version>1.14.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>3.3.0-SNAPSHOT</version>
+      <version>3.3.0</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>

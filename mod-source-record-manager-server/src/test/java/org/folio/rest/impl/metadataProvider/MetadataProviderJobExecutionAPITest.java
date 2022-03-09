@@ -156,6 +156,42 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldNotReturnHiddenInCollection() {
+    int numberOfFiles = 5;
+    int expectedNotHiddenNumber = 2;
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(numberOfFiles).getJobExecutions();
+    List<JobExecution> children = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+
+    for (int i = 0; i < children.size() - expectedNotHiddenNumber; i++) {
+      var jobExecution = children.get(i);
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile")
+        .withHidden(true));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    var jobExecutionDtoCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("statusNot", Status.DISCARDED)
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    assertThat(jobExecutionDtoCollection.getTotalRecords(), is(expectedNotHiddenNumber));
+  }
+
+  @Test
   public void shouldReturnSortedJobExecutionsOnGetWhenSortByIsSpecified() {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
 

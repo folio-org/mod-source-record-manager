@@ -8,6 +8,7 @@ public final class JobExecutionDBConstants {
   public static final String SUBORDINATION_TYPE_FIELD = "subordination_type";
   public static final String JOB_PROFILE_ID_FIELD = "job_profile_id";
   public static final String JOB_PROFILE_NAME_FIELD = "job_profile_name";
+  public static final String JOB_PROFILE_HIDDEN_FIELD = "job_profile_hidden";
   public static final String JOB_PROFILE_DATA_TYPE_FIELD = "job_profile_data_type";
   public static final String PROFILE_SNAPSHOT_WRAPPER_FIELD = "job_profile_snapshot_wrapper";
   public static final String SOURCE_PATH_FIELD = "source_path";
@@ -31,8 +32,9 @@ public final class JobExecutionDBConstants {
   public static final String INSERT_SQL =
     "INSERT INTO %s.%s (id, hrid, parent_job_id, subordination_type, source_path, file_name, " +
     "progress_current, progress_total, started_date, completed_date, status, ui_status, error_status, job_user_first_name, " +
-    "job_user_last_name, user_id, job_profile_id, job_profile_name, job_profile_data_type, job_profile_snapshot_wrapper) " +
-    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)";
+    "job_user_last_name, user_id, job_profile_id, job_profile_name, job_profile_data_type, job_profile_snapshot_wrapper, "
+      + "job_profile_hidden) " +
+    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)";
 
   public static final String UPDATE_SQL =
     "UPDATE %s " +
@@ -40,7 +42,7 @@ public final class JobExecutionDBConstants {
     "progress_current = $7, progress_total = $8, started_date = $9, completed_date = $10, " +
     "status = $11, ui_status = $12, error_status = $13, job_user_first_name = $14, job_user_last_name = $15, " +
     "user_id = $16, job_profile_id = $17, job_profile_name = $18, job_profile_data_type = $19, " +
-    "job_profile_snapshot_wrapper = $20 " +
+    "job_profile_snapshot_wrapper = $20, job_profile_hidden = $21" +
     "WHERE id = $1";
 
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =

@@ -74,8 +74,11 @@ import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
@@ -268,12 +271,39 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
-    var parser = RecordParserBuilder.buildParser(recordContentType);
     var counter = new MutableInt();
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
-    var records = rawRecords.stream()
+    var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, sourceChunkId).stream()
+      .peek(stat -> { //NOSONAR
+        if (counter.incrementAndGet() % partition == 0) {
+          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
+          jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
+            .compose(optional -> optional
+              .map(sourceChunk -> jobExecutionSourceChunkDao
+                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
+              .orElseThrow(() -> new NotFoundException(format(
+                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
+                sourceChunkId))));
+        }
+      }).collect(Collectors.toList());
+
+    Promise<List<Record>> promise = Promise.promise();
+
+    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
+    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
+
+    return promise.future();
+  }
+
+  public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
+                                                         RecordsMetadata.ContentType recordContentType,
+                                                         JobExecution jobExecution,
+                                                         String sourceChunkId) {
+    var parser = RecordParserBuilder.buildParser(recordContentType);
+
+    return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
         var recordId = UUID.randomUUID().toString();
@@ -297,26 +327,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           }
         }
         return record;
-      })
-      .peek(stat -> { //NOSONAR
-        if (counter.incrementAndGet() % partition == 0) {
-          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
-          jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
-            .compose(optional -> optional
-              .map(sourceChunk -> jobExecutionSourceChunkDao
-                .update(sourceChunk.withProcessedAmount(sourceChunk.getProcessedAmount() + counter.intValue()), tenantId))
-              .orElseThrow(() -> new NotFoundException(format(
-                "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
-                sourceChunkId))));
-        }
       }).collect(Collectors.toList());
-
-    Promise<List<Record>> promise = Promise.promise();
-
-    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
-    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
-
-    return promise.future();
   }
 
   private List<Future> executeInBatches(List<Record> recordList,
@@ -440,8 +451,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
-    String matchedId = getValue(record, TAG_999, 's');
-    if (StringUtils.isNotBlank(matchedId)) {
+    String matchedId = getValue(record, TAG_999, SUBFIELD_S);
+    if (StringUtils.isNotBlank(matchedId) && hasIndicator(record, SUBFIELD_S)) {
       record.setMatchedId(matchedId);
       record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
     }
@@ -455,8 +466,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void postProcessMarcBibRecord(Record record) {
-    String instanceId = getValue(record, TAG_999, 'i');
-    if (isNotBlank(instanceId)) {
+    String instanceId = getValue(record, TAG_999, SUBFIELD_I);
+    if (isNotBlank(instanceId) && hasIndicator(record, SUBFIELD_I)) {
       record.setExternalIdsHolder(new ExternalIdsHolder().withInstanceId(instanceId));
       String instanceHrid = getControlFieldValue(record, TAG_001);
       if (isNotBlank(instanceHrid)) {
@@ -501,13 +512,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
         }
       } else if (MARC_AUTHORITY.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, 's', record.getMatchedId());
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
           String inventoryId = UUID.randomUUID().toString();
-          addFieldToMarcRecord(record, TAG_999, 'i', inventoryId);
+          addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
           var hrid = getControlFieldValue(record, TAG_001).trim();
           record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
         }

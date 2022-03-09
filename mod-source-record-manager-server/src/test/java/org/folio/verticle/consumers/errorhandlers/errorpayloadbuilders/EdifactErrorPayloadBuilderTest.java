@@ -1,4 +1,4 @@
-package org.folio.verticle.consumers.errorpayloadbuilders;
+package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

@@ -1,4 +1,8 @@
-## 2021-xx-xx v3.3.0-SNAPSHOT
+## 2022-xx-xx v3.4.0-SNAPSHOT
+* [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
+* [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
+
+## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks
 * [MODSOURMAN-695](https://issues.folio.org/browse/MODSOURMAN-695) Upgrade RMB and Vertx versions that contain fixes for the connection pool
 * [MODINVOICE-356](https://issues.folio.org/browse/MODINVOICE-356) Fix progress bar stuck behaviour after the RecordTooLargeException
@@ -33,13 +37,36 @@
 * [MODSOURMAN-675](https://issues.folio.org/browse/MODSOURMAN-675) Data Import handles repeated 020 $a:s in an unexpected manner when creating Instance Identifiers
 * [MODSOURMAN-676](https://issues.folio.org/browse/MODSOURMAN-676) Provide Instance UUID for populating Inventory hotlinks for holdings/items
 * [MODSOURMAN-682](https://issues.folio.org/browse/MODSOURMAN-682) Consume Authority log event
-* [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
+* [MODSOURMAN-699](https://issues.folio.org/browse/MODSOURMAN-699) Fix Can`t map 'RECORD' or/and 'MARC_BIBLIOGRAPHIC' statements from logs
+* [MODSOURMAN-714](https://issues.folio.org/browse/MODSOURMAN-714) Legacy 999 (non-ff) fields cause data import failure
+* [MODSOURMAN-719](https://issues.folio.org/browse/MODSOURMAN-719) The 001 is copied to the 035 when the record is updated even though it is unnecessary
 
-## 2021-10-xx v3.2.3-SNAPSHOT
+## 2022-02-24 v3.2.9
+* [MODSOURMAN-706](https://issues.folio.org/browse/MODSOURMAN-706) Error loading MappingParametersSnapshot
+
+## 2022-02-09 v3.2.8
+* [MODSOURMAN-688](https://issues.folio.org/browse/MODSOURMAN-688) Update folio-kafka-wrapper to v2.4.3 to allow adding ENV prefix to events_cache Kafka topic [KAFKAWRAP-19](https://issues.folio.org/browse/KAFKAWRAP-20)
+
+## 2021-12-15 v3.2.7
+* [MODSOURMAN-647](https://issues.folio.org/browse/MODSOURMAN-647) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
+* [MODSOURMAN-646](https://issues.folio.org/browse/MODSOURMAN-646) Log4j vulnerability correction
+
+## 2021-12-03 v3.2.6
+* [MODSOURMAN-621](https://issues.folio.org/browse/MODSOURMAN-621) Fix saving of default mapping rules
+
+## 2021-11-12 v3.2.5
+* [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity non match
+
+##2021-11-10 v3.2.4
+* [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
+
+## 2021-10-29 v3.2.3
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
+* [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b)
+* Updated data-import-processing-core to v3.2.2
 
 ## 2021-10-19 v3.2.2
-* [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Kiwi bugfest cannot import a large file; adjust mapping metadata snapshots creation
+* [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Adjust mapping metadata snapshots creation
 
 ## 2021-10-13 v3.2.1
 * [MODSOURMAN-583](https://issues.folio.org/browse/MODSOURMAN-583) Schema name can't replace in snippet (schema.json)
