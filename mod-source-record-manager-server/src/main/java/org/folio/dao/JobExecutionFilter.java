@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
@@ -126,12 +127,16 @@ public class JobExecutionFilter {
     if (completedBefore != null) {
       addCondition(conditionBuilder, buildLessThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedBefore)));
     }
-
+    addCondition(conditionBuilder, buildNotBoolCondition(JOB_PROFILE_HIDDEN_FIELD));
     return conditionBuilder.toString();
   }
 
   private void addCondition(StringBuilder conditionBuilder, String condition) {
     conditionBuilder.append(" AND ").append(condition);
+  }
+
+  private String buildNotBoolCondition(String columnName) {
+    return String.format("NOT %s", columnName);
   }
 
   private String buildInCondition(String columnName, List<String> values) {

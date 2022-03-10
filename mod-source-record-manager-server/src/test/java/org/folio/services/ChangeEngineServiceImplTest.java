@@ -166,6 +166,34 @@ public class ChangeEngineServiceImplTest {
   }
 
   @Test
+  public void shouldReturnMarcAuthorityRecordWhenProfileHasDeleteAction() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
+        .withContent(new JsonObject(Json.encode(new ActionProfile()
+          .withAction(ActionProfile.Action.DELETE)
+          .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY))).getMap())
+      ))
+    );
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.AUTHORITY);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+      .thenReturn(Future.succeededFuture(true));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    var actual = serviceFuture.result();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.get(0).getErrorRecord(), nullValue());
+  }
+
+  @Test
   public void shouldNotReturnMarcHoldingsRecordWhen004FieldIsMissing() {
     RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
     JobExecution jobExecution = getTestJobExecution();
