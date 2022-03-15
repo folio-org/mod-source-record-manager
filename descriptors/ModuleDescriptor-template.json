@@ -584,6 +584,14 @@
       {
         "name": "KAFKA_PORT",
         "value": "9092"
+      },
+      {
+        "name": "DB_RECONNECTATTEMPTS",
+        "value": "3"
+      },
+      {
+        "name": "DB_RECONNECTINTERVAL",
+        "value": "1000"
       }
     ]
   }
