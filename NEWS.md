@@ -1,6 +1,7 @@
 ## 2022-xx-xx v3.4.0-SNAPSHOT
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
 * [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
+* [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
 
 ## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
@@ -44,6 +45,9 @@ public class InvoiceUtil {
   private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s and/or %s data";
   private static final String INVOICE_MAPPING_EXCEPTION_MSG = "Can`t map invoice: ";
   private static final String INVOICE_LINE_MAPPING_EXCEPTION_MSG = "Can`t map invoice line: ";
+
+  private static final String NO_INVOICE_TITLE_MESSAGE = "No content";
+  private static final String NO_VENDOR_INVOICE_NUMBER = "0";
 
   public static LinkedList<JournalRecord> buildJournalRecordByEvent(DataImportEventPayload event)
     throws JournalRecordMapperException, JsonProcessingException {
@@ -95,7 +99,9 @@ public class InvoiceUtil {
         .withError(eventPayload.getEventType().equals(DI_ERROR.value()) ?
           eventPayload.getContext().get(ERROR_KEY) : "");
 
-      return Map.of(FIELD_INVOICE_NO, invoiceJson.getString(FIELD_VENDOR_INVOICE_NO),
+      return Map.of(
+        FIELD_INVOICE_NO, StringUtils.isNotBlank(invoiceJson.getString(FIELD_VENDOR_INVOICE_NO)) ?
+          invoiceJson.getString(FIELD_VENDOR_INVOICE_NO) : NO_VENDOR_INVOICE_NUMBER,
         FIELD_SOURCE_ID, edifactRecord.getId(),
         FIELD_INVOICE_ORDER, invoiceOrder,
         JOURNAL_RECORD, journalRecord);
@@ -131,7 +137,7 @@ public class InvoiceUtil {
           .withEntityHrId(invoiceNo + "-" + invoiceLineNumber)
           .withSourceRecordOrder((invoiceOrder + 1) * 10 + Integer.parseInt(invoiceLineNumber))
           .withEntityType(INVOICE)
-          .withTitle(description)
+          .withTitle(StringUtils.isNotBlank(description) ? description : NO_INVOICE_TITLE_MESSAGE)
           .withActionType(ActionType.CREATE)
           .withActionDate(new Date())
           .withActionStatus(isInvoiceIncorrect || (errorInvoiceLinesMap.containsKey(invoiceLineNumber)) ?
