@@ -1829,7 +1829,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(5), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(6), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
@@ -1873,11 +1873,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
