@@ -33,7 +33,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
   public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
-  private static final String NO_MARC_TITLE_MESSAGE = "No content";
+  private static final String NO_TITLE_MESSAGE = "No content";
 
   private static final Map<JournalRecord.EntityType, BiFunction<ParsedRecord, JsonObject, String>> titleExtractorMap =
     Map.of(
@@ -122,12 +122,10 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
-            .orElse(Future.succeededFuture(journalRecord)));
+            .orElse(Future.succeededFuture(journalRecord.withTitle(NO_TITLE_MESSAGE))));
       }
     }
 
-    journalRecord.setTitle(StringUtils.defaultIfEmpty(journalRecord.getTitle(), NO_MARC_TITLE_MESSAGE));
-
-    return Future.succeededFuture(journalRecord);
+    return Future.succeededFuture(journalRecord.withTitle(StringUtils.defaultIfEmpty(journalRecord.getTitle(), NO_TITLE_MESSAGE)));
   }
 }
