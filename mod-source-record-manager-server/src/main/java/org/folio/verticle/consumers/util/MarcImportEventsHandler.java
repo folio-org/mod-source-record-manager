@@ -106,6 +106,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
     var entityType = journalRecord.getEntityType();
+    journalRecord.setTitle(NO_TITLE_MESSAGE);
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
       String recordAsString = eventPayload.getContext().get(entityType.value());
@@ -121,11 +122,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
-            .map(title -> Future.succeededFuture(journalRecord.withTitle(StringUtils.defaultIfEmpty(journalRecord.getTitle(), NO_TITLE_MESSAGE))))
-            .orElse(Future.succeededFuture(journalRecord)));
+            .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
+            .orElseGet(() -> Future.succeededFuture(journalRecord)));
       }
     }
 
-    return Future.succeededFuture(journalRecord.withTitle(NO_TITLE_MESSAGE));
+    return Future.succeededFuture(journalRecord);
   }
 }
