@@ -500,7 +500,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void checkLeaderLine(MarcRecordType marcRecordType, ParsedResult recordParsedResult, JobExecution jobExecution, String recordId, String chunkId) {
     String fileName = StringUtils.defaultIfEmpty(jobExecution.getFileName(), "No file name");
-    JsonObject parsedRecord = recordParsedResult.getParsedRecord();
+    JsonObject parsedRecord = Objects.requireNonNullElse(recordParsedResult.getParsedRecord(), new JsonObject());
     if(parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
       recordParsedResult.setHasError(true);
       recordParsedResult.setErrors(new JsonObject()
