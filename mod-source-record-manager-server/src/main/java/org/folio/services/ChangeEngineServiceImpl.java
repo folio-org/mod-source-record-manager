@@ -489,16 +489,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId,
                                      String chunkId) {
-    if (DataType.MARC.equals(jobExecution.getJobProfileInfo().getDataType())) {
+    if (Objects.equals(jobExecution.getJobProfileInfo().getDataType(), DataType.MARC)) {
       MarcRecordType marcRecordType = marcRecordAnalyzer.process(recordParsedResult.getParsedRecord());
-      LOGGER.info(
-        "Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
-        recordId, marcRecordType, jobExecution.getId(), chunkId,
-        jobExecution.getFileName() == null ? "No file name" : jobExecution.getFileName());
+      checkLeaderLine(marcRecordType, recordParsedResult, jobExecution, recordId, chunkId);
       return MarcRecordType.NA == marcRecordType ? null : RecordType.valueOf(MARC_FORMAT + marcRecordType.name());
     }
 
     return RecordType.valueOf(jobExecution.getJobProfileInfo().getDataType().value());
+  }
+
+  private void checkLeaderLine(MarcRecordType marcRecordType, ParsedResult recordParsedResult, JobExecution jobExecution, String recordId, String chunkId) {
+    String fileName = StringUtils.defaultIfEmpty(jobExecution.getFileName(), "No file name");
+    JsonObject parsedRecord = recordParsedResult.getParsedRecord();
+    if(parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
+      recordParsedResult.setHasError(true);
+      recordParsedResult.setErrors(new JsonObject()
+        .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
+        .put("error", parsedRecord));
+      LOGGER.warn("Marc record analyzer found problem on leader line in marc file for record with id: {}, for jobExecutionId: {} from chunk with id: {} from file: {}",
+        recordId, jobExecution.getId(), chunkId, fileName);
+    } else {
+      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
+        recordId, marcRecordType, jobExecution.getId(), chunkId, fileName);
+    }
   }
 
   /**
