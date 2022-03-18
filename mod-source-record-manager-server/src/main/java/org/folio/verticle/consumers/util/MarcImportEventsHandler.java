@@ -121,11 +121,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
-            .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
-            .orElse(Future.succeededFuture(journalRecord.withTitle(NO_TITLE_MESSAGE))));
+            .map(title -> Future.succeededFuture(journalRecord.withTitle(StringUtils.defaultIfEmpty(journalRecord.getTitle(), NO_TITLE_MESSAGE))))
+            .orElse(Future.succeededFuture(journalRecord)));
       }
     }
 
-    return Future.succeededFuture(journalRecord.withTitle(StringUtils.defaultIfEmpty(journalRecord.getTitle(), NO_TITLE_MESSAGE)));
+    return Future.succeededFuture(journalRecord.withTitle(NO_TITLE_MESSAGE));
   }
 }
