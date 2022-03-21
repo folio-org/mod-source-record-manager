@@ -33,6 +33,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
   public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
+  private static final String NO_TITLE_MESSAGE = "No content";
+
   private static final Map<JournalRecord.EntityType, BiFunction<ParsedRecord, JsonObject, String>> titleExtractorMap =
     Map.of(
       MARC_BIBLIOGRAPHIC, marcBibTitleExtractor(),
@@ -79,7 +81,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   public static Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
     return mappingRules.getMap().keySet().stream()
       .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
-        .map(o -> (JsonObject) o)
+        .map(JsonObject.class::cast)
         .anyMatch(fieldMappingRule -> INSTANCE_TITLE_FIELD_PATH.equals(fieldMappingRule.getString("target"))))
       .findFirst();
   }
@@ -104,6 +106,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
     var entityType = journalRecord.getEntityType();
+    journalRecord.setTitle(NO_TITLE_MESSAGE);
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
       String recordAsString = eventPayload.getContext().get(entityType.value());
@@ -120,7 +123,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
-            .orElse(Future.succeededFuture(journalRecord)));
+            .orElseGet(() -> Future.succeededFuture(journalRecord)));
       }
     }
 
