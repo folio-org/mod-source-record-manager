@@ -3,6 +3,7 @@
 * [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
 * [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
 * [MODSOURMAN-724](https://issues.folio.org/browse/MODSOURMAN-724) SRM does not process and save error records
+* [MODSOURMAN-727](https://issues.folio.org/browse/MODSOURMAN-727) Fix mapping for Authority 010 tag
 * [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
 
 ## 2022-03-03 v3.3.0

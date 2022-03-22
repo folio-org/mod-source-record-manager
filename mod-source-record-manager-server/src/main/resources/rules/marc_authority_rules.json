@@ -46,11 +46,11 @@
   ],
   "010": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
+          "description": "Identifier Type for LCCN",
           "subfield": [
             "a",
             "z"
@@ -71,7 +71,6 @@
         {
           "target": "identifiers.value",
           "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "z"
