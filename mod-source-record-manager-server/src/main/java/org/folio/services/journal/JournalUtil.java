@@ -1,6 +1,7 @@
 package org.folio.services.journal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import io.vertx.core.json.JsonObject;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
@@ -10,6 +11,7 @@ import org.folio.rest.jaxrs.model.Record;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
@@ -63,7 +65,16 @@ public class JournalUtil {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
 
       String recordAsString = extractRecord(eventPayloadContext);
-      Record record = new ObjectMapper().readValue(recordAsString, Record.class);
+      Record record;
+      if (Strings.isNullOrEmpty(recordAsString)) {
+        // create stub record since none was introduced
+        record = new Record()
+          .withId(UUID.randomUUID().toString())
+          .withSnapshotId(eventPayload.getJobExecutionId())
+          .withOrder(0);
+      } else {
+        record = new ObjectMapper().readValue(recordAsString, Record.class);
+      }
       String entityAsString = eventPayloadContext.get(entityType.value());
 
       JournalRecord journalRecord = new JournalRecord()

@@ -13,13 +13,16 @@ import org.junit.runner.RunWith;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalUtilTest {
@@ -298,6 +301,31 @@ public class JournalUtilTest {
     Assert.assertEquals(itemHrid, journalRecord.getEntityHrId());
     Assert.assertEquals(instanceId, journalRecord.getInstanceId());
     Assert.assertEquals(holdingsId, journalRecord.getHoldingsId());
+    Assert.assertEquals(CREATE, journalRecord.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
+    Assert.assertNotNull(journalRecord.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordWhenNoRecord() throws JournalRecordMapperException {
+    String testError = "Something Happened";
+    String testJobExecutionId = UUID.randomUUID().toString();
+    HashMap<String, String> context = new HashMap<>();
+    context.put(ERROR_KEY, testError);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(testJobExecutionId)
+      .withContext(context);
+
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      CREATE, JournalRecord.EntityType.EDIFACT, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(0, journalRecord.getSourceRecordOrder().intValue());
+    Assert.assertEquals(testError, journalRecord.getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.getJobExecutionId());
+    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.getEntityType());
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());
