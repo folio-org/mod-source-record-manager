@@ -1,8 +1,8 @@
 package org.folio.services.journal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -66,7 +66,7 @@ public class JournalUtil {
 
       String recordAsString = extractRecord(eventPayloadContext);
       Record record;
-      if (Strings.isNullOrEmpty(recordAsString)) {
+      if (StringUtils.isBlank(recordAsString)) {
         // create stub record since none was introduced
         record = new Record()
           .withId(UUID.randomUUID().toString())
