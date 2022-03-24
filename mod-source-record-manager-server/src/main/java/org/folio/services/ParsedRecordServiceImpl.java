@@ -144,7 +144,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
     eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
-    eventPayload.put("RECORD_ID", parsedRecordDto.getId());
+    eventPayload.put("RECORD_ID", parsedRecordDto.getParsedRecord().getId());
     eventPayload.put("RECORD_TYPE", parsedRecordDto.getRecordType().value());
     return Json.encode(eventPayload);
   }
