@@ -106,9 +106,9 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
     var entityType = journalRecord.getEntityType();
-    journalRecord.setTitle(NO_TITLE_MESSAGE);
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
+      journalRecord.setTitle(NO_TITLE_MESSAGE);
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
         var parsedRecord = Json.decodeValue(recordAsString, Record.class).getParsedRecord();
