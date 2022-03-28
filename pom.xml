@@ -19,8 +19,8 @@
   </modules>
 
   <properties>
-    <raml-module-builder.version>33.2.6</raml-module-builder.version>
-    <vertx.version>4.2.5</vertx.version>
+    <raml-module-builder.version>33.2.7</raml-module-builder.version>
+    <vertx.version>4.2.6</vertx.version>
     <junit.version>4.13.2</junit.version>
     <rest-assured.version>4.3.1</rest-assured.version>
     <wiremock.version>2.27.2</wiremock.version>
@@ -169,6 +169,25 @@
       <url>https://repository.folio.org/repository/maven-folio</url>
     </repository>
   </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-bom</artifactId>
+        <version>2.17.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-stack-depchain</artifactId>
+        <version>${vertx.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <distributionManagement>
     <repository>

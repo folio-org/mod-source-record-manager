@@ -46,11 +46,11 @@
   ],
   "010": [
     {
+      "entityPerRepeatedSubfield": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
+          "description": "Identifier Type for LCCN",
           "subfield": [
             "a",
             "z"
@@ -71,7 +71,6 @@
         {
           "target": "identifiers.value",
           "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "z"
@@ -392,8 +391,7 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
       "rules": []
     }
@@ -431,8 +429,7 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
       "rules": []
     }
@@ -470,8 +467,7 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
       "rules": []
     }
@@ -513,7 +509,6 @@
         "g",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
@@ -532,7 +527,6 @@
         "g",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
@@ -550,7 +544,6 @@
         "a",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
