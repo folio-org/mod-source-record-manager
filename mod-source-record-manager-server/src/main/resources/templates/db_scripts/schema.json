@@ -31,6 +31,7 @@
       "tableName": "job_execution_source_chunks",
       "fromModuleVersion": "mod-source-record-manager-3.1.0",
       "withMetadata": false,
+      "customSnippetPath": "job_execution_source_chunks_table.sql",
       "index": [
         {
           "fieldName": "id",
@@ -42,13 +43,6 @@
         },
         {
           "fieldName": "last",
-          "tOps": "ADD"
-        }
-      ],
-      "foreignKeys": [
-        {
-          "fieldName": "jobExecutionId",
-          "targetTable": "job_executions",
           "tOps": "ADD"
         }
       ]

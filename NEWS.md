@@ -8,6 +8,9 @@
 * [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
 * [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
 
+## 2022-xx-xx v3.3.2-SNAPSHOT
+* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fails to upgrade from mod-source-record-manager-3.3.0-SNAPSHOT.115 to v3.3.0
+
 ## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks
 * [MODSOURMAN-695](https://issues.folio.org/browse/MODSOURMAN-695) Upgrade RMB and Vertx versions that contain fixes for the connection pool
