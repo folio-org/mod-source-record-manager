@@ -1,5 +1,5 @@
-## 2022-xx-xx v3.3.2-SNAPSHOT
-* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fails to upgrade from mod-source-record-manager-3.3.0-SNAPSHOT.115 to v3.3.0
+## 2022-03-29 v3.3.2
+* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fix migration issue during upgrade
 
 ## 2022-03-26 v3.3.1
 * [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
