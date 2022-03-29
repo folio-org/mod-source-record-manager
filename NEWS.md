@@ -1,5 +1,6 @@
 ## 2022-03-29 v3.3.2
 * [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fix migration issue during upgrade
+* [MODSOURMAN-741](https://issues.folio.org/browse/MODSOURMAN-741) Add missed `inventory-storage.holdings-sources.collection.get` permission
 
 ## 2022-03-26 v3.3.1
 * [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT

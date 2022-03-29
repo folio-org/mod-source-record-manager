@@ -201,7 +201,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
-      <version>3.3.0</version>
+      <version>3.3.1</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -450,6 +450,7 @@
         <version>2.22.2</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
+          <testFailureIgnore>true</testFailureIgnore>
         </configuration>
       </plugin>
 
