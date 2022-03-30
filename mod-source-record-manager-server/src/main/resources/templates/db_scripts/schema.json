@@ -174,6 +174,11 @@
     },
     {
       "run": "after",
+      "snippetPath": "unique_mapping_rules.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.3.3"
+    },
+    {
+      "run": "after",
       "snippet": "ALTER TYPE rule_type ADD VALUE IF NOT EXISTS 'MARC_AUTHORITY';",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
     },
@@ -196,11 +201,6 @@
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS instance_id text; ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS holdings_id text;",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
-    },
-    {
-      "run": "after",
-      "snippetPath": "unique_mapping_rules.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.3"
     },
     {
       "run": "after",

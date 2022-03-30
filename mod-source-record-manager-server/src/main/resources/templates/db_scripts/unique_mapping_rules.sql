@@ -5,8 +5,15 @@ DELETE FROM mapping_rules WHERE record_type = 'MARC_BIB' AND id IS DISTINCT FROM
     (SELECT min(id) FROM mapping_rules WHERE record_type = 'MARC_BIB' AND jsonb ? 'mappingRules');
 DELETE FROM mapping_rules WHERE record_type = 'MARC_HOLDING' AND id IS DISTINCT FROM
     (SELECT min(id) FROM mapping_rules WHERE record_type = 'MARC_HOLDING' AND jsonb ? 'mappingRules');
-DELETE FROM mapping_rules WHERE record_type = 'MARC_AUTHORITY' AND id IS DISTINCT FROM
-    (SELECT min(id) FROM mapping_rules WHERE record_type = 'MARC_AUTHORITY' AND jsonb ? 'mappingRules');
+DO $$
+BEGIN
+  BEGIN
+    DELETE FROM mapping_rules WHERE record_type = 'MARC_AUTHORITY' AND id IS DISTINCT FROM
+        (SELECT min(id) FROM mapping_rules WHERE record_type = 'MARC_AUTHORITY' AND jsonb ? 'mappingRules');
+  EXCEPTION
+    WHEN invalid_text_representation THEN NULL;  -- enum MARC_AUTHORITY may not exist yet
+  END;
+END $$;
 
 DO $$
 BEGIN
