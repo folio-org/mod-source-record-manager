@@ -1,3 +1,6 @@
+## 2022-03-30 v3.3.3
+* [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
+
 ## 2022-03-29 v3.3.2
 * [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fix migration issue during upgrade
 * [MODSOURMAN-741](https://issues.folio.org/browse/MODSOURMAN-741) Add missed `inventory-storage.holdings-sources.collection.get` permission
