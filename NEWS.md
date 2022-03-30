@@ -8,6 +8,9 @@
 * [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
 * [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
 
+## 2022-xx-xx v3.3.3-SNAPSHOT
+* [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
+
 ## 2022-xx-xx v3.3.2-SNAPSHOT
 * [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fails to upgrade from mod-source-record-manager-3.3.0-SNAPSHOT.115 to v3.3.0
 
