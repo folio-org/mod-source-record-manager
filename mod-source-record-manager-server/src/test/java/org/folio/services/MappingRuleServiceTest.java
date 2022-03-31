@@ -3,6 +3,8 @@ package org.folio.services;
 import static io.vertx.core.Future.succeededFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,6 +83,46 @@ public class MappingRuleServiceTest {
     future.onComplete(ar -> {
       context.verify(v -> {
         Assert.assertTrue(ar.succeeded());
+      });
+      async.complete();
+    });
+  }
+
+  @Test
+  public void testRestoreDefaultAuthorityRules(TestContext context) {
+    when(mappingRuleDao.get(eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(Optional.of(new JsonObject())));
+    when(mappingRuleDao.update(any(), eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(new JsonObject()));
+    doNothing().when(mappingRuleCache).put(any(), any());
+
+    Async async = context.async();
+    var future = ruleService.restore(Record.RecordType.MARC_AUTHORITY, TEST_TENANT);
+
+    future.onComplete(ar -> {
+      context.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+      });
+      async.complete();
+    });
+  }
+
+  @Test
+  public void testUpdateDefaultAuthorityRules(TestContext context) {
+    when(mappingRuleDao.get(eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(Optional.of(new JsonObject())));
+    when(mappingRuleDao.update(any(), eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(new JsonObject()));
+    doNothing().when(mappingRuleCache).put(any(), any());
+
+    Async async = context.async();
+    var future = ruleService.update(new JsonObject().encode(), Record.RecordType.MARC_AUTHORITY, TEST_TENANT);
+
+    verify(mappingRuleDao, never()).update(any(), eq(Record.RecordType.MARC_AUTHORITY), any());
+
+    future.onComplete(ar -> {
+      context.verify(v -> {
+        Assert.assertFalse(ar.succeeded());
       });
       async.complete();
     });
