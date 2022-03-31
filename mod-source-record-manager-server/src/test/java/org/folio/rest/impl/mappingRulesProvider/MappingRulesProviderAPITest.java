@@ -117,12 +117,6 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
       SERVICE_PATH + MARC_AUTHORITY);
   }
 
-  @Test
-  public void shouldReturnBadRequestWhenTryRestoreAuthorityRules() throws IOException {
-    shouldReturnBadRequestWhenTryToModifiedAuthorityRules(TestUtil.readFileFromPath(DEFAULT_MARC_AUTHORITY_RULES_PATH),
-      SERVICE_PATH + MARC_AUTHORITY + RESTORE);
-  }
-
   private void shouldReturnBadRequestWhenTryToModifiedAuthorityRules(String defaultAuthorityRules, String url) {
     RestAssured.given()
       .spec(spec)
