@@ -141,6 +141,8 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       String errorMessage = "Can't edit MARC Authority default mapping rules";
       LOGGER.error(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
+    } else {
+      promise.complete(null);
     }
   }
 
