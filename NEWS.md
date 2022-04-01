@@ -1,3 +1,6 @@
+## 2022-04-01 v3.3.5
+* [MODSOURMAN-752](https://issues.folio.org/browse/MODSOURMAN-752) Fix PgException while restore mapping rules
+
 ## 2022-04-01 v3.3.4
 * [MODSOURMAN-749](https://issues.folio.org/browse/MODSOURMAN-749) Make it possible to restore default mapping rules for Authority records
 
