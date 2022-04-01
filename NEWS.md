@@ -1,3 +1,6 @@
+## 2022-04-01 v3.3.4
+* [MODSOURMAN-749](https://issues.folio.org/browse/MODSOURMAN-749) Make it possible to restore default mapping rules for Authority records
+
 ## 2022-03-30 v3.3.3
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
 
