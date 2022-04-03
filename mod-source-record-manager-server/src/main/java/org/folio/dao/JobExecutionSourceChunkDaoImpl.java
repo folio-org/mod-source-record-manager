@@ -3,6 +3,8 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 
+import io.vertx.core.json.JsonObject;
+import io.vertx.sqlclient.Tuple;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +14,7 @@ import io.vertx.sqlclient.RowSet;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.ws.rs.NotFoundException;
 
@@ -26,6 +29,8 @@ import org.springframework.stereotype.Repository;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
 import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
+import static java.lang.String.format;
+import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 /**
  * Implementation for the JobExecutionSourceChunkDao, works with PostgresClient to access data.
@@ -37,26 +42,33 @@ import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 @Repository
 public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDao {
 
-  public static final Logger LOGGER = LogManager.getLogger();
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "id";
-  private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
   private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
   private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
+  private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, jobExecutionId) VALUES ($1, $2, $3)";
+  private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE jobExecutionId = $1";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
 
   @Override
   public Future<String> save(JobExecutionSourceChunk jobExecutionChunk, String tenantId) {
-    Promise<String> promise = Promise.promise();
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      pgClientFactory.createInstance(tenantId).save(TABLE_NAME, jobExecutionChunk.getId(), jobExecutionChunk, promise);
+      String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+      Tuple queryParams = Tuple.of(
+        StringUtils.isNotBlank(jobExecutionChunk.getId()) ? jobExecutionChunk.getId() :
+          /* generate UUID for the empty last chunk */ UUID.randomUUID().toString(),
+        JsonObject.mapFrom(jobExecutionChunk),
+        jobExecutionChunk.getJobExecutionId());
+      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Failed to save JobExecutionSourceChunk with id: {}", jobExecutionChunk.getId(), e);
       promise.fail(e);
     }
-    return promise.future();
+    return promise.future().map(jobExecutionChunk.getId());
   }
 
   @Override
@@ -133,7 +145,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       String query = String.format(IS_PROCESSING_COMPLETED_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, promise);
     } catch (Exception e) {
-      LOGGER.error("Error while checking if processing is completed for JobExecution {}", e, jobExecutionId);
+      LOGGER.error("Error while checking if processing is completed for JobExecution {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
@@ -156,8 +168,9 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      Criteria idCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId);
-      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), promise);
+      String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+      Tuple queryParams = Tuple.of(jobExecutionId);
+      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
       promise.fail(e);
