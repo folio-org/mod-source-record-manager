@@ -77,13 +77,13 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0"
+      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId) into completed FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.6"
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0"
+      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.6"
     },
     {
       "run": "after",
@@ -184,6 +184,16 @@
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS instance_id text; ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS holdings_id text;",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; CREATE INDEX job_execution_source_chunks_jobexecutionid_idx ON job_execution_source_chunks USING BTREE (jobExecutionId);",
+      "fromModuleVersion": "mod-source-record-manager-3.3.6"
     }
   ]
 }

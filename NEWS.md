@@ -1,3 +1,6 @@
+## 2022-04-06 v3.3.6
+* [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
+
 ## 2022-04-01 v3.3.5
 * [MODSOURMAN-752](https://issues.folio.org/browse/MODSOURMAN-752) Fix PgException while restore mapping rules
 
@@ -17,8 +20,13 @@
 * [MODSOURMAN-727](https://issues.folio.org/browse/MODSOURMAN-727) Fix mapping for Authority 010 tag
 * [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
 * [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
-* [MODSOURMAN-717](https://issues.folio.org/browse/MODSOURMAN-717) Do not search 4XX $w, $0 ,$1
-* [MODSOURMAN-719](https://issues.folio.org/browse/MODSOURMAN-719) The 001 is copied to the 035 when the record is updated even though it is unnecessary
+* [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
+
+## 2022-xx-xx v3.3.3-SNAPSHOT
+* [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
+
+## 2022-xx-xx v3.3.2-SNAPSHOT
+* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fails to upgrade from mod-source-record-manager-3.3.0-SNAPSHOT.115 to v3.3.0
 
 ## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks
