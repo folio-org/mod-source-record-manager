@@ -53,18 +53,6 @@
       "withMetadata": false
     },
     {
-      "tableName": "job_execution_progress",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0",
-      "withMetadata": false,
-      "foreignKeys": [
-        {
-          "fieldName": "jobExecutionId",
-          "targetTable": "job_executions",
-          "tOps": "ADD"
-        }
-      ]
-    },
-    {
       "tableName": "source_records_state",
       "fromModuleVersion": "mod-source-record-manager-2.4.0",
       "withMetadata": false,
@@ -109,12 +97,12 @@
     },
     {
       "run": "after",
-      "snippet": "DELETE FROM job_execution_progress jep1 USING job_execution_progress jep2 WHERE jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid;",
+      "snippet": "DO $$ BEGIN BEGIN DELETE FROM job_execution_progress jep1 USING job_execution_progress jep2 WHERE jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid; EXCEPTION WHEN undefined_table THEN NULL; END; END $$;",
       "fromModuleVersion": "mod-source-record-manager-2.2.0"
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE job_execution_progress DROP CONSTRAINT IF EXISTS job_execution_id_unique; ALTER TABLE job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId);",
+      "snippet": "ALTER TABLE IF EXISTS job_execution_progress DROP CONSTRAINT IF EXISTS job_execution_id_unique; ALTER TABLE IF EXISTS job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId);",
       "fromModuleVersion": "mod-source-record-manager-2.2.0"
     },
     {
@@ -195,7 +183,7 @@
     {
       "run": "after",
       "snippetPath": "replace_job_execution_progress_table.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.3.3"
     },
     {
       "run": "after",
