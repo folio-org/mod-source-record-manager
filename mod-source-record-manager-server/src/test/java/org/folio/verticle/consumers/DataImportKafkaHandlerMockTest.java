@@ -18,7 +18,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -55,7 +54,7 @@ public class DataImportKafkaHandlerMockTest {
 
   @Before
   public void setUp() {
-    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService);
+    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService, );
   }
 
   @Test

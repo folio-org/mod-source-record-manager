@@ -17,6 +17,7 @@ import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
+import org.folio.services.flowcontrol.IFlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -33,13 +34,16 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
   private Vertx vertx;
   private EventHandlingService eventHandlingService;
   private EventProcessedService eventProcessedService;
+  private IFlowControlService flowControlService;
 
   public DataImportKafkaHandler(@Autowired Vertx vertx,
                                 @Autowired EventHandlingService eventHandlingService,
-                                @Autowired EventProcessedService eventProcessedService) {
+                                @Autowired EventProcessedService eventProcessedService,
+                                @Autowired IFlowControlService flowControlService) {
     this.vertx = vertx;
     this.eventHandlingService = eventHandlingService;
     this.eventProcessedService = eventProcessedService;
+    this.flowControlService = flowControlService;
   }
 
   @Override
@@ -57,6 +61,8 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
         handleLocalEvent(result, okapiConnectionParams, event);
         return result.future();
       }
+
+      flowControlService.trackEvent(event);
 
       eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
         .onSuccess(res -> handleLocalEvent(result, okapiConnectionParams, event))
