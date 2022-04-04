@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
@@ -16,7 +18,6 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.folio.dao.JobExecutionSourceChunkDaoImpl.LOGGER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
@@ -25,6 +26,8 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 public class InvoiceUtil {
+
+  private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String INVOICE_LINES_KEY = "INVOICE_LINES";
   public static final String INVOICE_LINES_ERRORS_KEY = "INVOICE_LINES_ERRORS";
