@@ -157,7 +157,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
       String query = String.format(ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY, jobExecutionId);
       pgClientFactory.createInstance(tenantId).select(query, promise);
     } catch (Exception e) {
-      LOGGER.error("Error while checking if any errors occurred for JobExecution {}", e, jobExecutionId);
+      LOGGER.error("Error while checking if any errors occurred for JobExecution {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future().map(resultSet -> resultSet.iterator().next().getBoolean(0));
