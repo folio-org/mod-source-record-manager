@@ -45,10 +45,10 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
   private static final String ID_FIELD = "id";
+  private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
   private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
   private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, jobExecutionId) VALUES ($1, $2, $3)";
-  private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE jobExecutionId = $1";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -168,9 +168,8 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
-      Tuple queryParams = Tuple.of(jobExecutionId);
-      pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
+      Criteria idCrit = constructCriteria(JOB_EXECUTION_ID_FIELD, jobExecutionId).setJSONB(false);
+      pgClientFactory.createInstance(tenantId).delete(TABLE_NAME, new Criterion(idCrit), promise);
     } catch (Exception e) {
       LOGGER.error("Error deleting JobExecutionSourceChunks by JobExecution id {}", jobExecutionId, e);
       promise.fail(e);
