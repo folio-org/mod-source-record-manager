@@ -24,12 +24,13 @@ public interface JobExecutionSourceChunkDao {
   /**
    * Searches for {@link JobExecutionSourceChunk} in database by {@code query}
    *
-   * @param query  query from URL
+   * @param jobExecutionId  job execution id
+   * @param isLast is last chunk
    * @param offset starting index in a list of results
    * @param limit  limit of records for pagination
    * @return future with list of {@link JobExecutionSourceChunk}
    */
-  Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit, String tenantId);
+  Future<List<JobExecutionSourceChunk>> get(String jobExecutionId, boolean isLast, int offset, int limit, String tenantId);
 
   /**
    * Searches JobExecutionSourceChunk by id
