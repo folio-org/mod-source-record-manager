@@ -1,6 +1,5 @@
 package org.folio.verticle.consumers.errorhandlers;
 
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
@@ -58,50 +57,57 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
 
   @Override
   public void handle(Throwable throwable, KafkaConsumerRecord<String, String> record) {
-    Event event = Json.decodeValue(record.value(), Event.class);
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
     String tenantId = okapiParams.getTenantId();
-    Future<Optional<JobExecutionSourceChunk>> future = StringUtils.isBlank(chunkId) ? Future.succeededFuture(Optional.empty()) : jobExecutionSourceChunkDao.getById(chunkId, tenantId);
 
-    future.map(sourceChunkOptional -> sourceChunkOptional.map(JobExecutionSourceChunk::getLast).orElse(false)).onComplete(ar -> {
-      boolean isLast = false;
-      if(ar.failed()) {
-        LOGGER.error("jobExecutionSourceChunk with id {} was not found", chunkId, ar.cause());
-      } else {
-        isLast = ar.result();
-      }
-
-      if(isLast) {
-        LOGGER.error("Source chunk with jobExecutionId: {} , tenantId: {}, chunkId:{} marked as last, stop sending error", jobExecutionId, tenantId, chunkId);
-      } else if (throwable instanceof RecordsPublishingException) {
-        List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
-        for (Record failedRecord: failedRecords) {
-          sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, failedRecord);
+    if (StringUtils.isNotBlank(chunkId)) {
+      jobExecutionSourceChunkDao.getById(chunkId, tenantId).onComplete(ar -> {
+        Optional<JobExecutionSourceChunk> chunkOptional = ar.result();
+        if (ar.succeeded() && chunkOptional.map(JobExecutionSourceChunk::getLast).orElse(false)) {
+          LOGGER.error("Source chunk with jobExecutionId: {} , tenantId: {}, chunkId:{} marked as last, stop sending error", jobExecutionId, tenantId, chunkId, throwable);
+        } else {
+          processThrowable(throwable, record, okapiParams);
         }
-      } else if (throwable instanceof DuplicateEventException) {
-        RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
-        LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
-      } else if (throwable instanceof RawChunkRecordsParsingException) {
-        RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
-        parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
-          .onComplete(asyncResult -> {
-            List<Record> parsedRecords = asyncResult.result();
-            if (CollectionUtils.isNotEmpty(parsedRecords)) {
-              for (Record rec : parsedRecords) {
-                sendDiError(throwable, jobExecutionId, okapiParams, rec);
-              }
-            } else {
-              sendDiError(throwable, jobExecutionId, okapiParams, null);
+      });
+    } else {
+      processThrowable(throwable, record, okapiParams);
+    }
+  }
+
+  private void processThrowable(Throwable throwable, KafkaConsumerRecord<String, String> record, OkapiConnectionParams okapiParams) {
+    Event event = Json.decodeValue(record.value(), Event.class);
+    String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
+    String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
+    String tenantId = okapiParams.getTenantId();
+
+    if (throwable instanceof RecordsPublishingException) {
+      List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
+      for (Record failedRecord: failedRecords) {
+        sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, failedRecord);
+      }
+    } else if (throwable instanceof DuplicateEventException) {
+      RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
+      LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
+    } else if (throwable instanceof RawChunkRecordsParsingException) {
+      RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
+      parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
+        .onComplete(asyncResult -> {
+          List<Record> parsedRecords = asyncResult.result();
+          if (CollectionUtils.isNotEmpty(parsedRecords)) {
+            for (Record rec : parsedRecords) {
+              sendDiError(throwable, jobExecutionId, okapiParams, rec);
             }
-          });
-      }
-      else {
-        sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, null);
-      }
-    });
+          } else {
+            sendDiError(throwable, jobExecutionId, okapiParams, null);
+          }
+        });
+    }
+    else {
+      sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, null);
+    }
   }
 
   private void sendDiErrorEvent(Throwable throwable,
