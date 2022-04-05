@@ -1,10 +1,12 @@
 package org.folio.verticle.consumers.errorhandlers;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -62,14 +64,14 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
     String tenantId = okapiParams.getTenantId();
+    Future<Optional<JobExecutionSourceChunk>> future = StringUtils.isBlank(chunkId) ? Future.succeededFuture(Optional.empty()) : jobExecutionSourceChunkDao.getById(chunkId, tenantId);
 
-    jobExecutionSourceChunkDao.getById(chunkId, tenantId).onComplete(ar -> {
+    future.map(sourceChunkOptional -> sourceChunkOptional.map(JobExecutionSourceChunk::getLast).orElse(false)).onComplete(ar -> {
       boolean isLast = false;
       if(ar.failed()) {
         LOGGER.error("jobExecutionSourceChunk with id {} was not found", chunkId, ar.cause());
       } else {
-        Optional<JobExecutionSourceChunk> jobExecutionSourceChunk = ar.result();
-        isLast = jobExecutionSourceChunk.map(JobExecutionSourceChunk::getLast).orElse(false);
+        isLast = ar.result();
       }
 
       if(isLast) {
