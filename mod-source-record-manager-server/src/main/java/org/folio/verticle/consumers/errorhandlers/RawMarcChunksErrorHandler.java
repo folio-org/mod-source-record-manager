@@ -8,12 +8,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
+import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 
@@ -48,6 +51,8 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   private List<DiErrorPayloadBuilder> errorPayloadBuilders;
   @Autowired
   private ParsedRecordsDiErrorProvider parsedRecordsErrorProvider;
+  @Autowired
+  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
 
   @Override
   public void handle(Throwable throwable, KafkaConsumerRecord<String, String> record) {
@@ -58,31 +63,43 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
     String tenantId = okapiParams.getTenantId();
 
-    if (throwable instanceof RecordsPublishingException) {
-      List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
-      for (Record failedRecord: failedRecords) {
-        sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, failedRecord);
+    jobExecutionSourceChunkDao.getById(chunkId, tenantId).onComplete(ar -> {
+      boolean isLast = false;
+      if(ar.failed()) {
+        LOGGER.error("jobExecutionSourceChunk with id {} was not found", chunkId, ar.cause());
+      } else {
+        Optional<JobExecutionSourceChunk> jobExecutionSourceChunk = ar.result();
+        isLast = jobExecutionSourceChunk.map(JobExecutionSourceChunk::getLast).orElse(false);
       }
-    } else if (throwable instanceof DuplicateEventException) {
-      RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
-      LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
-    } else if (throwable instanceof RawChunkRecordsParsingException) {
-      RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
-      parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
-        .onComplete(ar -> {
-          List<Record> parsedRecords = ar.result();
-          if (CollectionUtils.isNotEmpty(parsedRecords)) {
-            for (Record rec : parsedRecords) {
-              sendDiError(throwable, jobExecutionId, okapiParams, rec);
+
+      if(isLast) {
+        LOGGER.error("Source chunk with jobExecutionId: {} , tenantId: {}, chunkId:{} marked as last, stop sending error", jobExecutionId, tenantId, chunkId);
+      } else if (throwable instanceof RecordsPublishingException) {
+        List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
+        for (Record failedRecord: failedRecords) {
+          sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, failedRecord);
+        }
+      } else if (throwable instanceof DuplicateEventException) {
+        RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
+        LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
+      } else if (throwable instanceof RawChunkRecordsParsingException) {
+        RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
+        parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
+          .onComplete(asyncResult -> {
+            List<Record> parsedRecords = asyncResult.result();
+            if (CollectionUtils.isNotEmpty(parsedRecords)) {
+              for (Record rec : parsedRecords) {
+                sendDiError(throwable, jobExecutionId, okapiParams, rec);
+              }
+            } else {
+              sendDiError(throwable, jobExecutionId, okapiParams, null);
             }
-          } else {
-            sendDiError(throwable, jobExecutionId, okapiParams, null);
-          }
-        });
-    }
-    else {
-      sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, null);
-    }
+          });
+      }
+      else {
+        sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, null);
+      }
+    });
   }
 
   private void sendDiErrorEvent(Throwable throwable,
