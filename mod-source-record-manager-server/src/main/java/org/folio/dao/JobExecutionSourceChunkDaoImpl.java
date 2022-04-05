@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,15 +22,14 @@ import javax.ws.rs.NotFoundException;
 
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk.State;
 import org.folio.rest.persist.Criteria.Criteria;
 import org.folio.rest.persist.Criteria.Criterion;
-import org.folio.rest.persist.cql.CQLWrapper;
 import org.folio.rest.persist.interfaces.Results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import static org.folio.dataimport.util.DaoUtil.constructCriteria;
-import static org.folio.dataimport.util.DaoUtil.getCQLWrapper;
 import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -44,11 +45,19 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String TABLE_NAME = "job_execution_source_chunks";
+
   private static final String ID_FIELD = "id";
-  private static final String JOB_EXECUTION_ID_FIELD = "'jobExecutionId'";
+  private static final String JOB_EXECUTION_ID_FIELD = "jobexecutionid";
+  private static final String CREATED_DATE_JSONB_FIELD = "createdDate";
+  private static final String STATE_JSONB_FIELD = "state";
+  private static final String CHUNK_SIZE_JSONB_FIELD = "chunkSize";
+  private static final String LAST_JSONB_FIELD = "last";
+
   private static final String IS_PROCESSING_COMPLETED_QUERY = "SELECT is_processing_completed('%s');";
   private static final String ARE_THERE_ANY_ERRORS_DURING_PROCESSING_QUERY = "SELECT processing_contains_error_chunks('%s');";
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, jobExecutionId) VALUES ($1, $2, $3)";
+  private static final String SELECT_QUERY = "SELECT * FROM %s.%s WHERE jobExecutionId = $1 AND jsonb->>'last' = $2 OFFSET $3 LIMIT $4";
+
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -71,18 +80,33 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
   }
 
   @Override
-  public Future<List<JobExecutionSourceChunk>> get(String query, int offset, int limit, String tenantId) {
-    Promise<Results<JobExecutionSourceChunk>> promise = Promise.promise();
+  public Future<List<JobExecutionSourceChunk>> get(String jobExecutionId, boolean isLast, int offset, int limit, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String[] fieldList = {"*"};
-      CQLWrapper cql = getCQLWrapper(TABLE_NAME, query, limit, offset);
-      pgClientFactory.createInstance(tenantId)
-        .get(TABLE_NAME, JobExecutionSourceChunk.class, fieldList, cql, true, false, promise);
+      String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+      Tuple queryParams = Tuple.of(jobExecutionId, Boolean.valueOf(isLast).toString(), offset, limit);
+      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error while searching for JobExecutionSourceChunks", e);
       promise.fail(e);
     }
-    return promise.future().map(Results::getResults);
+    return promise.future().map(this::mapResultSetToJobExecutionSourceChunks);
+  }
+
+  private List<JobExecutionSourceChunk> mapResultSetToJobExecutionSourceChunks(RowSet<Row> resultSet) {
+    List<JobExecutionSourceChunk> result = new ArrayList<>();
+    resultSet.forEach(row -> {
+      JsonObject jsonb = row.getJsonObject("jsonb");
+      JobExecutionSourceChunk chunk = new JobExecutionSourceChunk()
+        .withId(row.getUUID(ID_FIELD).toString())
+        .withJobExecutionId(row.getUUID(JOB_EXECUTION_ID_FIELD).toString())
+        .withChunkSize(jsonb.getInteger(CHUNK_SIZE_JSONB_FIELD))
+        .withState(State.fromValue(jsonb.getString(STATE_JSONB_FIELD)))
+        .withCreatedDate(new Date(jsonb.getLong(CREATED_DATE_JSONB_FIELD)))
+        .withLast(jsonb.getBoolean(LAST_JSONB_FIELD));
+      result.add(chunk);
+    });
+    return result;
   }
 
   @Override
