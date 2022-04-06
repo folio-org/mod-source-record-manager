@@ -94,8 +94,8 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     } else if (throwable instanceof RawChunkRecordsParsingException) {
       RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
       parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
-        .onComplete(asyncResult -> {
-          List<Record> parsedRecords = asyncResult.result();
+        .onComplete(ar -> {
+          List<Record> parsedRecords = ar.result();
           if (CollectionUtils.isNotEmpty(parsedRecords)) {
             for (Record rec : parsedRecords) {
               sendDiError(throwable, jobExecutionId, okapiParams, rec);
