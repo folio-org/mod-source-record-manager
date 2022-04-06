@@ -5,6 +5,7 @@ import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -39,6 +40,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String RECORD_ID_HEADER = "recordId";
   public static final String CHUNK_ID_HEADER = "chunkId";
+  private static final String LAST_CHUNK_HEADER = "EOF";
 
   @Autowired
   private Vertx vertx;
@@ -57,8 +59,11 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);
     String tenantId = okapiParams.getTenantId();
+    String lastChunk = okapiParams.getHeaders().get(LAST_CHUNK_HEADER);
 
-    if (throwable instanceof RecordsPublishingException) {
+    if (StringUtils.isNotBlank(lastChunk)) {
+      LOGGER.error("Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+    } else if (throwable instanceof RecordsPublishingException) {
       List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
       for (Record failedRecord: failedRecords) {
         sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, failedRecord);
