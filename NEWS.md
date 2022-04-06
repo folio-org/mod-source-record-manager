@@ -1,3 +1,6 @@
+## 2022-02-24 v3.2.10
+* [MODSOURMAN-731](https://issues.folio.org/browse/MODSOURMAN-731) Fix 2nd record update failed
+
 ## 2022-02-24 v3.2.9
 * [MODSOURMAN-706](https://issues.folio.org/browse/MODSOURMAN-706) Error loading MappingParametersSnapshot
 
