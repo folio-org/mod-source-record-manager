@@ -242,8 +242,8 @@ public class JournalParamsTest {
   }
 
   @Test
-  public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibReadyFOrPostProcessing() {
-    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.UPDATE);
+  public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibReadyForPostProcessing() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.UPDATE);
   }
 
   @Test

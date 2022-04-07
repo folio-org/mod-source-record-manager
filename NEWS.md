@@ -1,3 +1,6 @@
+## 2022-04-07 v3.3.7
+* [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
+
 ## 2022-04-06 v3.3.6
 * [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
 * [MODSOURMAN-756](https://issues.folio.org/browse/MODSOURMAN-751) Fix unnecessary No content logs in View All page when import fails
