@@ -1,6 +1,7 @@
 ## 2022-04-07 v3.3.7
 * [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
 * [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
+* [MODSOURMAN-762](https://issues.folio.org/browse/MODSOURMAN-762) Fix migration issues
 
 ## 2022-04-06 v3.3.6
 * [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
