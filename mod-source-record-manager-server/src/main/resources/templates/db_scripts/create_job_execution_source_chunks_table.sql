@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS job_execution_source_chunks
 (
   id             uuid  NOT NULL,
-  "jsonb"        jsonb NOT NULL,
+  jsonb          jsonb NOT NULL,
   jobexecutionid uuid  NOT NULL,
   CONSTRAINT job_execution_source_chunks_pkey PRIMARY KEY (id),
   CONSTRAINT job_execution_source_chunks_jobexecutionid_fkey FOREIGN KEY (jobexecutionid)
