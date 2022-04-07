@@ -28,26 +28,6 @@
       ]
     },
     {
-      "tableName": "job_execution_source_chunks",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0",
-      "withMetadata": false,
-      "customSnippetPath": "job_execution_source_chunks_table.sql",
-      "index": [
-        {
-          "fieldName": "id",
-          "tOps": "ADD"
-        },
-        {
-          "fieldName": "jobExecutionId",
-          "tOps": "ADD"
-        },
-        {
-          "fieldName": "last",
-          "tOps": "ADD"
-        }
-      ]
-    },
-    {
       "tableName": "mapping_rules",
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
       "withMetadata": false
@@ -187,13 +167,18 @@
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
-      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+      "snippetPath": "create_job_execution_source_chunks_table.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.3.7"
     },
     {
       "run": "after",
-      "snippet": "DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; CREATE INDEX job_execution_source_chunks_jobexecutionid_idx ON job_execution_source_chunks USING BTREE (jobExecutionId);",
-      "fromModuleVersion": "mod-source-record-manager-3.3.6"
+      "snippet": "ALTER TABLE job_execution_source_chunks ADD COLUMN IF NOT EXISTS jobExecutionId uuid; DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; DROP INDEX IF EXISTS job_execution_source_chunks_last_idx;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.7"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]
 }
