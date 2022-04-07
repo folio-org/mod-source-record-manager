@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS job_execution_source_chunks
     REFERENCES job_execution (id)
 );
 
-CREATE INDEX IF NOT EXISTS job_execution_source_chunks_last_idx ON job_execution_source_chunks USING btree ("left"(lower(f_unaccent((jsonb ->> 'last'::text))), 600));
-CREATE INDEX IF NOT EXISTS job_execution_source_chunks_jobexecutionid_idx ON job_execution_source_chunks USING BTREE (jobExecutionId);
+CREATE INDEX IF NOT EXISTS job_execution_source_chunks_last_index ON job_execution_source_chunks USING btree ("left"(lower(f_unaccent((jsonb ->> 'last'::text))), 600));
+CREATE INDEX IF NOT EXISTS job_execution_source_chunks_jobexecutionid_index ON job_execution_source_chunks USING BTREE (jobExecutionId);
 
 DO $$ BEGIN
   ALTER TABLE IF EXISTS job_execution_source_chunks
