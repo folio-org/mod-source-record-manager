@@ -123,13 +123,6 @@ ON CONFLICT (id) DO NOTHING;
 
 -- create references to job_execution.id column if they not exist
 DO $$ BEGIN
-    ALTER TABLE IF EXISTS job_execution_source_chunks
-    ADD CONSTRAINT job_execution_source_chunks_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
-
-DO $$ BEGIN
     ALTER TABLE IF EXISTS job_execution_progress
     ADD CONSTRAINT job_execution_progress_jobexecutionid_fkey FOREIGN KEY (jobexecutionid) REFERENCES job_execution(id);
 EXCEPTION
