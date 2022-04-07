@@ -40,6 +40,7 @@ import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, String> {
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
+  private static final String RECORD_DTO_ID_KEY = "RECORD_DTO_ID";
   private static final String ERROR_KEY = "ERROR";
   private static final String UNZIP_ERROR_MESSAGE = "Error during unzip";
   private static final String EVENT_ID_PREFIX = QuickMarcUpdateKafkaHandler.class.getSimpleName();
@@ -84,7 +85,7 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   private Future<SourceRecordState> updateSourceState(Map<String, String> eventPayload, String eventType,
                                                       String tenantId) {
     log.debug("Event was received for {}: {}", eventType, eventPayload);
-    var recordId = eventPayload.get(RECORD_ID_KEY);
+    var recordId = eventPayload.get(RECORD_DTO_ID_KEY);
     if (QMEventTypes.QM_ERROR.name().equals(eventType)) {
       return sourceRecordStateService.updateState(recordId, ERROR, tenantId);
     } else {

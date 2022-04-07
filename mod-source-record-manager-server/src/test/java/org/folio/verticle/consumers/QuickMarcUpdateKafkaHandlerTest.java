@@ -72,10 +72,11 @@ public class QuickMarcUpdateKafkaHandlerTest {
   @Test
   public void shouldNotHandleEventWhenKafkaCacheContainsEventId() throws IOException {
     var recordId = UUID.randomUUID().toString();
-    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
+    var recordDtoId = UUID.randomUUID().toString();
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
+    eventPayload.put("RECORD_DTO_ID", recordDtoId);
 
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
@@ -99,10 +100,12 @@ public class QuickMarcUpdateKafkaHandlerTest {
   @Test
   public void shouldUpdateRecordStateAndSendEventOnHandleQmInventoryInstanceUpdated() throws IOException {
     var recordId = UUID.randomUUID().toString();
+    var recordDtoId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
+    eventPayload.put("RECORD_DTO_ID", recordDtoId);
 
     Event event = new Event()
       .withId(UUID.randomUUID().toString())
@@ -124,7 +127,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
         eq(kafkaHeaders));
 
     verify(sourceRecordStateService, times(1))
-      .updateState(recordId, SourceRecordState.RecordState.ACTUAL, TENANT_ID);
+      .updateState(recordDtoId, SourceRecordState.RecordState.ACTUAL, TENANT_ID);
 
     var actualEventPayload = Json.decodeValue(qmCompletedEventCaptor.getValue(), QmCompletedEventPayload.class);
     assertEquals(recordId, actualEventPayload.getRecordId());
@@ -135,10 +138,12 @@ public class QuickMarcUpdateKafkaHandlerTest {
   public void shouldUpdateRecordStateAndSendEventOnHandleQmError() throws IOException {
     var errorMessage = "random error";
     var recordId = UUID.randomUUID().toString();
+    var recordDtoId = UUID.randomUUID().toString();
     var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
+    eventPayload.put("RECORD_DTO_ID", recordDtoId);
     eventPayload.put("ERROR", errorMessage);
 
     Event event = new Event()
@@ -161,7 +166,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
         eq(kafkaHeaders));
 
     verify(sourceRecordStateService, times(1))
-      .updateState(recordId, SourceRecordState.RecordState.ERROR, TENANT_ID);
+      .updateState(recordDtoId, SourceRecordState.RecordState.ERROR, TENANT_ID);
 
     var actualEventPayload = Json.decodeValue(qmCompletedEventCaptor.getValue(), QmCompletedEventPayload.class);
     assertEquals(recordId, actualEventPayload.getRecordId());

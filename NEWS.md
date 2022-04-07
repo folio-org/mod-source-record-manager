@@ -1,4 +1,7 @@
-## 2022-02-24 v3.2.10
+## 2022-04-08 v3.2.11
+* [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
+
+## 2022-04-06 v3.2.10
 * [MODSOURMAN-731](https://issues.folio.org/browse/MODSOURMAN-731) Fix 2nd record update failed
 
 ## 2022-02-24 v3.2.9
