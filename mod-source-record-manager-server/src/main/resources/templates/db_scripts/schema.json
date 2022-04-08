@@ -167,7 +167,7 @@
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE job_execution_source_chunks ADD COLUMN IF NOT EXISTS jobExecutionId uuid; DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; DROP INDEX IF EXISTS job_execution_source_chunks_last_idx;",
+      "snippet": "ALTER TABLE IF EXISTS job_execution_source_chunks ADD COLUMN IF NOT EXISTS jobExecutionId uuid; DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; DROP INDEX IF EXISTS job_execution_source_chunks_last_idx;",
       "fromModuleVersion": "mod-source-record-manager-3.3.8"
     },
     {
