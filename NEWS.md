@@ -1,3 +1,6 @@
+## 2022-04-08 v3.3.8
+* [MODSOURMAN-768](https://issues.folio.org/browse/MODSOURMAN-768) Fix schema upgrade for SRM
+
 ## 2022-04-07 v3.3.7
 * [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
 * [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
