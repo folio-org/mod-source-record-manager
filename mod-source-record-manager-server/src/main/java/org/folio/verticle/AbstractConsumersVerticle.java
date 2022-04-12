@@ -6,15 +6,14 @@ import io.vertx.core.Promise;
 import org.folio.kafka.*;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.spring.SpringContextUtil;
+import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
@@ -32,7 +31,8 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   @Value("${srm.kafka.DataImportConsumer.loadLimit:5}")
   private int loadLimit;
 
-  private static Map<String, KafkaConsumerWrapper<String, String>> consumerWrappers = new HashMap<>();
+  @Autowired
+  private KafkaConsumersStorage kafkaConsumersStorage;
 
   @Override
   public void start(Promise<Void> startPromise) {
@@ -45,7 +45,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .createSubscriptionDefinition(kafkaConfig.getEnvId(),
           KafkaTopicNameHelper.getDefaultNameSpace(),
           event);
-      consumerWrappers.put(event, KafkaConsumerWrapper.<String, String>builder()
+      kafkaConsumersStorage.addConsumer(event, KafkaConsumerWrapper.<String, String>builder()
         .context(context)
         .vertx(vertx)
         .kafkaConfig(kafkaConfig)
@@ -56,7 +56,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .build());
     });
     List<Future<Void>> futures = new ArrayList<>();
-    consumerWrappers.values().forEach(consumerWrapper ->
+    kafkaConsumersStorage.getConsumersList().forEach(consumerWrapper ->
       futures.add(consumerWrapper.start(getHandler(),
         constructModuleName() + "_" + getClass().getSimpleName())));
 
@@ -66,7 +66,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   @Override
   public void stop(Promise<Void> stopPromise) {
     List<Future<Void>> futures = new ArrayList<>();
-    consumerWrappers.values().forEach(consumerWrapper ->
+    kafkaConsumersStorage.getConsumersList().forEach(consumerWrapper ->
       futures.add(consumerWrapper.stop()));
 
     GenericCompositeFuture.join(futures).onComplete(ar -> stopPromise.complete());
@@ -92,8 +92,4 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   public ProcessRecordErrorHandler<String, String> getErrorHandler() {
     return null;
   };
-
-  public static KafkaConsumerWrapper<String, String> getKafkaConsumerByEvent(String event) {
-    return consumerWrappers.get(event);
-  }
 }

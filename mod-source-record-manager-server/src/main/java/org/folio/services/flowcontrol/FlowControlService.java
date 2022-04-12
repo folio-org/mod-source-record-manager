@@ -1,30 +1,28 @@
 package org.folio.services.flowcontrol;
 
-import org.folio.kafka.KafkaConsumerWrapper;
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.verticle.DataImportConsumersVerticle;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+/**
+ * Service to implement flow control logic to be able to import OCLC files in between imports of huge files.
+ * Its necessary to not wait for importing 1 record file until other big files in progress.
+ * Its can be suitable not only for OCLC, but also for other files that skipping DI_RAW_RECORDS_CHUNK_READ stage
+ * and directly pushing messages to DI_RAW_RECORDS_CHUNK_PARSED topic.
+ */
+public interface FlowControlService {
 
-import java.util.concurrent.atomic.AtomicInteger;
+  /**
+   * Tracks each successful DI_RAW_RECORDS_CHUNK_PARSED event, this method can also pause processing
+   * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
+   *
+   * @param event the DI_RAW_RECORDS_CHUNK_PARSED event
+   */
+  void trackChunkProcessedEvent(Event event);
 
-@Service
-public class FlowControlService implements IFlowControlService {
-  @Value("${di.flow.max_simultaneous_records:500}")
-  private Integer maxSimultaneousRecords;
-  @Value("${di.flow.records_threshold:250}")
-  private Integer recordsThreshold;
-
-  private AtomicInteger diCompletedAndErrorCount;
-
-  @Override
-  public void trackEvent(Event event) {
-    if (diCompletedAndErrorCount.incrementAndGet() > maxSimultaneousRecords) {
-      KafkaConsumerWrapper<String, String> rawRecordsReadConsumer = DataImportConsumersVerticle.getKafkaConsumerByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-      rawRecordsReadConsumer.pause();
-    }
-
-  }
+  /**
+   * Tracks each successful DI_COMPLETED, DI_ERROR events, this method can also resume processing
+   * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
+   *
+   * @param event
+   */
+  void trackRecordCompleteEvent(Event event);
 }

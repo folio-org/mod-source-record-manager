@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
+import org.folio.services.flowcontrol.FlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,15 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private static final Logger LOGGER = LogManager.getLogger();
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
+  private FlowControlService flowControlService;
   private Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
+                                   @Autowired FlowControlService flowControlService,
                                    @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
+    this.flowControlService = flowControlService;
     this.vertx = vertx;
   }
 
@@ -57,6 +61,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
         .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
         .compose(b -> {
           LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+          flowControlService.trackChunkProcessedEvent(event);
           return Future.succeededFuture(record.key());
         }, th -> {
           if (th instanceof DuplicateEventException) {
