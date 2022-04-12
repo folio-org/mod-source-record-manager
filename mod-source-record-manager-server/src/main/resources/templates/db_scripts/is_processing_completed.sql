@@ -11,10 +11,10 @@ BEGIN
         (
             SELECT count(id)
             FROM job_execution_source_chunks
-            WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId
+            WHERE jobExecutionId = jobExecId
         ) INTO completed
     FROM job_execution_source_chunks
-    WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR');
+    WHERE jobExecutionId = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR');
 
     RETURN completed;
 END;

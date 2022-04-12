@@ -7,6 +7,10 @@
 * [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
 * [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
 * [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
+* [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
+* [MODSOURMAN-756](https://issues.folio.org/browse/MODSOURMAN-756) Fix unnecessary No content logs in View All page when import fails
+* [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
+* [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving

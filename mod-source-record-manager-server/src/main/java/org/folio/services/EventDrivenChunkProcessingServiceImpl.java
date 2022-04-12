@@ -60,10 +60,10 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, OkapiConnectionParams params) {
-    return jobExecutionSourceChunkDao.get("jobExecutionId==" + jobExecutionId + " AND last==true", 0, 1, params.getTenantId())
-      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
-      .compose(isAllChunksError -> {
-        if (isAllChunksError) {
+    return jobExecutionSourceChunkDao.get(jobExecutionId, true, 0, 1, params.getTenantId())
+      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
+      .compose(containsErrorChunks -> {
+        if (containsErrorChunks) {
           StatusDto statusDto = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
           return jobExecutionProgressService.getByJobExecutionId(jobExecutionId, params.getTenantId())
             .compose(progress -> updateJobExecutionState(jobExecutionId, progress, statusDto, params));

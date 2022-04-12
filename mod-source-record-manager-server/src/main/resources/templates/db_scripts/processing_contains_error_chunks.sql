@@ -9,7 +9,7 @@ DECLARE
 BEGIN
     SELECT count(id) > 0 INTO has_errors
     FROM job_execution_source_chunks
-    WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR';
+    WHERE jobExecutionId = jobExecId AND jsonb->>'state' = 'ERROR';
 
     RETURN has_errors;
 END;

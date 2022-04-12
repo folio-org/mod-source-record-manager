@@ -18,7 +18,6 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.folio.dao.JobExecutionSourceChunkDaoImpl.LOGGER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
