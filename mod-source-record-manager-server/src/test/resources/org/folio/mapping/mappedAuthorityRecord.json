@@ -1,0 +1,53 @@
+{
+  "id": "b90cb1bc-601f-45d7-b99e-b11efd281dcd",
+  "personalName": "Eimermacher, Karl CtY MBTI CtY MBTI NIC CStRLIN NIC",
+  "sftPersonalName": [ "v. 25 cm." ],
+  "saftPersonalName": [ "Editor:   C. W. Dugmore." ],
+  "personalNameTitle": "Eimermacher",
+  "sftPersonalNameTitle": [ ],
+  "saftPersonalNameTitle": [ ],
+  "corporateName": "BR140 .J6",
+  "sftCorporateName": [ "Quarterly, 1970-" ],
+  "saftCorporateName": [ "Church history" ],
+  "corporateNameTitle": "BR140 .J6",
+  "sftCorporateNameTitle": [ "Quarterly, 1970-" ],
+  "saftCorporateNameTitle": [ "Church history" ],
+  "meetingName": "270.05",
+  "sftMeetingName": [ "Semiannual," ],
+  "saftMeetingName": [ "Church history" ],
+  "meetingNameTitle": "270.05",
+  "sftMeetingNameTitle": [ "Semiannual, 1950-69" ],
+  "saftMeetingNameTitle": [ "Church history" ],
+  "uniformTitle": "The Journal of ecclesiastical history",
+  "sftUniformTitle": [ "v. 1-   Apr. 1950-" ],
+  "saftUniformTitle": [ "Periodicals" ],
+  "topicalTerm": "The Journal of ecclesiastical history.",
+  "sftTopicalTerm": [ "note$a note$5" ],
+  "saftTopicalTerm": [ "Dugmore, C. W." ],
+  "subjectHeadings": "a",
+  "geographicName": "London,",
+  "sftGeographicName": [ "note$a note$5" ],
+  "saftGeographicName": [ "callNumber2" ],
+  "genreTerm": "32 East 57th St., New York, 10022",
+  "sftGenreTerm": [ "note$a note$i note$x note$z note$5" ],
+  "saftGenreTerm": [ "linkText publicNote" ],
+  "identifiers": [
+    {
+      "value": "1000649",
+      "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    },
+    {
+      "value": "n   58020553",
+      "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    },
+    {
+      "value": "0022-0469",
+      "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    },
+    {
+      "value": "(CStRLIN)NYCX1604275S",
+      "identifierTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    }
+  ],
+  "notes": [ ]
+}

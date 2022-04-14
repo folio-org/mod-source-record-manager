@@ -1,0 +1,751 @@
+{
+  "leader": "03535cam a2200625 a 4500",
+  "fields": [
+    {
+      "001": "in00000000015"
+    },
+    {
+      "007": "hd|afu---baca"
+    },
+    {
+      "008": "830103m19829999ctua    a     001 0 eng  "
+    },
+    {
+      "005": "20220414072558.9"
+    },
+    {
+      "010": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "   89894004 "
+          }
+        ]
+      }
+    },
+    {
+      "035": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "(OCoLC)9198532"
+          },
+          {
+            "z": "(OCoLC)10110074"
+          },
+          {
+            "z": "(OCoLC)10244202"
+          },
+          {
+            "z": "(OCoLC)10783351"
+          },
+          {
+            "z": "(OCoLC)13815315"
+          },
+          {
+            "z": "(OCoLC)15380354"
+          },
+          {
+            "z": "(OCoLC)19554478"
+          },
+          {
+            "z": "(OCoLC)22099324"
+          },
+          {
+            "z": "(OCoLC)22675561"
+          }
+        ]
+      }
+    },
+    {
+      "035": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "(CStRLIN)NYCX83B57"
+          }
+        ]
+      }
+    },
+    {
+      "035": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "(NIC)notisADJ8405"
+          }
+        ]
+      }
+    },
+    {
+      "035": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "788038"
+          }
+        ]
+      }
+    },
+    {
+      "040": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "DLC"
+          },
+          {
+            "b": "eng"
+          },
+          {
+            "c": "DLC"
+          },
+          {
+            "d": "BTCTA"
+          },
+          {
+            "d": "YUS"
+          },
+          {
+            "d": "OCLCO"
+          },
+          {
+            "d": "OCLCF"
+          },
+          {
+            "d": "OCLCQ"
+          },
+          {
+            "d": "NIC"
+          }
+        ]
+      }
+    },
+    {
+      "043": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "e-uk---"
+          }
+        ]
+      }
+    },
+    {
+      "245": {
+        "ind1": "0",
+        "ind2": "4",
+        "subfields": [
+          {
+            "a": "The eighteenth century"
+          },
+          {
+            "h": "[microform]."
+          }
+        ]
+      }
+    },
+    {
+      "246": {
+        "ind1": "3",
+        "ind2": " ",
+        "subfields": [
+          {
+            "i": "Also known as:"
+          },
+          {
+            "a": "Eighteenth century collections"
+          }
+        ]
+      }
+    },
+    {
+      "260": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Woodbridge, Conn. :"
+          },
+          {
+            "b": "Research Publications,"
+          },
+          {
+            "c": "[1982-"
+          }
+        ]
+      }
+    },
+    {
+      "300": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "microfilm reels :"
+          },
+          {
+            "b": "illustrations ;"
+          },
+          {
+            "c": "35 mm +"
+          },
+          {
+            "e": "1 guide (8 v.)"
+          }
+        ]
+      }
+    },
+    {
+      "336": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "text"
+          },
+          {
+            "b": "txt"
+          },
+          {
+            "2": "rdacontent"
+          }
+        ]
+      }
+    },
+    {
+      "337": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "microform"
+          },
+          {
+            "b": "h"
+          },
+          {
+            "2": "rdamedia"
+          }
+        ]
+      }
+    },
+    {
+      "337": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "unmediated"
+          },
+          {
+            "b": "n"
+          },
+          {
+            "2": "rdamedia"
+          }
+        ]
+      }
+    },
+    {
+      "338": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "volume"
+          },
+          {
+            "b": "nc"
+          },
+          {
+            "2": "rdacarrier"
+          }
+        ]
+      }
+    },
+    {
+      "338": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "microfilm reel"
+          },
+          {
+            "b": "hd"
+          },
+          {
+            "2": "rdacarrier"
+          }
+        ]
+      }
+    },
+    {
+      "520": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Will consist of approximately 200,000 English titles printed primarily in Great Britain and its colonies from 1701-1800. The collection is based on the Eighteenth Century Short Title Catalogue [ESTC], an online database created by the British Library and ESTC/North America. The series contains first (or earliest available) editions and significant later ones, and all editions of selected major authors. It includes materials printed from moveable type only, omitting engraved items such as maps or woodblock prints, and does not include newspapers."
+          }
+        ]
+      }
+    },
+    {
+      "500": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "The guide, entitled The Eighteenth century : guide to the microfilm collection, is compiled annually for use in conjunction with those items released in the  corresponding calendar year: it supersedes the temporary guides which accompany each 35-reel unit of microfilm. There are listings by main entry (usually author), title and subject (each title is entered under one of eight general subject areas). Gives reel and location numbers for each item. The preliminary frames of each reel list sequentially the items contained on it."
+          }
+        ]
+      }
+    },
+    {
+      "500": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Reels <3711-> issued by Primary Source Microfilm."
+          }
+        ]
+      }
+    },
+    {
+      "530": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Also available online with title:  Eighteenth century collections online."
+          }
+        ]
+      }
+    },
+    {
+      "651": {
+        "ind1": " ",
+        "ind2": "0",
+        "subfields": [
+          {
+            "a": "Great Britain"
+          },
+          {
+            "x": "Civilization"
+          },
+          {
+            "y": "18th century."
+          }
+        ]
+      }
+    },
+    {
+      "651": {
+        "ind1": " ",
+        "ind2": "0",
+        "subfields": [
+          {
+            "a": "Great Britain"
+          },
+          {
+            "x": "History"
+          },
+          {
+            "y": "18th century."
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "0",
+        "subfields": [
+          {
+            "a": "English literature"
+          },
+          {
+            "y": "18th century."
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "0",
+        "subfields": [
+          {
+            "a": "Eighteenth century."
+          }
+        ]
+      }
+    },
+    {
+      "651": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "Great Britain."
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst01204623"
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "Civilization."
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00862898"
+          }
+        ]
+      }
+    },
+    {
+      "648": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "1700 - 1799"
+          },
+          {
+            "2": "fast"
+          }
+        ]
+      }
+    },
+    {
+      "655": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "History."
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst01411628"
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "English literature."
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00911989"
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "Eighteenth century"
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00904058"
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "English literature"
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00911989"
+          }
+        ]
+      }
+    },
+    {
+      "650": {
+        "ind1": " ",
+        "ind2": "7",
+        "subfields": [
+          {
+            "a": "Eighteenth century"
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00904058"
+          }
+        ]
+      }
+    },
+    {
+      "710": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Research Publications, inc."
+          }
+        ]
+      }
+    },
+    {
+      "710": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "ESTC (Project)"
+          }
+        ]
+      }
+    },
+    {
+      "710": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "ESTC/NA (Project)"
+          }
+        ]
+      }
+    },
+    {
+      "740": {
+        "ind1": "0",
+        "ind2": "2",
+        "subfields": [
+          {
+            "a": "Eighteenth century : guide to the microfilm collection."
+          }
+        ]
+      }
+    },
+    {
+      "902": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "pfnd"
+          },
+          {
+            "b": "Austen"
+          },
+          {
+            "b": "Dean"
+          },
+          {
+            "b": "Kinkeldey"
+          }
+        ]
+      }
+    },
+    {
+      "905": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20000229120000.0"
+          }
+        ]
+      }
+    },
+    {
+      "948": {
+        "ind1": "1",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20020705"
+          },
+          {
+            "b": "l"
+          },
+          {
+            "d": "dcw8"
+          },
+          {
+            "e": "lts"
+          }
+        ]
+      }
+    },
+    {
+      "948": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20050211"
+          },
+          {
+            "b": "x"
+          },
+          {
+            "d": "sjl8"
+          },
+          {
+            "e": "lts"
+          }
+        ]
+      }
+    },
+    {
+      "948": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20151204"
+          },
+          {
+            "b": "m"
+          },
+          {
+            "d": "bmt1"
+          },
+          {
+            "e": "lts"
+          }
+        ]
+      }
+    },
+    {
+      "948": {
+        "ind1": "2",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20170905"
+          },
+          {
+            "b": "w"
+          },
+          {
+            "d": "arc3"
+          },
+          {
+            "e": "lts"
+          }
+        ]
+      }
+    },
+    {
+      "948": {
+        "ind1": "1",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "20170905"
+          },
+          {
+            "b": "l"
+          },
+          {
+            "d": "arc3"
+          },
+          {
+            "e": "lts"
+          }
+        ]
+      }
+    },
+    {
+      "950": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Z1016"
+          },
+          {
+            "b": ".E38"
+          },
+          {
+            "l": "uris"
+          }
+        ]
+      }
+    },
+    {
+      "950": {
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "a": "Z2012"
+          },
+          {
+            "b": ".E34"
+          },
+          {
+            "l": "rmc,ref"
+          }
+        ]
+      }
+    },
+    {
+      "999": {
+        "ind1": "f",
+        "ind2": "f",
+        "subfields": [
+          {
+            "s": "5f91d9b0-1759-410b-b259-cf0b924f9ce3"
+          },
+          {
+            "i": "96b47682-90a7-4174-827d-1eb17846ca73"
+          }
+        ]
+      }
+    }
+  ]
+}
