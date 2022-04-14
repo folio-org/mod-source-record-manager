@@ -14,6 +14,7 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
+import org.folio.services.flowcontrol.FlowControlService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,11 +51,13 @@ public class DataImportKafkaHandlerMockTest {
   private EventHandlingService eventHandlingService;
   @Mock
   private EventProcessedService eventProcessedService;
+  @Mock
+  private FlowControlService flowControlService;
   private DataImportKafkaHandler dataImportKafkaHandler;
 
   @Before
   public void setUp() {
-    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService, );
+    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService, flowControlService);
   }
 
   @Test

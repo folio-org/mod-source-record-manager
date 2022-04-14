@@ -4,12 +4,13 @@ import org.folio.kafka.KafkaConsumerWrapper;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
-  private Map<String, KafkaConsumerWrapper<String, String>> consumerWrappers = new HashMap<>();
+  private final Map<String, KafkaConsumerWrapper<String, String>> consumerWrappers = Collections.synchronizedMap(new HashMap<>());
 
   @Override
   public void addConsumer(String eventName, KafkaConsumerWrapper<String, String> consumerWrapper) {

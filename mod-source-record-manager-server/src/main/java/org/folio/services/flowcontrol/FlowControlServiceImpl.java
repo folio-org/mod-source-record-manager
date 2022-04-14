@@ -23,7 +23,7 @@ public class FlowControlServiceImpl implements FlowControlService {
   private Integer maxSimultaneousRecords;
   @Value("${di.flow.records_threshold:250}")
   private Integer recordsThreshold;
-  @Value("${di.flow.control.enable:true")
+  @Value("${di.flow.control.enable:false}")
   private boolean enableFlowControl;
 
   @Autowired
