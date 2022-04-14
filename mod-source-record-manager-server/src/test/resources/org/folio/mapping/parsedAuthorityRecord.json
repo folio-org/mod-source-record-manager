@@ -86,6 +86,9 @@
           },
           {
             "b": ".J6"
+          },
+          {
+            "t": "Required Title"
           }
         ],
         "ind1": "0",
@@ -194,6 +197,9 @@
           },
           {
             "b": "1970-"
+          },
+          {
+            "t": "Required Title"
           }
         ],
         "ind1": " ",
@@ -373,6 +379,9 @@
           },
           {
             "x": "Periodicals."
+          },
+          {
+            "t": "Required Title"
           }
         ],
         "ind1": " ",

@@ -209,6 +209,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "applyRulesOnConcatenatedData": true,
       "rules": []
     }
@@ -247,6 +248,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -284,6 +286,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -393,6 +396,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -431,6 +435,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -469,6 +474,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -589,6 +595,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -627,6 +634,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -665,6 +673,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
