@@ -40,12 +40,14 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
     SpringContextUtil.autowireDependencies(this, context);
 
+    List<Future<Void>> futures = new ArrayList<>();
+
     getEvents().forEach(event -> {
       SubscriptionDefinition subscriptionDefinition = KafkaTopicNameHelper
         .createSubscriptionDefinition(kafkaConfig.getEnvId(),
           KafkaTopicNameHelper.getDefaultNameSpace(),
           event);
-      kafkaConsumersStorage.addConsumer(event, KafkaConsumerWrapper.<String, String>builder()
+      KafkaConsumerWrapper<String, String> consumerWrapper = KafkaConsumerWrapper.<String, String>builder()
         .context(context)
         .vertx(vertx)
         .kafkaConfig(kafkaConfig)
@@ -53,12 +55,12 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .globalLoadSensor(globalLoadSensor)
         .subscriptionDefinition(subscriptionDefinition)
         .processRecordErrorHandler(getErrorHandler())
-        .build());
-    });
-    List<Future<Void>> futures = new ArrayList<>();
-    kafkaConsumersStorage.getConsumersList().forEach(consumerWrapper ->
+        .build();
+      kafkaConsumersStorage.addConsumer(event, consumerWrapper);
+
       futures.add(consumerWrapper.start(getHandler(),
-        constructModuleName() + "_" + getClass().getSimpleName())));
+        constructModuleName() + "_" + getClass().getSimpleName()));
+    });
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
   }
@@ -91,5 +93,5 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    */
   public ProcessRecordErrorHandler<String, String> getErrorHandler() {
     return null;
-  };
+  }
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
@@ -29,7 +30,7 @@ public class FlowControlServiceImpl implements FlowControlService {
   @Autowired
   private KafkaConsumersStorage consumersStorage;
 
-  private AtomicInteger processedRecordsCount;
+  private final AtomicInteger processedRecordsCount = new AtomicInteger(0);
 
   @PostConstruct
   public void init() {
@@ -43,9 +44,9 @@ public class FlowControlServiceImpl implements FlowControlService {
     }
 
     if (processedRecordsCount.addAndGet(DEFAULT_CHUNK_SIZE) > maxSimultaneousRecords) {
-      KafkaConsumerWrapper<String, String> rawRecordsReadConsumer = consumersStorage.getConsumer(DI_RAW_RECORDS_CHUNK_READ.value());
+      List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
-      rawRecordsReadConsumer.pause();
+      rawRecordsReadConsumers.forEach(KafkaConsumerWrapper::pause);
 
       LOGGER.debug("{} kafka consumer is paused, because {} exceeded {} max simultaneous records",
         DI_RAW_RECORDS_CHUNK_READ.value(), processedRecordsCount.get(), maxSimultaneousRecords );
@@ -59,9 +60,9 @@ public class FlowControlServiceImpl implements FlowControlService {
     }
 
     if (processedRecordsCount.decrementAndGet() <= recordsThreshold) {
-      KafkaConsumerWrapper<String, String> rawRecordsReadConsumer = consumersStorage.getConsumer(DI_RAW_RECORDS_CHUNK_READ.value());
+      List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
-      rawRecordsReadConsumer.resume();
+      rawRecordsReadConsumers.forEach(KafkaConsumerWrapper::resume);
 
       LOGGER.debug("{} kafka consumer working, because {} exceeded {} threshold",
         DI_RAW_RECORDS_CHUNK_READ.value(), processedRecordsCount.get(), recordsThreshold);
