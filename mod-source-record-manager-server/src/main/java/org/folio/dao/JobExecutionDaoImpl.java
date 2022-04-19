@@ -37,6 +37,7 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.DELETE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
@@ -203,6 +204,20 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         promise.complete(jobExecutionPromise.future().result());
       });
     return promise.future();
+  }
+
+  @Override
+  public Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
+      Tuple queryParams = Tuple.from(ids);
+      pgClientFactory.createInstance(tenantId).delete(query, queryParams, promise);
+    } catch (Exception e) {
+      LOGGER.error("Error getting jobExecution by id", e);
+      promise.fail(e);
+    }
+    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
   }
 
   private Tuple mapToTuple(JobExecution jobExecution) {

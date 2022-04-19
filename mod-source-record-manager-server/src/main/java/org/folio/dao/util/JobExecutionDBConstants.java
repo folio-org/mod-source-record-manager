@@ -28,6 +28,7 @@ public final class JobExecutionDBConstants {
   public static final String TOTAL_FIELD = "total";
 
   public static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1";
+  public static final String DELETE_BY_IDS_SQL = "DELETE FROM %s WHERE id IN ( $1 )";
 
   public static final String INSERT_SQL =
     "INSERT INTO %s.%s (id, hrid, parent_job_id, subordination_type, source_path, file_name, " +

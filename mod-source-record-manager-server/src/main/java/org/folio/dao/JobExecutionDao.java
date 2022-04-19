@@ -71,4 +71,5 @@ public interface JobExecutionDao {
    */
   Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
+  Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId);
 }

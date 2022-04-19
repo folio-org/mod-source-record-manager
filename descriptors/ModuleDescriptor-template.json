@@ -122,6 +122,19 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/change-manager/jobExecutions",
+          "permissionsRequired": [
+            "change-manager.jobexecutions.post"
+          ],
+          "modulePermissions": [
+            "source-storage.snapshots.post",
+            "users.collection.get"
+          ]
+        },
+        {
+          "methods": [
             "PUT"
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}",

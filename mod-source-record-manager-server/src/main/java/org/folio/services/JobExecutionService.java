@@ -114,4 +114,7 @@ public interface JobExecutionService {
    */
   Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params);
 
+
+  Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId);
+
 }

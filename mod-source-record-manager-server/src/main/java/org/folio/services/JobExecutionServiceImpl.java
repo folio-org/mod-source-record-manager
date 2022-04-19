@@ -245,6 +245,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(true);
   }
 
+  @Override
+  public Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId) {
+    return jobExecutionDao.deleteJobExecutionByIds(ids, tenantId);
+  }
+
   /**
    * Creates and returns list of JobExecution entities depending on received files.
    * In a case if only one file passed, method returns list with one JobExecution entity

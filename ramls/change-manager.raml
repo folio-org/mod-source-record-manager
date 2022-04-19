@@ -31,6 +31,7 @@ types:
   dataImportEventPayload: !include raml-storage/schemas/common/dataImportEventPayload.json
   sourceRecordState: !include sourceRecordState.json
   jobMonitoring: !include raml-storage/schemas/mod-source-record-manager/jobMonitoring.json
+  deleteJobExecutionsDto: !include raml-storage/schemas/mod-source-record-manager/DeleteJobExecutionsDto.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -44,6 +45,17 @@ resourceTypes:
 
 /change-manager:
   /jobExecutions:
+    delete:
+      description: Delete JobExecution by multiple IDs
+      body:
+        application/json:
+          schema: deleteJobExecutionsDto
+      responses:
+        204:
+          description: "No Content"
+          body:
+            text/plain:
+              example: "No Content"
     post:
       description: "Initialize JobExecutions"
       body:

@@ -7,8 +7,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
@@ -21,8 +23,6 @@ import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
 import org.folio.services.ParsedRecordService;
 import org.folio.spring.SpringContextUtil;
-
-import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -49,6 +49,24 @@ public class ChangeManagerImpl implements ChangeManager {
   public ChangeManagerImpl(Vertx vertx, String tenantId) { //NOSONAR
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
     this.tenantId = TenantTool.calculateTenantId(tenantId);
+  }
+
+
+  @Override
+  public void deleteChangeManagerJobExecutions(DeleteJobExecutionsDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(c -> {
+      try {
+        jobExecutionService.deleteJobExecutionByIds(entity.getIds(), tenantId)
+          .map(optionalJobExecution -> !optionalJobExecution.booleanValue()?
+            new NotFoundException(format("JobExecution with id '%s' was not found", entity.getIds())): optionalJobExecution)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error(getMessage("Failed to get JobExecution by id", e, entity.getIds().get(0)));
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
   }
 
   @Override
