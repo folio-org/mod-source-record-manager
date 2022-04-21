@@ -21,6 +21,7 @@ types:
   jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
   jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
   recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
+  jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -184,6 +185,19 @@ resourceTypes:
           body:
             text/plain:
               example: "Bad request"
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+  /jobSummary/{jobExecutionId}:
+    get:
+      description: get summary result for import job
+      responses:
+        200:
+          body:
+            application/json:
+              schema: jobExecutionSummaryDto
         404:
           description: "Not found"
           body:

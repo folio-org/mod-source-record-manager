@@ -150,6 +150,23 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   }
 
+  @Override
+  public void getMetadataProviderJobSummaryByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
+                                                            Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        journalRecordService.getJobExecutionSummaryDto(jobExecutionId, tenantId)
+          .map(GetMetadataProviderJobSummaryByJobExecutionIdResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
                                                      List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {

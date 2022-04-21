@@ -3,6 +3,7 @@ package org.folio.services;
 import io.vertx.core.Future;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
@@ -46,5 +47,10 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   @Override
   public Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId) {
     return journalRecordDao.getRecordProcessingLogDto(jobExecutionId, recordId, tenantId);
+  }
+
+  @Override
+  public Future<JobExecutionSummaryDto> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
+    return journalRecordDao.getJobExecutionSummaryDto(jobExecutionId, tenantId);
   }
 }
