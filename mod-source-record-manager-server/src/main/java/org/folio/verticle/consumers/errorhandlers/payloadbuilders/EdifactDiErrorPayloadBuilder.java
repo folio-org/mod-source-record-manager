@@ -1,10 +1,23 @@
 package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
+import static org.folio.ActionProfile.FolioRecord.INVOICE;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
+import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
+import static org.folio.services.util.EventHandlingUtil.populatePayloadWithHeadersData;
+
+import java.util.HashMap;
+
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.MappingManager;
@@ -21,17 +34,6 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.JobExecutionService;
 import org.folio.services.util.RecordConversionUtil;
 import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-
-import static org.folio.ActionProfile.FolioRecord.INVOICE;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
-import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 
 @Component
 public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
@@ -108,8 +110,11 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
     return eventPayload;
   }
 
-  private DataImportEventPayload prepareEventPayload(DataImportEventTypes eventType, OkapiConnectionParams okapiParams, String jobExecutionId, HashMap<String, String> context) {
-    return new DataImportEventPayload()
+  private DataImportEventPayload prepareEventPayload(DataImportEventTypes eventType,
+                                                     OkapiConnectionParams okapiParams,
+                                                     String jobExecutionId,
+                                                     HashMap<String, String> context) {
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType(eventType.value())
       .withJobExecutionId(jobExecutionId)
       .withOkapiUrl(okapiParams.getOkapiUrl())
@@ -117,6 +122,10 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
       .withToken(okapiParams.getToken())
       .withEventsChain(Lists.newArrayList(DI_INVOICE_CREATED.value()))
       .withContext(context);
+
+    populatePayloadWithHeadersData(eventPayload, okapiParams);
+
+    return eventPayload;
   }
 
   private HashMap<String, String> getPayloadContext(Throwable throwable, Record record) {

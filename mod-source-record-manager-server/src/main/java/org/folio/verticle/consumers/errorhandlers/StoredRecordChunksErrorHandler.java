@@ -1,31 +1,33 @@
 package org.folio.verticle.consumers.errorhandlers;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.services.util.EventHandlingUtil.populatePayloadWithHeadersData;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+
+import java.util.HashMap;
+import java.util.List;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.ProcessRecordErrorHandler;
+import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.util.RecordConversionUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Component
 @Qualifier("StoredRecordChunksErrorHandler")
@@ -84,6 +86,8 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
         put(RecordConversionUtil.getEntityType(targetRecord).value(), Json.encode(targetRecord));
         put(ERROR_KEY, errorMsg);
       }});
+
+    populatePayloadWithHeadersData(errorPayload, okapiParams);
 
     okapiParams.getHeaders().set(RECORD_ID_HEADER, targetRecord.getId());
 

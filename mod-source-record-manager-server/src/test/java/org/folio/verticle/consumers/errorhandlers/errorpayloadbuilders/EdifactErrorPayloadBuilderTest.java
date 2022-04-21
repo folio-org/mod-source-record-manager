@@ -1,5 +1,26 @@
 package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import static org.folio.ActionProfile.FolioRecord.INVOICE;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
+import static org.folio.verticle.consumers.errorhandlers.payloadbuilders.EdifactDiErrorPayloadBuilder.INVOICE_LINES_FIELD;
+
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.vertx.core.Future;
@@ -11,6 +32,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.kafka.common.errors.RecordTooLargeException;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.MappingManager;
@@ -20,34 +49,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.JobExecutionService;
+import org.folio.services.util.EventHandlingUtil;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.EdifactDiErrorPayloadBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
-
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.folio.ActionProfile.FolioRecord.INVOICE;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
-import static org.folio.verticle.consumers.errorhandlers.payloadbuilders.EdifactDiErrorPayloadBuilder.INVOICE_LINES_FIELD;
-import static org.mockito.ArgumentMatchers.any;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 
 @RunWith(VertxUnitRunner.class)
@@ -144,6 +147,21 @@ public class EdifactErrorPayloadBuilderTest {
 
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldPopulateEventPayloadWithHeadersData() {
+    when(jobExecutionService.getJobExecutionById(JOB_EXECUTION_ID, TENANT_ID))
+      .thenReturn(Future.succeededFuture(Optional.empty()));
+
+    try(var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
+        getOkapiParams(),
+        JOB_EXECUTION_ID,
+        new Record().withRecordType(Record.RecordType.EDIFACT)).result();
+
+      mockedStatic.verify(() -> EventHandlingUtil.populatePayloadWithHeadersData(any(DataImportEventPayload.class), any()));
+    }
   }
 
   private OkapiConnectionParams getOkapiParams() {

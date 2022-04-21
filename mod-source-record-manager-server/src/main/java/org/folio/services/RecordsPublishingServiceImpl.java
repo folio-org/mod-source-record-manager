@@ -1,5 +1,16 @@
 package org.folio.services;
 
+import static java.lang.String.format;
+
+import static org.folio.services.util.EventHandlingUtil.populatePayloadWithHeadersData;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.ws.rs.NotFoundException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -7,6 +18,10 @@ import io.vertx.core.json.Json;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
@@ -17,21 +32,9 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.exceptions.RecordsPublishingException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.lang.String.format;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
-  public class RecordsPublishingServiceImpl implements RecordsPublishingService {
+public class RecordsPublishingServiceImpl implements RecordsPublishingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String RECORD_ID_HEADER = "recordId";
@@ -127,7 +130,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
                                                      OkapiConnectionParams params, String eventType) {
     HashMap<String, String> context = payloadContextBuilder.buildFrom(record, profileSnapshotWrapper.getId());
 
-    return new DataImportEventPayload()
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType(eventType)
       .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
@@ -135,6 +138,10 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       .withOkapiUrl(params.getOkapiUrl())
       .withTenant(params.getTenantId())
       .withToken(params.getToken());
+
+    populatePayloadWithHeadersData(eventPayload, params);
+
+    return eventPayload;
   }
 
 }

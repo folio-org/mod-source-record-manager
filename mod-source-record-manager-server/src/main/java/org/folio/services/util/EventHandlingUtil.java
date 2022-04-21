@@ -1,5 +1,12 @@
 package org.folio.services.util;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import static org.folio.services.util.RecordConversionUtil.RECORDS;
+
+import java.util.List;
+import java.util.UUID;
+
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -10,23 +17,24 @@ import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.processing.events.utils.PomReaderUtil;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.tools.utils.ModuleName;
 import org.folio.services.exceptions.RecordsPublishingException;
-import static org.folio.services.util.RecordConversionUtil.RECORDS;
-
-import java.util.List;
-import java.util.UUID;
 
 public final class EventHandlingUtil {
 
   private EventHandlingUtil() {
   }
+
+  static final String CORRELATION_ID_HEADER = "correlationId";
 
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -125,5 +133,21 @@ public final class EventHandlingUtil {
       promise.fail(new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords()));
     }
     promise.fail(cause);
+  }
+
+  //Method is duplicated because there're two similar dto's from different sources
+  public static void populatePayloadWithHeadersData(DataImportEventPayload eventPayload, OkapiConnectionParams params) {
+    String correlationId = params.getHeaders().get(CORRELATION_ID_HEADER);
+    if (isNotBlank(correlationId)) {
+      eventPayload.setCorrelationId(correlationId);
+    }
+  }
+
+  //Method is duplicated because there're two similar dto's from different sources
+  public static void populatePayloadWithHeadersData(org.folio.DataImportEventPayload eventPayload, OkapiConnectionParams params) {
+    String correlationId = params.getHeaders().get(CORRELATION_ID_HEADER);
+    if (isNotBlank(correlationId)) {
+      eventPayload.setCorrelationId(correlationId);
+    }
   }
 }

@@ -1,28 +1,30 @@
 package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.services.util.EventHandlingUtil.populatePayloadWithHeadersData;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
-import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.folio.services.util.RecordConversionUtil;
+import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 
 @Component
 public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
@@ -59,12 +61,13 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
   private DataImportEventPayload prepareDiErrorEventPayload(Throwable throwable,
                                                             OkapiConnectionParams okapiParams,
-                                                            String jobExecutionId, Record record) {
+                                                            String jobExecutionId,
+                                                            Record record) {
     HashMap<String, String> context = new HashMap<>();
     context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
     context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
 
-    return new DataImportEventPayload()
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withJobExecutionId(jobExecutionId)
       .withOkapiUrl(okapiParams.getOkapiUrl())
@@ -72,6 +75,9 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
       .withToken(okapiParams.getToken())
       .withContext(context);
 
+    populatePayloadWithHeadersData(eventPayload, okapiParams);
+
+    return eventPayload;
   }
 
   private String getReducedRecordContentOnlyWithTitle(JsonObject mappingRules, Record record) {

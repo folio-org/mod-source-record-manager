@@ -1,5 +1,25 @@
 package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.verticle.consumers.DataImportJournalConsumerVerticleMockTest.MAPPING_RULES_PATH;
+import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -8,6 +28,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.kafka.common.errors.RecordTooLargeException;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -16,31 +44,8 @@ import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
+import org.folio.services.util.EventHandlingUtil;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.MarcBibDiErrorPayloadBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.folio.verticle.consumers.DataImportJournalConsumerVerticleMockTest.MAPPING_RULES_PATH;
-import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(VertxUnitRunner.class)
@@ -116,6 +121,23 @@ public class MarcBibErrorPayloadBuilderTest {
       assertNull(resRecordWithNoTitle.getParsedRecord());
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldPopulatePayloadWithHeadersData() throws IOException {
+    Record record = getRecordFromFile();
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
+      .thenReturn(Future.succeededFuture(Optional.empty()));
+
+
+    try(var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
+        getOkapiParams(),
+        JOB_EXECUTION_ID,
+        record).result();
+
+      mockedStatic.verify(() -> EventHandlingUtil.populatePayloadWithHeadersData(any(DataImportEventPayload.class), any()));
+    }
   }
 
   @Test

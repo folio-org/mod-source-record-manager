@@ -24,8 +24,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
-
-import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,10 +41,12 @@ import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
 import org.folio.dataimport.util.marc.MarcRecordType;
 import org.folio.kafka.KafkaConfig;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
@@ -230,6 +230,26 @@ public class ChangeEngineServiceImplTest {
       .findFirst();
 
     assertTrue(optionalRecordIdHeader.isPresent());
+  }
+
+  @Test
+  public void shouldPopulateEventPayloadWithHeadersDataWhen004FieldIsMissing() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
+    JobExecution jobExecution = getTestJobExecution();
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), any(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+
+      mockedStatic.verify(() -> EventHandlingUtil.populatePayloadWithHeadersData(any(DataImportEventPayload.class), any()));
+    }
   }
 
   @Test

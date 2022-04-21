@@ -1,5 +1,11 @@
 package org.folio.verticle.consumers.errorhandlers;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.services.util.EventHandlingUtil.populatePayloadWithHeadersData;
+
+import java.util.HashMap;
+import java.util.List;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
@@ -8,6 +14,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaConfig;
@@ -22,14 +32,6 @@ import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.util.EventHandlingUtil;
 import org.folio.services.util.RecordConversionUtil;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.DiErrorPayloadBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 
 @Component
 @Qualifier("RawMarcChunksErrorHandler")
@@ -125,6 +127,9 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
       .withTenant(okapiParams.getTenantId())
       .withToken(okapiParams.getToken())
       .withContext(context);
+
+    populatePayloadWithHeadersData(payload, okapiParams);
+
     EventHandlingUtil.sendEventToKafka(okapiParams.getTenantId(), Json.encode(payload), DI_ERROR.value(),
       KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null);
   }
