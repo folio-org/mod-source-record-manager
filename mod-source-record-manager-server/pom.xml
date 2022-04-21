@@ -198,10 +198,18 @@
       <artifactId>mod-data-import-converter-storage-client</artifactId>
       <version>1.14.0-SNAPSHOT</version>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.folio</groupId>-->
+<!--      <artifactId>data-import-processing-core</artifactId>-->
+<!--      <version>3.4.0-SNAPSHOT</version>-->
+<!--    </dependency>-->
+    <!-- TODO: THE VERSION OF LIBRARY MUST BE CHANGED BACK ONCE TESTING ON RANCHER IS COMPLETE-->
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>data-import-processing-core</artifactId>
+      <scope>system</scope>
       <version>3.4.0-SNAPSHOT</version>
+      <systemPath>${basedir}/lib/data-import-processing-core-fat.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
@@ -411,6 +419,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
+                    <Class-Path>lib/data-import-processing-core-fat.jar</Class-Path>
                     <Main-Class>org.folio.rest.RestLauncher</Main-Class>
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
                     <Multi-Release>true</Multi-Release>
