@@ -210,9 +210,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
-      Tuple queryParams = Tuple.from(ids);
-      pgClientFactory.createInstance(tenantId).delete(query, queryParams, promise);
+      String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME, ids.stream().collect(Collectors.joining("','")));
+      pgClientFactory.createInstance(tenantId).execute(query, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecution by id", e);
       promise.fail(e);

@@ -26,6 +26,7 @@ import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
@@ -58,9 +59,9 @@ public class ChangeManagerImpl implements ChangeManager {
       try {
         jobExecutionService.deleteJobExecutionByIds(entity.getIds(), tenantId)
           .map(optionalJobExecution -> !optionalJobExecution.booleanValue()?
-            new NotFoundException(format("JobExecution with id '%s' was not found", entity.getIds())): optionalJobExecution)
+            new BadRequestException(format("JobExecution with id '%s' was not found", entity.getIds())): optionalJobExecution)
           .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .otherwise(Response.ok().build())
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error(getMessage("Failed to get JobExecution by id", e, entity.getIds().get(0)));

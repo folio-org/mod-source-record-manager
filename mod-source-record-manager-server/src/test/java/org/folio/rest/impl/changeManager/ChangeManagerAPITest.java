@@ -78,6 +78,7 @@ import org.folio.services.afterprocessing.AdditionalFieldsUtil;
 import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -1883,6 +1884,50 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     MatcherAssert.assertThat(recordCollection.getRecords().get(0).getErrorRecord().getDescription(), containsString("Error during analyze leader line for determining record type"));
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutions_SingleEntity(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":[\"15065ccd-c305-4961-a411-8359e0b5a87b\"]}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutions_MultipleIds(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":[\"15065ccd-c305-4961-a411-8359e0b5a87b\", \"15065ccd-c305-4961-a411-8359e0b5a87b\"]}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+  }
+
+  @Test @Ignore
+  public void testDeleteChangeManagerJobExecutions_failure(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":null}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutions_incorrectBody(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":\"15065ccd-c305-4961-a411-8359e0b5a87b\"}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
 }
