@@ -246,8 +246,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId) {
-    return jobExecutionDao.deleteJobExecutionByIds(ids, tenantId);
+  public Future<Boolean> deleteJobExecutionsByIds(List<String> ids, String tenantId) {
+    return jobExecutionDao.deleteJobExecutionsByIds(ids, tenantId);
   }
 
   /**

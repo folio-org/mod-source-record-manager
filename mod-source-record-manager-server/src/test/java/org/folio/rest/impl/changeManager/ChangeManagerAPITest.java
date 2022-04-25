@@ -1908,7 +1908,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK);
   }
 
-  @Test @Ignore
+  @Test
   public void testDeleteChangeManagerJobExecutions_failure(){
     RestAssured.given()
       .spec(spec)

@@ -57,11 +57,12 @@ public class ChangeManagerImpl implements ChangeManager {
   public void deleteChangeManagerJobExecutions(DeleteJobExecutionsDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
-        jobExecutionService.deleteJobExecutionByIds(entity.getIds(), tenantId)
+        jobExecutionService.deleteJobExecutionsByIds(entity.getIds(), tenantId)
           .map(optionalJobExecution -> !optionalJobExecution.booleanValue()?
             new BadRequestException(format("JobExecution with id '%s' was not found", entity.getIds())): optionalJobExecution)
+          .map(DeleteChangeManagerJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
-          .otherwise(Response.ok().build())
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.error(getMessage("Failed to get JobExecution by id", e, entity.getIds().get(0)));

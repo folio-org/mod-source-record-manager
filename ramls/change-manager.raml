@@ -51,11 +51,10 @@ resourceTypes:
         application/json:
           schema: deleteJobExecutionsDto
       responses:
-        204:
+        200:
           description: "No Content"
           body:
-            text/plain:
-              example: "No Content"
+            application/json:
     post:
       description: "Initialize JobExecutions"
       body:

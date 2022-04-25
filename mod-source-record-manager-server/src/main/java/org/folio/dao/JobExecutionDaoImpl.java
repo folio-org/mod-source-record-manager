@@ -207,7 +207,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<Boolean> deleteJobExecutionByIds(List<String> ids, String tenantId) {
+  public Future<Boolean> deleteJobExecutionsByIds(List<String> ids, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME, ids.stream().collect(Collectors.joining("','")));
