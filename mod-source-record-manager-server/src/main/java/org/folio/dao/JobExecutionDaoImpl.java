@@ -213,10 +213,10 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME, ids.stream().collect(Collectors.joining("','")));
       pgClientFactory.createInstance(tenantId).execute(query, promise);
     } catch (Exception e) {
-      LOGGER.error("Error deleting jobExecution by ids {} : Exception : ", ids, e);
+      LOGGER.error("Error deleting jobExecution by ids {}, ", ids, e);
       promise.fail(e);
     }
-    return promise.future().map(updateResult -> updateResult.rowCount() == 1);
+    return promise.future().map(updateResult -> updateResult.rowCount()>0);
   }
 
   private Tuple mapToTuple(JobExecution jobExecution) {

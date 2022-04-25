@@ -73,7 +73,7 @@ public interface JobExecutionDao {
 
   /**
    *
-   * @param ids JobExecutionIds to be deleted ids
+   * @param ids JobExecution Logs to be deleted using Ids
    * @param tenantId
    * @return future of boolean depending upon success and failure
    */

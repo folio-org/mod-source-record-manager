@@ -484,7 +484,7 @@
     {
       "permissionName": "change-manager.jobexecutions.delete",
       "displayName": "Change Manager - delete jobExecutions",
-      "description": "Delete JobExecutions Using JobExecutionIds"
+      "description": "Batch Delete JobExecutions"
     },
     {
       "permissionName": "change-manager.jobexecutions.put",
