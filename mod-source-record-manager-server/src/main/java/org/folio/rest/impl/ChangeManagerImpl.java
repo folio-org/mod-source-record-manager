@@ -65,7 +65,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to get JobExecution by id", e, entity.getIds().get(0)));
+        LOGGER.error("Failed to get JobExecution by id {} : Exception : ", entity.getIds(), e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
