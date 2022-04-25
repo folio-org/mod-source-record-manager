@@ -126,11 +126,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions",
           "permissionsRequired": [
-            "change-manager.jobexecutions.post"
-          ],
-          "modulePermissions": [
-            "source-storage.snapshots.post",
-            "users.collection.get"
+            "change-manager.jobexecutions.delete"
           ]
         },
         {
@@ -484,6 +480,11 @@
       "permissionName": "change-manager.jobexecutions.post",
       "displayName": "Change Manager - create jobExecutions",
       "description": "Post JobExecution"
+    },
+    {
+      "permissionName": "change-manager.jobexecutions.delete",
+      "displayName": "Change Manager - delete jobExecutions",
+      "description": "Delete JobExecutions Using JobExecutionIds"
     },
     {
       "permissionName": "change-manager.jobexecutions.put",
