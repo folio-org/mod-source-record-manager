@@ -46,19 +46,24 @@ import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.any;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 
@@ -70,6 +75,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
+  private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -686,6 +692,285 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .stream()
         .filter(journalRecord -> journalRecord.getEntityType().equals(EntityType.MARC_BIBLIOGRAPHIC))
         .forEach(journalRecord -> assertThat(journalRecord.getTitle(), is(expectedRecordTitle)));
+      async.complete();
+    }));
+  }
+
+// todo:
+
+  @Test
+  public void shouldReturnCreatedRecordInstanceHoldingItemSummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, ITEM, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+
+        .body("instanceSummary.totalCreatedEntities", is(1))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(0))
+        .body("instanceSummary.totalErrors", is(0))
+
+        .body("holdingSummary.totalCreatedEntities", is(1))
+        .body("holdingSummary.totalUpdatedEntities", is(0))
+        .body("holdingSummary.totalDiscardedEntities", is(0))
+        .body("holdingSummary.totalErrors", is(0))
+
+        .body("itemSummary.totalCreatedEntities", is(1))
+        .body("itemSummary.totalUpdatedEntities", is(0))
+        .body("itemSummary.totalDiscardedEntities", is(0))
+        .body("itemSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnUpdatedSourceRecordSummaryWhenRecordWasUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnUpdatedSourceRecordSummaryWhenRecordWasModified(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedInstanceWhenInstanceDidNotMatch(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, NON_MATCH, INSTANCE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+
+        .body("instanceSummary.totalCreatedEntities", is(0))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(1))
+        .body("instanceSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInstanceDiscardedWithErrorsWhenInstanceCreationFailed(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, CREATE, INSTANCE, ERROR, "error msg"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("instanceSummary.totalCreatedEntities", is(0))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(1))
+        .body("instanceSummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceSummaryWhenInvoiceWasCreated(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceTitle = "INVOICE";
+    String invoiceLineDescription = "Some description";
+    String invoiceVendorNo = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("invoiceSummary.totalCreatedEntities", is(1))
+        .body("invoiceSummary.totalUpdatedEntities", is(0))
+        .body("invoiceSummary.totalDiscardedEntities", is(0))
+        .body("invoiceSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceSummaryWithErrorsWhenInvoiceCreationFailed(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceTitle = "INVOICE";
+    String invoiceLineDescription = "Some description";
+    String invoiceVendorNo = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      // todo: check how to save ERROR during edifact import
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("invoiceSummary.totalCreatedEntities", is(1))
+        .body("invoiceSummary.totalUpdatedEntities", is(0))
+        .body("invoiceSummary.totalDiscardedEntities", is(1))
+        .body("invoiceSummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceSummaryWithErrorsWhenAnyInvoiceLineCreationFailed(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceTitle = "INVOICE";
+    String invoiceLineDescription = "Some description";
+    String invoiceVendorNo = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      // todo: check how to save ERROR during edifact import
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+//        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+//        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("invoiceSummary.totalCreatedEntities", is(1))
+        .body("invoiceSummary.totalUpdatedEntities", is(0))
+        .body("invoiceSummary.totalDiscardedEntities", is(1))
+        .body("invoiceSummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+
       async.complete();
     }));
   }
