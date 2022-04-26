@@ -911,11 +911,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String invoiceVendorNo = "0704159";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      // todo: check how to save ERROR during edifact import
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
-      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, ERROR, "error msg"))
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, ERROR, "error msg"))
-      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -947,11 +945,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String invoiceVendorNo = "0704159";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      // todo: check how to save ERROR during edifact import
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
-      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, ERROR, "error msg"))
-      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, ERROR, "error msg"))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -962,8 +959,41 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("sourceRecordSummary.totalCreatedEntities", is(1))
-//        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
-//        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("invoiceSummary.totalCreatedEntities", is(1))
+        .body("invoiceSummary.totalUpdatedEntities", is(0))
+        .body("invoiceSummary.totalDiscardedEntities", is(1))
+        .body("invoiceSummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneInvoiceErrorWhenAllInvoiceLinesCreationFailed(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceTitle = "INVOICE";
+    String invoiceLineDescription = "Some description";
+    String invoiceVendorNo = "0704159";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo, invoiceTitle, 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-1", invoiceLineDescription, 1, CREATE, INVOICE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, invoiceVendorNo + "-2", invoiceLineDescription, 2, CREATE, INVOICE, ERROR, "error msg"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("invoiceSummary.totalCreatedEntities", is(1))
         .body("invoiceSummary.totalUpdatedEntities", is(0))
