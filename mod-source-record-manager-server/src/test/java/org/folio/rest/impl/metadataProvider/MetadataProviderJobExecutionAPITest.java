@@ -51,11 +51,13 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -696,8 +698,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     }));
   }
 
-// todo:
-
   @Test
   public void shouldReturnCreatedRecordInstanceHoldingItemSummary(TestContext context) {
     Async async = context.async();
@@ -724,21 +724,22 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
-
         .body("instanceSummary.totalCreatedEntities", is(1))
         .body("instanceSummary.totalUpdatedEntities", is(0))
         .body("instanceSummary.totalDiscardedEntities", is(0))
         .body("instanceSummary.totalErrors", is(0))
-
         .body("holdingSummary.totalCreatedEntities", is(1))
         .body("holdingSummary.totalUpdatedEntities", is(0))
         .body("holdingSummary.totalDiscardedEntities", is(0))
         .body("holdingSummary.totalErrors", is(0))
-
         .body("itemSummary.totalCreatedEntities", is(1))
         .body("itemSummary.totalUpdatedEntities", is(0))
         .body("itemSummary.totalDiscardedEntities", is(0))
         .body("itemSummary.totalErrors", is(0))
+        .body("authoritySummary.totalCreatedEntities", is(0))
+        .body("authoritySummary.totalUpdatedEntities", is(0))
+        .body("authoritySummary.totalDiscardedEntities", is(0))
+        .body("authoritySummary.totalErrors", is(0))
         .body("totalErrors", is(0));
 
       async.complete();
@@ -863,6 +864,39 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("instanceSummary.totalDiscardedEntities", is(1))
         .body("instanceSummary.totalErrors", is(1))
         .body("totalErrors", is(1));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnAuthoritySummaryWhenAuthorityWasCreated(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null, 0, CREATE, MARC_AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, null, 0, CREATE, AUTHORITY, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("authoritySummary.totalCreatedEntities", is(1))
+        .body("authoritySummary.totalUpdatedEntities", is(0))
+        .body("authoritySummary.totalDiscardedEntities", is(0))
+        .body("authoritySummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
 
       async.complete();
     }));
