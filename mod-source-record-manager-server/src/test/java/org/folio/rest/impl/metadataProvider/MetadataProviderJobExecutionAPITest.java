@@ -959,7 +959,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .body("sourceRecordSummary.totalCreatedEntities", is(1))
         .body("sourceRecordSummary.totalErrors", is(0))
-        .body("invoiceSummary.totalCreatedEntities", is(1))
+        .body("invoiceSummary.totalCreatedEntities", is(0))
         .body("invoiceSummary.totalUpdatedEntities", is(0))
         .body("invoiceSummary.totalDiscardedEntities", is(1))
         .body("invoiceSummary.totalErrors", is(1))
