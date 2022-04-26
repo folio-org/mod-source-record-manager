@@ -10,6 +10,7 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DAO interface for the JournalRecord entity
@@ -87,11 +88,11 @@ public interface JournalRecordDao {
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
 
   /**
-   * Returns getJobExecutionSummaryDto for job execution by jobExecutionId
+   * Returns getJobExecutionSummaryDto for job execution by {@code jobExecutionId}
    *
    * @param jobExecutionId job execution id
    * @param tenantId       tenantId
-   * @return future with JobExecutionSummaryDto
+   * @return future with {@link Optional} of JobExecutionSummaryDto
    */
-  Future<JobExecutionSummaryDto> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
+  Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
 }

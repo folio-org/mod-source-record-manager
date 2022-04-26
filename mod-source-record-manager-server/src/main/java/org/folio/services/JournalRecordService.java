@@ -7,6 +7,8 @@ import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 
+import java.util.Optional;
+
 /**
  * JournalRecord Service interface.
  */
@@ -63,5 +65,5 @@ public interface JournalRecordService {
    */
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
 
-  Future<JobExecutionSummaryDto> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
+  Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
 }

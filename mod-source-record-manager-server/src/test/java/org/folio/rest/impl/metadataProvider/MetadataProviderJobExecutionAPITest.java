@@ -564,7 +564,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID().toString())
+      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -593,7 +593,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND)
       .body(Matchers.notNullValue(String.class));
@@ -1003,6 +1003,16 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
       async.complete();
     }));
+  }
+
+  @Test
+  public void shouldNotFoundWhenJobExecutionDoesNotExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + UUID.randomUUID())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,

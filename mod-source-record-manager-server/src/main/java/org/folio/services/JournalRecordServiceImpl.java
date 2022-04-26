@@ -10,6 +10,8 @@ import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * Implementation of the JournalRecordService.
  *
@@ -50,7 +52,7 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   }
 
   @Override
-  public Future<JobExecutionSummaryDto> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
+  public Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
     return journalRecordDao.getJobExecutionSummaryDto(jobExecutionId, tenantId);
   }
 }
