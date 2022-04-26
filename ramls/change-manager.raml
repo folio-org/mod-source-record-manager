@@ -48,12 +48,12 @@ resourceTypes:
       description: "Initialize JobExecutions"
       body:
         application/json:
-          schema: initJobExecutionsRqDto
+          type: initJobExecutionsRqDto
       responses:
         201:
           body:
             application/json:
-              schema: initJobExecutionsRsDto
+              type: initJobExecutionsRsDto
         500:
           description: "Internal server error"
           body:
@@ -111,7 +111,7 @@ resourceTypes:
           description: "Update JobExecution status"
           body:
             application/json:
-              schema: statusDto
+              type: statusDto
           responses:
             200:
               body:
@@ -138,7 +138,7 @@ resourceTypes:
           description: "Set JobProfile for JobExecution"
           body:
             application/json:
-              schema: jobProfileInfo
+              type: jobProfileInfo
           responses:
             200:
               body:
@@ -165,7 +165,7 @@ resourceTypes:
           description: "Receive chunk of raw records"
           body:
             application/json:
-              schema: rawRecordsDto
+              type: rawRecordsDto
           responses:
             204:
             400:
@@ -231,7 +231,7 @@ resourceTypes:
         is: [validate]
         body:
           application/json:
-            schema: parsedRecordDto
+            type: parsedRecordDto
         responses:
           202:
           400:
