@@ -243,7 +243,8 @@
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
-            "users.collection.get"
+            "users.collection.get",
+            "orders.po-lines.collection.get"
           ]
         },
         {
@@ -343,7 +344,8 @@
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
-            "users.collection.get"
+            "users.collection.get",
+            "orders.po-lines.collection.get"
           ]
         }
       ]
