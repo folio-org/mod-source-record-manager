@@ -826,7 +826,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
-
         .body("instanceSummary.totalCreatedEntities", is(0))
         .body("instanceSummary.totalUpdatedEntities", is(0))
         .body("instanceSummary.totalDiscardedEntities", is(1))

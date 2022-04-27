@@ -81,14 +81,14 @@ public interface JournalRecordDao {
    * Searches for RecordProcessingLogDto entities by jobExecutionId and recordId
    *
    * @param jobExecutionId job execution id
-   * @param recordId record id
-   * @param tenantId tenant id
+   * @param recordId       record id
+   * @param tenantId       tenant id
    * @return future with RecordProcessingLogDto collection
    */
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
 
   /**
-   * Returns getJobExecutionSummaryDto for job execution by {@code jobExecutionId}
+   * Returns JobExecutionSummaryDto for job execution by {@code jobExecutionId}
    *
    * @param jobExecutionId job execution id
    * @param tenantId       tenantId

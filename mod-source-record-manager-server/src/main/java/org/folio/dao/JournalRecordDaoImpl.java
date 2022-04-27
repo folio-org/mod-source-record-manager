@@ -8,7 +8,6 @@ import io.vertx.sqlclient.Tuple;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.dao.util.JournalRecordsColumns;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
 import org.folio.rest.jaxrs.model.EntityProcessingSummary;
@@ -427,10 +426,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private JobExecutionSummaryDto mapRowSetToJobExecutionSummaryDto(RowSet<Row> rowSet) {
-    JobExecutionSummaryDto jobExecutionSummaryDto = new JobExecutionSummaryDto();
+    Row row = rowSet.iterator().next();
 
-    rowSet.forEach(row -> jobExecutionSummaryDto
+    return new JobExecutionSummaryDto()
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withTotalErrors(row.getInteger(TOTAL_ERRORS))
       .withSourceRecordSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_SOURCE_RECORDS, TOTAL_UPDATED_SOURCE_RECORDS,
         TOTAL_DISCARDED_SOURCE_RECORDS, TOTAL_SOURCE_RECORDS_ERRORS))
       .withInstanceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INSTANCES, TOTAL_UPDATED_INSTANCES,
@@ -444,10 +444,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
         TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
       .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
-        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS))
-      .withTotalErrors(row.getInteger(TOTAL_ERRORS)));
-
-    return jobExecutionSummaryDto;
+        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
   }
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,

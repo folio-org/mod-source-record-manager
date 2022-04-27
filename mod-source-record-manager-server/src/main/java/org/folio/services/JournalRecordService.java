@@ -66,7 +66,7 @@ public interface JournalRecordService {
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
 
   /**
-   * Returns getJobExecutionSummaryDto for job execution by {@code jobExecutionId}
+   * Returns JobExecutionSummaryDto for job execution by {@code jobExecutionId}
    *
    * @param jobExecutionId job execution id
    * @param tenantId       tenantId
