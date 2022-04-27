@@ -90,14 +90,38 @@ import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
 import static org.folio.dao.util.JournalRecordsColumns.TITLE;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_AUTHORITIES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_HOLDINGS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INVOICES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ORDERS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_SOURCE_RECORDS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_HOLDINGS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INSTANCES_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INVOICES_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ITEMS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ORDERS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_SOURCE_RECORDS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS;
 import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -405,46 +429,33 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private JobExecutionSummaryDto mapRowSetToJobExecutionSummaryDto(RowSet<Row> rowSet) {
     JobExecutionSummaryDto jobExecutionSummaryDto = new JobExecutionSummaryDto();
 
-    rowSet.forEach(row ->
-      jobExecutionSummaryDto
-        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-        .withSourceRecordSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(TOTAL_CREATED_SOURCE_RECORDS))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_SOURCE_RECORDS))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_SOURCE_RECORDS_ERRORS)))
-        .withInstanceSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(TOTAL_CREATED_INSTANCES))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_INSTANCES))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_INSTANCES))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_INSTANCES_ERRORS)))
-        .withHoldingSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(TOTAL_CREATED_HOLDINGS))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_HOLDINGS))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_HOLDINGS))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_HOLDINGS_ERRORS)))
-        .withItemSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(TOTAL_CREATED_ITEMS))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_ITEMS))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_ITEMS))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_ITEMS_ERRORS)))
-        .withAuthoritySummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_CREATED_AUTHORITIES))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_AUTHORITIES))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_AUTHORITIES))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS)))
-        .withInvoiceSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_CREATED_INVOICES))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_INVOICES))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_INVOICES))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_INVOICES_ERRORS)))
-        .withOrderSummary(new EntityProcessingSummary()
-          .withTotalCreatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_CREATED_ORDERS))
-          .withTotalUpdatedEntities(row.getInteger(JournalRecordsColumns.TOTAL_UPDATED_ORDERS))
-          .withTotalDiscardedEntities(row.getInteger(JournalRecordsColumns.TOTAL_DISCARDED_ORDERS))
-          .withTotalErrors(row.getInteger(JournalRecordsColumns.TOTAL_ORDERS_ERRORS)))
-        .withTotalErrors(row.getInteger(TOTAL_ERRORS)));
+    rowSet.forEach(row -> jobExecutionSummaryDto
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withSourceRecordSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_SOURCE_RECORDS, TOTAL_UPDATED_SOURCE_RECORDS,
+        TOTAL_DISCARDED_SOURCE_RECORDS, TOTAL_SOURCE_RECORDS_ERRORS))
+      .withInstanceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INSTANCES, TOTAL_UPDATED_INSTANCES,
+        TOTAL_DISCARDED_INSTANCES, TOTAL_INSTANCES_ERRORS))
+      .withHoldingSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_HOLDINGS, TOTAL_UPDATED_HOLDINGS,
+        TOTAL_DISCARDED_HOLDINGS, TOTAL_HOLDINGS_ERRORS))
+      .withItemSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ITEMS, TOTAL_UPDATED_ITEMS,
+        TOTAL_DISCARDED_ITEMS, TOTAL_ITEMS_ERRORS))
+      .withAuthoritySummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_AUTHORITIES, TOTAL_UPDATED_AUTHORITIES,
+        TOTAL_DISCARDED_AUTHORITIES, TOTAL_AUTHORITIES_ERRORS))
+      .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
+        TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
+      .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
+        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS))
+      .withTotalErrors(row.getInteger(TOTAL_ERRORS)));
 
     return jobExecutionSummaryDto;
+  }
+
+  private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
+                                                              String totalDiscardedColumn, String totalErrorsColumn) {
+    return new EntityProcessingSummary()
+      .withTotalCreatedEntities(row.getInteger(totalCreatedColumn))
+      .withTotalUpdatedEntities(row.getInteger(totalUpdatedColumn))
+      .withTotalDiscardedEntities(row.getInteger(totalDiscardedColumn))
+      .withTotalErrors(row.getInteger(totalErrorsColumn));
   }
 }
