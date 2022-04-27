@@ -3,7 +3,6 @@ package org.folio.services.flowcontrol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConsumerWrapper;
-import org.folio.rest.jaxrs.model.Event;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +17,11 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class FlowControlServiceImpl implements FlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static final int DEFAULT_CHUNK_SIZE = 50;
-
-  @Value("${di.flow.max_simultaneous_records:500}")
+  @Value("${di.flow.max_simultaneous_records:10}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.records_threshold:250}")
+  @Value("${di.flow.records_threshold:5}")
   private Integer recordsThreshold;
-  @Value("${di.flow.control.enable:false}")
+  @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
 
   @Autowired
@@ -38,23 +35,27 @@ public class FlowControlServiceImpl implements FlowControlService {
   }
 
   @Override
-  public void trackChunkProcessedEvent(Event event) {
+  public void trackChunkProcessedEvent(String tenantId, Integer initialRecordsSize) {
     if (!enableFlowControl) {
       return;
     }
 
-    if (processedRecordsCount.addAndGet(DEFAULT_CHUNK_SIZE) > maxSimultaneousRecords) {
+    if (processedRecordsCount.addAndGet(initialRecordsSize) > maxSimultaneousRecords) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
-      rawRecordsReadConsumers.forEach(KafkaConsumerWrapper::pause);
+      rawRecordsReadConsumers.forEach(consumer -> {
+        if (consumer.demand() > 0) {
+          consumer.pause();
 
-      LOGGER.debug("{} kafka consumer is paused, because {} exceeded {} max simultaneous records",
-        DI_RAW_RECORDS_CHUNK_READ.value(), processedRecordsCount.get(), maxSimultaneousRecords );
+          LOGGER.info("{} kafka consumer is paused caused by {} tenant, because {} exceeded {} max simultaneous records",
+            DI_RAW_RECORDS_CHUNK_READ.value(), tenantId, processedRecordsCount, maxSimultaneousRecords);
+        }
+      });
     }
   }
 
   @Override
-  public void trackRecordCompleteEvent(Event event) {
+  public void trackRecordCompleteEvent(String tenantId) {
     if (!enableFlowControl) {
       return;
     }
@@ -62,10 +63,14 @@ public class FlowControlServiceImpl implements FlowControlService {
     if (processedRecordsCount.decrementAndGet() <= recordsThreshold) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
-      rawRecordsReadConsumers.forEach(KafkaConsumerWrapper::resume);
+      rawRecordsReadConsumers.forEach(consumer -> {
+        if (consumer.demand() == 0) {
+          consumer.resume();
 
-      LOGGER.debug("{} kafka consumer working, because {} exceeded {} threshold",
-        DI_RAW_RECORDS_CHUNK_READ.value(), processedRecordsCount.get(), recordsThreshold);
+          LOGGER.info("{} kafka consumer is resumed caused by {} tenant, because {} exceeded {} threshold",
+            DI_RAW_RECORDS_CHUNK_READ.value(), tenantId, processedRecordsCount, recordsThreshold);
+        }
+      });
     }
   }
 }

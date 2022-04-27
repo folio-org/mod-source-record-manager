@@ -58,10 +58,12 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
       LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
         jobExecutionId, chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
-        .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
+        .processChunk(rawRecordsDto, jobExecutionId, okapiConnectionParams)
         .compose(b -> {
           LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
-          flowControlService.trackChunkProcessedEvent(event);
+          if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+            flowControlService.trackChunkProcessedEvent(okapiConnectionParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
+          }
           return Future.succeededFuture(record.key());
         }, th -> {
           if (th instanceof DuplicateEventException) {

@@ -1,7 +1,5 @@
 package org.folio.services.flowcontrol;
 
-import org.folio.rest.jaxrs.model.Event;
-
 /**
  * Service to implement flow control logic to be able to import OCLC files in between imports of huge files.
  * Its necessary to not wait for importing 1 record file until other big files in progress.
@@ -12,17 +10,18 @@ public interface FlowControlService {
 
   /**
    * Tracks each successful DI_RAW_RECORDS_CHUNK_PARSED event, this method can also pause processing
-   * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
+   * of DI_RAW_RECORDS_CHUNK_READ topic when flow control conditions met.
    *
-   * @param event the DI_RAW_RECORDS_CHUNK_PARSED event
+   * @param tenantId the tenant id
+   * @param initialRecordsSize initial records size in the batch
    */
-  void trackChunkProcessedEvent(Event event);
+  void trackChunkProcessedEvent(String tenantId, Integer initialRecordsSize);
 
   /**
    * Tracks each successful DI_COMPLETED, DI_ERROR events, this method can also resume processing
    * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
    *
-   * @param event
+   * @param tenantId the tenant id
    */
-  void trackRecordCompleteEvent(Event event);
+  void trackRecordCompleteEvent(String tenantId);
 }
