@@ -97,7 +97,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobExecutionDtoCollection
+              type: jobExecutionDtoCollection
         500:
           description: "Internal server error"
           body:
@@ -109,7 +109,7 @@ resourceTypes:
           200:
             body:
               application/json:
-                schema: jobExecutionLogDto
+                type: jobExecutionLogDto
           500:
             description: "Internal server error"
             body:
@@ -133,7 +133,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: journalRecordCollection
+              type: journalRecordCollection
         400:
           description: "Bad request"
           body:
@@ -165,7 +165,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobLogEntryDtoCollection
+              type: jobLogEntryDtoCollection
         400:
           description: "Bad request"
           body:
@@ -178,7 +178,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: recordProcessingLogDto
+              type: recordProcessingLogDto
         400:
           description: "Bad request"
           body:
