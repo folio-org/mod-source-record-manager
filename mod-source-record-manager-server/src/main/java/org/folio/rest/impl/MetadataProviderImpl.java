@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static org.folio.rest.jaxrs.resource.MetadataProvider.GetMetadataProviderJobSummaryByJobExecutionIdResponse.respond404WithTextPlain;
+
 public class MetadataProviderImpl implements MetadataProvider {
 
   private static final Logger LOGGER = LogManager.getLogger();
@@ -81,7 +84,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
           .map(jobExecutionOptional -> jobExecutionOptional.orElseThrow(() ->
-            new NotFoundException(String.format("JobExecution with id '%s' was not found", jobExecutionId))))
+            new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
           .compose(jobExecution -> journalRecordService.getJobExecutionLogDto(jobExecutionId, tenantId))
           .map(GetMetadataProviderLogsByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -101,7 +104,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
           .map(jobExecutionOptional -> jobExecutionOptional.orElseThrow(() ->
-            new NotFoundException(String.format("JobExecution with id '%s' was not found", jobExecutionId))))
+            new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
           .compose(jobExecution -> journalRecordService.getJobExecutionJournalRecords(jobExecutionId, sortBy, order.name(), tenantId))
           .map(GetMetadataProviderJournalRecordsByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -150,6 +153,25 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   }
 
+  @Override
+  public void getMetadataProviderJobSummaryByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
+                                                            Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        journalRecordService.getJobExecutionSummaryDto(jobExecutionId, tenantId)
+          .map(jobSummaryOptional -> jobSummaryOptional
+            .map(GetMetadataProviderJobSummaryByJobExecutionIdResponse::respond200WithApplicationJson)
+            .orElseGet(() -> respond404WithTextPlain(format("JobSummary for jobExecutionId: '%s' was not found", jobExecutionId))))
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.error("Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
                                                      List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {
@@ -181,7 +203,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       String sortOrder = StringUtils.substringAfter(sortFieldQuery, ",");
 
       if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(sortField) || !SORT_ORDER_VALUES.contains(sortOrder)) {
-        throw new BadRequestException(String.format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
+        throw new BadRequestException(format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
       }
       fields.add(new SortField(sortField, sortOrder));
     }

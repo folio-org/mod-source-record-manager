@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
@@ -39,8 +38,6 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
-import org.folio.rest.jaxrs.model.RelatedInvoiceLineInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,7 +87,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnMarcBibUpdatedWhenMarcBibWasUpdated(TestContext context) {
-    //test
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();

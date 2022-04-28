@@ -1017,7 +1017,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) throws IOException {
+  public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1518,21 +1518,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException, IOException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException, IOException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1791,7 +1791,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws IOException, InterruptedException {
+  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1879,8 +1879,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     MatcherAssert.assertThat(recordCollection.getRecords().get(0).getErrorRecord().getDescription(), containsString("Error during analyze leader line for determining record type"));
   }
