@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-
 import io.vertx.ext.web.handler.HttpException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -20,33 +19,33 @@ import org.folio.dataimport.util.Try;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsRespDto;
 import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.RunBy;
-import org.folio.rest.jaxrs.model.UserInfo;
-import org.folio.rest.jaxrs.model.Snapshot;
-import org.folio.rest.jaxrs.model.Progress;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.JobProfile;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.Snapshot;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -246,8 +245,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<Boolean> deleteJobExecutionsByIds(List<String> ids, String tenantId) {
-    return jobExecutionDao.deleteJobExecutionsByIds(ids, tenantId);
+  public Future<DeleteJobExecutionsRespDto>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
+    return jobExecutionDao.softDeleteJobExecutionsByIds(ids, tenantId);
   }
 
   /**

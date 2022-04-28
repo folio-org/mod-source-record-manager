@@ -7,14 +7,17 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsRespDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionLogDetail;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
@@ -26,8 +29,11 @@ import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.NotFoundException;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,7 +43,6 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
-import static org.folio.dao.util.JobExecutionDBConstants.DELETE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
@@ -63,6 +68,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIEL
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_COUNT_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
@@ -82,6 +88,16 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
+  public static final String ID = "id";
+  public static final String IS_DELETED = "is_deleted";
+  public static final String RETURNING_FIELD_NAMES = "returningFieldNames";
+  public static final String SET_CONDITIONAL_FIELD_VALUES = "setConditionalFieldValues";
+  public static final String SET_CONDITIONAL_FIELD_NAME = "setConditionalFieldName";
+  public static final String SET_FIELD_VALUE = "setFieldValue";
+  public static final String SET_FIELD_NAME = "setFieldName";
+  public static final String TENANT_NAME = "tenantName";
+  public static final String TRUE = "true";
+  public static final String DB_TABLE_NAME_FIELD = "tableName";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -207,18 +223,38 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<Boolean> deleteJobExecutionsByIds(List<String> ids, String tenantId) {
+  public Future<DeleteJobExecutionsRespDto> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      String query = format(DELETE_BY_IDS_SQL, convertToPsqlStandard(tenantId), TABLE_NAME, ids.stream().collect(Collectors.joining("','")));
+      Map data = new HashMap<String, String>();
+      data.put(TENANT_NAME, convertToPsqlStandard(tenantId));
+      data.put(DB_TABLE_NAME_FIELD,TABLE_NAME);
+      data.put(SET_FIELD_NAME, IS_DELETED);
+      data.put(SET_FIELD_VALUE, TRUE);
+      data.put(SET_CONDITIONAL_FIELD_NAME, ID);
+      data.put(SET_CONDITIONAL_FIELD_VALUES, ids.stream().collect(Collectors.joining("','")));
+      data.put(RETURNING_FIELD_NAMES, ID + "," + IS_DELETED);
+      String query = StrSubstitutor.replace(UPDATE_BY_IDS_SQL, data);
       pgClientFactory.createInstance(tenantId).execute(query, promise);
     } catch (Exception e) {
       LOGGER.error("Error deleting jobExecution by ids {}, ", ids, e);
       promise.fail(e);
     }
-    return promise.future().map(updateResult -> updateResult.rowCount()>0);
+    return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
 
+  private DeleteJobExecutionsRespDto mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
+    DeleteJobExecutionsRespDto deleteJobExecutionsRespDto = new DeleteJobExecutionsRespDto();
+    List<JobExecutionLogDetail> executionLogDetails = new ArrayList<>();
+    rowSet.forEach(row -> {
+      JobExecutionLogDetail executionLogDetail = new JobExecutionLogDetail();
+      executionLogDetail.setJobExecutionId(row.getUUID(ID).toString());
+      executionLogDetail.setIsDeleted(row.getBoolean(IS_DELETED));
+      executionLogDetails.add(executionLogDetail);
+    });
+    deleteJobExecutionsRespDto.setJobExecutionLogDetails(executionLogDetails);
+    return deleteJobExecutionsRespDto;
+  }
   private Tuple mapToTuple(JobExecution jobExecution) {
     return Tuple.of(UUID.fromString(jobExecution.getId()),
       jobExecution.getHrId(),

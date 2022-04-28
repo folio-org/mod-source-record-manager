@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.jaxrs.model.DeleteJobExecutionsDto;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsReqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
@@ -26,7 +26,6 @@ import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.Map;
@@ -54,12 +53,10 @@ public class ChangeManagerImpl implements ChangeManager {
 
 
   @Override
-  public void deleteChangeManagerJobExecutions(DeleteJobExecutionsDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void deleteChangeManagerJobExecutions(DeleteJobExecutionsReqDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
-        jobExecutionService.deleteJobExecutionsByIds(entity.getIds(), tenantId)
-          .map(optionalJobExecution -> !optionalJobExecution.booleanValue()?
-            new BadRequestException(format("JobExecution with id '%s' was not found", entity.getIds())): optionalJobExecution)
+        jobExecutionService.softDeleteJobExecutionsByIds(entity.getIds(), tenantId)
           .map(DeleteChangeManagerJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

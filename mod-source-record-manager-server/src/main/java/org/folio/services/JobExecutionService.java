@@ -5,6 +5,7 @@ import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsRespDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -121,6 +122,6 @@ public interface JobExecutionService {
    * @param tenantId
    * @return future of boolean depending upon success and failure
    */
-  Future<Boolean> deleteJobExecutionsByIds(List<String> ids, String tenantId);
+  Future<DeleteJobExecutionsRespDto>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
 
 }
