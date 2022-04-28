@@ -273,7 +273,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.trace("JournalRecordDaoImpl::getJobExecutionSummaryDto query: {}", query);
     pgClientFactory.createInstance(tenantId).select(query, promise);
     return promise.future().map(rows -> rows.rowCount() > 0
-      ? Optional.of(mapRowSetToJobExecutionSummaryDto(rows)) : Optional.empty());
+      ? Optional.of(mapRowToJobExecutionSummaryDto(rows.iterator().next())) : Optional.empty());
   }
 
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
@@ -425,9 +425,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return entityType == null ? null : JobLogEntryDto.SourceRecordType.fromValue(entityType);
   }
 
-  private JobExecutionSummaryDto mapRowSetToJobExecutionSummaryDto(RowSet<Row> rowSet) {
-    Row row = rowSet.iterator().next();
-
+  private JobExecutionSummaryDto mapRowToJobExecutionSummaryDto(Row row) {
     return new JobExecutionSummaryDto()
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withTotalErrors(row.getInteger(TOTAL_ERRORS))

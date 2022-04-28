@@ -24,6 +24,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionsCache;
 import org.folio.services.Status;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,10 +85,16 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Spy
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
+  private AutoCloseable mocks;
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    mocks = MockitoAnnotations.openMocks(this);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    mocks.close();
   }
 
   @Test
@@ -1039,7 +1046,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotFoundWhenJobExecutionDoesNotExist() {
+  public void shouldReturnNotFoundWhenHasNoJobExecution() {
     RestAssured.given()
       .spec(spec)
       .when()
