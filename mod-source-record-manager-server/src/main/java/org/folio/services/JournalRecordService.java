@@ -2,9 +2,12 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+
+import java.util.Optional;
 
 /**
  * JournalRecord Service interface.
@@ -61,4 +64,13 @@ public interface JournalRecordService {
    * @return future with RecordProcessingLogDto
    */
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
+
+  /**
+   * Returns JobExecutionSummaryDto for job execution by {@code jobExecutionId}
+   *
+   * @param jobExecutionId job execution id
+   * @param tenantId       tenantId
+   * @return future with {@link Optional} of JobExecutionSummaryDto
+   */
+  Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
 }
