@@ -52,7 +52,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           JobExecution.Status jobStatus = jobExecution.getStatus();
-          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())) {
+          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())
+            || StatusDto.Status.CANCELLED.value().equals(jobStatus.value())) {
             return Future.succeededFuture(true);
           }
           return jobExecutionProgressService.initializeJobExecutionProgress(jobExecution.getId(), incomingChunk.getRecordsMetadata().getTotal(), tenantId).map(true);
