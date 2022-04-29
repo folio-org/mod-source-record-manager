@@ -22,6 +22,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -50,6 +51,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -1885,29 +1887,99 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void testDeleteChangeManagerJobExecutions_SingleEntity(){
+  public void testDeleteChangeManagerJobExecutionsSingleEntity(){
+    // given
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+
+    String stubUserId = UUID.randomUUID().toString();
+    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(stubUserId);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    String parentJobExecutionId = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
     RestAssured.given()
       .spec(spec)
-      .body("{\"ids\":[\"15065ccd-c305-4961-a411-8359e0b5a87b\"]}")
+      .body(deleteJobExecutionsReq)
       .when()
       .delete(JOB_EXECUTION_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
+      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId));
   }
 
   @Test
-  public void testDeleteChangeManagerJobExecutions_MultipleIds(){
+  public void testDeleteChangeManagerJobExecutionsMultipleIds(){
+    // given
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+
+    String stubUserId = UUID.randomUUID().toString();
+    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(stubUserId);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    String parentJobExecutionId = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    // when
+    String parentJobExecutionId_2 = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId, parentJobExecutionId_2));
     RestAssured.given()
       .spec(spec)
-      .body("{\"ids\":[\"15065ccd-c305-4961-a411-8359e0b5a87b\", \"15065ccd-c305-4961-a411-8359e0b5a87b\"]}")
+      .body(deleteJobExecutionsReq)
       .when()
       .delete(JOB_EXECUTION_PATH)
       .then()
-      .statusCode(HttpStatus.SC_OK);
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId))
+      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
+      .body("jobExecutionDetails.jobExecutionId.get(1)", is(parentJobExecutionId_2))
+      .body("jobExecutionDetails.isDeleted.get(1)", is(true));
   }
 
   @Test
-  public void testDeleteChangeManagerJobExecutions_failure(){
+  public void testDeleteChangeManagerJobExecutionsFailure(){
     RestAssured.given()
       .spec(spec)
       .body("{\"ids\":null}")
@@ -1918,7 +1990,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void testDeleteChangeManagerJobExecutions_incorrectBody(){
+  public void testDeleteChangeManagerJobExecutionsIncorrectBody(){
     RestAssured.given()
       .spec(spec)
       .body("{\"ids\":\"15065ccd-c305-4961-a411-8359e0b5a87b\"}")
