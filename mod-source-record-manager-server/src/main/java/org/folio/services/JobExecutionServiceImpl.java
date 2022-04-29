@@ -241,7 +241,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
-      .map(this::modifyJobExecutionToCompleteWithError)
+      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
       .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
@@ -486,7 +486,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecution;
   }
 
-  private JobExecution modifyJobExecutionToCompleteWithError(JobExecution jobExecution) {
+  private JobExecution modifyJobExecutionToCompleteWithCancelledStatus(JobExecution jobExecution) {
     return jobExecution
       .withStatus(JobExecution.Status.CANCELLED)
       .withUiStatus(JobExecution.UiStatus.CANCELLED)
