@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.rest.jaxrs.model.DeleteJobExecutionsReqDto;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
@@ -53,7 +53,7 @@ public class ChangeManagerImpl implements ChangeManager {
 
 
   @Override
-  public void deleteChangeManagerJobExecutions(DeleteJobExecutionsReqDto entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void deleteChangeManagerJobExecutions(DeleteJobExecutionsReq entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
         jobExecutionService.softDeleteJobExecutionsByIds(entity.getIds(), tenantId)

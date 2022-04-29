@@ -19,7 +19,7 @@ import org.folio.dataimport.util.Try;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.client.DataImportProfilesClient;
 import org.folio.rest.client.SourceStorageSnapshotsClient;
-import org.folio.rest.jaxrs.model.DeleteJobExecutionsRespDto;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -245,7 +245,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<DeleteJobExecutionsRespDto>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
+  public Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     return jobExecutionDao.softDeleteJobExecutionsByIds(ids, tenantId);
   }
 

@@ -13,11 +13,11 @@ import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
-import org.folio.rest.jaxrs.model.DeleteJobExecutionsRespDto;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionLogDetail;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
@@ -223,7 +223,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<DeleteJobExecutionsRespDto> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
+  public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       Map data = new HashMap<String, String>();
@@ -243,18 +243,19 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
 
-  private DeleteJobExecutionsRespDto mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
-    DeleteJobExecutionsRespDto deleteJobExecutionsRespDto = new DeleteJobExecutionsRespDto();
-    List<JobExecutionLogDetail> executionLogDetails = new ArrayList<>();
+  private DeleteJobExecutionsResp mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
+    DeleteJobExecutionsResp deleteJobExecutionsResp = new DeleteJobExecutionsResp();
+    List<JobExecutionDetail> jobExecutionDetails = new ArrayList<>();
     rowSet.forEach(row -> {
-      JobExecutionLogDetail executionLogDetail = new JobExecutionLogDetail();
+      JobExecutionDetail executionLogDetail = new JobExecutionDetail();
       executionLogDetail.setJobExecutionId(row.getUUID(ID).toString());
       executionLogDetail.setIsDeleted(row.getBoolean(IS_DELETED));
-      executionLogDetails.add(executionLogDetail);
+      jobExecutionDetails.add(executionLogDetail);
     });
-    deleteJobExecutionsRespDto.setJobExecutionLogDetails(executionLogDetails);
-    return deleteJobExecutionsRespDto;
+    deleteJobExecutionsResp.setJobExecutionDetails(jobExecutionDetails);
+    return deleteJobExecutionsResp;
   }
+
   private Tuple mapToTuple(JobExecution jobExecution) {
     return Tuple.of(UUID.fromString(jobExecution.getId()),
       jobExecution.getHrId(),
