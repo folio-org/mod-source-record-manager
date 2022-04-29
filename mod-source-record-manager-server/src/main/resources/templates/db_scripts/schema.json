@@ -182,6 +182,11 @@
     },
     {
       "run": "after",
+      "snippetPath": "create_get_job_execution_summary_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
       "snippet": "ALTER TYPE job_execution_status ADD VALUE IF NOT EXISTS 'CANCELLED'",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
     },

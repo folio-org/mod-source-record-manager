@@ -54,6 +54,36 @@ public final class JournalRecordsColumns {
   public static final String INVOICE_LINE_ENTITY_HRID = "invoice_line_entity_hrid";
   public static final String INVOICE_LINE_ENTITY_ERROR = "invoice_line_entity_error";
 
+  public static final String TOTAL_CREATED_SOURCE_RECORDS = "total_created_source_records";
+  public static final String TOTAL_UPDATED_SOURCE_RECORDS = "total_updated_source_records";
+  public static final String TOTAL_DISCARDED_SOURCE_RECORDS = "total_discarded_source_records";
+  public static final String TOTAL_SOURCE_RECORDS_ERRORS = "total_source_records_errors";
+  public static final String TOTAL_CREATED_INSTANCES = "total_created_instances";
+  public static final String TOTAL_UPDATED_INSTANCES = "total_updated_instances";
+  public static final String TOTAL_DISCARDED_INSTANCES = "total_discarded_instances";
+  public static final String TOTAL_INSTANCES_ERRORS = "total_instances_errors";
+  public static final String TOTAL_CREATED_HOLDINGS = "total_created_holdings";
+  public static final String TOTAL_UPDATED_HOLDINGS = "total_updated_holdings";
+  public static final String TOTAL_DISCARDED_HOLDINGS = "total_discarded_holdings";
+  public static final String TOTAL_HOLDINGS_ERRORS = "total_holdings_errors";
+  public static final String TOTAL_CREATED_ITEMS = "total_created_items";
+  public static final String TOTAL_UPDATED_ITEMS = "total_updated_items";
+  public static final String TOTAL_DISCARDED_ITEMS = "total_discarded_items";
+  public static final String TOTAL_ITEMS_ERRORS = "total_items_errors";
+  public static final String TOTAL_CREATED_AUTHORITIES = "total_created_authorities";
+  public static final String TOTAL_UPDATED_AUTHORITIES = "total_updated_authorities";
+  public static final String TOTAL_DISCARDED_AUTHORITIES = "total_discarded_authorities";
+  public static final String TOTAL_AUTHORITIES_ERRORS = "total_authorities_errors";
+  public static final String TOTAL_CREATED_ORDERS = "total_created_orders";
+  public static final String TOTAL_UPDATED_ORDERS = "total_updated_orders";
+  public static final String TOTAL_DISCARDED_ORDERS = "total_discarded_orders";
+  public static final String TOTAL_ORDERS_ERRORS = "total_orders_errors";
+  public static final String TOTAL_CREATED_INVOICES = "total_created_invoices";
+  public static final String TOTAL_UPDATED_INVOICES = "total_updated_invoices";
+  public static final String TOTAL_DISCARDED_INVOICES = "total_discarded_invoices";
+  public static final String TOTAL_INVOICES_ERRORS = "total_invoices_errors";
+  public static final String TOTAL_ERRORS = "total_errors";
+
   private JournalRecordsColumns() {
   }
 }

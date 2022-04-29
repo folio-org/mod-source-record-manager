@@ -12,6 +12,8 @@
 * [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
 * [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
 * [MODSOURMAN-778](https://issues.folio.org/browse/MODSOURMAN-778) Add permission for Purchase Order Lines matching
+* [MODSOURMAN-784](https://issues.folio.org/browse/MODSOURMAN-784) The status of instance is not updated in the Import log after uploading MARC file for modify
+* [MODSOURMAN-780](https://issues.folio.org/browse/MODSOURMAN-780) Implement endpoint for adding summary for work accomplished in a job
 * [MODSOURMAN-779](https://issues.folio.org/browse/MODSOURMAN-779) Add "CANCELLED" status for Import jobs that are stopped by users.
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT

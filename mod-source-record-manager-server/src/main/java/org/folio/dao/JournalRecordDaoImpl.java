@@ -10,7 +10,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.ActionLog;
+import org.folio.rest.jaxrs.model.EntityProcessingSummary;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -32,6 +34,7 @@ import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.Date;
 import java.util.List;
@@ -86,9 +89,38 @@ import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
 import static org.folio.dao.util.JournalRecordsColumns.TITLE;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_HOLDINGS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INSTANCES_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INVOICES_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ITEMS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ORDERS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_SOURCE_RECORDS_ERRORS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_AUTHORITIES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_HOLDINGS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INSTANCES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INVOICES;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ITEMS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ORDERS;
+import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS;
 import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -113,6 +145,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "FROM %s.%s WHERE job_execution_id = $1 AND action_type != 'ERROR' " +
     "GROUP BY (job_execution_id, entity_type, action_type)";
   private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
+  private static final String GET_JOB_SUMMARY_QUERY = "SELECT * FROM get_job_execution_summary('%s')";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -232,6 +265,17 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return promise.future().map(this::mapRowSetToRecordProcessingLogDto);
   }
 
+  @Override
+  public Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
+    LOGGER.trace("Trying to get JobExecutionSummaryDto by jobExecutionId: '{}' from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = format(GET_JOB_SUMMARY_QUERY, jobExecutionId);
+    LOGGER.trace("JournalRecordDaoImpl::getJobExecutionSummaryDto query: {}", query);
+    pgClientFactory.createInstance(tenantId).select(query, promise);
+    return promise.future().map(rows -> rows.rowCount() > 0
+      ? Optional.of(mapRowToJobExecutionSummaryDto(rows.iterator().next())) : Optional.empty());
+  }
+
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
     List<JournalRecord> journalRecords = new ArrayList<>();
     resultSet.forEach(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
@@ -343,8 +387,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withRelatedItemInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
         .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR)
-        )
+          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
         .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
@@ -380,5 +423,34 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private JobLogEntryDto.SourceRecordType mapToEntityType(String entityType) {
     return entityType == null ? null : JobLogEntryDto.SourceRecordType.fromValue(entityType);
+  }
+
+  private JobExecutionSummaryDto mapRowToJobExecutionSummaryDto(Row row) {
+    return new JobExecutionSummaryDto()
+      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withTotalErrors(row.getInteger(TOTAL_ERRORS))
+      .withSourceRecordSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_SOURCE_RECORDS, TOTAL_UPDATED_SOURCE_RECORDS,
+        TOTAL_DISCARDED_SOURCE_RECORDS, TOTAL_SOURCE_RECORDS_ERRORS))
+      .withInstanceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INSTANCES, TOTAL_UPDATED_INSTANCES,
+        TOTAL_DISCARDED_INSTANCES, TOTAL_INSTANCES_ERRORS))
+      .withHoldingSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_HOLDINGS, TOTAL_UPDATED_HOLDINGS,
+        TOTAL_DISCARDED_HOLDINGS, TOTAL_HOLDINGS_ERRORS))
+      .withItemSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ITEMS, TOTAL_UPDATED_ITEMS,
+        TOTAL_DISCARDED_ITEMS, TOTAL_ITEMS_ERRORS))
+      .withAuthoritySummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_AUTHORITIES, TOTAL_UPDATED_AUTHORITIES,
+        TOTAL_DISCARDED_AUTHORITIES, TOTAL_AUTHORITIES_ERRORS))
+      .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
+        TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
+      .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
+        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
+  }
+
+  private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
+                                                              String totalDiscardedColumn, String totalErrorsColumn) {
+    return new EntityProcessingSummary()
+      .withTotalCreatedEntities(row.getInteger(totalCreatedColumn))
+      .withTotalUpdatedEntities(row.getInteger(totalUpdatedColumn))
+      .withTotalDiscardedEntities(row.getInteger(totalDiscardedColumn))
+      .withTotalErrors(row.getInteger(totalErrorsColumn));
   }
 }

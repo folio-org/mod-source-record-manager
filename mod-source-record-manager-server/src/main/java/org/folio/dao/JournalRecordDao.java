@@ -4,11 +4,13 @@ import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DAO interface for the JournalRecord entity
@@ -79,9 +81,18 @@ public interface JournalRecordDao {
    * Searches for RecordProcessingLogDto entities by jobExecutionId and recordId
    *
    * @param jobExecutionId job execution id
-   * @param recordId record id
-   * @param tenantId tenant id
+   * @param recordId       record id
+   * @param tenantId       tenant id
    * @return future with RecordProcessingLogDto collection
    */
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
+
+  /**
+   * Returns JobExecutionSummaryDto for job execution by {@code jobExecutionId}
+   *
+   * @param jobExecutionId job execution id
+   * @param tenantId       tenantId
+   * @return future with {@link Optional} of JobExecutionSummaryDto
+   */
+  Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
 }
