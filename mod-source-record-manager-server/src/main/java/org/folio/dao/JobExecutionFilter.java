@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.IS_DELETED;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
@@ -31,6 +32,13 @@ public class JobExecutionFilter {
   private String userId;
   private Date completedAfter;
   private Date completedBefore;
+  private boolean isDeleted;
+
+
+  public JobExecutionFilter isDeleted(boolean isDeleted) {
+    this.isDeleted=isDeleted;
+    return this;
+  }
 
   public JobExecutionFilter withStatusAny(List<JobExecution.Status> statusAny) {
     this.statusAny = statusAny;
@@ -127,8 +135,15 @@ public class JobExecutionFilter {
     if (completedBefore != null) {
       addCondition(conditionBuilder, buildLessThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedBefore)));
     }
+    setIsDeletedCondition(conditionBuilder);
     addCondition(conditionBuilder, buildNotBoolCondition(JOB_PROFILE_HIDDEN_FIELD));
     return conditionBuilder.toString();
+  }
+
+  private void setIsDeletedCondition(StringBuilder conditionBuilder) {
+    if(!isDeleted){
+      addCondition(conditionBuilder, buildEqualCondition(IS_DELETED, isDeleted));
+    }
   }
 
   private void addCondition(StringBuilder conditionBuilder, String condition) {
@@ -157,6 +172,10 @@ public class JobExecutionFilter {
 
   private String buildEqualCondition(String columnName, String value) {
     return String.format("%s = '%s'", columnName, value);
+  }
+
+  private String buildEqualCondition(String columnName, boolean value) {
+    return String.format("%s = %s", columnName, value);
   }
 
   private String buildNotEqualCondition(String columnName, String value) {

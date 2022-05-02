@@ -26,6 +26,7 @@ public final class JobExecutionDBConstants {
   public static final String TOTAL_COUNT_FIELD = "total_count";
   public static final String CURRENTLY_PROCESSED_FIELD = "currently_processed";
   public static final String TOTAL_FIELD = "total";
+  public static final String IS_DELETED = "is_deleted";
 
   public static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1";
   public static final String UPDATE_BY_IDS_SQL = "UPDATE ${tenantName}.${tableName} SET ${setFieldName} = ${setFieldValue} WHERE ${setConditionalFieldName} IN ('${setConditionalFieldValues}') RETURNING ${returningFieldNames}";
