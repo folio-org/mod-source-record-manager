@@ -122,6 +122,15 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/change-manager/jobExecutions",
+          "permissionsRequired": [
+            "change-manager.jobexecutions.delete"
+          ]
+        },
+        {
+          "methods": [
             "PUT"
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}",
@@ -480,6 +489,11 @@
       "permissionName": "change-manager.jobexecutions.post",
       "displayName": "Change Manager - create jobExecutions",
       "description": "Post JobExecution"
+    },
+    {
+      "permissionName": "change-manager.jobexecutions.delete",
+      "displayName": "Change Manager - delete jobExecutions",
+      "description": "Batch Delete JobExecutions"
     },
     {
       "permissionName": "change-manager.jobexecutions.put",
