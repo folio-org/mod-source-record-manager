@@ -179,6 +179,16 @@
       "run": "after",
       "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN; UPDATE job_execution SET is_deleted = FALSE; ALTER TABLE job_execution ALTER COLUMN is_deleted SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN is_deleted SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_job_execution_summary_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]
 }

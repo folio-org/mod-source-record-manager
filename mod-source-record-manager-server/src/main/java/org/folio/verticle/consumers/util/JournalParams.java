@@ -104,7 +104,7 @@ public class JournalParams {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
-          JournalRecord.EntityType.MARC_BIBLIOGRAPHIC,
+          JournalRecord.EntityType.INSTANCE,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },

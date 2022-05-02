@@ -1,40 +1,5 @@
 package org.folio.rest.impl.changeManager;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
-import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -57,6 +22,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -83,6 +49,41 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static java.util.Arrays.asList;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 
 /**
  * REST tests for ChangeManager to manager JobExecution entities initialization
@@ -1017,7 +1018,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) throws IOException {
+  public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1518,21 +1519,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException, IOException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException, IOException {
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
     fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException, IOException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1791,7 +1792,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws IOException, InterruptedException {
+  public void shouldNotOverride_999_ff_s_Subfield(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1879,10 +1880,123 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     MatcherAssert.assertThat(recordCollection.getRecords().get(0).getErrorRecord().getDescription(), containsString("Error during analyze leader line for determining record type"));
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutionsSingleEntity(){
+    // given
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+
+    String stubUserId = UUID.randomUUID().toString();
+    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(stubUserId);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    String parentJobExecutionId = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+    RestAssured.given()
+      .spec(spec)
+      .body(deleteJobExecutionsReq)
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
+      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId));
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutionsMultipleIds(){
+    // given
+    String jsonFiles;
+    List<File> filesList;
+    try {
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
+      });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
+
+    String stubUserId = UUID.randomUUID().toString();
+    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().addAll(limitedFilesList);
+    requestDto.setUserId(stubUserId);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
+
+    // when
+    String parentJobExecutionId = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    // when
+    String parentJobExecutionId_2 = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH)
+      .then().statusCode(HttpStatus.SC_CREATED)
+      .extract().path("parentJobExecutionId");
+
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId, parentJobExecutionId_2));
+    RestAssured.given()
+      .spec(spec)
+      .body(deleteJobExecutionsReq)
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId))
+      .body("jobExecutionDetails.isDeleted.get(0)", is(true))
+      .body("jobExecutionDetails.jobExecutionId.get(1)", is(parentJobExecutionId_2))
+      .body("jobExecutionDetails.isDeleted.get(1)", is(true));
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutionsFailure(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":null}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  @Test
+  public void testDeleteChangeManagerJobExecutionsIncorrectBody(){
+    RestAssured.given()
+      .spec(spec)
+      .body("{\"ids\":\"15065ccd-c305-4961-a411-8359e0b5a87b\"}")
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
 }
