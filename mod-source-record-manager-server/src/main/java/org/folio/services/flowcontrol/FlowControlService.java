@@ -9,19 +9,16 @@ package org.folio.services.flowcontrol;
 public interface FlowControlService {
 
   /**
-   * Tracks each successful DI_RAW_RECORDS_CHUNK_PARSED event, this method can also pause processing
+   * Tracks each DI_RAW_RECORDS_CHUNK_READ event, this method can also pause processing
    * of DI_RAW_RECORDS_CHUNK_READ topic when flow control conditions met.
-   *
-   * @param tenantId the tenant id
-   * @param initialRecordsSize initial records size in the batch
+   * @param initialRecordsCount records count in the batch
    */
-  void trackChunkProcessedEvent(String tenantId, Integer initialRecordsSize);
+  void trackChunkReceivedEvent(Integer initialRecordsCount);
 
   /**
    * Tracks each successful DI_COMPLETED, DI_ERROR events, this method can also resume processing
    * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
    *
-   * @param tenantId the tenant id
    */
-  void trackRecordCompleteEvent(String tenantId);
+  void trackRecordCompleteEvent();
 }

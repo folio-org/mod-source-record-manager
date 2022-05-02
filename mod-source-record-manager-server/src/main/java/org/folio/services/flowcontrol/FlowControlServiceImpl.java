@@ -17,9 +17,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class FlowControlServiceImpl implements FlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.max_simultaneous_records:10}")
+  @Value("${di.flow.max_simultaneous_records:20}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.records_threshold:5}")
+  @Value("${di.flow.records_threshold:10}")
   private Integer recordsThreshold;
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
@@ -27,7 +27,7 @@ public class FlowControlServiceImpl implements FlowControlService {
   @Autowired
   private KafkaConsumersStorage consumersStorage;
 
-  private final AtomicInteger processedRecordsCount = new AtomicInteger(0);
+  private final AtomicInteger atomicCurrent = new AtomicInteger(0);
 
   @PostConstruct
   public void init() {
@@ -35,40 +35,54 @@ public class FlowControlServiceImpl implements FlowControlService {
   }
 
   @Override
-  public void trackChunkProcessedEvent(String tenantId, Integer initialRecordsSize) {
+  public void trackChunkReceivedEvent(Integer initialRecordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
-    if (processedRecordsCount.addAndGet(initialRecordsSize) > maxSimultaneousRecords) {
+    int current = atomicCurrent.addAndGet(initialRecordsCount);
+
+    LOGGER.info("--------------- Current for chunk processed: {} ---------------", current);
+
+    if (current >= maxSimultaneousRecords) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() > 0) {
           consumer.pause();
 
-          LOGGER.info("{} kafka consumer is paused caused by {} tenant, because {} exceeded {} max simultaneous records",
-            DI_RAW_RECORDS_CHUNK_READ.value(), tenantId, processedRecordsCount, maxSimultaneousRecords);
+          LOGGER.info("{} kafka consumer - id: {} is paused, because {} exceeded {} max simultaneous records",
+            DI_RAW_RECORDS_CHUNK_READ.value(), consumer.getId(), this.atomicCurrent, maxSimultaneousRecords);
         }
       });
     }
   }
 
   @Override
-  public void trackRecordCompleteEvent(String tenantId) {
+  public void trackRecordCompleteEvent() {
     if (!enableFlowControl) {
       return;
     }
 
-    if (processedRecordsCount.decrementAndGet() <= recordsThreshold) {
+    int current = atomicCurrent.decrementAndGet();
+
+    if (atomicCurrent.get() < 0) {
+      LOGGER.info("Current value less that zero because of single record imports, back to zero...");
+      atomicCurrent.set(0);
+      return;
+    }
+
+    LOGGER.info("--------------- Current for DI_COMPLETE/DI_ERROR: {} ---------------", current);
+
+    if (current <= recordsThreshold) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() == 0) {
           consumer.resume();
 
-          LOGGER.info("{} kafka consumer is resumed caused by {} tenant, because {} exceeded {} threshold",
-            DI_RAW_RECORDS_CHUNK_READ.value(), tenantId, processedRecordsCount, recordsThreshold);
+          LOGGER.info("{} kafka consumer - id: {} is resumed, because {} exceeded {} threshold",
+            DI_RAW_RECORDS_CHUNK_READ.value(), consumer.getId(), this.atomicCurrent, recordsThreshold);
         }
       });
     }

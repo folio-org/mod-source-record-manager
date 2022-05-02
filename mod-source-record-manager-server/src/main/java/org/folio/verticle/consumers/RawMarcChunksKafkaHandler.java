@@ -55,15 +55,16 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     LOGGER.debug("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
+      if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+        flowControlService.trackChunkReceivedEvent(rawRecordsDto.getInitialRecords().size());
+      }
+
       LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
         jobExecutionId, chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
         .processChunk(rawRecordsDto, jobExecutionId, okapiConnectionParams)
         .compose(b -> {
           LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
-          if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-            flowControlService.trackChunkProcessedEvent(okapiConnectionParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
-          }
           return Future.succeededFuture(record.key());
         }, th -> {
           if (th instanceof DuplicateEventException) {

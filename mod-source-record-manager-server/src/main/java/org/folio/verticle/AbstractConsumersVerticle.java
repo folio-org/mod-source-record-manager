@@ -55,6 +55,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .globalLoadSensor(globalLoadSensor)
         .subscriptionDefinition(subscriptionDefinition)
         .processRecordErrorHandler(getErrorHandler())
+        .backPressureGauge(getBackPressureGauge())
         .build();
       kafkaConsumersStorage.addConsumer(event, consumerWrapper);
 
@@ -92,6 +93,16 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    * @return error handler
    */
   public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+    return null;
+  }
+
+  /**
+   * Implementation of function, that handles consuming load using kafka pause/resume methods.
+   * If not specified - the default implementation from folio-kafka-wrapper will be used.
+   *
+   * @return back pressure gauge implementation
+   */
+  public BackPressureGauge<Integer, Integer, Integer> getBackPressureGauge() {
     return null;
   }
 }
