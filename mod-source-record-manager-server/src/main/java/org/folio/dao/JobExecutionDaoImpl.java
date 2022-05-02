@@ -88,6 +88,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
+
+  //Below constants are used for building db query related to job execution deletions
   public static final String ID = "id";
   public static final String IS_DELETED = "is_deleted";
   public static final String RETURNING_FIELD_NAMES = "returningFieldNames";
@@ -226,7 +228,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
-      Map data = new HashMap<String, String>();
+      Map<String, String> data = new HashMap<>();
       data.put(TENANT_NAME, convertToPsqlStandard(tenantId));
       data.put(DB_TABLE_NAME_FIELD,TABLE_NAME);
       data.put(SET_FIELD_NAME, IS_DELETED);

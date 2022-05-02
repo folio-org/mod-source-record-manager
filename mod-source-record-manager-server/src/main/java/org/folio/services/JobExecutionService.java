@@ -118,7 +118,7 @@ public interface JobExecutionService {
 
   /**
    *
-   * @param ids JobExecution Logs to be deleted using Ids
+   * @param ids JobExecutions to be deleted using Ids
    * @param tenantId
    * @return future of boolean depending upon success and failure
    */
