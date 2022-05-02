@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
 @Service
-public class FlowControlServiceImpl implements FlowControlService {
+public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${di.flow.max_simultaneous_records:20}")

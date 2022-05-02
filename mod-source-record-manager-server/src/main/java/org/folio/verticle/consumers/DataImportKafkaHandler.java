@@ -17,7 +17,7 @@ import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
-import org.folio.services.flowcontrol.FlowControlService;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -34,12 +34,12 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
   private Vertx vertx;
   private EventHandlingService eventHandlingService;
   private EventProcessedService eventProcessedService;
-  private FlowControlService flowControlService;
+  private RawRecordsFlowControlService flowControlService;
 
   public DataImportKafkaHandler(@Autowired Vertx vertx,
                                 @Autowired EventHandlingService eventHandlingService,
                                 @Autowired EventProcessedService eventProcessedService,
-                                @Autowired FlowControlService flowControlService) {
+                                @Autowired RawRecordsFlowControlService flowControlService) {
     this.vertx = vertx;
     this.eventHandlingService = eventHandlingService;
     this.eventProcessedService = eventProcessedService;

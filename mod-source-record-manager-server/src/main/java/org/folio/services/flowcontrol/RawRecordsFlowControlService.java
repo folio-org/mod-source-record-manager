@@ -6,7 +6,7 @@ package org.folio.services.flowcontrol;
  * Its can be suitable not only for OCLC, but also for other files that skipping DI_RAW_RECORDS_CHUNK_READ stage
  * and directly pushing messages to DI_RAW_RECORDS_CHUNK_PARSED topic.
  */
-public interface FlowControlService {
+public interface RawRecordsFlowControlService {
 
   /**
    * Tracks each DI_RAW_RECORDS_CHUNK_READ event, this method can also pause processing

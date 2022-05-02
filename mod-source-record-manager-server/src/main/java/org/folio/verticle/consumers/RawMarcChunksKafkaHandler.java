@@ -17,7 +17,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
-import org.folio.services.flowcontrol.FlowControlService;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -31,12 +31,12 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private static final Logger LOGGER = LogManager.getLogger();
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
-  private FlowControlService flowControlService;
+  private RawRecordsFlowControlService flowControlService;
   private Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
-                                   @Autowired FlowControlService flowControlService,
+                                   @Autowired RawRecordsFlowControlService flowControlService,
                                    @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
     this.flowControlService = flowControlService;

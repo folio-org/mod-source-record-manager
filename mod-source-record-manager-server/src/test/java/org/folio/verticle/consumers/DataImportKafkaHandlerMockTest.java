@@ -14,7 +14,7 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
-import org.folio.services.flowcontrol.FlowControlService;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class DataImportKafkaHandlerMockTest {
   @Mock
   private EventProcessedService eventProcessedService;
   @Mock
-  private FlowControlService flowControlService;
+  private RawRecordsFlowControlService flowControlService;
   private DataImportKafkaHandler dataImportKafkaHandler;
 
   @Before
