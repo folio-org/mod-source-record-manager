@@ -69,6 +69,9 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
         }, th -> {
           if (th instanceof DuplicateEventException) {
             LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+            if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+              flowControlService.trackChunkDuplicateEvent(rawRecordsDto.getInitialRecords().size());
+            }
             return Future.failedFuture(th);
           } else if (th instanceof RecordsPublishingException) {
             LOGGER.error("RawRecordsDto entries publishing to Kafka has failed for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);

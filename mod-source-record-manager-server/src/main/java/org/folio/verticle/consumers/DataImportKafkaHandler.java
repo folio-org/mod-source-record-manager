@@ -64,7 +64,6 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
 
       eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
         .onSuccess(res -> {
-          flowControlService.trackRecordCompleteEvent();
           handleLocalEvent(result, okapiConnectionParams, event);
         })
         .onFailure(e -> {
@@ -84,6 +83,8 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
   }
 
   private void handleLocalEvent(Promise<String> result, OkapiConnectionParams okapiConnectionParams, Event event) {
+    flowControlService.trackRecordCompleteEvent();
+
     eventHandlingService.handle(event.getEventPayload(), okapiConnectionParams)
       .onSuccess(ar -> result.complete())
       .onFailure(ar -> {

@@ -42,7 +42,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     int current = atomicCurrent.addAndGet(initialRecordsCount);
 
-    LOGGER.info("--------------- Current for chunk processed: {} ---------------", current);
+    LOGGER.info("--------------- Current value after chunk received: {} ---------------", current);
 
     if (current >= maxSimultaneousRecords) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
@@ -51,11 +51,22 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         if (consumer.demand() > 0) {
           consumer.pause();
 
-          LOGGER.info("{} kafka consumer - id: {} is paused, because {} exceeded {} max simultaneous records",
-            DI_RAW_RECORDS_CHUNK_READ.value(), consumer.getId(), this.atomicCurrent, maxSimultaneousRecords);
+          LOGGER.info("Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
+            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.atomicCurrent, maxSimultaneousRecords);
         }
       });
     }
+  }
+
+  @Override
+  public void trackChunkDuplicateEvent(Integer duplicatedRecordsCount) {
+    int prev = atomicCurrent.get();
+
+    atomicCurrent.set(prev - duplicatedRecordsCount);
+
+    LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, atomicCurrent.get());
+
+    resumeIfThresholdAllows(atomicCurrent.get());
   }
 
   @Override
@@ -72,8 +83,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("--------------- Current for DI_COMPLETE/DI_ERROR: {} ---------------", current);
+    LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
 
+    resumeIfThresholdAllows(current);
+  }
+
+  private void resumeIfThresholdAllows(int current) {
     if (current <= recordsThreshold) {
       List<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
@@ -81,8 +96,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         if (consumer.demand() == 0) {
           consumer.resume();
 
-          LOGGER.info("{} kafka consumer - id: {} is resumed, because {} exceeded {} threshold",
-            DI_RAW_RECORDS_CHUNK_READ.value(), consumer.getId(), this.atomicCurrent, recordsThreshold);
+          LOGGER.info("Kafka consumer - id: {}, subscription - {} is resumed, because {} exceeded {} threshold",
+            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.atomicCurrent, recordsThreshold);
         }
       });
     }
