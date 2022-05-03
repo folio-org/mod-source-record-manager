@@ -52,7 +52,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           consumer.pause();
 
           LOGGER.info("Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.atomicCurrent, maxSimultaneousRecords);
+            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), current, maxSimultaneousRecords);
         }
       });
     }
@@ -70,7 +70,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, atomicCurrent.get());
 
-    resumeIfThresholdAllows(atomicCurrent.get());
+    resumeIfThresholdAllows();
   }
 
   @Override
@@ -89,11 +89,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
 
-    resumeIfThresholdAllows(current);
+    resumeIfThresholdAllows();
   }
 
-  private void resumeIfThresholdAllows(int current) {
-    if (current <= recordsThreshold) {
+  private void resumeIfThresholdAllows() {
+    if (atomicCurrent.get() <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
