@@ -40,8 +40,10 @@ public class RawRecordsFlowControlServiceImplTest {
   public void shouldSkipWhenFlowControlDisabled() {
     ReflectionTestUtils.setField(service, "enableFlowControl", false);
     ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 10);
+    ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     service.trackChunkReceivedEvent(10);
+    service.trackChunkDuplicateEvent(10);
     service.trackRecordCompleteEvent();
 
     verifyNoMoreInteractions(kafkaConsumersStorage);

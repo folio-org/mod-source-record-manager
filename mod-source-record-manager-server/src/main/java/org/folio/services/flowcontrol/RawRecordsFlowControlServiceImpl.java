@@ -60,6 +60,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   @Override
   public void trackChunkDuplicateEvent(Integer duplicatedRecordsCount) {
+    if (!enableFlowControl) {
+      return;
+    }
+
     int prev = atomicCurrent.get();
 
     atomicCurrent.set(prev - duplicatedRecordsCount);
