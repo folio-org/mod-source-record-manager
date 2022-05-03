@@ -2,7 +2,7 @@ package org.folio.verticle.consumers.consumerstorage;
 
 import org.folio.kafka.KafkaConsumerWrapper;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Storage for Kafka consumers. Consumers are not tenant specific.
@@ -20,14 +20,14 @@ public interface KafkaConsumersStorage {
    * Gets consumer by event name.
    *
    * @param eventName the event name
-   * @return consumer wrapper by event name
+   * @return consumer wrappers by event name
    */
-  List<KafkaConsumerWrapper<String, String>> getConsumersByEvent(String eventName);
+  Collection<KafkaConsumerWrapper<String, String>> getConsumersByEvent(String eventName);
 
   /**
    * Gets all registered consumers.
    *
    * @return collection of all registered consumer wrappers
    */
-  List<KafkaConsumerWrapper<String, String>> getConsumersList();
+  Collection<KafkaConsumerWrapper<String, String>> getConsumersList();
 }

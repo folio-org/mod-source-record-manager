@@ -46,7 +46,11 @@ public class RawRecordsFlowControlServiceImplTest {
     service.trackChunkDuplicateEvent(10);
     service.trackRecordCompleteEvent();
 
-    verifyNoMoreInteractions(kafkaConsumersStorage);
+    // 1.firstly we receive 10 simultaneous records, so should pause consumers
+    // 2.after it we recognize that these 10 records were duplicates, so should resume consumers
+    // 3.after it receive 1 complete event that it less than 5 threshold, so should resume if not already resumed
+    // But flow control feature is disabled, so we should no do all these actions
+    verifyNoInteractions(kafkaConsumersStorage);
   }
 
   @Test

@@ -2,9 +2,9 @@ package org.folio.services.flowcontrol;
 
 /**
  * Service to implement flow control logic to be able to import OCLC files in between imports of huge files.
- * Its necessary to not wait for importing 1 record file until other big files in progress.
- * Its can be suitable not only for OCLC, but also for other files that skipping DI_RAW_RECORDS_CHUNK_READ stage
- * and directly pushing messages to DI_RAW_RECORDS_CHUNK_PARSED topic.
+ * It necessary to not wait for importing 1 record file until other big files in progress.
+ * It is suitable for not only OCLC import, but also other import types that can skip DI_RAW_RECORDS_CHUNK_READ stage
+ * and pushing messages directly to subsequent topics in the flow.
  */
 public interface RawRecordsFlowControlService {
 
