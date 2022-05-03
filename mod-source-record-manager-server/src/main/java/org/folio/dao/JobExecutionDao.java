@@ -3,6 +3,7 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 
@@ -71,4 +72,11 @@ public interface JobExecutionDao {
    */
   Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
+  /**
+   *
+   * @param ids JobExecution Logs to be deleted using Ids
+   * @param tenantId
+   * @return future of boolean depending upon success and failure
+   */
+  Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
 }
