@@ -11,8 +11,8 @@ DO $$ BEGIN
         'COMMIT_IN_PROGRESS',
         'COMMITTED',
         'ERROR',
-        'DISCARDED',
-        'CANCELLED');
+        'DISCARDED'
+    );
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -34,8 +34,7 @@ DO $$ BEGIN
         'RUNNING',
         'RUNNING_COMPLETE',
         'ERROR',
-        'DISCARDED',
-        'CANCELLED'
+        'DISCARDED'
     );
 EXCEPTION
     WHEN duplicate_object THEN NULL;
