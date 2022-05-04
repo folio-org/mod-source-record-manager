@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,6 +54,7 @@ import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.HttpStatus.HTTP_OK;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 
 /**
@@ -157,25 +160,25 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-        Promise<JobExecution> promise = Promise.promise();
-        try {
-          if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
-            String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
-            LOGGER.error(message);
-            promise.fail(new BadRequestException(message));
-          } else {
-            jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
-            jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
-            updateJobExecutionIfErrorExist(status, jobExecution);
-            promise.complete(jobExecution);
+          Promise<JobExecution> promise = Promise.promise();
+          try {
+            if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
+              String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
+              LOGGER.error(message);
+              promise.fail(new BadRequestException(message));
+            } else {
+              jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
+              jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
+              updateJobExecutionIfErrorExist(status, jobExecution);
+              promise.complete(jobExecution);
+            }
+          } catch (Exception e) {
+            String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
+            LOGGER.error(errorMessage, e);
+            promise.fail(errorMessage);
           }
-        } catch (Exception e) {
-          String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
-          LOGGER.error(errorMessage, e);
-          promise.fail(errorMessage);
-        }
-        return promise.future();
-      }, params.getTenantId())
+          return promise.future();
+        }, params.getTenantId())
         .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
     }
   }
@@ -183,16 +186,16 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   @Override
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
     return loadJobProfileById(jobProfile.getId(), params)
-      .map(profile-> jobProfile.withName(profile.getName()))
-      .compose(v-> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-        if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-          throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
-        }
-        return createJobProfileSnapshotWrapper(jobProfile, params)
-          .map(profileSnapshotWrapper -> jobExecution
-            .withJobProfileInfo(jobProfile)
-            .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
-      }, params.getTenantId())
+      .map(profile -> jobProfile.withName(profile.getName()))
+      .compose(v -> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+          if (jobExecution.getJobProfileSnapshotWrapper() != null) {
+            throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
+          }
+          return createJobProfileSnapshotWrapper(jobProfile, params)
+            .map(profileSnapshotWrapper -> jobExecution
+              .withJobProfileInfo(jobProfile)
+              .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
+        }, params.getTenantId())
         .recover(throwable -> {
           StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
           return updateJobExecutionStatus(jobExecutionId, statusDto, params)
@@ -206,7 +209,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.result().statusCode() == HTTP_CREATED.toInt()) {
-          promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
+        promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.result().statusCode());
         LOGGER.error(message);
@@ -238,14 +241,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
-      .map(this::modifyJobExecutionToCompleteWithError)
+      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
       .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
   }
 
   @Override
-  public Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
+  public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     return jobExecutionDao.softDeleteJobExecutionsByIds(ids, tenantId);
   }
 
@@ -327,7 +330,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
               String userName = jsonUser.getString("username");
               UserInfo userInfo = new UserInfo()
                 .withFirstName(Objects.isNull(userPersonalInfo)
-                  ? userName  : userPersonalInfo.getString("firstName"))
+                  ? userName : userPersonalInfo.getString("firstName"))
                 .withLastName(Objects.isNull(userPersonalInfo)
                   ? DEFAULT_LASTNAME : userPersonalInfo.getString("lastName"))
                 .withUserName(userName);
@@ -480,7 +483,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private JobExecution verifyJobExecution(JobExecution jobExecution) {
-    if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
+    if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
+      || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
       LOGGER.error(msg);
       throw new BadRequestException(msg);
@@ -488,10 +492,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecution;
   }
 
-  private JobExecution modifyJobExecutionToCompleteWithError(JobExecution jobExecution) {
+  private JobExecution modifyJobExecutionToCompleteWithCancelledStatus(JobExecution jobExecution) {
     return jobExecution
-      .withStatus(JobExecution.Status.ERROR)
-      .withUiStatus(JobExecution.UiStatus.ERROR)
+      .withStatus(JobExecution.Status.CANCELLED)
+      .withUiStatus(JobExecution.UiStatus.CANCELLED)
       .withCompletedDate(new Date());
   }
 
@@ -536,6 +540,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       if (jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)) {
         jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
       }
+    }
+    else if (status.getStatus() == CANCELLED) {
+      jobExecution.setCompletedDate(new Date());
     }
   }
 }

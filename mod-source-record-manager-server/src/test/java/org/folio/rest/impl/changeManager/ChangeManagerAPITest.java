@@ -75,6 +75,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -1638,7 +1639,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()))
+      .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
@@ -1695,7 +1696,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()))
+      .body("status", is(CANCELLED.value()))
       .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
@@ -1739,7 +1740,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(ERROR.value()));
+      .body("status", is(CANCELLED.value()));
     async.complete();
 
     verify(0, deleteRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
