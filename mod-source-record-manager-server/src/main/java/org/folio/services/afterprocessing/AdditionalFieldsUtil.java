@@ -12,7 +12,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.jaxrs.model.Record;
 import org.marc4j.MarcJsonReader;
 import org.marc4j.MarcJsonWriter;
-import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.marc.ControlField;
@@ -26,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -327,7 +325,8 @@ public final class AdditionalFieldsUtil {
 
   /**
    * Generate a {@link org.marc4j.marc.Record} from {@link Record} passed in.
-   * Will return null when there is no parsed content string present
+   * Will return null when there is no parsed content string present. Generated MARC record will be saved into cache if
+   * its parsed content string is not present in the cache as a key
    */
   private static org.marc4j.marc.Record computeMarcRecord(Record record) {
     if (record != null
