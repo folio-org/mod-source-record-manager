@@ -46,6 +46,8 @@ public final class AdditionalFieldsUtil {
   private static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
 
   static {
+    // this function is executed when creating a new item to be saved in the cache.
+    // In this case this is a MARC4J Record
     parsedRecordContentCacheLoader =
       new CacheLoader<>() {
         @Override
@@ -63,6 +65,8 @@ public final class AdditionalFieldsUtil {
 
     parsedRecordContentCache = CacheBuilder.newBuilder()
       .maximumSize(25)
+      // weak keys allows parsed content strings that are used as keys to be garbage collected, even it is still
+      // referenced by the cache.
       .weakKeys()
       .recordStats()
       .build(parsedRecordContentCacheLoader);
@@ -71,6 +75,9 @@ public final class AdditionalFieldsUtil {
   private AdditionalFieldsUtil() {
   }
 
+  /**
+   * Get cache stats
+   */
   static CacheStats getCacheStats() {
     return parsedRecordContentCache.stats();
   }
@@ -318,6 +325,10 @@ public final class AdditionalFieldsUtil {
     return result;
   }
 
+  /**
+   * Generate a {@link org.marc4j.marc.Record} from {@link Record} passed in.
+   * Will return null when there is no parsed content string present
+   */
   private static org.marc4j.marc.Record computeMarcRecord(Record record) {
     if (record != null
         && record.getParsedRecord() != null

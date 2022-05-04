@@ -298,11 +298,12 @@ public class AdditionalFieldsUtilTest {
     Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     String instanceId = UUID.randomUUID().toString();
 
+    CacheStats initialCacheStats = getCacheStats();
+
     // record with null parsed content
     Assert.assertFalse(
         isFieldExist(new Record().withId(UUID.randomUUID().toString()), "035", 'a', instanceId));
-    CacheStats cacheStats = getCacheStats();
-    Assert.assertEquals(0, cacheStats.requestCount());
+    CacheStats cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(0, cacheStats.hitCount());
     Assert.assertEquals(0, cacheStats.missCount());
     Assert.assertEquals(0, cacheStats.loadCount());
@@ -315,7 +316,7 @@ public class AdditionalFieldsUtilTest {
             "035",
             'a',
             instanceId));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(0, cacheStats.requestCount());
     Assert.assertEquals(0, cacheStats.hitCount());
     Assert.assertEquals(0, cacheStats.missCount());
@@ -329,56 +330,56 @@ public class AdditionalFieldsUtilTest {
         "035",
         'a',
         instanceId));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(1, cacheStats.requestCount());
     Assert.assertEquals(0, cacheStats.hitCount());
     Assert.assertEquals(1, cacheStats.missCount());
     Assert.assertEquals(1, cacheStats.loadCount());
     // does field exists?
     Assert.assertFalse(isFieldExist(record, "035", 'a', instanceId));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(2, cacheStats.requestCount());
     Assert.assertEquals(0, cacheStats.hitCount());
     Assert.assertEquals(2, cacheStats.missCount());
     Assert.assertEquals(2, cacheStats.loadCount());
     // update field
     addDataFieldToMarcRecord(record, "035", ' ', ' ', 'a', instanceId);
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(3, cacheStats.requestCount());
     Assert.assertEquals(1, cacheStats.hitCount());
     Assert.assertEquals(2, cacheStats.missCount());
     Assert.assertEquals(2, cacheStats.loadCount());
     // verify that field exists
     Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(4, cacheStats.requestCount());
     Assert.assertEquals(1, cacheStats.hitCount());
     Assert.assertEquals(3, cacheStats.missCount());
     Assert.assertEquals(3, cacheStats.loadCount());
     // verify that field exists again
     Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(5, cacheStats.requestCount());
     Assert.assertEquals(2, cacheStats.hitCount());
     Assert.assertEquals(3, cacheStats.missCount());
     Assert.assertEquals(3, cacheStats.loadCount());
     // get the field
     Assert.assertEquals(instanceId, getValue(record, "035",  'a'));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(6, cacheStats.requestCount());
     Assert.assertEquals(3, cacheStats.hitCount());
     Assert.assertEquals(3, cacheStats.missCount());
     Assert.assertEquals(3, cacheStats.loadCount());
     // get the control field
     Assert.assertEquals(null, getControlFieldValue(record, "035"));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(7, cacheStats.requestCount());
     Assert.assertEquals(4, cacheStats.hitCount());
     Assert.assertEquals(3, cacheStats.missCount());
     Assert.assertEquals(3, cacheStats.loadCount());
     // remove the field
     Assert.assertTrue(removeField(record, "035"));
-    cacheStats = getCacheStats();
+    cacheStats = getCacheStats().minus(initialCacheStats);
     Assert.assertEquals(8, cacheStats.requestCount());
     Assert.assertEquals(5, cacheStats.hitCount());
     Assert.assertEquals(3, cacheStats.missCount());
