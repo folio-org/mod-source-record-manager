@@ -17,17 +17,25 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.max_simultaneous_records:100}")
+  @Value("${di.flow_control.max_simultaneous_records:100}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.records_threshold:50}")
+  @Value("${di.flow_control.records_threshold:50}")
   private Integer recordsThreshold;
-  @Value("${di.flow.control.enable:true}")
+  @Value("${di.flow_control.enable:true}")
   private boolean enableFlowControl;
 
   @Autowired
   private KafkaConsumersStorage consumersStorage;
 
-  private final AtomicInteger atomicCurrent = new AtomicInteger(0);
+  /**
+   * Represents the current state of flow control to make decisions when need to make pause/resume calls.
+   * It is basically counter, that increasing when DI_RAW_RECORDS_CHUNK_READ event comes and decreasing when
+   * DI_COMPLETE, DI_ERROR come.
+   *
+   * When current state equals or exceeds di.flow_control.max_simultaneous_records - all raw records consumers from consumer's group should pause.
+   * When current state equals or below di.flow_control.records_threshold - all raw records consumers from consumer's group should resume.
+   */
+  private final AtomicInteger currentState = new AtomicInteger(0);
 
   @PostConstruct
   public void init() {
@@ -40,7 +48,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    int current = atomicCurrent.addAndGet(initialRecordsCount);
+    int current = currentState.addAndGet(initialRecordsCount);
 
     LOGGER.info("--------------- Current value after chunk received: {} ---------------", current);
 
@@ -64,11 +72,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    int prev = atomicCurrent.get();
+    int prev = currentState.get();
 
-    atomicCurrent.set(prev - duplicatedRecordsCount);
+    currentState.set(prev - duplicatedRecordsCount);
 
-    LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, atomicCurrent.get());
+    LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, currentState.get());
 
     resumeIfThresholdAllows();
   }
@@ -79,11 +87,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    int current = atomicCurrent.decrementAndGet();
+    int current = currentState.decrementAndGet();
 
-    if (atomicCurrent.get() < 0) {
+    if (currentState.get() < 0) {
       LOGGER.info("Current value less that zero because of single record imports, back to zero...");
-      atomicCurrent.set(0);
+      currentState.set(0);
       return;
     }
 
@@ -93,15 +101,15 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void resumeIfThresholdAllows() {
-    if (atomicCurrent.get() <= recordsThreshold) {
+    if (currentState.get() <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() == 0) {
           consumer.resume();
 
-          LOGGER.info("Kafka consumer - id: {}, subscription - {} is resumed, because {} exceeded {} threshold",
-            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.atomicCurrent, recordsThreshold);
+          LOGGER.info("Kafka consumer - id: {}, subscription - {} is resumed, because {} met threshold {}",
+            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
         }
       });
     }
