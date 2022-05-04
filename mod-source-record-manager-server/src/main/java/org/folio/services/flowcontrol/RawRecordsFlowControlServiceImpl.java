@@ -43,12 +43,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackChunkReceivedEvent(Integer initialRecordsCount) {
+  public void trackChunkReceivedEvent(Integer recordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
-    int current = currentState.addAndGet(initialRecordsCount);
+    int current = currentState.addAndGet(recordsCount);
 
     LOGGER.info("--------------- Current value after chunk received: {} ---------------", current);
 
@@ -67,14 +67,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackChunkDuplicateEvent(Integer duplicatedRecordsCount) {
+  public void trackChunkDuplicateEvent(Integer recordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
     int prev = currentState.get();
 
-    currentState.set(prev - duplicatedRecordsCount);
+    currentState.set(prev - recordsCount);
 
     LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, currentState.get());
 
