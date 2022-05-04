@@ -12,7 +12,7 @@ public interface RawRecordsFlowControlService {
    * Tracks each DI_RAW_RECORDS_CHUNK_READ event, this method can also pause processing
    * of DI_RAW_RECORDS_CHUNK_READ topic when flow control conditions met.
    *
-   * @param initialRecordsCount records count in the batch
+   * @param initialRecordsCount records count in the chunk
    */
   void trackChunkReceivedEvent(Integer initialRecordsCount);
 
@@ -20,7 +20,7 @@ public interface RawRecordsFlowControlService {
    * If chunks duplicate event comes - need to correct flow control internal state
    * to avoid calculation errors.
    *
-   * @param duplicatedRecordsCount records count in the batch
+   * @param duplicatedRecordsCount records count in the chunk
    */
   void trackChunkDuplicateEvent(Integer duplicatedRecordsCount);
 
