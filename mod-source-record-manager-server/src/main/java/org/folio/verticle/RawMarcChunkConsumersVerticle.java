@@ -40,8 +40,10 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
   @Override
   public BackPressureGauge<Integer, Integer, Integer> getBackPressureGauge() {
     /*
-     * The simplest implementation to turn of handling of consumer's load by folio-kafka-wrapper.
-     * Instead of the flow control mechanism is used to handle load of DI_RAW_RECORDS_CHUNK_READ topic.
+     * Disable back pressure gauge defined by folio-kafka-wrapper by setting this simple implementation. This
+     * implementation will not allow folio-kafka-wrapper to pause/resume the topic. Flow control mechanism, defined in
+     * this codebase, will be used instead to handle load from DI_RAW_RECORDS_CHUNK_READ topic. Flow control will
+     * have exclusive rights to pause/resume the topic.
      * @see RawRecordsFlowControlService
      */
     return (globalLoad, localLoad, threshold) -> localLoad < 0;
