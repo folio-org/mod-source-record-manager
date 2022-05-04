@@ -5,6 +5,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,13 +64,14 @@ public final class AdditionalFieldsUtil {
     parsedRecordContentCache = CacheBuilder.newBuilder()
       .maximumSize(25)
       .weakKeys()
+      .recordStats()
       .build(parsedRecordContentCacheLoader);
   }
 
   private AdditionalFieldsUtil() {
   }
 
-  public static CacheStats getCacheStats() {
+  static CacheStats getCacheStats() {
     return parsedRecordContentCache.stats();
   }
 
@@ -319,10 +321,10 @@ public final class AdditionalFieldsUtil {
   private static org.marc4j.marc.Record computeMarcRecord(Record record) {
     if (record != null
         && record.getParsedRecord() != null
-        && record.getParsedRecord().getContent() != null) {
+        && !StringUtils.isBlank(record.getParsedRecord().getContent().toString())) {
       try {
         return parsedRecordContentCache.get(record.getParsedRecord().getContent());
-      } catch (ExecutionException e) {
+      } catch (Exception e) {
         LOGGER.error("Error during the transformation to marc record", e);
         return null;
       }
