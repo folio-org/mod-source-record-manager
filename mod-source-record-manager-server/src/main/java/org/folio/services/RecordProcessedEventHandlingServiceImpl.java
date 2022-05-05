@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 
 @Service
@@ -103,7 +104,14 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
         .compose(jobExecutionOptional -> jobExecutionOptional
           .map(jobExecution -> {
-            JobExecution.Status statusToUpdate = progress.getCurrentlyFailed() == 0 ? COMMITTED : JobExecution.Status.ERROR;
+            JobExecution.Status statusToUpdate;
+            if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
+              statusToUpdate = CANCELLED;
+            } else if (progress.getCurrentlyFailed() == 0) {
+              statusToUpdate = COMMITTED;
+            } else {
+              statusToUpdate = JobExecution.Status.ERROR;
+            }
             jobExecution.withStatus(statusToUpdate)
               .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
               .withCompletedDate(new Date())

@@ -52,6 +52,7 @@ import static org.folio.HttpStatus.HTTP_CREATED;
 import static org.folio.HttpStatus.HTTP_OK;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.ErrorStatus.PROFILE_SNAPSHOT_CREATING_ERROR;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 
 /**
@@ -238,7 +239,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
       .map(this::verifyJobExecution)
-      .map(this::modifyJobExecutionToCompleteWithError)
+      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
       .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
@@ -480,7 +481,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private JobExecution verifyJobExecution(JobExecution jobExecution) {
-    if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED) {
+    if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
+    || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
       LOGGER.error(msg);
       throw new BadRequestException(msg);
@@ -488,10 +490,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecution;
   }
 
-  private JobExecution modifyJobExecutionToCompleteWithError(JobExecution jobExecution) {
+  private JobExecution modifyJobExecutionToCompleteWithCancelledStatus(JobExecution jobExecution) {
     return jobExecution
-      .withStatus(JobExecution.Status.ERROR)
-      .withUiStatus(JobExecution.UiStatus.ERROR)
+      .withStatus(JobExecution.Status.CANCELLED)
+      .withUiStatus(JobExecution.UiStatus.CANCELLED)
       .withCompletedDate(new Date());
   }
 
@@ -536,6 +538,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       if (jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)) {
         jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
       }
+    }
+    else if (status.getStatus() == CANCELLED) {
+      jobExecution.setCompletedDate(new Date());
     }
   }
 }
