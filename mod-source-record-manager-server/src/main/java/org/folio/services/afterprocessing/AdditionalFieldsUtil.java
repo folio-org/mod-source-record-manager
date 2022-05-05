@@ -40,8 +40,8 @@ public final class AdditionalFieldsUtil {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
-  private static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
+  private final static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
+  private final static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
 
   static {
     // this function is executed when creating a new item to be saved in the cache.
@@ -115,7 +115,11 @@ public final class AdditionalFieldsUtil {
           // use stream writer to recalculate leader
           streamWriter.write(marcRecord);
           jsonWriter.write(marcRecord);
-          record.setParsedRecord(record.getParsedRecord().withContent(new JsonObject(new String(os.toByteArray())).encode()));
+
+          String parsedContentString = new JsonObject(os.toString()).encode();
+          // save parsed content string to cache then set it on the record
+          parsedRecordContentCache.put(parsedContentString, marcRecord);
+          record.setParsedRecord(record.getParsedRecord().withContent(parsedContentString));
           result = true;
         }
       }
@@ -146,10 +150,14 @@ public final class AdditionalFieldsUtil {
         // use stream writer to recalculate leader
         streamWriter.write(marcRecord);
         jsonWriter.write(marcRecord);
+
+        String parsedContentString = new JsonObject(os.toString()).encode();
+        // save parsed content string to cache then set it on the record
+        parsedRecordContentCache.put(parsedContentString, marcRecord);
         record.setParsedRecord(
             record
                 .getParsedRecord()
-                .withContent(new JsonObject(new String(os.toByteArray())).encode()));
+                .withContent(parsedContentString));
         result = true;
       }
     } catch (Exception e) {
@@ -180,10 +188,14 @@ public final class AdditionalFieldsUtil {
         // use stream writer to recalculate leader
         streamWriter.write(marcRecord);
         jsonWriter.write(marcRecord);
+
+        String parsedContentString = new JsonObject(os.toString()).encode();
+        // save parsed content string to cache then set it on the record
+        parsedRecordContentCache.put(parsedContentString, marcRecord);
         record.setParsedRecord(
             record
                 .getParsedRecord()
-                .withContent(new JsonObject(new String(os.toByteArray())).encode()));
+                .withContent(parsedContentString));
         result = true;
       }
     } catch (Exception e) {
@@ -314,7 +326,7 @@ public final class AdditionalFieldsUtil {
         record.setParsedRecord(
             record
                 .getParsedRecord()
-                .withContent(new JsonObject(new String(baos.toByteArray())).encode()));
+                .withContent(new JsonObject(baos.toString()).encode()));
         result = true;
       }
     } catch (Exception e) {
