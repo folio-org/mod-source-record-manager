@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -52,7 +53,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           JobExecution.Status jobStatus = jobExecution.getStatus();
-          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())) {
+          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())
+            || StatusDto.Status.CANCELLED.value().equals(jobStatus.value())) {
             return Future.succeededFuture(true);
           }
           return jobExecutionProgressService.initializeJobExecutionProgress(jobExecution.getId(), incomingChunk.getRecordsMetadata().getTotal(), tenantId).map(true);
