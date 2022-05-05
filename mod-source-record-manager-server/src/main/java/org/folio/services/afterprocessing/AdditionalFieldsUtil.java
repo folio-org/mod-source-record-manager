@@ -62,7 +62,7 @@ public final class AdditionalFieldsUtil {
       };
 
     parsedRecordContentCache = CacheBuilder.newBuilder()
-      .maximumSize(25)
+      .maximumSize(2000)
       // weak keys allows parsed content strings that are used as keys to be garbage collected, even it is still
       // referenced by the cache.
       .weakKeys()
