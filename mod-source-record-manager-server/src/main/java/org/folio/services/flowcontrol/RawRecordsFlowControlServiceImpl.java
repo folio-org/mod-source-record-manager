@@ -6,6 +6,8 @@ import org.folio.kafka.KafkaConsumerWrapper;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.Collection;
@@ -14,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
 @Service
+@EnableScheduling
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -40,6 +43,33 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   @PostConstruct
   public void init() {
     LOGGER.info("Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
+  }
+
+  /**
+   * This method schedules resetting state of flow control. By default it triggered each 5 mins.
+   * This is distributed system and count of raw records pushed to process can be not corresponding
+   * with DI_COMPLETE/DI_ERROR, for example because of imports are stuck.
+   *
+   * For example, batch size - 10, max simultaneous - 20, records threshold - 10.
+   * Flow control receives 20 records and pause consumers, 5 DI_COMPLETE events came, 15 was missed due to some DB issue.
+   * Current state would equals to 15 and threshold will never met 10 records so consumers will be paused forever
+   * and as a result all subsequent imports will not have a chance to execute.
+   *
+   * This scheduled method to reset state intended to prevent that. The correlation between max simultaneous and records
+   * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
+   * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
+   */
+  @Scheduled(cron = "${di.flow.control.reset.state.cron:0 0/5 * * * ?}")
+  public void resetState() {
+    currentState.getAndUpdate(prev -> {
+      if (prev != 0) {
+        LOGGER.info("State has been reset to initial value, current value: 0");
+        return 0;
+      } else {
+        return prev;
+      }
+    });
+    resumeIfThresholdAllows();
   }
 
   @Override
@@ -89,11 +119,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     int current = currentState.decrementAndGet();
 
-    if (currentState.get() < 0) {
-      LOGGER.info("Current value less that zero because of single record imports, back to zero...");
-      currentState.set(0);
-      return;
-    }
+    currentState.getAndUpdate(prev -> {
+      if (prev < 0) {
+        LOGGER.info("Current value less that zero because of single record imports or resetting state, back to zero...");
+        return 0;
+      } else {
+        return prev;
+      }
+    });
 
     LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
 
