@@ -20,6 +20,7 @@ import java.util.Date;
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String JOB_EXECUTION_MARKED_AS_ERROR_MSG = "Couldn't update JobExecution status, JobExecution already marked as ERROR";
+  private static final String JOB_EXECUTION_MARKED_AS_CANCELLED_MSG = "Couldn't update JobExecution status, JobExecution already marked as CANCELLED";
   public static final String UNIQUE_CONSTRAINT_VIOLATION_CODE = "23505";
 
   protected JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -94,6 +95,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
           if (jobExecution.getStatus() == JobExecution.Status.ERROR) {
             LOGGER.error(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
+          }
+          if (jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
+            LOGGER.error(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
+            return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
           }
           if (jobExecution.getStatus() == JobExecution.Status.COMMITTED) {
             return Future.succeededFuture(jobExecution);
