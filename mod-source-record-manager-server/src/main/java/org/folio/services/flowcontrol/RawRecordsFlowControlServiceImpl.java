@@ -102,11 +102,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    int prev = currentState.get();
-
-    currentState.set(prev - recordsCount);
-
-    LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, currentState.get());
+    currentState.getAndUpdate(prev -> {
+      int res = prev - recordsCount;
+      LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, res);
+      return res;
+    });
 
     resumeIfThresholdAllows();
   }
