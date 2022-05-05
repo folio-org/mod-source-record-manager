@@ -124,11 +124,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         LOGGER.info("Current value less that zero because of single record imports or resetting state, back to zero...");
         return 0;
       } else {
+        LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
         return prev;
       }
     });
-
-    LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
 
     resumeIfThresholdAllows();
   }
