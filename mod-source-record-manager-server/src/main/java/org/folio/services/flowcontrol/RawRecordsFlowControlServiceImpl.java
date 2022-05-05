@@ -35,8 +35,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * It is basically counter, that increasing when DI_RAW_RECORDS_CHUNK_READ event comes and decreasing when
    * DI_COMPLETE, DI_ERROR come.
    *
-   * When current state equals or exceeds di.flow_control.max_simultaneous_records - all raw records consumers from consumer's group should pause.
-   * When current state equals or below di.flow_control.records_threshold - all raw records consumers from consumer's group should resume.
+   * When current state equals or exceeds di.flow.control.max.simultaneous.records - all raw records consumers from consumer's group should pause.
+   * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final AtomicInteger currentState = new AtomicInteger(0);
 
