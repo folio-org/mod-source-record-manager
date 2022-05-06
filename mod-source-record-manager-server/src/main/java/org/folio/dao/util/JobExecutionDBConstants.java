@@ -49,13 +49,13 @@ public final class JobExecutionDBConstants {
 
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
-    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' AND is_deleted = false) " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
     "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
-    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' " +
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' AND is_deleted = false " +
     "LIMIT $2 OFFSET $3";
 
   public static final String GET_JOBS_NOT_PARENT_SQL =
