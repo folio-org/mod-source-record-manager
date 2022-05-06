@@ -323,10 +323,14 @@ public final class AdditionalFieldsUtil {
         // use stream writer to recalculate leader
         marcStreamWriter.write(marcRecord);
         marcJsonWriter.write(marcRecord);
+        
+        String parsedContentString = new JsonObject(baos.toString()).encode();
+        // save parsed content string to cache then set it on the record
+        parsedRecordContentCache.put(parsedContentString, marcRecord);
         record.setParsedRecord(
-            record
-                .getParsedRecord()
-                .withContent(new JsonObject(baos.toString()).encode()));
+          record
+            .getParsedRecord()
+            .withContent(parsedContentString));
         result = true;
       }
     } catch (Exception e) {
