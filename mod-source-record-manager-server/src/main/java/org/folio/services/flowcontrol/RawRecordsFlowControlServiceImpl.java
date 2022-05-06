@@ -61,6 +61,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    */
   @Scheduled(cron = "${di.flow.control.reset.state.cron:0 0/5 * * * ?}")
   public void resetState() {
+    if (!enableFlowControl) {
+      return;
+    }
+
     currentState.getAndUpdate(prev -> {
       if (prev != 0) {
         LOGGER.info("State has been reset to initial value, current value: 0");
