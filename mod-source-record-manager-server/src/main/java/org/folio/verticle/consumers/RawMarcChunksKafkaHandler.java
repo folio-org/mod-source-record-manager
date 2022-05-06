@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,15 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private static final Logger LOGGER = LogManager.getLogger();
 
   private ChunkProcessingService eventDrivenChunkProcessingService;
+  private RawRecordsFlowControlService flowControlService;
   private Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
+                                   @Autowired RawRecordsFlowControlService flowControlService,
                                    @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
+    this.flowControlService = flowControlService;
     this.vertx = vertx;
   }
 
@@ -51,16 +55,23 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     LOGGER.debug("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
+      if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+        flowControlService.trackChunkReceivedEvent(rawRecordsDto.getInitialRecords().size());
+      }
+
       LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
         jobExecutionId, chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata());
       return eventDrivenChunkProcessingService
-        .processChunk(rawRecordsDto, okapiConnectionParams.getHeaders().get("jobExecutionId"), okapiConnectionParams)
+        .processChunk(rawRecordsDto, jobExecutionId, okapiConnectionParams)
         .compose(b -> {
           LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
           return Future.succeededFuture(record.key());
         }, th -> {
           if (th instanceof DuplicateEventException) {
             LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+            if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+              flowControlService.trackChunkDuplicateEvent(rawRecordsDto.getInitialRecords().size());
+            }
             return Future.failedFuture(th);
           } else if (th instanceof RecordsPublishingException) {
             LOGGER.error("RawRecordsDto entries publishing to Kafka has failed for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
