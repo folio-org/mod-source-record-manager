@@ -1,6 +1,6 @@
 package org.folio.services.afterprocessing;
 
-import com.google.common.cache.CacheStats;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;

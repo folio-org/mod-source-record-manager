@@ -1,14 +1,16 @@
 package org.folio.services.afterprocessing;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheStats;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.jaxrs.model.Record;
 import org.marc4j.MarcJsonReader;
 import org.marc4j.MarcJsonWriter;
@@ -25,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -45,29 +48,43 @@ public final class AdditionalFieldsUtil {
 
   static {
     // this function is executed when creating a new item to be saved in the cache.
-    // In this case this is a MARC4J Record
+    // In this case, this is a MARC4J Record
     parsedRecordContentCacheLoader =
-      new CacheLoader<>() {
-        @Override
-        public org.marc4j.marc.Record load(Object parsedRecordContent) {
-          MarcJsonReader marcJsonReader =
-            new MarcJsonReader(
-              new ByteArrayInputStream(
-                parsedRecordContent.toString().getBytes(StandardCharsets.UTF_8)));
-          if (marcJsonReader.hasNext()) {
-            return marcJsonReader.next();
-          }
-          return null;
+      parsedRecordContent -> {
+        MarcJsonReader marcJsonReader =
+          new MarcJsonReader(
+            new ByteArrayInputStream(
+              parsedRecordContent.toString().getBytes(StandardCharsets.UTF_8)));
+        if (marcJsonReader.hasNext()) {
+          return marcJsonReader.next();
         }
+        return null;
       };
 
-    parsedRecordContentCache = CacheBuilder.newBuilder()
-      .maximumSize(2000)
-      // weak keys allows parsed content strings that are used as keys to be garbage collected, even it is still
-      // referenced by the cache.
-      .weakKeys()
-      .recordStats()
-      .build(parsedRecordContentCacheLoader);
+    parsedRecordContentCache =
+        Caffeine.newBuilder()
+            .maximumSize(2000)
+            // weak keys allows parsed content strings that are used as keys to be garbage
+            // collected, even it is still
+            // referenced by the cache.
+            .weakKeys()
+            .recordStats()
+            .executor(
+                serviceExecutor -> {
+                  // Due to the static nature and the API of this AdditionalFieldsUtil class, it is difficult to
+                  // pass a vertx instance or assume whether a call to any of its static methods here is by a Vertx
+                  // thread or a regular thread. The logic before is able to discern the type of thread and execute
+                  // cache operations using the appropriate threading model.
+                  Context context = Vertx.currentContext();
+                  if (context != null) {
+                    context.runOnContext(ar -> serviceExecutor.run());
+                  }
+                  else {
+                    // The common pool below is used because it is the  default executor for caffeine
+                    ForkJoinPool.commonPool().execute(serviceExecutor);
+                  }
+                })
+          .build(parsedRecordContentCacheLoader);
   }
 
   private AdditionalFieldsUtil() {
@@ -323,7 +340,7 @@ public final class AdditionalFieldsUtil {
         // use stream writer to recalculate leader
         marcStreamWriter.write(marcRecord);
         marcJsonWriter.write(marcRecord);
-        
+
         String parsedContentString = new JsonObject(baos.toString()).encode();
         // save parsed content string to cache then set it on the record
         parsedRecordContentCache.put(parsedContentString, marcRecord);
