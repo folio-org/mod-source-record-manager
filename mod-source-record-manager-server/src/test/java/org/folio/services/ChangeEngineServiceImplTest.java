@@ -69,7 +69,6 @@ public class ChangeEngineServiceImplTest {
   private static final String MARC_BIB_REC_WITH_FF =
     "00861cam a2200193S1 45 0001000700000002000900007003000400016008004100020035002200061035001300083099001600096245005600112500011600168500019600284600003500480610003400515610003900549999007900588\u001E304162\u001E00320061\u001EPBL\u001E020613n                      000 0 eng u\u001E  \u001Fa(Sirsi)sc99900001\u001E  \u001Fa(Sirsi)1\u001E  \u001FaSC LVF M698\u001E00\u001FaMohler, Harold S. (Lehigh Collection Vertical File)\u001E  \u001FaMaterial on this topic is contained in the Lehigh Collection Vertical File. See Special Collections for access.\u001E  \u001FaContains press releases, versions of resumes, clippings, biographical information. L-in-Life program, and memorial service program -- Documents related Hershey Food Corporation. In two parts.\u001E10\u001FaMohler, Harold S.,\u001Fd1919-1988.\u001E20\u001FaLehigh University.\u001FbTrustees.\u001E20\u001FaLehigh University.\u001FbClass of 1948.\u001Eff\u001Fi29573076-a7ee-462a-8f9b-2659ab7df23c\u001Fs7ca42730-9ba6-4bc8-98d3-f068728504c9\u001E\u001D";
   private static final String TEST_USER_ID = "a4295ae8-ecef-4657-958a-0a45b12880db";
-  private static final String JOHN_NAME = "John";
 
   @Mock
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -127,7 +126,6 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual.get(0).getMetadata().getUpdatedByUserId(), equalTo(TEST_USER_ID));
-    assertThat(actual.get(0).getMetadata().getUpdatedByUsername(), equalTo(JOHN_NAME));
   }
 
   @Test
@@ -347,8 +345,7 @@ public class ChangeEngineServiceImplTest {
           List.of(new ProfileSnapshotWrapper().withContent(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)))
         ).withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC))
-      .withUserId(TEST_USER_ID)
-      .withRunBy(new RunBy().withFirstName(JOHN_NAME));
+      .withUserId(TEST_USER_ID);
   }
 
   private Future<List<Record>> executeWithKafkaMock(RawRecordsDto rawRecordsDto, JobExecution jobExecution,
