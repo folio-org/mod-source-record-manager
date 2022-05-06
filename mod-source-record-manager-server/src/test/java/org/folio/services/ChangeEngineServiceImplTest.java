@@ -104,19 +104,28 @@ public class ChangeEngineServiceImplTest {
   }
 
   @Test
-  public void shouldPopulateWithUserId() {
+  public void shouldPopulateWithUserIdWhenUpdate() {
     RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_BIB_REC_WITHOUT_FF);
     JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
+        .withContent(new JsonObject(Json.encode(new ActionProfile()
+          .withAction(ActionProfile.Action.UPDATE)
+          .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC))).getMap())
+      ))
+    );
 
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+      .thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
     var actual = serviceFuture.result();
-    assertThat(actual.get(0).getMetadata().getCreatedByUserId(), equalTo(TEST_USER_ID));
     assertThat(actual.get(0).getMetadata().getUpdatedByUserId(), equalTo(TEST_USER_ID));
     assertThat(actual.get(0).getMetadata().getUpdatedByUsername(), equalTo(JOHN_NAME));
   }
