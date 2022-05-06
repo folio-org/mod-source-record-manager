@@ -96,7 +96,7 @@ public final class AdditionalFieldsUtil {
         MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
         MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
         MarcFactory factory = MarcFactory.newInstance();
-        org.marc4j.marc.Record marcRecord = parsedRecordContentCache.get(record.getParsedRecord().getContent());
+        org.marc4j.marc.Record marcRecord = computeMarcRecord(record);
         if (marcRecord != null) {
           VariableField variableField = getSingleFieldByIndicators(marcRecord.getVariableFields(field), INDICATOR, INDICATOR);
           DataField dataField;
