@@ -310,9 +310,13 @@ public class ChangeEngineServiceImplTest {
 
   private JobExecution getTestJobExecution() {
     return new JobExecution().withId(UUID.randomUUID().toString())
-      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper())
-      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
-        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+        .withContent(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
+        .withChildSnapshotWrappers(
+          List.of(new ProfileSnapshotWrapper().withContent(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)))
+        ).withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC))
+      .withUserId("id");
   }
 
   private Future<List<Record>> executeWithKafkaMock(RawRecordsDto rawRecordsDto, JobExecution jobExecution,

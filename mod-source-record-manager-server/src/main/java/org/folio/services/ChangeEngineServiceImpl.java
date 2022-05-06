@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.ExternalIdsHolder;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.Metadata;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
@@ -189,6 +190,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc update");
+    records.forEach(record -> record.setMetadata(new Metadata().withCreatedByUserId(jobExecution.getUserId())
+      .withUpdatedByUserId(jobExecution.getUserId())));
+
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
   }
@@ -551,7 +555,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
-
+    parsedRecords.forEach(record -> record.setMetadata(new Metadata().withCreatedByUserId(jobExecution.getUserId())
+      .withUpdatedByUserId(jobExecution.getUserId())));
     RecordCollection recordCollection = new RecordCollection()
       .withRecords(parsedRecords)
       .withTotalRecords(parsedRecords.size());
