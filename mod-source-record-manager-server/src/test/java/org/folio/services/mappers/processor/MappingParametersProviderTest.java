@@ -14,6 +14,7 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +22,7 @@ import org.junit.runner.RunWith;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -214,25 +216,48 @@ public class MappingParametersProviderTest {
         });
   }
 
+  /**
+   * Test that multiple requests to get the same item concurrently do not attempt to load mapping parameters concurrently.
+   * only one load should occur. All requests for the same cache key should return the same cache value.
+   */
   @Test
-  public void ManyRequests(TestContext context) {
+  public void manyRequests(TestContext context) {
     Async async = context.async();
     String key = "1";
     CompositeFuture.all(mappingParametersProvider
-      .get(key, okapiConnectionParams),
-      mappingParametersProvider
-      .get(key, okapiConnectionParams),
-      mappingParametersProvider
-        .get(key, okapiConnectionParams))
+          .get(key, okapiConnectionParams),
+        mappingParametersProvider
+          .get(key, okapiConnectionParams),
+        mappingParametersProvider
+          .get(key, okapiConnectionParams))
       .onComplete(ar -> {
-        // should verify all the endpoints were called once, but that is a lot.
         context.verify(v -> {
+          // should verify all the endpoints were called once, but that is a lot.
           verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
+
+          // verify that the same mapping parameters is returned
+          Assert.assertSame(ar.result().<MappingParameters>resultAt(0), ar.result().<MappingParameters>resultAt(1));
+          Assert.assertSame(ar.result().<MappingParameters>resultAt(1), ar.result().<MappingParameters>resultAt(2));
         });
-        context.assertTrue(ar.result().<MappingParameters>resultAt(0).isInitialized());
-        context.assertTrue(ar.result().<MappingParameters>resultAt(1).isInitialized());
-        context.assertTrue(ar.result().<MappingParameters>resultAt(2).isInitialized());
         async.complete();
       });
+  }
+
+  /**
+   * Test that cache keys with different okapi connection params are the equal. This is critical for the cache to work
+   * efficiently.
+   */
+  @Test
+  public void cacheKeyEquality() {
+    OkapiConnectionParams otherParams = new OkapiConnectionParams(Collections.emptyMap(), rule.vertx());
+    Assert.assertNotEquals(okapiConnectionParams, otherParams);
+    
+    MappingParametersProvider.MappingParameterKey key1 =
+      new MappingParametersProvider.MappingParameterKey("key",
+        otherParams);
+    MappingParametersProvider.MappingParameterKey key2 =
+      new MappingParametersProvider.MappingParameterKey("key",
+        okapiConnectionParams);
+    Assert.assertEquals(key1, key2);
   }
 }
