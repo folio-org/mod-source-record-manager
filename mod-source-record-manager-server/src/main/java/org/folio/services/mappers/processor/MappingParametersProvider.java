@@ -3,8 +3,11 @@ package org.folio.services.mappers.processor;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.AuthorityNoteType;
 import org.folio.Authoritynotetypes;
 import org.folio.okapi.common.GenericCompositeFuture;
@@ -77,14 +80,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
 @Component
 public class MappingParametersProvider {
+
+  private static final Logger LOGGER = LogManager.getLogger();
 
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
@@ -136,7 +141,7 @@ public class MappingParametersProvider {
    * @return mapping params for the given key
    */
   public Future<MappingParameters> get(String key, OkapiConnectionParams okapiParams) {
-    return this.internalCache.get(key, mappingParameters -> initializeParameters(mappingParameters, okapiParams));
+    return this.internalCache.get(new MappingParameterKey(key, okapiParams));
   }
 
   /**
@@ -147,6 +152,7 @@ public class MappingParametersProvider {
    * @return initialized mapping params
    */
   private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    LOGGER.debug("initializing mapping parameters...");
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);
@@ -212,7 +218,10 @@ public class MappingParametersProvider {
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
-      );
+      ).recover(e -> {
+        LOGGER.error("Something happened while initializing mapping parameters", e);
+        return Future.succeededFuture(mappingParams);
+      });
   }
 
   /**
@@ -747,43 +756,87 @@ public class MappingParametersProvider {
   }
 
   /**
+   * This class is used as a composite key that holds the intended key and okapi connection parameters that will be used
+   * to load missing parameters from the cache. Equality for this class is determined by only comparing the intended key
+   * . This means that two MappingParameterKey objects with the same key but different okapiParams will the equal.
+   */
+  public static class MappingParameterKey {
+    private String key;
+    private OkapiConnectionParams okapiConnectionParams;
+
+    public MappingParameterKey(String key, OkapiConnectionParams okapiParams) {
+      this.key = key;
+      this.okapiConnectionParams = okapiParams;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public OkapiConnectionParams getOkapiConnectionParams() {
+      return okapiConnectionParams;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      MappingParameterKey that = (MappingParameterKey) o;
+      return Objects.equal(key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(key);
+    }
+  }
+
+  /**
    * In-memory cache to store mapping params
    */
   private class InternalCache {
-    private AsyncLoadingCache<String, MappingParameters> cache;
+    private AsyncLoadingCache<MappingParameterKey, MappingParameters> cache;
 
     public InternalCache(Vertx vertx) {
-      this.cache = Caffeine.newBuilder()
-        /*
-            In order to do not break down Vert.x threading model
-            we need to delegate cache internal activities to the event-loop thread.
-        */
-        .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
-        .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
-        .buildAsync(key -> new MappingParameters().withInitializedState(false));
+      this.cache =
+          Caffeine.newBuilder()
+              /*
+                  In order to do not break down Vert.x threading model
+                  we need to delegate cache internal activities to the event-loop thread.
+              */
+              .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
+              .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
+              .buildAsync(
+                  (key, executor) -> {
+                    CompletableFuture<MappingParameters> future = new CompletableFuture<>();
+                    executor.execute(
+                        () ->
+                            initializeParameters(
+                                    new MappingParameters().withInitializedState(false),
+                                    key.getOkapiConnectionParams())
+                                .onComplete(ar -> future.complete(ar.result())));
+                    return future;
+                  });
     }
 
     /**
      * Provides mapping parameters by the given key.
      *
-     * @param key        key with which the specified MappingParameters are associated
-     * @param initAction action to initialize mapping params
+     * @param key key with which the specified MappingParameters are associated
      * @return mapping params for the given key
      */
-    public Future<MappingParameters> get(String key, Function<MappingParameters, Future<MappingParameters>> initAction) {
+    public Future<MappingParameters> get(MappingParameterKey key) {
       Promise<MappingParameters> promise = Promise.promise();
-      this.cache.get(key).whenComplete((mappingParameters, exception) -> {
-        if (exception != null) {
-          promise.fail(exception);
-        } else {
-          if (mappingParameters.isInitialized()) {
-            promise.complete(mappingParameters);
-          } else {
-            // Complete future to continue with mapping even if request for MappingParameters is failed
-            initAction.apply(mappingParameters).onComplete(ar -> promise.complete(mappingParameters));
-          }
-        }
-      });
+      this.cache
+          .get(key)
+          .whenComplete(
+              (mappingParameters, exception) -> {
+                if (exception != null) {
+                  promise.fail(exception);
+                } else {
+                  promise.complete(mappingParameters);
+                }
+              });
       return promise.future();
     }
   }
