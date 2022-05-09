@@ -218,10 +218,7 @@ public class MappingParametersProvider {
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
-      ).recover(e -> {
-        LOGGER.error("Something happened while initializing mapping parameters", e);
-        return Future.succeededFuture(mappingParams);
-      });
+      ).onFailure(e -> LOGGER.error("Something happened while initializing mapping parameters", e));
   }
 
   /**
