@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +40,7 @@ public class JobMonitoringServiceImpl implements JobMonitoringService {
 
   @Override
   public Future<List<JobMonitoring>> getInactiveJobMonitors(Long maxInactiveInterval, String tenantId) {
-    var lastInactiveDateTime = LocalDateTime.now().minus(maxInactiveInterval, ChronoUnit.MILLIS);
+    var lastInactiveDateTime = LocalDateTime.now(ZoneOffset.UTC).minus(maxInactiveInterval, ChronoUnit.MILLIS);
     return jobMonitoringDao.findByNotificationBeforeTimestamp(lastInactiveDateTime, false, tenantId);
   }
 
