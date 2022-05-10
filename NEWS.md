@@ -17,6 +17,7 @@
 * [MODSOURMAN-780](https://issues.folio.org/browse/MODSOURMAN-780) Implement endpoint for adding summary for work accomplished in a job
 * [MODSOURMAN-779](https://issues.folio.org/browse/MODSOURMAN-779) Add "CANCELLED" status for Import jobs that are stopped by users.
 * [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
+* [MODSOURMAN-792](https://issues.folio.org/browse/MODSOURMAN-792) Initialize mapping parameters without race conditions
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
