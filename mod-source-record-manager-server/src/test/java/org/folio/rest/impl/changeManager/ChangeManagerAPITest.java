@@ -23,6 +23,7 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -2061,5 +2062,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + parentJobExecutionId_2)
       .then()
       .statusCode(HttpStatus.SC_OK);
+  }
+
+  public static DeleteJobExecutionsResp returnDeletedJobExecutionResponse(String[] parentJobExecutionId){
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+    return RestAssured.given()
+      .spec(spec)
+      .body(deleteJobExecutionsReq)
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(DeleteJobExecutionsResp.class);
   }
 }

@@ -10,6 +10,8 @@ import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -1070,5 +1072,36 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .withEntityId(entityId)
       .withEntityHrId(entityHrid);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+
+  @Test
+  public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    putJobExecution(createdJobExecution);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{createdJobExecution.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("hrid", createdJobExecution.getHrId())
+        .get(GET_JOB_EXECUTIONS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_NOT_FOUND);
+
+      async.complete();
+    }));
   }
 }
