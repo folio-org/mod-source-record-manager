@@ -2048,12 +2048,18 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId))
       .body("jobExecutionDetails.isDeleted.get(0)", is(true));
 
-    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parentJobExecutionId)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+
     RestAssured.given()
       .spec(spec)
       .when()
       .get(JOB_EXECUTION_PATH + parentJobExecutionId_2)
       .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
+      .statusCode(HttpStatus.SC_OK);
   }
 }
