@@ -10,7 +10,6 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
@@ -18,9 +17,7 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.services.EventProcessedService;
 import org.folio.services.EventProcessedServiceImpl;
 import org.folio.services.journal.JournalService;
@@ -33,18 +30,15 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
@@ -99,167 +93,6 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     Assert.assertNotNull(eventTypeHandlerSelector);
 
     dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
-  }
-
-  @Test
-  public void testJournalInventoryInstanceCreatedAction(TestContext context) {
-    Async async = context.async();
-
-    // given
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
-      .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
-      .withJobExecutionId(jobExecution.getId())
-      .withContext(dataImportEventPayloadContext)
-      .withOkapiUrl(OKAPI_URL)
-      .withTenant(TENANT_ID)
-      .withToken("token");
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void testJournalMarcBibRecordUpdatedAction(TestContext context) throws IOException {
-    Async async = context.async();
-
-    // given
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
-      .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
-      .withJobExecutionId(jobExecution.getId())
-      .withContext(dataImportEventPayloadContext)
-      .withOkapiUrl(OKAPI_URL)
-      .withTenant(TENANT_ID)
-      .withToken(TOKEN);
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws IOException {
-    Async async = context.async();
-
-    // given
-    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
-      .withEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED.value())
-      .withProfileSnapshot(profileSnapshotWrapperResponse)
-      .withCurrentNode(profileSnapshotWrapperResponse.getChildSnapshotWrappers().get(0))
-      .withJobExecutionId(jobExecution.getId())
-      .withContext(dataImportEventPayloadContext)
-      .withOkapiUrl(OKAPI_URL)
-      .withTenant(TENANT_ID)
-      .withToken(TOKEN);
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void testJournalCompletedAction(TestContext context) throws IOException, ExecutionException, InterruptedException {
-    Async async = context.async();
-
-    // given
-    DataImportEventPayload completedEventPayload = new DataImportEventPayload()
-      .withEventType(DI_COMPLETED.value())
-      .withTenant(TENANT_ID)
-      .withOkapiUrl(OKAPI_URL)
-      .withToken(TOKEN)
-      .withContext(new HashMap<>() {{
-        put(ITEM.value(), recordJson.encode());
-        put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-      }})
-      .withProfileSnapshot(new ProfileSnapshotWrapper()
-        .withId(UUID.randomUUID().toString())
-        .withContentType(ACTION_PROFILE)
-        .withContent(JsonObject.mapFrom(new ActionProfile().withFolioRecord(ActionProfile.FolioRecord.ITEM))))
-      .withCurrentNode(new ProfileSnapshotWrapper()
-        .withId(UUID.randomUUID().toString())
-        .withContentType(ACTION_PROFILE)
-        .withContent(JsonObject.mapFrom(new ActionProfile().withFolioRecord(ActionProfile.FolioRecord.ITEM))))
-      .withEventsChain(List.of(DI_INVENTORY_HOLDING_CREATED.value(), DI_INVENTORY_ITEM_CREATED.value()));
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(completedEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
-    future.onComplete(ar -> {
-      if (ar.succeeded()) {
-        context.assertTrue(ar.succeeded());
-        Assert.assertNotNull(ar.result());
-      }
-    });
-    async.complete();
-  }
-
-  @Test
-  public void testJournalErrorAction(TestContext context) throws IOException, ExecutionException, InterruptedException {
-    Async async = context.async();
-
-    // given
-    DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withTenant(TENANT_ID)
-      .withOkapiUrl(OKAPI_URL)
-      .withToken(TOKEN)
-      .withContext(new HashMap<>() {{
-        put(HOLDINGS.value(), recordJson.encode());
-        put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-        put("ERROR", "java.lang.IllegalArgumentException: Can not handle event payload");
-      }})
-      .withProfileSnapshot(new ProfileSnapshotWrapper()
-        .withId(UUID.randomUUID().toString())
-        .withContentType(ACTION_PROFILE)
-        .withContent(JsonObject.mapFrom(new ActionProfile().withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))))
-      .withCurrentNode(new ProfileSnapshotWrapper()
-        .withId(UUID.randomUUID().toString())
-        .withContentType(ACTION_PROFILE)
-        .withContent(JsonObject.mapFrom(new ActionProfile().withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))))
-      .withEventsChain(List.of(DI_SRS_MARC_BIB_RECORD_CREATED.value(), DI_INVENTORY_HOLDING_CREATED.value()));
-
-    // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(eventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
-
-    // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
   }
 
   @Test
