@@ -31,7 +31,7 @@ public class InitAPIImpl implements InitAPI {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:3}")
+  @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:1}")
   private int rawMarcChunkConsumerInstancesNumber;
 
   // TODO: srm.kafka.StoredMarcChunkConsumer should be refactored
