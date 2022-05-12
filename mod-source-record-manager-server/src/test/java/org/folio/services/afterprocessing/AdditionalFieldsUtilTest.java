@@ -1,5 +1,6 @@
 package org.folio.services.afterprocessing;
 
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,8 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldTo
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
 @RunWith(BlockJUnit4ClassRunner.class)
@@ -284,5 +287,102 @@ public class AdditionalFieldsUtilTest {
     // then
     Assert.assertTrue(added);
     Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
+  }
+
+  @Test
+  public void caching() throws IOException {
+    // given
+    String parsedRecordContent = TestUtil.readFileFromPath(PARSED_RECORD_PATH);
+    ParsedRecord parsedRecord = new ParsedRecord();
+    parsedRecord.setContent(parsedRecordContent);
+    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    String instanceId = UUID.randomUUID().toString();
+
+    CacheStats initialCacheStats = getCacheStats();
+
+    // record with null parsed content
+    Assert.assertFalse(
+        isFieldExist(new Record().withId(UUID.randomUUID().toString()), "035", 'a', instanceId));
+    CacheStats cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(0, cacheStats.hitCount());
+    Assert.assertEquals(0, cacheStats.missCount());
+    Assert.assertEquals(0, cacheStats.loadCount());
+    // record with empty parsed content
+    Assert.assertFalse(
+        isFieldExist(
+            new Record()
+                .withId(UUID.randomUUID().toString())
+                .withParsedRecord(new ParsedRecord().withContent("")),
+            "035",
+            'a',
+            instanceId));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(0, cacheStats.requestCount());
+    Assert.assertEquals(0, cacheStats.hitCount());
+    Assert.assertEquals(0, cacheStats.missCount());
+    Assert.assertEquals(0, cacheStats.loadCount());
+    // record with bad parsed content
+    Assert.assertFalse(
+      isFieldExist(
+        new Record()
+          .withId(UUID.randomUUID().toString())
+          .withParsedRecord(new ParsedRecord().withContent("test")),
+        "035",
+        'a',
+        instanceId));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(1, cacheStats.requestCount());
+    Assert.assertEquals(0, cacheStats.hitCount());
+    Assert.assertEquals(1, cacheStats.missCount());
+    Assert.assertEquals(1, cacheStats.loadCount());
+    // does field exists?
+    Assert.assertFalse(isFieldExist(record, "035", 'a', instanceId));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(2, cacheStats.requestCount());
+    Assert.assertEquals(0, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // update field
+    addDataFieldToMarcRecord(record, "035", ' ', ' ', 'a', instanceId);
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(3, cacheStats.requestCount());
+    Assert.assertEquals(1, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // verify that field exists
+    Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(4, cacheStats.requestCount());
+    Assert.assertEquals(2, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // verify that field exists again
+    Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(5, cacheStats.requestCount());
+    Assert.assertEquals(3, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // get the field
+    Assert.assertEquals(instanceId, getValue(record, "035",  'a'));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(6, cacheStats.requestCount());
+    Assert.assertEquals(4, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // get the control field
+    Assert.assertEquals(null, getControlFieldValue(record, "035"));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(7, cacheStats.requestCount());
+    Assert.assertEquals(5, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
+    // remove the field
+    Assert.assertTrue(removeField(record, "035"));
+    cacheStats = getCacheStats().minus(initialCacheStats);
+    Assert.assertEquals(8, cacheStats.requestCount());
+    Assert.assertEquals(6, cacheStats.hitCount());
+    Assert.assertEquals(2, cacheStats.missCount());
+    Assert.assertEquals(2, cacheStats.loadCount());
   }
 }
