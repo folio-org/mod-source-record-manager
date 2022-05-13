@@ -18,8 +18,8 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.services.EventProcessedService;
 import org.folio.services.EventProcessedServiceImpl;
@@ -121,7 +121,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Assert.assertNotNull(ar.result());
@@ -149,7 +149,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Assert.assertNotNull(ar.result());
@@ -177,7 +177,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Assert.assertNotNull(ar.result());
@@ -214,7 +214,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
     future.onComplete(ar -> {
       if (ar.succeeded()) {
         context.assertTrue(ar.succeeded());
@@ -254,7 +254,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       Assert.assertNotNull(ar.result());

@@ -78,7 +78,6 @@ import static org.hamcrest.Matchers.not;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
-  private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
 
@@ -552,32 +551,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber))
       .body("jobExecutions*.userId", everyItem(is(userId)));
-  }
-
-  @Test
-  public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {
-    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionResultLogs.size", is(0));
-  }
-
-  @Test
-  public void shouldReturnNotFoundWhenSpecifiedJobExecutionDoesNotExist() {
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID())
-      .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
   @Test

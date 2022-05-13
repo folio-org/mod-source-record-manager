@@ -20,7 +20,6 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.services.EventProcessedService;
@@ -166,12 +165,11 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Future<JobExecutionLogDto> future = journalRecordDao.getJobExecutionLogDto(jobExecution.getId(), TENANT_ID);
+    Future<Optional<JobExecution>> future = jobExecutionDao.getJobExecutionById(jobExecution.getId(), TENANT_ID);
     future.onComplete(ar -> {
       if (ar.succeeded()) {
         context.assertTrue(ar.succeeded());
         Assert.assertNotNull(ar.result());
-        Assert.assertEquals(Optional.of(4), Optional.ofNullable(ar.result().getJobExecutionResultLogs().get(0).getTotalCompleted()));
       }
     });
     async.complete();

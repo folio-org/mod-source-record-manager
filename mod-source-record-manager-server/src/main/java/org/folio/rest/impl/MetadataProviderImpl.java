@@ -78,25 +78,6 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderLogsByJobExecutionId(String jobExecutionId, Map<String, String> okapiHeaders,
-                                                      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    vertxContext.runOnContext(v -> {
-      try {
-        jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
-          .map(jobExecutionOptional -> jobExecutionOptional.orElseThrow(() ->
-            new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
-          .compose(jobExecution -> journalRecordService.getJobExecutionLogDto(jobExecutionId, tenantId))
-          .map(GetMetadataProviderLogsByJobExecutionIdResponse::respond200WithApplicationJson)
-          .map(Response.class::cast)
-          .otherwise(ExceptionHelper::mapExceptionToResponse)
-          .onComplete(asyncResultHandler);
-      } catch (Exception e) {
-        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
-      }
-    });
-  }
-
-  @Override
   public void getMetadataProviderJournalRecordsByJobExecutionId(String jobExecutionId, String sortBy, MetadataProviderJournalRecordsJobExecutionIdGetOrder order,
                                                                 Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
