@@ -2038,16 +2038,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then().statusCode(HttpStatus.SC_CREATED)
       .extract().path("parentJobExecutionId");
 
-    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
-    RestAssured.given()
-      .spec(spec)
-      .body(deleteJobExecutionsReq)
-      .when()
-      .delete(JOB_EXECUTION_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionDetails.jobExecutionId.get(0)", is(parentJobExecutionId))
-      .body("jobExecutionDetails.isDeleted.get(0)", is(true));
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{parentJobExecutionId});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(parentJobExecutionId));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
 
     RestAssured.given()
       .spec(spec)
@@ -2074,5 +2067,27 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .extract().response().body().as(DeleteJobExecutionsResp.class);
+  }
+
+  @Test
+  public void shouldNotReturnAnyChildrenOfAnyParentOnGetChildrenByIdForDeletedLogs() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(25);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(26));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{multipleParent.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(multipleParent.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 }

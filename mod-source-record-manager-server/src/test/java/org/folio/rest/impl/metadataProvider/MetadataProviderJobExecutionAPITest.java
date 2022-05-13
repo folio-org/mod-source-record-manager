@@ -1099,9 +1099,31 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .queryParam("hrid", createdJobExecution.getHrId())
         .get(GET_JOB_EXECUTIONS_PATH)
         .then()
-        .statusCode(HttpStatus.SC_NOT_FOUND);
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutions", empty())
+        .body("totalRecords", is(0));
 
       async.complete();
     }));
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenLogsAreMarkedForDeletion() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 }
