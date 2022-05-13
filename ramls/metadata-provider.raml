@@ -16,7 +16,6 @@ types:
   edifactParsedContent: !include raml-storage/schemas/dto/edifactParsedContent.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
-  jobExecutionLogDto: !include raml-storage/schemas/dto/jobExecutionLogDto.json
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
   jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
   jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
@@ -104,18 +103,6 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
-  /logs/{jobExecutionId}:
-      get:
-        responses:
-          200:
-            body:
-              application/json:
-                type: jobExecutionLogDto
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
   /journalRecords/{jobExecutionId}:
     get:
       description: get journal records by job execution id
