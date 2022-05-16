@@ -33,6 +33,7 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -199,6 +200,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           return updateJobExecutionStatus(jobExecutionId, statusDto, params)
             .compose(ar -> Future.failedFuture(throwable));
         }));
+  }
+
+  @Override
+  public Future<JobProfileInfoCollection> getRelatedJobProfiles(List<SortField> sortFields, int offset, int limit, String tenantId) {
+    return jobExecutionDao.getRelatedJobProfiles(sortFields, offset, limit, tenantId);
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {

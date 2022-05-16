@@ -12,6 +12,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,5 +124,17 @@ public interface JobExecutionService {
    * @return future of boolean depending upon success and failure
    */
   Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
+
+  /**
+   * Searches for JobProfilesInfo,
+   * by default returns all existing related job profiles,
+   * to limit the collection param limit should be explicitly specified
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @param sortFields fields to sort jobExecutions
+   * @return future with collection of JobProfileInfo
+   */
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(List<SortField> sortFields, int offset, int limit, String tenantId);
 
 }
