@@ -20,9 +20,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:100}")
+  @Value("${di.flow.control.max.simultaneous.records:50}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.control.records.threshold:50}")
+  @Value("${di.flow.control.records.threshold:25}")
   private Integer recordsThreshold;
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;

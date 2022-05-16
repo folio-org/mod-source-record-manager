@@ -10,6 +10,8 @@ import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -76,7 +78,6 @@ import static org.hamcrest.Matchers.not;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
-  private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
 
@@ -550,32 +551,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber))
       .body("jobExecutions*.userId", everyItem(is(userId)));
-  }
-
-  @Test
-  public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {
-    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionResultLogs.size", is(0));
-  }
-
-  @Test
-  public void shouldReturnNotFoundWhenSpecifiedJobExecutionDoesNotExist() {
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID())
-      .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
   @Test
@@ -1070,5 +1045,46 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .withEntityId(entityId)
       .withEntityHrId(entityHrid);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+
+  @Test
+  public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    putJobExecution(createdJobExecution);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{createdJobExecution.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("hrid", createdJobExecution.getHrId())
+        .get(GET_JOB_EXECUTIONS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutions", empty())
+        .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenLogsAreMarkedForDeletion() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 }

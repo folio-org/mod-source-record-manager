@@ -9,9 +9,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.rest.jaxrs.model.ActionLog;
 import org.folio.rest.jaxrs.model.EntityProcessingSummary;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
@@ -30,15 +28,15 @@ import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -69,12 +67,12 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_NUMBER;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_JOURNAL_RECORD_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_NUMBER;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
@@ -90,7 +88,6 @@ import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STAT
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
 import static org.folio.dao.util.JournalRecordsColumns.TITLE;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COMPLETED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_AUTHORITIES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_HOLDINGS;
@@ -107,7 +104,6 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ITEMS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ORDERS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_SOURCE_RECORDS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_FAILED;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_HOLDINGS_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INSTANCES_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INVOICES_ERRORS;
@@ -139,11 +135,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
   private static final String GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM get_job_log_entries('%s', '%s', '%s', %s, %s)";
-  private static final String GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY = "SELECT job_execution_id, entity_type, action_type, " +
-    "COUNT(*) FILTER (WHERE action_status = 'COMPLETED') AS total_completed, " +
-    "COUNT(*) FILTER (WHERE action_status = 'ERROR') AS total_failed " +
-    "FROM %s.%s WHERE job_execution_id = $1 AND action_type != 'ERROR' " +
-    "GROUP BY (job_execution_id, entity_type, action_type)";
   private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
   private static final String GET_JOB_SUMMARY_QUERY = "SELECT * FROM get_job_execution_summary('%s')";
 
@@ -232,17 +223,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   @Override
-  public Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId) {
-    LOGGER.trace("Trying to get JobExecutionLogDto entity by jobExecutionId = {} from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
-    Promise<RowSet<Row>> promise = Promise.promise();
-    String query = format(GET_JOB_LOG_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-    Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    LOGGER.trace("JournalRecordDaoImpl::getJobExecutionLogDto query = {}; tuple = {}", query, queryParams);
-    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
-    return promise.future().map(this::mapResultSetToJobExecutionLogDto);
-  }
-
-  @Override
   public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
     LOGGER.trace("Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
     if (!jobLogEntrySortableFields.contains(sortBy)) {
@@ -298,21 +278,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withActionStatus(ActionStatus.valueOf(row.getString(ACTION_STATUS)))
       .withError(row.getString(ERROR))
       .withActionDate(Date.from(LocalDateTime.parse(row.getValue(ACTION_DATE).toString()).toInstant(ZoneOffset.UTC)));
-  }
-
-  private JobExecutionLogDto mapResultSetToJobExecutionLogDto(RowSet<Row> resultSet) {
-    JobExecutionLogDto jobExecutionSummary = new JobExecutionLogDto();
-    resultSet.forEach(row -> {
-      ActionLog actionLog = new ActionLog()
-        .withEntityType(row.getString(ENTITY_TYPE))
-        .withActionType(row.getString(ACTION_TYPE))
-        .withTotalCompleted(row.getInteger(TOTAL_COMPLETED))
-        .withTotalFailed(row.getInteger(TOTAL_FAILED));
-
-      jobExecutionSummary.withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString());
-      jobExecutionSummary.getJobExecutionResultLogs().add(actionLog);
-    });
-    return jobExecutionSummary;
   }
 
   private String prepareSortingClause(String sortBy, String order) {
