@@ -1049,15 +1049,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
-    Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
-    String sourceRecordId = UUID.randomUUID().toString();
-    String recordTitle = "test title";
-
-    Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .onFailure(context::fail);
 
     putJobExecution(createdJobExecution);
 
@@ -1065,7 +1057,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
     assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
 
-    future.onComplete(ar -> context.verify(v -> {
       RestAssured.given()
         .spec(spec)
         .when()
@@ -1075,9 +1066,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .body("jobExecutions", empty())
         .body("totalRecords", is(0));
-
-      async.complete();
-    }));
   }
 
   @Test

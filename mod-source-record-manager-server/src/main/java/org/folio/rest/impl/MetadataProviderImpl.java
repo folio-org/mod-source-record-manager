@@ -65,7 +65,7 @@ public class MetadataProviderImpl implements MetadataProvider {
     vertxContext.runOnContext(v -> {
       try {
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore, false);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
         jobExecutionsCache.get(tenantId, filter, sortFields, offset, limit)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -155,8 +155,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
-                                                     List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
-                                                     boolean isDeleted) {
+                                                     List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .collect(Collectors.toList());
@@ -175,8 +174,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withProfileIdAny(profileIdAny)
       .withUserId(userId)
       .withCompletedAfter(completedAfter)
-      .withCompletedBefore(completedBefore)
-      .isDeleted(isDeleted);
+      .withCompletedBefore(completedBefore);
   }
 
   private List<SortField> mapSortQueryToSortFields(List<String> sortQuery) {

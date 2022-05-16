@@ -2003,41 +2003,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void testDeleteChangeManagerJobExecutionsDeletedIds(){
-    // given
-    String jsonFiles;
-    List<File> filesList;
-    try {
-      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
-      filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
-      });
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    List<File> limitedFilesList = filesList.stream().limit(1).collect(Collectors.toList());
-
-    String stubUserId = UUID.randomUUID().toString();
-    WireMock.stubFor(get(GET_USER_URL + stubUserId).willReturn(okJson(userResponse.toString())));
-    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    requestDto.getFiles().addAll(limitedFilesList);
-    requestDto.setUserId(stubUserId);
-    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.FILES);
-
-    // when
-    String parentJobExecutionId = RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH)
-      .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().path("parentJobExecutionId");
-
-    // when
-    String parentJobExecutionId_2 = RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(requestDto).toString())
-      .when().post(JOB_EXECUTION_PATH)
-      .then().statusCode(HttpStatus.SC_CREATED)
-      .extract().path("parentJobExecutionId");
-
+    String parentJobExecutionId = constructAndPostInitJobExecutionRqDto(1).getParentJobExecutionId();
+    String parentJobExecutionId_2 = constructAndPostInitJobExecutionRqDto(1).getParentJobExecutionId();
     DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{parentJobExecutionId});
     assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(parentJobExecutionId));
     assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
