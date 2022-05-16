@@ -2057,4 +2057,75 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
+
+  @Test
+  public void shouldNotUpdateStatusOfDeleteRecords() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(3);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(4));
+    JobExecution child = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.CHILD)).findFirst().get();
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{child.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(child.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+    StatusDto status = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldNotUpdateJobProfileOfDeleteRecords(TestContext testContext){
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+    async.complete();
+  }
+
+  @Test
+  public void shouldNotUpdateJobExecutionOfDeleteRecords(){
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+    RestAssured.given()
+      .spec(spec)
+      .body(jobExec)
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
 }
