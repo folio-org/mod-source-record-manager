@@ -2059,7 +2059,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotUpdateStatusOfDeleteRecords() {
+  public void shouldNotUpdateStatusOfDeletedRecords() {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(3);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2082,7 +2082,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotUpdateJobProfileOfDeleteRecords(TestContext testContext){
+  public void shouldNotUpdateJobProfileOfDeletedRecords(TestContext testContext){
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2108,7 +2108,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotUpdateJobExecutionOfDeleteRecords(){
+  public void shouldNotUpdateJobExecutionOfDeletedRecords(){
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
