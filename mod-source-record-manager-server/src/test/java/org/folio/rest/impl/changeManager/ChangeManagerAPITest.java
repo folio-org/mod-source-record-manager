@@ -23,6 +23,7 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -2000,4 +2001,60 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 
+  @Test
+  public void testDeleteChangeManagerJobExecutionsDeletedIds(){
+    String parentJobExecutionId = constructAndPostInitJobExecutionRqDto(1).getParentJobExecutionId();
+    String parentJobExecutionId_2 = constructAndPostInitJobExecutionRqDto(1).getParentJobExecutionId();
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{parentJobExecutionId});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(parentJobExecutionId));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parentJobExecutionId)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parentJobExecutionId_2)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+  }
+
+  public static DeleteJobExecutionsResp returnDeletedJobExecutionResponse(String[] parentJobExecutionId){
+    DeleteJobExecutionsReq deleteJobExecutionsReq = new DeleteJobExecutionsReq().withIds(Arrays.asList(parentJobExecutionId));
+    return RestAssured.given()
+      .spec(spec)
+      .body(deleteJobExecutionsReq)
+      .when()
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(DeleteJobExecutionsResp.class);
+  }
+
+  @Test
+  public void shouldNotReturnAnyChildrenOfAnyParentOnGetChildrenByIdForDeletedLogs() {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(25);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(26));
+    JobExecution multipleParent = createdJobExecutions.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(JobExecution.SubordinationType.PARENT_MULTIPLE)).findFirst().get();
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = returnDeletedJobExecutionResponse(new String[]{multipleParent.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(multipleParent.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + multipleParent.getId() + CHILDREN_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
 }

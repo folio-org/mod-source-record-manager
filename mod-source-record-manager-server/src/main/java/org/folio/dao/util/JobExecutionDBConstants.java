@@ -26,8 +26,9 @@ public final class JobExecutionDBConstants {
   public static final String TOTAL_COUNT_FIELD = "total_count";
   public static final String CURRENTLY_PROCESSED_FIELD = "currently_processed";
   public static final String TOTAL_FIELD = "total";
+  public static final String IS_DELETED_FIELD = "is_deleted";
 
-  public static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1";
+  public static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1 AND is_deleted = false";
   public static final String UPDATE_BY_IDS_SQL = "UPDATE ${tenantName}.${tableName} SET ${setFieldName} = ${setFieldValue} WHERE ${setConditionalFieldName} IN ('${setConditionalFieldValues}') RETURNING ${returningFieldNames}";
 
   public static final String INSERT_SQL =
@@ -48,13 +49,13 @@ public final class JobExecutionDBConstants {
 
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
-    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD') " +
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' AND is_deleted = false) " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
     "p.succeeded_records_count + p.error_records_count currently_processed " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
-    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' " +
+    "WHERE parent_job_id = $1 AND subordination_type = 'CHILD' AND is_deleted = false " +
     "LIMIT $2 OFFSET $3";
 
   public static final String GET_JOBS_NOT_PARENT_SQL =
