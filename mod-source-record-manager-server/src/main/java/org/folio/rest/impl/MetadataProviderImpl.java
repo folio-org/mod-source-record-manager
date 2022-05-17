@@ -154,12 +154,11 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobProfiles(List<String> sortBy, int offset, int limit, Map<String, String> okapiHeaders,
+  public void getMetadataProviderJobProfiles(int offset, int limit, Map<String, String> okapiHeaders,
                                              Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-        List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
-        jobExecutionService.getRelatedJobProfiles(sortFields, offset, limit, tenantId)
+        jobExecutionService.getRelatedJobProfiles(offset, limit, tenantId)
           .map(GetMetadataProviderJobProfilesResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

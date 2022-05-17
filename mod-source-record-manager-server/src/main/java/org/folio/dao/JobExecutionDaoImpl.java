@@ -156,12 +156,11 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<JobProfileInfoCollection> getRelatedJobProfiles(List<SortField> sortFields, int offset, int limit, String tenantId) {
+  public Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
-      String orderByClause = buildOrderByClause(sortFields);
-      String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable, orderByClause);
+      String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
       pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting related Job Profiles", e);

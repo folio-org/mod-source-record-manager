@@ -74,7 +74,6 @@ public final class JobExecutionDBConstants {
     "SELECT DISTINCT job_profile_id, job_profile_name, job_profile_data_type, job_profile_hidden " +
     "FROM %s " +
     "WHERE job_profile_id IS NOT NULL " +
-    "%s " +
     "LIMIT $1 OFFSET $2";
 
   private JobExecutionDBConstants() {

@@ -203,8 +203,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobProfileInfoCollection> getRelatedJobProfiles(List<SortField> sortFields, int offset, int limit, String tenantId) {
-    return jobExecutionDao.getRelatedJobProfiles(sortFields, offset, limit, tenantId);
+  public Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId) {
+    return jobExecutionDao.getRelatedJobProfiles(offset, limit, tenantId);
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {

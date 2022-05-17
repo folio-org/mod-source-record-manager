@@ -85,10 +85,9 @@ public interface JobExecutionDao {
   /**
    * Searches for {@link JobProfileInfo}
    *
-   * @param sortFields fields to sort related job profiles
    * @param offset   starting index in a list of results
    * @param limit    maximum number of results to return
    * @return future with {@link org.folio.rest.jaxrs.model.JobProfileInfoCollection}
    */
-  Future<JobProfileInfoCollection> getRelatedJobProfiles(List<SortField> sortFields, int offset, int limit, String tenantId);
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
 }
