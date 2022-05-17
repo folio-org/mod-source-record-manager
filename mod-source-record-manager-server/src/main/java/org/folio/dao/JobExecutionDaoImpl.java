@@ -195,7 +195,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         pgClientFactory.createInstance(tenantId).startTx(connection);
         return connection.future();
       }).compose(v -> {
-        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
+        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
         Promise<RowSet<Row>> selectResult = Promise.promise();
         pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
         return selectResult.future();
