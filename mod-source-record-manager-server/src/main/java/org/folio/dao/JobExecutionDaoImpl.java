@@ -311,11 +311,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   private JobProfileInfoCollection mapRowToJobProfileInfoCollection(RowSet<Row> rowSet) {
-    JobProfileInfoCollection jobCollection = new JobProfileInfoCollection().withTotalRecords(0);
-    rowSet.iterator().forEachRemaining(row -> {
-      jobCollection.getJobProfilesInfo().add(mapRowToJobProfileInfo(row));
-      jobCollection.setTotalRecords(rowSet.rowCount());
-    });
+    JobProfileInfoCollection jobCollection = new JobProfileInfoCollection().withTotalRecords(rowSet.rowCount());
+    rowSet.iterator().forEachRemaining(row -> jobCollection.getJobProfilesInfo().add(mapRowToJobProfileInfo(row)));
     return jobCollection;
   }
 
