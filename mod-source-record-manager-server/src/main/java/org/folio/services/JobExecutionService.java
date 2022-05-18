@@ -10,6 +10,7 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
 
@@ -124,4 +125,16 @@ public interface JobExecutionService {
    */
   Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
 
+  /**
+   * Searches for children JobExecutions by parent id,
+   * by default returns all existing children JobExecutions,
+   * to limit the collection param limit should be explicitly specified
+   * Searches unique users for jobExecutions. Returns list of unique users
+   * with "userId", "firstName", "lastName".
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return collection of JobExecutionUserInfoCollection with userIds, firstNames, lastNames
+   */
+  Future<JobExecutionUserInfoCollection> getUniqueUsersInfo(int offset, int limit, String tenantId);
 }

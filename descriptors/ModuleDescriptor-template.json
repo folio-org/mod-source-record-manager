@@ -382,6 +382,15 @@
           "permissionsRequired": [
             "metadata-provider.logs.get"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobExecutions/uniqueUsers",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
+          ]
         }
       ]
     },

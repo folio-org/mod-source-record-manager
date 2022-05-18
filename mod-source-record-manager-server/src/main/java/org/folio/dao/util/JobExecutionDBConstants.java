@@ -69,6 +69,11 @@ public final class JobExecutionDBConstants {
     "%s " +
     "LIMIT $1 OFFSET $2";
 
+  public static final String GET_UNIQUE_USERS = "WITH unique_users AS (SELECT DISTINCT user_id, " +
+    "job_user_first_name, job_user_last_name FROM %s)," +
+    "total AS (SELECT count(*) AS total_count FROM unique_users)" +
+    "SELECT j.*, p.* FROM unique_users j LEFT JOIN total p ON true LIMIT $1 OFFSET $2";
+
   private JobExecutionDBConstants() {
   }
 }

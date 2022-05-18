@@ -10,6 +10,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.util.JobExecutionDBConstants;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
@@ -18,6 +19,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
@@ -48,6 +51,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_CHILDREN_JOBS_BY_PARENT_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_JOBS_NOT_PARENT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_UNIQUE_USERS;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.INSERT_SQL;
@@ -100,6 +104,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String TENANT_NAME = "tenantName";
   public static final String TRUE = "true";
   public static final String DB_TABLE_NAME_FIELD = "tableName";
+  private static final String USER_ID_FIELD = "user_id";
+  private static final String FIRST_NAME_FIELD = "job_user_first_name";
+  private static final String LAST_NAME_FIELD = "job_user_last_name";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -244,6 +251,36 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
+  @Override
+  public Future<JobExecutionUserInfoCollection> getUniqueUsersInfo(int offset, int limit, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      String tableName = formatFullTableName(tenantId, TABLE_NAME);
+      String query = format(GET_UNIQUE_USERS, tableName);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+    } catch (Exception e) {
+      LOGGER.error("Error getting unique users ", e);
+      promise.fail(e);
+    }
+    return promise.future().map(this::mapRowToJobExecutionUserInfoCollection);
+  }
+
+  private JobExecutionUserInfoCollection mapRowToJobExecutionUserInfoCollection(RowSet<Row> rowSet) {
+    JobExecutionUserInfoCollection jobExecutionUserInfoCollection = new JobExecutionUserInfoCollection().withTotalRecords(0);
+    for (Row row : rowSet) {
+      jobExecutionUserInfoCollection.getJobExecutionUserInfo().add(mapRowToJobExecutionUserInfoDto(row));
+      jobExecutionUserInfoCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
+    }
+    return jobExecutionUserInfoCollection;
+  }
+
+  private JobExecutionUserInfo mapRowToJobExecutionUserInfoDto(Row row) {
+    JobExecutionUserInfo jobExecutionUserInfo = new JobExecutionUserInfo();
+    jobExecutionUserInfo.setUserId(row.getValue(USER_ID_FIELD).toString());
+    jobExecutionUserInfo.setJobUserFirstName(row.getValue(FIRST_NAME_FIELD).toString());
+    jobExecutionUserInfo.setJobUserLastName(row.getValue(LAST_NAME_FIELD).toString());
+    return jobExecutionUserInfo;
+  }
 
   private DeleteJobExecutionsResp mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
     DeleteJobExecutionsResp deleteJobExecutionsResp = new DeleteJobExecutionsResp();
@@ -310,7 +347,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
-      .withUserId(row.getValue(USER_ID_FIELD).toString())
+      .withUserId(row.getValue(JobExecutionDBConstants.USER_ID_FIELD).toString())
       .withProgress(new Progress()
         .withJobExecutionId(row.getValue(ID_FIELD).toString())
         .withCurrent(row.getInteger(PROGRESS_CURRENT_FIELD))
@@ -337,7 +374,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
-      .withUserId(row.getValue(USER_ID_FIELD).toString())
+      .withUserId(row.getValue(JobExecutionDBConstants.USER_ID_FIELD).toString())
       .withProgress(mapRowToProgress(row))
       .withJobProfileInfo(mapRowToJobProfileInfo(row));
   }
