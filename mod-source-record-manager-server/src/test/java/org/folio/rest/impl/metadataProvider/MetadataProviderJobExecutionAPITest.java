@@ -71,6 +71,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -80,6 +81,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
+  private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobProfiles";
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -1086,5 +1088,62 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnEmptyJobProfilesCollectionIfNoJobExecutionsExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", empty())
+      .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnLimitedRelatedProfilesCollectionOnGetWithLimit() {
+    int uniqueJobProfilesAmount = 5;
+    int limitNumber = 3;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", limitNumber)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", hasSize(limitNumber))
+      .body("totalRecords", is(uniqueJobProfilesAmount));
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnGetWithIncorrectRequestParam() {
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", "asc")
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
 }
