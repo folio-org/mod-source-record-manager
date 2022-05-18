@@ -173,7 +173,6 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderJobExecutionsUniqueUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
-
         jobExecutionService.getUniqueUsersInfo(offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsUniqueUsersResponse::respond200WithApplicationJson)
           .map(Response.class::cast)

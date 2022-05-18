@@ -23,6 +23,8 @@ public final class JobExecutionDBConstants {
   public static final String JOB_USER_FIRST_NAME_FIELD = "job_user_first_name";
   public static final String JOB_USER_LAST_NAME_FIELD = "job_user_last_name";
   public static final String USER_ID_FIELD = "user_id";
+  public static final String FIRST_NAME_FIELD = "job_user_first_name";
+  public static final String LAST_NAME_FIELD = "job_user_last_name";
   public static final String TOTAL_COUNT_FIELD = "total_count";
   public static final String CURRENTLY_PROCESSED_FIELD = "currently_processed";
   public static final String TOTAL_FIELD = "total";

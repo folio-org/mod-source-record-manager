@@ -50,6 +50,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.FIRST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_CHILDREN_JOBS_BY_PARENT_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_JOBS_NOT_PARENT_SQL;
@@ -63,6 +64,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_FIRST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_LAST_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.LAST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PARENT_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PROFILE_SNAPSHOT_WRAPPER_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PROGRESS_CURRENT_FIELD;
@@ -107,9 +109,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String TENANT_NAME = "tenantName";
   public static final String TRUE = "true";
   public static final String DB_TABLE_NAME_FIELD = "tableName";
-  private static final String USER_ID_FIELD = "user_id";
-  private static final String FIRST_NAME_FIELD = "job_user_first_name";
-  private static final String LAST_NAME_FIELD = "job_user_last_name";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -373,7 +372,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
-      .withUserId(row.getValue(JobExecutionDBConstants.USER_ID_FIELD).toString())
+      .withUserId(row.getValue(USER_ID_FIELD).toString())
       .withProgress(new Progress()
         .withJobExecutionId(row.getValue(ID_FIELD).toString())
         .withCurrent(row.getInteger(PROGRESS_CURRENT_FIELD))
@@ -400,7 +399,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withRunBy(new RunBy()
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
-      .withUserId(row.getValue(JobExecutionDBConstants.USER_ID_FIELD).toString())
+      .withUserId(row.getValue(USER_ID_FIELD).toString())
       .withProgress(mapRowToProgress(row))
       .withJobProfileInfo(mapRowToJobProfileInfo(row));
   }
