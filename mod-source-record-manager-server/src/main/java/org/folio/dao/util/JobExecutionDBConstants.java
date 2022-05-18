@@ -73,7 +73,7 @@ public final class JobExecutionDBConstants {
   public static final String GET_RELATED_JOB_PROFILES_SQL =
     "WITH unique_profiles AS (SELECT DISTINCT job_profile_id, job_profile_name, job_profile_data_type, job_profile_hidden " +
     "FROM %s " +
-    "WHERE job_profile_id IS NOT NULL), " +
+    "WHERE job_profile_id IS NOT NULL AND job_profile_hidden = false), " +
     "total AS (SELECT count(*) AS total_count FROM unique_profiles) " +
     "SELECT j.*, p.* " +
     "FROM unique_profiles j " +
