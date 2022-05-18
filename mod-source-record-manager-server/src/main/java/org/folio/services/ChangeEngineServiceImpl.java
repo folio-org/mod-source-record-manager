@@ -190,7 +190,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc update");
-    records.forEach(parsedRecord -> parsedRecord.setMetadata(new Metadata().withUpdatedByUserId(jobExecution.getUserId())));
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
   }
@@ -553,7 +552,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
-    parsedRecords.forEach(parsedRecord -> parsedRecord.setMetadata(new Metadata().withCreatedByUserId(jobExecution.getUserId())));
     RecordCollection recordCollection = new RecordCollection()
       .withRecords(parsedRecords)
       .withTotalRecords(parsedRecords.size());
