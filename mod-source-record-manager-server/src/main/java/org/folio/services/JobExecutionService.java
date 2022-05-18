@@ -10,9 +10,10 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -124,6 +125,17 @@ public interface JobExecutionService {
    * @return future of boolean depending upon success and failure
    */
   Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
+
+  /**
+   * Searches for JobProfilesInfo,
+   * by default returns all existing related job profiles,
+   * to limit the collection param limit should be explicitly specified
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return future with collection of JobProfileInfo
+   */
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
 
   /**
    * Searches for children JobExecutions by parent id,

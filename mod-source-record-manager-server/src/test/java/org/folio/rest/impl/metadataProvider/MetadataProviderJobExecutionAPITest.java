@@ -11,6 +11,8 @@ import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -70,6 +72,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
@@ -80,6 +83,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
+  private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobProfiles";
   private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/uniqueUsers";
 
   @Spy
@@ -1030,6 +1034,122 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
+
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
+                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage) {
+    JournalRecord journalRecord = new JournalRecord()
+      .withJobExecutionId(jobExecutionId)
+      .withSourceId(sourceId)
+      .withTitle(title)
+      .withSourceRecordOrder(recordOrder)
+      .withEntityType(entityType)
+      .withActionType(actionType)
+      .withActionStatus(actionStatus)
+      .withError(errorMessage)
+      .withActionDate(new Date())
+      .withEntityId(entityId)
+      .withEntityHrId(entityHrid);
+    return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+
+  @Test
+  public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    putJobExecution(createdJobExecution);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{createdJobExecution.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("hrid", createdJobExecution.getHrId())
+        .get(GET_JOB_EXECUTIONS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutions", empty())
+        .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenLogsAreMarkedForDeletion() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnEmptyJobProfilesCollectionIfNoJobExecutionsExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", empty())
+      .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnLimitedRelatedProfilesCollectionOnGetWithLimit() {
+    int uniqueJobProfilesAmount = 5;
+    int limitNumber = 3;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", limitNumber)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", hasSize(limitNumber))
+      .body("totalRecords", is(uniqueJobProfilesAmount));
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnGetWithIncorrectRequestParam() {
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", "asc")
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
   @Test
   public void shouldReturnEmptyUsersInfoCollection() {
     RestAssured.given()
@@ -1073,22 +1193,5 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionUserInfo[0].job_user_first_name", is("DIKU"))
       .body("jobExecutionUserInfo[0].job_user_last_name", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
-  }
-
-  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
-                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage) {
-    JournalRecord journalRecord = new JournalRecord()
-      .withJobExecutionId(jobExecutionId)
-      .withSourceId(sourceId)
-      .withTitle(title)
-      .withSourceRecordOrder(recordOrder)
-      .withEntityType(entityType)
-      .withActionType(actionType)
-      .withActionStatus(actionStatus)
-      .withError(errorMessage)
-      .withActionDate(new Date())
-      .withEntityId(entityId)
-      .withEntityHrId(entityHrid);
-    return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
   }
 }

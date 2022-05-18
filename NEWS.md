@@ -14,6 +14,8 @@
 * [MODSOURMAN-771](https://issues.folio.org/browse/MODSOURMAN-771) Provisioned for marking Job Executions to be deleted
 * [MODSOURMAN-778](https://issues.folio.org/browse/MODSOURMAN-778) Add permission for Purchase Order Lines matching
 * [MODSOURMAN-784](https://issues.folio.org/browse/MODSOURMAN-784) The status of instance is not updated in the Import log after uploading MARC file for modify
+* [MODSOURMAN-785](https://issues.folio.org/browse/MODSOURMAN-785) JobExecutions APIs updated to filter out "Deleted" jobs
+* [MODSOURMAN-786](https://issues.folio.org/browse/MODSOURMAN-786) To restrict update of JobExecution that is marked as "Deleted"
 * [MODSOURMAN-780](https://issues.folio.org/browse/MODSOURMAN-780) Implement endpoint for adding summary for work accomplished in a job
 * [MODSOURMAN-779](https://issues.folio.org/browse/MODSOURMAN-779) Add "CANCELLED" status for Import jobs that are stopped by users.
 * [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
