@@ -71,6 +71,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -1103,9 +1104,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnLimitedRelatedProfilesCollectionOnGetWithLimit() {
-    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
+    int uniqueJobProfilesAmount = 5;
+    int limitNumber = 3;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
     getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
-    int expectedJobProfilesNumber = 3;
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
@@ -1125,12 +1127,13 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     RestAssured.given()
       .spec(spec)
-      .param("limit", expectedJobProfilesNumber)
+      .param("limit", limitNumber)
       .when()
       .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("totalRecords", is(expectedJobProfilesNumber));
+      .body("jobProfilesInfo", hasSize(limitNumber))
+      .body("totalRecords", is(uniqueJobProfilesAmount));
   }
 
   @Test

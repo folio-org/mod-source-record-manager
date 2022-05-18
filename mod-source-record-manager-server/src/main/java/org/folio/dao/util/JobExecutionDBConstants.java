@@ -71,9 +71,13 @@ public final class JobExecutionDBConstants {
     "LIMIT $1 OFFSET $2";
 
   public static final String GET_RELATED_JOB_PROFILES_SQL =
-    "SELECT DISTINCT job_profile_id, job_profile_name, job_profile_data_type, job_profile_hidden " +
+    "WITH unique_profiles AS (SELECT DISTINCT job_profile_id, job_profile_name, job_profile_data_type, job_profile_hidden " +
     "FROM %s " +
-    "WHERE job_profile_id IS NOT NULL " +
+    "WHERE job_profile_id IS NOT NULL), " +
+    "total AS (SELECT count(*) AS total_count FROM unique_profiles) " +
+    "SELECT j.*, p.* " +
+    "FROM unique_profiles j " +
+    "LEFT JOIN total p ON true " +
     "LIMIT $1 OFFSET $2";
 
   private JobExecutionDBConstants() {
