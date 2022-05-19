@@ -153,6 +153,22 @@ public class MetadataProviderImpl implements MetadataProvider {
     });
   }
 
+  @Override
+  public void getMetadataProviderJobProfiles(int offset, int limit, Map<String, String> okapiHeaders,
+                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        jobExecutionService.getRelatedJobProfiles(offset, limit, tenantId)
+          .map(GetMetadataProviderJobProfilesResponse::respond200WithApplicationJson)
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
                                                      List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {

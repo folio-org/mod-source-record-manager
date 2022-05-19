@@ -100,6 +100,15 @@
         },
         {
           "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobProfiles",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
+          ]
+        },
+        {
+          "methods": [
             "POST"
           ],
           "pathPattern": "/change-manager/jobExecutions",
