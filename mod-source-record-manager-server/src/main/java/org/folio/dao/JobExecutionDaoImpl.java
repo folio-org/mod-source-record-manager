@@ -284,7 +284,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private JobExecutionUserInfoCollection mapRowToJobExecutionUserInfoCollection(RowSet<Row> rowSet) {
     JobExecutionUserInfoCollection jobExecutionUserInfoCollection = new JobExecutionUserInfoCollection().withTotalRecords(0);
     for (Row row : rowSet) {
-      jobExecutionUserInfoCollection.getJobExecutionUserInfo().add(mapRowToJobExecutionUserInfoDto(row));
+      jobExecutionUserInfoCollection.getJobExecutionUsersInfo().add(mapRowToJobExecutionUserInfoDto(row));
       jobExecutionUserInfoCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
     }
     return jobExecutionUserInfoCollection;
