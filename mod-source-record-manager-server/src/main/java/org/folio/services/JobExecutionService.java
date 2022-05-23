@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -136,4 +137,13 @@ public interface JobExecutionService {
    */
   Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
 
+  /**
+   * Searches unique users for jobExecutions. Returns list of unique users
+   * with "userId", "firstName", "lastName".
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return collection of JobExecutionUserInfoCollection with userIds, firstNames, lastNames
+   */
+  Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
 }

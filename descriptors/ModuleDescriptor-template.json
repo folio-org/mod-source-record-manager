@@ -102,7 +102,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/metadata-provider/jobProfiles",
+          "pathPattern": "/metadata-provider/jobExecutions/jobProfiles",
           "permissionsRequired": [
             "metadata-provider.jobexecutions.get"
           ]
@@ -391,6 +391,15 @@
           "pathPattern": "/metadata-provider/jobSummary/{jobExecutionId}",
           "permissionsRequired": [
             "metadata-provider.logs.get"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobExecutions/users",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
           ]
         }
       ]

@@ -23,6 +23,8 @@ public final class JobExecutionDBConstants {
   public static final String JOB_USER_FIRST_NAME_FIELD = "job_user_first_name";
   public static final String JOB_USER_LAST_NAME_FIELD = "job_user_last_name";
   public static final String USER_ID_FIELD = "user_id";
+  public static final String FIRST_NAME_FIELD = "job_user_first_name";
+  public static final String LAST_NAME_FIELD = "job_user_last_name";
   public static final String TOTAL_COUNT_FIELD = "total_count";
   public static final String CURRENTLY_PROCESSED_FIELD = "currently_processed";
   public static final String TOTAL_FIELD = "total";
@@ -79,6 +81,11 @@ public final class JobExecutionDBConstants {
     "FROM unique_profiles j " +
     "LEFT JOIN total p ON true " +
     "LIMIT $1 OFFSET $2";
+
+  public static final String GET_UNIQUE_USERS = "WITH unique_users AS (SELECT DISTINCT user_id, " +
+    "job_user_first_name, job_user_last_name FROM %s  WHERE job_profile_hidden = false)," +
+    "total AS (SELECT count(*) AS total_count FROM unique_users)" +
+    "SELECT j.*, p.* FROM unique_users j LEFT JOIN total p ON true LIMIT $1 OFFSET $2";
 
   private JobExecutionDBConstants() {
   }

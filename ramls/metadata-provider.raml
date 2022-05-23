@@ -22,6 +22,7 @@ types:
   recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
   jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
   jobProfileInfoCollection: !include raml-storage/schemas/common/profileInfoCollection.json
+  jobExecutionUserInfoCollection: !include raml-storage/schemas/dto/jobExecutionUserInfoCollection.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -191,7 +192,7 @@ resourceTypes:
           body:
             text/plain:
               example: "Not found"
-  /jobProfiles:
+  /jobExecutions/jobProfiles:
     get:
       is: [
           pageable
@@ -201,6 +202,20 @@ resourceTypes:
           body:
             application/json:
               type: jobProfileInfoCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+  /jobExecutions/users:
+    get:
+      is: [pageable]
+      description: get unique users for job JobExecutions
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobExecutionUserInfoCollection
         500:
           description: "Internal server error"
           body:
