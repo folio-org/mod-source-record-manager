@@ -250,6 +250,7 @@
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.statistical-codes.collection.get",
             "mapping-metadata.get",
+            "source-storage.records.get",
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
