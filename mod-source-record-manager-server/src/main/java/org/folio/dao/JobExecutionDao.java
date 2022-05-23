@@ -6,6 +6,7 @@ import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
@@ -93,7 +94,7 @@ public interface JobExecutionDao {
   Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
 
   /**
-   * Searches for {@link JobExecution} by parent id
+   * Searches for unique {@link JobExecutionUserInfo}
    *
    * @param offset   starting index in a list of results
    * @param limit    maximum number of results to return
