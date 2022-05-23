@@ -1158,7 +1158,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_UNIQUE_USERS_INFO)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionUserInfo", empty())
+      .body("jobExecutionUsersInfo", empty())
       .body("totalRecords", is(0));
   }
   @Test
@@ -1189,9 +1189,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_UNIQUE_USERS_INFO)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionUserInfo[0].userId", notNullValue())
-      .body("jobExecutionUserInfo[0].job_user_first_name", is("DIKU"))
-      .body("jobExecutionUserInfo[0].job_user_last_name", is("ADMINISTRATOR"))
+      .body("jobExecutionUsersInfo[0].userId", notNullValue())
+      .body("jobExecutionUsersInfo[0].jobUserFirstName", is("DIKU"))
+      .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
   }
 }
