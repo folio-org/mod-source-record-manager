@@ -83,8 +83,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
-  private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobProfiles";
-  private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/uniqueUsers";
+  private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobExecutions/jobProfiles";
+  private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/users";
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
