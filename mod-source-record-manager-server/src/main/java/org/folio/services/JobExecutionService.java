@@ -138,9 +138,6 @@ public interface JobExecutionService {
   Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
 
   /**
-   * Searches for children JobExecutions by parent id,
-   * by default returns all existing children JobExecutions,
-   * to limit the collection param limit should be explicitly specified
    * Searches unique users for jobExecutions. Returns list of unique users
    * with "userId", "firstName", "lastName".
    *

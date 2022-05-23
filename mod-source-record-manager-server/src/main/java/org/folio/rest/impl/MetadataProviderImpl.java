@@ -154,12 +154,12 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobProfiles(int offset, int limit, Map<String, String> okapiHeaders,
-                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getMetadataProviderJobExecutionsJobProfiles(int offset, int limit, Map<String, String> okapiHeaders,
+                                                          Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         jobExecutionService.getRelatedJobProfiles(offset, limit, tenantId)
-          .map(GetMetadataProviderJobProfilesResponse::respond200WithApplicationJson)
+          .map(GetMetadataProviderJobExecutionsJobProfilesResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
@@ -170,11 +170,11 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobExecutionsUniqueUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getMetadataProviderJobExecutionsUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         jobExecutionService.getUniqueUsersInfo(offset, limit, tenantId)
-          .map(GetMetadataProviderJobExecutionsUniqueUsersResponse::respond200WithApplicationJson)
+          .map(GetMetadataProviderJobExecutionsUsersResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
