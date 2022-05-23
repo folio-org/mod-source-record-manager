@@ -192,7 +192,7 @@ resourceTypes:
           body:
             text/plain:
               example: "Not found"
-  /jobProfiles:
+  /jobExecutions/jobProfiles:
     get:
       is: [
           pageable
@@ -207,7 +207,7 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
-  /jobExecutions/uniqueUsers:
+  /jobExecutions/users:
     get:
       is: [pageable]
       description: get unique users for job JobExecutions
