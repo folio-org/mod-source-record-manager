@@ -258,8 +258,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   @Override
-  public Future<JobExecutionUserInfoCollection> getUniqueUsersInfo(int offset, int limit, String tenantId) {
-    return jobExecutionDao.getUniqueUsersInfo(offset, limit, tenantId);
+  public Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId) {
+    return jobExecutionDao.getRelatedUsersInfo(offset, limit, tenantId);
   }
 
   /**

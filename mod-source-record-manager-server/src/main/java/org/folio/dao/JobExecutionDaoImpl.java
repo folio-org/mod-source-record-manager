@@ -268,7 +268,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
   @Override
-  public Future<JobExecutionUserInfoCollection> getUniqueUsersInfo(int offset, int limit, String tenantId) {
+  public Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String tableName = formatFullTableName(tenantId, TABLE_NAME);

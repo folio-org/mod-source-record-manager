@@ -100,5 +100,5 @@ public interface JobExecutionDao {
    * @param limit    maximum number of results to return
    * @return collection of JobExecutionUserInfoCollection dtos with userIds, firstNames, lastNames
    */
-  Future<JobExecutionUserInfoCollection> getUniqueUsersInfo(int offset, int limit, String tenantId);
+  Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
 }
