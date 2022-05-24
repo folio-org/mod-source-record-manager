@@ -1,12 +1,10 @@
 package org.folio.verticle.consumers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
-import lombok.SneakyThrows;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -39,13 +37,12 @@ public class DataImportInitKafkaHandler implements AsyncRecordHandler<String, St
     this.jobExecutionService = jobExecutionService;
   }
 
-  @SneakyThrows
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     Event event = Json.decodeValue(record.value(), Event.class);
-    DataImportInitConfig initConfig = new ObjectMapper().readValue(event.getEventPayload(), DataImportInitConfig.class);
+    DataImportInitConfig initConfig = Json.decodeValue(event.getEventPayload(), DataImportInitConfig.class);
 
     return jobExecutionProgressService.initializeJobExecutionProgress(initConfig.getJobExecutionId(), initConfig.getTotalRecords(), okapiParams.getTenantId())
       .compose(p -> checkAndUpdateToInProgressState(initConfig.getJobExecutionId(), okapiParams))
