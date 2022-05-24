@@ -6,6 +6,10 @@ import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,4 +83,22 @@ public interface JobExecutionDao {
    * @return future of boolean depending upon success and failure
    */
   Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
+
+  /**
+   * Searches for {@link JobProfileInfo}
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return future with {@link org.folio.rest.jaxrs.model.JobProfileInfoCollection}
+   */
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
+
+  /**
+   * Searches for unique {@link JobExecutionUserInfo}
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return collection of JobExecutionUserInfoCollection dtos with userIds, firstNames, lastNames
+   */
+  Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
 }

@@ -100,6 +100,15 @@
         },
         {
           "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobExecutions/jobProfiles",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
+          ]
+        },
+        {
+          "methods": [
             "POST"
           ],
           "pathPattern": "/change-manager/jobExecutions",
@@ -192,10 +201,10 @@
             "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.authorities.collection.get",
+            "inventory-storage.authorities.item.delete",
             "inventory-storage.authorities.item.get",
             "inventory-storage.authorities.item.post",
             "inventory-storage.authorities.item.put",
-            "inventory-storage.authorities.item.delete",
             "inventory-storage.authority-note-types.collection.get",
             "inventory-storage.call-number-types.collection.get",
             "inventory-storage.classification-types.collection.get",
@@ -241,11 +250,12 @@
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.statistical-codes.collection.get",
             "mapping-metadata.get",
+            "orders.po-lines.collection.get",
+            "source-storage.records.get",
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
-            "users.collection.get",
-            "orders.po-lines.collection.get"
+            "users.collection.get"
           ]
         },
         {
@@ -381,6 +391,15 @@
           "pathPattern": "/metadata-provider/jobSummary/{jobExecutionId}",
           "permissionsRequired": [
             "metadata-provider.logs.get"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobExecutions/users",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
           ]
         }
       ]
