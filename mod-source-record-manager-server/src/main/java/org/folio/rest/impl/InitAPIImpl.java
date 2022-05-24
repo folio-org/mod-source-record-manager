@@ -1,24 +1,23 @@
 package org.folio.rest.impl;
 
-import java.util.Arrays;
-
 import io.vertx.core.AsyncResult;
-import org.folio.okapi.common.GenericCompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.serviceproxy.ServiceBinder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.vertx.serviceproxy.ServiceBinder;
 import org.folio.config.ApplicationConfig;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
+import org.folio.verticle.DeleteJobExecutionPeriodicallyVerticle;
 import org.folio.verticle.JobMonitoringWatchdogVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
@@ -26,6 +25,8 @@ import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Arrays;
 
 public class InitAPIImpl implements InitAPI {
 
@@ -49,6 +50,9 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber:1}")
   private int jobExecutionWatchdogInstanceNumber;
+
+  @Value("${srm.kafka.JobExecutionDeletion.instancesNumber:1}")
+  private int jobExecutionDeletionInstanceNumber;
 
   @Autowired
   @Qualifier("journalService")
@@ -90,6 +94,7 @@ public class InitAPIImpl implements InitAPI {
     DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     QuickMarcUpdateConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     JobMonitoringWatchdogVerticle.setSpringContext(vertx.getOrCreateContext().get("springContext"));
+    DeleteJobExecutionPeriodicallyVerticle.setSpringContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
@@ -97,6 +102,7 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
     Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
     Promise<String> deployJobExecutionWatchdog = Promise.promise();
+    Promise<String> deployDeleteJobExecutionPeriodically = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
@@ -128,11 +134,17 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(jobExecutionWatchdogInstanceNumber), deployJobExecutionWatchdog);
 
+    vertx.deployVerticle("org.folio.verticle.DeleteJobExecutionPeriodicallyVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(jobExecutionDeletionInstanceNumber), deployDeleteJobExecutionPeriodically);
+
     return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future(),
       deployQuickMarcUpdateConsumer.future(),
+      deployDeleteJobExecutionPeriodically.future(),
       deployJobExecutionWatchdog.future()));
   }
 }

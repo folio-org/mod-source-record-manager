@@ -1,5 +1,6 @@
 package org.folio.dao;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -109,6 +110,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String TENANT_NAME = "tenantName";
   public static final String TRUE = "true";
   public static final String DB_TABLE_NAME_FIELD = "tableName";
+  public static final String SELECT_ID_WHERE_IS_DELETED_TRUE = "SELECT id FROM %s WHERE is_deleted = true";
+  public static final String DELETE_QUERY = "DELETE from %s where %s IN ('%s')";
+  public static final String JOB_MONITORING = "job_monitoring";
+  public static final String JOB_EXECUTION_SOURCE_CHUNKS = "job_execution_source_chunks";
+  public static final String JOURNAL_RECORDS = "journal_records";
+  public static final String JOB_EXECUTION_ID = "job_execution_id";
+  public static final String JOBEXECUTIONID = "jobexecutionid";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -449,6 +457,64 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return sortFields.stream()
       .map(SortField::toString)
       .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
+  }
+
+  @Override
+  public boolean permanentDeleteJobExecutions(String tenantName) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    Promise<SQLConnection> connection = Promise.promise();
+    String rollbackMessage = "Rollback transaction. Error during jobExecution deletion process.";
+    Future.succeededFuture()
+      .compose(c -> {
+        pgClientFactory.createInstance(tenantName).startTx(connection);
+        return connection.future();
+      })
+      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, connection))
+      .compose(rowSet -> {
+        if (rowSet.rowCount() < 1) {
+          throw new NotFoundException(rollbackMessage);
+        }
+        return mapRowsetValuesToListOfString(rowSet);
+      })
+      .compose(strings -> {
+        Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, PROGRESS_TABLE_NAME, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
+        Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_MONITORING, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
+        Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_EXECUTION_SOURCE_CHUNKS, strings.stream().collect(Collectors.joining("','")), JOBEXECUTIONID, rowSetPromise));
+        Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOURNAL_RECORDS, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
+        Future<RowSet<Row>> jobExecutionFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, TABLE_NAME, strings.stream().collect(Collectors.joining("','")), ID, rowSetPromise));
+        return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, jobExecutionFuture);
+      })
+      .compose(updateHandler -> {
+        Promise<Void> endTxFuture = Promise.promise();
+        pgClientFactory.createInstance(tenantName).endTx(connection.future(), endTxFuture);
+        return endTxFuture.future();
+      }).onComplete(ar -> {
+        if (ar.failed()) {
+          pgClientFactory.createInstance(tenantName).rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
+          return;
+        }
+        promise.complete();
+      });
+    return promise.tryComplete();
+  }
+
+  private Future<List<String>> mapRowsetValuesToListOfString(RowSet<Row> rowset) {
+    List<String> uuidsToBeDeleted = new ArrayList<>();
+    rowset.iterator().forEachRemaining(o -> uuidsToBeDeleted.add(String.valueOf(o.getValue("id"))));
+    return Future.succeededFuture(uuidsToBeDeleted);
+  }
+
+  private Future<RowSet<Row>> fetchJobExecutionIdsToBeConsideredForDeleting(String tenantName, Promise<SQLConnection> connection) {
+    String selectForDeletion = format(SELECT_ID_WHERE_IS_DELETED_TRUE, formatFullTableName(tenantName, TABLE_NAME));
+    Promise<RowSet<Row>> selectResult = Promise.promise();
+    pgClientFactory.createInstance(tenantName).execute(connection.future(), selectForDeletion, selectResult);
+    return selectResult.future();
+  }
+
+  private Future<RowSet<Row>> deleteJobExecutionsFromParticularTable(String tenantName, String query, Promise<SQLConnection> connection, String tableName, String jobExecutionIds, String fieldName, Promise<RowSet<Row>> updateHandler) {
+    String preparedQuery = format(query, formatFullTableName(tenantName, tableName), fieldName, jobExecutionIds);
+    pgClientFactory.createInstance(tenantName).execute(connection.future(), preparedQuery, updateHandler);
+    return updateHandler.future();
   }
 
 }

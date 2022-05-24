@@ -101,4 +101,11 @@ public interface JobExecutionDao {
    * @return collection of JobExecutionUserInfoCollection dtos with userIds, firstNames, lastNames
    */
   Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
+
+  /**
+   *
+   * @param tenantName
+   * @return boolean value depending upon the code response to job execution deletion
+   */
+  boolean permanentDeleteJobExecutions(String tenantName);
 }
