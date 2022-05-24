@@ -59,7 +59,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(cron = "${di.flow.control.reset.state.cron:0 0/5 * * * ?}")
+  @Scheduled(fixedRateString = "${di.flow.control.reset.state.interval:PT5M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
