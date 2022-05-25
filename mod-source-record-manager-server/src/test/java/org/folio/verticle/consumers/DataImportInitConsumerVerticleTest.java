@@ -17,7 +17,13 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.DataImportInitConfig;
+import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobMonitoring;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionServiceImpl;
 import org.folio.services.JobMonitoringServiceImpl;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
@@ -50,7 +56,6 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
     .withSourceType(InitJobExecutionsRqDto.SourceType.FILES)
     .withUserId(okapiUserIdHeader);
-
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
