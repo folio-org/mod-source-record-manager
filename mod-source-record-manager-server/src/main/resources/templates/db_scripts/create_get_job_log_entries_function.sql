@@ -85,6 +85,10 @@ FROM (
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 WHERE NOT %2$L or rec_errors.error = '''' IS FALSE
+/* %2$L - errorsOnly flag in literal form
+ * rec_errors.error = '''' IS FALSE - construction for checking varchar column to empty or null value
+ * Inverting errorsOnly flag and using disjunction operations for next construction let filtering by error column only in case when flag = true
+ */
 
 UNION
 
