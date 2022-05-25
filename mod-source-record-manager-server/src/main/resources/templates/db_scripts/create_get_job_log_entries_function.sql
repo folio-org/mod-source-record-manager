@@ -84,7 +84,7 @@ FROM (
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
-WHERE NOT %6$L or rec_errors.error = '''' IS FALSE
+WHERE NOT %2$L or rec_errors.error = '''' IS FALSE
 
 UNION
 
@@ -124,9 +124,9 @@ FROM (
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                   entity_hrid, title, error, id
      ) AS records_actions
-WHERE NOT %6$L or error = '''' IS FALSE
-ORDER BY %2$I %3$s
-LIMIT %4$s OFFSET %5$s;',
-                              jobExecutionId, v_sortingField, sortingDir, limitVal, offsetVal, errorsOnly);
+WHERE NOT %2$L or error = '''' IS FALSE
+ORDER BY %3$I %4$s
+LIMIT %5$s OFFSET %6$s;',
+                              jobExecutionId, errorsOnly, v_sortingField, sortingDir, limitVal, offsetVal);
 END;
 $$ LANGUAGE plpgsql;
