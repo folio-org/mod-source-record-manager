@@ -85,6 +85,6 @@ public class JobExecutionsCache {
   }
 
   public void evictCache() {
-    cache = buildCache();
+    cache.synchronous().invalidateAll();
   }
 }
