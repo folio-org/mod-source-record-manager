@@ -120,10 +120,11 @@ FROM (
                 (array_agg(entity_type) FILTER (WHERE entity_type IN (''EDIFACT'')))[1] AS source_record_entity_type,
                 array[]::varchar[] as holdings_entity_hrid
          FROM journal_records
-         WHERE journal_records.job_execution_id = ''%1$s'' and entity_type = ''INVOICE'' and title != ''INVOICE'' and (NOT %6$L or error = '''' IS FALSE)
+         WHERE journal_records.job_execution_id = ''%1$s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                   entity_hrid, title, error, id
      ) AS records_actions
+WHERE NOT %6$L or error = '''' IS FALSE
 ORDER BY %2$I %3$s
 LIMIT %4$s OFFSET %5$s;',
                               jobExecutionId, v_sortingField, sortingDir, limitVal, offsetVal, errorsOnly);
