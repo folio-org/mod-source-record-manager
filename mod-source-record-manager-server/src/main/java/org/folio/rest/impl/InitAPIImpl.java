@@ -17,7 +17,7 @@ import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
-import org.folio.verticle.periodic.PeriodicDeleteJobExecutionsVerticle;
+import org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle;
 import org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
@@ -94,7 +94,7 @@ public class InitAPIImpl implements InitAPI {
     DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     QuickMarcUpdateConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     PeriodicJobMonitoringWatchdogVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    PeriodicDeleteJobExecutionsVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    PeriodicDeleteJobExecutionVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
 
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
@@ -102,7 +102,7 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
     Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
     Promise<String> deployPeriodicJobExecutionWatchdog = Promise.promise();
-    Promise<String> deployPeriodicDeleteJobExecutions = Promise.promise();
+    Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
@@ -134,17 +134,17 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(jobExecutionWatchdogInstanceNumber), deployPeriodicJobExecutionWatchdog);
 
-    vertx.deployVerticle("org.folio.verticle.periodic.PeriodicDeleteJobExecutionsVerticle",
+    vertx.deployVerticle("org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle",
       new DeploymentOptions()
         .setWorker(true)
-        .setInstances(jobExecutionDeletionInstanceNumber), deployPeriodicDeleteJobExecutions);
+        .setInstances(jobExecutionDeletionInstanceNumber), deployPeriodicDeleteJobExecution);
 
     return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future(),
       deployQuickMarcUpdateConsumer.future(),
-      deployPeriodicDeleteJobExecutions.future(),
+      deployPeriodicDeleteJobExecution.future(),
       deployPeriodicJobExecutionWatchdog.future()));
   }
 }

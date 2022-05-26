@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 @Component
 @PropertySource("classpath:application.properties")
-public class PeriodicDeleteJobExecutionsVerticle extends AbstractPeriodicJobVerticle {
+public class PeriodicDeleteJobExecutionVerticle extends AbstractPeriodicJobVerticle {
   /**
    * Default unit time for job execution permanent delete interval = 24 hours.
    */
