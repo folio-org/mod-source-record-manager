@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.resource.ChangeManager;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.ChunkProcessingService;
 import org.folio.services.JobExecutionService;
+import org.folio.services.JobExecutionsCache;
 import org.folio.services.ParsedRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,8 @@ public class ChangeManagerImpl implements ChangeManager {
   private ChunkProcessingService eventDrivenChunkProcessingService;
   @Autowired
   private ParsedRecordService parsedRecordService;
+  @Autowired
+  private JobExecutionsCache jobExecutionsCache;
 
   private String tenantId;
 
@@ -56,6 +59,7 @@ public class ChangeManagerImpl implements ChangeManager {
   public void deleteChangeManagerJobExecutions(DeleteJobExecutionsReq entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
+        jobExecutionsCache.evictCache();
         jobExecutionService.softDeleteJobExecutionsByIds(entity.getIds(), tenantId)
           .map(DeleteChangeManagerJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)

@@ -22,7 +22,7 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
-CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint)
+CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                   source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text,
                   authority_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint,
@@ -72,18 +72,23 @@ FROM (
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
  				array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid
          FROM journal_records
-         WHERE journal_records.job_execution_id = ''%s'' and
+         WHERE journal_records.job_execution_id = ''%1$s'' and
                entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'')
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
      ) AS records_actions
          LEFT JOIN (SELECT journal_records.source_id, journal_records.error
                     FROM journal_records
-                    WHERE journal_records.job_execution_id = ''%s'') AS rec_errors
+                    WHERE journal_records.job_execution_id = ''%1$s'') AS rec_errors
             ON rec_errors.source_id = records_actions.source_id AND rec_errors.error != ''''
          LEFT JOIN (SELECT journal_records.source_id, journal_records.title
                     FROM journal_records
-                    WHERE journal_records.job_execution_id = ''%s'') AS rec_titles
+                    WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+WHERE NOT %2$L or rec_errors.error = '''' IS FALSE
+/* %2$L - errorsOnly flag in literal form
+ * rec_errors.error = '''' IS FALSE - construction for checking varchar column to empty or null value
+ * Inverting errorsOnly flag and using disjunction operations for next construction let filtering by error column only in case when flag = true
+ */
 
 UNION
 
@@ -119,12 +124,13 @@ FROM (
                 (array_agg(entity_type) FILTER (WHERE entity_type IN (''EDIFACT'')))[1] AS source_record_entity_type,
                 array[]::varchar[] as holdings_entity_hrid
          FROM journal_records
-         WHERE journal_records.job_execution_id = ''%s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
+         WHERE journal_records.job_execution_id = ''%1$s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                   entity_hrid, title, error, id
      ) AS records_actions
-ORDER BY %I %s
-LIMIT %s OFFSET %s;',
-                              jobExecutionId, jobExecutionId, jobExecutionId, jobExecutionId, v_sortingField, sortingDir, limitVal, offsetVal);
+WHERE NOT %2$L or error = '''' IS FALSE
+ORDER BY %3$I %4$s
+LIMIT %5$s OFFSET %6$s;',
+                              jobExecutionId, errorsOnly, v_sortingField, sortingDir, limitVal, offsetVal);
 END;
 $$ LANGUAGE plpgsql;
