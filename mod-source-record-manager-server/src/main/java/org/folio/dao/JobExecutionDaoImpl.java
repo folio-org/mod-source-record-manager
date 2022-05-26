@@ -11,7 +11,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.dao.util.JobExecutionDBConstants;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
@@ -19,11 +18,11 @@ import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
@@ -33,15 +32,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.NotFoundException;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -55,6 +56,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.FIRST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_CHILDREN_JOBS_BY_PARENT_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_JOBS_NOT_PARENT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_RELATED_JOB_PROFILES_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_UNIQUE_USERS;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
@@ -80,7 +82,6 @@ import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
-import static org.folio.dao.util.JobExecutionDBConstants.GET_RELATED_JOB_PROFILES_SQL;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 /**
@@ -110,7 +111,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String TENANT_NAME = "tenantName";
   public static final String TRUE = "true";
   public static final String DB_TABLE_NAME_FIELD = "tableName";
-  public static final String SELECT_ID_WHERE_IS_DELETED_TRUE = "SELECT id FROM %s WHERE is_deleted = true";
+  public static final String SELECT_ID_WHERE_IS_DELETED_TRUE = "SELECT id FROM %s WHERE is_deleted = true and completed_date<= '%s'";
   public static final String DELETE_QUERY = "DELETE from %s where %s IN ('%s')";
   public static final String JOB_MONITORING = "job_monitoring";
   public static final String JOB_EXECUTION_SOURCE_CHUNKS = "job_execution_source_chunks";
@@ -460,16 +461,17 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public boolean permanentDeleteJobExecutions(String tenantName) {
+  public Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long jobExecutionDiffNumberOfDays) {
     Promise<RowSet<Row>> promise = Promise.promise();
     Promise<SQLConnection> connection = Promise.promise();
+    PostgresClient postgresClient = pgClientFactory.createInstance(tenantName);
     String rollbackMessage = "Rollback transaction. Error during jobExecution deletion process.";
     Future.succeededFuture()
       .compose(c -> {
-        pgClientFactory.createInstance(tenantName).startTx(connection);
+        postgresClient.startTx(connection);
         return connection.future();
       })
-      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, connection))
+      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, jobExecutionDiffNumberOfDays, connection, postgresClient))
       .compose(rowSet -> {
         if (rowSet.rowCount() < 1) {
           throw new NotFoundException(rollbackMessage);
@@ -477,25 +479,26 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         return mapRowsetValuesToListOfString(rowSet);
       })
       .compose(strings -> {
-        Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, PROGRESS_TABLE_NAME, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
-        Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_MONITORING, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
-        Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_EXECUTION_SOURCE_CHUNKS, strings.stream().collect(Collectors.joining("','")), JOBEXECUTIONID, rowSetPromise));
-        Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOURNAL_RECORDS, strings.stream().collect(Collectors.joining("','")), JOB_EXECUTION_ID, rowSetPromise));
-        Future<RowSet<Row>> jobExecutionFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, TABLE_NAME, strings.stream().collect(Collectors.joining("','")), ID, rowSetPromise));
+        String jobExecutionIds = strings.stream().collect(Collectors.joining("','"));
+        Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, PROGRESS_TABLE_NAME, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
+        Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_MONITORING, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
+        Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_EXECUTION_SOURCE_CHUNKS, jobExecutionIds, JOBEXECUTIONID, rowSetPromise, postgresClient));
+        Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOURNAL_RECORDS, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
+        Future<RowSet<Row>> jobExecutionFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, TABLE_NAME, jobExecutionIds, ID, rowSetPromise, postgresClient));
         return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, jobExecutionFuture);
       })
       .compose(updateHandler -> {
         Promise<Void> endTxFuture = Promise.promise();
-        pgClientFactory.createInstance(tenantName).endTx(connection.future(), endTxFuture);
+        postgresClient.endTx(connection.future(), endTxFuture);
         return endTxFuture.future();
       }).onComplete(ar -> {
         if (ar.failed()) {
-          pgClientFactory.createInstance(tenantName).rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
+          postgresClient.rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
           return;
         }
         promise.complete();
       });
-    return promise.tryComplete();
+    return promise.future();
   }
 
   private Future<List<String>> mapRowsetValuesToListOfString(RowSet<Row> rowset) {
@@ -504,16 +507,16 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return Future.succeededFuture(uuidsToBeDeleted);
   }
 
-  private Future<RowSet<Row>> fetchJobExecutionIdsToBeConsideredForDeleting(String tenantName, Promise<SQLConnection> connection) {
-    String selectForDeletion = format(SELECT_ID_WHERE_IS_DELETED_TRUE, formatFullTableName(tenantName, TABLE_NAME));
+  private Future<RowSet<Row>> fetchJobExecutionIdsToBeConsideredForDeleting(String tenantName, long jobExecutionDiffNumberOfDays, Promise<SQLConnection> connection, PostgresClient postgresClient) {
+    String selectForDeletion = format(SELECT_ID_WHERE_IS_DELETED_TRUE, formatFullTableName(tenantName, TABLE_NAME), LocalDateTime.now().minus(jobExecutionDiffNumberOfDays, ChronoUnit.DAYS));
     Promise<RowSet<Row>> selectResult = Promise.promise();
-    pgClientFactory.createInstance(tenantName).execute(connection.future(), selectForDeletion, selectResult);
+    postgresClient.execute(connection.future(), selectForDeletion, selectResult);
     return selectResult.future();
   }
 
-  private Future<RowSet<Row>> deleteJobExecutionsFromParticularTable(String tenantName, String query, Promise<SQLConnection> connection, String tableName, String jobExecutionIds, String fieldName, Promise<RowSet<Row>> updateHandler) {
+  private Future<RowSet<Row>> deleteJobExecutionsFromParticularTable(String tenantName, String query, Promise<SQLConnection> connection, String tableName, String jobExecutionIds, String fieldName, Promise<RowSet<Row>> updateHandler, PostgresClient postgresClient) {
     String preparedQuery = format(query, formatFullTableName(tenantName, tableName), fieldName, jobExecutionIds);
-    pgClientFactory.createInstance(tenantName).execute(connection.future(), preparedQuery, updateHandler);
+    postgresClient.execute(connection.future(), preparedQuery, updateHandler);
     return updateHandler.future();
   }
 

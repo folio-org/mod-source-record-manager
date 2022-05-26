@@ -1,15 +1,17 @@
 package org.folio.dao;
 
 import io.vertx.core.Future;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -103,9 +105,12 @@ public interface JobExecutionDao {
   Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
 
   /**
+   * Permanently deletes Job Executions from related tables depending upon difference in number of days
    *
    * @param tenantName
-   * @return boolean value depending upon the code response to job execution deletion
+   * @param jobExecutionDiffNumberOfDays Difference in Number of Days from the day record marked for deletion
+   * @return future with RowSet information
    */
-  boolean permanentDeleteJobExecutions(String tenantName);
+
+  Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long jobExecutionDiffNumberOfDays);
 }

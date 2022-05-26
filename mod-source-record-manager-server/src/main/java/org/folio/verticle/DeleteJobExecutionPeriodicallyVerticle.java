@@ -21,8 +21,13 @@ public class DeleteJobExecutionPeriodicallyVerticle extends AbstractVerticle {
   @Autowired
   private JobExecutionDao jobExecutionDao;
 
-  @Value("${job.execution.permanent.delete.interval.ms:86400000}")
+  @Value("${periodic.job.execution.permanent.delete.interval.ms:86400000}")
   private long jobExecutionPermanentDeletionInterval;
+
+  @Value("${job.execution.difference.number.of.days:2}")
+  private long jobExecutionDiffNumberOfDays;
+
+
   private long timerId;
 
   public static void setSpringContext(AbstractApplicationContext springContext) {
@@ -50,12 +55,10 @@ public class DeleteJobExecutionPeriodicallyVerticle extends AbstractVerticle {
   private void proceedForJobExecutionPermanentDeletion() {
     TenantUtil.getModuleTenants(vertx)
         .onSuccess(allTenants -> allTenants.forEach(tenantName -> {
-          log.debug("Check tenant [{}] for stacked jobs", tenantName);
-          if(jobExecutionDao.permanentDeleteJobExecutions(tenantName)){
-            log.info("Permanent Job Execution Deletion completed for the tenant {}", tenantName);
-          }else{
-            log.warn("Permanent Job Execution Deletion did not complete successfully for the tenant {}", tenantName);
-          }
+          log.info("Check tenant [{}] for marked as deleted jobs", tenantName);
+          jobExecutionDao.hardDeleteJobExecutions(tenantName, jobExecutionDiffNumberOfDays)
+            .onSuccess(rows -> log.info("Permanent Job Execution Deletion completed for the tenant {}, jobExecutionIds {}", tenantName, rows.iterator().next().getValue("ID")))
+            .onFailure(throwable -> log.error("Permanent Job Execution Deletion did not complete for the tenant {}, Exception : ", tenantName, throwable));
         }))
       .onFailure(throwable -> log.error("Tenants Not Found For Permanent Job Execution Deletion : ", throwable));
   }
