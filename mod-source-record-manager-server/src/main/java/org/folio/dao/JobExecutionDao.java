@@ -107,10 +107,10 @@ public interface JobExecutionDao {
   /**
    * Permanently deletes Job Executions from related tables depending upon difference in number of days
    *
-   * @param tenantName
-   * @param jobExecutionDiffNumberOfDays Difference in Number of Days from the day record marked for deletion
+   * @param tenantName tenant name
+   * @param diffNumberOfDays difference in Number of Days from the day record marked for deletion
    * @return future with RowSet information
    */
 
-  Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long jobExecutionDiffNumberOfDays);
+  Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays);
 }

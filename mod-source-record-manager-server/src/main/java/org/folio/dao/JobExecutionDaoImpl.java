@@ -461,7 +461,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long jobExecutionDiffNumberOfDays) {
+  public Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays) {
     Promise<RowSet<Row>> promise = Promise.promise();
     Promise<SQLConnection> connection = Promise.promise();
     PostgresClient postgresClient = pgClientFactory.createInstance(tenantName);
@@ -471,7 +471,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         postgresClient.startTx(connection);
         return connection.future();
       })
-      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, jobExecutionDiffNumberOfDays, connection, postgresClient))
+      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, diffNumberOfDays, connection, postgresClient))
       .compose(rowSet -> {
         if (rowSet.rowCount() < 1) {
           throw new NotFoundException(rollbackMessage);
