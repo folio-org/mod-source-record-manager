@@ -11,12 +11,19 @@ import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
+import org.folio.rest.jaxrs.model.File;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
@@ -26,11 +33,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class JobExecutionDaoImplTest extends AbstractRestTest {
@@ -104,11 +115,47 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
           .withCurrentlySucceeded(random.nextInt(10))
           .withCurrentlyFailed(random.nextInt(10))
           .withTotal(random.nextInt(10));
-
         future = future.compose(ar -> jobExecutionProgressDao.save(progress, params.getTenantId()));
       }
     }
     return future;
+  }
+
+  @Test
+  public void shouldDeleteRecordsMarkedForJobExecutionsDeletion(TestContext context) {
+    Async async = context.async();
+
+    Future<List<JobExecutionDto>> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .map(InitJobExecutionsRsDto::getJobExecutions)
+      .compose(this::createProgressForJobExecutions)
+      .compose(ar -> jobExecutionDao.getJobExecutionsWithoutParentMultiple(new JobExecutionFilter(), null, 0, 10, params.getTenantId()))
+      .map(JobExecutionDtoCollection::getJobExecutions);
+
+    future.onComplete(ar -> {
+      assertTrue(ar.succeeded());
+
+      List<String> jobExecutionIds = ar.result().stream().map(jobExecutionDto -> jobExecutionDto.getId()).collect(Collectors.toList());
+      jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
+        .onSuccess(deleteJobExecutionsResp -> {
+          assertEquals(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), jobExecutionIds.get(0));
+          assertTrue(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted());
+
+          assertEquals(deleteJobExecutionsResp.getJobExecutionDetails().get(1).getJobExecutionId(), jobExecutionIds.get(1));
+          assertTrue(deleteJobExecutionsResp.getJobExecutionDetails().get(1).getIsDeleted());
+          jobExecutionDao.hardDeleteJobExecutions(TENANT_ID, 0)
+            .onSuccess(rows -> {
+              jobExecutionDao.getJobExecutionById(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), TENANT_ID)
+                .onSuccess(optionalJobExecution -> {
+                  assertTrue(optionalJobExecution.isEmpty());
+                });
+              jobExecutionDao.getJobExecutionById(deleteJobExecutionsResp.getJobExecutionDetails().get(1).getJobExecutionId(), TENANT_ID)
+                .onSuccess(optionalJobExecution -> {
+                  assertTrue(optionalJobExecution.isEmpty());
+                  async.complete();
+                });
+            });
+        });
+    });
   }
 
 }
