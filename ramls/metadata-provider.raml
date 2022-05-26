@@ -151,6 +151,12 @@ resourceTypes:
           enum: [asc, desc]
           required: false
           default: asc
+        errorsOnly:
+          description: "Filter by occurrence of error field"
+          example: true
+          type: boolean
+          required: false
+          default: false
       responses:
         200:
           body:
