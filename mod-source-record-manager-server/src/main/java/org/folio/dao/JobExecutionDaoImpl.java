@@ -479,7 +479,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         return mapRowsetValuesToListOfString(rowSet);
       })
       .compose(strings -> {
-        String jobExecutionIds = strings.stream().collect(Collectors.joining("','"));
+        String jobExecutionIds = String.join("','", strings);
         Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, PROGRESS_TABLE_NAME, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
         Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_MONITORING, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
         Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_EXECUTION_SOURCE_CHUNKS, jobExecutionIds, JOBEXECUTIONID, rowSetPromise, postgresClient));
