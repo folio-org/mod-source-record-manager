@@ -1,8 +1,7 @@
 package org.folio.dao;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
@@ -112,5 +111,5 @@ public interface JobExecutionDao {
    * @return future with RowSet information
    */
 
-  Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays);
+  Future<CompositeFuture> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays);
 }

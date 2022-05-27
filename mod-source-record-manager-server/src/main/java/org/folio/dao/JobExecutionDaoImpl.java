@@ -1,5 +1,6 @@
 package org.folio.dao;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -11,6 +12,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
@@ -35,14 +37,7 @@ import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -113,9 +108,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String DB_TABLE_NAME_FIELD = "tableName";
   public static final String SELECT_ID_WHERE_IS_DELETED_TRUE = "SELECT id FROM %s WHERE is_deleted = true and completed_date<= '%s'";
   public static final String DELETE_QUERY = "DELETE from %s where %s IN ('%s')";
-  public static final String JOB_MONITORING = "job_monitoring";
-  public static final String JOB_EXECUTION_SOURCE_CHUNKS = "job_execution_source_chunks";
-  public static final String JOURNAL_RECORDS = "journal_records";
+  public static final String JOB_MONITORING_TABLE_NAME = "job_monitoring";
+  public static final String JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME = "job_execution_source_chunks";
+  public static final String JOURNAL_RECORDS_TABLE_NAME = "journal_records";
   public static final String JOB_EXECUTION_ID = "job_execution_id";
   public static final String JOBEXECUTIONID = "jobexecutionid";
 
@@ -461,44 +456,29 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
-  public Future<RowSet<Row>> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays) {
-    Promise<RowSet<Row>> promise = Promise.promise();
-    Promise<SQLConnection> connection = Promise.promise();
+  public Future<CompositeFuture> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays) {
     PostgresClient postgresClient = pgClientFactory.createInstance(tenantName);
-    String rollbackMessage = "Rollback transaction. Error during jobExecution deletion process.";
-    Future.succeededFuture()
-      .compose(c -> {
-        postgresClient.startTx(connection);
-        return connection.future();
-      })
-      .compose(s -> fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, diffNumberOfDays, connection, postgresClient))
-      .compose(rowSet -> {
-        if (rowSet.rowCount() < 1) {
-          throw new NotFoundException(rollbackMessage);
-        }
-        return mapRowsetValuesToListOfString(rowSet);
-      })
-      .compose(strings -> {
-        String jobExecutionIds = String.join("','", strings);
-        Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, PROGRESS_TABLE_NAME, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
-        Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_MONITORING, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
-        Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOB_EXECUTION_SOURCE_CHUNKS, jobExecutionIds, JOBEXECUTIONID, rowSetPromise, postgresClient));
-        Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, JOURNAL_RECORDS, jobExecutionIds, JOB_EXECUTION_ID, rowSetPromise, postgresClient));
-        Future<RowSet<Row>> jobExecutionFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(tenantName, DELETE_QUERY, connection, TABLE_NAME, jobExecutionIds, ID, rowSetPromise, postgresClient));
-        return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, jobExecutionFuture);
-      })
-      .compose(updateHandler -> {
-        Promise<Void> endTxFuture = Promise.promise();
-        postgresClient.endTx(connection.future(), endTxFuture);
-        return endTxFuture.future();
-      }).onComplete(ar -> {
-        if (ar.failed()) {
-          postgresClient.rollbackTx(connection.future(), rollback -> promise.fail(ar.cause()));
-          return;
-        }
-        promise.complete();
-      });
-    return promise.future();
+    return DbUtil.executeInTransaction(postgresClient, sqlConnection ->
+      fetchJobExecutionIdsToBeConsideredForDeleting(tenantName, diffNumberOfDays, sqlConnection, postgresClient)
+        .compose(rowSet -> {
+          if (rowSet.rowCount() < 1) {
+            LOGGER.info("Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
+            return Future.succeededFuture(Collections.emptyList());
+          }
+          return mapRowsetValuesToListOfString(rowSet);
+        })
+        .compose(ids -> {
+          if (CollectionUtils.isEmpty(ids)) {
+            return Future.succeededFuture();
+          }
+          String jobExecutionIds = String.join("','", ids);
+          Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(PROGRESS_TABLE_NAME, JOB_EXECUTION_ID, jobExecutionIds, sqlConnection, tenantName, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(JOB_MONITORING_TABLE_NAME, JOB_EXECUTION_ID, jobExecutionIds, sqlConnection, tenantName, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, JOBEXECUTIONID, jobExecutionIds, sqlConnection, tenantName, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(JOURNAL_RECORDS_TABLE_NAME, JOB_EXECUTION_ID, jobExecutionIds, sqlConnection, tenantName, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> jobExecutionFuture = Future.future(rowSetPromise -> deleteJobExecutionsFromParticularTable(TABLE_NAME, ID, jobExecutionIds, sqlConnection, tenantName, rowSetPromise, postgresClient));
+          return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, jobExecutionFuture);
+    }));
   }
 
   private Future<List<String>> mapRowsetValuesToListOfString(RowSet<Row> rowset) {
@@ -507,16 +487,16 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return Future.succeededFuture(uuidsToBeDeleted);
   }
 
-  private Future<RowSet<Row>> fetchJobExecutionIdsToBeConsideredForDeleting(String tenantName, long jobExecutionDiffNumberOfDays, Promise<SQLConnection> connection, PostgresClient postgresClient) {
+  private Future<RowSet<Row>> fetchJobExecutionIdsToBeConsideredForDeleting(String tenantName, long jobExecutionDiffNumberOfDays, AsyncResult<SQLConnection> connection, PostgresClient postgresClient) {
     String selectForDeletion = format(SELECT_ID_WHERE_IS_DELETED_TRUE, formatFullTableName(tenantName, TABLE_NAME), LocalDateTime.now().minus(jobExecutionDiffNumberOfDays, ChronoUnit.DAYS));
     Promise<RowSet<Row>> selectResult = Promise.promise();
-    postgresClient.execute(connection.future(), selectForDeletion, selectResult);
+    postgresClient.execute(connection, selectForDeletion, selectResult);
     return selectResult.future();
   }
 
-  private Future<RowSet<Row>> deleteJobExecutionsFromParticularTable(String tenantName, String query, Promise<SQLConnection> connection, String tableName, String jobExecutionIds, String fieldName, Promise<RowSet<Row>> updateHandler, PostgresClient postgresClient) {
-    String preparedQuery = format(query, formatFullTableName(tenantName, tableName), fieldName, jobExecutionIds);
-    postgresClient.execute(connection.future(), preparedQuery, updateHandler);
+  private Future<RowSet<Row>> deleteJobExecutionsFromParticularTable(String tableName, String fieldName, String jobExecutionIds, AsyncResult<SQLConnection> connection, String tenantName, Promise<RowSet<Row>> updateHandler, PostgresClient postgresClient) {
+    String preparedQuery = format(DELETE_QUERY, formatFullTableName(tenantName, tableName), fieldName, jobExecutionIds);
+    postgresClient.execute(connection, preparedQuery, updateHandler);
     return updateHandler.future();
   }
 
