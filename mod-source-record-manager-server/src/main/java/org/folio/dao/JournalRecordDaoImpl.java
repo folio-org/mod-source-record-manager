@@ -412,10 +412,19 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
                                                               String totalDiscardedColumn, String totalErrorsColumn) {
+    Integer totalCreated = row.getInteger(totalCreatedColumn);
+    Integer totalUpdated = row.getInteger(totalUpdatedColumn);
+    Integer totalDiscarded = row.getInteger(totalDiscardedColumn);
+    Integer totalErrors = row.getInteger(totalErrorsColumn);
+
+    if (0 == totalCreated && 0 == totalUpdated && 0 == totalDiscarded && 0 == totalErrors) {
+      return null;
+    }
+
     return new EntityProcessingSummary()
-      .withTotalCreatedEntities(row.getInteger(totalCreatedColumn))
-      .withTotalUpdatedEntities(row.getInteger(totalUpdatedColumn))
-      .withTotalDiscardedEntities(row.getInteger(totalDiscardedColumn))
-      .withTotalErrors(row.getInteger(totalErrorsColumn));
+      .withTotalCreatedEntities(totalCreated)
+      .withTotalUpdatedEntities(totalUpdated)
+      .withTotalDiscardedEntities(totalDiscarded)
+      .withTotalErrors(totalErrors);
   }
 }
