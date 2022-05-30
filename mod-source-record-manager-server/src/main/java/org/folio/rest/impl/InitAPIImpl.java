@@ -7,6 +7,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.spi.VerticleFactory;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,20 +19,23 @@ import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
-import org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle;
-import org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
+import org.folio.verticle.SpringVerticleFactory;
+import org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle;
+import org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.Arrays;
 
 public class InitAPIImpl implements InitAPI {
 
   private static final Logger LOGGER = LogManager.getLogger();
+  private static final String SPRING_CONTEXT_KEY = "springContext";
 
   @Value("${srm.kafka.DataImportInitConsumersVerticle.instancesNumber:1}")
   private int initConsumerInstancesNumber;
@@ -39,7 +43,6 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:1}")
   private int rawMarcChunkConsumerInstancesNumber;
 
-  // TODO: srm.kafka.StoredMarcChunkConsumer should be refactored
   @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:3}")
   private int storedMarcChunkConsumerInstancesNumber;
 
@@ -91,15 +94,9 @@ public class InitAPIImpl implements InitAPI {
   }
 
   private Future<?> deployConsumersVerticles(Vertx vertx) {
-    //TODO: get rid of this workaround with global spring context
-    DataImportInitConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    DataImportJournalConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    QuickMarcUpdateConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    PeriodicJobMonitoringWatchdogVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
-    PeriodicDeleteJobExecutionVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
+    AbstractApplicationContext springContext = vertx.getOrCreateContext().get(SPRING_CONTEXT_KEY);
+    VerticleFactory verticleFactory = springContext.getBean(SpringVerticleFactory.class);
+    vertx.registerVerticleFactory(verticleFactory);
 
     Promise<String> deployInitConsumer = Promise.promise();
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
@@ -110,42 +107,42 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployPeriodicJobExecutionWatchdog = Promise.promise();
     Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
-    vertx.deployVerticle("org.folio.verticle.DataImportInitConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportInitConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(initConsumerInstancesNumber), deployInitConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + RawMarcChunkConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.StoredRecordChunkConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + StoredRecordChunkConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.DataImportConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.DataImportJournalConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportJournalConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.QuickMarcUpdateConsumersVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + QuickMarcUpdateConsumersVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(quickMarcUpdateConsumerInstancesNumber), deployQuickMarcUpdateConsumer);
 
-    vertx.deployVerticle("org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + PeriodicJobMonitoringWatchdogVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(jobExecutionWatchdogInstanceNumber), deployPeriodicJobExecutionWatchdog);
 
-    vertx.deployVerticle("org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle",
+    vertx.deployVerticle(verticleFactory.prefix() + ":" + PeriodicDeleteJobExecutionVerticle.class.getName(),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(jobExecutionDeletionInstanceNumber), deployPeriodicDeleteJobExecution);

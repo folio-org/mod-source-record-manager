@@ -463,7 +463,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .compose(rowSet -> {
           if (rowSet.rowCount() < 1) {
             LOGGER.info("Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
-            return Future.succeededFuture(Collections.emptyList());
+            return Future.succeededFuture();
           }
           return mapRowsetValuesToListOfString(rowSet);
         })

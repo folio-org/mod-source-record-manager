@@ -12,7 +12,9 @@ import java.util.List;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
 
   @Value("${di.flow.control.enable:true}")

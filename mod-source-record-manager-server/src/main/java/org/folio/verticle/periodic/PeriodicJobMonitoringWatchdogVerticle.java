@@ -26,14 +26,13 @@ import org.folio.services.JobMonitoringService;
 @PropertySource("classpath:application.properties")
 public class PeriodicJobMonitoringWatchdogVerticle extends AbstractPeriodicJobVerticle {
 
-  @Autowired
-  private JobMonitoringService jobMonitoringService;
-
-  @Autowired
-  private JobExecutionService jobExecutionService;
-
   @Value("${job.monitoring.inactive.interval.max.ms}")
   private long maxInactiveInterval;
+
+  @Autowired
+  private JobMonitoringService jobMonitoringService;
+  @Autowired
+  private JobExecutionService jobExecutionService;
 
   @Override
   protected long getExecutionIntervalInMs() {

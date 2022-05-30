@@ -5,12 +5,10 @@ import org.folio.dao.JobExecutionDao;
 import org.folio.services.TenantDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 @Log4j2
 @Component
-@PropertySource("classpath:application.properties")
 public class PeriodicDeleteJobExecutionVerticle extends AbstractPeriodicJobVerticle {
   /**
    * Default unit time for job execution permanent delete interval = 24 hours.
