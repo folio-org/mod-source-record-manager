@@ -18,6 +18,7 @@ import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
+import org.folio.verticle.DataImportInitConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
 import org.folio.verticle.JobMonitoringWatchdogVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
@@ -30,6 +31,9 @@ import org.springframework.beans.factory.annotation.Value;
 public class InitAPIImpl implements InitAPI {
 
   private static final Logger LOGGER = LogManager.getLogger();
+
+  @Value("${srm.kafka.DataImportInitConsumersVerticle.instancesNumber:1}")
+  private int initConsumerInstancesNumber;
 
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:1}")
   private int rawMarcChunkConsumerInstancesNumber;
@@ -84,6 +88,7 @@ public class InitAPIImpl implements InitAPI {
 
   private Future<?> deployConsumersVerticles(Vertx vertx) {
     //TODO: get rid of this workaround with global spring context
+    DataImportInitConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     RawMarcChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     StoredRecordChunkConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     DataImportConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
@@ -91,12 +96,18 @@ public class InitAPIImpl implements InitAPI {
     QuickMarcUpdateConsumersVerticle.setSpringGlobalContext(vertx.getOrCreateContext().get("springContext"));
     JobMonitoringWatchdogVerticle.setSpringContext(vertx.getOrCreateContext().get("springContext"));
 
+    Promise<String> deployInitConsumer = Promise.promise();
     Promise<String> deployRawMarcChunkConsumer = Promise.promise();
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
     Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
     Promise<String> deployJobExecutionWatchdog = Promise.promise();
+
+    vertx.deployVerticle("org.folio.verticle.DataImportInitConsumersVerticle",
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(initConsumerInstancesNumber), deployInitConsumer);
 
     vertx.deployVerticle("org.folio.verticle.RawMarcChunkConsumersVerticle",
       new DeploymentOptions()
@@ -128,7 +139,9 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(jobExecutionWatchdogInstanceNumber), deployJobExecutionWatchdog);
 
-    return GenericCompositeFuture.all(Arrays.asList(deployRawMarcChunkConsumer.future(),
+    return GenericCompositeFuture.all(Arrays.asList(
+      deployInitConsumer.future(),
+      deployRawMarcChunkConsumer.future(),
       deployStoredMarcChunkConsumer.future(),
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future(),

@@ -51,7 +51,6 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.util.EventHandlingUtil;
 
@@ -68,8 +67,6 @@ public class ChangeEngineServiceImplTest {
     "01119cam a2200349Li 4500001001300000003000600013005001700019008004100036020001800077020001500095035002100110037002200131040002700153043001200180050002700192082001600219090002200235100003300257245002700290264003800317300002300355336002600378337002800404338002700432651006400459945004300523960006200566961001600628980003900644981002300683999006300706\u001Eocn922152790\u001EOCoLC\u001E20150927051630.4\u001E150713s2015    enk           000 f eng d\u001E  \u001Fa9780241146064\u001E  \u001Fa0241146062\u001E  \u001Fa(OCoLC)922152790\u001E  \u001Fa12370236\u001Fbybp\u001F5NU\u001E  \u001FaYDXCP\u001Fbeng\u001Ferda\u001FcYDXCP\u001E  \u001Fae-uk-en\u001E 4\u001FaPR6052.A6488\u001FbN66 2015\u001E04\u001Fa823.914\u001F223\u001E 4\u001Fa823.914\u001FcB2557\u001Fb1\u001E1 \u001FaBarker, Pat,\u001Fd1943-\u001Feauthor.\u001E10\u001FaNoonday /\u001FcPat Barker.\u001E 1\u001FaLondon :\u001FbHamish Hamilton,\u001Fc2015.\u001E  \u001Fa258 pages ;\u001Fc24 cm\u001E  \u001Fatext\u001Fbtxt\u001F2rdacontent\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001E 0\u001FaLondon (England)\u001FxHistory\u001FyBombardment, 1940-1941\u001FvFiction.\u001E  \u001Ffh\u001Fg1\u001Fi0000000618391828\u001Flfhgen\u001Fr3\u001Fsv\u001Ft1\u001E  \u001Fap\u001Fda\u001Fgh\u001Fim\u001Fjn\u001Fka\u001Fla\u001Fmo\u001Ftfhgen\u001Fo1\u001Fs15.57\u001Fu7ART\u001Fvukapf\u001FzGBP\u001E  \u001FbGBP\u001Fm633761\u001E  \u001Fa160128\u001Fb1899\u001Fd156\u001Fe1713\u001Ff654270\u001Fg1\u001E  \u001Faukapf\u001Fb7ART\u001Fcfhgen\u001E  \u001Fdm\u001Fea\u001Ffx\u001Fgeng\u001FiTesting with subfield i\u001FsAnd with subfield s\u001E\u001D";
   private static final String MARC_BIB_REC_WITH_FF =
     "00861cam a2200193S1 45 0001000700000002000900007003000400016008004100020035002200061035001300083099001600096245005600112500011600168500019600284600003500480610003400515610003900549999007900588\u001E304162\u001E00320061\u001EPBL\u001E020613n                      000 0 eng u\u001E  \u001Fa(Sirsi)sc99900001\u001E  \u001Fa(Sirsi)1\u001E  \u001FaSC LVF M698\u001E00\u001FaMohler, Harold S. (Lehigh Collection Vertical File)\u001E  \u001FaMaterial on this topic is contained in the Lehigh Collection Vertical File. See Special Collections for access.\u001E  \u001FaContains press releases, versions of resumes, clippings, biographical information. L-in-Life program, and memorial service program -- Documents related Hershey Food Corporation. In two parts.\u001E10\u001FaMohler, Harold S.,\u001Fd1919-1988.\u001E20\u001FaLehigh University.\u001FbTrustees.\u001E20\u001FaLehigh University.\u001FbClass of 1948.\u001Eff\u001Fi29573076-a7ee-462a-8f9b-2659ab7df23c\u001Fs7ca42730-9ba6-4bc8-98d3-f068728504c9\u001E\u001D";
-  private static final String TEST_USER_ID = "a4295ae8-ecef-4657-958a-0a45b12880db";
-
   @Mock
   private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   @Mock
@@ -100,32 +97,6 @@ public class ChangeEngineServiceImplTest {
 
     when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
-  }
-
-  @Test
-  public void shouldPopulateWithUserIdWhenUpdate() {
-    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_BIB_REC_WITHOUT_FF);
-    JobExecution jobExecution = getTestJobExecution();
-    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
-      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-        .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
-        .withContent(new JsonObject(Json.encode(new ActionProfile()
-          .withAction(ActionProfile.Action.UPDATE)
-          .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC))).getMap())
-      ))
-    );
-
-    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
-    when(jobExecutionSourceChunkDao.getById(any(), any()))
-      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
-    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
-      .thenReturn(Future.succeededFuture(true));
-
-    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
-
-    var actual = serviceFuture.result();
-    assertThat(actual.get(0).getMetadata().getUpdatedByUserId(), equalTo(TEST_USER_ID));
   }
 
   @Test
@@ -339,13 +310,9 @@ public class ChangeEngineServiceImplTest {
 
   private JobExecution getTestJobExecution() {
     return new JobExecution().withId(UUID.randomUUID().toString())
-      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
-        .withContent(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
-        .withChildSnapshotWrappers(
-          List.of(new ProfileSnapshotWrapper().withContent(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)))
-        ).withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
-        .withName("test").withDataType(JobProfileInfo.DataType.MARC))
-      .withUserId(TEST_USER_ID);
+      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
   }
 
   private Future<List<Record>> executeWithKafkaMock(RawRecordsDto rawRecordsDto, JobExecution jobExecution,
