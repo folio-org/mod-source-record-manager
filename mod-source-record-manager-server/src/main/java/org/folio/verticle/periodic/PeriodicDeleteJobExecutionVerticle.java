@@ -28,27 +28,20 @@ public class PeriodicDeleteJobExecutionVerticle extends AbstractPeriodicJobVerti
   @Autowired
   private TenantDataProvider tenantDataProvider;
 
-  private long timerId;
-
   @Override
-  public void startPeriodicJob() {
-    timerId = vertx.setPeriodic(permanentDeletionInterval, handler -> proceedForJobExecutionPermanentDeletion());
+  protected long getExecutionIntervalInMs() {
+    return permanentDeletionInterval;
   }
 
   @Override
-  public void stop() throws Exception {
-    vertx.cancelTimer(timerId);
-    super.stop();
-  }
-
-  private void proceedForJobExecutionPermanentDeletion() {
+  protected void executePeriodicJob() {
     tenantDataProvider.getModuleTenants()
-      .onSuccess(allTenants -> allTenants.forEach(tenantName -> {
-        log.info("Check tenant [{}] for marked as deleted jobs", tenantName);
-        jobExecutionDao.hardDeleteJobExecutions(tenantName, diffNumberOfDays)
-          .onSuccess(rows -> log.info("Permanent Job Executions Deletion completed for the tenant {}", tenantName))
-          .onFailure(throwable -> log.error("Permanent Job Executions Deletion did not complete for the tenant {}", tenantName, throwable));
-        }))
+      .onSuccess(allTenants -> allTenants.forEach(tenantId -> {
+        log.info("Check tenant [{}] for marked as deleted jobs", tenantId);
+        jobExecutionDao.hardDeleteJobExecutions(diffNumberOfDays, tenantId)
+          .onSuccess(rows -> log.info("Permanent Job Executions Deletion completed for the tenant {}", tenantId))
+          .onFailure(throwable -> log.error("Permanent Job Executions Deletion did not complete for the tenant {}", tenantId, throwable));
+      }))
       .onFailure(throwable -> log.error("Tenants Not Found For Permanent Job Executions Deletion", throwable));
   }
 }

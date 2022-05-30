@@ -227,7 +227,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
           assertEquals(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), jobExecutionIds.get(0));
           assertTrue(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted());
 
-          jobExecutionDao.hardDeleteJobExecutions(TENANT_ID, 2)
+          jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
             .onSuccess(rows -> {
               jobExecutionDao.getJobExecutionById(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), TENANT_ID)
                 .onSuccess(optionalJobExecution -> {

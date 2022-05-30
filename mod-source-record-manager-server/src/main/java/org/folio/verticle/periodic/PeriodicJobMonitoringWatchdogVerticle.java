@@ -34,20 +34,14 @@ public class PeriodicJobMonitoringWatchdogVerticle extends AbstractPeriodicJobVe
 
   @Value("${job.monitoring.inactive.interval.max.ms}")
   private long maxInactiveInterval;
-  private long timerId;
 
   @Override
-  public void startPeriodicJob() {
-    timerId = vertx.setPeriodic(maxInactiveInterval, handler -> monitorJobExecutionsProgress());
+  protected long getExecutionIntervalInMs() {
+    return maxInactiveInterval;
   }
 
   @Override
-  public void stop() throws Exception {
-    vertx.cancelTimer(timerId);
-    super.stop();
-  }
-
-  private void monitorJobExecutionsProgress() {
+  protected void executePeriodicJob() {
     getTenants().forEach(tenantId -> {
       log.debug("Check tenant [{}] for stacked jobs", tenantId);
       jobMonitoringService.getInactiveJobMonitors(maxInactiveInterval, tenantId)

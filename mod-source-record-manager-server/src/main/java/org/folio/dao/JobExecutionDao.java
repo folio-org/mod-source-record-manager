@@ -1,6 +1,5 @@
 package org.folio.dao;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
@@ -106,10 +105,9 @@ public interface JobExecutionDao {
   /**
    * Permanently deletes Job Executions from related tables depending upon difference in number of days
    *
-   * @param tenantName tenant name
    * @param diffNumberOfDays difference in Number of Days from the day record marked for deletion
-   * @return future with RowSet information
+   * @param tenantId         tenant id
+   * @return future with true if deletion was successful
    */
-
-  Future<CompositeFuture> hardDeleteJobExecutions(String tenantName, long diffNumberOfDays);
+  Future<Boolean> hardDeleteJobExecutions(long diffNumberOfDays, String tenantId);
 }
