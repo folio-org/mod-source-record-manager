@@ -1,8 +1,7 @@
-package org.folio.verticle;
+package org.folio.verticle.periodic;
 
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.Collections.emptyList;
-import org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
