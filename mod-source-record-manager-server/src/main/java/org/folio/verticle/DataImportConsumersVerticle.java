@@ -16,7 +16,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 
 /**
  * Verticle to process DI_COMPLETE, DI_ERROR events.
- * Marked with SCOPE_PROTOTYPE because it is declared to deploy using 3 instances.
+ * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
  * @see org.folio.rest.impl.InitAPIImpl
  */
 @Component

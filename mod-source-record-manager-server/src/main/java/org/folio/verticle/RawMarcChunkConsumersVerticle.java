@@ -3,18 +3,26 @@ package org.folio.verticle;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.BackPressureGauge;
 import org.folio.kafka.ProcessRecordErrorHandler;
-import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+
+/**
+ * Verticle to process raw chunks.
+ * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
+ * @see org.folio.rest.impl.InitAPIImpl
+ */
 @Component
+@Scope(SCOPE_PROTOTYPE)
 public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
 
   @Value("${di.flow.control.enable:true}")
