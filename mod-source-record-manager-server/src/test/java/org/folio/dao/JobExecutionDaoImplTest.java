@@ -38,8 +38,9 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -161,7 +162,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
 
     preparationFuture.onComplete(ar -> {
@@ -188,7 +189,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
 
     preparationFuture.onComplete(ar -> {
@@ -209,7 +210,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusOneDay = LocalDate.now().minusDays(1).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Instant minusOneDay = LocalDateTime.now().minus(1, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusOneDay);
     preparationFuture.onComplete(ar -> {
       JobExecution jobExecution = ar.result();
@@ -235,7 +236,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     */
     Async async = context.async();
 
-    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Instant minusThreeDays = LocalDateTime.now().minus(3, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC).toInstant();
     Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
     preparationFuture.onComplete(ar -> {
       JobExecution jobExecution = ar.result();
