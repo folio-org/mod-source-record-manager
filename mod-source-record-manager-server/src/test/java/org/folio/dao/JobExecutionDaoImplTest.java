@@ -1,5 +1,6 @@
 package org.folio.dao;
 
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -18,6 +19,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
@@ -35,6 +37,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -151,18 +154,120 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldDeleteRecordsMarkedForJobExecutionsDeletion(TestContext context) throws InterruptedException {
+  public void shouldDeleteRecordsMarkedForJobExecutionsDeletion(TestContext context) {
+    /*
+      In this test we setup job execution that finishes 3 days ago, after this job execution has been soft deleted.
+      Periodic job should hard delete it, because it checks soft deleted jobs older than 2 days.
+    */
     Async async = context.async();
+
+    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
+
+    preparationFuture.onComplete(ar -> {
+      JobExecution jobExecution = ar.result();
+      List<String> jobExecutionIds = List.of(jobExecution.getId());
+
+      jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
+        .onSuccess(reply -> {
+          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().get(0);
+          assertEquals(jobExecutionDetail.getJobExecutionId(), jobExecution.getId());
+          assertTrue(jobExecutionDetail.getIsDeleted());
+
+          jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
+            .onSuccess(resp -> checkDataExistenceAfterHardDeleting(0, jobExecutionIds, async));
+        });
+    });
+  }
+
+  @Test
+  public void shouldNotDeleteIfJobExecutionIdsNotMatch(TestContext context) {
+    /*
+      In this test we setup job execution that finishes 3 days ago, after this ANOTHER job execution has been soft deleted.
+      Periodic job should not hard delete our initial job execution, because it remains not soft deleted.
+    */
+    Async async = context.async();
+
+    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
+
+    preparationFuture.onComplete(ar -> {
+      JobExecution jobExecution = ar.result();
+
+      List<String> differentJobExecutionIds = List.of(UUID.randomUUID().toString());
+      jobExecutionDao.softDeleteJobExecutionsByIds(differentJobExecutionIds, TENANT_ID)
+        .onSuccess(reply -> jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
+          .onSuccess(resp -> checkDataExistenceAfterHardDeleting(1, List.of(jobExecution.getId()), async)));
+    });
+  }
+
+  @Test
+  public void shouldNotDeleteIfCompletedDateNotExceeds(TestContext context) {
+    /*
+      In this test we setup job execution that finishes 1 day ago, after this job execution has been soft deleted.
+      Periodic job should not hard delete it, because 1 day does not meet condition: older than 2 days.
+    */
+    Async async = context.async();
+
+    Instant minusOneDay = LocalDate.now().minusDays(1).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Future<JobExecution> preparationFuture = prepareDataForDeletion(minusOneDay);
+    preparationFuture.onComplete(ar -> {
+      JobExecution jobExecution = ar.result();
+      List<String> jobExecutionIds = List.of(jobExecution.getId());
+
+      jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
+        .onSuccess(reply -> {
+          JobExecutionDetail jobExecutionDetail = reply.getJobExecutionDetails().get(0);
+          assertEquals(jobExecutionDetail.getJobExecutionId(), jobExecution.getId());
+          assertTrue(jobExecutionDetail.getIsDeleted());
+
+          jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
+            .onSuccess(resp -> checkDataExistenceAfterHardDeleting(1, jobExecutionIds, async));
+        });
+    });
+  }
+
+  @Test
+  public void shouldNotDeleteIfJobHasNotSoftDeleted(TestContext context) {
+    /*
+      In this test we setup job execution that finishes 3 day ago, but this job has not been soft deleted.
+      Periodic job should not hard delete it.
+    */
+    Async async = context.async();
+
+    Instant minusThreeDays = LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+    Future<JobExecution> preparationFuture = prepareDataForDeletion(minusThreeDays);
+    preparationFuture.onComplete(ar -> {
+      JobExecution jobExecution = ar.result();
+      List<String> jobExecutionIds = List.of(jobExecution.getId());
+
+      jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
+        .onSuccess(resp -> checkDataExistenceAfterHardDeleting(1, jobExecutionIds, async));
+    });
+  }
+
+  private Future<JobExecution> prepareDataForDeletion(Instant completedDate) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), Matchers.is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    jobExec.withCompletedDate(Date.from(LocalDate.now().minusDays(3).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
-    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExec.getId()).withTotal(1).withCurrentlySucceeded(1).withCurrentlyFailed(0);
-    JobMonitoring jobMonitoring = new JobMonitoring().withId(UUID.randomUUID().toString()).withJobExecutionId(jobExec.getId()).withNotificationSent(true).withLastEventTimestamp(new Date());
-    JournalRecord journalRecord1 = new JournalRecord()
+    jobExec.withCompletedDate(Date.from(completedDate));
+
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress()
+      .withJobExecutionId(jobExec.getId())
+      .withTotal(1)
+      .withCurrentlySucceeded(1)
+      .withCurrentlyFailed(0);
+
+    JobMonitoring jobMonitoring = new JobMonitoring()
+      .withId(UUID.randomUUID().toString())
+      .withJobExecutionId(jobExec.getId())
+      .withNotificationSent(true)
+      .withLastEventTimestamp(new Date());
+
+    JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
       .withSourceRecordOrder(0)
       .withSourceId(UUID.randomUUID().toString())
@@ -171,6 +276,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .withActionType(CREATE)
       .withActionDate(new Date())
       .withActionStatus(COMPLETED);
+
     JobExecutionSourceChunk jobExecutionSourceChunk = new JobExecutionSourceChunk()
       .withId("67dfac11-1caf-4470-9ad1-d533f6360bdd")
       .withJobExecutionId(jobExec.getId())
@@ -178,95 +284,50 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .withState(JobExecutionSourceChunk.State.COMPLETED)
       .withChunkSize(10)
       .withProcessedAmount(42);
-    Future<JobExecution> stringFuture = jobExecutionDao.updateJobExecution(jobExec, TENANT_ID).compose(jobExecution1 -> {
-      jobExecutionProgressDao.save(jobExecutionProgress, TENANT_ID).onSuccess(rows -> log.info("jobExecutionProgress updated successfully"));
-      jobMonitoringDao.save(jobMonitoring, TENANT_ID).onSuccess(rows -> log.info("jobMonitoring updated successfully"));
-      journalRecordDao.save(journalRecord1, TENANT_ID).onSuccess(rows -> log.info("journalRecord updated successfully"));
-      jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, TENANT_ID).onSuccess(rows -> log.info("jobExec Source Chunk updated successfully"));
-      return Future.succeededFuture(jobExecution1);
-    });
 
-    Thread.sleep(5000);
-    stringFuture.onComplete(ar -> {
-      assertTrue(ar.succeeded());
-
-      List<String> jobExecutionIds = Arrays.asList(ar.result().getId());
-      String values = Strings.join(jobExecutionIds, ',');
-
-      fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, JOB_EXECUTION, ID)
-        .onSuccess(rows1 -> {
-          log.debug(JOB_EXECUTION + "Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-          assertEquals(1, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-        });
-
-      fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_execution_progress", "job_execution_id")
-        .onSuccess(rows1 -> {
-          log.debug("job_execution_source_chunks Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-          assertEquals(1, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-        });
-
-      fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_monitoring", "job_execution_id")
-        .onSuccess(rows1 -> {
-          log.debug("job_monitoring Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-          assertEquals(1, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-        });
-
-      fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "journal_records", "job_execution_id")
-        .onSuccess(rows1 -> {
-          log.debug("journal_records Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-          assertEquals(1, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-        });
-
-      fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_execution_source_chunks", "jobexecutionid")
-        .onSuccess(rows1 -> {
-          log.debug("job_execution_source_chunks Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-          assertEquals(1, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-        });
-      jobExecutionDao.softDeleteJobExecutionsByIds(jobExecutionIds, TENANT_ID)
-        .onSuccess(deleteJobExecutionsResp -> {
-          assertEquals(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), jobExecutionIds.get(0));
-          assertTrue(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted());
-
-          jobExecutionDao.hardDeleteJobExecutions(2, TENANT_ID)
-            .onSuccess(rows -> {
-              jobExecutionDao.getJobExecutionById(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), TENANT_ID)
-                .onSuccess(optionalJobExecution -> {
-                  assertTrue(optionalJobExecution.isEmpty());
-                  fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, JOB_EXECUTION, ID)
-                    .onSuccess(rows1 -> {
-                      log.debug(JOB_EXECUTION + "After Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      assertEquals(0, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                    });
-                  fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_execution_progress", "job_execution_id")
-                    .onSuccess(rows1 -> {
-                      log.debug("job_execution_source_chunks After Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      assertEquals(0, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                    });
-                  fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_monitoring", "job_execution_id")
-                    .onSuccess(rows1 -> {
-                      log.debug("job_monitoring After Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      assertEquals(0, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                    });
-                  fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "journal_records", "job_execution_id")
-                    .onSuccess(rows1 -> {
-                      log.debug("journal_records After Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      assertEquals(0, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                    });
-                  fetchInformationFromDatabase(values, GENERIC_SELECT_QUERY_TO_GET_COUNT, "job_execution_source_chunks", "jobexecutionid")
-                    .onSuccess(rows1 -> {
-                      log.debug("job_execution_source_chunks Before Deletion " + Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      assertEquals(0, Integer.parseInt(rows1.value().iterator().next().getValue(0).toString()));
-                      async.complete();
-                    });
-                });
-            });
-        });
+    return jobExecutionDao.updateJobExecution(jobExec, TENANT_ID).compose(jobExecution -> {
+      Future<RowSet<Row>> saveProgressFuture = jobExecutionProgressDao.save(jobExecutionProgress, TENANT_ID);
+      Future<String> saveMonitoringFuture = jobMonitoringDao.save(jobMonitoring, TENANT_ID);
+      Future<String> saveJournalFuture = journalRecordDao.save(journalRecord, TENANT_ID);
+      Future<String> saveSourceChunkFuture = jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, TENANT_ID);
+      return CompositeFuture.all(saveProgressFuture, saveMonitoringFuture, saveJournalFuture, saveSourceChunkFuture)
+        .compose(ar -> Future.succeededFuture(jobExecution));
     });
   }
 
-  private Future<RowSet<Row>> fetchInformationFromDatabase(String values, String query, String tableName, String fieldName) {
+  private void checkDataExistenceAfterHardDeleting(int expectedSize, List<String> jobExecutionIds, Async async) {
+    String values = Strings.join(jobExecutionIds, ',');
+    fetchInformationFromDatabase(values, JOB_EXECUTION, ID)
+      .onSuccess(jobExecutionRows -> {
+        assertEquals(expectedSize, Integer.parseInt(jobExecutionRows.value().iterator().next().getValue(0).toString()));
+
+        fetchInformationFromDatabase(values, "job_execution_progress", "job_execution_id")
+          .onSuccess(progressRows -> {
+            assertEquals(expectedSize, Integer.parseInt(progressRows.value().iterator().next().getValue(0).toString()));
+
+            fetchInformationFromDatabase(values, "job_monitoring", "job_execution_id")
+              .onSuccess(monitoringRows -> {
+                assertEquals(expectedSize, Integer.parseInt(monitoringRows.value().iterator().next().getValue(0).toString()));
+
+                fetchInformationFromDatabase(values, "journal_records", "job_execution_id")
+                  .onSuccess(journalRecordsRows -> {
+                    assertEquals(expectedSize, Integer.parseInt(journalRecordsRows.value().iterator().next().getValue(0).toString()));
+
+                    fetchInformationFromDatabase(values, "job_execution_source_chunks", "jobexecutionid")
+                      .onSuccess(sourceChunksRows -> {
+                        assertEquals(expectedSize, Integer.parseInt(sourceChunksRows.value().iterator().next().getValue(0).toString()));
+
+                        async.complete();
+                      });
+                  });
+              });
+          });
+      });
+  }
+
+  private Future<RowSet<Row>> fetchInformationFromDatabase(String values, String tableName, String fieldName) {
     Promise<RowSet<Row>> selectResult = Promise.promise();
-    String preparedQuery = format(query, convertToPsqlStandard(TENANT_ID) + "." + tableName, fieldName, values);
+    String preparedQuery = format(GENERIC_SELECT_QUERY_TO_GET_COUNT, convertToPsqlStandard(TENANT_ID) + "." + tableName, fieldName, values);
     postgresClientFactory.createInstance(TENANT_ID).execute(preparedQuery, selectResult);
     return selectResult.future();
   }

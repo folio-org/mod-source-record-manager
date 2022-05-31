@@ -11,7 +11,7 @@ public interface TenantDataProvider {
   /**
    * Gets all module tenants.
    *
-   * @return tenant names
+   * @return tenant ids
    */
   Future<List<String>> getModuleTenants();
 }
