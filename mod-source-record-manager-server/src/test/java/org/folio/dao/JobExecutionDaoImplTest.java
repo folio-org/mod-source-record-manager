@@ -297,25 +297,25 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
   private void checkDataExistenceAfterHardDeleting(int expectedSize, List<String> jobExecutionIds, Async async) {
     String values = Strings.join(jobExecutionIds, ',');
-    fetchInformationFromDatabase(values, JOB_EXECUTION, ID)
+    fetchInformationFromDatabase(values, "job_execution", "id")
       .onSuccess(jobExecutionRows -> {
-        assertEquals(expectedSize, Integer.parseInt(jobExecutionRows.value().iterator().next().getValue(0).toString()));
+        assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
         fetchInformationFromDatabase(values, "job_execution_progress", "job_execution_id")
           .onSuccess(progressRows -> {
-            assertEquals(expectedSize, Integer.parseInt(progressRows.value().iterator().next().getValue(0).toString()));
+            assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
             fetchInformationFromDatabase(values, "job_monitoring", "job_execution_id")
               .onSuccess(monitoringRows -> {
-                assertEquals(expectedSize, Integer.parseInt(monitoringRows.value().iterator().next().getValue(0).toString()));
+                assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
                 fetchInformationFromDatabase(values, "journal_records", "job_execution_id")
                   .onSuccess(journalRecordsRows -> {
-                    assertEquals(expectedSize, Integer.parseInt(journalRecordsRows.value().iterator().next().getValue(0).toString()));
+                    assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
                     fetchInformationFromDatabase(values, "job_execution_source_chunks", "jobexecutionid")
                       .onSuccess(sourceChunksRows -> {
-                        assertEquals(expectedSize, Integer.parseInt(sourceChunksRows.value().iterator().next().getValue(0).toString()));
+                        assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
                         async.complete();
                       });
@@ -323,6 +323,10 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
               });
           });
       });
+  }
+
+  private int getRowsSize(RowSet<Row> rows) {
+    return Integer.parseInt(rows.value().iterator().next().getValue(0).toString());
   }
 
   private Future<RowSet<Row>> fetchInformationFromDatabase(String values, String tableName, String fieldName) {
