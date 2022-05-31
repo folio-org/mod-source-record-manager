@@ -30,7 +30,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import org.folio.kafka.AsyncRecordHandler;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+/**
+ * Verticle to write info regarding events into journal log.
+ * Marked with SCOPE_PROTOTYPE because it is declared to deploy using 3 instances.
+ * @see org.folio.rest.impl.InitAPIImpl
+ */
+@Component
+@Scope(SCOPE_PROTOTYPE)
 public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticle {
 
   @Autowired

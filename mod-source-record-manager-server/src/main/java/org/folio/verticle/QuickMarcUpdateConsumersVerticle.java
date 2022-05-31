@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.verticle.consumers.QuickMarcUpdateKafkaHandler;
 import org.folio.verticle.consumers.util.QMEventTypes;
+import org.springframework.stereotype.Component;
 
+@Component
 public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle {
 
   @Autowired
