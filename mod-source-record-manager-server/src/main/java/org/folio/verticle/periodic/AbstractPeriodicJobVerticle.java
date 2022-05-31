@@ -1,8 +1,6 @@
 package org.folio.verticle.periodic;
 
 import io.vertx.core.AbstractVerticle;
-import org.folio.spring.SpringContextUtil;
-import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * Abstract class that provides common info for running periodic jobs.

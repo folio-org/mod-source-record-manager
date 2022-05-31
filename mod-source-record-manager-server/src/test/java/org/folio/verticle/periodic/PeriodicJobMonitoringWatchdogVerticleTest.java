@@ -93,9 +93,7 @@ public class PeriodicJobMonitoringWatchdogVerticleTest {
       .thenReturn(succeededFuture(true));
 
     // when
-    jobMonitoringWatchdogVerticle.start();
-
-    Thread.sleep(2000);
+    jobMonitoringWatchdogVerticle.executePeriodicJob();
 
     // then
     verify(jobMonitoringService, atLeastOnce()).getInactiveJobMonitors(anyLong(), eq(TENANT_ID1));
@@ -113,7 +111,7 @@ public class PeriodicJobMonitoringWatchdogVerticleTest {
       .thenReturn(succeededFuture(emptyList()));
 
     // when
-    jobMonitoringWatchdogVerticle.start();
+    jobMonitoringWatchdogVerticle.executePeriodicJob();
 
     // then
     verify(jobExecutionService, never()).getJobExecutionById(anyString(), anyString());
