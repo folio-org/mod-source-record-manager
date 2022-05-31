@@ -5,6 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,11 +36,13 @@ import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.services.exceptions.JobUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -245,15 +248,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
-      .map(this::verifyJobExecution)
-      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
-      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
-      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
+      .compose(jobExecution -> {
+        try {
+          verifyJobExecution(jobExecution);
+        } catch (JobUpdateException e) {
+          return Future.succeededFuture();
+        }
+        modifyJobExecutionToCompleteWithCancelledStatus(jobExecution);
+        return updateJobExecutionWithSnapshotStatus(jobExecution, params)
+          .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params));
+      })
       .map(true);
   }
 
   @Override
-  public Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
+  public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     return jobExecutionDao.softDeleteJobExecutionsByIds(ids, tenantId);
   }
 
@@ -496,8 +505,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
     || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-      LOGGER.error(msg);
-      throw new BadRequestException(msg);
+      LOGGER.info(msg);
+      throw new JobUpdateException(msg);
     }
     return jobExecution;
   }
