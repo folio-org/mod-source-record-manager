@@ -1749,7 +1749,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturn204IfRemoveJobExecutionWithCommittedStatus(TestContext testContext) {
+  public void shouldReturn204OkEventIfRemoveJobExecutionWithCommittedStatus(TestContext testContext) {
 
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
@@ -1812,77 +1812,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(COMMITTED.value()));
     async.complete();
-
-
-
- /*   InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
-      .willReturn(WireMock.noContent()));
-
-    RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(jobExec).toString())
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(rawRecordsDto.withId(UUID.randomUUID().toString()))
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    StatusDto status = new StatusDto().withStatus(COMMITTED);
-    RestAssured.given()
-      .spec(spec)
-      .body(JsonObject.mapFrom(status).toString())
-      .when()
-      .put(JOB_EXECUTION_PATH +jobExec.getId() + STATUS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(JOB_EXECUTION_PATH + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("status", is(COMMITTED.value()));
-    async.complete();*/
   }
 
   @Test
