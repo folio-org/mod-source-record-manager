@@ -1816,8 +1816,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(COMMITTED.value()))
-      .body("completedDate", notNullValue(Date.class));
+      .body("status", is(COMMITTED.value()));
     async.complete();
   }
 
