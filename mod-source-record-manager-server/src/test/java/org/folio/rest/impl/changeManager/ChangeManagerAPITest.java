@@ -1798,7 +1798,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .put(JOB_EXECUTION_PATH +jobExec.getId() + STATUS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
+      .statusCode(HttpStatus.SC_OK);
 
     async = testContext.async();
     RestAssured.given()
