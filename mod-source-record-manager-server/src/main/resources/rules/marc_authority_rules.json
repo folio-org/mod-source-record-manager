@@ -186,6 +186,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "applyRulesOnConcatenatedData": true,
       "rules": []
     },
@@ -226,6 +227,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -264,6 +266,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -373,6 +376,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -412,6 +416,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -451,6 +456,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -572,6 +578,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -611,6 +618,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -650,6 +658,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
