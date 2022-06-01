@@ -74,6 +74,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -723,11 +724,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("itemSummary.totalUpdatedEntities", is(0))
         .body("itemSummary.totalDiscardedEntities", is(0))
         .body("itemSummary.totalErrors", is(0))
-        .body("authoritySummary.totalCreatedEntities", is(0))
-        .body("authoritySummary.totalUpdatedEntities", is(0))
-        .body("authoritySummary.totalDiscardedEntities", is(0))
-        .body("authoritySummary.totalErrors", is(0))
-        .body("totalErrors", is(0));
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(0)).extract().response().prettyPrint();
 
       async.complete();
     }));
@@ -817,6 +817,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("instanceSummary.totalUpdatedEntities", is(0))
         .body("instanceSummary.totalDiscardedEntities", is(1))
         .body("instanceSummary.totalErrors", is(0))
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0));
 
       async.complete();
@@ -915,7 +920,12 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("invoiceSummary.totalUpdatedEntities", is(0))
         .body("invoiceSummary.totalDiscardedEntities", is(0))
         .body("invoiceSummary.totalErrors", is(0))
-        .body("totalErrors", is(0));
+        .body("totalErrors", is(0))
+        .body("instanceSummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue());
 
       async.complete();
     }));
