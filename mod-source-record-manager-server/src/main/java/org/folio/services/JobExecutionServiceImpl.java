@@ -243,7 +243,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return promise.future();
   }
 
-/*  @Override
+  @Override
   public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
@@ -259,9 +259,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params));
       })
       .map(true);
-  }*/
+  }
 
-  @Override
+/*  @Override
   public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
@@ -271,7 +271,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
       .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
-  }
+  }*/
 
   @Override
   public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
