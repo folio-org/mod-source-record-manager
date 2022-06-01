@@ -243,7 +243,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return promise.future();
   }
 
-  @Override
+/*  @Override
   public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
@@ -258,6 +258,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         return updateJobExecutionWithSnapshotStatus(jobExecution, params)
           .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params));
       })
+      .map(true);
+  }*/
+
+  @Override
+  public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
+    return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
+      .map(optionalJobExecution -> optionalJobExecution
+        .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
+      .map(this::verifyJobExecution)
+      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
+      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
+      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true);
   }
 
@@ -505,8 +517,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
     || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-      LOGGER.info(msg);
-      throw new JobUpdateException(msg);
+      LOGGER.error(msg);
+      throw new BadRequestException(msg);
+/*      LOGGER.info(msg);
+      throw new JobUpdateException(msg);*/
     }
     return jobExecution;
   }
