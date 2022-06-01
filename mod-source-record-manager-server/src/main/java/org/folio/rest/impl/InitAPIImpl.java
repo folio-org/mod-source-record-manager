@@ -107,42 +107,42 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployPeriodicJobExecutionWatchdog = Promise.promise();
     Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportInitConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, DataImportInitConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(initConsumerInstancesNumber), deployInitConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + RawMarcChunkConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, RawMarcChunkConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(rawMarcChunkConsumerInstancesNumber), deployRawMarcChunkConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + StoredRecordChunkConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, StoredRecordChunkConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(storedMarcChunkConsumerInstancesNumber), deployStoredMarcChunkConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, DataImportConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + DataImportJournalConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, DataImportJournalConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + QuickMarcUpdateConsumersVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory,  QuickMarcUpdateConsumersVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(quickMarcUpdateConsumerInstancesNumber), deployQuickMarcUpdateConsumer);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + PeriodicJobMonitoringWatchdogVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, PeriodicJobMonitoringWatchdogVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(jobExecutionWatchdogInstanceNumber), deployPeriodicJobExecutionWatchdog);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + PeriodicDeleteJobExecutionVerticle.class.getName(),
+    vertx.deployVerticle(getVerticleName(verticleFactory, PeriodicDeleteJobExecutionVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(jobExecutionDeletionInstanceNumber), deployPeriodicDeleteJobExecution);
@@ -156,5 +156,9 @@ public class InitAPIImpl implements InitAPI {
       deployQuickMarcUpdateConsumer.future(),
       deployPeriodicDeleteJobExecution.future(),
       deployPeriodicJobExecutionWatchdog.future()));
+  }
+
+  private <T> String getVerticleName(VerticleFactory verticleFactory, Class<T> clazz) {
+    return verticleFactory.prefix() + ":" + clazz.getName();
   }
 }
