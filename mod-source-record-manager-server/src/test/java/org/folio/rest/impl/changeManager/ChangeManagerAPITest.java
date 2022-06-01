@@ -77,6 +77,7 @@ import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTI
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.CANCELLED;
+import static org.folio.rest.jaxrs.model.StatusDto.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.StatusDto.Status.ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -1754,7 +1755,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    jobExec.setStatus(JobExecution.Status.COMMITTED);
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
+      .willReturn(WireMock.noContent()));
+
     RestAssured.given()
       .spec(spec)
       .body(JsonObject.mapFrom(jobExec).toString())
@@ -1762,11 +1767,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK);
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(WireMock.delete(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true))
-      .willReturn(WireMock.noContent()));
 
     Async async = testContext.async();
     RestAssured.given()
@@ -1791,6 +1791,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
+    StatusDto status = new StatusDto().withStatus(COMMITTED);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(status).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH +jobExec.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+
     async = testContext.async();
     RestAssured.given()
       .spec(spec)
@@ -1798,6 +1807,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .delete(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(COMMITTED.value()))
+      .body("completedDate", notNullValue(Date.class));
     async.complete();
   }
 
