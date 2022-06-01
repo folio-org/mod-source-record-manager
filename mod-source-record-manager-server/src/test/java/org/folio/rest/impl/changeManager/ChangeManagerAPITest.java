@@ -1750,6 +1750,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturn204IfRemoveJobExecutionWithCommittedStatus(TestContext testContext) {
+
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1802,6 +1803,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(CANCELLED.value()));
     async.complete();
+
 
 
  /*   InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
