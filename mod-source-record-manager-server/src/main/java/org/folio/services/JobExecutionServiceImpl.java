@@ -261,18 +261,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(true);
   }
 
-/*  @Override
-  public Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params) {
-    return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
-      .map(optionalJobExecution -> optionalJobExecution
-        .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
-      .map(this::verifyJobExecution)
-      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
-      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
-      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
-      .map(true);
-  }*/
-
   @Override
   public Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId) {
     return jobExecutionDao.softDeleteJobExecutionsByIds(ids, tenantId);

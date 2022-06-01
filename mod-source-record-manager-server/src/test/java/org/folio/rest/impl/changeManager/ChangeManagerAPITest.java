@@ -1747,7 +1747,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(0, deleteRequestedFor(new UrlPathPattern(new RegexPattern("/source-storage/snapshots/.{36}"), true)));
   }
 
-/*  @Test
+  @Test
   public void shouldReturn204IfRemoveJobExecutionWithCommitedStatus(TestContext testContext) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1799,7 +1799,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
-  }*/
+  }
 
   @Test
   public void shouldProcessChunkOfRawRecordsWhenQueryParamIsFalse(TestContext testContext) {
