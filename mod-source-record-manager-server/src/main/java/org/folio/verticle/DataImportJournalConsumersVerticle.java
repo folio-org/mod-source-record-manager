@@ -23,6 +23,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 import java.util.List;
 
@@ -30,7 +31,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import org.folio.kafka.AsyncRecordHandler;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+/**
+ * Verticle to write info regarding events into journal log.
+ * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
+ * @see org.folio.rest.impl.InitAPIImpl
+ */
+@Component
+@Scope(SCOPE_PROTOTYPE)
 public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticle {
 
   @Autowired
