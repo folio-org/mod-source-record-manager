@@ -505,8 +505,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
     || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
-/*      LOGGER.error(msg);
-      throw new BadRequestException(msg);*/
       LOGGER.info(msg);
       throw new JobUpdateException(msg);
     }
