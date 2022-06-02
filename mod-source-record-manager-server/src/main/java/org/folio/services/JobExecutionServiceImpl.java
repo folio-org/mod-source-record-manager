@@ -255,7 +255,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(true)
       .recover(
         throwable -> throwable instanceof JobUpdateException ?
-          Future.succeededFuture() :
+          Future.succeededFuture(true) :
           Future.failedFuture(throwable)
       );
   }
