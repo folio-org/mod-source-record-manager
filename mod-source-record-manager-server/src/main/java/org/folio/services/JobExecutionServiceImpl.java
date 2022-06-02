@@ -36,7 +36,7 @@ import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
-import org.folio.services.exceptions.JobUpdateDuplicateException;
+import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -254,7 +254,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true)
       .recover(
-        throwable -> throwable instanceof JobUpdateDuplicateException ?
+        throwable -> throwable instanceof JobDuplicateUpdateException ?
           Future.succeededFuture(true) :
           Future.failedFuture(throwable)
       );
@@ -505,7 +505,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
       LOGGER.info(msg);
-      throw new JobUpdateDuplicateException(msg);
+      throw new JobDuplicateUpdateException(msg);
     }
     return jobExecution;
   }
