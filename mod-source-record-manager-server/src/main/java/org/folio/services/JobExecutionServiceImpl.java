@@ -248,17 +248,16 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getJobExecutionById(jobExecutionId, params.getTenantId())
       .map(optionalJobExecution -> optionalJobExecution
         .orElseThrow(() -> new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
-      .compose(jobExecution -> {
-        try {
-          verifyJobExecution(jobExecution);
-        } catch (JobUpdateException e) {
-          return Future.succeededFuture();
-        }
-        modifyJobExecutionToCompleteWithCancelledStatus(jobExecution);
-        return updateJobExecutionWithSnapshotStatus(jobExecution, params)
-          .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params));
-      })
-      .map(true);
+      .map(this::verifyJobExecution)
+      .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
+      .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
+      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
+      .map(true)
+      .recover(
+        throwable -> throwable instanceof JobUpdateException ?
+          Future.succeededFuture() :
+          Future.failedFuture(throwable)
+      );
   }
 
   @Override
