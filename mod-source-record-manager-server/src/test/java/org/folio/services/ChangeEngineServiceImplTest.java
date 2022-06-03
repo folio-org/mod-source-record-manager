@@ -309,7 +309,9 @@ public class ChangeEngineServiceImplTest {
   }
 
   private JobExecution getTestJobExecution() {
-    return new JobExecution().withId(UUID.randomUUID().toString())
+    return new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
       .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper())
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC));
