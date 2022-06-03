@@ -194,6 +194,11 @@
       "run": "after",
       "snippet": "ALTER TYPE job_execution_status ADD VALUE IF NOT EXISTS 'CANCELLED'; ALTER TYPE job_execution_ui_status ADD VALUE IF NOT EXISTS 'CANCELLED';",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_executions CASCADE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]
 }
