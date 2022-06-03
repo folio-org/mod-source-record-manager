@@ -90,7 +90,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("Consumer demand for when trying to pause: {}", consumer.demand());
         if (consumer.demand() > 0) {
           consumer.pause();
 
@@ -142,7 +141,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("Consumer demand for when trying to resume: {}", consumer.demand());
         if (consumer.demand() == 0) {
           consumer.resume();
 

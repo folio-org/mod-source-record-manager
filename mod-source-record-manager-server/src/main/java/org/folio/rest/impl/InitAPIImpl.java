@@ -43,13 +43,13 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.RawMarcChunkConsumer.instancesNumber:1}")
   private int rawMarcChunkConsumerInstancesNumber;
 
-  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:3}")
+  @Value("${srm.kafka.StoredMarcChunkConsumer.instancesNumber:1}")
   private int storedMarcChunkConsumerInstancesNumber;
 
   @Value("${srm.kafka.DataImportConsumersVerticle.instancesNumber:1}")
   private int dataImportConsumerInstancesNumber;
 
-  @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:3}")
+  @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:1}")
   private int dataImportJournalConsumerInstancesNumber;
 
   @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
