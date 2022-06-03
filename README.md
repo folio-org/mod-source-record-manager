@@ -478,12 +478,14 @@ The new scheduled job has been introduced to make hard deletes of these records.
 By default it triggers each 24 hours and finds records marked as deleted completed not less than 2 days ago.
 
 These params are configurable:
-6. periodic.job.execution.permanent.delete.interval.ms - interval in milliseconds to trigger job for hard deletion.
-   (By default it equals to 86400000 that is the same as 24 hours). 
-7. job.execution.difference.number.of.days - number of days from job execution completed date to consider that job execution eligible for deletion.
-   (By default it equals to 2 days).
+1. periodic.job.execution.permanent.delete.interval.ms - interval in milliseconds to trigger job for hard deletion.  
+   (By default it equals to 86400000 that is the same as 24 hours).  
+   Example of applying this property in JAVA_OPTS: ``` -Dperiodic.job.execution.permanent.delete.interval.ms=86400000```
+2. job.execution.difference.number.of.days - number of days from job execution completed date to consider that job execution eligible for deletion.  
+   (By default it equals to 2 days).  
+   Example of applying this property in JAVA_OPTS: ``` -Djob.execution.difference.number.of.days=2```
 
-This job deletes data from tables:
+This scheduled job deletes data from tables:
 1. job_execution
 2. job_execution_progress
 3. job_execution_source_chunks
