@@ -90,12 +90,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
-        if (consumer.demand() > 0) {
+        //if (consumer.demand() > 0) {
           consumer.pause();
 
           LOGGER.info("Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), current, maxSimultaneousRecords);
-        }
+        //}
       });
     }
   }
@@ -125,7 +125,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     currentState.getAndUpdate(prev -> {
       if (prev < 0) {
-        LOGGER.info("Current value less that zero because of single record imports or resetting state, back to zero...");
+        LOGGER.info("Current value {} less that zero because of single record imports or resetting state, back to zero...", current);
         return 0;
       } else {
         LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
@@ -141,12 +141,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
-        if (consumer.demand() == 0) {
+        //if (consumer.demand() == 0) {
           consumer.resume();
 
           LOGGER.info("Kafka consumer - id: {}, subscription - {} is resumed, because {} met threshold {}",
             consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
-        }
+        //}
       });
     }
   }
