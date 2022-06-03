@@ -470,3 +470,22 @@ Successful response contains no content (HTTP status 204).
 
 ### When overlay (both overlays - via Instance = FOLIO or Instance = MARC):
 The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field.
+
+## Delete job executions with all related data
+UI allows to delete multiple job executions from Landing page and View All page.
+Data import marks jobs as deleted after user hits the Delete button. Queries to get/update job executions filter out records, marked as deleted.
+The new scheduled job has been introduced to make hard deletes of these records.
+By default it triggers each 24 hours and finds records marked as deleted completed not less than 2 days ago.
+
+These params are configurable:
+6. periodic.job.execution.permanent.delete.interval.ms - interval in milliseconds to trigger job for hard deletion.
+   (By default it equals to 86400000 that is the same as 24 hours). 
+7. job.execution.difference.number.of.days - number of days from job execution completed date to consider that job execution eligible for deletion.
+   (By default it equals to 2 days).
+
+This job deletes data from tables:
+1. job_execution
+2. job_execution_progress
+3. job_execution_source_chunks
+4. journal_records
+5. job_monitoring
