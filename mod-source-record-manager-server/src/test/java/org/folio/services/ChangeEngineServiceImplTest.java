@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID;
+import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -226,7 +226,7 @@ public class ChangeEngineServiceImplTest {
     }
 
     var optionalRecordIdHeader = kafkaHeadersCaptor.getValue().stream()
-      .filter(kafkaHeader -> kafkaHeader.key().equals(RECORD_ID))
+      .filter(kafkaHeader -> kafkaHeader.key().equals(RECORD_ID_HEADER))
       .findFirst();
 
     assertTrue(optionalRecordIdHeader.isPresent());

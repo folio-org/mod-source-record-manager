@@ -88,6 +88,10 @@ import org.folio.services.util.RecordConversionUtil;
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
+  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
+  public static final String RECORD_ID_HEADER = "recordId";
+  public static final String USER_ID_HEADER = "userId";
+
   private static final String MESSAGE_KEY = "message";
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int THRESHOLD_CHUNK_SIZE =
@@ -98,9 +102,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
-  private static final String RECORD_ID_HEADER = "recordId";
-  private static final String USER_ID_HEADER = "userId";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
