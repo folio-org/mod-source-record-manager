@@ -1,4 +1,4 @@
-package org.folio.verticle;
+package org.folio.verticle.periodic;
 
 import java.util.Date;
 import java.util.Optional;
@@ -7,13 +7,11 @@ import java.util.function.Function;
 
 import javax.ws.rs.NotFoundException;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.shareddata.LocalMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.stereotype.Component;
 
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -22,48 +20,27 @@ import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobMonitoringService;
-import org.folio.spring.SpringContextUtil;
 
 @Log4j2
 @Component
 @PropertySource("classpath:application.properties")
-public class JobMonitoringWatchdogVerticle extends AbstractVerticle {
-
-  private static AbstractApplicationContext springGlobalContext;
-
-  @Autowired
-  private JobMonitoringService jobMonitoringService;
-
-  @Autowired
-  private JobExecutionService jobExecutionService;
+public class PeriodicJobMonitoringWatchdogVerticle extends AbstractPeriodicJobVerticle {
 
   @Value("${job.monitoring.inactive.interval.max.ms}")
   private long maxInactiveInterval;
-  private long timerId;
 
-  public static void setSpringContext(AbstractApplicationContext springContext) {
-    JobMonitoringWatchdogVerticle.springGlobalContext = springContext;
+  @Autowired
+  private JobMonitoringService jobMonitoringService;
+  @Autowired
+  private JobExecutionService jobExecutionService;
+
+  @Override
+  protected long getExecutionIntervalInMs() {
+    return maxInactiveInterval;
   }
 
   @Override
-  public void start() {
-    declareSpringContext();
-
-    timerId = vertx.setPeriodic(maxInactiveInterval, handler -> monitorJobExecutionsProgress());
-  }
-
-  @Override
-  public void stop() throws Exception {
-    vertx.cancelTimer(timerId);
-    super.stop();
-  }
-
-  protected void declareSpringContext() {
-    context.put("springContext", springGlobalContext);
-    SpringContextUtil.autowireDependencies(this, context);
-  }
-
-  private void monitorJobExecutionsProgress() {
+  protected void executePeriodicJob() {
     getTenants().forEach(tenantId -> {
       log.debug("Check tenant [{}] for stacked jobs", tenantId);
       jobMonitoringService.getInactiveJobMonitors(maxInactiveInterval, tenantId)

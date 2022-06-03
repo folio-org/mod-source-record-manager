@@ -35,6 +35,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String RECORD_ID_HEADER = "recordId";
+  public static final String USER_ID_HEADER = "userId";
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private JobExecutionService jobExecutionService;
@@ -76,6 +77,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
         if (isRecordReadyToSend(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
+          params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
         }

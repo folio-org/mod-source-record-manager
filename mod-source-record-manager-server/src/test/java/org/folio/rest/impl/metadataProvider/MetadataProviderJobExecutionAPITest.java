@@ -6,10 +6,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -69,6 +72,9 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -76,9 +82,10 @@ import static org.hamcrest.Matchers.not;
 @RunWith(VertxUnitRunner.class)
 public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTIONS_PATH = "/metadata-provider/jobExecutions";
-  private static final String GET_JOB_EXECUTION_LOGS_PATH = "/metadata-provider/logs";
   private static final String GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH = "/metadata-provider/journalRecords";
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
+  private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobExecutions/jobProfiles";
+  private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/users";
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -553,32 +560,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnJobExecutionLogWithoutResultsWhenProcessingWasNotStarted() {
-    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + jobExec.getId())
-      .then()
-      .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionResultLogs.size", is(0));
-  }
-
-  @Test
-  public void shouldReturnNotFoundWhenSpecifiedJobExecutionDoesNotExist() {
-    RestAssured.given()
-      .spec(spec)
-      .when()
-      .get(GET_JOB_EXECUTION_LOGS_PATH + "/" + UUID.randomUUID())
-      .then()
-      .statusCode(HttpStatus.SC_NOT_FOUND);
-  }
-
-  @Test
   public void shouldReturnEmptyListWhenProcessingWasNotStarted() {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -743,11 +724,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("itemSummary.totalUpdatedEntities", is(0))
         .body("itemSummary.totalDiscardedEntities", is(0))
         .body("itemSummary.totalErrors", is(0))
-        .body("authoritySummary.totalCreatedEntities", is(0))
-        .body("authoritySummary.totalUpdatedEntities", is(0))
-        .body("authoritySummary.totalDiscardedEntities", is(0))
-        .body("authoritySummary.totalErrors", is(0))
-        .body("totalErrors", is(0));
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(0)).extract().response().prettyPrint();
 
       async.complete();
     }));
@@ -837,6 +817,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("instanceSummary.totalUpdatedEntities", is(0))
         .body("instanceSummary.totalDiscardedEntities", is(1))
         .body("instanceSummary.totalErrors", is(0))
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0));
 
       async.complete();
@@ -935,7 +920,12 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("invoiceSummary.totalUpdatedEntities", is(0))
         .body("invoiceSummary.totalDiscardedEntities", is(0))
         .body("invoiceSummary.totalErrors", is(0))
-        .body("totalErrors", is(0));
+        .body("totalErrors", is(0))
+        .body("instanceSummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue());
 
       async.complete();
     }));
@@ -1070,5 +1060,148 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .withEntityId(entityId)
       .withEntityHrId(entityHrid);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+
+  @Test
+  public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    putJobExecution(createdJobExecution);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{createdJobExecution.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(createdJobExecution.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .queryParam("hrid", createdJobExecution.getHrId())
+        .get(GET_JOB_EXECUTIONS_PATH)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutions", empty())
+        .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenLogsAreMarkedForDeletion() {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    DeleteJobExecutionsResp deleteJobExecutionsResp = ChangeManagerAPITest.returnDeletedJobExecutionResponse(new String[]{jobExec.getId()});
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getJobExecutionId(), is(jobExec.getId()));
+    assertThat(deleteJobExecutionsResp.getJobExecutionDetails().get(0).getIsDeleted(), is(true));
+
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnEmptyJobProfilesCollectionIfNoJobExecutionsExist() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", empty())
+      .body("totalRecords", is(0));
+  }
+
+  @Test
+  public void shouldReturnLimitedRelatedProfilesCollectionOnGetWithLimit() {
+    int uniqueJobProfilesAmount = 5;
+    int limitNumber = 3;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", limitNumber)
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo", hasSize(limitNumber))
+      .body("totalRecords", is(uniqueJobProfilesAmount));
+  }
+
+  @Test
+  public void shouldReturnBadRequestOnGetWithIncorrectRequestParam() {
+    RestAssured.given()
+      .spec(spec)
+      .param("limit", "asc")
+      .when()
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST);
+  }
+
+  @Test
+  public void shouldReturnEmptyUsersInfoCollection() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo", empty())
+      .body("totalRecords", is(0));
+  }
+  @Test
+  public void shouldReturnUsersInfoCollection() {
+    int uniqueJobProfilesAmount = 5;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo[0].userId", notNullValue())
+      .body("jobExecutionUsersInfo[0].jobUserFirstName", is("DIKU"))
+      .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
+      .body("totalRecords", is(1));
   }
 }

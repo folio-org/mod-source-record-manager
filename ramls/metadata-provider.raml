@@ -16,12 +16,13 @@ types:
   edifactParsedContent: !include raml-storage/schemas/dto/edifactParsedContent.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
-  jobExecutionLogDto: !include raml-storage/schemas/dto/jobExecutionLogDto.json
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
   jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
   jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
   recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
   jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
+  jobProfileInfoCollection: !include raml-storage/schemas/common/profileInfoCollection.json
+  jobExecutionUserInfoCollection: !include raml-storage/schemas/dto/jobExecutionUserInfoCollection.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -104,18 +105,6 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
-  /logs/{jobExecutionId}:
-      get:
-        responses:
-          200:
-            body:
-              application/json:
-                type: jobExecutionLogDto
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
   /journalRecords/{jobExecutionId}:
     get:
       description: get journal records by job execution id
@@ -162,6 +151,12 @@ resourceTypes:
           enum: [asc, desc]
           required: false
           default: asc
+        errorsOnly:
+          description: "Filter by occurrence of error field"
+          example: true
+          type: boolean
+          required: false
+          default: false
       responses:
         200:
           body:
@@ -203,3 +198,32 @@ resourceTypes:
           body:
             text/plain:
               example: "Not found"
+  /jobExecutions/jobProfiles:
+    get:
+      is: [
+          pageable
+      ]
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobProfileInfoCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+  /jobExecutions/users:
+    get:
+      is: [pageable]
+      description: get unique users for job JobExecutions
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobExecutionUserInfoCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"

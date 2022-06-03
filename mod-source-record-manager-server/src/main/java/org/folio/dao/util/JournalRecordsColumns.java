@@ -18,9 +18,6 @@ public final class JournalRecordsColumns {
   public static final String ACTION_DATE = "action_date";
   public static final String ERROR = "error";
 
-  public static final String TOTAL_COMPLETED = "total_completed";
-  public static final String TOTAL_FAILED = "total_failed";
-
   public static final String SOURCE_RECORD_ACTION_STATUS = "source_record_action_status";
   public static final String INSTANCE_ACTION_STATUS = "instance_action_status";
   public static final String HOLDINGS_ACTION_STATUS = "holdings_action_status";

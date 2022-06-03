@@ -3,7 +3,6 @@ package org.folio.dao;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -56,26 +55,18 @@ public interface JournalRecordDao {
   Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
-   * Returns JobExecutionLogDto entity for job execution with specified id
-   *
-   * @param jobExecutionId job execution id
-   * @param tenantId       tenant id
-   * @return future with JobExecutionLogDto entity
-   */
-  Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId);
-
-  /**
    * Searches for JobLogEntryDto entities by jobExecutionId and sorts them using specified sort criteria and direction
    *
    * @param jobExecutionId job execution id
    * @param sortBy         sorting criteria
    * @param order          sorting direction
+   * @param errorsOnly     filtering by error field
    * @param limit          limit
    * @param offset         offset
    * @param tenantId       tenantId
    * @return future with JobLogEntryDto collection
    */
-  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId);
+  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, int limit, int offset, String tenantId);
 
   /**
    * Searches for RecordProcessingLogDto entities by jobExecutionId and recordId

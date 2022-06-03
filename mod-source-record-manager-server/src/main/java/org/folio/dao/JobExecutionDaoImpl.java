@@ -1,5 +1,7 @@
 package org.folio.dao;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -10,6 +12,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
@@ -18,7 +21,10 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
@@ -28,12 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.ws.rs.NotFoundException;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,9 +54,12 @@ import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.FIRST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_BY_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_CHILDREN_JOBS_BY_PARENT_ID_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.GET_JOBS_NOT_PARENT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_RELATED_JOB_PROFILES_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.GET_UNIQUE_USERS;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.INSERT_SQL;
@@ -57,6 +69,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_FIRST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_USER_LAST_NAME_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.LAST_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PARENT_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PROFILE_SNAPSHOT_WRAPPER_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.PROGRESS_CURRENT_FIELD;
@@ -100,6 +113,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String TENANT_NAME = "tenantName";
   public static final String TRUE = "true";
   public static final String DB_TABLE_NAME_FIELD = "tableName";
+  public static final String SELECT_IDS_FOR_DELETION = "SELECT id FROM %s.%s WHERE is_deleted = true and completed_date <= $1";
+  public static final String DELETE_FROM_RELATED_TABLE = "DELETE from %s.%s where job_execution_id = ANY ($1)";
+  public static final String DELETE_FROM_RELATED_TABLE_DEPRECATED_NAMING = "DELETE from %s.%s where jobexecutionid = ANY ($1)";
+  public static final String DELETE_FROM_JOB_EXECUTION_TABLE = "DELETE from %s.%s where id = ANY ($1)";
+  public static final String JOB_MONITORING_TABLE_NAME = "job_monitoring";
+  public static final String JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME = "job_execution_source_chunks";
+  public static final String JOURNAL_RECORDS_TABLE_NAME = "journal_records";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -153,6 +173,20 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   @Override
+  public Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      String jobTable = formatFullTableName(tenantId, TABLE_NAME);
+      String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+    } catch (Exception e) {
+      LOGGER.error("Error getting related Job Profiles", e);
+      promise.fail(e);
+    }
+    return promise.future().map(this::mapRowToJobProfileInfoCollection);
+  }
+
+  @Override
   public Future<String> save(JobExecution jobExecution, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
     String preparedQuery = String.format(GET_JOB_EXECUTION_HR_ID, PostgresClient.convertToPsqlStandard(tenantId));
@@ -195,7 +229,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         pgClientFactory.createInstance(tenantId).startTx(connection);
         return connection.future();
       }).compose(v -> {
-        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
+        String selectForUpdate = format("SELECT * FROM %s WHERE id = $1 AND is_deleted = false LIMIT 1 FOR UPDATE", formatFullTableName(tenantId, TABLE_NAME));
         Promise<RowSet<Row>> selectResult = Promise.promise();
         pgClientFactory.createInstance(tenantId).execute(connection.future(), selectForUpdate, Tuple.of(jobExecutionId), selectResult);
         return selectResult.future();
@@ -244,6 +278,36 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
+  @Override
+  public Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      String tableName = formatFullTableName(tenantId, TABLE_NAME);
+      String query = format(GET_UNIQUE_USERS, tableName);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+    } catch (Exception e) {
+      LOGGER.error("Error getting unique users ", e);
+      promise.fail(e);
+    }
+    return promise.future().map(this::mapRowToJobExecutionUserInfoCollection);
+  }
+
+  private JobExecutionUserInfoCollection mapRowToJobExecutionUserInfoCollection(RowSet<Row> rowSet) {
+    JobExecutionUserInfoCollection jobExecutionUserInfoCollection = new JobExecutionUserInfoCollection().withTotalRecords(0);
+    for (Row row : rowSet) {
+      jobExecutionUserInfoCollection.getJobExecutionUsersInfo().add(mapRowToJobExecutionUserInfoDto(row));
+      jobExecutionUserInfoCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
+    }
+    return jobExecutionUserInfoCollection;
+  }
+
+  private JobExecutionUserInfo mapRowToJobExecutionUserInfoDto(Row row) {
+    JobExecutionUserInfo jobExecutionUserInfo = new JobExecutionUserInfo();
+    jobExecutionUserInfo.setUserId(row.getValue(USER_ID_FIELD).toString());
+    jobExecutionUserInfo.setJobUserFirstName(row.getValue(FIRST_NAME_FIELD).toString());
+    jobExecutionUserInfo.setJobUserLastName(row.getValue(LAST_NAME_FIELD).toString());
+    return jobExecutionUserInfo;
+  }
 
   private DeleteJobExecutionsResp mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
     DeleteJobExecutionsResp deleteJobExecutionsResp = new DeleteJobExecutionsResp();
@@ -286,10 +350,19 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
     JobExecutionDtoCollection jobCollection = new JobExecutionDtoCollection().withTotalRecords(0);
-    for (Row row : rowSet) {
+    rowSet.iterator().forEachRemaining(row -> {
       jobCollection.getJobExecutions().add(mapRowToJobExecutionDto(row));
       jobCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
-    }
+    });
+    return jobCollection;
+  }
+
+  private JobProfileInfoCollection mapRowToJobProfileInfoCollection(RowSet<Row> rowSet) {
+    JobProfileInfoCollection jobCollection = new JobProfileInfoCollection().withTotalRecords(0);
+    rowSet.iterator().forEachRemaining(row -> {
+      jobCollection.getJobProfilesInfo().add(mapRowToJobProfileInfo(row));
+      jobCollection.setTotalRecords(row.getInteger(TOTAL_COUNT_FIELD));
+    });
     return jobCollection;
   }
 
@@ -365,12 +438,12 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobProfileInfo mapRowToJobProfileInfo(Row row) {
     UUID profileId = row.getUUID(JOB_PROFILE_ID_FIELD);
-    if (profileId != null) {
+    if (Objects.nonNull(profileId)) {
       return new JobProfileInfo()
         .withId(profileId.toString())
         .withName(row.getString(JOB_PROFILE_NAME_FIELD))
         .withHidden(row.getBoolean(JOB_PROFILE_HIDDEN_FIELD))
-        .withDataType(row.getString(JOB_PROFILE_DATA_TYPE_FIELD) == null
+        .withDataType(Objects.isNull(row.getString(JOB_PROFILE_DATA_TYPE_FIELD))
           ? null : JobProfileInfo.DataType.fromValue(row.getString(JOB_PROFILE_DATA_TYPE_FIELD)));
     }
     return null;
@@ -389,4 +462,64 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
   }
 
+  @Override
+  public Future<Boolean> hardDeleteJobExecutions(long diffNumberOfDays, String tenantId) {
+    PostgresClient postgresClient = pgClientFactory.createInstance(tenantId);
+    return DbUtil.executeInTransaction(postgresClient, sqlConnection ->
+      fetchJobExecutionIdsConsideredForDeleting(tenantId, diffNumberOfDays, sqlConnection, postgresClient)
+        .compose(rowSet -> {
+          if (rowSet.rowCount() < 1) {
+            LOGGER.info("Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
+            return Future.succeededFuture();
+          }
+          return mapRowsetValuesToListOfString(rowSet);
+        })
+        .compose(jobExecutionIds -> {
+          if (CollectionUtils.isEmpty(jobExecutionIds)) {
+            return Future.succeededFuture();
+          }
+
+          UUID[] uuids = jobExecutionIds.stream().map(UUID::fromString).collect(Collectors.toList()).toArray(UUID[]::new);
+
+          Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(PROGRESS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOB_MONITORING_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteFromRelatedTableWithDeprecatedNaming(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
+          Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOURNAL_RECORDS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
+          return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture)
+            .compose(ar -> Future.<RowSet<Row>>future(rowSetPromise -> deleteFromJobExecutionTable(uuids, sqlConnection, tenantId, rowSetPromise, postgresClient)))
+            .map(true);
+    }));
+  }
+
+  private Future<List<String>> mapRowsetValuesToListOfString(RowSet<Row> rowset) {
+    List<String> uuidsToBeDeleted = new ArrayList<>();
+    rowset.iterator().forEachRemaining(o -> uuidsToBeDeleted.add(String.valueOf(o.getValue(ID))));
+    return Future.succeededFuture(uuidsToBeDeleted);
+  }
+
+  private Future<RowSet<Row>> fetchJobExecutionIdsConsideredForDeleting(String tenantId, long diffNumberOfDays, AsyncResult<SQLConnection> connection, PostgresClient postgresClient) {
+    String selectForDeletion = format(SELECT_IDS_FOR_DELETION, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(LocalDateTime.now().minus(diffNumberOfDays, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC));
+    Promise<RowSet<Row>> selectResult = Promise.promise();
+    postgresClient.execute(connection, selectForDeletion, queryParams, selectResult);
+    return selectResult.future();
+  }
+
+  private void deleteFromRelatedTable(String tableName, UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+    String deleteQuery = format(DELETE_FROM_RELATED_TABLE, convertToPsqlStandard(tenantId), tableName);
+    Tuple queryParams = Tuple.of(uuids);
+    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+  }
+
+  private void deleteFromRelatedTableWithDeprecatedNaming(String tableName, UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+    String deleteQuery = format(DELETE_FROM_RELATED_TABLE_DEPRECATED_NAMING, convertToPsqlStandard(tenantId), tableName);
+    Tuple queryParams = Tuple.of(uuids);
+    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+  }
+
+  private void deleteFromJobExecutionTable(UUID[] uuids, AsyncResult<SQLConnection> connection, String tenantId, Promise<RowSet<Row>> promise, PostgresClient postgresClient) {
+    String deleteQuery = format(DELETE_FROM_JOB_EXECUTION_TABLE, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(uuids);
+    postgresClient.execute(connection, deleteQuery, queryParams, promise);
+  }
 }

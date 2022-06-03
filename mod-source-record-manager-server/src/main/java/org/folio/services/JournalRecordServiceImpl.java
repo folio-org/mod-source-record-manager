@@ -2,7 +2,6 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dao.JournalRecordDao;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
@@ -29,11 +28,6 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   }
 
   @Override
-  public Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId) {
-    return journalRecordDao.getJobExecutionLogDto(jobExecutionId, tenantId);
-  }
-
-  @Override
   public Future<JournalRecordCollection> getJobExecutionJournalRecords(String jobExecutionId, String sortBy, String order, String tenantId) {
     return journalRecordDao.getByJobExecutionId(jobExecutionId, sortBy, order, tenantId)
       .map(journalRecords -> new JournalRecordCollection()
@@ -42,8 +36,8 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   }
 
   @Override
-  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
-    return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, limit, offset, tenantId);
+  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, int limit, int offset, String tenantId) {
+    return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, errorsOnly, limit, offset, tenantId);
   }
 
   @Override

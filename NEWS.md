@@ -14,10 +14,17 @@
 * [MODSOURMAN-771](https://issues.folio.org/browse/MODSOURMAN-771) Provisioned for marking Job Executions to be deleted
 * [MODSOURMAN-778](https://issues.folio.org/browse/MODSOURMAN-778) Add permission for Purchase Order Lines matching
 * [MODSOURMAN-784](https://issues.folio.org/browse/MODSOURMAN-784) The status of instance is not updated in the Import log after uploading MARC file for modify
+* [MODSOURMAN-785](https://issues.folio.org/browse/MODSOURMAN-785) JobExecutions APIs updated to filter out "Deleted" jobs
+* [MODSOURMAN-786](https://issues.folio.org/browse/MODSOURMAN-786) To restrict update of JobExecution that is marked as "Deleted"
 * [MODSOURMAN-780](https://issues.folio.org/browse/MODSOURMAN-780) Implement endpoint for adding summary for work accomplished in a job
 * [MODSOURMAN-779](https://issues.folio.org/browse/MODSOURMAN-779) Add "CANCELLED" status for Import jobs that are stopped by users.
 * [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
 * [MODSOURMAN-792](https://issues.folio.org/browse/MODSOURMAN-792) Initialize mapping parameters without race conditions
+* [MODSOURMAN-790](https://issues.folio.org/browse/MODSOURMAN-790) Implement endpoint to get job executions users.
+* [MODSOURMAN-796](https://issues.folio.org/browse/MODSOURMAN-796) Change logic to initialize job execution progress after reading file instead of processing the first chunk
+* [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
+* [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
+* [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
