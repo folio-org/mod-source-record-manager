@@ -68,6 +68,7 @@ public class InitAPIImpl implements InitAPI {
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
     LOGGER.info("InitAPI starting...");
+    LOGGER.info("Count of di completed consumers: {}", dataImportConsumerInstancesNumber);
     try {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
