@@ -134,7 +134,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
-  private static final String GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM get_job_log_entries('%s', '%s', '%s', %s, %s)";
+  private static final String GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM get_job_log_entries('%s', '%s', '%s', %s, %s, %b)";
   private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
   private static final String GET_JOB_SUMMARY_QUERY = "SELECT * FROM get_job_execution_summary('%s')";
 
@@ -223,13 +223,13 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   @Override
-  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId) {
+  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, int limit, int offset, String tenantId) {
     LOGGER.trace("Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
     if (!jobLogEntrySortableFields.contains(sortBy)) {
       return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
     }
     Promise<RowSet<Row>> promise = Promise.promise();
-    String query = format(GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY, jobExecutionId, sortBy, order, limit, offset);
+    String query = format(GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY, jobExecutionId, sortBy, order, limit, offset, errorsOnly);
     LOGGER.trace("JournalRecordDaoImpl::getJobLogEntryDtoCollection query = {};", query);
     pgClientFactory.createInstance(tenantId).select(query, promise);
     return promise.future().map(this::mapRowSetToJobLogDtoCollection);
@@ -412,10 +412,19 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
                                                               String totalDiscardedColumn, String totalErrorsColumn) {
+    Integer totalCreated = row.getInteger(totalCreatedColumn);
+    Integer totalUpdated = row.getInteger(totalUpdatedColumn);
+    Integer totalDiscarded = row.getInteger(totalDiscardedColumn);
+    Integer totalErrors = row.getInteger(totalErrorsColumn);
+
+    if (0 == totalCreated && 0 == totalUpdated && 0 == totalDiscarded && 0 == totalErrors) {
+      return null;
+    }
+
     return new EntityProcessingSummary()
-      .withTotalCreatedEntities(row.getInteger(totalCreatedColumn))
-      .withTotalUpdatedEntities(row.getInteger(totalUpdatedColumn))
-      .withTotalDiscardedEntities(row.getInteger(totalDiscardedColumn))
-      .withTotalErrors(row.getInteger(totalErrorsColumn));
+      .withTotalCreatedEntities(totalCreated)
+      .withTotalUpdatedEntities(totalUpdated)
+      .withTotalDiscardedEntities(totalDiscarded)
+      .withTotalErrors(totalErrors);
   }
 }

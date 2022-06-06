@@ -313,7 +313,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .queryParam("sortBy", "invalid_field")
       .queryParam("order", "asc")
       .when()
-      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST);
   }
@@ -394,7 +394,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID().toString() + "/records/" + UUID.randomUUID().toString())
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID() + "/records/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -724,6 +724,79 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
 
       Assert.assertEquals("Exception", jobLogEntries.get(2).getError());
       Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(2).getInvoiceActionStatus());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOnlyMarcBibRecordsWithErrorWhenRetrieveWithErrorsOnlyParam(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String sourceRecordId3 = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, "in00000000002", null, 1, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, "in00000000001", null, 0, CREATE, INSTANCE, ERROR, "Error description 1"))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, null, null, 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, ""))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, "in00000000003", null, 3, CREATE, INSTANCE, ERROR, "Error description 2"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .param("errorsOnly", true)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries", hasSize(2))
+        .body("totalRecords", is(3))
+        .body("entries[0].error", is("Error description 1"))
+        .body("entries[1].error", is("Error description 2"))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[1].sourceRecordOrder", is("3"));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOnlyInvoiceLinesWithErrorWhenRetrieveWithErrorsOnlyParam(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+    String invoiceLineId = "246816";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "10001", "INVOICE", 0, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceLineId + "-3", invoiceLineDescription + "3", 3, CREATE, INVOICE, ERROR, "Exception"))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
+        .spec(spec)
+        .when()
+        .param("errorsOnly", true)
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(3))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
+
+      Assert.assertEquals("Exception", jobLogEntries.get(0).getError());
+      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(0).getInvoiceActionStatus());
 
       async.complete();
     }));

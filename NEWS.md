@@ -21,6 +21,11 @@
 * [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
 * [MODSOURMAN-792](https://issues.folio.org/browse/MODSOURMAN-792) Initialize mapping parameters without race conditions
 * [MODSOURMAN-790](https://issues.folio.org/browse/MODSOURMAN-790) Implement endpoint to get job executions users.
+* [MODSOURMAN-796](https://issues.folio.org/browse/MODSOURMAN-796) Change logic to initialize job execution progress after reading file instead of processing the first chunk
+* [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
+* [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
+* [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
+* [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving

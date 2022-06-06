@@ -2,28 +2,30 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0",
       "withMetadata": false,
       "index": [
         {
           "fieldName": "id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "uiStatus",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "jobProfileInfo.id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         }
       ],
       "fullTextIndex": [
         {
-          "fieldName": "subordinationType"
+          "fieldName": "subordinationType",
+          "tOps": "DELETE"
         },
         {
-          "fieldName": "status"
+          "fieldName": "status",
+          "tOps": "DELETE"
         }
       ]
     },
@@ -103,7 +105,7 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_log_entries_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     },
     {
       "run": "after",
@@ -193,6 +195,11 @@
     {
       "run": "after",
       "snippet": "ALTER TYPE job_execution_status ADD VALUE IF NOT EXISTS 'CANCELLED'; ALTER TYPE job_execution_ui_status ADD VALUE IF NOT EXISTS 'CANCELLED';",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_executions CASCADE;",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
     },
     {
