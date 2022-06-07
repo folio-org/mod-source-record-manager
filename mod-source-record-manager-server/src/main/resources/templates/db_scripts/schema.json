@@ -204,7 +204,7 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE INDEX IF NOT EXISTS journal_records_source_id_idx ON journal_records USING btree;",
+      "snippet": "CREATE INDEX IF NOT EXISTS journal_records_source_id_idx ON journal_records USING btree (source_id);",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]
