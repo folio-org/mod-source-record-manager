@@ -27,6 +27,7 @@
 * [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
 * [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
 * [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
+* [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
