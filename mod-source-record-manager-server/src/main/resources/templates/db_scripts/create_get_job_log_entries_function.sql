@@ -22,19 +22,31 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
-CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean)
+CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean, entityType text)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                   source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text,
                   authority_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint,
                   invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[], source_record_order_array integer[])
 AS $$
 DECLARE
-    v_sortingfield text := sortingfield;
+    v_sortingfield text;
+    v_entitytypes text[];
 BEGIN
 -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
     IF sortingfield = 'source_record_order' THEN
       v_sortingfield := 'source_record_order_array';
+    ELSE
+      v_sortingfield := sortingField;
     END IF;
+
+    CASE entityType
+        WHEN 'ALL' THEN
+            v_entitytypes := '{}';
+        WHEN 'SRS_RECORD' THEN
+            v_entitytypes := ARRAY['MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT'];
+        ELSE
+            v_entitytypes := ARRAY[entityType];
+    END CASE;
 
     RETURN QUERY EXECUTE format('
 SELECT records_actions.job_execution_id, records_actions.source_id, records_actions.source_record_order, '''' as invoiceline_number,
@@ -84,11 +96,12 @@ FROM (
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
-WHERE NOT %2$L or rec_errors.error = '''' IS FALSE
+WHERE (NOT %2$L or rec_errors.error = '''' IS FALSE) AND
 /* %2$L - errorsOnly flag in literal form
  * rec_errors.error = '''' IS FALSE - construction for checking varchar column to empty or null value
  * Inverting errorsOnly flag and using disjunction operations for next construction let filtering by error column only in case when flag = true
  */
+(array_length(%7$L::text[], 1) IS NULL or source_record_entity_type = ANY(%7$L::text[]))
 
 UNION
 
@@ -128,9 +141,10 @@ FROM (
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                   entity_hrid, title, error, id
      ) AS records_actions
-WHERE NOT %2$L or error = '''' IS FALSE
+WHERE (NOT %2$L or error = '''' IS FALSE) AND
+(array_length(%7$L::text[], 1) IS NULL or source_record_entity_type = ANY(%7$L::text[]))
 ORDER BY %3$I %4$s
 LIMIT %5$s OFFSET %6$s;',
-                              jobExecutionId, errorsOnly, v_sortingField, sortingDir, limitVal, offsetVal);
+                              jobExecutionId, errorsOnly, v_sortingField, sortingDir, limitVal, offsetVal, v_entitytypes);
 END;
 $$ LANGUAGE plpgsql;

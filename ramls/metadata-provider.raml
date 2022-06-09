@@ -157,6 +157,12 @@ resourceTypes:
           type: boolean
           required: false
           default: false
+        entityType:
+          description: "Filter by entity type: SRS_RECORD, INSTANCE, HOLDING, AUTHORITY, ITEM, ORDER, INVOICE"
+          example: SRS_RECORD
+          enum: [SRS_RECORD, INSTANCE, HOLDING, AUTHORITY, ITEM, ORDER, INVOICE, ALL]
+          required: false
+          default: ALL
       responses:
         200:
           body:
