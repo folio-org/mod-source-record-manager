@@ -209,7 +209,7 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS flow_control_events_counter(events_to_process integer PRIMARY KEY); INSERT INTO flow_control_events_counter (events_to_process) VALUES (0);",
+      "snippet": "CREATE TABLE IF NOT EXISTS flow_control_events_counter(events_to_process integer PRIMARY KEY); INSERT INTO flow_control_events_counter (events_to_process) VALUES (0) ON CONFLICT DO NOTHING;",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
     },
     {
