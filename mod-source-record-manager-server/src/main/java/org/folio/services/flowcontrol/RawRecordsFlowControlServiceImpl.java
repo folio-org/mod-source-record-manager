@@ -11,7 +11,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
@@ -20,9 +21,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:50}")
+  @Value("${di.flow.control.max.simultaneous.records:100}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.control.records.threshold:25}")
+  @Value("${di.flow.control.records.threshold:50}")
   private Integer recordsThreshold;
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
@@ -38,7 +39,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * When current state equals or exceeds di.flow.control.max.simultaneous.records - all raw records consumers from consumer's group should pause.
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
-  private final AtomicInteger currentState = new AtomicInteger(0);
+  private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void init() {
@@ -65,87 +66,79 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    currentState.getAndUpdate(prev -> {
-      if (prev != 0) {
-        LOGGER.info("State has been reset to initial value, current value: 0");
-        return 0;
-      } else {
-        return prev;
-      }
-    });
-    resumeIfThresholdAllows();
+    if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
+      currentState.replaceAll((tenantId, oldValue) -> 0);
+      LOGGER.info("State has been reset to initial value, current value: 0");
+    }
+
+    currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
   }
 
   @Override
-  public void trackChunkReceivedEvent(Integer recordsCount) {
+  public void trackChunkReceivedEvent(String tenantId, Integer counterToUpdate) {
     if (!enableFlowControl) {
       return;
     }
 
-    int current = currentState.addAndGet(recordsCount);
+    currentState.put(tenantId, counterToUpdate);
 
-    LOGGER.info("--------------- Current value after chunk received: {} ---------------", current);
+    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, counterToUpdate);
 
-    if (current >= maxSimultaneousRecords) {
+    if (counterToUpdate >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() > 0) {
           consumer.pause();
 
-          LOGGER.info("Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), current, maxSimultaneousRecords);
+          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
+            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), counterToUpdate, maxSimultaneousRecords);
         }
       });
     }
   }
 
   @Override
-  public void trackChunkDuplicateEvent(Integer recordsCount) {
+  public void trackChunkDuplicateEvent(String tenantId, Integer counterValue) {
     if (!enableFlowControl) {
       return;
     }
 
-    currentState.getAndUpdate(prev -> {
-      int res = prev - recordsCount;
-      LOGGER.info("--------------- Chunk duplicate event comes, update current value from: {} to: {} ---------------", prev, res);
-      return res;
-    });
+    currentState.put(tenantId, counterValue);
 
-    resumeIfThresholdAllows();
+    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, counterValue);
+
+    resumeIfThresholdAllows(tenantId);
   }
 
   @Override
-  public void trackRecordCompleteEvent() {
+  public void trackRecordCompleteEvent(String tenantId, Integer counterValue) {
     if (!enableFlowControl) {
       return;
     }
 
-    int current = currentState.decrementAndGet();
+    if (counterValue < 0) {
+      LOGGER.info("Tenant: [{}]. Current value less that zero, because of single record imports or resetting state, back to zero...", tenantId);
+      currentState.put(tenantId, 0);
+    } else {
+      currentState.put(tenantId, counterValue);
+    }
+    currentState.put(tenantId, counterValue);
+    LOGGER.info("--------------- Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, counterValue);
 
-    currentState.getAndUpdate(prev -> {
-      if (prev < 0) {
-        LOGGER.info("Current value less that zero because of single record imports or resetting state, back to zero...");
-        return 0;
-      } else {
-        LOGGER.info("--------------- Current value after complete event: {} ---------------", current);
-        return prev;
-      }
-    });
-
-    resumeIfThresholdAllows();
+    resumeIfThresholdAllows(tenantId);
   }
 
-  private void resumeIfThresholdAllows() {
-    if (currentState.get() <= recordsThreshold) {
+  private void resumeIfThresholdAllows(String tenantId) {
+    if (currentState.get(tenantId) <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() == 0) {
           consumer.resume();
 
-          LOGGER.info("Kafka consumer - id: {}, subscription - {} is resumed, because {} met threshold {}",
-            consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
+          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
+            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
         }
       });
     }
