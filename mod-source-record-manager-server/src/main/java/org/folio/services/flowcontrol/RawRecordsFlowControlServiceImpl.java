@@ -21,9 +21,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:100}")
+  @Value("${di.flow.control.max.simultaneous.records:50}")
   private Integer maxSimultaneousRecords;
-  @Value("${di.flow.control.records.threshold:50}")
+  @Value("${di.flow.control.records.threshold:25}")
   private Integer recordsThreshold;
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
@@ -75,16 +75,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackChunkReceivedEvent(String tenantId, Integer counterToUpdate) {
+  public void trackChunkReceivedEvent(String tenantId, Integer counterValue) {
     if (!enableFlowControl) {
       return;
     }
 
-    currentState.put(tenantId, counterToUpdate);
+    currentState.put(tenantId, counterValue);
 
-    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, counterToUpdate);
+    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, counterValue);
 
-    if (counterToUpdate >= maxSimultaneousRecords) {
+    if (counterValue >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
@@ -92,7 +92,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           consumer.pause();
 
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), counterToUpdate, maxSimultaneousRecords);
+            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), counterValue, maxSimultaneousRecords);
         }
       });
     }

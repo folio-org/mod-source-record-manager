@@ -12,10 +12,10 @@ public interface RawRecordsFlowControlService {
    * Tracks each DI_RAW_RECORDS_CHUNK_READ event, this method can also pause processing
    * of DI_RAW_RECORDS_CHUNK_READ topic when flow control conditions met.
    *
-   * @param tenantId        tenant id
-   * @param counterToUpdate counter value from DB after chunk received event
+   * @param tenantId     tenant id
+   * @param counterValue counter value from DB after chunk received event
    */
-  void trackChunkReceivedEvent(String tenantId, Integer counterToUpdate);
+  void trackChunkReceivedEvent(String tenantId, Integer counterValue);
 
   /**
    * If chunks duplicate event comes - need to correct flow control internal state
