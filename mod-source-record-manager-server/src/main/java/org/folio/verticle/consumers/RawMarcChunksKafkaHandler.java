@@ -93,7 +93,10 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private Future<Integer> trackEventInFlowControlService(RawRecordsDto rawRecordsDto, String tenantId) {
     if (!rawRecordsDto.getRecordsMetadata().getLast()) {
       return eventProcessedService.increaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), tenantId)
-        .onSuccess(counterValue -> flowControlService.trackChunkReceivedEvent(tenantId, counterValue));
+        .compose(counterValue -> {
+          flowControlService.trackChunkReceivedEvent(tenantId, counterValue);
+          return Future.succeededFuture();
+        });
     } else {
       return Future.succeededFuture();
     }
