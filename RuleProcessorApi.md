@@ -516,7 +516,7 @@ Rule:
 - If there is "z" among record sub-fields then target field gets filled by all the `["z","q","c"].`
 
 #### Exclusive sub-fields
-Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `exclusiveSubfield` to define the exclusive subfield needed to NOT trigger the appearance of a target field. In this example, the presence of an 100 subfield "t" in a MARC record is needed in order for the target field, “personalName” to appear in the Inventory record.
+Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `exclusiveSubfield` to define the exclusive subfield needed to NOT trigger the appearance of a target field. In this example, the presence of an 100 subfield "t" in a MARC record is needed in order for the target field, “personalName” to not appear in the Inventory record, even if other subfields are present.
 ```json
 MARC Record:
 {
@@ -549,9 +549,9 @@ Rule:
           "rules": []
         },
         {
-        "target": "personalNameTitle",
-        "subfield": ["t"],
-        "rules": []
+          "target": "personalNameTitle",
+          "subfield": ["t"],
+          "rules": []
       } 
       ]
     }
