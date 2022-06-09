@@ -59,37 +59,43 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     LOGGER.debug("Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
-      if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-        eventProcessedService.increaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), okapiParams.getTenantId())
-          .onSuccess(counterValue -> flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), counterValue));
-      }
-
-      LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
-        jobExecutionId, chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata());
-      return eventDrivenChunkProcessingService
-        .processChunk(rawRecordsDto, jobExecutionId, okapiParams)
-        .compose(b -> {
-          LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
-          return Future.succeededFuture(record.key());
-        }, th -> {
-          if (th instanceof DuplicateEventException) {
-            LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
-            if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-              eventProcessedService.decreaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), okapiParams.getTenantId())
-                .onSuccess(counterValue -> flowControlService.trackChunkDuplicateEvent(okapiParams.getTenantId(), counterValue));
+      return trackEventInFlowControlService(rawRecordsDto, okapiParams.getTenantId()).compose(ar -> {
+        LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
+          jobExecutionId, chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata());
+        return eventDrivenChunkProcessingService
+          .processChunk(rawRecordsDto, jobExecutionId, okapiParams)
+          .compose(b -> {
+            LOGGER.debug("RawRecordsDto processing has been completed chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+            return Future.succeededFuture(record.key());
+          }, th -> {
+            if (th instanceof DuplicateEventException) {
+              LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
+              if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+                eventProcessedService.decreaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), okapiParams.getTenantId())
+                  .onSuccess(counterValue -> flowControlService.trackChunkDuplicateEvent(okapiParams.getTenantId(), counterValue));
+              }
+              return Future.failedFuture(th);
+            } else if (th instanceof RecordsPublishingException) {
+              LOGGER.error("RawRecordsDto entries publishing to Kafka has failed for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
+              return Future.failedFuture(th);
+            } else {
+              LOGGER.error("RawRecordsDto processing has failed with errors chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
+              return Future.failedFuture(new RawChunkRecordsParsingException(th, rawRecordsDto));
             }
-            return Future.failedFuture(th);
-          } else if (th instanceof RecordsPublishingException) {
-            LOGGER.error("RawRecordsDto entries publishing to Kafka has failed for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
-            return Future.failedFuture(th);
-          } else {
-            LOGGER.error("RawRecordsDto processing has failed with errors chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
-            return Future.failedFuture(new RawChunkRecordsParsingException(th, rawRecordsDto));
-          }
+          });
         });
     } catch (Exception e) {
       LOGGER.error("Can't process kafka record: ", e);
       return Future.failedFuture(e);
+    }
+  }
+
+  private Future<Integer> trackEventInFlowControlService(RawRecordsDto rawRecordsDto, String tenantId) {
+    if (!rawRecordsDto.getRecordsMetadata().getLast()) {
+      return eventProcessedService.increaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), tenantId)
+        .onSuccess(counterValue -> flowControlService.trackChunkReceivedEvent(tenantId, counterValue));
+    } else {
+      return Future.succeededFuture();
     }
   }
 }
