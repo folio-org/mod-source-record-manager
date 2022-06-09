@@ -515,6 +515,52 @@ Rule:
 - If there is no "z" in record sub-fields then target field does not appear at all.
 - If there is "z" among record sub-fields then target field gets filled by all the `["z","q","c"].`
 
+#### Exclusive sub-fields
+Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `exclusiveSubfield` to define the exclusive subfield needed to NOT trigger the appearance of a target field. In this example, the presence of an 100 subfield "t" in a MARC record is needed in order for the target field, “personalName” to not appear in the Inventory record, even if other subfields are present.
+```json
+MARC Record:
+{
+  "200":{
+    "subfields":[
+      {
+        "a":"9780190494889"
+      },
+      {
+        "b":"hardcover ;"
+      },
+      {
+        "t":"alkaline paper"
+      }
+    ],
+    "ind1":" ",
+    "ind2":" "
+  }
+}
+```
+```json
+Rule:
+"100": [
+    {
+      "entity": [
+        {
+          "target": "personalName",
+          "subfield": ["a","b"],
+          "exclusiveSubfield": ["t"],
+          "rules": []
+        },
+        {
+          "target": "personalNameTitle",
+          "subfield": ["t"],
+          "rules": []
+      } 
+      ]
+    }
+  ]
+```
+
+- If there is "t" among record sub-fields then target "personalName" field does not appear at all.
+- If there is no "t" in record sub-fields then target field gets filled by all the `["a","b"].`
+
 
 #### Field replacement rules
 There are "fieldReplacement" properties. They need for changing field number for specific fields, based on field replacement rules.

@@ -25,6 +25,7 @@
 * [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
 * [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
 * [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
+* [MODSOURMAN-805](https://issues.folio.org/browse/MODSOURMAN-805) Use exclusiveSubfield for authority rules
 * [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
 * [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
 * [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
