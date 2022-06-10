@@ -39,12 +39,17 @@ public class EventProcessedServiceImpl implements EventProcessedService {
   }
 
   @Override
-  public Future<Integer> increaseEventsToProcess(Integer valueToIncrease, String tenantId) {
-    return eventProcessedDao.increaseEventsToProcess(valueToIncrease, tenantId);
+  public Future<Integer> increaseEventsToProcess(String tenantId, Integer valueToIncrease) {
+    return eventProcessedDao.increaseEventsToProcess(tenantId, valueToIncrease);
   }
 
   @Override
-  public Future<Integer> decreaseEventsToProcess(Integer valueToDecrease, String tenantId) {
-    return eventProcessedDao.decreaseEventsToProcess(valueToDecrease, tenantId);
+  public Future<Integer> decreaseEventsToProcess(String tenantId, Integer valueToDecrease) {
+    return eventProcessedDao.decreaseEventsToProcess(tenantId, valueToDecrease);
+  }
+
+  @Override
+  public Future<Integer> resetEventsToProcess(String tenantId) {
+    return eventProcessedDao.resetEventsToProcess(tenantId);
   }
 }

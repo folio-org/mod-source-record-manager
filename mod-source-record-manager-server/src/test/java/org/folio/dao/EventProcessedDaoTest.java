@@ -19,9 +19,7 @@ import org.mockito.Spy;
 import java.io.IOException;
 import java.util.UUID;
 
-import static org.folio.dao.EventProcessedDaoImpl.FLOW_CONTROL_EVENTS_COUNTER_TABLE_NAME;
 import static org.junit.Assert.assertEquals;
-import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @RunWith(VertxUnitRunner.class)
 public class EventProcessedDaoTest extends AbstractRestTest {
@@ -39,7 +37,7 @@ public class EventProcessedDaoTest extends AbstractRestTest {
     super.setUp(context);
     handlerId = UUID.randomUUID().toString();
     eventId = UUID.randomUUID().toString();
-    updateCounterToInitialValue(context);
+    eventProcessedDao.resetEventsToProcess(TENANT_ID);
   }
 
   @Test
@@ -102,7 +100,7 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   public void shouldDecreaseCounter(TestContext context) {
     Async async = context.async();
 
-    Future<Integer> future = eventProcessedDao.decreaseEventsToProcess(5, TENANT_ID);
+    Future<Integer> future = eventProcessedDao.decreaseEventsToProcess(TENANT_ID, 5);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       assertEquals(Integer.valueOf(-5), ar.result());
@@ -114,18 +112,11 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   public void shouldIncreaseCounter(TestContext context) {
     Async async = context.async();
 
-    Future<Integer> future = eventProcessedDao.increaseEventsToProcess(5, TENANT_ID);
+    Future<Integer> future = eventProcessedDao.increaseEventsToProcess(TENANT_ID, 5);
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       assertEquals(Integer.valueOf(5), ar.result());
       async.complete();
     });
-  }
-
-  private void updateCounterToInitialValue(TestContext context) {
-    Async async = context.async();
-    String query = String.format("UPDATE %s.%s SET events_to_process = 0", convertToPsqlStandard(TENANT_ID), FLOW_CONTROL_EVENTS_COUNTER_TABLE_NAME);
-    Future<RowSet<Row>> future = postgresClientFactory.createInstance(TENANT_ID).execute(query);
-    future.onComplete(ar -> async.complete());
   }
 }

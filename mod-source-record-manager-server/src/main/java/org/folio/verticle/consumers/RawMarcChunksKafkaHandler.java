@@ -15,7 +15,6 @@ import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.services.ChunkProcessingService;
-import org.folio.services.EventProcessedService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
@@ -32,17 +31,14 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   private static final Logger LOGGER = LogManager.getLogger();
 
   private final ChunkProcessingService eventDrivenChunkProcessingService;
-  private final EventProcessedService eventProcessedService;
   private final RawRecordsFlowControlService flowControlService;
   private final Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
                                      ChunkProcessingService eventDrivenChunkProcessingService,
-                                   @Autowired EventProcessedService eventProcessedService,
                                    @Autowired RawRecordsFlowControlService flowControlService,
                                    @Autowired Vertx vertx) {
     this.eventDrivenChunkProcessingService = eventDrivenChunkProcessingService;
-    this.eventProcessedService = eventProcessedService;
     this.flowControlService = flowControlService;
     this.vertx = vertx;
   }
@@ -60,8 +56,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
     try {
       RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
       if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-        eventProcessedService.increaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), okapiParams.getTenantId())
-          .onSuccess(counterValue -> flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), counterValue));
+        flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
       }
 
       LOGGER.debug("RawRecordsDto has been received, starting processing jobExecutionId: {} chunkId: {} chunkNumber: {} - {}",
@@ -75,8 +70,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
           if (th instanceof DuplicateEventException) {
             LOGGER.info("Duplicate RawRecordsDto processing has been skipped for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId);
             if (!rawRecordsDto.getRecordsMetadata().getLast()) {
-              eventProcessedService.decreaseEventsToProcess(rawRecordsDto.getInitialRecords().size(), okapiParams.getTenantId())
-                .onSuccess(counterValue -> flowControlService.trackChunkDuplicateEvent(okapiParams.getTenantId(), counterValue));
+              flowControlService.trackChunkDuplicateEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
             }
             return Future.failedFuture(th);
           } else if (th instanceof RecordsPublishingException) {

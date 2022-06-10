@@ -35,19 +35,27 @@ public interface EventProcessedService {
   /**
    * Increases events needed to process counter.
    *
+   * @param tenantId        tenant id
    * @param valueToIncrease value to increase
-   * @param tenantId tenant id
    * @return future with actual state of counter
    */
-  Future<Integer> increaseEventsToProcess(Integer valueToIncrease, String tenantId);
+  Future<Integer> increaseEventsToProcess(String tenantId, Integer valueToIncrease);
 
   /**
    * Decreases events needed to process counter.
    *
+   * @param tenantId        tenant id
    * @param valueToDecrease value to decrease
+   * @return future with actual state of counter
+   */
+  Future<Integer> decreaseEventsToProcess(String tenantId, Integer valueToDecrease);
+
+  /**
+   * Resets events needed to process counter.
+   *
    * @param tenantId tenant id
    * @return future with actual state of counter
    */
-  Future<Integer> decreaseEventsToProcess(Integer valueToDecrease, String tenantId);
+  Future<Integer> resetEventsToProcess(String tenantId);
 
 }

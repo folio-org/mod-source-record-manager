@@ -3,6 +3,7 @@ package org.folio.services.flowcontrol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConsumerWrapper;
+import org.folio.services.EventProcessedService;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   @Autowired
   private KafkaConsumersStorage consumersStorage;
+  @Autowired
+  private EventProcessedService eventProcessedService;
 
   /**
    * Represents the current state of flow control to make decisions when need to make pause/resume calls.
@@ -68,6 +71,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
       currentState.replaceAll((tenantId, oldValue) -> 0);
+      currentState.forEach((tenantId, value) -> eventProcessedService.resetEventsToProcess(tenantId));
+
       LOGGER.info("State has been reset to initial value, current value: 0");
     }
 
@@ -75,16 +80,17 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackChunkReceivedEvent(String tenantId, Integer counterValue) {
+  public void trackChunkReceivedEvent(String tenantId, Integer recordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
-    currentState.put(tenantId, counterValue);
+    currentState.merge(tenantId, recordsCount, Integer::sum);
+    increaseCounterInDb(tenantId, recordsCount);
 
-    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, counterValue);
+    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, recordsCount);
 
-    if (counterValue >= maxSimultaneousRecords) {
+    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
 
       rawRecordsReadConsumers.forEach(consumer -> {
@@ -92,39 +98,41 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           consumer.pause();
 
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), counterValue, maxSimultaneousRecords);
+            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), recordsCount, maxSimultaneousRecords);
         }
       });
     }
   }
 
   @Override
-  public void trackChunkDuplicateEvent(String tenantId, Integer counterValue) {
+  public void trackChunkDuplicateEvent(String tenantId, Integer recordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
-    currentState.put(tenantId, counterValue);
+    currentState.merge(tenantId, -recordsCount, Integer::sum);
+    decreaseCounterInDb(tenantId, recordsCount);
 
-    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, counterValue);
+    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, recordsCount);
 
     resumeIfThresholdAllows(tenantId);
   }
 
   @Override
-  public void trackRecordCompleteEvent(String tenantId, Integer counterValue) {
+  public void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue) {
     if (!enableFlowControl) {
       return;
     }
 
-    if (counterValue < 0) {
+    if (actualCounterValue < 0) {
       LOGGER.info("Tenant: [{}]. Current value less that zero, because of single record imports or resetting state, back to zero...", tenantId);
       currentState.put(tenantId, 0);
+      eventProcessedService.resetEventsToProcess(tenantId);
     } else {
-      currentState.put(tenantId, counterValue);
+      currentState.put(tenantId, actualCounterValue);
     }
-    currentState.put(tenantId, counterValue);
-    LOGGER.info("--------------- Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, counterValue);
+
+    LOGGER.info("--------------- Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, actualCounterValue);
 
     resumeIfThresholdAllows(tenantId);
   }
@@ -142,5 +150,15 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         }
       });
     }
+  }
+
+  private void increaseCounterInDb(String tenantId, Integer recordsCount) {
+    eventProcessedService.increaseEventsToProcess(tenantId, recordsCount)
+      .onSuccess(counterValueFromDb -> currentState.put(tenantId, counterValueFromDb));
+  }
+
+  private void decreaseCounterInDb(String tenantId, Integer recordsCount) {
+    eventProcessedService.decreaseEventsToProcess(tenantId, recordsCount)
+      .onSuccess(counterValueFromDb -> currentState.put(tenantId, counterValueFromDb));
   }
 }

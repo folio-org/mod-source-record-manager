@@ -30,18 +30,26 @@ public interface EventProcessedDao {
   /**
    * This method decreases counter value, that tracks how many events need to process.
    *
+   * @param tenantId        tenant id
    * @param valueToDecrease counter value to decrease
-   * @param tenantId tenant id
    * @return future with counter value after update operation
    */
-  Future<Integer> decreaseEventsToProcess(Integer valueToDecrease, String tenantId);
+  Future<Integer> decreaseEventsToProcess(String tenantId, Integer valueToDecrease);
 
   /**
    * This method increases counter value, that tracks how many events need to process.
    *
+   * @param tenantId        tenant id
    * @param valueToIncrease counter value to increase
-   * @param tenantId tenant id
    * @return future with counter value after update operation
    */
-  Future<Integer> increaseEventsToProcess(Integer valueToIncrease, String tenantId);
+  Future<Integer> increaseEventsToProcess(String tenantId, Integer valueToIncrease);
+
+  /**
+   * This method resets counter value, that tracks how many events need to process.
+   *
+   * @param tenantId tenant id
+   * @return future with counter after reset operation
+   */
+  Future<Integer> resetEventsToProcess(String tenantId);
 }

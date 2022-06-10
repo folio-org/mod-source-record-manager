@@ -28,6 +28,7 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
 
   private static final String DECREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process - $1 RETURNING *";
   private static final String INCREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process + $1 RETURNING *";
+  private static final String SET_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = $1 RETURNING *";
 
   private final PostgresClientFactory pgClientFactory;
 
@@ -56,13 +57,18 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
   }
 
   @Override
-  public Future<Integer> decreaseEventsToProcess(Integer valueToDecrease, String tenantId) {
-    return updateCounterValue(DECREASE_COUNTER_SQL, valueToDecrease, tenantId);
+  public Future<Integer> decreaseEventsToProcess(String tenantId, Integer valueToDecrease) {
+    return updateCounterValue(DECREASE_COUNTER_SQL, tenantId, valueToDecrease);
   }
 
   @Override
-  public Future<Integer> increaseEventsToProcess(Integer valueToIncrease, String tenantId) {
-    return updateCounterValue(INCREASE_COUNTER_SQL, valueToIncrease, tenantId);
+  public Future<Integer> increaseEventsToProcess(String tenantId, Integer valueToIncrease) {
+    return updateCounterValue(INCREASE_COUNTER_SQL, tenantId, valueToIncrease);
+  }
+
+  @Override
+  public Future<Integer> resetEventsToProcess(String tenantId) {
+    return updateCounterValue(SET_COUNTER_SQL, tenantId, 0);
   }
 
   private void makeSaveCall(Promise<RowSet<Row>> promise, String query, String handlerId, String eventId, String tenantId) {
@@ -74,7 +80,7 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
     }
   }
 
-  private Future<Integer> updateCounterValue(String sqlQuery, Integer counterValue, String tenantId) {
+  private Future<Integer> updateCounterValue(String sqlQuery, String tenantId, Integer counterValue) {
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       String query = String.format(sqlQuery, convertToPsqlStandard(tenantId), FLOW_CONTROL_EVENTS_COUNTER_TABLE_NAME);

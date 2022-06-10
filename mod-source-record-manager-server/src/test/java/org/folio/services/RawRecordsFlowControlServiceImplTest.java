@@ -29,6 +29,8 @@ public class RawRecordsFlowControlServiceImplTest {
 
   @Mock
   private KafkaConsumersStorage kafkaConsumersStorage;
+  @Mock
+  private EventProcessedService eventProcessedService;
 
   @InjectMocks
   private RawRecordsFlowControlServiceImpl service;
@@ -78,7 +80,7 @@ public class RawRecordsFlowControlServiceImplTest {
       .thenReturn(Collections.singletonList(consumerWrapper));
 
     service.trackChunkReceivedEvent(TENANT_ID, 10);
-    service.trackChunkReceivedEvent(TENANT_ID,20);
+    service.trackChunkReceivedEvent(TENANT_ID, 20);
 
     // 20 records exceeds max 20, but consumer already paused - no need to pause
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
