@@ -105,4 +105,34 @@ public class EventProcessedServiceTest {
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof PgException);
   }
+
+  @Test
+  public void shouldCallDaoForIncreaseEventsToProcess() {
+    when(eventProcessedDao.increaseEventsToProcess(TENANT_ID, 5))
+      .thenReturn(Future.succeededFuture(5));
+
+    eventProcessedService.increaseEventsToProcess(TENANT_ID, 5);
+
+    verify(eventProcessedDao).increaseEventsToProcess(TENANT_ID, 5);
+  }
+
+  @Test
+  public void shouldCallDaoForDecreaseEventsToProcess() {
+    when(eventProcessedDao.decreaseEventsToProcess(TENANT_ID, 5))
+      .thenReturn(Future.succeededFuture(0));
+
+    eventProcessedService.decreaseEventsToProcess(TENANT_ID, 5);
+
+    verify(eventProcessedDao).decreaseEventsToProcess(TENANT_ID, 5);
+  }
+
+  @Test
+  public void shouldCallDaoForReset() {
+    when(eventProcessedDao.resetEventsToProcess(TENANT_ID))
+      .thenReturn(Future.succeededFuture(0));
+
+    eventProcessedService.resetEventsToProcess(TENANT_ID);
+
+    verify(eventProcessedDao).resetEventsToProcess(TENANT_ID);
+  }
 }
