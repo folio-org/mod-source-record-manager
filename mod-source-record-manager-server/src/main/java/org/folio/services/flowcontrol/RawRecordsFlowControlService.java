@@ -31,7 +31,7 @@ public interface RawRecordsFlowControlService {
    * of DI_RAW_RECORDS_CHUNK_PARSED topic when flow control conditions met.
    *
    * @param tenantId           tenant id
-   * @param actualCounterValue counter value from DB before complete event
+   * @param actualCounterValue counter value from DB after complete event
    */
   void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue);
 }
