@@ -23,9 +23,33 @@ public class EventProcessedServiceImpl implements EventProcessedService {
   @Override
   public Future<RowSet<Row>> collectData(String handlerId, String eventId, String tenantId) {
     return eventProcessedDao.save(handlerId, eventId, tenantId)
-      .recover(throwable ->
-        (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
-          Future.failedFuture(new DuplicateEventException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :
-          Future.failedFuture(throwable));
+      .recover(throwable -> handleFailures(throwable, handlerId, eventId));
+  }
+
+  @Override
+  public Future<Integer> collectDataAndDecreaseEventsToProcess(String handlerId, String eventId, String tenantId) {
+    return eventProcessedDao.saveAndDecreaseEventsToProcess(handlerId, eventId, tenantId)
+      .recover(throwable -> handleFailures(throwable, handlerId, eventId));
+  }
+
+  private <T> Future<T> handleFailures(Throwable throwable, String handlerId, String eventId) {
+    return (throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE)) ?
+        Future.failedFuture(new DuplicateEventException(String.format("Event with eventId=%s for handlerId=%s is already processed.", eventId, handlerId))) :
+        Future.failedFuture(throwable);
+  }
+
+  @Override
+  public Future<Integer> increaseEventsToProcess(String tenantId, Integer valueToIncrease) {
+    return eventProcessedDao.increaseEventsToProcess(tenantId, valueToIncrease);
+  }
+
+  @Override
+  public Future<Integer> decreaseEventsToProcess(String tenantId, Integer valueToDecrease) {
+    return eventProcessedDao.decreaseEventsToProcess(tenantId, valueToDecrease);
+  }
+
+  @Override
+  public Future<Integer> resetEventsToProcess(String tenantId) {
+    return eventProcessedDao.resetEventsToProcess(tenantId);
   }
 }
