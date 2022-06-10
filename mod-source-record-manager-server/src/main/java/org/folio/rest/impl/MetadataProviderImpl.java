@@ -14,6 +14,7 @@ import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
+import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetEntityType;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
@@ -99,11 +100,12 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobLogEntriesByJobExecutionId(String jobExecutionId, String sortBy, MetadataProviderJobLogEntriesJobExecutionIdGetOrder order, boolean errorsOnly,
-                                                               int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+                                                               MetadataProviderJobLogEntriesJobExecutionIdGetEntityType entityType, int offset, int limit,
+                                                               Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     vertxContext.runOnContext(v -> {
       try {
-        journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, limit, offset, tenantId)
+        journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
           .map(GetMetadataProviderJobLogEntriesByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
