@@ -125,7 +125,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     if (actualCounterValue < 0) {
-      LOGGER.info("Tenant: [{}]. Current value less that zero, because of single record imports or resetting state, back to zero...", tenantId);
+      LOGGER.info("Tenant: [{}]. Current value less than zero, because of single record imports or resetting state, back to zero...", tenantId);
       currentState.put(tenantId, 0);
       eventProcessedService.resetEventsToProcess(tenantId);
     } else {

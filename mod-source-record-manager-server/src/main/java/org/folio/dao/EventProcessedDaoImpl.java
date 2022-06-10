@@ -26,9 +26,9 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
 
   private static final String INSERT_EVENT_AND_DECREASE_FLOW_CONTROL_COUNTER_SQL = "SELECT save_event_and_decrease_flow_control_counter($1, $2)";
 
-  private static final String DECREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process - $1 RETURNING *";
-  private static final String INCREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process + $1 RETURNING *";
-  private static final String SET_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = $1 RETURNING *";
+  private static final String DECREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process - $1 RETURNING events_to_process";
+  private static final String INCREASE_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = events_to_process + $1 RETURNING events_to_process";
+  private static final String SET_COUNTER_SQL = "UPDATE %s.%s SET events_to_process = $1 RETURNING events_to_process";
 
   private final PostgresClientFactory pgClientFactory;
 
