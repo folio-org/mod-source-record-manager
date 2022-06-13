@@ -30,7 +30,7 @@ CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField
 AS $$
 DECLARE
     v_sortingField text DEFAULT sortingfield;
-    v_entityAttribute text DEFAULT 'marc_actions';
+    v_entityAttribute text DEFAULT 'marc';
 BEGIN
 -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
     IF sortingField = 'source_record_order' THEN
@@ -38,7 +38,7 @@ BEGIN
     END IF;
 
     IF entityType <> 'ALL' THEN
-        v_entityAttribute := CONCAT(lower(entityType), '_actions');
+        v_entityAttribute := lower(entityType);
     END IF;
 
     RETURN QUERY EXECUTE format('
@@ -76,7 +76,8 @@ FROM (
                 count(journal_records.source_id) OVER () AS total_count,
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
  				        array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid,
-                array[]::varchar[] AS invoice_actions
+                array[]::varchar[] AS invoice_actions,
+                cast(0 as integer) AS invoice_errors_number
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%1$s'' and
                entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'')
@@ -90,12 +91,16 @@ FROM (
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
-WHERE (NOT %2$L or rec_errors.error = '''' IS FALSE) AND
+WHERE (NOT %2$L or %3$L <> ''ALL'' or rec_errors.error = '''' IS FALSE) AND
+(NOT %2$L or %3$L = ''ALL'' or (%4$s_errors_number != 0 OR %4$s_actions[array_length(%4$s_actions, 1)] = ''NON_MATCH'')) AND
+(%2$L or %3$L = ''ALL'' or array_length(%4$s_actions, 1) = 0 IS FALSE)
 /* %2$L - errorsOnly flag in literal form
  * rec_errors.error = '''' IS FALSE - construction for checking varchar column to empty or null value
+ * %3$L = ''ALL'' = accepting all entity types
+ * %4$s_errors_number != 0 OR %4$s_actions[array_length(%4$s_actions, 1)] = ''NON_MATCH'' - verify that entity type status is DISCARDED
+ * array_length(%4$s_actions, 1) = 0 IS FALSE - filter entity type by action attribute
  * Inverting errorsOnly flag and using disjunction operations for next construction let filtering by error column only in case when flag = true
  */
-(%3$L = ''ALL'' or array_length(%4$I, 1) = 0 IS FALSE)
 
 UNION
 

@@ -730,7 +730,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnOnlyMarcBibRecordsWithErrorWhenRetrieveWithErrorsOnlyParam(TestContext context) {
+  public void shouldNotReturnMarcBibRecordsWhenInstanceDiscarderRetrievingWithErrorsOnlyParam(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
 
@@ -761,6 +761,17 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[1].error", is("Error description 2"))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[1].sourceRecordOrder", is("3"));
+
+      RestAssured.given()
+        .spec(spec)
+        .param("errorsOnly", true)
+        .param("entityType", "MARC")
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries", is(empty()))
+        .body("totalRecords", is(0));
 
       async.complete();
     }));
