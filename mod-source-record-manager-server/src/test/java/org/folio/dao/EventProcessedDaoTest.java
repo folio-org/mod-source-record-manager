@@ -19,8 +19,13 @@ import org.mockito.Spy;
 import java.io.IOException;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(VertxUnitRunner.class)
 public class EventProcessedDaoTest extends AbstractRestTest {
+
+  private String handlerId;
+  private String eventId;
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
@@ -30,12 +35,13 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   @Before
   public void setUp(TestContext context) throws IOException {
     super.setUp(context);
+    handlerId = UUID.randomUUID().toString();
+    eventId = UUID.randomUUID().toString();
+    eventProcessedDao.resetEventsToProcess(TENANT_ID);
   }
 
   @Test
   public void shouldSaveEventProcessed(TestContext context) {
-    String handlerId = UUID.randomUUID().toString();
-    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
     Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
 
@@ -48,8 +54,6 @@ public class EventProcessedDaoTest extends AbstractRestTest {
 
   @Test
   public void shouldThrowConstraintViolation(TestContext context) {
-    String handlerId = UUID.randomUUID().toString();
-    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
 
     Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
@@ -61,6 +65,58 @@ public class EventProcessedDaoTest extends AbstractRestTest {
         context.assertEquals("ERROR: duplicate key value violates unique constraint \"events_processed_pkey\" (23505)", re.cause().getMessage());
         async.complete();
       });
+    });
+  }
+
+  @Test
+  public void shouldSaveAndDecreaseCounter(TestContext context) {
+    Async async = context.async();
+
+    Future<Integer> saveFuture = eventProcessedDao.saveAndDecreaseEventsToProcess(handlerId, eventId, TENANT_ID);
+    saveFuture.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      assertEquals(Integer.valueOf(-1), ar.result());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldThrowConstraintViolationWhenSavingAndDecreasingCounter(TestContext context) {
+    Async async = context.async();
+
+    Future<Integer> saveFuture = eventProcessedDao.saveAndDecreaseEventsToProcess(handlerId, eventId, TENANT_ID);
+    saveFuture.onComplete(ar -> {
+      Future<RowSet<Row>> reSaveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
+      reSaveFuture.onComplete(re -> {
+        context.assertTrue(re.failed());
+        context.assertTrue(re.cause() instanceof  PgException);
+        context.assertEquals("ERROR: duplicate key value violates unique constraint \"events_processed_pkey\" (23505)", re.cause().getMessage());
+        async.complete();
+      });
+    });
+  }
+
+  @Test
+  public void shouldDecreaseCounter(TestContext context) {
+    Async async = context.async();
+
+    Future<Integer> future = eventProcessedDao.decreaseEventsToProcess(TENANT_ID, 5);
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      assertEquals(Integer.valueOf(-5), ar.result());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldIncreaseCounter(TestContext context) {
+    Async async = context.async();
+
+    Future<Integer> future = eventProcessedDao.increaseEventsToProcess(TENANT_ID, 5);
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      assertEquals(Integer.valueOf(5), ar.result());
+      async.complete();
     });
   }
 }

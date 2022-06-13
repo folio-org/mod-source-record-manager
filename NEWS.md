@@ -30,6 +30,7 @@
 * [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
 * [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
 * [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
+* [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
