@@ -67,7 +67,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
         JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
-        jobExecutionsCache.get(tenantId, filter, sortFields, offset, limit)
+        jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
