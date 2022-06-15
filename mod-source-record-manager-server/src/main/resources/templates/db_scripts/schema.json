@@ -2,28 +2,30 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0",
       "withMetadata": false,
       "index": [
         {
           "fieldName": "id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "uiStatus",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "jobProfileInfo.id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         }
       ],
       "fullTextIndex": [
         {
-          "fieldName": "subordinationType"
+          "fieldName": "subordinationType",
+          "tOps": "DELETE"
         },
         {
-          "fieldName": "status"
+          "fieldName": "status",
+          "tOps": "DELETE"
         }
       ]
     },
@@ -108,7 +110,7 @@
     {
       "run": "after",
       "snippetPath": "create_get_record_processing_log_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
     },
     {
       "run": "after",
@@ -193,6 +195,26 @@
     {
       "run": "after",
       "snippet": "ALTER TYPE job_execution_status ADD VALUE IF NOT EXISTS 'CANCELLED'; ALTER TYPE job_execution_ui_status ADD VALUE IF NOT EXISTS 'CANCELLED';",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_executions CASCADE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE INDEX IF NOT EXISTS journal_records_source_id_idx ON journal_records USING btree (source_id);",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS flow_control_events_counter(events_to_process integer PRIMARY KEY); INSERT INTO flow_control_events_counter (events_to_process) VALUES (0) ON CONFLICT DO NOTHING;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE OR REPLACE FUNCTION save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid) RETURNS integer AS $$ DECLARE counterValue integer; BEGIN INSERT INTO events_processed(handler_id, event_id) VALUES(handlerId, eventId); UPDATE flow_control_events_counter SET events_to_process = events_to_process - 1; SELECT events_to_process FROM flow_control_events_counter INTO counterValue; RETURN counterValue; END; $$ LANGUAGE plpgsql;",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
     }
   ]

@@ -1,4 +1,4 @@
-package org.folio.verticle;
+package org.folio.verticle.periodic;
 
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.Collections.emptyList;
@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,7 +19,6 @@ import java.util.Optional;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.LocalMap;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -39,7 +37,7 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.JobMonitoringService;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class JobMonitoringWatchdogVerticleTest {
+public class PeriodicJobMonitoringWatchdogVerticleTest {
 
   private static final String TENANT_ID1 = "testing1";
   private static final String TENANT_ID2 = "testing2";
@@ -66,7 +64,7 @@ public class JobMonitoringWatchdogVerticleTest {
 
   @Spy
   @InjectMocks
-  private final JobMonitoringWatchdogVerticle jobMonitoringWatchdogVerticle = new JobMonitoringWatchdogVerticle();
+  private final PeriodicJobMonitoringWatchdogVerticle jobMonitoringWatchdogVerticle = new PeriodicJobMonitoringWatchdogVerticle();
 
   @Mock
   private JobMonitoringService jobMonitoringService;
@@ -82,7 +80,6 @@ public class JobMonitoringWatchdogVerticleTest {
     tenants.put(TENANT_ID2, TENANT_ID2);
 
     ReflectionTestUtils.setField(jobMonitoringWatchdogVerticle,"maxInactiveInterval", 200L);
-    doNothing().when(jobMonitoringWatchdogVerticle).declareSpringContext();
   }
 
   @Test
@@ -96,9 +93,7 @@ public class JobMonitoringWatchdogVerticleTest {
       .thenReturn(succeededFuture(true));
 
     // when
-    jobMonitoringWatchdogVerticle.start();
-
-    Thread.sleep(2000);
+    jobMonitoringWatchdogVerticle.executePeriodicJob();
 
     // then
     verify(jobMonitoringService, atLeastOnce()).getInactiveJobMonitors(anyLong(), eq(TENANT_ID1));
@@ -116,7 +111,7 @@ public class JobMonitoringWatchdogVerticleTest {
       .thenReturn(succeededFuture(emptyList()));
 
     // when
-    jobMonitoringWatchdogVerticle.start();
+    jobMonitoringWatchdogVerticle.executePeriodicJob();
 
     // then
     verify(jobExecutionService, never()).getJobExecutionById(anyString(), anyString());

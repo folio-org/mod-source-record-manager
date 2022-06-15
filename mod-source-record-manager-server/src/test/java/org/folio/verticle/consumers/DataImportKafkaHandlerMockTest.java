@@ -63,7 +63,7 @@ public class DataImportKafkaHandlerMockTest {
   @Test
   public void shouldSkipEventHandlingWhenDBContainsHandlerAndEventId() {
     // given
-    Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID), eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
+    Mockito.when(eventProcessedService.collectDataAndDecreaseEventsToProcess(eq(DI_KAFKA_HANDLER_ID), eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
       .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
@@ -93,7 +93,7 @@ public class DataImportKafkaHandlerMockTest {
   public void shouldHandleWhenThereIsNoRecordIdInTheKafkaRecord() {
     // given
     Mockito.when(eventHandlingService.handle(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture());
-    Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID),eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
+    Mockito.when(eventProcessedService.collectDataAndDecreaseEventsToProcess(eq(DI_KAFKA_HANDLER_ID),eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
       .thenReturn(Future.succeededFuture());
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
@@ -123,7 +123,7 @@ public class DataImportKafkaHandlerMockTest {
   @Test
   public void shouldFailWhenThereAnErrorWithDBConnection() {
     // given
-    Mockito.when(eventProcessedService.collectData(eq(DI_KAFKA_HANDLER_ID), eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
+    Mockito.when(eventProcessedService.collectDataAndDecreaseEventsToProcess(eq(DI_KAFKA_HANDLER_ID), eq("c9d09a5e-73ba-11ec-90d6-0242ac120003"), eq(TENANT_ID)))
       .thenReturn(Future.failedFuture(new SQLException("Connection timeout!")));
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()

@@ -5,25 +5,21 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
-import org.folio.rest.jaxrs.model.ActionProfile;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.EntityType;
-import org.folio.rest.jaxrs.model.ErrorRecord;
-import org.folio.rest.jaxrs.model.ExternalIdsHolder;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.ParsedRecord;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecord;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
-import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.StatusDto;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
+import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +32,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.NotFoundException;
 
 import com.google.common.collect.Lists;
@@ -53,7 +48,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.services.util.RecordConversionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -66,31 +60,38 @@ import org.folio.dataimport.util.marc.RecordAnalyzer;
 import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.client.SourceStorageBatchClient;
+import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.ErrorRecord;
+import org.folio.rest.jaxrs.model.ExternalIdsHolder;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecord;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
+import org.folio.rest.jaxrs.model.RecordCollection;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
-
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import org.folio.services.util.RecordConversionUtil;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
 
-  public static final String MESSAGE_KEY = "message";
-  static final String RECORD_ID = "recordId";
+  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
+  public static final String RECORD_ID_HEADER = "recordId";
+  public static final String USER_ID_HEADER = "userId";
+
+  private static final String MESSAGE_KEY = "message";
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int THRESHOLD_CHUNK_SIZE =
     Integer.parseInt(MODULE_SPECIFIC_ARGS.getOrDefault("chunk.processing.threshold.chunk.size", "100"));
@@ -100,14 +101,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  private static final String RECORD_ID_HEADER = "recordId";
 
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  private JobExecutionService jobExecutionService;
-  private RecordAnalyzer marcRecordAnalyzer;
-  private RecordsPublishingService recordsPublishingService;
-  private MappingMetadataService mappingMetadataService;
-  private KafkaConfig kafkaConfig;
+  private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
+  private final JobExecutionService jobExecutionService;
+  private final RecordAnalyzer marcRecordAnalyzer;
+  private final RecordsPublishingService recordsPublishingService;
+  private final MappingMetadataService mappingMetadataService;
+  private final KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -416,7 +416,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
     );
     var kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders());
-    kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID, record.getId()));
+    kafkaHeaders.add(new KafkaHeaderImpl(RECORD_ID_HEADER, record.getId()));
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
       .onFailure(
@@ -552,7 +552,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     List<KafkaHeader> kafkaHeaders = KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders());
 
-    kafkaHeaders.add(new KafkaHeaderImpl("jobExecutionId", jobExecution.getId()));
+    kafkaHeaders.add(new KafkaHeaderImpl(JOB_EXECUTION_ID_HEADER, jobExecution.getId()));
+    kafkaHeaders.add(new KafkaHeaderImpl(USER_ID_HEADER, jobExecution.getUserId()));
 
     String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
 

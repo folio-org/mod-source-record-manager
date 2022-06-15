@@ -24,6 +24,13 @@
 * [MODSOURMAN-796](https://issues.folio.org/browse/MODSOURMAN-796) Change logic to initialize job execution progress after reading file instead of processing the first chunk
 * [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
 * [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
+* [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
+* [MODSOURMAN-805](https://issues.folio.org/browse/MODSOURMAN-805) Use exclusiveSubfield for authority rules
+* [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
+* [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
+* [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
+* [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
+* [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
 * [MODSOURCE-509](https://issues.folio.org/browse/MODSOURCE-509) Data Import Updates should add 035 field if it's not HRID or it is already exists. Removed HridFieldService
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
