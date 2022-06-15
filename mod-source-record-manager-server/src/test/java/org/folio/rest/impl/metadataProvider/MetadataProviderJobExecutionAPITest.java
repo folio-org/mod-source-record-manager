@@ -79,6 +79,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.emptyString;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -1217,9 +1218,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnUsersInfoCollectionWhenUsersFirstNameisNull() {
+  public void shouldReturnUsersInfoCollectionWhenUsersFirstNameIsNull() {
     WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(okJson(userResponse.toString())));
+
     int uniqueJobProfilesAmount = 5;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
     getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
@@ -1247,7 +1249,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionUsersInfo[0].userId", notNullValue())
-      .body("jobExecutionUsersInfo[0].jobUserFirstName", is("No first name"))
+      .body("jobExecutionUsersInfo[0].jobUserFirstName", emptyString())
       .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
   }

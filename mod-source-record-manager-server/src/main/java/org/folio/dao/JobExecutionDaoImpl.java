@@ -305,8 +305,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private JobExecutionUserInfo mapRowToJobExecutionUserInfoDto(Row row) {
     JobExecutionUserInfo jobExecutionUserInfo = new JobExecutionUserInfo();
     jobExecutionUserInfo.setUserId(row.getUUID(USER_ID_FIELD).toString());
-    jobExecutionUserInfo.setJobUserFirstName(StringUtils.defaultIfEmpty(row.getString(FIRST_NAME_FIELD), "No first name"));
-    jobExecutionUserInfo.setJobUserLastName(StringUtils.defaultIfEmpty(row.getString(LAST_NAME_FIELD), "No last name"));
+    jobExecutionUserInfo.setJobUserFirstName(StringUtils.defaultString(row.getString(FIRST_NAME_FIELD)));
+    jobExecutionUserInfo.setJobUserLastName(StringUtils.defaultString(row.getString(LAST_NAME_FIELD)));
     return jobExecutionUserInfo;
   }
 
