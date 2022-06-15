@@ -1,7 +1,9 @@
 package org.folio.rest.impl.metadataProvider;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -46,6 +48,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
@@ -86,6 +90,13 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
   private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobExecutions/jobProfiles";
   private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/users";
+
+  private final JsonObject userResponse = new JsonObject()
+    .put("users",
+      new JsonArray().add(new JsonObject()
+        .put("username", "diku_admin")
+        .put("personal", new JsonObject().put("firstName", null).put("lastName", "ADMINISTRATOR"))))
+    .put("totalRecords", 1);
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -1201,6 +1212,42 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionUsersInfo[0].userId", notNullValue())
       .body("jobExecutionUsersInfo[0].jobUserFirstName", is("DIKU"))
+      .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
+      .body("totalRecords", is(1));
+  }
+
+  @Test
+  public void shouldReturnUsersInfoCollectionWhenUsersFirstNameisNull() {
+    WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
+      .willReturn(okJson(userResponse.toString())));
+    int uniqueJobProfilesAmount = 5;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo[0].userId", notNullValue())
+      .body("jobExecutionUsersInfo[0].jobUserFirstName", is("No first name"))
       .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
   }
