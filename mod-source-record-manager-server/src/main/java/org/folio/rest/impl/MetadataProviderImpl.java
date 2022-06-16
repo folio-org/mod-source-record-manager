@@ -18,7 +18,6 @@ import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGet
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
 import org.folio.services.JobExecutionService;
-import org.folio.services.JobExecutionsCache;
 import org.folio.services.JournalRecordService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +48,6 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Autowired
   private JournalRecordService journalRecordService;
   private String tenantId;
-  @Autowired
-  private JobExecutionsCache jobExecutionsCache;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
