@@ -24,7 +24,6 @@ import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.JobExecutionsCache;
 import org.folio.services.Status;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -106,7 +105,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnEmptyListIfNoJobExecutionsExist() {
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -138,7 +136,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
     int givenJobExecutionsNumber = createdJobExecution.size();
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     int expectedJobExecutionsNumber = givenJobExecutionsNumber - 1;
     RestAssured.given()
       .spec(spec)
@@ -373,7 +370,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get();
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -397,7 +393,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get();
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -414,7 +409,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnFilteredCollectionByFileNameOnGet() {
     constructAndPostInitJobExecutionRqDto(5);
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1120,7 +1114,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     int uniqueJobProfilesAmount = 5;
     int limitNumber = 3;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
@@ -1175,7 +1168,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnUsersInfoCollection() {
     int uniqueJobProfilesAmount = 5;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());

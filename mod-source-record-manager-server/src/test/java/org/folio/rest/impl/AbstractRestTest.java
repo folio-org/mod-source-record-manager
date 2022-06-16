@@ -197,7 +197,6 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(KAFKA_ENV, KAFKA_ENV_VALUE);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
-    System.setProperty("srm.job.execution.cache.expire.seconds", "60");
     runDatabase();
     deployVerticle(context);
   }
