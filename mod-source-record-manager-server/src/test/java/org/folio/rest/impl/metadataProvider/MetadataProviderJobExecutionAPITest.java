@@ -1216,7 +1216,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     int uniqueJobProfilesAmount = 5;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
