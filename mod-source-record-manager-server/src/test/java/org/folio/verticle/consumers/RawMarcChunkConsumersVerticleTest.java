@@ -81,6 +81,15 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     .withAction(ActionProfile.Action.UPDATE)
     .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
 
+  private ProfileSnapshotWrapper updateInstanceJobProfileSnapshot = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(List.of(
+      new ProfileSnapshotWrapper()
+        .withContentType(ACTION_PROFILE)
+        .withContent(updateInstanceActionProfile)));
+
   @BeforeClass
   public static void setUpClass() throws IOException {
     rawEdifactContent = TestUtil.readFileFromPath(RAW_EDIFACT_RECORD_PATH);
@@ -221,17 +230,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldSendEventDiMarcForUpdateReceivedWhenProfileSnapshotContainsUpdateInstanceActionProfile() throws InterruptedException {
     // given
-    ProfileSnapshotWrapper jobProfileSnapshot = new ProfileSnapshotWrapper()
-      .withId(UUID.randomUUID().toString())
-      .withContentType(JOB_PROFILE)
-      .withContent(jobProfile)
-      .withChildSnapshotWrappers(List.of(
-        new ProfileSnapshotWrapper()
-          .withContentType(ACTION_PROFILE)
-          .withContent(updateInstanceActionProfile)));
-
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.created().withBody(Json.encode(jobProfileSnapshot))));
+      .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);

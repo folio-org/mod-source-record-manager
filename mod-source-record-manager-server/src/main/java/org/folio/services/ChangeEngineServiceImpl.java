@@ -188,7 +188,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc update");
+    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc or Instance update");
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
   }
