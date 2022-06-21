@@ -5,23 +5,16 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import org.folio.kafka.*;
 import org.folio.okapi.common.GenericCompositeFuture;
-import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.support.AbstractApplicationContext;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 public abstract class AbstractConsumersVerticle extends AbstractVerticle {
-
-  //TODO: get rid of this workaround with global spring context
-  private static AbstractApplicationContext springGlobalContext;
-
   private static final GlobalLoadSensor globalLoadSensor = new GlobalLoadSensor();
 
   @Autowired
@@ -36,10 +29,6 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) {
-    context.put("springContext", springGlobalContext);
-
-    SpringContextUtil.autowireDependencies(this, context);
-
     List<Future<Void>> futures = new ArrayList<>();
 
     getEvents().forEach(event -> {
@@ -73,12 +62,6 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
       futures.add(consumerWrapper.stop()));
 
     GenericCompositeFuture.join(futures).onComplete(ar -> stopPromise.complete());
-  }
-
-  //TODO: get rid of this workaround with global spring context
-  @Deprecated
-  public static void setSpringGlobalContext(AbstractApplicationContext springGlobalContext) {
-    AbstractConsumersVerticle.springGlobalContext = springGlobalContext;
   }
 
   public abstract List<String> getEvents();

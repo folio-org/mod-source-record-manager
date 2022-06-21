@@ -151,6 +151,18 @@ resourceTypes:
           enum: [asc, desc]
           required: false
           default: asc
+        errorsOnly:
+          description: "Filter by occurrence of error field"
+          example: true
+          type: boolean
+          required: false
+          default: false
+        entityType:
+          description: "Filter by entity type: MARC, INSTANCE, HOLDINGS, AUTHORITY, ITEM, ORDER, INVOICE"
+          example: MARC
+          enum: [MARC, INSTANCE, HOLDINGS, AUTHORITY, ITEM, ORDER, INVOICE, ALL]
+          required: false
+          default: ALL
       responses:
         200:
           body:

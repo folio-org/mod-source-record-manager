@@ -11,7 +11,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.DataImportEventPayload;
 import org.folio.ParsedRecord;
 import org.folio.Record;
@@ -42,20 +41,16 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.INVOICE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.journal.InvoiceUtil.FIELD_DESCRIPTION;
 import static org.folio.services.journal.InvoiceUtil.FIELD_FOLIO_INVOICE_NO;
 import static org.folio.services.journal.InvoiceUtil.FIELD_ID;
@@ -325,14 +320,4 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
-
-  private ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
-    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord =
-      new ConsumerRecord(ENV_KEY, 0, 0, topic, Json.encode(event));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
-    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
-    return consumerRecord;
-  }
-
 }

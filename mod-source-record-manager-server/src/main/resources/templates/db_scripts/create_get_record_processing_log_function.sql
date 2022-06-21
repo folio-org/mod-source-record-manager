@@ -98,8 +98,8 @@ BEGIN
                 array_agg(holdings_id) FILTER (WHERE holdings_id IS NOT NULL AND entity_type = 'ITEM') AS holdings_id_value
             FROM journal_records
             WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE')
-            GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id)
-            AS records_actions
+            GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
+        ) AS records_actions
         LEFT JOIN (
             SELECT journal_records.source_id, journal_records.title FROM journal_records
             WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId
@@ -144,31 +144,31 @@ BEGIN
                 invoice_line_info.invoice_line_entity_error
             FROM (
                 SELECT journal_records.source_id,
-                    journal_records.job_execution_id,
-                    journal_records.title,
-                    journal_records.action_type AS inv_line_actions,
-                    action_status,
-                    entity_hrid AS invoice_line_entity_hrid,
-                    entity_id AS invoice_line_entity_id,
-                    error AS invoice_line_entity_error
+                       journal_records.job_execution_id,
+                       journal_records.title,
+                       journal_records.action_type AS inv_line_actions,
+                       action_status,
+                       entity_hrid AS invoice_line_entity_hrid,
+                       entity_id AS invoice_line_entity_id,
+                       error AS invoice_line_entity_error
                 FROM journal_records
                 WHERE journal_records.id = recordId AND journal_records.entity_type = 'INVOICE' AND journal_records.title != 'INVOICE'
             ) AS invoice_line_info
-            LEFT JOIN (
+            LEFT JOIN LATERAL (
                 SELECT journal_records.source_id,
-                    journal_records.source_record_order,
-                    array_agg(action_type) FILTER (WHERE entity_type = 'EDIFACT') AS edifact_actions,
-                    count(journal_records.source_id) FILTER (WHERE entity_type = 'EDIFACT' AND journal_records.error != '') AS edifact_errors_number,
-                    array_agg(error) FILTER (WHERE entity_type = 'EDIFACT') AS source_record_error,
+                       journal_records.source_record_order,
+                       array_agg(action_type) FILTER (WHERE entity_type = 'EDIFACT') AS edifact_actions,
+                       count(journal_records.source_id) FILTER (WHERE entity_type = 'EDIFACT' AND journal_records.error != '') AS edifact_errors_number,
+                       array_agg(error) FILTER (WHERE entity_type = 'EDIFACT') AS source_record_error,
 
-                    array_agg(action_type) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_actions,
-                    count(journal_records.source_id) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE' AND journal_records.error != '') AS invoice_errors_number,
-                    array_agg(entity_hrid) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_hrid,
-                    array_agg(entity_id) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_id,
-                    array_agg(error) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_error
+                       array_agg(action_type) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_actions,
+                       count(journal_records.source_id) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE' AND journal_records.error != '') AS invoice_errors_number,
+                       array_agg(entity_hrid) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_hrid,
+                       array_agg(entity_id) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_id,
+                       array_agg(error) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_error
                 FROM journal_records
-                WHERE journal_records.job_execution_id = jobExecutionId AND entity_type = 'EDIFACT' OR journal_records.title = 'INVOICE'
+                WHERE journal_records.source_id = invoice_line_info.source_id AND (entity_type = 'EDIFACT' OR journal_records.title = 'INVOICE')
                 GROUP BY journal_records.source_id, journal_records.job_execution_id, journal_records.source_record_order
-            ) AS records_actions ON records_actions.source_id = invoice_line_info.source_id;
+            ) AS records_actions ON TRUE;
 END;
 $$ LANGUAGE plpgsql;

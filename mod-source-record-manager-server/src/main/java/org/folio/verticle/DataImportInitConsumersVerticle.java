@@ -1,40 +1,35 @@
 package org.folio.verticle;
 
 import org.folio.kafka.AsyncRecordHandler;
+import org.folio.verticle.consumers.DataImportInitKafkaHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INITIALIZATION_STARTED;
 
 /**
- * Verticle to process DI_COMPLETE, DI_ERROR events.
+ * Verticle to initialize DI process.
  * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
  * @see org.folio.rest.impl.InitAPIImpl
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class DataImportConsumersVerticle extends AbstractConsumersVerticle {
+public class DataImportInitConsumersVerticle extends AbstractConsumersVerticle {
 
   @Autowired
-  @Qualifier("DataImportKafkaHandler")
-  private AsyncRecordHandler<String, String> dataImportKafkaHandler;
+  private DataImportInitKafkaHandler initializationHandler;
 
   @Override
   public List<String> getEvents() {
-    return Arrays.asList(DI_COMPLETED.value(), DI_ERROR.value());
+    return List.of(DI_INITIALIZATION_STARTED.value());
   }
 
   @Override
   public AsyncRecordHandler<String, String> getHandler() {
-    return this.dataImportKafkaHandler;
+    return initializationHandler;
   }
-
 }

@@ -21,6 +21,18 @@
 * [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
 * [MODSOURMAN-792](https://issues.folio.org/browse/MODSOURMAN-792) Initialize mapping parameters without race conditions
 * [MODSOURMAN-790](https://issues.folio.org/browse/MODSOURMAN-790) Implement endpoint to get job executions users.
+* [MODSOURMAN-796](https://issues.folio.org/browse/MODSOURMAN-796) Change logic to initialize job execution progress after reading file instead of processing the first chunk
+* [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
+* [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
+* [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
+* [MODSOURMAN-805](https://issues.folio.org/browse/MODSOURMAN-805) Use exclusiveSubfield for authority rules
+* [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
+* [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
+* [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
+* [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
+* [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
+* [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
+* [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving

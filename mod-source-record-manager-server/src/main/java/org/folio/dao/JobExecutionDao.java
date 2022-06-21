@@ -7,9 +7,9 @@ import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,4 +101,13 @@ public interface JobExecutionDao {
    * @return collection of JobExecutionUserInfoCollection dtos with userIds, firstNames, lastNames
    */
   Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
+
+  /**
+   * Permanently deletes Job Executions from related tables depending upon difference in number of days
+   *
+   * @param diffNumberOfDays difference in Number of Days from the day record marked for deletion
+   * @param tenantId         tenant id
+   * @return future with true if deletion was successful
+   */
+  Future<Boolean> hardDeleteJobExecutions(long diffNumberOfDays, String tenantId);
 }
