@@ -147,7 +147,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
-        if (updateMarcActionExists(jobExecution)) {
+        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)) {
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
@@ -231,6 +231,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Action.UPDATE);
   }
 
+  private boolean updateInstanceActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper(),
+      List.of(FolioRecord.INSTANCE),
+      Action.UPDATE);
+  }
+
   private boolean deleteMarcActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
@@ -239,13 +246,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
-                                                  List<FolioRecord> records, Action action) {
+                                                  List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
-        && actionProfileMatches(childWrapper, records, action)) {
+        && actionProfileMatches(childWrapper, entityTypes, action)) {
         return true;
-      } else if (containsMarcActionProfile(childWrapper, records, action)) {
+      } else if (containsMarcActionProfile(childWrapper, entityTypes, action)) {
         return true;
       }
     }
