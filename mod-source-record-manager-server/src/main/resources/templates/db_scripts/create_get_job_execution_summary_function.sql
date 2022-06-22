@@ -15,7 +15,7 @@ BEGIN
       journal_records.job_execution_id,
       COUNT(DISTINCT(source_id)) FILTER (WHERE action_status = 'ERROR') AS total_errors,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_source_records,
-      COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND action_type IN ('UPDATE', 'MODIFY') AND action_status = 'COMPLETED') AS total_updated_source_records,
+      COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND action_type IN ('UPDATE', 'MODIFY') AND action_status = 'COMPLETED') AS total_updated_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND action_status = 'ERROR') AS total_source_records_errors,
 
