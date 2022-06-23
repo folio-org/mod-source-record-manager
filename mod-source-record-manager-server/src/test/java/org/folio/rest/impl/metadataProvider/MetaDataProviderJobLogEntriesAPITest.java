@@ -756,7 +756,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("entries", hasSize(2))
-        .body("totalRecords", is(3))
+        .body("totalRecords", is(2))
         .body("entries[0].error", is("Error description 1"))
         .body("entries[1].error", is("Error description 2"))
         .body("entries[0].sourceRecordOrder", is("0"))
@@ -801,7 +801,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(1))
-        .body("totalRecords", is(3))
+        .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
@@ -851,7 +851,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("entries", hasSize(1))
-        .body("totalRecords", is(3));
+        .body("totalRecords", is(1));
 
       async.complete();
     }));
