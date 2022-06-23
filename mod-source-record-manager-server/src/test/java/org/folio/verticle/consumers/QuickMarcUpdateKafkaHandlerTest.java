@@ -67,7 +67,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   public void shouldUpdateRecordStateAndSendEventOnHandleQmInventoryInstanceUpdated() {
     var recordId = UUID.randomUUID().toString();
     var recordDtoId = UUID.randomUUID().toString();
-    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
+    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
@@ -104,7 +104,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
     var errorMessage = "random error";
     var recordId = UUID.randomUUID().toString();
     var recordDtoId = UUID.randomUUID().toString();
-    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
+    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
@@ -140,7 +140,7 @@ public class QuickMarcUpdateKafkaHandlerTest {
   @Test
   public void shouldReturnFailedFutureWhenHandleEncodedEventPayload() {
     var recordId = UUID.randomUUID().toString();
-    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID));
+    var kafkaHeaders = List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID));
 
     Map<String, String> eventPayload = new HashMap<>();
     eventPayload.put("RECORD_ID", recordId);
