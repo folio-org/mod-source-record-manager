@@ -33,6 +33,7 @@
 * [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
 * [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
 * [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
+* [MODINV-686](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
