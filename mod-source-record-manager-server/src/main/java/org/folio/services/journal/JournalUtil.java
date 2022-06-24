@@ -29,7 +29,6 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 public class JournalUtil {
 
   public static final String ERROR_KEY = "ERROR";
-  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
 
   private JournalUtil() {
