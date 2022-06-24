@@ -10,6 +10,7 @@ import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.DbUtil;
@@ -303,9 +304,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
   private JobExecutionUserInfo mapRowToJobExecutionUserInfoDto(Row row) {
     JobExecutionUserInfo jobExecutionUserInfo = new JobExecutionUserInfo();
-    jobExecutionUserInfo.setUserId(row.getValue(USER_ID_FIELD).toString());
-    jobExecutionUserInfo.setJobUserFirstName(row.getValue(FIRST_NAME_FIELD).toString());
-    jobExecutionUserInfo.setJobUserLastName(row.getValue(LAST_NAME_FIELD).toString());
+    jobExecutionUserInfo.setUserId(row.getUUID(USER_ID_FIELD).toString());
+    jobExecutionUserInfo.setJobUserFirstName(StringUtils.defaultString(row.getString(FIRST_NAME_FIELD)));
+    jobExecutionUserInfo.setJobUserLastName(StringUtils.defaultString(row.getString(LAST_NAME_FIELD)));
     return jobExecutionUserInfo;
   }
 

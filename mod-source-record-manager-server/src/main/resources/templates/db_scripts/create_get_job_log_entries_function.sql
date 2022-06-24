@@ -22,18 +22,23 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
-CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean)
+CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean, entityType text)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                   source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text,
                   authority_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint,
                   invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[], source_record_order_array integer[])
 AS $$
 DECLARE
-    v_sortingfield text := sortingfield;
+    v_sortingField text DEFAULT sortingfield;
+    v_entityAttribute text[] DEFAULT ARRAY[upper(entityType)];
 BEGIN
 -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
-    IF sortingfield = 'source_record_order' THEN
-      v_sortingfield := 'source_record_order_array';
+    IF sortingField = 'source_record_order' THEN
+        v_sortingField := 'source_record_order_array';
+    END IF;
+
+    IF entityType = 'MARC' THEN
+        v_entityAttribute := ARRAY['MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY'];
     END IF;
 
     RETURN QUERY EXECUTE format('
@@ -70,11 +75,12 @@ FROM (
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
                 count(journal_records.source_id) OVER () AS total_count,
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
- 				array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid
+ 				        array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%1$s'' and
                entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'')
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
+         HAVING count(journal_records.source_id) FILTER (WHERE (%3$L = ''ALL'' or entity_type = ANY(%4$L)) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
          LEFT JOIN (SELECT journal_records.source_id, journal_records.error
                     FROM journal_records
@@ -84,11 +90,6 @@ FROM (
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
             ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
-WHERE NOT %2$L or rec_errors.error = '''' IS FALSE
-/* %2$L - errorsOnly flag in literal form
- * rec_errors.error = '''' IS FALSE - construction for checking varchar column to empty or null value
- * Inverting errorsOnly flag and using disjunction operations for next construction let filtering by error column only in case when flag = true
- */
 
 UNION
 
@@ -127,10 +128,10 @@ FROM (
          WHERE journal_records.job_execution_id = ''%1$s'' and entity_type = ''INVOICE'' and title != ''INVOICE''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
                   entity_hrid, title, error, id
+         HAVING count(journal_records.source_id) FILTER (WHERE (%3$L IN (''ALL'', ''INVOICE'')) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
-WHERE NOT %2$L or error = '''' IS FALSE
-ORDER BY %3$I %4$s
-LIMIT %5$s OFFSET %6$s;',
-                              jobExecutionId, errorsOnly, v_sortingField, sortingDir, limitVal, offsetVal);
+ORDER BY %5$I %6$s
+LIMIT %7$s OFFSET %8$s;',
+                              jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
 END;
 $$ LANGUAGE plpgsql;

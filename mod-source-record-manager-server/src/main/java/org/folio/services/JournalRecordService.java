@@ -40,12 +40,13 @@ public interface JournalRecordService {
    * @param sortBy         sorting criteria
    * @param order          sorting direction
    * @param errorsOnly     filtering by error field
+   * @param errorsOnly     filtering by entity type
    * @param limit          limit
    * @param offset         offset
    * @param tenantId       tenantId
    * @return future with JobLogEntryDto collection
    */
-  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, int limit, int offset, String tenantId);
+  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
 
   /**
    * Searches for RecordProcessingLogDto entity by jobExecutionId and recordId

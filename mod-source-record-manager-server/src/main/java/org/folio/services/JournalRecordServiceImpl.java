@@ -36,8 +36,8 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   }
 
   @Override
-  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, int limit, int offset, String tenantId) {
-    return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, errorsOnly, limit, offset, tenantId);
+  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
+    return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, errorsOnly, entityType, limit, offset, tenantId);
   }
 
   @Override

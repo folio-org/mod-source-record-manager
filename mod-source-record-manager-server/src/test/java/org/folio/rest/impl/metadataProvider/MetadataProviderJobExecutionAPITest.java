@@ -1,7 +1,9 @@
 package org.folio.rest.impl.metadataProvider;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -24,7 +26,6 @@ import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.JobExecutionsCache;
 import org.folio.services.Status;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -46,6 +47,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
@@ -75,6 +78,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.emptyString;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -86,6 +90,13 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
   private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobExecutions/jobProfiles";
   private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/users";
+
+  private final JsonObject userResponse = new JsonObject()
+    .put("users",
+      new JsonArray().add(new JsonObject()
+        .put("username", "diku_admin")
+        .put("personal", new JsonObject().put("firstName", null).put("lastName", "ADMINISTRATOR"))))
+    .put("totalRecords", 1);
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
@@ -106,7 +117,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnEmptyListIfNoJobExecutionsExist() {
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -138,7 +148,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
     int givenJobExecutionsNumber = createdJobExecution.size();
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     int expectedJobExecutionsNumber = givenJobExecutionsNumber - 1;
     RestAssured.given()
       .spec(spec)
@@ -373,7 +382,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get();
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -397,7 +405,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get();
 
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -414,7 +421,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnFilteredCollectionByFileNameOnGet() {
     constructAndPostInitJobExecutionRqDto(5);
     // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1036,6 +1042,34 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnOneUpdatedSourceRecordWhenRecordWasModifiedAndUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnNotFoundWhenHasNoJobExecution() {
     RestAssured.given()
       .spec(spec)
@@ -1120,7 +1154,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     int uniqueJobProfilesAmount = 5;
     int limitNumber = 3;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
@@ -1175,7 +1208,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnUsersInfoCollection() {
     int uniqueJobProfilesAmount = 5;
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
-    getBeanFromSpringContext(vertx, JobExecutionsCache.class).evictCache();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
@@ -1201,6 +1233,42 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionUsersInfo[0].userId", notNullValue())
       .body("jobExecutionUsersInfo[0].jobUserFirstName", is("DIKU"))
+      .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
+      .body("totalRecords", is(1));
+  }
+
+  @Test
+  public void shouldReturnUsersInfoCollectionWhenUsersFirstNameIsNull() {
+    WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
+      .willReturn(okJson(userResponse.toString())));
+
+    int uniqueJobProfilesAmount = 5;
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+
+    List<JobExecution> children = createdJobExecution.stream()
+      .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
+    for (JobExecution jobExecution : children) {
+      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("Marc jobs profile"));
+
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(jobExecution).toString())
+        .when()
+        .put(JOB_EXECUTION_PATH + jobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("id", is(jobExecution.getId()));
+    }
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo[0].userId", notNullValue())
+      .body("jobExecutionUsersInfo[0].jobUserFirstName", emptyString())
       .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
   }

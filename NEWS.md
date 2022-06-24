@@ -29,6 +29,11 @@
 * [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
 * [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
 * [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
+* [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
+* [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
+* [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
+* [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
+* [MODINV-686](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
 * [MODSOURMAN-806](https://issues.folio.org/browse/MODSOURMAN-806) Construct JournalRecord for DI_ERRORs even if there is no Record .
 
 ## 2022-xx-xx v3.3.3-SNAPSHOT
