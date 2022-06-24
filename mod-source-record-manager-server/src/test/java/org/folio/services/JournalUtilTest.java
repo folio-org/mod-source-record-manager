@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -65,47 +64,6 @@ public class JournalUtilTest {
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());
-  }
-
-  @Test(expected = JournalRecordMapperException.class)
-  public void shouldThrowExceptionIfInstanceIsNotExists() throws JournalRecordMapperException {
-    String recordId = UUID.randomUUID().toString();
-    String snapshotId = UUID.randomUUID().toString();
-
-    JsonObject recordJson = new JsonObject()
-      .put("id", recordId)
-      .put("snapshotId", snapshotId)
-      .put("order", 1);
-
-    HashMap<String, String> context = new HashMap<>();
-    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-
-    DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType("DI_INVENTORY_INSTANCE_CREATED")
-      .withContext(context);
-
-    JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
-  }
-
-  @Test(expected = JournalRecordMapperException.class)
-  public void shouldThrowExceptionIfRecordIsNotExists() throws JournalRecordMapperException {
-    String instanceId = UUID.randomUUID().toString();
-    String instanceHrid = UUID.randomUUID().toString();
-
-    JsonObject instanceJson = new JsonObject()
-      .put("id", instanceId)
-      .put("hrid", instanceHrid);
-
-    HashMap<String, String> context = new HashMap<>();
-    context.put(INSTANCE.value(), instanceJson.encode());
-
-    DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType("DI_INVENTORY_INSTANCE_CREATED")
-      .withContext(context);
-
-    JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
   }
 
   @Test(expected = JournalRecordMapperException.class)
@@ -326,6 +284,36 @@ public class JournalUtilTest {
     Assert.assertEquals(testError, journalRecord.getError());
     Assert.assertEquals(testJobExecutionId, journalRecord.getJobExecutionId());
     Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
+    Assert.assertNotNull(journalRecord.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForInstanceEvenIfEntityIsNotExists() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_INVENTORY_INSTANCE_CREATED")
+      .withContext(context);
+
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.getSourceId());
+    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.getEntityType());
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());
