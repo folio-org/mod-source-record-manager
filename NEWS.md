@@ -1,3 +1,6 @@
+## 2022-xx-xx v3.4.1-SNAPSHOT
+* [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
+
 ## 2022-xx-xx v3.4.0-SNAPSHOT
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
 * [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
