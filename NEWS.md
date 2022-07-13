@@ -1,7 +1,7 @@
 ## 2022-xx-xx v3.4.1-SNAPSHOT
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
 
-## 2022-xx-xx v3.4.0-SNAPSHOT
+## 2022-07-05 v3.4.0
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
 * [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
 * [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
@@ -36,14 +36,41 @@
 * [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
 * [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
 * [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
-* [MODINV-686](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
+* [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
 * [MODSOURMAN-806](https://issues.folio.org/browse/MODSOURMAN-806) Construct JournalRecord for DI_ERRORs even if there is no Record .
 
-## 2022-xx-xx v3.3.3-SNAPSHOT
+## 2022-04-08 v3.3.8
+* [MODSOURMAN-768](https://issues.folio.org/browse/MODSOURMAN-768) Fix schema upgrade for SRM
+
+## 2022-04-07 v3.3.7
+* [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
+* [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
+* [MODSOURMAN-762](https://issues.folio.org/browse/MODSOURMAN-762) Fix migration issues
+
+## 2022-04-06 v3.3.6
+* [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
+* [MODSOURMAN-756](https://issues.folio.org/browse/MODSOURMAN-751) Fix unnecessary No content logs in View All page when import fails
+
+## 2022-04-01 v3.3.5
+* [MODSOURMAN-752](https://issues.folio.org/browse/MODSOURMAN-752) Fix PgException while restore mapping rules
+
+## 2022-04-01 v3.3.4
+* [MODSOURMAN-749](https://issues.folio.org/browse/MODSOURMAN-749) Make it possible to restore default mapping rules for Authority records
+
+## 2022-03-30 v3.3.3
 * [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
 
-## 2022-xx-xx v3.3.2-SNAPSHOT
-* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fails to upgrade from mod-source-record-manager-3.3.0-SNAPSHOT.115 to v3.3.0
+## 2022-03-29 v3.3.2
+* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fix migration issue during upgrade
+* [MODSOURMAN-741](https://issues.folio.org/browse/MODSOURMAN-741) Add missed `inventory-storage.holdings-sources.collection.get` permission
+
+## 2022-03-26 v3.3.1
+* [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
+* [MODSOURMAN-724](https://issues.folio.org/browse/MODSOURMAN-724) SRM does not process and save error records
+* [MODSOURMAN-727](https://issues.folio.org/browse/MODSOURMAN-727) Fix mapping for Authority 010 tag
+* [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
+* [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
+* [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
 
 ## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks
