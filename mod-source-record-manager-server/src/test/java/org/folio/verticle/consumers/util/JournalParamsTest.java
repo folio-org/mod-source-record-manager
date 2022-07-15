@@ -25,6 +25,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 
 import java.util.Collections;
@@ -279,6 +281,16 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibRecordUpdated() {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_UPDATED, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiSrsMarcHoldingsRecordUpdated() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDINGS_RECORD_UPDATED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiSrsMarcHoldingsRecordMatched() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDINGS_RECORD_MATCHED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.MATCH);
   }
 
   private void populateEntityTypeAndActionTypeByEventType(DataImportEventTypes eventType, JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
