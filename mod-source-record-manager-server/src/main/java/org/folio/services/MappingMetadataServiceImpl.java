@@ -84,7 +84,11 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
     return mappingParametersProvider.get(jobExecutionId, okapiParams)
       .compose(mappingParameters -> mappingParamsSnapshotDao.save(mappingParameters, jobExecutionId, okapiParams.getTenantId())
         .map(mappingParameters))
-      .onSuccess(mappingParameters -> mappingParamsCache.put(jobExecutionId, mappingParameters));
+      .onSuccess(mappingParameters -> {
+        if (mappingParameters != null) {
+          mappingParamsCache.put(jobExecutionId, mappingParameters);
+        }
+      });
   }
 
   @Override
@@ -94,7 +98,11 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
       .compose(rules -> mappingRulesSnapshotDao.save(rules, jobExecutionId, tenantId)
         .map(rules))
-      .onSuccess(mappingRules -> mappingRulesCache.put(jobExecutionId, mappingRules));
+      .onSuccess(mappingRules -> {
+        if (mappingRules != null) {
+          mappingRulesCache.put(jobExecutionId, mappingRules);
+        }
+      });
   }
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
