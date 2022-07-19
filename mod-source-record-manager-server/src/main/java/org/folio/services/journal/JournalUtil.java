@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -30,26 +29,10 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 public class JournalUtil {
 
   public static final String ERROR_KEY = "ERROR";
-  private static final String EVENT_HAS_NO_DATA_MSG = "Failed to handle %s event, because event payload context does not contain %s and/or %s data";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
 
   private JournalUtil() {
 
-  }
-
-  public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload event, JournalRecord.ActionType actionType,
-                                                        JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
-    var context = event.getContext();
-    String entityAsString = context.get(entityType.value());
-    String recordAsString = extractRecord(context);
-
-    if (INSTANCE.equals(entityType)) {
-      if (isAnyEmpty(entityAsString, recordAsString)) {
-        throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(), INSTANCE.value(), MARC_BIBLIOGRAPHIC.value()));
-      }
-    }
-
-    return buildJournalRecord(event, actionType, entityType, actionStatus);
   }
 
   private static String extractRecord(HashMap<String, String> context) {
@@ -59,8 +42,8 @@ public class JournalUtil {
       .orElse(EMPTY);
   }
 
-  public static JournalRecord buildJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
-                                                 JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
+  public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                        JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
 
