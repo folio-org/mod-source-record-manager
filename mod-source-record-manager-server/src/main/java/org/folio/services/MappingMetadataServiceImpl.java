@@ -2,12 +2,12 @@ package org.folio.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import org.folio.Record;
 import org.folio.dao.MappingParamsSnapshotDao;
 import org.folio.dao.MappingRulesSnapshotDao;
@@ -16,13 +16,11 @@ import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingPa
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import io.vertx.core.json.JsonObject;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
