@@ -1,6 +1,12 @@
 package org.folio.services;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import org.folio.Record;
 import org.folio.dao.MappingParamsSnapshotDao;
@@ -14,6 +20,9 @@ import io.vertx.core.json.JsonObject;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class MappingMetadataServiceImpl implements MappingMetadataService {
@@ -22,6 +31,17 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   private final MappingRuleService mappingRuleService;
   private final MappingRulesSnapshotDao mappingRulesSnapshotDao;
   private final MappingParamsSnapshotDao mappingParamsSnapshotDao;
+  private final Cache<String, MappingParameters> mappingParamsCache;
+  private final Cache<String, JsonObject> mappingRulesCache;
+  private final Executor cacheExecutor = serviceExecutor -> {
+    Context context = Vertx.currentContext();
+    if (context != null) {
+      context.runOnContext(ar -> serviceExecutor.run());
+    } else {
+      // The common pool below is used because it is the  default executor for caffeine
+      ForkJoinPool.commonPool().execute(serviceExecutor);
+    }
+  };
 
   public MappingMetadataServiceImpl(@Autowired MappingParametersProvider mappingParametersProvider,
                                     @Autowired MappingRuleService mappingRuleService,
@@ -31,25 +51,42 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
     this.mappingRuleService = mappingRuleService;
     this.mappingRulesSnapshotDao = mappingRulesSnapshotDao;
     this.mappingParamsSnapshotDao = mappingParamsSnapshotDao;
+
+    this.mappingParamsCache = Caffeine.newBuilder()
+      .maximumSize(20)
+      .executor(cacheExecutor)
+      .build();
+
+    this.mappingRulesCache = Caffeine.newBuilder()
+      .maximumSize(20)
+      .executor(cacheExecutor)
+      .build();
   }
 
   @Override
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    return retrieveMappingParameters(jobExecutionId, okapiParams)
-      .compose(mappingParameters ->
-        retrieveMappingRules(jobExecutionId, okapiParams.getTenantId())
-          .compose(mappingRules -> Future.succeededFuture(
-            new MappingMetadataDto()
-              .withJobExecutionId(jobExecutionId)
-              .withMappingParams(Json.encode(mappingParameters))
-              .withMappingRules(mappingRules.encode()))));
+    MappingParameters cachedMappingParams = mappingParamsCache.getIfPresent(jobExecutionId);
+    JsonObject cacheMappingRules = mappingRulesCache.getIfPresent(jobExecutionId);
+    if (cacheMappingRules == null || cachedMappingParams == null) {
+      return CompositeFuture.all(retrieveMappingParameters(jobExecutionId, okapiParams),
+          retrieveMappingRules(jobExecutionId, okapiParams.getTenantId()))
+        .compose(res -> Future.succeededFuture(new MappingMetadataDto()
+          .withJobExecutionId(jobExecutionId)
+          .withMappingParams(Json.encode(res.resultAt(0)))
+          .withMappingRules(((JsonObject) res.resultAt(1)).encode())));
+    }
+    return Future.succeededFuture(new MappingMetadataDto()
+      .withJobExecutionId(jobExecutionId)
+      .withMappingParams(Json.encode(cachedMappingParams))
+      .withMappingRules((cacheMappingRules.encode())));
   }
 
   @Override
   public Future<MappingParameters> saveMappingParametersSnapshot(String jobExecutionId, OkapiConnectionParams okapiParams) {
     return mappingParametersProvider.get(jobExecutionId, okapiParams)
       .compose(mappingParameters -> mappingParamsSnapshotDao.save(mappingParameters, jobExecutionId, okapiParams.getTenantId())
-        .map(mappingParameters));
+        .map(mappingParameters))
+      .onSuccess(mappingParameters -> mappingParamsCache.put(jobExecutionId, mappingParameters));
   }
 
   @Override
@@ -58,7 +95,8 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
       .map(rulesOptional -> rulesOptional.orElseThrow(() ->
         new NotFoundException(String.format("Mapping rules are not found for tenant id '%s'", tenantId))))
       .compose(rules -> mappingRulesSnapshotDao.save(rules, jobExecutionId, tenantId)
-        .map(rules));
+        .map(rules))
+      .onSuccess(mappingRules -> mappingRulesCache.put(jobExecutionId, mappingRules));
   }
 
   private Future<MappingParameters> retrieveMappingParameters(String jobExecutionId, OkapiConnectionParams okapiParams) {
