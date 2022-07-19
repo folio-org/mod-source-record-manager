@@ -22,7 +22,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHOR
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
@@ -55,6 +57,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_SRS_MARC_BIB_RECORD_NOT_MATCHED.value(),
       DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED.value(),
       DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED.value(),
+      DI_SRS_MARC_HOLDINGS_RECORD_MATCHED.value(),
       DI_INVENTORY_INSTANCE_CREATED.value(),
       DI_INVENTORY_INSTANCE_UPDATED.value(),
       DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING.value(),
@@ -71,6 +74,7 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value(),
       DI_LOG_SRS_MARC_BIB_RECORD_UPDATED.value(),
       DI_SRS_MARC_HOLDING_RECORD_CREATED.value(),
+      DI_SRS_MARC_HOLDINGS_RECORD_UPDATED.value(),
       DI_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
       DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED.value(),
       DI_COMPLETED.value(),
