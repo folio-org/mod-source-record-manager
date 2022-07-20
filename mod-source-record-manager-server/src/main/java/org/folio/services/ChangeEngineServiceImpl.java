@@ -225,7 +225,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean updateMarcActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY),
+      List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY, FolioRecord.MARC_HOLDINGS),
       Action.UPDATE);
   }
 
