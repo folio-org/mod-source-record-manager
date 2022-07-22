@@ -51,7 +51,6 @@ import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.util.EventHandlingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,8 +72,6 @@ public class ChangeEngineServiceImplTest {
   private JobExecutionService jobExecutionService;
   @Mock
   private MarcRecordAnalyzer marcRecordAnalyzer;
-  @Mock
-  private HrIdFieldService hrIdFieldService;
   @Mock
   private RecordsPublishingService recordsPublishingService;
   @Mock

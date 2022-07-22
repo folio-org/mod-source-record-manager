@@ -14,6 +14,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -1133,7 +1134,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotReturnDeletedJobExecutionRecords(TestContext context) {
+  public void shouldNotReturnDeletedJobExecutionRecords() {
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
 
     putJobExecution(createdJobExecution);
@@ -1230,6 +1231,48 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldNotReturnJobProfilesForJobExecutionsMarkedAsDeleted() {
+    String nonExpectedJobProfileId = UUID.randomUUID().toString();
+    List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobs.size(); i++) {
+      String id = (i % 2 == 0) ? nonExpectedJobProfileId : UUID.randomUUID().toString();
+      childJobs.get(i).withJobProfileInfo(new JobProfileInfo()
+        .withId(id)
+        .withName("test")
+        .withDataType(MARC));
+      putJobExecution(childJobs.get(i));
+    }
+
+    List<String> jobIdsToMarkAsDeleted = childJobs.stream()
+      .filter(job -> job.getJobProfileInfo().getId().equals(nonExpectedJobProfileId))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks job executions as deleted which contain nonExpectedJobProfileId in the jobProfileInfo
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    int expectedProfilesNumber = childJobs.size() / 2;
+    RestAssured.given()
+      .spec(spec)
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo.size()", is(expectedProfilesNumber))
+      .body("jobProfilesInfo*.id", everyItem(not(is(nonExpectedJobProfileId))))
+      .body("totalRecords", is(expectedProfilesNumber));
+  }
+
+  @Test
   public void shouldReturnEmptyUsersInfoCollection() {
     RestAssured.given()
       .spec(spec)
@@ -1308,4 +1351,42 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
       .body("totalRecords", is(1));
   }
+
+  @Test
+  public void shouldNotReturnUsersForJobExecutionsMarkedAsDeleted() {
+    String nonExpectedUserId = UUID.randomUUID().toString();
+    // Creates 1 parent job and 3 child job executions
+    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+
+    for (int i = 0; i < jobExecutions.size(); i++) {
+      String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
+      putJobExecution(jobExecutions.get(i).withUserId(userId));
+    }
+
+    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+      .filter(job -> job.getUserId().equals(nonExpectedUserId))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks job executions as deleted which contain nonExpectedUserId
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    int expectedProfilesNumber = jobExecutions.size() / 2;
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo.size()", is(expectedProfilesNumber))
+      .body("jobExecutionUsersInfo*.id", everyItem(not(is(nonExpectedUserId))))
+      .body("totalRecords", is(expectedProfilesNumber));
+  }
+
 }
