@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -102,6 +103,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
+  private static final Set<String> CASE_INSENSITIVE_SORTABLE_FIELDS =
+    Set.of("job_profile_name", "job_user_first_name", "job_user_last_name");
 
   //Below constants are used for building db query related to job execution deletions
   public static final String ID = "id";
@@ -459,8 +462,14 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       return EMPTY;
     }
     return sortFields.stream()
-      .map(SortField::toString)
+      .map(sortField -> CASE_INSENSITIVE_SORTABLE_FIELDS.contains(sortField.getField())
+        ? wrapWithLowerCase(sortField)
+        : sortField.toString())
       .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
+  }
+
+  private String wrapWithLowerCase(SortField sortField) {
+    return String.format("lower(%s) %s", sortField.getField(), sortField.getOrder());
   }
 
   @Override
