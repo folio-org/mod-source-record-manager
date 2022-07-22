@@ -104,7 +104,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
   private static final Set<String> CASE_INSENSITIVE_SORTABLE_FIELDS =
-    Set.of("file_name, job_profile_name", "job_user_first_name", "job_user_last_name");
+    Set.of("file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
 
   //Below constants are used for building db query related to job execution deletions
   public static final String ID = "id";
