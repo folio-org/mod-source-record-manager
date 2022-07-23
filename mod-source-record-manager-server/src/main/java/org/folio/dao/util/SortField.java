@@ -10,6 +10,14 @@ public class SortField {
     this.order = order;
   }
 
+  public String getField() {
+    return field;
+  }
+
+  public String getOrder() {
+    return order;
+  }
+
   @Override
   public String toString() {
     return String.format("%s %s", field, order);

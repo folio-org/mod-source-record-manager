@@ -74,6 +74,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasSize;
@@ -564,6 +565,41 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutions.size()", is(expectedJobExecutionsNumber))
       .body("totalRecords", is(expectedJobExecutionsNumber))
       .body("jobExecutions*.userId", everyItem(is(userId)));
+  }
+
+  @Test
+  public void shouldReturnCaseInsensitivelySortedCollectionByJobProfileName() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    List<String> profilesNames = List.of("air", "Apple", "driver", "Zero");
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      childJobsToUpdate.get(i).withJobProfileInfo(new JobProfileInfo()
+        .withId(UUID.randomUUID().toString())
+        .withName(profilesNames.get(i))
+        .withDataType(MARC));
+      putJobExecution(childJobsToUpdate.get(i));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size();
+    JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "job_profile_name,asc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    List<JobExecutionDto> jobExecutions = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
+    assertThat(jobExecutions.get(0).getJobProfileInfo().getName().toLowerCase(), lessThan(jobExecutions.get(1).getJobProfileInfo().getName().toLowerCase()));
+    assertThat(jobExecutions.get(1).getJobProfileInfo().getName().toLowerCase(), lessThan(jobExecutions.get(2).getJobProfileInfo().getName().toLowerCase()));
+    assertThat(jobExecutions.get(2).getJobProfileInfo().getName().toLowerCase(), lessThan(jobExecutions.get(3).getJobProfileInfo().getName().toLowerCase()));
   }
 
   @Test
