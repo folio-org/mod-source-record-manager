@@ -1367,15 +1367,17 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldNotReturnUsersForJobExecutionsMarkedAsDeleted() {
     String nonExpectedUserId = UUID.randomUUID().toString();
     // Creates 1 parent job and 4 child job executions
-    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
+    List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
+      .filter(job -> job.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
 
-    for (int i = 0; i < jobExecutions.size(); i++) {
+    for (int i = 0; i < childJobs.size(); i++) {
       String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
-      putJobExecution(jobExecutions.get(i).withUserId(userId)
+      putJobExecution(childJobs.get(i).withUserId(userId)
         .withStatus(COMMITTED));
     }
 
-    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+    List<String> jobIdsToMarkAsDeleted = childJobs.stream()
       .filter(job -> job.getUserId().equals(nonExpectedUserId))
       .map(JobExecution::getId)
       .collect(Collectors.toList());
@@ -1389,7 +1391,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
 
-    int expectedProfilesNumber = jobExecutions.size() / 2;
+    int expectedProfilesNumber = childJobs.size() / 2;
     RestAssured.given()
       .spec(spec)
       .when()
