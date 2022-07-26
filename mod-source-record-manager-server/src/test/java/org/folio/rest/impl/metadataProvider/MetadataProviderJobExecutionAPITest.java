@@ -1355,8 +1355,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnUsersForJobExecutionsMarkedAsDeleted() {
     String nonExpectedUserId = UUID.randomUUID().toString();
-    // Creates 1 parent job and 3 child job executions
-    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+    // Creates 1 parent job and 4 child job executions
+    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
 
     for (int i = 0; i < jobExecutions.size(); i++) {
       String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
