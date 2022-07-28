@@ -80,6 +80,7 @@ import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.RecordConversionUtil;
@@ -105,6 +106,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
   private final RecordAnalyzer marcRecordAnalyzer;
+  private final HrIdFieldService hrIdFieldService;
   private final RecordsPublishingService recordsPublishingService;
   private final MappingMetadataService mappingMetadataService;
   private final KafkaConfig kafkaConfig;
@@ -118,12 +120,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired MarcRecordAnalyzer marcRecordAnalyzer,
+                                 @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
+    this.hrIdFieldService = hrIdFieldService;
     this.recordsPublishingService = recordsPublishingService;
     this.mappingMetadataService = mappingMetadataService;
     this.kafkaConfig = kafkaConfig;
@@ -526,6 +530,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
+        hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
         }
