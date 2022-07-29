@@ -1391,16 +1391,16 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
 
-    int expectedProfilesNumber = childJobs.size() / 2;
+    int expectedUsersNumber = childJobs.size() / 2;
     RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_UNIQUE_USERS_INFO)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionUsersInfo.size()", is(expectedProfilesNumber))
+      .body("jobExecutionUsersInfo.size()", is(expectedUsersNumber))
       .body("jobExecutionUsersInfo*.id", everyItem(not(is(nonExpectedUserId))))
-      .body("totalRecords", is(expectedProfilesNumber));
+      .body("totalRecords", is(expectedUsersNumber));
   }
 
   @Test
