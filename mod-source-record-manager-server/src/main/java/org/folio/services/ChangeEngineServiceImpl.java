@@ -147,6 +147,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
         if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)) {
+          hrIdFieldService.move001valueTo035Field(parsedRecords);
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);
@@ -530,7 +531,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
-        hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
         }
