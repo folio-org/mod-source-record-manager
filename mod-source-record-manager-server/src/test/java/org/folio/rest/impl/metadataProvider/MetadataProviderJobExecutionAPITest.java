@@ -1355,8 +1355,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnUsersForJobExecutionsMarkedAsDeleted() {
     String nonExpectedUserId = UUID.randomUUID().toString();
-    // Creates 1 parent job and 3 child job executions
-    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+    // Creates 1 parent job and 4 child job executions
+    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
 
     for (int i = 0; i < jobExecutions.size(); i++) {
       String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
@@ -1387,6 +1387,35 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionUsersInfo.size()", is(expectedProfilesNumber))
       .body("jobExecutionUsersInfo*.id", everyItem(not(is(nonExpectedUserId))))
       .body("totalRecords", is(expectedProfilesNumber));
+  }
+
+  @Test
+  public void shouldNotReturnUsersForParentJobExecutions() {
+    // Creates 1 parent job and 3 child job executions
+    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+
+    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+      .filter(job -> job.getSubordinationType().equals(CHILD))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks child job executions as deleted which contain nonExpectedUserId
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo.size()", is(0))
+      .body("totalRecords", is(0));
   }
 
 }
