@@ -80,6 +80,7 @@ import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.RecordConversionUtil;
@@ -105,6 +106,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
   private final RecordAnalyzer marcRecordAnalyzer;
+  private final HrIdFieldService hrIdFieldService;
   private final RecordsPublishingService recordsPublishingService;
   private final MappingMetadataService mappingMetadataService;
   private final KafkaConfig kafkaConfig;
@@ -118,12 +120,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public ChangeEngineServiceImpl(@Autowired JobExecutionSourceChunkDao jobExecutionSourceChunkDao,
                                  @Autowired JobExecutionService jobExecutionService,
                                  @Autowired MarcRecordAnalyzer marcRecordAnalyzer,
+                                 @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
+    this.hrIdFieldService = hrIdFieldService;
     this.recordsPublishingService = recordsPublishingService;
     this.mappingMetadataService = mappingMetadataService;
     this.kafkaConfig = kafkaConfig;
@@ -143,6 +147,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
         if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)) {
+          hrIdFieldService.move001valueTo035Field(parsedRecords);
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
             .onFailure(promise::fail);

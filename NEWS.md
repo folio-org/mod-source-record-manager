@@ -35,7 +35,6 @@
 * [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
 * [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
 * [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
-* [MODSOURCE-509](https://issues.folio.org/browse/MODSOURCE-509) Data Import Updates should add 035 field if it's not HRID or it is already exists. Removed HridFieldService
 * [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
 * [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
 * [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
