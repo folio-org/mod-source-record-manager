@@ -1,5 +1,6 @@
 ## 2022-xx-xx v3.4.1-SNAPSHOT
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
+* [MODSOURMAN-836](https://issues.folio.org/browse/MODSOURMAN-836) Return job users and profiles only for jobs with COMMITTED, ERROR, CANCELED statuses
 * [MODSOURMAN-823](https://issues.folio.org/browse/MODSOURMAN-823) View all logs: broken alphabetical sorting via the "Job profile" column
 
 ## 2022-07-05 v3.4.0
