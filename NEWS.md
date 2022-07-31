@@ -1,3 +1,6 @@
+## 2022-07-31 v3.3.9
+* [MODSOURMAN-841](https://issues.folio.org/browse/MODSOURMAN-841) Allow matching by newly constructed 035 fields in incoming file loaded for Update
+
 ## 2022-04-08 v3.3.8
 * [MODSOURMAN-768](https://issues.folio.org/browse/MODSOURMAN-768) Fix schema upgrade for SRM
 
