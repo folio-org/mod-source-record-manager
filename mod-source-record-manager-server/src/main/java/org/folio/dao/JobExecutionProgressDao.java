@@ -51,4 +51,16 @@ public interface JobExecutionProgressDao {
    * @return future with updated jobExecutionProgress
    */
   Future<JobExecutionProgress> updateByJobExecutionId(String jobExecutionId, UnaryOperator<JobExecutionProgress> progressMutator, String tenantId);
+
+  /**
+   * Updates jobExecutionProgress entity by jobExecutionId in database by adding delta to existing success and error
+   * counts.
+   *
+   * @param jobExecutionId  jobExecution id
+   * @param successCountDelta number of successful executions
+   * @param errorCountDelta number of failed executions
+   * @param tenantId        tenant id
+   * @return future with updated jobExecutionProgress
+   */
+  Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId);
 }

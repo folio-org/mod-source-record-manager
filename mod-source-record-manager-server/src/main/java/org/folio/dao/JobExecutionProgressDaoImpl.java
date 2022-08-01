@@ -22,6 +22,7 @@ import org.folio.rest.tools.utils.ValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import static java.lang.String.format;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
@@ -37,6 +38,12 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   private static final String TABLE_NAME = "job_execution_progress";
   private static final String INSERT_SQL = "INSERT INTO %s.%s (job_execution_id, total_records_count, succeeded_records_count, error_records_count) VALUES ($1, $2, $3, $4)";
   private static final String UPDATE_SQL = "UPDATE %s.%s SET job_execution_id = $1, total_records_count = $2, succeeded_records_count = $3, error_records_count = $4 WHERE job_execution_id = $1";
+  private static final String UPDATE_DELTA_SQL = "UPDATE %s.%s SET " +
+    "succeeded_records_count = succeeded_records_count + $2, " +
+    "error_records_count = error_records_count + $3 " +
+    "WHERE job_execution_id = $1 " +
+    "Returning *";
+
   private static final String SELECT_BY_JOB_EXECUTION_ID = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String SELECT_BY_JOB_EXECUTION_ID_FOR_UPDATE = "SELECT * FROM %s.%s WHERE job_execution_id = $1 LIMIT 1 FOR UPDATE";
   private static final String ROLLBACK_MESSAGE = "Rollback transaction. Failed to update jobExecutionProgress with job_execution_id: %s";
@@ -109,6 +116,27 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         }
       });
     return promise.future();
+  }
+
+  @Override
+  public Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      String preparedQuery = format(UPDATE_DELTA_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
+      Tuple queryParams = Tuple.of(jobExecutionId, successCountDelta, errorCountDelta);
+      pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams, promise);
+    } catch (Exception e) {
+      LOGGER.error("Error updating jobExecutionProgress", e);
+      promise.fail(e);
+    }
+    return promise.future().compose(rowSet -> {
+      if (rowSet.rowCount() != 1) {
+        String errorMessage = String.format("Single result was not returned " +
+            "when JobExecutionProgress with id '%s' was updated", jobExecutionId);
+        return Future.failedFuture(new NotFoundException(errorMessage));
+      }
+      return Future.succeededFuture(mapRowToJobExecutionProgress(rowSet.iterator().next()));
+    });
   }
 
   private Future<JobExecutionProgress> updateProgressByJobExecutionId(AsyncResult<SQLConnection> tx, JobExecutionProgress progress, String tenantId) {

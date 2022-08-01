@@ -39,4 +39,20 @@ public interface JobExecutionProgressService {
    * @return future with updated jobExecutionProgress
    */
   Future<JobExecutionProgress> updateJobExecutionProgress(String jobExecutionId, UnaryOperator<JobExecutionProgress> progressMutator, String tenantId);
+
+  /**
+   * Updates jobExecutionProgress entity by adding deltas to the number of success and error counts.
+   * <p>
+   * EXAMPLE:
+   *  a success count of 5 and an error count of 0 means that the success count will be increased by 5 and the
+   *  error count will remain unchanged in jobExecutionProgress entity.
+   *
+   *
+   * @param jobExecutionId  jobExecution id
+   * @param successCountDelta number of successful executions
+   * @param errorCountDelta number of failed executions
+   * @param tenantId        tenant id
+   * @return future with updated jobExecutionProgress
+   */
+  Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId);
 }
