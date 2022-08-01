@@ -3,6 +3,8 @@ package org.folio.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -12,10 +14,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.journal.JournalService;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -49,8 +49,8 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     Promise<Boolean> promise = Promise.promise();
     DataImportEventPayload dataImportEventPayload;
     try {
-      dataImportEventPayload = new ObjectMapper().readValue(eventContent, DataImportEventPayload.class);
-    } catch (IOException e) {
+      dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayload.class);
+    } catch (DecodeException e) {
       LOGGER.error("Failed to read eventContent {}", eventContent, e);
       promise.fail(e);
       return promise.future();
@@ -67,6 +67,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         errorCount++;
       } else {
         LOGGER.error("Illegal event type specified '{}' ", eventType);
+        return Future.succeededFuture(false);
       }
 
       jobExecutionProgressService.updateCompletionCounts(jobExecutionId, successCount, errorCount, params.getTenantId())

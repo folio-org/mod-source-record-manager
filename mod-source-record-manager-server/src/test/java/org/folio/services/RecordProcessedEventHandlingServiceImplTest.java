@@ -7,16 +7,14 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -60,6 +58,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -349,6 +348,10 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .withEventType(DataImportEventTypes.DI_ERROR.value())
       .withContext(payloadContext);
 
+    DataImportEventPayload datImpOtherEventPayload = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_UPDATED.value())
+      .withContext(payloadContext);
+
     DataImportEventPayload datImpCompletedEventPayload = new DataImportEventPayload()
       .withEventType(DataImportEventTypes.DI_COMPLETED.value())
       .withContext(payloadContext);
@@ -364,6 +367,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // when
     Future<Optional<JobExecution>> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpErrorEventPayload), params))
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpOtherEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
       .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
 
@@ -378,6 +382,34 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       context.assertNotNull(jobExecution.getStartedDate());
       context.assertNotNull(jobExecution.getCompletedDate());
       verify(2, putRequestedFor(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true)));
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldMarkJobExecutionAsErrorOnHandleDIOtherEvent(TestContext context) {
+    // given
+    Async async = context.async();
+
+    HashMap<String, String> payloadContext = new HashMap<>();
+
+    DataImportEventPayload datImpOtherEventPayload = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_UPDATED.value())
+      .withContext(payloadContext);
+
+
+    Future<DataImportEventPayload> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .map(jobExecution -> datImpOtherEventPayload.withJobExecutionId(jobExecution.getId()));
+
+    // when
+    Future<Boolean> jobFuture = future
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpOtherEventPayload), params));
+
+    // then
+    jobFuture.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      context.assertFalse(ar.result());
       async.complete();
     });
   }
