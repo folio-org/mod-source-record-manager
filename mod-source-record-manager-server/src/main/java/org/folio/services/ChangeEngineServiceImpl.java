@@ -101,6 +101,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
+  public static final String INSTANCE_CANNOT_CREATED_999ff_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999 ff";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -239,6 +240,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Action.DELETE);
   }
 
+  private boolean createInstanceActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper(),
+      List.of(FolioRecord.INSTANCE),
+      Action.CREATE);
+  }
+
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
                                                   List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
@@ -309,6 +317,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
+        parsedResult = validateIf999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
+
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
           .withId(recordId)
@@ -331,6 +341,25 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
         return record;
       }).collect(Collectors.toList());
+  }
+
+  private ParsedResult validateIf999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
+    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
+      var tmpRecord = new Record()
+        .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+      if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
+        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I))
+        && createInstanceActionExists(jobExecution)) {
+        ParsedResult result = new ParsedResult();
+        JsonObject errorObject = new JsonObject();
+        errorObject.put("error", INSTANCE_CANNOT_CREATED_999ff_ERROR_MESSAGE);
+        result.setErrors(errorObject);
+        result.setHasError(true);
+        result.setParsedRecord(parsedResult.getParsedRecord());
+        return result;
+      }
+    }
+    return parsedResult;
   }
 
   private List<Future> executeInBatches(List<Record> recordList,

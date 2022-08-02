@@ -16,7 +16,10 @@ import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
+import org.folio.services.util.EventHandlingUtil;
+import org.folio.verticle.consumers.errorhandlers.payloadbuilders.DiErrorPayloadBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
@@ -38,12 +42,16 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   public static final String USER_ID_HEADER = "userId";
   private static final AtomicInteger indexer = new AtomicInteger();
 
+  public static final String ERROR_KEY = "ERROR";
+
   private JobExecutionService jobExecutionService;
   private DataImportPayloadContextBuilder payloadContextBuilder;
   private KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
+  @Autowired
+  private List<DiErrorPayloadBuilder> errorPayloadBuilders;
 
   public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
                                       @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
@@ -80,6 +88,10 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
+        }
+        else {
+          sendDiErrorEvent(new RawChunkRecordsParsingException(record.getErrorRecord().getDescription()),
+            params, jobExecution.getId(), params.getTenantId(), record);
         }
       } catch (Exception e) {
         LOGGER.error("Error publishing event with record id: {}",record.getId(), e);
@@ -139,4 +151,21 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       .withToken(params.getToken());
   }
 
+  public void sendDiErrorEvent(Throwable throwable,
+                               OkapiConnectionParams okapiParams,
+                               String jobExecutionId,
+                               String tenantId,
+                               Record currentRecord) {
+      okapiParams.getHeaders().set(RECORD_ID_HEADER, currentRecord.getId());
+      for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
+        if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
+          LOGGER.info("Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, currentRecord.getId());
+          payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, currentRecord)
+            .compose(payload -> EventHandlingUtil.sendEventToKafka(tenantId, Json.encode(payload), DI_ERROR.value(),
+              KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
+          return;
+        }
+      }
+      LOGGER.warn("Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+  }
 }
