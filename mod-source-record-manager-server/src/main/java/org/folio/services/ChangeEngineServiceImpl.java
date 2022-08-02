@@ -101,7 +101,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  public static final String INSTANCE_CANNOT_CREATED_999ff_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999 ff";
+  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -352,7 +352,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         && createInstanceActionExists(jobExecution)) {
         ParsedResult result = new ParsedResult();
         JsonObject errorObject = new JsonObject();
-        errorObject.put("error", INSTANCE_CANNOT_CREATED_999ff_ERROR_MESSAGE);
+        errorObject.put("error", INSTANCE_CREATION_999_ERROR_MESSAGE);
         result.setErrors(errorObject);
         result.setHasError(true);
         result.setParsedRecord(parsedResult.getParsedRecord());
