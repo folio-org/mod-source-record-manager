@@ -154,19 +154,22 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     }
 
     for (Record record : storedRecords) {
-      JournalRecord journalRecord = new JournalRecord()
-        .withJobExecutionId(record.getSnapshotId())
-        .withSourceRecordOrder(record.getOrder())
-        .withSourceId(record.getId())
-        .withEntityType(entityType)
-        .withEntityId(record.getId())
-        .withActionType(CREATE)
-        .withActionStatus(COMPLETED)
-        .withActionDate(new Date())
-        .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
-          ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null);
 
-      journalRecords.add(JsonObject.mapFrom(journalRecord));
+      if (record.getErrorRecord() == null) {
+        JournalRecord journalRecord = new JournalRecord()
+          .withJobExecutionId(record.getSnapshotId())
+          .withSourceRecordOrder(record.getOrder())
+          .withSourceId(record.getId())
+          .withEntityType(entityType)
+          .withEntityId(record.getId())
+          .withActionType(CREATE)
+          .withActionStatus(COMPLETED)
+          .withActionDate(new Date())
+          .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
+            ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null);
+
+        journalRecords.add(JsonObject.mapFrom(journalRecord));
+      }
     }
     return journalRecords;
   }
