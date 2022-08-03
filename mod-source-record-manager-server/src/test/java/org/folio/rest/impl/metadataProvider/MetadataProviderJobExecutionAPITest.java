@@ -50,6 +50,9 @@ import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
+import static org.folio.rest.jaxrs.model.JobExecution.Status.FILE_UPLOADED;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
@@ -261,7 +264,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     for (int i = 0; i < childJobsToUpdate.size(); i++) {
       if (i % 2 == 0) {
         childJobsToUpdate.get(i)
-          .withStatus(JobExecution.Status.COMMITTED)
+          .withStatus(COMMITTED)
           .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE);
       }
       createdJobExecution.get(i).setCompletedDate(new Date(1234567892000L + i));
@@ -279,7 +282,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTIONS_PATH)
       .then().log().all()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutions*.status", everyItem(is(JobExecution.Status.COMMITTED.value())))
+      .body("jobExecutions*.status", everyItem(is(COMMITTED.value())))
       .body("jobExecutions*.uiStatus", everyItem(is(JobExecution.UiStatus.RUNNING_COMPLETE.value())))
       .extract().response().body().as(JobExecutionDtoCollection.class);
 
@@ -1187,6 +1190,36 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnJobProfilesForJobExecutionsWithFinalStatus() {
+    String nonExpectedJobProfileId = UUID.randomUUID().toString();
+    List<JobExecution.Status> statuses = List.of(COMMITTED, JobExecution.Status.ERROR, CANCELLED, FILE_UPLOADED);
+    List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(statuses.size()).getJobExecutions().stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+
+    for (int i = 0; i < childJobs.size(); i++) {
+      JobExecution.Status status = statuses.get(i);
+      childJobs.get(i).withStatus(status)
+        .withJobProfileInfo(new JobProfileInfo()
+          .withId(status.equals(FILE_UPLOADED) ? nonExpectedJobProfileId : UUID.randomUUID().toString())
+          .withName("test")
+          .withDataType(MARC));
+      putJobExecution(childJobs.get(i));
+    }
+
+    // We expect users items only for the jobs with COMMITTED, ERROR, CANCELLED status and do not expect for FILE_UPLOADED
+    int expectedProfilesNumber = statuses.size() - 1;
+    RestAssured.given()
+      .spec(spec)
+      .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobProfilesInfo.size()", is(expectedProfilesNumber))
+      .body("jobProfilesInfo*.id", everyItem(not(is(nonExpectedJobProfileId))))
+      .body("totalRecords", is(expectedProfilesNumber));
+  }
+
+  @Test
   public void shouldReturnLimitedRelatedProfilesCollectionOnGetWithLimit() {
     int uniqueJobProfilesAmount = 5;
     int limitNumber = 3;
@@ -1198,14 +1231,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("Marc jobs profile"));
 
-      RestAssured.given()
-        .spec(spec)
-        .body(JsonObject.mapFrom(jobExecution).toString())
-        .when()
-        .put(JOB_EXECUTION_PATH + jobExecution.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", is(jobExecution.getId()));
+      putJobExecution(jobExecution.withStatus(COMMITTED));
     }
 
     RestAssured.given()
@@ -1239,10 +1265,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     for (int i = 0; i < childJobs.size(); i++) {
       String id = (i % 2 == 0) ? nonExpectedJobProfileId : UUID.randomUUID().toString();
-      childJobs.get(i).withJobProfileInfo(new JobProfileInfo()
-        .withId(id)
-        .withName("test")
-        .withDataType(MARC));
+      childJobs.get(i).withStatus(COMMITTED)
+        .withJobProfileInfo(new JobProfileInfo()
+          .withId(id)
+          .withName("test")
+          .withDataType(MARC));
       putJobExecution(childJobs.get(i));
     }
 
@@ -1265,7 +1292,6 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .spec(spec)
       .get(GET_JOB_EXECUTION_JOB_PROFILES_PATH)
       .then()
-      .log().all()
       .statusCode(HttpStatus.SC_OK)
       .body("jobProfilesInfo.size()", is(expectedProfilesNumber))
       .body("jobProfilesInfo*.id", everyItem(not(is(nonExpectedJobProfileId))))
@@ -1283,27 +1309,22 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionUsersInfo", empty())
       .body("totalRecords", is(0));
   }
+
   @Test
-  public void shouldReturnUsersInfoCollection() {
-    int uniqueJobProfilesAmount = 5;
-    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+  public void shouldReturnUsersInfoCollectionForJobsWithFinalStatus() {
+    List<JobExecution.Status> statuses = List.of(COMMITTED, JobExecution.Status.ERROR, CANCELLED, FILE_UPLOADED);
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(statuses.size()).getJobExecutions();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
-    for (JobExecution jobExecution : children) {
-      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
-        .withName("Marc jobs profile"));
-
-      RestAssured.given()
-        .spec(spec)
-        .body(JsonObject.mapFrom(jobExecution).toString())
-        .when()
-        .put(JOB_EXECUTION_PATH + jobExecution.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", is(jobExecution.getId()));
+    for (int i = 0; i < children.size(); i++) {
+      JobExecution jobExecution = children.get(i);
+      putJobExecution(jobExecution.withStatus(statuses.get(i))
+        .withUserId(UUID.randomUUID().toString()));
     }
 
+    // We expect users items only for the jobs with COMMITTED, ERROR, CANCELLED status and do not expect for FILE_UPLOADED
+    int expectedUsersItemsNumber = statuses.size() - 1;
     RestAssured.given()
       .spec(spec)
       .when()
@@ -1313,7 +1334,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("jobExecutionUsersInfo[0].userId", notNullValue())
       .body("jobExecutionUsersInfo[0].jobUserFirstName", is("DIKU"))
       .body("jobExecutionUsersInfo[0].jobUserLastName", is("ADMINISTRATOR"))
-      .body("totalRecords", is(1));
+      .body("jobExecutionUsersInfo.size()", is(expectedUsersItemsNumber))
+      .body("totalRecords", is(expectedUsersItemsNumber));
   }
 
   @Test
@@ -1321,23 +1343,12 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     WireMock.stubFor(get(GET_USER_URL + okapiUserIdHeader)
       .willReturn(okJson(userResponse.toString())));
 
-    int uniqueJobProfilesAmount = 5;
-    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(uniqueJobProfilesAmount).getJobExecutions();
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
 
     List<JobExecution> children = createdJobExecution.stream()
       .filter(jobExec -> jobExec.getSubordinationType().equals(CHILD)).collect(Collectors.toList());
     for (JobExecution jobExecution : children) {
-      jobExecution.setJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
-        .withName("Marc jobs profile"));
-
-      RestAssured.given()
-        .spec(spec)
-        .body(JsonObject.mapFrom(jobExecution).toString())
-        .when()
-        .put(JOB_EXECUTION_PATH + jobExecution.getId())
-        .then()
-        .statusCode(HttpStatus.SC_OK)
-        .body("id", is(jobExecution.getId()));
+      putJobExecution(jobExecution.withStatus(COMMITTED));
     }
 
     RestAssured.given()
@@ -1355,15 +1366,18 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Test
   public void shouldNotReturnUsersForJobExecutionsMarkedAsDeleted() {
     String nonExpectedUserId = UUID.randomUUID().toString();
-    // Creates 1 parent job and 3 child job executions
-    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+    // Creates 1 parent job and 4 child job executions
+    List<JobExecution> childJobs = constructAndPostInitJobExecutionRqDto(4).getJobExecutions().stream()
+      .filter(job -> job.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
 
-    for (int i = 0; i < jobExecutions.size(); i++) {
+    for (int i = 0; i < childJobs.size(); i++) {
       String userId = (i % 2 == 0) ? nonExpectedUserId : UUID.randomUUID().toString();
-      putJobExecution(jobExecutions.get(i).withUserId(userId));
+      putJobExecution(childJobs.get(i).withUserId(userId)
+        .withStatus(COMMITTED));
     }
 
-    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+    List<String> jobIdsToMarkAsDeleted = childJobs.stream()
       .filter(job -> job.getUserId().equals(nonExpectedUserId))
       .map(JobExecution::getId)
       .collect(Collectors.toList());
@@ -1377,16 +1391,45 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
 
-    int expectedProfilesNumber = jobExecutions.size() / 2;
+    int expectedUsersNumber = childJobs.size() / 2;
     RestAssured.given()
       .spec(spec)
       .when()
       .get(GET_UNIQUE_USERS_INFO)
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("jobExecutionUsersInfo.size()", is(expectedProfilesNumber))
+      .body("jobExecutionUsersInfo.size()", is(expectedUsersNumber))
       .body("jobExecutionUsersInfo*.id", everyItem(not(is(nonExpectedUserId))))
-      .body("totalRecords", is(expectedProfilesNumber));
+      .body("totalRecords", is(expectedUsersNumber));
+  }
+
+  @Test
+  public void shouldNotReturnUsersForParentJobExecutions() {
+    // Creates 1 parent job and 3 child job executions
+    List<JobExecution> jobExecutions = constructAndPostInitJobExecutionRqDto(3).getJobExecutions();
+
+    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+      .filter(job -> job.getSubordinationType().equals(CHILD))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks child job executions as deleted which contain nonExpectedUserId
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo.size()", is(0))
+      .body("totalRecords", is(0));
   }
 
 }
