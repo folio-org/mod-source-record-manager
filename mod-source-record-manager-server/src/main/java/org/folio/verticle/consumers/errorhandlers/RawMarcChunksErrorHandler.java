@@ -90,7 +90,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     }
   }
 
-  public void sendDiErrorEvent(Throwable throwable,
+  private void sendDiErrorEvent(Throwable throwable,
                                 OkapiConnectionParams okapiParams,
                                 String jobExecutionId,
                                 String tenantId,
