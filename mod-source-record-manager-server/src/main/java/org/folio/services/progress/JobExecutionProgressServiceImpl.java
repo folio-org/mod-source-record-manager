@@ -44,4 +44,12 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
     jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId);
     return jobExecutionProgressDao.updateByJobExecutionId(jobExecutionId, progressMutator, tenantId);
   }
+
+  @Override
+  public Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId) {
+    jobMonitoringService.updateByJobExecutionId(jobExecutionId, new Date(), false, tenantId);
+    return jobExecutionProgressDao.updateCompletionCounts(jobExecutionId, successCountDelta, errorCountDelta, tenantId);
+  }
+
+
 }
