@@ -1,20 +1,32 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.MappingProfile;
+import org.folio.MatchDetail;
+import org.folio.MatchProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
+import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.exceptions.UnsupportedProfileException;
 
 import javax.ws.rs.NotFoundException;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.*;
 
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
@@ -39,6 +51,11 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
+
+          if (isNotSupportedJobProfileExists(jobExecution)) {
+            throw new UnsupportedProfileException("Unsupported type of Job Profile.");
+          }
+
           JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
             .withId(incomingChunk.getId())
             .withJobExecutionId(jobExecutionId)
@@ -54,6 +71,67 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
               Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecutionId))) :
               Future.failedFuture(throwable));
         }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
+
+  private boolean isNotSupportedJobProfileExists(JobExecution jobExecution) {
+    boolean isExists = false;
+    List<ProfileSnapshotWrapper> childProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers();
+    if ((childProfiles != null) && (!childProfiles.isEmpty())) {
+      isExists = isExistsMatchProfileToInstanceWithActionUpdateMarcBib(childProfiles);
+    }
+    return isExists;
+  }
+
+  private boolean isExistsMatchProfileToInstanceWithActionUpdateMarcBib(Collection<ProfileSnapshotWrapper> profileSnapshotWrapperList) {
+    for (ProfileSnapshotWrapper profileSnapshotWrapper : profileSnapshotWrapperList) {
+      if ((profileSnapshotWrapper.getContentType() == MATCH_PROFILE) && (isMatchingMarcBibToInstance(profileSnapshotWrapper))) {
+        ProfileSnapshotWrapper actionProfileSnapshotWrapper = getChildSnapshotWrapperByType(profileSnapshotWrapper, ACTION_PROFILE);
+        if (actionProfileSnapshotWrapper != null) {
+          ProfileSnapshotWrapper mappingProfileSnapshotWrapper = getChildSnapshotWrapperByType(actionProfileSnapshotWrapper, MAPPING_PROFILE);
+          if ((mappingProfileSnapshotWrapper != null) && (isMappingMarcBibToMarcBib(mappingProfileSnapshotWrapper))) {
+            return true;
+          }
+        }
+        isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
+      }
+    }
+    return false;
+  }
+
+  private ProfileSnapshotWrapper getChildSnapshotWrapperByType(ProfileSnapshotWrapper profileSnapshotWrapper,
+                                                                       ProfileSnapshotWrapper.ContentType contentType) {
+    if (profileSnapshotWrapper.getChildSnapshotWrappers() != null && !profileSnapshotWrapper.getChildSnapshotWrappers().isEmpty()) {
+      List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
+      for(ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
+        if (snapshotWrapper.getContentType() == contentType) {
+          return snapshotWrapper;
+        }
+      }
+    }
+    return null;
+  }
+
+  private boolean isMatchingMarcBibToInstance(ProfileSnapshotWrapper profileSnapshotWrapper) {
+    MatchProfile matchProfile = isEligible(profileSnapshotWrapper, MatchProfile.class);
+    MatchDetail matchDetail = matchProfile.getMatchDetails().get(0);
+    return matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
+      && matchDetail.getExistingRecordType() == EntityType.INSTANCE;
+  }
+
+  private boolean isMappingMarcBibToMarcBib(ProfileSnapshotWrapper profileSnapshotWrapper) {
+    MappingProfile mappingProfile = isEligible(profileSnapshotWrapper, MappingProfile.class);
+    return mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
+      && mappingProfile.getExistingRecordType() == EntityType.MARC_BIBLIOGRAPHIC;
+  }
+
+  private <T> T isEligible(ProfileSnapshotWrapper profileSnapshotWrapper, Class clazz) {
+    T profile;
+    if (profileSnapshotWrapper.getContent() instanceof Map) {
+      profile = (T) new JsonObject((Map) profileSnapshotWrapper.getContent()).mapTo(clazz);
+    } else {
+      profile = (T) profileSnapshotWrapper.getContent();
+    }
+    return profile;
   }
 
   private void prepareChunk(RawRecordsDto rawRecordsDto) {

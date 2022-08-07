@@ -1504,7 +1504,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .when()
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     async.complete();
 
     async = testContext.async();
@@ -1514,7 +1514,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
+      .body("status", is(JobExecution.Status.NEW.name()))
       .body("startedDate", notNullValue(Date.class));
     async.complete();
 
