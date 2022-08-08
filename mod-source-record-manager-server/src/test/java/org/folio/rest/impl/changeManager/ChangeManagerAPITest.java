@@ -1904,7 +1904,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertEquals(recordCollection.getRecords().get(0).getMatchedId(), recordCollection.getRecords().get(0).getId());
     Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", AdditionalFieldsUtil.getValue(recordCollection.getRecords().get(0), "999", 's'));
   }
 
