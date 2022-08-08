@@ -82,7 +82,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     for (Record record : createdRecords) {
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
-        if (isRecordReadyToSend(record)) {
+        if (isParsedContentExists(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
@@ -121,7 +121,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    * @param record record for verification
    * @return true if record has parsed content
    */
-  private boolean isRecordReadyToSend(Record record) {
+  private boolean isParsedContentExists(Record record) {
     if (record.getParsedRecord() == null || record.getParsedRecord().getContent() == null) {
       LOGGER.error("Record has no parsed content - event will not be sent");
       return false;

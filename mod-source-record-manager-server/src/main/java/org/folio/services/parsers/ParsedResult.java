@@ -39,7 +39,7 @@ public class ParsedResult {
   }
 
   public boolean isHasError() {
-    return isHasError;
+    return errors != null && !errors.isEmpty();
   }
 
   public void setHasError(boolean hasError) {

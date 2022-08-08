@@ -141,6 +141,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<List<Record>> futureParsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
         params.getTenantId(), params);
+
+
+/*    futureParsedRecords.compose(r -> newMethod(r, jobExecution));
+    Record record = new Record();
+    record.setParsedRecord(null);
+    record.setErrorRecord();*/
+
+
     futureParsedRecords
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -349,11 +357,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private ParsedResult validateIf999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
-    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord()!= null) {
+    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
-      if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
-        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I))
+      if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
+        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))
         && createInstanceActionExists(jobExecution)) {
         ParsedResult result = new ParsedResult();
         JsonObject errorObject = new JsonObject();
