@@ -13,56 +13,40 @@ import net.mguenther.kafka.junit.ReadKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
+import org.folio.MatchDetail;
+import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.ActionProfile;
-import org.folio.rest.jaxrs.model.DataImportEventPayload;
-import org.folio.rest.jaxrs.model.DataImportEventTypes;
-import org.folio.rest.jaxrs.model.EntityType;
-import org.folio.rest.jaxrs.model.ErrorRecord;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.JobProfile;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordCollection;
-import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.folio.MatchDetail.MatchCriterion.EXACTLY_MATCHES;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
+import static org.folio.rest.jaxrs.model.MatchExpression.DataValueType.VALUE_FROM_RECORD;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.*;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(VertxUnitRunner.class)
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
@@ -89,6 +73,36 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       new ProfileSnapshotWrapper()
         .withContentType(ACTION_PROFILE)
         .withContent(updateInstanceActionProfile)));
+
+  private ProfileSnapshotWrapper marcBibUpdateUnsupportedJobProfileSnapshot = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(
+      List.of(new ProfileSnapshotWrapper()
+        .withContentType(MATCH_PROFILE)
+        .withContent(new MatchProfile()
+          .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+          .withExistingRecordType(EntityType.INSTANCE)
+          .withMatchDetails(List.of(new MatchDetail().withMatchCriterion(EXACTLY_MATCHES)
+            .withExistingMatchExpression(new MatchExpression().withDataValueType(VALUE_FROM_RECORD)
+              .withFields(Lists.newArrayList(
+                new Field().withLabel("field").withValue("999"),
+                new Field().withLabel("indicator1").withValue("f"),
+                new Field().withLabel("indicator2").withValue("f"),
+                new Field().withLabel("recordSubfield").withValue("s"))))
+            .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+            .withExistingRecordType(EntityType.INSTANCE))))
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+            .withContentType(MAPPING_PROFILE)
+            .withContent(new org.folio.MappingProfile()
+              .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+              .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC))))))
+      )
+      //List.of(new ProfileSnapshotWrapper().withContentType(ACTION_PROFILE).withContent(updateInstanceActionProfile))
+    );
 
   @BeforeClass
   public static void setUpClass() throws IOException {
@@ -169,6 +183,26 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldGetUnsupportedProfileException() throws InterruptedException {
+    // given
+
+    // given
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(marcBibUpdateUnsupportedJobProfileSnapshot))));
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertTrue(eventPayload.getContext().get(RawMarcChunksErrorHandler.ERROR_KEY).contains("Unsupported"));
+  }
+
+  @Test
   public void shouldNotObserveValuesWhenJobExecutionIdNotCreated() throws InterruptedException {
     RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
     String jobExecutionId = UUID.randomUUID().toString();
@@ -180,7 +214,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
 
     String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, singletonList(kafkaRecord))
       .useDefaults();
 
     // when
@@ -265,7 +299,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionId, UTF_8);
 
     String topic = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_READ.value());
-    return SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+    return SendKeyValues.to(topic, singletonList(kafkaRecord))
       .useDefaults();
   }
 

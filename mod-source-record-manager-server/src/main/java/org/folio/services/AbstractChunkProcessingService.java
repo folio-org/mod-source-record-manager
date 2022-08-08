@@ -3,6 +3,7 @@ package org.folio.services;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
@@ -76,7 +77,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   private boolean isNotSupportedJobProfileExists(JobExecution jobExecution) {
     boolean isExists = false;
     List<ProfileSnapshotWrapper> childProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers();
-    if ((childProfiles != null) && (!childProfiles.isEmpty())) {
+    if (!CollectionUtils.isEmpty(childProfiles)) {
       isExists = isExistsMatchProfileToInstanceWithActionUpdateMarcBib(childProfiles);
     }
     return isExists;
@@ -112,19 +113,23 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   private boolean isMatchingMarcBibToInstance(ProfileSnapshotWrapper profileSnapshotWrapper) {
-    MatchProfile matchProfile = isEligible(profileSnapshotWrapper, MatchProfile.class);
-    MatchDetail matchDetail = matchProfile.getMatchDetails().get(0);
-    return matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
-      && matchDetail.getExistingRecordType() == EntityType.INSTANCE;
+    boolean result = false;
+    MatchProfile matchProfile = extractProfile(profileSnapshotWrapper, MatchProfile.class);
+    if (!CollectionUtils.isEmpty(matchProfile.getMatchDetails())) {
+      MatchDetail matchDetail = matchProfile.getMatchDetails().get(0);
+      result = matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
+        && matchDetail.getExistingRecordType() == EntityType.INSTANCE;
+    }
+    return result;
   }
 
   private boolean isMappingMarcBibToMarcBib(ProfileSnapshotWrapper profileSnapshotWrapper) {
-    MappingProfile mappingProfile = isEligible(profileSnapshotWrapper, MappingProfile.class);
+    MappingProfile mappingProfile = extractProfile(profileSnapshotWrapper, MappingProfile.class);
     return mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
       && mappingProfile.getExistingRecordType() == EntityType.MARC_BIBLIOGRAPHIC;
   }
 
-  private <T> T isEligible(ProfileSnapshotWrapper profileSnapshotWrapper, Class clazz) {
+  private <T> T extractProfile(ProfileSnapshotWrapper profileSnapshotWrapper, Class clazz) {
     T profile;
     if (profileSnapshotWrapper.getContent() instanceof Map) {
       profile = (T) new JsonObject((Map) profileSnapshotWrapper.getContent()).mapTo(clazz);
