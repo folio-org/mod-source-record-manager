@@ -3,6 +3,8 @@ package org.folio.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.Json;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -12,10 +14,8 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.services.journal.JournalService;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -29,22 +29,18 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  public static final String FAILED_EVENT_KEY = "FAILED_EVENT";
   public static final String ERROR_KEY = "ERROR";
 
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
-  private JournalService journalService;
   private JobMonitoringService jobMonitoringService;
 
 
   public RecordProcessedEventHandlingServiceImpl(@Autowired JobExecutionProgressService jobExecutionProgressService,
                                                  @Autowired JobExecutionService jobExecutionService,
-                                                 @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
                                                  @Autowired JobMonitoringService jobMonitoringService) {
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.jobExecutionService = jobExecutionService;
-    this.journalService = journalService;
     this.jobMonitoringService = jobMonitoringService;
   }
 
@@ -53,8 +49,8 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     Promise<Boolean> promise = Promise.promise();
     DataImportEventPayload dataImportEventPayload;
     try {
-      dataImportEventPayload = new ObjectMapper().readValue(eventContent, DataImportEventPayload.class);
-    } catch (IOException e) {
+      dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayload.class);
+    } catch (DecodeException e) {
       LOGGER.error("Failed to read eventContent {}", eventContent, e);
       promise.fail(e);
       return promise.future();
@@ -63,12 +59,24 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     String jobExecutionId = dataImportEventPayload.getJobExecutionId();
     try {
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
-      jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progress -> changeProgressAccordingToEventType(progress, eventType), params.getTenantId())
+      int successCount= 0;
+      int errorCount = 0;
+      if (DataImportEventTypes.DI_COMPLETED.equals(eventType)) {
+        successCount++;
+      } else if (DataImportEventTypes.DI_ERROR.equals(eventType)) {
+        errorCount++;
+      } else {
+        LOGGER.error("Illegal event type specified '{}' ", eventType);
+        return Future.succeededFuture(false);
+      }
+
+      jobExecutionProgressService.updateCompletionCounts(jobExecutionId, successCount, errorCount, params.getTenantId())
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
             LOGGER.error("Failed to handle {} event", eventType, ar.cause());
-            updateJobStatusToError(jobExecutionId, params).onComplete(statusAr -> promise.fail(ar.cause()));
+            updateJobStatusToError(jobExecutionId, params)
+              .onComplete(statusAr -> promise.fail(ar.cause()));
           } else {
             promise.complete(true);
           }
@@ -85,18 +93,6 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     return jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto()
       .withStatus(StatusDto.Status.ERROR)
       .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR), params);
-  }
-
-  private JobExecutionProgress changeProgressAccordingToEventType(JobExecutionProgress progress, DataImportEventTypes eventType) {
-    switch (eventType) {
-      case DI_COMPLETED:
-        return progress.withCurrentlySucceeded(progress.getCurrentlySucceeded() + 1);
-      case DI_ERROR:
-        return progress.withCurrentlyFailed(progress.getCurrentlyFailed() + 1);
-      default:
-        LOGGER.error("Illegal event type specified '{}' ", eventType);
-        return progress;
-    }
   }
 
   private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
