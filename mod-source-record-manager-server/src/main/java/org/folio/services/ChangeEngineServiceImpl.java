@@ -349,7 +349,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private ParsedResult validateIf999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
-    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
+    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord()!= null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       if ((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
