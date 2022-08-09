@@ -118,11 +118,11 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   /**
    * Checks whether the record contains parsed content for sending.
    *
-   * @param record record for verification
+   * @param currentRecord record for verification
    * @return true if record has parsed content
    */
-  private boolean isParsedContentExists(Record record) {
-    if (record.getParsedRecord() == null || record.getParsedRecord().getContent() == null) {
+  private boolean isParsedContentExists(Record currentRecord) {
+    if (currentRecord.getParsedRecord() == null || currentRecord.getParsedRecord().getContent() == null) {
       LOGGER.error("Record has no parsed content - event will not be sent");
       return false;
     }

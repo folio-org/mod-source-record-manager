@@ -142,13 +142,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
         params.getTenantId(), params);
 
-
-/*    futureParsedRecords.compose(r -> newMethod(r, jobExecution));
-    Record record = new Record();
-    record.setParsedRecord(null);
-    record.setErrorRecord();*/
-
-
     futureParsedRecords
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
