@@ -367,7 +367,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         JsonObject errorObject = new JsonObject();
         errorObject.put("error", INSTANCE_CREATION_999_ERROR_MESSAGE);
         result.setErrors(errorObject);
-        result.setHasError(true);
         result.setParsedRecord(parsedResult.getParsedRecord());
         return result;
       }
