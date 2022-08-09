@@ -1,5 +1,6 @@
 package org.folio.verticle.consumers;
 
+import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -9,32 +10,44 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.folio.TestUtil;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
+import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.EventProcessedService;
+import org.folio.services.JobExecutionService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
+import org.folio.services.RecordsPublishingServiceImpl;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalService;
+import org.folio.verticle.consumers.errorhandlers.payloadbuilders.DiErrorPayloadBuilder;
+import org.folio.verticle.consumers.errorhandlers.payloadbuilders.MarcBibDiErrorPayloadBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -62,6 +75,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
   @Mock
   private RecordsPublishingService recordsPublishingService;
+
   @Mock
   private KafkaConsumerRecord<String, String> kafkaRecord;
   @Mock
@@ -70,6 +84,15 @@ public class StoredRecordChunksKafkaHandlerTest {
   private EventProcessedService eventProcessedService;
   @Mock
   private MappingRuleCache mappingRuleCache;
+  @Mock
+  private JobExecutionService jobExecutionService;
+  @Mock
+  private KafkaConfig kafkaConfig;
+  @InjectMocks
+  private MarcBibDiErrorPayloadBuilder payloadBuilder = new MarcBibDiErrorPayloadBuilder(mappingRuleCache);
+  private final List<DiErrorPayloadBuilder> errorPayloadBuilders = Lists.newArrayList(payloadBuilder);
+  @InjectMocks
+  private RecordsPublishingService recordPublishingService = new RecordsPublishingServiceImpl(jobExecutionService, null, kafkaConfig, errorPayloadBuilders);
   @Captor
   private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
@@ -153,7 +176,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldReturnFailedFutureWhenMappingRuleCacheReturnFailed() throws IOException{
+  public void shouldReturnFailedFutureWhenMappingRuleCacheReturnFailed() throws IOException {
     Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
 
     RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
@@ -177,7 +200,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldReturnFailedFutureWhenJobExecutionIdIsEmpty() throws IOException{
+  public void shouldReturnFailedFutureWhenJobExecutionIdIsEmpty() throws IOException {
     Record record = Json.decodeValue(TestUtil.readFileFromPath(EDIFACT_RECORD_PATH), Record.class);
 
     RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
@@ -240,4 +263,20 @@ public class StoredRecordChunksKafkaHandlerTest {
     assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
   }
 
+  @Test
+  public void shouldSendDiErrorIfErrorRecordExistsAndParsedRecordIsEmpty() {
+    List<Record> records = Lists.newArrayList(new Record().withErrorRecord(new ErrorRecord()).withRecordType(Record.RecordType.MARC_BIB));
+    HashMap<String, String> params = new HashMap<>();
+    params.put(OKAPI_HEADER_TENANT, TENANT_ID);
+    ReflectionTestUtils.setField(recordPublishingService, "maxDistributionNum", 1);
+
+    when(mappingRuleCache.get(any(MappingRuleCacheKey.class)))
+      .thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+    when(jobExecutionService.getJobExecutionById(anyString(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
+
+
+    recordPublishingService.sendEventsWithRecords(records, UUID.randomUUID().toString(), new OkapiConnectionParams(params, null), "DI");
+
+    verify(mappingRuleCache, atLeastOnce()).get(any(MappingRuleCacheKey.class));
+  }
 }
