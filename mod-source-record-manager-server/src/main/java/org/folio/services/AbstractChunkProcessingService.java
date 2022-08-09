@@ -93,15 +93,15 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             return true;
           }
         }
-        isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
       }
+      return isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
     }
     return false;
   }
 
   private ProfileSnapshotWrapper getChildSnapshotWrapperByType(ProfileSnapshotWrapper profileSnapshotWrapper,
                                                                        ProfileSnapshotWrapper.ContentType contentType) {
-    if (profileSnapshotWrapper.getChildSnapshotWrappers() != null && !profileSnapshotWrapper.getChildSnapshotWrappers().isEmpty()) {
+    if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
       List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
       for(ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
         if (snapshotWrapper.getContentType() == contentType) {
