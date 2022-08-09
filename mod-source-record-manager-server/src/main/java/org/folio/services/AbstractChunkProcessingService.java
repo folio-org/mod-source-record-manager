@@ -83,7 +83,8 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return isExists;
   }
 
-  private boolean isExistsMatchProfileToInstanceWithActionUpdateMarcBib(Collection<ProfileSnapshotWrapper> profileSnapshotWrapperList) {
+  //Disabled SONAR check "Loops with at most one iteration should be refactored" for recursive code
+  private boolean isExistsMatchProfileToInstanceWithActionUpdateMarcBib(Collection<ProfileSnapshotWrapper> profileSnapshotWrapperList) { //NOSONAR
     for (ProfileSnapshotWrapper profileSnapshotWrapper : profileSnapshotWrapperList) {
       if ((profileSnapshotWrapper.getContentType() == MATCH_PROFILE) && (isMatchingMarcBibToInstance(profileSnapshotWrapper))) {
         ProfileSnapshotWrapper actionProfileSnapshotWrapper = getChildSnapshotWrapperByType(profileSnapshotWrapper, ACTION_PROFILE);
@@ -93,8 +94,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             return true;
           }
         }
+      } else if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
+        return isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
       }
-      return isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
     }
     return false;
   }
