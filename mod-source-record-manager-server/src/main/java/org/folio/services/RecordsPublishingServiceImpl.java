@@ -61,16 +61,6 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     this.kafkaConfig = kafkaConfig;
   }
 
-  public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
-                                      @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
-                                      @Autowired KafkaConfig kafkaConfig,
-                                      @Autowired List<DiErrorPayloadBuilder> errorPayloadBuilders) {
-    this.jobExecutionService = jobExecutionService;
-    this.payloadContextBuilder = payloadContextBuilder;
-    this.kafkaConfig = kafkaConfig;
-    this.errorPayloadBuilders = errorPayloadBuilders;
-  }
-
   @Override
   public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
