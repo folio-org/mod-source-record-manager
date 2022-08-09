@@ -94,7 +94,8 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
             return true;
           }
         }
-      } else if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
+      }
+      if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
         return isExistsMatchProfileToInstanceWithActionUpdateMarcBib(profileSnapshotWrapper.getChildSnapshotWrappers());
       }
     }
