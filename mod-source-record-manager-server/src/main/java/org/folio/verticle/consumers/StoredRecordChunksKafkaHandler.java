@@ -122,16 +122,16 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.get(0).getRecordType());
     mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {
       if (rulesAr.succeeded()) {
-        JsonArray journalRecords = buildJournalRecords(storedRecords, rulesAr.result(), tenantId);
+        JsonArray journalRecords = buildJournalRecords(storedRecords, rulesAr.result());
         journalService.saveBatch(journalRecords, tenantId);
         return;
       }
-      JsonArray journalRecords = buildJournalRecords(storedRecords, Optional.empty(), tenantId);
+      JsonArray journalRecords = buildJournalRecords(storedRecords, Optional.empty());
       journalService.saveBatch(journalRecords, tenantId);
     });
   }
 
-  private JsonArray buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional, String tenantId) {
+  private JsonArray buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional) {
     EntityType entityType = getEntityType(storedRecords);
     JsonArray journalRecords = new JsonArray();
 
@@ -154,19 +154,22 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     }
 
     for (Record record : storedRecords) {
-      JournalRecord journalRecord = new JournalRecord()
-        .withJobExecutionId(record.getSnapshotId())
-        .withSourceRecordOrder(record.getOrder())
-        .withSourceId(record.getId())
-        .withEntityType(entityType)
-        .withEntityId(record.getId())
-        .withActionType(CREATE)
-        .withActionStatus(COMPLETED)
-        .withActionDate(new Date())
-        .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
-          ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null);
 
-      journalRecords.add(JsonObject.mapFrom(journalRecord));
+      if (record.getErrorRecord() == null) {
+        JournalRecord journalRecord = new JournalRecord()
+          .withJobExecutionId(record.getSnapshotId())
+          .withSourceRecordOrder(record.getOrder())
+          .withSourceId(record.getId())
+          .withEntityType(entityType)
+          .withEntityId(record.getId())
+          .withActionType(CREATE)
+          .withActionStatus(COMPLETED)
+          .withActionDate(new Date())
+          .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
+            ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null);
+
+        journalRecords.add(JsonObject.mapFrom(journalRecord));
+      }
     }
     return journalRecords;
   }
