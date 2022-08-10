@@ -1965,7 +1965,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
     Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
     Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
     Assert.assertEquals( "{\"error\":\"A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
