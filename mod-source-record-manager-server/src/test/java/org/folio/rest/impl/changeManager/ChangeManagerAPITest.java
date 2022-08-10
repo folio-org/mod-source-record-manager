@@ -23,6 +23,7 @@ import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.Event;
@@ -73,6 +74,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
@@ -1921,18 +1923,20 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    String topicToObserve = formatToKafkaTopicName(DI_MARC_FOR_UPDATE_RECEIVED.value());
     List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
-      .observeFor(30, TimeUnit.SECONDS)
+      .observeFor(2000, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(6), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", AdditionalFieldsUtil.getValue(recordCollection.getRecords().get(0), "999", 's'), recordCollection.getRecords().get(0).getId());
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_MARC_FOR_UPDATE_RECEIVED.value(), obtainedEvent.getEventType());
+    DataImportEventPayload dataImportEventPayload = Json
+      .decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    Assert.assertNotNull(dataImportEventPayload.getContext());
+    Assert.assertNotNull(dataImportEventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+
+    JsonObject record = new JsonObject(dataImportEventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", record.getString("matchedId"));
   }
 
   @Test
