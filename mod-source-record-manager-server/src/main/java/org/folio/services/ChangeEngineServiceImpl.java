@@ -539,7 +539,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     String fileName = StringUtils.defaultIfEmpty(jobExecution.getFileName(), "No file name");
     JsonObject parsedRecord = Objects.requireNonNullElse(recordParsedResult.getParsedRecord(), new JsonObject());
     if(parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
-      recordParsedResult.setHasError(true);
       recordParsedResult.setErrors(new JsonObject()
         .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
         .put("error", parsedRecord));
