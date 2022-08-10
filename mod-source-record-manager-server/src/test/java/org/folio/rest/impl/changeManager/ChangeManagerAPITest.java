@@ -1888,40 +1888,22 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    ProfileSnapshotWrapper profileSnapshotWrapper = new ProfileSnapshotWrapper()
-      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-          .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
-          .withContent(new JsonObject(Json.encode(new ActionProfile()
-            .withAction(ActionProfile.Action.UPDATE)
-            .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC))))));
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(updateProfileSnapshotWrapperResponse))));
 
-    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+DEFAULT_UPDATE_JOB_PROFILE_ID+"?withRelations=false&")
-      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile()
-        .withId(DEFAULT_UPDATE_JOB_PROFILE_ID)
-        .withName("Default update job profile")
-        .withChildProfiles(Lists.newArrayList(profileSnapshotWrapper))))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(updateProfileSnapshotWrapperResponse))));
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
 
     Async async = testContext.async();
-/*    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_JOB_PROFILE_ID)
-        .withDataType(DataType.MARC))
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();*/
 
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
         .withName("MARC records")
-        .withId(DEFAULT_UPDATE_JOB_PROFILE_ID)
+        .withId(DEFAULT_JOB_PROFILE_ID)
         .withDataType(DataType.MARC))
       .when()
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
