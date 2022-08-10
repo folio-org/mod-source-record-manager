@@ -17,11 +17,6 @@ public class ParsedResult {
    */
   private JsonObject errors;
 
-  /**
-   * Flag of has parsed result errors or not
-   */
-  private boolean isHasError = false;
-
   public JsonObject getParsedRecord() {
     return parsedRecord;
   }
@@ -42,16 +37,11 @@ public class ParsedResult {
     return errors != null && !errors.isEmpty();
   }
 
-  public void setHasError(boolean hasError) {
-    isHasError = hasError;
-  }
-
   @Override
   public String toString() {
     return "ParsedResult{" +
       "parsedRecord=" + parsedRecord +
       ", errors=" + errors +
-      ", isHasError=" + isHasError +
       '}';
   }
 }
