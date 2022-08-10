@@ -23,11 +23,11 @@ import java.util.Optional;
 
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
 @Component
 public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
   private static final String FIELDS = "fields";
-
   private MappingRuleCache mappingRuleCache;
 
   @Autowired
@@ -80,6 +80,12 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
       String titleFieldTag = titleFieldOptional.get();
 
       ParsedRecord parsedRecord = record.getParsedRecord();
+      if (parsedRecord == null) {
+        return new JsonObject()
+          .put(FIELDS, new JsonArray()
+            .add(new JsonObject()
+              .put(titleFieldTag, NO_TITLE_MESSAGE))).encode();
+      }
       JsonObject parsedContent = new JsonObject(parsedRecord.getContent().toString());
       var fields = parsedContent.getJsonArray(FIELDS).getList();
       for (Object elem: fields) {

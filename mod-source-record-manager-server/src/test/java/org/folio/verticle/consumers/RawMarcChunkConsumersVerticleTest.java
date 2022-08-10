@@ -142,7 +142,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException {
+  public void shouldNotFillInInstanceIdAndInstanceHridWhenRecordContains999FieldWithInstanceId() throws InterruptedException {
     // given
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC, RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
 
@@ -154,10 +154,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     Record record = recordCollection.getRecords().get(0);
-    assertNotNull(record.getExternalIdsHolder());
-
-    assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", record.getExternalIdsHolder().getInstanceId());
-    assertEquals("1007048", record.getExternalIdsHolder().getInstanceHrid());
+    assertNull(record.getExternalIdsHolder());
   }
 
   @Test

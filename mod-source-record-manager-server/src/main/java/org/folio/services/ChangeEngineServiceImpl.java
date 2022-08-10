@@ -102,6 +102,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
+  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -140,6 +141,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     Future<List<Record>> futureParsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
         params.getTenantId(), params);
+
     futureParsedRecords
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -244,6 +246,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Action.DELETE);
   }
 
+  private boolean createInstanceActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper(),
+      List.of(FolioRecord.INSTANCE),
+      Action.CREATE);
+  }
+
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
                                                   List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
@@ -314,6 +323,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
+        parsedResult = addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
+
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
           .withId(recordId)
@@ -336,6 +347,24 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
         return record;
       }).collect(Collectors.toList());
+  }
+
+  private ParsedResult addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
+    if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
+      var tmpRecord = new Record()
+        .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
+      if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
+        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))
+        && createInstanceActionExists(jobExecution)) {
+        ParsedResult result = new ParsedResult();
+        JsonObject errorObject = new JsonObject();
+        errorObject.put("error", INSTANCE_CREATION_999_ERROR_MESSAGE);
+        result.setErrors(errorObject);
+        result.setParsedRecord(parsedResult.getParsedRecord());
+        return result;
+      }
+    }
+    return parsedResult;
   }
 
   private List<Future> executeInBatches(List<Record> recordList,
@@ -510,7 +539,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     String fileName = StringUtils.defaultIfEmpty(jobExecution.getFileName(), "No file name");
     JsonObject parsedRecord = Objects.requireNonNullElse(recordParsedResult.getParsedRecord(), new JsonObject());
     if(parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
-      recordParsedResult.setHasError(true);
       recordParsedResult.setErrors(new JsonObject()
         .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
         .put("error", parsedRecord));

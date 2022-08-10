@@ -32,7 +32,6 @@ public interface RecordParser {
     errorObject.put("errors", errors);
     errorObjects.forEach(errors::add);
     result.setErrors(errorObject);
-    result.setHasError(true);
   }
 
 }

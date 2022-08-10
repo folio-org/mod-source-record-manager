@@ -33,7 +33,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
   public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
-  private static final String NO_TITLE_MESSAGE = "No content";
+  public static final String NO_TITLE_MESSAGE = "No content";
 
   private static final Map<JournalRecord.EntityType, BiFunction<ParsedRecord, JsonObject, String>> titleExtractorMap =
     Map.of(

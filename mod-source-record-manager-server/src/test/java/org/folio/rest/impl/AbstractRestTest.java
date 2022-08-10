@@ -176,6 +176,28 @@ public abstract class AbstractRestTest {
         .withContentType(ACTION_PROFILE)
         .withContent(actionProfile)));
 
+  protected JobProfile updateJobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Update MARC Bibs")
+    .withDataType(JobProfile.DataType.MARC);
+
+  private final ActionProfile updateActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Update MARC Bib")
+    .withAction(ActionProfile.Action.UPDATE)
+    .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
+
+  protected ProfileSnapshotWrapper updateProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(updateJobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(updateJobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(updateActionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(updateActionProfile)));
+
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
     WireMockConfiguration.wireMockConfig()
