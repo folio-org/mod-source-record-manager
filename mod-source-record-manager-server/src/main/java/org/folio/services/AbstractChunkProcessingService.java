@@ -86,11 +86,11 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   //Disabled SONAR check "Loops with at most one iteration should be refactored" for recursive code
   private boolean isExistsMatchProfileToInstanceWithActionUpdateMarcBib(Collection<ProfileSnapshotWrapper> profileSnapshotWrapperList) { //NOSONAR
     for (ProfileSnapshotWrapper profileSnapshotWrapper : profileSnapshotWrapperList) {
-      if ((profileSnapshotWrapper.getContentType() == MATCH_PROFILE) && (isMatchingMarcBibToInstance(profileSnapshotWrapper))) {
+      if ((profileSnapshotWrapper.getContentType() == MATCH_PROFILE) && (isMatchingMarcBibToInstanceRelation(profileSnapshotWrapper))) {
         ProfileSnapshotWrapper actionProfileSnapshotWrapper = getChildSnapshotWrapperByType(profileSnapshotWrapper, ACTION_PROFILE);
         if (actionProfileSnapshotWrapper != null) {
           ProfileSnapshotWrapper mappingProfileSnapshotWrapper = getChildSnapshotWrapperByType(actionProfileSnapshotWrapper, MAPPING_PROFILE);
-          if ((mappingProfileSnapshotWrapper != null) && (isMappingMarcBibToMarcBib(mappingProfileSnapshotWrapper))) {
+          if ((mappingProfileSnapshotWrapper != null) && (isMappingMarcBibToMarcBibRelation(mappingProfileSnapshotWrapper))) {
             return true;
           }
         }
@@ -115,18 +115,18 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     return null;
   }
 
-  private boolean isMatchingMarcBibToInstance(ProfileSnapshotWrapper profileSnapshotWrapper) {
-    boolean result = false;
+  private boolean isMatchingMarcBibToInstanceRelation(ProfileSnapshotWrapper profileSnapshotWrapper) {
+    boolean isMatchingRelation = false;
     MatchProfile matchProfile = extractProfile(profileSnapshotWrapper, MatchProfile.class);
     if (!CollectionUtils.isEmpty(matchProfile.getMatchDetails())) {
       MatchDetail matchDetail = matchProfile.getMatchDetails().get(0);
-      result = matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
+      isMatchingRelation = matchDetail.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
         && matchDetail.getExistingRecordType() == EntityType.INSTANCE;
     }
-    return result;
+    return isMatchingRelation;
   }
 
-  private boolean isMappingMarcBibToMarcBib(ProfileSnapshotWrapper profileSnapshotWrapper) {
+  private boolean isMappingMarcBibToMarcBibRelation(ProfileSnapshotWrapper profileSnapshotWrapper) {
     MappingProfile mappingProfile = extractProfile(profileSnapshotWrapper, MappingProfile.class);
     return mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC
       && mappingProfile.getExistingRecordType() == EntityType.MARC_BIBLIOGRAPHIC;
