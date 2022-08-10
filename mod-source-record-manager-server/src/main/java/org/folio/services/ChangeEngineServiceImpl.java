@@ -323,7 +323,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
-        parsedResult = validateIf999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
+        parsedResult = addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
 
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
@@ -349,7 +349,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
   }
 
-  private ParsedResult validateIf999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
+  private ParsedResult addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));

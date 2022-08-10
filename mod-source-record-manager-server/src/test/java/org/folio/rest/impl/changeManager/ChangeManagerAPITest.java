@@ -130,23 +130,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     .withJobProfileInfo(new JobProfileInfo().withId(DEFAULT_JOB_PROFILE_ID).withName("Marc jobs profile"))
     .withUserId(UUID.randomUUID().toString());
 
-  private JobExecution jobExecution_2 = new JobExecution()
-    .withId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
-    .withHrId(1000)
-    .withParentJobId("5105b55a-b9a3-4f76-9402-a5243ea63c95")
-    .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
-    .withStatus(JobExecution.Status.NEW)
-    .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
-    .withSourcePath("importMarc.mrc")
-    .withJobProfileInfo(new JobProfileInfo().withId(DEFAULT_UPDATE_JOB_PROFILE_ID).withName("Marc jobs profile"))
-/*    .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
-      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-          .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
-          .withContent(new JsonObject(Json.encode(new ActionProfile()
-            .withAction(ActionProfile.Action.UPDATE)
-            .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC))).getMap()))))*/
-    .withUserId(UUID.randomUUID().toString());
-
   private RawRecordsDto rawRecordsDto = new RawRecordsDto()
     .withId(UUID.randomUUID().toString())
     .withRecordsMetadata(new RecordsMetadata()
@@ -1937,6 +1920,55 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
     JsonObject record = new JsonObject(dataImportEventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", record.getString("matchedId"));
+  }
+
+  @Test
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateInstanceActionProfile(TestContext testContext) throws InterruptedException {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_3)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+    RecordCollection recordCollection = Json
+      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    assertEquals(1, recordCollection.getRecords().size());
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    Assert.assertEquals( "{\"error\":\"A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
 
   @Test
