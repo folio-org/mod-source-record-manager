@@ -102,9 +102,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Entity was not created because the incoming record already contained a 999ff$s or 999ff$i field";
-  public static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
-  public static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  public static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  public static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
