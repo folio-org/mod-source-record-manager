@@ -339,7 +339,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
-        parsedResult = addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
+        parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
 
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
@@ -365,22 +365,31 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }).collect(Collectors.toList());
   }
 
-  private ParsedResult addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
+  private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
-        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))
-        && (createInstanceActionExists(jobExecution) || createMarcHoldingsActionExists(jobExecution) || createAuthorityActionExists(jobExecution))) {
-        ParsedResult result = new ParsedResult();
-        JsonObject errorObject = new JsonObject();
-        errorObject.put("error", INSTANCE_CREATION_999_ERROR_MESSAGE);
-        result.setErrors(errorObject);
-        result.setParsedRecord(parsedResult.getParsedRecord());
-        return result;
+        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))) {
+        if (createInstanceActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
+        } else if (createMarcHoldingsActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
+        } else if (createAuthorityActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, AUTHORITY_CREATION_999_ERROR_MESSAGE);
+        }
       }
     }
     return parsedResult;
+  }
+
+  private ParsedResult constructParsedResultWithError(ParsedResult parsedResult, String errorMessage) {
+    ParsedResult result = new ParsedResult();
+    JsonObject errorObject = new JsonObject();
+    errorObject.put("error", errorMessage);
+    result.setErrors(errorObject);
+    result.setParsedRecord(parsedResult.getParsedRecord());
+    return result;
   }
 
   private List<Future> executeInBatches(List<Record> recordList,
@@ -539,26 +548,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withContent(rawRecord)
         .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
-    }
-
-/*    if (((StringUtils.isNotBlank(getValue(record, TAG_999, SUBFIELD_S)) && hasIndicator(record, SUBFIELD_S))
-      || (StringUtils.isNotBlank(getValue(record, TAG_999, SUBFIELD_I)) && hasIndicator(record, SUBFIELD_I)))
-      && createMarcHoldingsActionExists(jobExecution)) {
-      record.setParsedRecord(null);
-      record.setErrorRecord(new ErrorRecord()
-        .withContent(rawRecord)
-        .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_CREATION_999_ERROR_MESSAGE).encode()));
-    }*/
-  }
-
-  private void postProcessMarcAuthorityRecord(Record record, InitialRecord rawRecord, JobExecution jobExecution) {
-    if (((StringUtils.isNotBlank(getValue(record, TAG_999, SUBFIELD_S)) && hasIndicator(record, SUBFIELD_S))
-      || (StringUtils.isNotBlank(getValue(record, TAG_999, SUBFIELD_I)) && hasIndicator(record, SUBFIELD_I)))
-      && createAuthorityActionExists(jobExecution)) {
-      record.setParsedRecord(null);
-      record.setErrorRecord(new ErrorRecord()
-        .withContent(rawRecord)
-        .withDescription(new JsonObject().put(MESSAGE_KEY, AUTHORITY_CREATION_999_ERROR_MESSAGE).encode()));
     }
   }
 
