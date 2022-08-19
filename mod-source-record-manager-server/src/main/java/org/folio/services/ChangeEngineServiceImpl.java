@@ -422,11 +422,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
-              if (record.getParsedRecord() != null && record.getErrorRecord() != null) {
                 var controlFieldValue = getControlFieldValue(record, TAG_004);
                 return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
-              }
-              return true;
             }).collect(Collectors.toList());
           LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
@@ -467,6 +464,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean isValidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams,
                                       List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
+      // avoid populating error if there is already populated via 999ff-field error.
+      if (record.getErrorRecord() != null && record.getErrorRecord().getDescription().contains("999ff")) {
+        return true;
+      }
       populateError(record, jobExecution, okapiParams);
       return false;
     }
