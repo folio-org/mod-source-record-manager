@@ -1081,6 +1081,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "applyRulesOnConcatenatedData": true,
@@ -1183,6 +1191,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "applyRulesOnConcatenatedData": true,
@@ -1282,6 +1298,14 @@
   "111": [
     {
       "entity": [
+        {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
@@ -6142,6 +6166,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "applyRulesOnConcatenatedData": true,
@@ -6244,6 +6276,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "applyRulesOnConcatenatedData": true,
@@ -6343,6 +6383,14 @@
   "711": [
     {
       "entity": [
+        {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
