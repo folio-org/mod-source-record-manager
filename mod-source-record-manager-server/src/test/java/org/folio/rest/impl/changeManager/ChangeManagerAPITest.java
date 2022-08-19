@@ -112,9 +112,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   private static final String DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID = "6eefa4c6-bbf7-4845-ad82-de7fc5abd0e3";
 
-
-  private static final String DEFAULT_UPDATE_JOB_PROFILE_ID = "cddff0e1-233c-47ba-8be5-553c632709d9";
-
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
 
   private Set<JobExecution.SubordinationType> parentTypes = EnumSet.of(
