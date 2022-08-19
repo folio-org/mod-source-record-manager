@@ -48,7 +48,6 @@ public final class DiErrorBuilderUtil {
 
   public static DataImportEventPayload makeLightweightPayload(Record currentRecord, String newRecordContent, DataImportEventPayload payload) {
     currentRecord.setParsedRecord(StringUtils.isBlank(newRecordContent) ? null : new ParsedRecord().withContent(newRecordContent));
-    currentRecord.setParsedRecord(null);
     currentRecord.setRawRecord(null);
     payload.setProfileSnapshot(null);
     payload.getContext().put(RecordConversionUtil.getEntityType(currentRecord).value(), Json.encode(currentRecord));

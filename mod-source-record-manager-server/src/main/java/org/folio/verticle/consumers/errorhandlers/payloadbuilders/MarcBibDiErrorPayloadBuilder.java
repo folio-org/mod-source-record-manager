@@ -13,6 +13,7 @@ import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.folio.services.util.RecordConversionUtil;
+import org.folio.verticle.consumers.util.DiErrorBuilderUtil;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,65 +49,12 @@ public class MarcBibDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
 
     return mappingRuleCache.get(new MappingRuleCacheKey(okapiParams.getTenantId(), record.getRecordType()))
       .compose(rulesOptional -> {
-        DataImportEventPayload diErrorPayload = prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, record);
+        DataImportEventPayload diErrorPayload = DiErrorBuilderUtil.prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, record);
         if (rulesOptional.isPresent()) {
-          String recordContent = getReducedRecordContentOnlyWithTitle(rulesOptional.get(), record);
-          return Future.succeededFuture(makeLightweightPayload(record, recordContent, diErrorPayload));
+          String recordContent = DiErrorBuilderUtil.getReducedRecordContentOnlyWithTitle(rulesOptional.get(), record);
+          return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(record, recordContent, diErrorPayload));
         }
-        return Future.succeededFuture(makeLightweightPayload(record, null, diErrorPayload));
+        return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(record, null, diErrorPayload));
       });
-  }
-
-  private DataImportEventPayload prepareDiErrorEventPayload(Throwable throwable,
-                                                            OkapiConnectionParams okapiParams,
-                                                            String jobExecutionId, Record record) {
-    HashMap<String, String> context = new HashMap<>();
-    context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
-    context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
-
-    return new DataImportEventPayload()
-      .withEventType(DI_ERROR.value())
-      .withJobExecutionId(jobExecutionId)
-      .withOkapiUrl(okapiParams.getOkapiUrl())
-      .withTenant(okapiParams.getTenantId())
-      .withToken(okapiParams.getToken())
-      .withContext(context);
-
-  }
-
-  private String getReducedRecordContentOnlyWithTitle(JsonObject mappingRules, Record record) {
-    Optional<String> titleFieldOptional = MarcImportEventsHandler.getTitleFieldTagByInstanceFieldPath(mappingRules);
-    if (titleFieldOptional.isPresent()) {
-      String titleFieldTag = titleFieldOptional.get();
-
-      ParsedRecord parsedRecord = record.getParsedRecord();
-      if (parsedRecord == null) {
-        return new JsonObject()
-          .put(FIELDS, new JsonArray()
-            .add(new JsonObject()
-              .put(titleFieldTag, NO_TITLE_MESSAGE))).encode();
-      }
-      JsonObject parsedContent = new JsonObject(parsedRecord.getContent().toString());
-      var fields = parsedContent.getJsonArray(FIELDS).getList();
-      for (Object elem: fields) {
-        Object titleField = ((Map) elem).get(titleFieldTag);
-        if (titleField != null) {
-          return new JsonObject()
-            .put(FIELDS, new JsonArray()
-              .add(new JsonObject()
-                .put(titleFieldTag, titleField))).encode();
-        }
-
-      }
-    }
-    return null;
-  }
-
-  private DataImportEventPayload makeLightweightPayload(Record record, String newRecordContent, DataImportEventPayload payload) {
-    record.setParsedRecord(StringUtils.isBlank(newRecordContent) ? null : new ParsedRecord().withContent(newRecordContent));
-    record.setRawRecord(null);
-    payload.setProfileSnapshot(null);
-    payload.getContext().put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
-    return payload;
   }
 }
