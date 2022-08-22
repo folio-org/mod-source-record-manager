@@ -14,7 +14,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 
 @Component
 public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
-  private final MappingRuleCache mappingRuleCache;
+  private MappingRuleCache mappingRuleCache;
 
   @Autowired
   public MarcAuthorityDiErrorPayloadBuilder(MappingRuleCache mappingRuleCache) {
