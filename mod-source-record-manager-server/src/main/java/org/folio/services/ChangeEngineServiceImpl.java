@@ -248,21 +248,21 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Action.DELETE);
   }
 
-  private boolean createInstanceActionExists(JobExecution jobExecution) {
+  private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
       List.of(FolioRecord.INSTANCE),
       Action.CREATE);
   }
 
-  private boolean createAuthorityActionExists(JobExecution jobExecution) {
+  private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
       List.of(FolioRecord.AUTHORITY),
       Action.CREATE);
   }
 
-  private boolean createMarcHoldingsActionExists(JobExecution jobExecution) {
+  private boolean isCreateMarcHoldingsActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
       List.of(FolioRecord.HOLDINGS),
@@ -371,11 +371,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
         || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))) {
-        if (createInstanceActionExists(jobExecution)) {
+        if (isCreateInstanceActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
-        } else if (createMarcHoldingsActionExists(jobExecution)) {
+        } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
-        } else if (createAuthorityActionExists(jobExecution)) {
+        } else if (isCreateAuthorityActionExists(jobExecution)) {
           return constructParsedResultWithError(parsedResult, AUTHORITY_CREATION_999_ERROR_MESSAGE);
         }
       }
