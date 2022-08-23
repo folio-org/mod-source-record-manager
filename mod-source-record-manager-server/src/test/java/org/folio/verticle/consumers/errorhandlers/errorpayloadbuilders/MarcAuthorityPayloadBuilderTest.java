@@ -135,7 +135,8 @@ public class MarcAuthorityPayloadBuilderTest {
       assertTrue(result.getContext().containsKey(ERROR_KEY));
 
       Record resRecordWithNoTitle = getRecordFromContext(result);
-      assertNull(resRecordWithNoTitle.getParsedRecord());
+      assertNotNull(resRecordWithNoTitle.getParsedRecord());
+      assertEquals( "No content", resRecordWithNoTitle.getParsedRecord().getContent());
       async.complete();
     });
   }
