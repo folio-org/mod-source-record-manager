@@ -24,8 +24,8 @@ public class DefaultRulesMappingTest {
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_bib_rules.json");
 
 
-    var actualAuthority = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
-    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).put("id", "0").encode());
+    var actualInstance = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
+    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualInstance).put("id", "0").encode());
   }
 
   @Test
@@ -36,8 +36,8 @@ public class DefaultRulesMappingTest {
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_holdings_rules.json");
 
 
-    var actualAuthority = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
-    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).put("id", "0").encode());
+    var actualHoldings = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
+    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualHoldings).put("id", "0").encode());
   }
 
   @Test
