@@ -1,8 +1,12 @@
+## 2022-08-25 v3.4.2
+* [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
+* [MODSOURMAN-852](https://issues.folio.org/browse/MODSOURMAN-852) Fail job for unsupported profile (match MARC BIB to Instance and update MARC BIB)
+* [MODSOURCE-521](https://issues.folio.org/browse/MODSOURCE-521) Populate 035 fields for exceptional cases of Update action
+
 ## 2022-08-03 v3.4.1
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
 * [MODSOURMAN-836](https://issues.folio.org/browse/MODSOURMAN-836) Return job users and profiles only for jobs with COMMITTED, ERROR, CANCELED statuses
 * [MODSOURMAN-823](https://issues.folio.org/browse/MODSOURMAN-823) View all logs: broken alphabetical sorting via the "Job profile" column
-* [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
 
 ## 2022-07-05 v3.4.0
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
