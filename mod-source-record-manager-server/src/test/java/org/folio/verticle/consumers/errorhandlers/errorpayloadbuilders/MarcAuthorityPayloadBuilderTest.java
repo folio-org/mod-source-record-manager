@@ -91,26 +91,6 @@ public class MarcAuthorityPayloadBuilderTest {
       async.complete();
     });
   }
-
-  @Test
-  public void shouldBuildPayloadWhenNoMappingRulesFound(TestContext context) throws IOException {
-    Async async = context.async();
-    Record record = getRecordFromFile();
-
-    Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
-      getOkapiParams(), JOB_EXECUTION_ID, record);
-
-    payloadFuture.onComplete(ar -> {
-      DataImportEventPayload result = ar.result();
-      assertEquals(DI_ERROR.value(), result.getEventType());
-      assertTrue(result.getContext().containsKey(ERROR_KEY));
-
-      Record resRecordWithNoTitle = getRecordFromContext(result);
-      assertNull(resRecordWithNoTitle.getParsedRecord());
-      async.complete();
-    });
-  }
-
   @Test
   public void shouldBuildPayloadWhenTitleNotExistsInParsedRecord(TestContext context) throws IOException {
     Async async = context.async();
