@@ -50,14 +50,11 @@ public class MarcAuthorityPayloadBuilderTest {
   private static final String JOB_EXECUTION_ID = UUID.randomUUID().toString();
   private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
   private static final String LARGE_PAYLOAD_ERROR_MESSAGE = "Record size is greater that MAX_REQUEST_SIZE";
-
-  @Mock
-  private MappingRuleCache mappingRuleCache;
   @Mock
   private Vertx vertx;
 
   @InjectMocks
-  private MarcAuthorityDiErrorPayloadBuilder payloadBuilder = new MarcAuthorityDiErrorPayloadBuilder(mappingRuleCache);
+  private MarcAuthorityDiErrorPayloadBuilder payloadBuilder = new MarcAuthorityDiErrorPayloadBuilder();
 
   @Before
   public void setUp() {
@@ -80,8 +77,6 @@ public class MarcAuthorityPayloadBuilderTest {
   public void shouldBuildPayload(TestContext context) throws IOException {
     Async async = context.async();
     Record record = getRecordFromFile();
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
-      .thenReturn(Future.succeededFuture(Optional.of(new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH)))));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
       getOkapiParams(), JOB_EXECUTION_ID, record);
@@ -101,8 +96,6 @@ public class MarcAuthorityPayloadBuilderTest {
   public void shouldBuildPayloadWhenNoMappingRulesFound(TestContext context) throws IOException {
     Async async = context.async();
     Record record = getRecordFromFile();
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
-      .thenReturn(Future.succeededFuture(Optional.empty()));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
       getOkapiParams(), JOB_EXECUTION_ID, record);
@@ -123,8 +116,6 @@ public class MarcAuthorityPayloadBuilderTest {
     Async async = context.async();
     Record record = new Record().withRecordType(Record.RecordType.MARC_AUTHORITY).withParsedRecord(
       new ParsedRecord().withId(UUID.randomUUID().toString()).withContent("{\"leader\":\"01240cas a2200397   4500\",\"fields\":[]}"));
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, record.getRecordType())))
-      .thenReturn(Future.succeededFuture(Optional.of(new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH)))));
 
     Future<DataImportEventPayload> payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
       getOkapiParams(), JOB_EXECUTION_ID, record);
