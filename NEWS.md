@@ -1,5 +1,6 @@
 ## 2022-xx-xx v3.5.0-SNAPSHOT
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
+* [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
 
 ## 2022-xx-xx v3.4.1-SNAPSHOT
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
