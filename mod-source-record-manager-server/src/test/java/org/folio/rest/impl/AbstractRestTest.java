@@ -177,12 +177,6 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
 
-  private final ActionProfile createInvoiceActionProfile = new ActionProfile()
-    .withId(UUID.randomUUID().toString())
-    .withName("Create invoice")
-    .withAction(ActionProfile.Action.CREATE)
-    .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
-
   protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
@@ -215,17 +209,6 @@ public abstract class AbstractRestTest {
         .withProfileId(actionMarcAuthorityCreateProfile.getId())
         .withContentType(ACTION_PROFILE)
         .withContent(actionMarcAuthorityCreateProfile)));
-
-  protected ProfileSnapshotWrapper createInvoiceProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
-    .withId(UUID.randomUUID().toString())
-    .withProfileId(jobProfile.getId())
-    .withContentType(JOB_PROFILE)
-    .withContent(jobProfile)
-    .withChildSnapshotWrappers(Collections.singletonList(
-      new ProfileSnapshotWrapper()
-        .withProfileId(createInvoiceActionProfile.getId())
-        .withContentType(ACTION_PROFILE)
-        .withContent(createInvoiceActionProfile)));
 
   protected JobProfile updateJobProfile = new JobProfile()
     .withId(UUID.randomUUID().toString())
