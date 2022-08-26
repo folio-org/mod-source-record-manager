@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
-import com.google.common.collect.Lists;
 import io.restassured.RestAssured;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
