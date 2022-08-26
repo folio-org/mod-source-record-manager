@@ -47,6 +47,7 @@
   "010": [
     {
       "entityPerRepeatedSubfield": true,
+      "keepTrailingBackslash": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
