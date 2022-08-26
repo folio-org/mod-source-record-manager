@@ -19,8 +19,6 @@ END;
 $$
 LANGUAGE 'plpgsql' COST 100;
 
-ALTER FUNCTION update_job_execution_source_chunks_references () OWNER TO folio;
-
 CREATE TRIGGER update_job_execution_source_chunks_references
 BEFORE INSERT OR UPDATE
 ON job_execution_source_chunks
