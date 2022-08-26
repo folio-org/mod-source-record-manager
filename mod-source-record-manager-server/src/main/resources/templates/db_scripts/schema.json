@@ -219,7 +219,7 @@
     },
     {
       "run": "after",
-      "snippet": "update_source_chunks_table_structure_if_needed.sql",
+      "snippetPath": "update_source_chunks_table_structure_if_needed.sql",
       "fromModuleVersion": "mod-source-record-manager-3.4.3"
     }
   ]
