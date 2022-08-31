@@ -1,3 +1,6 @@
+## 2022-XX-XX v3.4.3-SNAPSHOT
+* [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
+
 ## 2022-08-25 v3.4.2
 * [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
 * [MODSOURMAN-852](https://issues.folio.org/browse/MODSOURMAN-852) Fail job for unsupported profile (match MARC BIB to Instance and update MARC BIB)
