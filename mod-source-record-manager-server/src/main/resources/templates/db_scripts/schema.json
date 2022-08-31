@@ -216,6 +216,11 @@
       "run": "after",
       "snippet": "CREATE OR REPLACE FUNCTION save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid) RETURNS integer AS $$ DECLARE counterValue integer; BEGIN INSERT INTO events_processed(handler_id, event_id) VALUES(handlerId, eventId); UPDATE flow_control_events_counter SET events_to_process = events_to_process - 1; SELECT events_to_process FROM flow_control_events_counter INTO counterValue; RETURN counterValue; END; $$ LANGUAGE plpgsql;",
       "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "update_source_chunks_table_structure_if_needed.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.4.3"
     }
   ]
 }
