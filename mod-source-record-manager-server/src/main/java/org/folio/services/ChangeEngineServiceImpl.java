@@ -128,7 +128,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
-                                 @Autowired JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService,
+                                 @Autowired JobProfileSnapshotValidationService jobProfileSnapshotValidationService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
@@ -203,7 +203,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       return true;
     }
     RecordType recordType = records.get(0).getRecordType();
-    return jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
+    return recordType == null || jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
   }
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {

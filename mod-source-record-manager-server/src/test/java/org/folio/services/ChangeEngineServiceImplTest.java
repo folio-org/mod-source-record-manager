@@ -81,6 +81,8 @@ public class ChangeEngineServiceImplTest {
   private KafkaConfig kafkaConfig;
   @Mock
   private MappingMetadataService mappingMetadataService;
+  @Mock
+  private JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
 
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
@@ -97,6 +99,10 @@ public class ChangeEngineServiceImplTest {
 
     when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
+
+    when(jobProfileSnapshotValidationService
+      .isJobProfileCompatibleWithRecordType(any(ProfileSnapshotWrapper.class), any(Record.RecordType.class)))
+      .thenReturn(true);
   }
 
   @Test
