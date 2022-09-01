@@ -101,6 +101,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
     .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC);
 
+  private ActionProfile createAuthorityActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create authority")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
+
   private ProfileSnapshotWrapper marcBibUpdateUnsupportedSimpleJobProfileSnapshot = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withContentType(JOB_PROFILE)
@@ -315,6 +321,32 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_MARC_FOR_UPDATE_RECEIVED.value(), eventPayload.getEventType());
     assertNotNull(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value()));
+  }
+
+  @Test
+  public void shouldSendDIErrorWhenJobProfileIncompatibleWithMarcRecordSubtype() throws InterruptedException {
+    ProfileSnapshotWrapper createAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(jobProfile)
+      .withChildSnapshotWrappers(List.of(
+        new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withContent(createAuthorityActionProfile)));
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(createAuthorityJobProfileSnapshot))));
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_ERROR.value(), eventPayload.getEventType());
   }
 
   private SendKeyValues<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
