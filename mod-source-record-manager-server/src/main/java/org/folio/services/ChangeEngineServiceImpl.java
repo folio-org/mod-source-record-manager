@@ -198,6 +198,15 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
+  /**
+   * Checks whether job profile snapshot is compatible with record type of the specified {@code records}.
+   * Returns {@code true} for the specified records that have not been parsed successfully and therefore
+   * which have the recordType == null to store them in the record-storage with the corresponding parsing error message.
+   *
+   * @param jobProfileSnapshot job profile snapshot
+   * @param records            parsed source records
+   * @return {@code true} if the specified job profile snapshot is compatible with type of the {@code records}, otherwise {@code false}
+   */
   private boolean isJobProfileCompatibleWithRecordType(ProfileSnapshotWrapper jobProfileSnapshot, List<Record> records) {
     if (records.isEmpty()) {
       return true;
