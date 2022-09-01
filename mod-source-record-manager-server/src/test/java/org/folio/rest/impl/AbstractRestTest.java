@@ -165,6 +165,18 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
 
+  private final ActionProfile actionMarcHoldingsCreateProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS);
+
+  private final ActionProfile actionMarcAuthorityCreateProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
+
   protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
@@ -175,6 +187,28 @@ public abstract class AbstractRestTest {
         .withProfileId(actionProfile.getId())
         .withContentType(ACTION_PROFILE)
         .withContent(actionProfile)));
+
+  protected ProfileSnapshotWrapper profileMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(actionMarcHoldingsCreateProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionMarcHoldingsCreateProfile)));
+
+  protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(actionMarcAuthorityCreateProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionMarcAuthorityCreateProfile)));
 
   protected JobProfile updateJobProfile = new JobProfile()
     .withId(UUID.randomUUID().toString())

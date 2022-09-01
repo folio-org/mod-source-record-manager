@@ -103,6 +103,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
   private static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile does not support this record type";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -111,8 +113,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final HrIdFieldService hrIdFieldService;
   private final RecordsPublishingService recordsPublishingService;
   private final MappingMetadataService mappingMetadataService;
+  private final JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   private final KafkaConfig kafkaConfig;
-  private final JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -260,15 +262,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Action.DELETE);
   }
 
-  private boolean createInstanceActionExists(JobExecution jobExecution) {
+  private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
       List.of(FolioRecord.INSTANCE),
       Action.CREATE);
   }
 
+  private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper(),
+      List.of(FolioRecord.AUTHORITY),
+      Action.CREATE);
+  }
+
+  private boolean isCreateMarcHoldingsActionExists(JobExecution jobExecution) {
+    return containsMarcActionProfile(
+      jobExecution.getJobProfileSnapshotWrapper(),
+      List.of(FolioRecord.HOLDINGS),
+      Action.CREATE);
+  }
+
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
-                                                  List<FolioRecord> entityTypes, Action action) {
+                                            List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
@@ -337,7 +353,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
-        parsedResult = addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(jobExecution, parsedResult);
+        parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
 
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
@@ -356,29 +372,38 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
-            postProcessMarcRecord(record, rawRecord);
+            postProcessMarcRecord(record, rawRecord, jobExecution);
           }
         }
         return record;
       }).collect(Collectors.toList());
   }
 
-  private ParsedResult addErrorMessageWhen999ffFieldExistsOnInstanceCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
+  private ParsedResult addErrorMessageWhen999ffFieldExistsOnCreateAction(JobExecution jobExecution, ParsedResult parsedResult) {
     if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC) && parsedResult.getParsedRecord() != null) {
       var tmpRecord = new Record()
         .withParsedRecord(new ParsedRecord().withContent(parsedResult.getParsedRecord().encode()));
       if (((StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_S)) && hasIndicator(tmpRecord, SUBFIELD_S))
-        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))
-        && createInstanceActionExists(jobExecution)) {
-        ParsedResult result = new ParsedResult();
-        JsonObject errorObject = new JsonObject();
-        errorObject.put("error", INSTANCE_CREATION_999_ERROR_MESSAGE);
-        result.setErrors(errorObject);
-        result.setParsedRecord(parsedResult.getParsedRecord());
-        return result;
+        || (StringUtils.isNotBlank(getValue(tmpRecord, TAG_999, SUBFIELD_I)) && hasIndicator(tmpRecord, SUBFIELD_I)))) {
+        if (isCreateInstanceActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, INSTANCE_CREATION_999_ERROR_MESSAGE);
+        } else if (isCreateMarcHoldingsActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, HOLDINGS_CREATION_999_ERROR_MESSAGE);
+        } else if (isCreateAuthorityActionExists(jobExecution)) {
+          return constructParsedResultWithError(parsedResult, AUTHORITY_CREATION_999_ERROR_MESSAGE);
+        }
       }
     }
     return parsedResult;
+  }
+
+  private ParsedResult constructParsedResultWithError(ParsedResult parsedResult, String errorMessage) {
+    ParsedResult result = new ParsedResult();
+    JsonObject errorObject = new JsonObject();
+    errorObject.put("error", errorMessage);
+    result.setErrors(errorObject);
+    result.setParsedRecord(parsedResult.getParsedRecord());
+    return result;
   }
 
   private List<Future> executeInBatches(List<Record> recordList,
@@ -400,7 +425,6 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void filterMarcHoldingsBy004Field(List<Record> records, List<Future> batchList, OkapiConnectionParams okapiParams,
                                             JobExecution jobExecution, Promise<List<Record>> promise) {
-
     CompositeFuture.all(batchList)
       .onComplete(as -> {
         if (IterableUtils.matchesAll(records, record -> record.getRecordType() == MARC_HOLDING)) {
@@ -412,8 +436,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
-              var controlFieldValue = getControlFieldValue(record, TAG_004);
-              return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
+                var controlFieldValue = getControlFieldValue(record, TAG_004);
+                return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
             }).collect(Collectors.toList());
           LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
@@ -454,6 +478,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean isValidMarcHoldings(JobExecution jobExecution, OkapiConnectionParams okapiParams,
                                       List<String> invalidMarcBibIds, Record record, String controlFieldValue) {
     if (isBlank(controlFieldValue) || invalidMarcBibIds.contains(controlFieldValue)) {
+      // avoid populating error if there is already populated via 999ff-field error.
+      if (record.getErrorRecord() != null && record.getErrorRecord().getDescription().contains("999ff")) {
+        return true;
+      }
       populateError(record, jobExecution, okapiParams);
       return false;
     }
@@ -501,7 +529,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return new SourceStorageBatchClient(okapiUrl, tenantId, token);
   }
 
-  private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
+  private void postProcessMarcRecord(Record record, InitialRecord rawRecord, JobExecution jobExecution) {
     String matchedId = getValue(record, TAG_999, SUBFIELD_S);
     if (StringUtils.isNotBlank(matchedId) && hasIndicator(record, SUBFIELD_S)) {
       record.setMatchedId(matchedId);
@@ -552,7 +580,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void checkLeaderLine(MarcRecordType marcRecordType, ParsedResult recordParsedResult, JobExecution jobExecution, String recordId, String chunkId) {
     String fileName = StringUtils.defaultIfEmpty(jobExecution.getFileName(), "No file name");
     JsonObject parsedRecord = Objects.requireNonNullElse(recordParsedResult.getParsedRecord(), new JsonObject());
-    if(parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
+    if (parsedRecord.containsKey("leader") && marcRecordType == MarcRecordType.NA) {
       recordParsedResult.setErrors(new JsonObject()
         .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
         .put("error", parsedRecord));
@@ -578,11 +606,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         }
       } else if (MARC_AUTHORITY.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
-          String inventoryId = UUID.randomUUID().toString();
-          addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
-          var hrid = getControlFieldValue(record, TAG_001).trim();
-          record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
+          if (record.getParsedRecord() != null) {
+            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+            String inventoryId = UUID.randomUUID().toString();
+            addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
+            var hrid = getControlFieldValue(record, TAG_001).trim();
+            record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
+          }
         }
       }
     }
