@@ -102,7 +102,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile does not support this record type";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -111,6 +112,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final RecordsPublishingService recordsPublishingService;
   private final MappingMetadataService mappingMetadataService;
   private final KafkaConfig kafkaConfig;
+  private final JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -124,6 +126,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
+                                 @Autowired JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
@@ -131,6 +134,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.hrIdFieldService = hrIdFieldService;
     this.recordsPublishingService = recordsPublishingService;
     this.mappingMetadataService = mappingMetadataService;
+    this.jobProfileSnapshotValidationService = jobProfileSnapshotValidationService;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -143,6 +147,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), params);
 
     futureParsedRecords
+      .compose(parsedRecords -> isJobProfileCompatibleWithRecordType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
+        ? Future.succeededFuture(parsedRecords) : Future.failedFuture(WRONG_JOB_PROFILE_ERROR_MESSAGE))
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
@@ -188,6 +194,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.fail(th);
       });
     return promise.future();
+  }
+
+  private boolean isJobProfileCompatibleWithRecordType(ProfileSnapshotWrapper jobProfileSnapshot, List<Record> records) {
+    if (records.isEmpty()) {
+      return true;
+    }
+    RecordType recordType = records.get(0).getRecordType();
+    return jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
   }
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
