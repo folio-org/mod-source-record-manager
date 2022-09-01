@@ -3,6 +3,9 @@
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
 * [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
 
+## 2022-09-xx v3.4.3-SNAPSHOT
+* [MODSOURMAN-859](https://issues.folio.org/browse/MODSOURMAN-859) DI stops processing the following files after using an incorrect type of JobProfile
+
 ## 2022-xx-xx v3.4.1-SNAPSHOT
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
 * [MODSOURMAN-836](https://issues.folio.org/browse/MODSOURMAN-836) Return job users and profiles only for jobs with COMMITTED, ERROR, CANCELED statuses
