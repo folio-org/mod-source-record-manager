@@ -30,11 +30,18 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 @Service
 public class JobProfileSnapshotValidationServiceImpl implements JobProfileSnapshotValidationService {
 
-  private final Map<Record.RecordType, EnumSet<ActionProfile.FolioRecord>> recordTypeToEntityType = Map.of(
+  private final Map<Record.RecordType, EnumSet<ActionProfile.FolioRecord>> recordTypeToFolioRecordType = Map.of(
     MARC_BIB, EnumSet.of(MARC_BIBLIOGRAPHIC, INSTANCE, HOLDINGS, ITEM, ORDER),
     MARC_HOLDING, EnumSet.of(MARC_HOLDINGS, HOLDINGS),
     MARC_AUTHORITY, EnumSet.of(ActionProfile.FolioRecord.MARC_AUTHORITY, AUTHORITY),
     EDIFACT, EnumSet.of(INVOICE)
+  );
+
+  private final Map<Record.RecordType, EntityType> recordTypeToEntityType = Map.of(
+    MARC_BIB, EntityType.MARC_BIBLIOGRAPHIC,
+    MARC_HOLDING, EntityType.MARC_HOLDINGS,
+    MARC_AUTHORITY, EntityType.MARC_AUTHORITY,
+    EDIFACT, EntityType.EDIFACT_INVOICE
   );
 
   @Override
@@ -43,8 +50,8 @@ public class JobProfileSnapshotValidationServiceImpl implements JobProfileSnapsh
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
-        EnumSet<ActionProfile.FolioRecord> eligibleEntityTypes = recordTypeToEntityType.get(recordType);
-        if (!eligibleEntityTypes.contains(actionProfile.getFolioRecord())) {
+        EnumSet<ActionProfile.FolioRecord> eligibleFolioRecordTypes = recordTypeToFolioRecordType.get(recordType);
+        if (!eligibleFolioRecordTypes.contains(actionProfile.getFolioRecord())) {
           return false;
         }
       } else if (childWrapper.getContentType() == MAPPING_PROFILE) {
@@ -61,12 +68,7 @@ public class JobProfileSnapshotValidationServiceImpl implements JobProfileSnapsh
   }
 
   private EntityType convertToEntityType(Record.RecordType recordType) {
-    if (recordType == MARC_BIB) {
-      return EntityType.MARC_BIBLIOGRAPHIC;
-    } else if (recordType == MARC_HOLDING) {
-      return EntityType.MARC_HOLDINGS;
-    }
-    return EntityType.fromValue(recordType.value());
+    return recordTypeToEntityType.get(recordType);
   }
 
 }

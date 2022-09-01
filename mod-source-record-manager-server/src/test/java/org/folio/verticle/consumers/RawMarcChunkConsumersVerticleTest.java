@@ -325,6 +325,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldSendDIErrorWhenJobProfileIncompatibleWithMarcRecordSubtype() throws InterruptedException {
+    // given
     ProfileSnapshotWrapper createAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
       .withId(UUID.randomUUID().toString())
       .withContentType(JOB_PROFILE)
