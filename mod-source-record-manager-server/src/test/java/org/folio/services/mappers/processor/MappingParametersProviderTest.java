@@ -60,6 +60,7 @@ public class MappingParametersProviderTest {
   protected static final String LOAN_TYPES_URL = "/loan-types?limit=0";
   protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=0";
   protected static final String AUTHORITY_NOTE_TYPES_URL = "/authority-note-types?limit=0";
+  protected static final String AUTHORITY_SOURCE_FILES_URL = "/authority-source-files?limit=0";
   protected static final String FIELD_PROTECTION_SETTINGS_URL =
     "/field-protection-settings/marc?limit=0";
   protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL =
@@ -190,6 +191,10 @@ public class MappingParametersProviderTest {
         .willReturn(
           okJson(new JsonObject().put("authorityNoteTypes", new JsonArray()).toString())));
     WireMock.stubFor(
+      get(AUTHORITY_SOURCE_FILES_URL)
+        .willReturn(
+          okJson(new JsonObject().put("authoritySourceFiles", new JsonArray()).toString())));
+    WireMock.stubFor(
       get(FIELD_PROTECTION_SETTINGS_URL)
         .willReturn(
           okJson(
@@ -251,7 +256,7 @@ public class MappingParametersProviderTest {
   public void cacheKeyEquality() {
     OkapiConnectionParams otherParams = new OkapiConnectionParams(Collections.emptyMap(), rule.vertx());
     Assert.assertNotEquals(okapiConnectionParams, otherParams);
-    
+
     MappingParametersProvider.MappingParameterKey key1 =
       new MappingParametersProvider.MappingParameterKey("key",
         otherParams);

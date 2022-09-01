@@ -126,6 +126,7 @@ public abstract class AbstractRestTest {
   protected static final String LOAN_TYPES_URL = "/loan-types?limit=1000";
   protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=1000";
   protected static final String AUTHORITY_NOTE_TYPES_URL = "/authority-note-types?limit=1000";
+  protected static final String AUTHORITY_SOURCE_FILES_URL = "/authority-source-files?limit=1000";
   protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=1000";
   protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);;
 
@@ -418,6 +419,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(okJson(new JsonObject().put("loantypes", new JsonArray()).toString())));
     WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("itemNoteTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(AUTHORITY_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("authorityNoteTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(AUTHORITY_SOURCE_FILES_URL).willReturn(okJson(new JsonObject().put("authoritySourceFiles", new JsonArray()).toString())));
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
     WireMock.stubFor(get(TENANT_CONFIGURATIONS_SETTINGS_URL).willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
 

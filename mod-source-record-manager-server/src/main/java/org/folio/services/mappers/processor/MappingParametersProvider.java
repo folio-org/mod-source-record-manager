@@ -9,7 +9,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.AuthorityNoteType;
+import org.folio.AuthoritySourceFile;
 import org.folio.Authoritynotetypes;
+import org.folio.Authoritysourcefiles;
 import org.folio.okapi.common.GenericCompositeFuture;
 
 import io.vertx.core.Future;
@@ -122,6 +124,7 @@ public class MappingParametersProvider {
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
   private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
   private static final String AUTHORITY_NOTE_TYPES_RESPONSE_PARAM = "authorityNoteTypes";
+  private static final String AUTHORITY_SOURCE_FILES_RESPONSE_PARAM = "authoritySourceFiles";
 
   private static final String CONFIGS_VALUE_RESPONSE = "configs";
   private static final String VALUE_RESPONSE = "value";
@@ -178,6 +181,7 @@ public class MappingParametersProvider {
     Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
     Future<List<AuthorityNoteType>> authorityNoteTypesFuture = getAuthorityNoteTypes(okapiParams);
+    Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
 
@@ -186,7 +190,7 @@ public class MappingParametersProvider {
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -216,6 +220,7 @@ public class MappingParametersProvider {
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
+          .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
       ).onFailure(e -> LOGGER.error("Something happened while initializing mapping parameters", e));
@@ -691,6 +696,26 @@ public class MappingParametersProvider {
       if (response != null && response.containsKey(AUTHORITY_NOTE_TYPES_RESPONSE_PARAM)) {
         var authorityNoteTypes = response.mapTo(Authoritynotetypes.class).getAuthorityNoteTypes();
         promise.complete(authorityNoteTypes);
+      } else {
+        promise.complete(Collections.emptyList());
+      }
+    });
+    return promise.future();
+  }
+
+  private Future<List<AuthoritySourceFile>> getAuthoritySourceFiles(OkapiConnectionParams params) {
+    var promise = Promise.<List<AuthoritySourceFile>>promise();
+    var authoritySourceFilesUrl = "/authority-source-files?limit=" + settingsLimit;
+
+    RestUtil.doRequest(params, authoritySourceFilesUrl, HttpMethod.GET, null).onComplete(ar -> {
+      if (!RestUtil.validateAsyncResult(ar, promise)) {
+        return;
+      }
+
+      var response = ar.result().getJson();
+      if (response != null && response.containsKey(AUTHORITY_SOURCE_FILES_RESPONSE_PARAM)) {
+        var authoritySourceFiles = response.mapTo(Authoritysourcefiles.class).getAuthoritySourceFiles();
+        promise.complete(authoritySourceFiles);
       } else {
         promise.complete(Collections.emptyList());
       }

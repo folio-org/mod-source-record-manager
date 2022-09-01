@@ -12,6 +12,7 @@
 * [MODSOURMAN-823](https://issues.folio.org/browse/MODSOURMAN-823) View all logs: broken alphabetical sorting via the "Job profile" column
 * [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
 * [MODSOURMAN-845](https://issues.folio.org/browse/MODSOURMAN-845) Importing MARC Authority and Holdings records with 999 marc fields, with default Create job profiles, causes data problems.
+* [MODSOURMAN-866](https://issues.folio.org/browse/MODSOURMAN-866) Assign each authority record to an Authority Source file list
 
 ## 2022-07-05 v3.4.0
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action

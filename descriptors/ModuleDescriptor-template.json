@@ -73,6 +73,10 @@
     {
       "id": "authority-note-types",
       "version": "1.0"
+    },
+    {
+      "id": "authority-source-files",
+      "version": "1.0"
     }
   ],
   "provides": [
@@ -206,6 +210,7 @@
             "inventory-storage.authorities.item.post",
             "inventory-storage.authorities.item.put",
             "inventory-storage.authority-note-types.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
             "inventory-storage.call-number-types.collection.get",
             "inventory-storage.classification-types.collection.get",
             "inventory-storage.contributor-name-types.collection.get",
@@ -308,6 +313,7 @@
             "inventory-storage.authorities.item.put",
             "inventory-storage.authorities.item.delete",
             "inventory-storage.authority-note-types.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
             "inventory-storage.call-number-types.collection.get",
             "inventory-storage.classification-types.collection.get",
             "inventory-storage.contributor-name-types.collection.get",
