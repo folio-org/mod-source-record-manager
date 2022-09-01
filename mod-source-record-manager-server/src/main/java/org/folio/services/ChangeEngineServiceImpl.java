@@ -105,7 +105,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
-  private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile does not support this record type";
+  private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -149,8 +149,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), params);
 
     futureParsedRecords
-      .compose(parsedRecords -> isJobProfileCompatibleWithRecordType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
-        ? Future.succeededFuture(parsedRecords) : Future.failedFuture(WRONG_JOB_PROFILE_ERROR_MESSAGE))
+      .compose(parsedRecords -> isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
+        ? Future.succeededFuture(parsedRecords)
+        : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords)))
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
@@ -207,7 +208,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param records            parsed source records
    * @return {@code true} if the specified job profile snapshot is compatible with type of the {@code records}, otherwise {@code false}
    */
-  private boolean isJobProfileCompatibleWithRecordType(ProfileSnapshotWrapper jobProfileSnapshot, List<Record> records) {
+  private boolean isJobProfileCompatibleWithRecordsType(ProfileSnapshotWrapper jobProfileSnapshot, List<Record> records) {
     if (records.isEmpty()) {
       return true;
     }
@@ -653,5 +654,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
       kafkaHeaders, kafkaConfig, key)
       .map(parsedRecords);
+  }
+
+  private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
+    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
   }
 }
