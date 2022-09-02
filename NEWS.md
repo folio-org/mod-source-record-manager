@@ -1,6 +1,7 @@
 ## 2022-XX-XX v3.4.3-SNAPSHOT
 * [MODSOURMAN-854](https://issues.folio.org/browse/MODSOURMAN-854) Importing MARC Authority and Holdings records with 999 marc fields, with default Create job profiles, causes data problems.
 * [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
+* [MODSOURMAN-859](https://issues.folio.org/browse/MODSOURMAN-859) DI stops processing the following files after using an incorrect type of JobProfile
 
 ## 2022-08-25 v3.4.2
 * [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.

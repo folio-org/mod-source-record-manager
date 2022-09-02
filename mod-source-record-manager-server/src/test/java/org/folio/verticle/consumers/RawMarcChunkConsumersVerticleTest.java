@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
@@ -100,6 +101,12 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private MappingProfile mappingProfileMarcBibToMarcBib = new MappingProfile()
     .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
     .withExistingRecordType(EntityType.MARC_BIBLIOGRAPHIC);
+
+  private ActionProfile createAuthorityActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create authority")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
 
   private ProfileSnapshotWrapper marcBibUpdateUnsupportedSimpleJobProfileSnapshot = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
@@ -160,6 +167,10 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldParseAndPublishChunkWithEdifactRecord() throws InterruptedException {
     // given
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(createInvoiceProfileSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(createInvoiceProfileSnapshotWrapperResponse))));
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.EDIFACT, RecordsMetadata.ContentType.EDIFACT_RAW, rawEdifactContent);
 
     // when
@@ -315,6 +326,33 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_MARC_FOR_UPDATE_RECEIVED.value(), eventPayload.getEventType());
     assertNotNull(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value()));
+  }
+
+  @Test
+  public void shouldSendDIErrorWhenJobProfileIncompatibleWithMarcRecordSubtype() throws InterruptedException {
+    // given
+    ProfileSnapshotWrapper createAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(jobProfile)
+      .withChildSnapshotWrappers(List.of(
+        new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withContent(createAuthorityActionProfile)));
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(createAuthorityJobProfileSnapshot))));
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+      RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_ERROR.value(), eventPayload.getEventType());
   }
 
   private SendKeyValues<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
