@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
+import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,6 +82,8 @@ public class ChangeEngineServiceImplTest {
   private KafkaConfig kafkaConfig;
   @Mock
   private MappingMetadataService mappingMetadataService;
+  @Mock
+  private JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
 
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
@@ -97,6 +100,10 @@ public class ChangeEngineServiceImplTest {
 
     when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
+
+    when(jobProfileSnapshotValidationService
+      .isJobProfileCompatibleWithRecordType(any(ProfileSnapshotWrapper.class), any(Record.RecordType.class)))
+      .thenReturn(true);
   }
 
   @Test
