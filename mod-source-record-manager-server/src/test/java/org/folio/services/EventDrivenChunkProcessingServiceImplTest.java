@@ -38,6 +38,7 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
+import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

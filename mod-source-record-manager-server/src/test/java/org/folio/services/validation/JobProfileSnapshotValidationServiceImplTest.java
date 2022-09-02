@@ -1,10 +1,11 @@
-package org.folio.services;
+package org.folio.services.validation;
 
 import io.vertx.core.json.JsonObject;
 import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.MappingProfile;
+import org.folio.rest.jaxrs.model.MatchProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.junit.Test;
 
@@ -13,12 +14,13 @@ import java.util.List;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class JobProfileSnapshotValidationServiceTest {
+public class JobProfileSnapshotValidationServiceImplTest {
 
   private JobProfile jobProfile = new JobProfile()
     .withDataType(JobProfile.DataType.MARC);
@@ -59,4 +61,5 @@ public class JobProfileSnapshotValidationServiceTest {
       jobProfileValidationService.isJobProfileCompatibleWithRecordType(createMarcHoldingsJobProfileSnapshot, MARC_HOLDING);
     assertTrue(isJobProfileCompatible);
   }
+
 }

@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.validation;
 
 import io.vertx.core.json.jackson.DatabindCodec;
 import org.folio.rest.jaxrs.model.ActionProfile;

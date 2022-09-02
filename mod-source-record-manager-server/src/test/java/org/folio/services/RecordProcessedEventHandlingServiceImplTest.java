@@ -52,6 +52,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
 import org.junit.Rule;

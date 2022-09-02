@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.validation;
 
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
