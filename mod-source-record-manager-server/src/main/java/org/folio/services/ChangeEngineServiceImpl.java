@@ -48,6 +48,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -102,9 +103,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final AtomicInteger indexer = new AtomicInteger();
   private static final String HOLDINGS_004_TAG_ERROR_MESSAGE =
     "The 004 tag of the Holdings doesn't has a link to the Bibliographic record";
-  public static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
-  public static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
-  public static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String INSTANCE_CREATION_999_ERROR_MESSAGE = "A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
+  private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -112,6 +114,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final HrIdFieldService hrIdFieldService;
   private final RecordsPublishingService recordsPublishingService;
   private final MappingMetadataService mappingMetadataService;
+  private final JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   private final KafkaConfig kafkaConfig;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
@@ -126,6 +129,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired HrIdFieldService hrIdFieldService,
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
+                                 @Autowired JobProfileSnapshotValidationService jobProfileSnapshotValidationService,
                                  @Autowired KafkaConfig kafkaConfig) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
@@ -133,6 +137,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.hrIdFieldService = hrIdFieldService;
     this.recordsPublishingService = recordsPublishingService;
     this.mappingMetadataService = mappingMetadataService;
+    this.jobProfileSnapshotValidationService = jobProfileSnapshotValidationService;
     this.kafkaConfig = kafkaConfig;
   }
 
@@ -145,6 +150,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), params);
 
     futureParsedRecords
+      .compose(parsedRecords -> isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
+        ? Future.succeededFuture(parsedRecords)
+        : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords)))
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
@@ -192,6 +200,23 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return promise.future();
   }
 
+  /**
+   * Checks whether job profile snapshot is compatible with record type of the specified {@code records}.
+   * Returns {@code true} for the specified records that have not been parsed successfully and therefore
+   * which have the recordType == null to store them in the record-storage with the corresponding parsing error message.
+   *
+   * @param jobProfileSnapshot job profile snapshot
+   * @param records            parsed source records
+   * @return {@code true} if the specified job profile snapshot is compatible with type of the {@code records}, otherwise {@code false}
+   */
+  private boolean isJobProfileCompatibleWithRecordsType(ProfileSnapshotWrapper jobProfileSnapshot, List<Record> records) {
+    if (records.isEmpty()) {
+      return true;
+    }
+    RecordType recordType = records.get(0).getRecordType();
+    return recordType == null || jobProfileSnapshotValidationService.isJobProfileCompatibleWithRecordType(jobProfileSnapshot, recordType);
+  }
+
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc or Instance update");
     return recordsPublishingService
@@ -230,7 +255,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean updateMarcActionExists(JobExecution jobExecution) {
     return containsMarcActionProfile(
       jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY, FolioRecord.MARC_HOLDINGS),
+      List.of(FolioRecord.MARC_BIBLIOGRAPHIC, FolioRecord.MARC_AUTHORITY),
       Action.UPDATE);
   }
 
@@ -587,6 +612,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (!CollectionUtils.isEmpty(records)) {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
+        hrIdFieldService.move001valueTo035Field(records);
         for (Record record : records) {
           addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
         }
@@ -630,5 +656,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return sendEventToKafka(params.getTenantId(), Json.encode(recordCollection), DI_RAW_RECORDS_CHUNK_PARSED.value(),
       kafkaHeaders, kafkaConfig, key)
       .map(parsedRecords);
+  }
+
+  private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
+    return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
   }
 }
