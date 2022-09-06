@@ -1,4 +1,4 @@
-## 2022-XX-XX v3.4.4-SNAPSHOT
+## 2022-09-06 v3.4.4
 * [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
 
 ## 2022-09-05 v3.4.3
