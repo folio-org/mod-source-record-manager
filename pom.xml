@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-source-record-manager</artifactId>
-  <version>3.4.4</version>
+  <version>3.4.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <licenses>
@@ -151,7 +151,7 @@
     <url>https://github.com/folio-org/mod-source-record-manager</url>
     <connection>scm:git:git://github.com/folio-org/mod-source-record-manager</connection>
     <developerConnection>scm:git:git@github.com:folio-org/mod-source-record-manager.git</developerConnection>
-    <tag>v3.4.4</tag>
+    <tag>v3.4.0</tag>
   </scm>
 
   <pluginRepositories>

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.folio</groupId>
     <artifactId>mod-source-record-manager</artifactId>
-    <version>3.4.4</version>
+    <version>3.4.5-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -450,7 +450,6 @@
         <version>2.22.2</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
-          <testFailureIgnore>true</testFailureIgnore>
         </configuration>
       </plugin>
 
