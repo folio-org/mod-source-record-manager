@@ -255,6 +255,33 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnSortedJobExecutionsOnGetWhenSortByStartedDate() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
+
+    for (int i = 0; i < createdJobExecution.size(); i++) {
+      putJobExecution(createdJobExecution.get(i).withStartedDate(new Date(1234567892000L + i)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = createdJobExecution.size() - 1;
+    JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("uiStatusAny", "INITIALIZATION")
+      .queryParam("sortBy", "started_date,desc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    List<JobExecutionDto> jobExecutionDtoList = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutionDtoList.size());
+    Assert.assertTrue(jobExecutionDtoList.get(0).getStartedDate().after(jobExecutionDtoList.get(1).getStartedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(1).getStartedDate().after(jobExecutionDtoList.get(2).getStartedDate()));
+    Assert.assertTrue(jobExecutionDtoList.get(2).getStartedDate().after(jobExecutionDtoList.get(3).getStartedDate()));
+  }
+
+  @Test
   public void shouldReturnFilteredAndSortedJobExecutionsOnGetWhenConditionAndSortByIsSpecified() {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(8).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
