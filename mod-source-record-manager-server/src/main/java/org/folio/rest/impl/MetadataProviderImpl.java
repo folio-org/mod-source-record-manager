@@ -41,7 +41,7 @@ public class MetadataProviderImpl implements MetadataProvider {
   private static final String INVALID_SORT_PARAMS_MSG = "The specified parameter for sorting jobExecutions is invalid: '%s'. Valid sortable fields are: %s. Valid sorting order values are: asc, desc.";
   public static final Set<String> SORT_ORDER_VALUES = Set.of("asc", "desc");
   private static final Set<String> JOB_EXECUTION_SORTABLE_FIELDS =
-    Set.of("completed_date", "progress_total", "status", "hrid", "file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
+    Set.of("completed_date", "started_date", "progress_total", "status", "hrid", "file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
 
   @Autowired
   private JobExecutionService jobExecutionService;

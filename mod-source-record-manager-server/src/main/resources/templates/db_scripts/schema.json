@@ -221,6 +221,11 @@
       "run": "after",
       "snippetPath": "update_source_chunks_table_structure_if_needed.sql",
       "fromModuleVersion": "mod-source-record-manager-3.4.3"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_index_on_job_execution_started_date.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.5.0"
     }
   ]
 }
