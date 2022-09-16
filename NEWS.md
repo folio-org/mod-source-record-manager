@@ -1,19 +1,26 @@
 ## 2022-xx-xx v3.5.0-SNAPSHOT
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
-* [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
+* [MODSOURMAN-868](https://issues.folio.org/browse/MODSOURMAN-868) Allow sorting of JobExecutions by 'started_date'
+
+## 2022-09-06 v3.4.4
 * [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
 
-## 2022-09-xx v3.4.3-SNAPSHOT
+## 2022-09-05 v3.4.3
+* [MODSOURMAN-854](https://issues.folio.org/browse/MODSOURMAN-854) Importing MARC Authority and Holdings records with 999 marc fields, with default Create job profiles, causes data problems.
+* [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
 * [MODSOURMAN-859](https://issues.folio.org/browse/MODSOURMAN-859) DI stops processing the following files after using an incorrect type of JobProfile
 
-## 2022-xx-xx v3.4.1-SNAPSHOT
+## 2022-08-25 v3.4.2
+* [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
+* [MODSOURMAN-852](https://issues.folio.org/browse/MODSOURMAN-852) Fail job for unsupported profile (match MARC BIB to Instance and update MARC BIB)
+* [MODSOURCE-521](https://issues.folio.org/browse/MODSOURCE-521) Populate 035 fields for exceptional cases of Update action
+
+## 2022-08-03 v3.4.1
 * [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
 * [MODSOURMAN-836](https://issues.folio.org/browse/MODSOURMAN-836) Return job users and profiles only for jobs with COMMITTED, ERROR, CANCELED statuses
 * [MODSOURMAN-823](https://issues.folio.org/browse/MODSOURMAN-823) View all logs: broken alphabetical sorting via the "Job profile" column
 * [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
-* [MODSOURMAN-845](https://issues.folio.org/browse/MODSOURMAN-845) Importing MARC Authority and Holdings records with 999 marc fields, with default Create job profiles, causes data problems.
-* [MODSOURMAN-866](https://issues.folio.org/browse/MODSOURMAN-866) Assign each authority record to an Authority Source file list
 
 ## 2022-07-05 v3.4.0
 * [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
