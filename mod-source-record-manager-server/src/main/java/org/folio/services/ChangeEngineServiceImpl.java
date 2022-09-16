@@ -329,7 +329,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private boolean isMarcHoldingsExists(ProfileSnapshotWrapper actionProfileWrapper) {
     List<ProfileSnapshotWrapper> childWrappers = actionProfileWrapper.getChildSnapshotWrappers();
-    if (childWrappers != null && childWrappers.get(0) != null) {
+    if (childWrappers != null && !childWrappers.isEmpty() && childWrappers.get(0) != null) {
       MappingProfile mappingProfile = new JsonObject((Map) childWrappers.get(0).getContent()).mapTo(MappingProfile.class);
       return mappingProfile.getExistingRecordType() == EntityType.HOLDINGS && mappingProfile.getIncomingRecordType() == EntityType.MARC_HOLDINGS;
     }

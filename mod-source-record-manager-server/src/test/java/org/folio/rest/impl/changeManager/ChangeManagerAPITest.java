@@ -1984,62 +1984,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldNotHaveErrorRecordIf999ffsFieldExistsAndCreateMarcBibHoldingsActionProfile(TestContext testContext) throws InterruptedException {
-    InitJobExecutionsRsDto response =
-      constructAndPostInitJobExecutionRqDto(1);
-    List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), is(1));
-    JobExecution jobExec = createdJobExecutions.get(0);
-
-
-    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+ DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID +"?withRelations=false&")
-      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID).withName("Default - Create Holdings and SRS MARC Holdings")))));
-
-    WireMock.stubFor(post(RECORDS_SERVICE_URL)
-      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
-    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.created().withBody(Json.encode(profileMarcBibHoldingsSnapshotWrapperResponse))));
-    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.ok().withBody(Json.encode(profileMarcBibHoldingsSnapshotWrapperResponse))));
-
-    Async async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID)
-        .withDataType(DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
-    async.complete();
-
-    async = testContext.async();
-    RestAssured.given()
-      .spec(spec)
-      .body(rawRecordsDto_3)
-      .when()
-      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_NO_CONTENT);
-    async.complete();
-
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 7)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
-
-    Event obtainedEvent = Json.decodeValue(observedValues.get(7), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNull(recordCollection.getRecords().get(0).getErrorRecord());
-  }
-
-  @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
+  public void shouldNotHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2090,10 +2035,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
-    Assert.assertEquals( "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+    Assert.assertNull(recordCollection.getRecords().get(0).getErrorRecord());
   }
-
 
   @Test
   public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcAuthorityActionProfile(TestContext testContext) throws InterruptedException {
