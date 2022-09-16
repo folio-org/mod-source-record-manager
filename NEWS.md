@@ -2,7 +2,6 @@
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
 * [MODSOURMAN-868](https://issues.folio.org/browse/MODSOURMAN-868) Allow sorting of JobExecutions by 'started_date'
-* [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field
 
 ## 2022-09-06 v3.4.4
 * [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
