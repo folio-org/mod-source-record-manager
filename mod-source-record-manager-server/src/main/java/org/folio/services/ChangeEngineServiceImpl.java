@@ -48,6 +48,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.MappingProfile;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -288,10 +289,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateMarcHoldingsActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.HOLDINGS),
-      Action.CREATE);
+    return containsCreateActionProfileWithMarcHoldings(
+      jobExecution.getJobProfileSnapshotWrapper());
   }
 
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
@@ -308,10 +307,33 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return false;
   }
 
+  private boolean containsCreateActionProfileWithMarcHoldings(ProfileSnapshotWrapper profileSnapshot) {
+    List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
+      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+        && actionProfileMatches(childWrapper, List.of(FolioRecord.HOLDINGS), Action.CREATE)
+        && isMarcHoldingsExists(childWrapper)) {
+        return true;
+      } else if (containsCreateActionProfileWithMarcHoldings(childWrapper)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private boolean actionProfileMatches(ProfileSnapshotWrapper actionProfileWrapper,
                                        List<FolioRecord> records, Action action) {
     ActionProfile actionProfile = new JsonObject((Map) actionProfileWrapper.getContent()).mapTo(ActionProfile.class);
     return (records.contains(actionProfile.getFolioRecord())) && actionProfile.getAction() == action;
+  }
+
+  private boolean isMarcHoldingsExists(ProfileSnapshotWrapper actionProfileWrapper) {
+    List<ProfileSnapshotWrapper> childWrappers = actionProfileWrapper.getChildSnapshotWrappers();
+    if (childWrappers != null && childWrappers.get(0) != null) {
+      MappingProfile mappingProfile = new JsonObject((Map) childWrappers.get(0).getContent()).mapTo(MappingProfile.class);
+      return mappingProfile.getExistingRecordType() == EntityType.HOLDINGS && mappingProfile.getIncomingRecordType() == EntityType.MARC_HOLDINGS;
+    }
+    return false;
   }
 
   /**
