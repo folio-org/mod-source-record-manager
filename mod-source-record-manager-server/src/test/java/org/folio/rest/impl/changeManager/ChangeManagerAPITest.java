@@ -108,6 +108,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   private static final String RAW_RECORD_WITH_999_ff_s_SUBFIELD = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
   private static final String MARC_AUTHORITY_RAW_RECORD_WITH_999_s_SUBFIELD = "01107cz  a2200253n  4500001000800000005001700008008004100025010001700066035002300083035002100106040004300127100002200170375000900192377000800201400002400209400003700233400003000270400004400300667004700344670006800391670009400459670022100553999007900774\u001E1000649\u001E20171119085041.0\u001E850103n| azannaabn          |b aaa      \u001E  \u001Fan  84234537 \u001E  \u001Fa(OCoLC)oca01249182\u001E  \u001Fa(DLC)n  84234537\u001E  \u001FaDLC\u001Fbeng\u001Ferda\u001FcDLC\u001FdDLC\u001FdCoU\u001FdDLC\u001FdInU\u001E1 \u001FaEimermacher, Karl\u001E  \u001Famale\u001E  \u001Fager\u001E1 \u001FaAĭmermakher, Karl\u001E1 \u001FaАймермахер, Карл\u001E1 \u001FaAĭmermakher, K.\u001Fq(Karl)\u001E1 \u001FaАймермахер, К.\u001Fq(Карл)\u001E  \u001FaNon-Latin script references not evaluated.\u001E  \u001FaSidur, V. Vadim Sidur, 1980?:\u001Fbp. 3 of cover (Karl Eimermacher)\u001E  \u001FaV tiskakh ideologii, 1992:\u001Fbt.p. verso (Karla Aĭmermakhera) colophon (K. Aĭmermakher)\u001E  \u001FaGoogle, 01-31-02\u001Fbruhr-uni-bochum.de/lirsk/whowho.htm (Prof. Dr. Dr. hc. Karl Eimermacher; Geb. 1938; Institutsleiter und Landesbeauftragter für die Hochschulkontakte des Landes NRW zu den europäischen U-Staaten)\u001Eff\u001Fs9df3f407-434b-4260-bfe3-3791c607a1cd\u001Fi92e3bde3-d49f-4a25-867b-2fc257bee318\u001E\u001D";
   private static final String RAW_RECORD_WITH_INVALID_LEADER = "01342nhm a2200289 a 4500005001700000008004100017035002000058040001300078041000800091043001200099245003000111260005600141300002100197336008000218337007100298338006900369350001500438500007900453530004900532650008200581651006500663650007900728650006300807651006600870856009600936035002001032\u001E20020829132600.0\u001E850404m19839999ctu     ab    00000dmul d\u001E  \u001Fa(ICU)BID8683551\u001E  \u001FaICU\u001FcICU\u001E0 \u001Famul\u001E  \u001Fan-us---\u001E04\u001FaThe Immigrant in America.\u001E0 \u001FaWoodbridge, Conn. :\u001FbResearch Publications,\u001Fc[1983-\u001E  \u001Fareels. ;\u001Fc35 mm.\u001E  \u001Faunspecified\u001Fbzzz\u001F2rdacontent\u001F0http://id.loc.gov/vocabulary/contentTypes/zzz\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001F0http://id.loc.gov/vocabulary/mediaTypes/n\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001F0http://id.loc.gov/vocabulary/carriers/nc\u001E  \u001Fa$17,000.00\u001E  \u001FaAccompanying guide to the collection on microfilm has call no. JV6455.I56.\u001E  \u001FaSearch guide also available on the Internet.\u001E 0\u001FaNoncitizens\u001FzUnited States\u001F0http://id.loc.gov/authorities/subjects/sh85003551\u001E 0\u001FaUnited States\u001FxEmigration and immigration\u001FxBio-bibliography.\u001E 7\u001FaEmigration and immigration.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00908690\u001E 7\u001FaImmigrants.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00967712\u001E 7\u001FaUnited States.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01204155\u001E41\u001FzSelect search guide from pull down menu at:\u001Fuhttp://microformguides.gale.com/SearchForm.asp\u001E  \u001Fa(OCoLC)43567633\u001E\u001D";
+  private static final String MARC_HOLDINGS_RAW_RECORD_WITH_999_ff_s_SUBFIELD =  "00476cy  a22001454  4500001000700000004001400007005001700021008003300038014001700071014001400088852009600102866002700198868002600225999007900251\u001E445553\u001Ein00000000278\u001E20171018085818.0\u001E9301234u    8   1   uu          \u001E1 \u001FaABP6388CU001\u001E0 \u001F9000442923\u001E01\u001FbKU/CC/DI/A\u001FhBR140\u001Fi.J86\u001Fxdbe=c\u001FzCurrent issues in Periodicals Room\u001FxCHECK-IN RECORD CREATED\u001E41\u001F80\u001Fav.54-68 (2003-2017)\u001E41\u001F80\u001Fav.1/50 (1950/1999)\u001Eff\u001Fsa88255be-9669-4100-9ad3-25d21827c9bc\u001Fided3fee0-4b2f-41fb-b740-aaf1ffc3e772\u001E\u001D";
   private static final String DEFAULT_INSTANCE_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID = "80898dee-449f-44dd-9c8e-37d5eb469b1d";
 
@@ -181,6 +182,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
     .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(MARC_AUTHORITY_RAW_RECORD_WITH_999_s_SUBFIELD)));
+
+  private RawRecordsDto marcHoldingsRawRecordDto = new RawRecordsDto()
+    .withId(UUID.randomUUID().toString())
+    .withRecordsMetadata(new RecordsMetadata()
+      .withLast(false)
+      .withCounter(15)
+      .withContentType(RecordsMetadata.ContentType.MARC_RAW))
+    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(MARC_HOLDINGS_RAW_RECORD_WITH_999_ff_s_SUBFIELD))
+    );
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
@@ -1595,7 +1605,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
 
     RecordCollection processedRecords = Json
@@ -1974,7 +1984,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(5), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(6), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
@@ -1984,7 +1994,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
+  public void shouldNotHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -2026,17 +2036,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 7)
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(7), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
-    Assert.assertEquals( "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+    Assert.assertNull(recordCollection.getRecords().get(0).getErrorRecord());
   }
 
   @Test
@@ -2086,7 +2095,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(3), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(4), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
@@ -2134,11 +2143,67 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(3), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     assertEquals(1, recordCollection.getRecords().size());
     MatcherAssert.assertThat(recordCollection.getRecords().get(0).getErrorRecord().getDescription(), containsString("Error during analyze leader line for determining record type"));
+  }
+
+  @Test
+  public void shouldHaveErrorRecordIf999ffsFieldExistsAndCreateMarcHoldingsActionProfile(TestContext testContext) throws InterruptedException {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/"+ DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID +"?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID).withName("Default - Create Holdings and SRS MARC Holdings")))));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(profileCreateMarcHoldingsSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(profileCreateMarcHoldingsSnapshotWrapperResponse))));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(marcHoldingsRawRecordDto)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 7)
+      .observeFor(30, TimeUnit.SECONDS)
+      .build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(8), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+    RecordCollection recordCollection = Json
+      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    Assert.assertEquals( "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
 
   @Test
