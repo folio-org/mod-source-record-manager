@@ -29,11 +29,13 @@ import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.folio.MappingProfile;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -75,6 +77,7 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
@@ -171,6 +174,12 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS);
 
+  private final MappingProfile marcHoldingsMappingProfile = new MappingProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withIncomingRecordType(EntityType.MARC_HOLDINGS)
+    .withExistingRecordType(EntityType.HOLDINGS);
+
   private final ActionProfile actionMarcAuthorityCreateProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
     .withName("Create MARC-Holdings ")
@@ -204,6 +213,20 @@ public abstract class AbstractRestTest {
         .withProfileId(actionMarcHoldingsCreateProfile.getId())
         .withContentType(ACTION_PROFILE)
         .withContent(actionMarcHoldingsCreateProfile)));
+
+  protected ProfileSnapshotWrapper profileCreateMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+      .withProfileId(UUID.randomUUID().toString())
+      .withContentType(ACTION_PROFILE)
+      .withContent(actionMarcHoldingsCreateProfile)
+      .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(MAPPING_PROFILE)
+        .withContent(marcHoldingsMappingProfile)))));
 
   protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())

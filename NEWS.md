@@ -1,3 +1,6 @@
+## 2022-xx-xx v3.4.5-SNAPSHOT
+* [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field.
+
 ## 2022-09-06 v3.4.4
 * [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
 
