@@ -15,7 +15,7 @@
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
     <lombok.version>1.18.20</lombok.version>
-    <testcontainers.version>1.15.3</testcontainers.version>
+    <testcontainers.version>1.16.0</testcontainers.version>
     <kafkaclients.version>3.1.0</kafkaclients.version>
   </properties>
 
