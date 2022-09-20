@@ -150,7 +150,7 @@ public class ParserTest {
       });
   }
 
-  @Test
+/*  @Test
   public void parseRawEdifactRecord(TestContext testContext) {
     RecordParser parser = RecordParserBuilder.buildParser(RecordsMetadata.ContentType.EDIFACT_RAW);
 
@@ -158,7 +158,7 @@ public class ParserTest {
     testContext.assertFalse(result.isHasError());
     testContext.assertNotNull(result.getParsedRecord());
     testContext.assertNotEquals(result.getParsedRecord().encode(), "");
-  }
+  }*/
 
   @Test
   public void parseEdifactRawErrorSource(TestContext testContext) {
