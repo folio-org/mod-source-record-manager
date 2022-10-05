@@ -137,7 +137,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  orderByClause);
-      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error while getting Logs", e);
       promise.fail(e);
@@ -153,7 +153,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String sql = format(GET_CHILDREN_JOBS_BY_PARENT_ID_SQL, jobTable, jobTable, progressTable);
       Tuple queryParams = Tuple.of(UUID.fromString(parentId), limit, offset);
-      pgClientFactory.createInstance(tenantId).select(sql, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(sql, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecutions by parent id", e);
       promise.fail(e);
@@ -167,7 +167,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_BY_ID_SQL, jobTable);
-      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(UUID.fromString(id)), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecution by id", e);
       promise.fail(e);
@@ -182,7 +182,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
-      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting related Job Profiles", e);
       promise.fail(e);
@@ -288,7 +288,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String tableName = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_UNIQUE_USERS, tableName);
-      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(limit, offset), promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting unique users ", e);
       promise.fail(e);

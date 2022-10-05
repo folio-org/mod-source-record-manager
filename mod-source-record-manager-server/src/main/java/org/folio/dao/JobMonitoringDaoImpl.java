@@ -47,7 +47,7 @@ public class JobMonitoringDaoImpl implements JobMonitoringDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), TABLE);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     return promise.future().map(this::mapRowToJobMonitoring);
   }
 
@@ -65,7 +65,7 @@ public class JobMonitoringDaoImpl implements JobMonitoringDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_BY_NOTIFICATION_BEFORE_TIMESTAMP_QUERY, convertToPsqlStandard(tenantId), TABLE);
     Tuple queryParams = Tuple.of(timestamp, notificationSent);
-    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     return promise.future().map(this::mapResultSetToJobMonitoringList);
   }
 

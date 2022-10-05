@@ -85,7 +85,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
     try {
       String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(jobExecutionId, Boolean.valueOf(isLast).toString(), offset, limit);
-      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error while searching for JobExecutionSourceChunks", e);
       promise.fail(e);

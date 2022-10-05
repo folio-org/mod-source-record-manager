@@ -40,7 +40,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
     try {
       String query = format(SELECT_BY_TYPE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(recordType != null ? recordType.toString() : null);
-      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting mapping rules", e);
       promise.fail(e);
