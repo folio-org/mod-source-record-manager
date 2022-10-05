@@ -38,7 +38,7 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(SELECT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-    pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+    pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     return promise.future().map(resultSet -> {
       if (resultSet.rowCount() == 0 || resultSet.iterator().next().getValue(RULES_FIELD) == null) {
         return Optional.empty();
