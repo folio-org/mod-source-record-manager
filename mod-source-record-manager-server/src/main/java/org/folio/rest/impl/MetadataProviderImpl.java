@@ -217,6 +217,10 @@ public class MetadataProviderImpl implements MetadataProvider {
       if (!JOB_EXECUTION_SORTABLE_FIELDS.contains(sortField) || !SORT_ORDER_VALUES.contains(sortOrder)) {
         throw new BadRequestException(format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
       }
+
+      if (sortField.equals("progress_total")) {
+        sortField = "COALESCE(p.total_records_count, progress_total)";
+      }
       fields.add(new SortField(sortField, sortOrder));
     }
     return fields;
