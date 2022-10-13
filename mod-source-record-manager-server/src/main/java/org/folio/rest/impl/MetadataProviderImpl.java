@@ -43,6 +43,9 @@ public class MetadataProviderImpl implements MetadataProvider {
   private static final Set<String> JOB_EXECUTION_SORTABLE_FIELDS =
     Set.of("completed_date", "started_date", "progress_total", "status", "hrid", "file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
 
+  private static final String DESC = "desc";
+  private static final String ASC = "asc";
+
   @Autowired
   private JobExecutionService jobExecutionService;
   @Autowired
@@ -228,8 +231,8 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private String getOppositeSortOrder(String sortOrder) {
     if (sortOrder.equals("asc")) {
-      return "desc";
+      return DESC;
     }
-    return "asc";
+    return ASC;
   }
 }
