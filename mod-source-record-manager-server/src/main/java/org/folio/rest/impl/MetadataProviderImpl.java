@@ -218,8 +218,18 @@ public class MetadataProviderImpl implements MetadataProvider {
         throw new BadRequestException(format(INVALID_SORT_PARAMS_MSG, sortFieldQuery, JOB_EXECUTION_SORTABLE_FIELDS));
       }
       fields.add(new SortField(sortField, sortOrder));
+
+      if (sortField.equals("status")) {
+        fields.add(new SortField("progress_current", getOppositeSortOrder(sortOrder)));
+      }
     }
     return fields;
   }
 
+  private String getOppositeSortOrder(String sortOrder) {
+    if (sortOrder.equals("asc")) {
+      return "desc";
+    }
+    return "asc";
+  }
 }

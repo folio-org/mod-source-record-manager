@@ -351,6 +351,76 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnSortedDescendingJobExecutionsByStatusOnGet() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+    List<JobExecution.Status> statuses = List.of(JobExecution.Status.COMMITTED, JobExecution.Status.CANCELLED, JobExecution.Status.CANCELLED, JobExecution.Status.ERROR, JobExecution.Status.ERROR);
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      putJobExecution(createdJobExecution.get(i)
+        .withProgress(new Progress().withCurrent(i * 5))
+        .withStatus(statuses.get(i)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size();
+    JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "status,desc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    List<JobExecutionDto> jobExecutions = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
+    assertThat(jobExecutions.get(0).getProgress().getCurrent(), lessThan(jobExecutions.get(1).getProgress().getCurrent()));
+    assertThat(jobExecutions.get(2).getProgress().getCurrent(), lessThan(jobExecutions.get(3).getProgress().getCurrent()));
+
+    assertThat(jobExecutions.get(0).getStatus(), greaterThanOrEqualTo(jobExecutions.get(1).getStatus()));
+    assertThat(jobExecutions.get(1).getStatus(), greaterThanOrEqualTo(jobExecutions.get(2).getStatus()));
+    assertThat(jobExecutions.get(2).getStatus(), greaterThanOrEqualTo(jobExecutions.get(3).getStatus()));
+  }
+
+  @Test
+  public void shouldReturnSortedAscendingJobExecutionsByStatusOnGet() {
+    List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(5).getJobExecutions();
+    List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
+      .filter(jobExecution -> jobExecution.getSubordinationType().equals(CHILD))
+      .collect(Collectors.toList());
+    List<JobExecution.Status> statuses = List.of(JobExecution.Status.COMMITTED, JobExecution.Status.CANCELLED, JobExecution.Status.CANCELLED, JobExecution.Status.ERROR, JobExecution.Status.ERROR);
+
+    for (int i = 0; i < childJobsToUpdate.size(); i++) {
+      putJobExecution(createdJobExecution.get(i)
+        .withProgress(new Progress().withCurrent(i * 5))
+        .withStatus(statuses.get(i)));
+    }
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    int expectedJobExecutionsNumber = childJobsToUpdate.size();
+    JobExecutionDtoCollection jobExecutionCollection = RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("sortBy", "status,asc")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .extract().response().body().as(JobExecutionDtoCollection.class);
+
+    List<JobExecutionDto> jobExecutions = jobExecutionCollection.getJobExecutions();
+    Assert.assertEquals(expectedJobExecutionsNumber, jobExecutions.size());
+    assertThat(jobExecutions.get(1).getProgress().getCurrent(), greaterThan(jobExecutions.get(2).getProgress().getCurrent()));
+    assertThat(jobExecutions.get(2).getProgress().getCurrent(), greaterThan(jobExecutions.get(3).getProgress().getCurrent()));
+
+    assertThat(jobExecutions.get(0).getStatus(), lessThanOrEqualTo(jobExecutions.get(1).getStatus()));
+    assertThat(jobExecutions.get(1).getStatus(), lessThanOrEqualTo(jobExecutions.get(2).getStatus()));
+    assertThat(jobExecutions.get(2).getStatus(), lessThanOrEqualTo(jobExecutions.get(3).getStatus()));
+  }
+
+  @Test
   public void shouldReturnSortedCollectionByMultipleFieldsOnGet() {
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
     List<JobExecution> childJobsToUpdate = createdJobExecution.stream()
