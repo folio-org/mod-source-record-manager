@@ -103,6 +103,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   private static final String TABLE_NAME = "job_execution";
   private static final String PROGRESS_TABLE_NAME = "job_execution_progress";
   public static final String GET_JOB_EXECUTION_HR_ID = "SELECT nextval('%s.job_execution_hr_id_sequence')";
+  private static final String ORDER_BY_PROGRESS_TOTAL = "COALESCE(p.total_records_count, progress_total)";
   private static final Set<String> CASE_INSENSITIVE_SORTABLE_FIELDS =
     Set.of("file_name", "job_profile_name", "job_user_first_name", "job_user_last_name");
 
@@ -465,6 +466,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .map(sortField -> CASE_INSENSITIVE_SORTABLE_FIELDS.contains(sortField.getField())
         ? wrapWithLowerCase(sortField)
         : sortField.toString())
+      .map(sortField -> sortField.contains(PROGRESS_TOTAL_FIELD)
+        ? sortField.replace(PROGRESS_TOTAL_FIELD, ORDER_BY_PROGRESS_TOTAL)
+        : sortField)
       .collect(Collectors.joining(", ", "ORDER BY ", EMPTY));
   }
 
