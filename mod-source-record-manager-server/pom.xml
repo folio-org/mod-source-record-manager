@@ -153,7 +153,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-di-support</artifactId>
-      <version>1.4.1</version>
+      <version>1.6.0</version>
       <type>jar</type>
     </dependency>
     <dependency>
