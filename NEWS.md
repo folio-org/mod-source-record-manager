@@ -1,4 +1,7 @@
 ## 2022-xx-xx v3.5.0-SNAPSHOT
+* [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
+
+## 2022-xx-xx v3.5.0-SNAPSHOT
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
 * [MODSOURMAN-868](https://issues.folio.org/browse/MODSOURMAN-868) Allow sorting of JobExecutions by 'started_date'
