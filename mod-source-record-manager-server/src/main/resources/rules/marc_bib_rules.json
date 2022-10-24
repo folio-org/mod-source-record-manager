@@ -5649,14 +5649,17 @@
         },
         {
           "target": "notes.staffOnly",
-          "description": "If true, determines that the note should not be visible for others than staff",
+          "description": "If the 1st indicator equals 0, determines that the note should not be visible for others than staff",
           "subfield": [
             "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }

@@ -203,7 +203,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       String query = queryBuilder.toString();
       Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
       LOGGER.trace("JournalRecordDaoImpl::getByJobExecutionId query = {}; tuple = {}", query, queryParams);
-      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     } catch (Exception e) {
       LOGGER.error("Error getting JournalRecord entities by jobExecutionId = {}", jobExecutionId, e);
       promise.fail(e);

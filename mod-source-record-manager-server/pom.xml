@@ -15,7 +15,7 @@
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
     <lombok.version>1.18.20</lombok.version>
-    <testcontainers.version>1.15.3</testcontainers.version>
+    <testcontainers.version>1.16.0</testcontainers.version>
     <kafkaclients.version>3.1.0</kafkaclients.version>
   </properties>
 
@@ -153,7 +153,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-di-support</artifactId>
-      <version>1.4.1</version>
+      <version>1.6.0</version>
       <type>jar</type>
     </dependency>
     <dependency>
