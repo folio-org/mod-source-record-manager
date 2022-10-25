@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
@@ -50,7 +51,7 @@ public class MappingMetadataProviderAPITest extends AbstractRestTest {
     RestAssured.given()
       .spec(spec)
       .when()
-      .get(SERVICE_PATH + UUID.randomUUID().toString())
+      .get(SERVICE_PATH + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
@@ -73,6 +74,37 @@ public class MappingMetadataProviderAPITest extends AbstractRestTest {
       Assert.assertEquals(jobExecutionId, mappingMetadata.getString("jobExecutionId"));
       async.complete();
     });
+  }
+
+  @Test
+  public void shouldReturnBadRequestIfInvalidRecordType() {
+    var response = RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(SERVICE_PATH + "type/invalid-record-type")
+      .then()
+      .statusCode(HttpStatus.SC_BAD_REQUEST)
+      .extract().body().asString();
+
+    Assert.assertEquals("Only marc-bib, marc-holdings or marc-authority supported", response);
+  }
+
+  @SneakyThrows
+  @Test
+  public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet(TestContext context) {
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(MARC_BIB_RULES_PATH));
+    JsonObject expectedParams = new JsonObject(TestUtil.readFileFromPath(MARC_PARAMS_PATH));
+    JsonObject actual = new JsonObject(RestAssured.given()
+          .spec(spec)
+          .when()
+          .get(SERVICE_PATH + "type/marc-bib")
+          .then()
+          .statusCode(HttpStatus.SC_OK)
+          .extract().body().asString());
+
+      Assert.assertNotNull(actual);
+      Assert.assertEquals(expectedRules, new JsonObject(actual.getString("mappingRules")));
+      Assert.assertEquals(expectedParams, new JsonObject(actual.getString("mappingParams")));
   }
 
   private Future<String> saveMappingRules(String jobExecutionId) {

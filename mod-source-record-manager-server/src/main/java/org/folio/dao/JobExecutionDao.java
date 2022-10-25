@@ -79,7 +79,7 @@ public interface JobExecutionDao {
   /**
    *
    * @param ids JobExecution Logs to be deleted using Ids
-   * @param tenantId
+   * @param tenantId tenant id
    * @return future of boolean depending upon success and failure
    */
   Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
