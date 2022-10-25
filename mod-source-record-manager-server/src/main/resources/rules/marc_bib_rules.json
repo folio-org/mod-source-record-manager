@@ -6520,7 +6520,6 @@
           "target": "contributors.contributorTypeId",
           "description": "Type of contributor",
           "applyRulesOnConcatenatedData": true,
-          "ignoreSubsequentSubfields": true,
           "subfield": [
             "4",
             "e"
@@ -6607,7 +6606,6 @@
           "target": "contributors.contributorTypeId",
           "description": "Type of contributor",
           "applyRulesOnConcatenatedData": true,
-          "ignoreSubsequentSubfields": true,
           "subfield": [
             "4",
             "e"
@@ -6694,7 +6692,6 @@
           "target": "contributors.contributorTypeId",
           "description": "Type of contributor",
           "applyRulesOnConcatenatedData": true,
-          "ignoreSubsequentSubfields": true,
           "subfield": [
             "4",
             "e"
