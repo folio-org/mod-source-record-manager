@@ -1,12 +1,24 @@
-## 2022-xx-xx v3.5.0-SNAPSHOT
+## 2022-xx-xx v3.6.0-SNAPSHOT
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
 
-## 2022-xx-xx v3.5.0-SNAPSHOT
+## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
 * [MODSOURMAN-868](https://issues.folio.org/browse/MODSOURMAN-868) Allow sorting of JobExecutions by 'started_date'
-* [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field.
 * [MODSOURMAN-827](https://issues.folio.org/browse/MODSOURMAN-827) Updated instance mapping rules for 590 field to mark notes as staff only
+* [MODSOURMAN-889](https://issues.folio.org/browse/MODSOURMAN-889) folio-di-support 1.6.0 fixing Spring4Shell CVE-2022-22965
+* [MODSOURMAN-846](https://issues.folio.org/browse/MODSOURMAN-846) Optimize Data Access Patterns To Update Job Execution Progress
+* [MODSOURMAN-828](https://issues.folio.org/browse/MODSOURMAN-828) Cache Metadata Snapshot of Data Import Job
+* [MODSOURMAN-883](https://issues.folio.org/browse/MODSOURMAN-883) Upgrade to RMB v35.0.1
+* [MODSOURMAN-822](https://issues.folio.org/browse/MODSOURMAN-822) Fix sorting for "Records" column
+* [MODSOURMAN-887](https://issues.folio.org/browse/MODSOURMAN-887) Fix sorting for "Status" column
+* [MODSOURMAN-885](https://issues.folio.org/browse/MODSOURMAN-885) Installation/migration: column jep1.jobexecutionid does not exist
+* [MODSOURMAN-866](https://issues.folio.org/browse/MODSOURMAN-866) Assign each authority record to an Authority Source file list
+* [MODSOURMAN-832](https://issues.folio.org/browse/MODSOURMAN-832) Upgrade Users interface to 16.0
+* [MODSOURMAN-815](https://issues.folio.org/browse/MODSOURMAN-815) Support MARC-MARC Holdings update action
+
+## 2022-09-20 v3.4.5
+* [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field.
 
 ## 2022-09-06 v3.4.4
 * [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
