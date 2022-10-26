@@ -1108,38 +1108,33 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeId",
-          "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_contributor_type_id"
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "e"
+                  }
                 }
               ]
             }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "e"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
+          "description": "Type of contributor",
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "e"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
         },
         {
           "target": "contributors.primary",
@@ -1218,38 +1213,33 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "e"
+                  }
+                }
+              ]
+            }
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "e"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeId",
           "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_id"
-                }
-              ]
-            }
-          ]
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "e"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
         },
         {
           "target": "contributors.primary",
@@ -1326,38 +1316,33 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeId",
-          "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_contributor_type_id"
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "j"
+                  }
                 }
               ]
             }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "j"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
+          "description": "Type of contributor",
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "j"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
         },
         {
           "target": "contributors.primary",
@@ -6196,39 +6181,34 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeId",
-          "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_contributor_type_id"
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "e"
+                  }
                 }
               ]
             }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "e"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
-        },
+          "description": "Type of contributor",
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "e"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
+        },d
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
@@ -6306,38 +6286,33 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeId",
-          "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_contributor_type_id"
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "e"
+                  }
                 }
               ]
             }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "e"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
+          "description": "Type of contributor",
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "e"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
         },
         {
           "target": "contributors.primary",
@@ -6414,38 +6389,33 @@
           ]
         },
         {
-          "target": "contributors.contributorTypeId",
-          "description": "Type of contributor",
-          "applyRulesOnConcatenatedData": true,
-          "subfield": [
-            "4"
-          ],
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_contributor_type_id"
+                  "type": "set_contributor_type_id_by_code_or_name",
+                  "parameter": {
+                    "contributorCodeSubfield": "4",
+                    "contributorNameSubfield": "j"
+                  }
                 }
               ]
             }
-          ]
-        },
-        {
-          "target": "contributors.contributorTypeText",
-          "description": "Contributor type free text",
-          "applyRulesOnConcatenatedData": true,
+          ],
+          "target": "contributors.contributorTypeId",
           "subfield": [
+            "4",
             "j"
           ],
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "set_contributor_type_text"
-                }
-              ]
-            }
-          ]
+          "description": "Type of contributor",
+          "alternativeMapping": {
+            "target": "contributors.contributorTypeText",
+            "subfield": [
+              "j"
+            ],
+            "ignoreSubsequentSubfields": true
+          },
+          "applyRulesOnConcatenatedData": true
         },
         {
           "target": "contributors.primary",

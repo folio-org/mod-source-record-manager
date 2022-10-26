@@ -664,6 +664,133 @@ Indicator value of record field "ind2" is "1" but it also matched because the ru
 the rule will be proceeded.
 
 This mechanism executes in Processor, in data-import-processing-core, while parsing these rules.
+
+####  Alternative mapping with specific subfield and target
+If there is a need to use an alternative target and subfield if the result of the running function is empty, there can be used "alternativeMapping" rule:
+which process a record field:
+
+```json
+Alternative rules:
+"alternativeMapping": {
+"target": "contributors.contributorTypeText",
+"subfield": [
+"e"
+],
+"ignoreSubsequentSubfields": true
+},
+"applyRulesOnConcatenatedData": true
+},
+```
+##### Note: 
+For the function "set_contributor_type_id_by_code_or_name" there should be set additional parameters: "contributorCodeSubfield" and "contributorNameSubfield" for searching from subfield "4" as code for Contributors and from subfield "e" as name for Contributors.
+```json
+  Rule:
+"710": [
+{
+"entity": [
+{
+"target": "contributors.authorityId",
+"description": "Authority ID that controlling the contributor",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+"9"
+]
+},
+{
+"target": "contributors.contributorNameTypeId",
+"description": "Type for Corporate Name",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+],
+"rules": [
+{
+"conditions": [
+{
+"type": "set_contributor_name_type_id",
+"parameter": {
+"name": "Corporate name"
+}
+}
+]
+}
+]
+},
+{
+"rules": [
+{
+"conditions": [
+{
+"type": "set_contributor_type_id_by_code_or_name",
+"parameter": {
+"contributorCodeSubfield": "4",
+"contributorNameSubfield": "e"
+}
+}
+]
+}
+],
+"target": "contributors.contributorTypeId",
+"subfield": [
+"4",
+"e"
+],
+"description": "Type of contributor",
+"alternativeMapping": {
+"target": "contributors.contributorTypeText",
+"subfield": [
+"e"
+],
+"ignoreSubsequentSubfields": true
+},
+"applyRulesOnConcatenatedData": true
+},
+{
+"target": "contributors.primary",
+"description": "Primary contributor",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+],
+"rules": [
+{
+"conditions": [],
+"value": "false"
+}
+]
+},
+{
+"target": "contributors.name",
+"description": "Corporate Name",
+"subfield": [
+"a",
+"b",
+"c",
+"d",
+"f",
+"g",
+"k",
+"l",
+"n",
+"p",
+"t",
+"u"
+],
+"applyRulesOnConcatenatedData": true,
+"rules": [
+{
+"conditions": [
+{
+"type": "trim_period, trim"
+}
+]
+}
+]
+}
+]
+}
+],
+```
+
+
 #
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.
