@@ -6208,7 +6208,7 @@
             "ignoreSubsequentSubfields": true
           },
           "applyRulesOnConcatenatedData": true
-        },d
+        },
         {
           "target": "contributors.primary",
           "description": "Primary contributor",
