@@ -7,7 +7,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import lombok.SneakyThrows;
+import java.io.IOException;
+import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.folio.TestUtil;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
@@ -22,9 +23,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import java.io.IOException;
-import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
 public class MappingMetadataProviderAPITest extends AbstractRestTest {
@@ -89,9 +87,8 @@ public class MappingMetadataProviderAPITest extends AbstractRestTest {
     Assert.assertEquals("Only marc-bib, marc-holdings or marc-authority supported", response);
   }
 
-  @SneakyThrows
   @Test
-  public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet(TestContext context) {
+  public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet(TestContext context) throws IOException {
     JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(MARC_BIB_RULES_PATH));
     JsonObject expectedParams = new JsonObject(TestUtil.readFileFromPath(MARC_PARAMS_PATH));
     JsonObject actual = new JsonObject(RestAssured.given()
