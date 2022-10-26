@@ -1081,6 +1081,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "applyRulesOnConcatenatedData": true,
@@ -1183,6 +1191,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "applyRulesOnConcatenatedData": true,
@@ -1282,6 +1298,14 @@
   "111": [
     {
       "entity": [
+        {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
@@ -5625,14 +5649,17 @@
         },
         {
           "target": "notes.staffOnly",
-          "description": "If true, determines that the note should not be visible for others than staff",
+          "description": "If the 1st indicator equals 0, determines that the note should not be visible for others than staff",
           "subfield": [
             "a"
           ],
           "rules": [
             {
-              "conditions": [],
-              "value": "false"
+              "conditions": [
+                {
+                  "type": "set_note_staff_only_via_indicator"
+                }
+              ]
             }
           ]
         }
@@ -6142,6 +6169,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Personal Name",
           "applyRulesOnConcatenatedData": true,
@@ -6244,6 +6279,14 @@
     {
       "entity": [
         {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
+        {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Corporate Name",
           "applyRulesOnConcatenatedData": true,
@@ -6343,6 +6386,14 @@
   "711": [
     {
       "entity": [
+        {
+          "target": "contributors.authorityId",
+          "description": "Authority ID that controlling the contributor",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "9"
+          ]
+        },
         {
           "target": "contributors.contributorNameTypeId",
           "description": "Type for Meeting Name",
