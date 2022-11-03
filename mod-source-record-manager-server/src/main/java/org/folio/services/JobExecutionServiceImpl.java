@@ -75,6 +75,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final String DEFAULT_LASTNAME = "SYSTEM";
   private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
+  private static final String NO_FILE_NAME = "No file name";
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
@@ -290,7 +291,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
         jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
       }
-      return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, null, userId)
+      return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, NO_FILE_NAME, userId)
         .withJobProfileInfo(jobProfileInfo)
         .withRunBy(buildRunByFromUserInfo(userInfo)));
     }
@@ -299,7 +300,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       for (File file : files) {
         result.add(buildNewJobExecution(false, false, parentJobExecutionId, file.getName(), userId));
       }
-      result.add(buildNewJobExecution(true, false, parentJobExecutionId, null, userId));
+      result.add(buildNewJobExecution(true, false, parentJobExecutionId, NO_FILE_NAME, userId));
     } else {
       File file = files.get(0);
       result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
