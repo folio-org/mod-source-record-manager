@@ -60,12 +60,12 @@ BEGIN
 
                 array_agg(error) FILTER (WHERE entity_type = 'MARC_BIBLIOGRAPHIC' OR entity_type = 'MARC_HOLDINGS' OR entity_type = 'MARC_AUTHORITY') AS source_entity_error,
 
-                array_agg(action_type) FILTER (WHERE entity_type = 'INSTANCE') AS instance_actions,
-                count(journal_records.source_id) FILTER (WHERE entity_type = 'INSTANCE' AND journal_records.error != '') AS instance_errors_number,
+                array_agg(action_type) FILTER (WHERE entity_type = 'INSTANCE' AND (entity_id IS NOT NULL OR (entity_id IS NULL AND action_type = 'NON_MATCH'))) AS instance_actions,
+                count(journal_records.source_id) FILTER (WHERE entity_type = 'INSTANCE' AND journal_records.error != '' AND (entity_id IS NOT NULL OR (entity_id IS NULL AND action_type = 'NON_MATCH'))) AS instance_errors_number,
 
-                array_agg(entity_hrid) FILTER (WHERE entity_type = 'INSTANCE') AS instance_entity_hrid,
-                array_agg(entity_id) FILTER (WHERE entity_type = 'INSTANCE') AS instance_entity_id,
-                array_agg(error) FILTER (WHERE entity_type = 'INSTANCE') AS instance_entity_error,
+                array_agg(entity_hrid) FILTER (WHERE entity_type = 'INSTANCE' AND (entity_id != '' OR (entity_id = '' AND action_type = 'NON_MATCH'))) AS instance_entity_hrid,
+                array_agg(entity_id) FILTER (WHERE entity_type = 'INSTANCE' AND (entity_id != '' OR (entity_id = '' AND action_type = 'NON_MATCH'))) AS instance_entity_id,
+                array_agg(error) FILTER (WHERE entity_type = 'INSTANCE' AND (entity_id != '' OR (entity_id = '' AND action_type = 'NON_MATCH'))) AS instance_entity_error,
 
                 array_agg(action_type) FILTER (WHERE entity_type = 'HOLDINGS') AS holdings_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = 'HOLDINGS' AND journal_records.error != '') AS holdings_errors_number,
