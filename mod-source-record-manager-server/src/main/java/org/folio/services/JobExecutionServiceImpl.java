@@ -300,7 +300,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       for (File file : files) {
         result.add(buildNewJobExecution(false, false, parentJobExecutionId, file.getName(), userId));
       }
-      result.add(buildNewJobExecution(true, false, parentJobExecutionId, NO_FILE_NAME, userId));
+      result.add(buildNewJobExecution(true, false, parentJobExecutionId, null, userId));
     } else {
       File file = files.get(0);
       result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
