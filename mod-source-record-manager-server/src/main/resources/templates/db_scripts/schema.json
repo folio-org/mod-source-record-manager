@@ -231,6 +231,11 @@
       "run": "after",
       "snippetPath": "update_set_file_name_from_null_to_no_file_name.sql",
       "fromModuleVersion": "mod-source-record-manager-3.5.1"
+    },
+    {
+      "run": "after",
+      "snippetPath": "remove_records_where_parent_id_is_null.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.5.1"
     }
   ]
 }
