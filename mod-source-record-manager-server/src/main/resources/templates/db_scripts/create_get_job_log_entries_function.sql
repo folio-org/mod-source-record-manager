@@ -64,7 +64,7 @@ FROM (
                 array_agg(action_type ORDER BY action_date ASC) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
                 count(journal_records.source_id) FILTER (WHERE (entity_type = ''MARC_BIBLIOGRAPHIC'' OR entity_type = ''MARC_HOLDINGS'' OR entity_type = ''MARC_AUTHORITY'') AND journal_records.error != '''') AS marc_errors_number,
                 array[(array_agg(action_type ORDER BY action_date DESC) FILTER (WHERE entity_type = ''INSTANCE'' AND (entity_id IS NOT NULL OR action_type = ''NON_MATCH'')))[1]::text] AS instance_actions,
-                count(journal_records.source_id) FILTER (WHERE entity_type = ''INSTANCE'' AND journal_records.error != '''' AND (entity_id != '''' OR (entity_id = '''' AND action_type = ''NON_MATCH''))) AS instance_errors_number,
+                count(journal_records.source_id) FILTER (WHERE entity_type = ''INSTANCE'' AND journal_records.error != '''') AS instance_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''HOLDINGS'' AND journal_records.error != '''') AS holdings_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''ITEM'') AS item_actions,
