@@ -212,7 +212,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnInstanceUpdatedWhenMarcModify(TestContext context) {
+  public void shouldReturnInstanceCreatedWhenMarcModify(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
