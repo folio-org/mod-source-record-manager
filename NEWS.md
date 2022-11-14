@@ -1,3 +1,7 @@
+## 2022-11-14 v3.5.1
+* [MODSOURMAN-867](https://issues.folio.org/browse/MODSOURMAN-867) Fix 500 Error when user tries to sort by clicking on the title of columns on the "View all" page
+* [MODSOURMAN-894](https://issues.folio.org/browse/MODSOURMAN-894) Logs for "No file name" sort at the end of the file name alpha list instead of in the N's
+
 ## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
 * [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
