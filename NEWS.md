@@ -1,3 +1,6 @@
+## 2022-11-15 v3.5.2
+* [MODSOURMAN-819](https://issues.folio.org/browse/MODSOURMAN-819) The status of Instance is Multiple in the Import log after uploading MARC file for update
+
 ## 2022-11-14 v3.5.1
 * [MODSOURMAN-867](https://issues.folio.org/browse/MODSOURMAN-867) Fix 500 Error when user tries to sort by clicking on the title of columns on the "View all" page
 * [MODSOURMAN-894](https://issues.folio.org/browse/MODSOURMAN-894) Logs for "No file name" sort at the end of the file name alpha list instead of in the N's
