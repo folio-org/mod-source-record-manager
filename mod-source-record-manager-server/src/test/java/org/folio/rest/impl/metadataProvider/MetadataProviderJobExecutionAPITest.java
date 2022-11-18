@@ -886,7 +886,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String instanceEntityId = UUID.randomUUID().toString();
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, instanceEntityId, null, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, instanceEntityId, null, recordTitle, 0, UPDATE, INSTANCE, COMPLETED, null))
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, instanceEntityId, null, recordTitle, 0, UPDATE, INSTANCE, COMPLETED, null))
       .onFailure(context::fail);
 
