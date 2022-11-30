@@ -1,4 +1,4 @@
-## 2022-XX-XX v3.5.3-SNAPSHOT
+## 2022-11-30 v3.5.3
 * [MODSOURMAN-890](https://issues.folio.org/browse/MODSOURMAN-890) The '2' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 
 ## 2022-11-15 v3.5.2
