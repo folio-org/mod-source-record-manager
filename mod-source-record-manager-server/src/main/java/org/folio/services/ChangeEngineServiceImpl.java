@@ -159,7 +159,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
-        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)) {
+        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution) || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords)) {
           hrIdFieldService.move001valueTo035Field(parsedRecords);
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
@@ -265,6 +265,15 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       jobExecution.getJobProfileSnapshotWrapper(),
       List.of(FolioRecord.INSTANCE),
       Action.UPDATE);
+  }
+
+  private boolean isCreateOrUpdateItemOrHoldingsActionExists(JobExecution jobExecution, List<Record> parsedRecords) {
+    var jobProfileSnapshotWrapper = jobExecution.getJobProfileSnapshotWrapper();
+    var itemAndHoldingsList = List.of(FolioRecord.ITEM, FolioRecord.HOLDINGS);
+    return (containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.CREATE) ||
+      containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.UPDATE)) &&
+      !containsMarcActionProfile(jobProfileSnapshotWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE) &&
+      parsedRecords.get(0).getRecordType() == MARC_BIB;
   }
 
   private boolean deleteMarcActionExists(JobExecution jobExecution) {
@@ -469,8 +478,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
-                var controlFieldValue = getControlFieldValue(record, TAG_004);
-                return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
+              var controlFieldValue = getControlFieldValue(record, TAG_004);
+              return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
             }).collect(Collectors.toList());
           LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
