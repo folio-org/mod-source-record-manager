@@ -244,6 +244,91 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnInstanceIdWhenHoldingsCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution instanceCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution holdingsCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    String instanceCreationSourceRecordId = UUID.randomUUID().toString();
+    String holdingsCreationSourceRecordId = UUID.randomUUID().toString();
+
+    String recordTitle = "test title";
+
+    JournalRecord holdingsCreatedJournalRecord = new JournalRecord()
+      .withJobExecutionId(holdingsCreationJobExecution.getId())
+      .withSourceId(holdingsCreationSourceRecordId)
+      .withTitle(null)
+      .withSourceRecordOrder(0)
+      .withEntityType(HOLDINGS)
+      .withActionType(CREATE)
+      .withActionStatus(COMPLETED)
+      .withError(null)
+      .withActionDate(new Date())
+      .withEntityId("holdingsEntityID")
+      .withEntityHrId("ho00000000001")
+      .withInstanceId("instanceEntityID");
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, "instanceMarcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, "instanceEntityID", "in00000000001", null, 0, CREATE, INSTANCE, COMPLETED, null))
+      .compose(v -> journalRecordDao.save(holdingsCreatedJournalRecord, TENANT_ID).map(holdingsCreatedJournalRecord))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + holdingsCreationJobExecution.getId() + "/records/" + holdingsCreationSourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(holdingsCreationJobExecution.getId()))
+        .body("sourceRecordId", is(holdingsCreationSourceRecordId))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is("instanceEntityID"))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.idList[0]", is("holdingsEntityID"))
+        .body("relatedHoldingsInfo.hridList[0]", is("ho00000000001"))
+        .body("relatedHoldingsInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneInstanceIdWhenMarcBibUpdatedAndInstanceUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution marcBibAndInstanceUpdateJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    String marcBibAndInstanceUpdateSourceRecordId = UUID.randomUUID().toString();
+
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "marcBibEntityID", null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + marcBibAndInstanceUpdateJobExecution.getId() + "/records/" + marcBibAndInstanceUpdateSourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(marcBibAndInstanceUpdateJobExecution.getId()))
+        .body("sourceRecordId", is(marcBibAndInstanceUpdateSourceRecordId))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList.size()", is(1))
+        .body("relatedInstanceInfo.hridList.size()", is(1))
+        .body("relatedInstanceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnHoldingsMultipleWhenMultipleHoldingsWereProcessed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
