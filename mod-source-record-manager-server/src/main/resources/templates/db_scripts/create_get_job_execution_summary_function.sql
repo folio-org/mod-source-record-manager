@@ -19,8 +19,8 @@ BEGIN
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'EDIFACT') AND action_status = 'ERROR') AS total_source_records_errors,
 
-      COUNT(*) FILTER (WHERE entity_type = 'INSTANCE' AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_instances,
-      COUNT(*) FILTER (WHERE entity_type = 'INSTANCE' AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_instances,
+      COUNT(DISTINCT(entity_id)) FILTER (WHERE entity_type = 'INSTANCE' AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_instances,
+      COUNT(DISTINCT(entity_id)) FILTER (WHERE entity_type = 'INSTANCE' AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_instances,
       COUNT(*) FILTER (WHERE entity_type = 'INSTANCE' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_instances,
       COUNT(*) FILTER (WHERE entity_type = 'INSTANCE' AND action_status = 'ERROR') AS total_instances_errors,
 
