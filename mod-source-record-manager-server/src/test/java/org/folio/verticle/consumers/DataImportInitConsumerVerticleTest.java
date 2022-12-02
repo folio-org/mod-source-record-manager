@@ -97,7 +97,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
 
-      assertProgressAndMonitoringAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
+      assertProgressAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
     });
   }
 
@@ -111,7 +111,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
 
-      assertProgressAndMonitoringAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
+      assertProgressAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
     });
   }
 
@@ -126,7 +126,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
 
-      assertProgressAndMonitoringAndJobExecutionStatus(JobExecution.Status.COMMITTED, async);
+      assertProgressAndJobExecutionStatus(JobExecution.Status.COMMITTED, async);
     });
   }
 
@@ -141,7 +141,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
 
-      assertProgressAndMonitoringAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
+      assertProgressAndJobExecutionStatus(JobExecution.Status.PARSING_IN_PROGRESS, async);
     });
   }
 
@@ -162,6 +162,19 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
                 this.jobExecutionId = progress.getJobExecutionId();
                 return initKafkaHandler.handle(buildKafkaConsumerRecord(progress.getJobExecutionId()));
               })));
+  }
+
+  private void assertProgressAndJobExecutionStatus(JobExecution.Status statusToCheck, Async async) {
+    jobExecutionProgressService.getByJobExecutionId(jobExecutionId, TENANT_ID).onSuccess(progress -> {
+      assertEquals(jobExecutionId, progress.getJobExecutionId());
+      assertEquals(TOTAL_RECORDS, progress.getTotal());
+
+      jobExecutionService.getJobExecutionById(jobExecutionId, TENANT_ID).onSuccess(jobExecutionOptional -> {
+        JobExecution jobExecution = jobExecutionOptional.get();
+        assertEquals(statusToCheck, jobExecution.getStatus());
+        async.complete();
+      });
+    });
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(String jobExecutionId) {
