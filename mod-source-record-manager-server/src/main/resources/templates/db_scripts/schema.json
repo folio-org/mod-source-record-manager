@@ -119,11 +119,6 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS job_monitoring (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), last_event_timestamp timestamp, notification_sent boolean);",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0"
-    },
-    {
-      "run": "after",
       "snippetPath": "migrate_data_type_to_marc.sql",
       "fromModuleVersion": "mod-source-record-manager-3.2.0"
     },
@@ -236,6 +231,11 @@
       "run": "after",
       "snippetPath": "remove_records_where_parent_id_is_null.sql",
       "fromModuleVersion": "mod-source-record-manager-3.5.1"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_monitoring CASCADE;",
+      "fromModuleVersion": "mod-source-record-manager-3.5.4"
     }
   ]
 }

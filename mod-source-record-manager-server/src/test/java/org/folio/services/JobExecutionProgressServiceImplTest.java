@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.okapi.common.GenericCompositeFuture;
 
 import io.vertx.core.CompositeFuture;
@@ -18,7 +17,6 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
@@ -55,12 +53,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @Spy
-  @InjectMocks
-  JobMonitoringDaoImpl jobMonitoringDao;
-  @Spy
-  @InjectMocks
-  JobMonitoringServiceImpl jobMonitoringService;
   @InjectMocks
   private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl();
 
@@ -95,15 +87,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress progress = ar.result();
       context.assertEquals(expectedTotalRecords, progress.getTotal());
-      jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isPresent());
-        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
-        context.assertNotNull(jobMonitoring.getId());
-        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
-        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
-        context.assertFalse(jobMonitoring.getNotificationSent());
-        async.complete();
-      });
+      async.complete();
     });
   }
 
@@ -159,15 +143,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertEquals(expectedTotalRecords, progress.getTotal());
       context.assertEquals(expectedSucceededRecords, progress.getCurrentlySucceeded());
       context.assertEquals(expectedFailedRecords, progress.getCurrentlyFailed());
-      jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isPresent());
-        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
-        context.assertNotNull(jobMonitoring.getId());
-        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
-        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
-        context.assertFalse(jobMonitoring.getNotificationSent());
-        async.complete();
-      });
+      async.complete();
     });
   }
 
@@ -191,15 +167,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertEquals(expectedTotalRecords, progress.getTotal());
       context.assertEquals(expectedSucceededRecords, progress.getCurrentlySucceeded());
       context.assertEquals(expectedFailedRecords, progress.getCurrentlyFailed());
-      jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isPresent());
-        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
-        context.assertNotNull(jobMonitoring.getId());
-        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
-        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
-        context.assertFalse(jobMonitoring.getNotificationSent());
-        async.complete();
-      });
+      async.complete();
     });
   }
 

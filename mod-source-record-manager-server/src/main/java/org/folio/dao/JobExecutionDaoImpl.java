@@ -122,7 +122,6 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String DELETE_FROM_RELATED_TABLE = "DELETE from %s.%s where job_execution_id = ANY ($1)";
   public static final String DELETE_FROM_RELATED_TABLE_DEPRECATED_NAMING = "DELETE from %s.%s where jobexecutionid = ANY ($1)";
   public static final String DELETE_FROM_JOB_EXECUTION_TABLE = "DELETE from %s.%s where id = ANY ($1)";
-  public static final String JOB_MONITORING_TABLE_NAME = "job_monitoring";
   public static final String JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   public static final String JOURNAL_RECORDS_TABLE_NAME = "journal_records";
 
@@ -496,10 +495,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
           UUID[] uuids = jobExecutionIds.stream().map(UUID::fromString).collect(Collectors.toList()).toArray(UUID[]::new);
 
           Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(PROGRESS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          Future<RowSet<Row>> jobMonitoringFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOB_MONITORING_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
           Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteFromRelatedTableWithDeprecatedNaming(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
           Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOURNAL_RECORDS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          return CompositeFuture.all(jobExecutionProgressFuture, jobMonitoringFuture, jobExecutionSourceChunksFuture, journalRecordsFuture)
+          return CompositeFuture.all(jobExecutionProgressFuture, jobExecutionSourceChunksFuture, journalRecordsFuture)
             .compose(ar -> Future.<RowSet<Row>>future(rowSetPromise -> deleteFromJobExecutionTable(uuids, sqlConnection, tenantId, rowSetPromise, postgresClient)))
             .map(true);
     }));
