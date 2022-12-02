@@ -24,7 +24,6 @@ import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
@@ -75,10 +74,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @Spy
   @InjectMocks
   JobExecutionDaoImpl jobExecutionDao;
-
-  @Spy
-  @InjectMocks
-  JobMonitoringDaoImpl jobMonitoringDao;
 
   @Spy
   @InjectMocks
@@ -262,12 +257,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
       .withCurrentlySucceeded(1)
       .withCurrentlyFailed(0);
 
-    JobMonitoring jobMonitoring = new JobMonitoring()
-      .withId(UUID.randomUUID().toString())
-      .withJobExecutionId(jobExec.getId())
-      .withNotificationSent(true)
-      .withLastEventTimestamp(new Date());
-
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
       .withSourceRecordOrder(0)
@@ -288,10 +277,9 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
     return jobExecutionDao.updateJobExecution(jobExec, TENANT_ID).compose(jobExecution -> {
       Future<RowSet<Row>> saveProgressFuture = jobExecutionProgressDao.save(jobExecutionProgress, TENANT_ID);
-      Future<String> saveMonitoringFuture = jobMonitoringDao.save(jobMonitoring, TENANT_ID);
       Future<String> saveJournalFuture = journalRecordDao.save(journalRecord, TENANT_ID);
       Future<String> saveSourceChunkFuture = jobExecutionSourceChunkDao.save(jobExecutionSourceChunk, TENANT_ID);
-      return CompositeFuture.all(saveProgressFuture, saveMonitoringFuture, saveJournalFuture, saveSourceChunkFuture)
+      return CompositeFuture.all(saveProgressFuture, saveJournalFuture, saveSourceChunkFuture)
         .compose(ar -> Future.succeededFuture(jobExecution));
     });
   }
@@ -306,10 +294,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
           .onSuccess(progressRows -> {
             assertEquals(expectedSize, getRowsSize(jobExecutionRows));
 
-            fetchInformationFromDatabase(values, "job_monitoring", "job_execution_id")
-              .onSuccess(monitoringRows -> {
-                assertEquals(expectedSize, getRowsSize(jobExecutionRows));
-
                 fetchInformationFromDatabase(values, "journal_records", "job_execution_id")
                   .onSuccess(journalRecordsRows -> {
                     assertEquals(expectedSize, getRowsSize(jobExecutionRows));
@@ -323,7 +307,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
                   });
               });
           });
-      });
   }
 
   private int getRowsSize(RowSet<Row> rows) {

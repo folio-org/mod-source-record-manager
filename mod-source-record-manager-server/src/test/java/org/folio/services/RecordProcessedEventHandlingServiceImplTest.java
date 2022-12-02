@@ -41,7 +41,6 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
-import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
@@ -125,12 +124,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   private JournalServiceImpl journalService;
   @Spy
   @InjectMocks
-  private JobMonitoringServiceImpl jobMonitoringService;
-  @Spy
-  @InjectMocks
-  private JobMonitoringDaoImpl jobMonitoringDao;
-  @Spy
-  @InjectMocks
   private MarcImportEventsHandler marcImportEventsHandler;
   @Spy
   @InjectMocks
@@ -198,7 +191,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
-    recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService, jobMonitoringService);
+    recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService);
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
@@ -239,10 +232,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       context.assertEquals(1, updatedProgress.getCurrentlySucceeded());
       context.assertEquals(0, updatedProgress.getCurrentlyFailed());
       context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
-      jobMonitoringService.getByJobExecutionId(updatedProgress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isEmpty());
-        async.complete();
-      });
       async.complete();
     });
   }
