@@ -307,7 +307,6 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
                   });
               });
           });
-      });
   }
 
   private int getRowsSize(RowSet<Row> rows) {
