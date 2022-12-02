@@ -15,7 +15,6 @@ import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
-import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
@@ -123,12 +122,6 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Spy
   @InjectMocks
   private JobExecutionProgressServiceImpl jobExecutionProgressService;
-  @Spy
-  @InjectMocks
-  private JobMonitoringServiceImpl jobMonitoringService;
-  @Spy
-  @InjectMocks
-  private JobMonitoringDaoImpl jobMonitoringDao;
   @Spy
   private HrIdFieldServiceImpl hrIdFieldService;
   @Spy

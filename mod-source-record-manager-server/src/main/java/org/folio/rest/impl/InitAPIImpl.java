@@ -24,7 +24,6 @@ import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
 import org.folio.verticle.SpringVerticleFactory;
 import org.folio.verticle.periodic.PeriodicDeleteJobExecutionVerticle;
-import org.folio.verticle.periodic.PeriodicJobMonitoringWatchdogVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,9 +53,6 @@ public class InitAPIImpl implements InitAPI {
 
   @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
   private int quickMarcUpdateConsumerInstancesNumber;
-
-  @Value("${srm.kafka.JobMonitoringWatchdogVerticle.instancesNumber:1}")
-  private int jobExecutionWatchdogInstanceNumber;
 
   @Value("${srm.kafka.JobExecutionDeletion.instancesNumber:1}")
   private int jobExecutionDeletionInstanceNumber;
@@ -104,7 +100,6 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
     Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
-    Promise<String> deployPeriodicJobExecutionWatchdog = Promise.promise();
     Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
     vertx.deployVerticle(getVerticleName(verticleFactory, DataImportInitConsumersVerticle.class),
@@ -137,11 +132,6 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(quickMarcUpdateConsumerInstancesNumber), deployQuickMarcUpdateConsumer);
 
-    vertx.deployVerticle(getVerticleName(verticleFactory, PeriodicJobMonitoringWatchdogVerticle.class),
-      new DeploymentOptions()
-        .setWorker(true)
-        .setInstances(jobExecutionWatchdogInstanceNumber), deployPeriodicJobExecutionWatchdog);
-
     vertx.deployVerticle(getVerticleName(verticleFactory, PeriodicDeleteJobExecutionVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
@@ -154,8 +144,7 @@ public class InitAPIImpl implements InitAPI {
       deployDataImportConsumer.future(),
       deployDataImportJournalConsumer.future(),
       deployQuickMarcUpdateConsumer.future(),
-      deployPeriodicDeleteJobExecution.future(),
-      deployPeriodicJobExecutionWatchdog.future()));
+      deployPeriodicDeleteJobExecution.future()));
   }
 
   private <T> String getVerticleName(VerticleFactory verticleFactory, Class<T> clazz) {

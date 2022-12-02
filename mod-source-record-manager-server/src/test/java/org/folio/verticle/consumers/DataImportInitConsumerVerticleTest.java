@@ -12,7 +12,6 @@ import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
-import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaTopicNameHelper;
@@ -22,10 +21,8 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionServiceImpl;
-import org.folio.services.JobMonitoringServiceImpl;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,9 +65,6 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @Spy
-  @InjectMocks
-  private JobMonitoringDaoImpl jobMonitoringDao;
 
   @Spy
   @InjectMocks
@@ -78,9 +72,6 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   @Spy
   @InjectMocks
   private JobExecutionServiceImpl jobExecutionService;
-  @Spy
-  @InjectMocks
-  private JobMonitoringServiceImpl jobMonitoringService;
 
   @InjectMocks
   private DataImportInitKafkaHandler initKafkaHandler = new DataImportInitKafkaHandler(vertx, jobExecutionProgressService, jobExecutionService);
@@ -171,24 +162,6 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
                 this.jobExecutionId = progress.getJobExecutionId();
                 return initKafkaHandler.handle(buildKafkaConsumerRecord(progress.getJobExecutionId()));
               })));
-  }
-
-  private void assertProgressAndMonitoringAndJobExecutionStatus(JobExecution.Status statusToCheck, Async async) {
-    jobExecutionProgressService.getByJobExecutionId(jobExecutionId, TENANT_ID).onSuccess(progress -> {
-      assertEquals(jobExecutionId, progress.getJobExecutionId());
-      assertEquals(TOTAL_RECORDS, progress.getTotal());
-
-      jobExecutionService.getJobExecutionById(jobExecutionId, TENANT_ID).onSuccess(jobExecutionOptional -> {
-        JobExecution jobExecution = jobExecutionOptional.get();
-        assertEquals(statusToCheck, jobExecution.getStatus());
-
-        jobMonitoringService.getByJobExecutionId(jobExecution.getId(), TENANT_ID).onSuccess(jobMonitoringOptional -> {
-          JobMonitoring jobMonitoring = jobMonitoringOptional.get();
-          assertEquals(jobExecutionId, jobMonitoring.getJobExecutionId());
-          async.complete();
-        });
-      });
-    });
   }
 
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(String jobExecutionId) {
