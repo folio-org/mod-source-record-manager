@@ -1,3 +1,6 @@
+## 2022-12-05 v3.5.5
+* [MODSOURMAN-911](https://issues.folio.org/browse/MODSOURMAN-911) No log hotlink for Holdings and/or Item when job has no action on Instance
+
 ## 2022-12-05 v3.5.4
 * [MODSOURMAN-891](https://issues.folio.org/browse/MODSOURMAN-891) SRS MARC Created when No Create Action in Job Profile
 * [MODSOURMAN-908](https://issues.folio.org/browse/MODSOURMAN-908) Remove Job Monitoring Task
