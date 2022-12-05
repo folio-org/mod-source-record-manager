@@ -1,3 +1,7 @@
+## 2022-12-05 v3.5.4
+* [MODSOURMAN-891](https://issues.folio.org/browse/MODSOURMAN-891) SRS MARC Created when No Create Action in Job Profile
+* [MODSOURMAN-908](https://issues.folio.org/browse/MODSOURMAN-908) Remove Job Monitoring Task
+
 ## 2022-11-30 v3.5.3
 * [MODSOURMAN-890](https://issues.folio.org/browse/MODSOURMAN-890) The '2' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 
