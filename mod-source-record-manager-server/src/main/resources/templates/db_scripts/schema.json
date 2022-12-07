@@ -110,7 +110,7 @@
     {
       "run": "after",
       "snippetPath": "create_get_record_processing_log_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.5.4"
+      "fromModuleVersion": "mod-source-record-manager-3.5.6"
     },
     {
       "run": "after",
