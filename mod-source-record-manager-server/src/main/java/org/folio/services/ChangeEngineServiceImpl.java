@@ -273,6 +273,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return (containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.CREATE) ||
       containsMarcActionProfile(jobProfileSnapshotWrapper, itemAndHoldingsList, Action.UPDATE)) &&
       !containsMarcActionProfile(jobProfileSnapshotWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE) &&
+      !CollectionUtils.isEmpty(parsedRecords) &&
       parsedRecords.get(0).getRecordType() == MARC_BIB;
   }
 
