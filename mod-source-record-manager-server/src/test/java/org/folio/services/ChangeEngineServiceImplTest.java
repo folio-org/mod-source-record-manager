@@ -416,9 +416,7 @@ public class ChangeEngineServiceImplTest {
 
   @Test
   public void shouldNotUpdateIfNoParsedRecords() {
-    String rawMarc = "00182uu  a22000731  4500001000900000005001700009008003300026852002900059\u001E10245123\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
-
-    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(rawMarc);
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
       .withUserId(UUID.randomUUID().toString())
@@ -426,9 +424,7 @@ public class ChangeEngineServiceImplTest {
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC));
 
-    //when(service.getParsedRecordsFromInitialRecords(any(),any(),any(),any())).thenReturn(Collections.emptyList());
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
