@@ -1,3 +1,7 @@
+## 2022-12-08 v3.5.6
+* [MODSOURMAN-911](https://issues.folio.org/browse/MODSOURMAN-911) FIx script version to enable the fix
+* [MODSOURMAN-920](https://issues.folio.org/browse/MODSOURMAN-920) The "500" error appears when user creates "MARC Holdings" record
+
 ## 2022-12-05 v3.5.5
 * [MODSOURMAN-911](https://issues.folio.org/browse/MODSOURMAN-911) No log hotlink for Holdings and/or Item when job has no action on Instance
 
