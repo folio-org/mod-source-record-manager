@@ -416,15 +416,18 @@ public class ChangeEngineServiceImplTest {
 
   @Test
   public void shouldNotUpdateIfNoParsedRecords() {
-    RawRecordsDto rawRecordsDto = new RawRecordsDto().withId(UUID.randomUUID().toString())
-      .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_RAW))
-      .withInitialRecords(Collections.emptyList());
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
       .withUserId(UUID.randomUUID().toString())
-      .withJobProfileSnapshotWrapper(constructCreateMarcHoldingsAndInstanceSnapshotWrapper())
+      .withJobProfileSnapshotWrapper(constructUpdateMarcItemSnapshotWrapper())
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
 
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
