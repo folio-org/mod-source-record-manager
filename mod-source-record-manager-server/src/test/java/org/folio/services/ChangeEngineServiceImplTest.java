@@ -1,5 +1,9 @@
 package org.folio.services;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -9,6 +13,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
@@ -25,7 +32,9 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
+import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
+import org.folio.rest.jaxrs.model.MappingProfile;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,7 +159,7 @@ public class ChangeEngineServiceImplTest {
     JobExecution jobExecution = getTestJobExecution();
     jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
       .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-        .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
+        .withContentType(ACTION_PROFILE)
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withAction(ActionProfile.Action.UPDATE)
           .withFolioRecord(ActionProfile.FolioRecord.MARC_BIBLIOGRAPHIC))).getMap())
@@ -178,7 +187,7 @@ public class ChangeEngineServiceImplTest {
     JobExecution jobExecution = getTestJobExecution();
     jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
       .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-        .withContentType(ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
+        .withContentType(ACTION_PROFILE)
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withAction(ActionProfile.Action.DELETE)
           .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY))).getMap())
@@ -307,6 +316,215 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual.get(0).getErrorRecord(), nullValue());
     assertThat(actual.get(0).getMatchedId(), equalTo("7ca42730-9ba6-4bc8-98d3-f068728504c9"));
     assertThat(actual.get(0).getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
+  }
+
+  @Test
+  public void shouldOnlyUpdateIfOnlyCreateHoldings() {
+    String rawMarc = "00182cc  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(rawMarc);
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
+      .withJobProfileSnapshotWrapper(constructCreateMarcHoldingsSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    mockServicesForParseRawRecordsChunkForJobExecution();
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+  }
+
+  @Test
+  public void shouldOnlyUpdateIfOnlyUpdateItem() {
+    String rawMarc = "00182cc  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(rawMarc);
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
+      .withJobProfileSnapshotWrapper(constructUpdateMarcItemSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    mockServicesForParseRawRecordsChunkForJobExecution();
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+  }
+
+  @Test
+  public void shouldNotUpdateIfRecordTypeIsNotMarcBib() {
+    String rawMarc = "00182uu  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(rawMarc);
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
+      .withJobProfileSnapshotWrapper(constructCreateMarcHoldingsSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+  }
+
+  @Test
+  public void shouldNotUpdateIfCreateInstanceActionExist() {
+    String rawMarc = "00182cc  a22000851  4500001000900000004000800009005001700017008003300034852002900067\u001E10245123\u001E9928371\u001E20170607135730.0\u001E1706072u    8   4001uu   0901128\u001E0 \u001Fbfine\u001FhN7433.3\u001Fi.B87 2014\u001E\u001D";
+
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(rawMarc);
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
+      .withJobProfileSnapshotWrapper(constructCreateMarcHoldingsAndInstanceSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    mockServicesForParseRawRecordsChunkForJobExecution();
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+  }
+
+  @Test
+  public void shouldNotUpdateIfNoParsedRecords() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_HOLDINGS_REC_WITHOUT_004);
+    JobExecution jobExecution = new JobExecution()
+      .withId(UUID.randomUUID().toString())
+      .withUserId(UUID.randomUUID().toString())
+      .withJobProfileSnapshotWrapper(constructUpdateMarcItemSnapshotWrapper())
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
+        .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.HOLDING);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+  }
+
+  private void mockServicesForParseRawRecordsChunkForJobExecution() {
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+
+  }
+
+  private ProfileSnapshotWrapper constructCreateMarcHoldingsAndInstanceSnapshotWrapper() {
+    return new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(new JsonObject())
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(ACTION_PROFILE)
+          .withContent(new JsonObject(Json.encode(new ActionProfile()
+            .withId(UUID.randomUUID().toString())
+            .withName("Create Instance")
+            .withAction(ActionProfile.Action.CREATE)
+            .withFolioRecord(ActionProfile.FolioRecord.INSTANCE))).getMap())
+        , new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(ACTION_PROFILE)
+          .withContent(new JsonObject(Json.encode(new ActionProfile()
+            .withId(UUID.randomUUID().toString())
+            .withName("Create MARC-Holdings ")
+            .withAction(ActionProfile.Action.CREATE)
+            .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))).getMap())
+          .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+            .withProfileId(UUID.randomUUID().toString())
+            .withContentType(MAPPING_PROFILE)
+            .withContent(new JsonObject(Json.encode(new MappingProfile()
+              .withId(UUID.randomUUID().toString())
+              .withName("Create MARC-Holdings ")
+              .withIncomingRecordType(EntityType.MARC_HOLDINGS)
+              .withExistingRecordType(EntityType.HOLDINGS))).getMap()
+            )))));
+  }
+
+  ProfileSnapshotWrapper constructCreateMarcHoldingsSnapshotWrapper() {
+    return new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(new JsonObject())
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(ACTION_PROFILE)
+        .withContent(new JsonObject(Json.encode(new ActionProfile()
+          .withId(UUID.randomUUID().toString())
+          .withName("Create MARC-Holdings ")
+          .withAction(ActionProfile.Action.CREATE)
+          .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))).getMap())
+        .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(new JsonObject(Json.encode(new MappingProfile()
+            .withId(UUID.randomUUID().toString())
+            .withName("Create MARC-Holdings ")
+            .withIncomingRecordType(EntityType.MARC_HOLDINGS)
+            .withExistingRecordType(EntityType.HOLDINGS))).getMap()
+          )))));
+  }
+
+  ProfileSnapshotWrapper constructUpdateMarcItemSnapshotWrapper() {
+    return new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(new JsonObject())
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(ACTION_PROFILE)
+        .withContent(new JsonObject(Json.encode(new ActionProfile()
+          .withId(UUID.randomUUID().toString())
+          .withName("Create MARC-Holdings ")
+          .withAction(ActionProfile.Action.UPDATE)
+          .withFolioRecord(ActionProfile.FolioRecord.ITEM))).getMap())
+        .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+          .withProfileId(UUID.randomUUID().toString())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(new JsonObject(Json.encode(new MappingProfile()
+            .withId(UUID.randomUUID().toString())
+            .withName("Create MARC-Holdings ")
+            .withIncomingRecordType(EntityType.MARC_HOLDINGS)
+            .withExistingRecordType(EntityType.ITEM))).getMap()
+          )))));
   }
 
   private RawRecordsDto getTestRawRecordsDto(String marcHoldingsRecValid) {

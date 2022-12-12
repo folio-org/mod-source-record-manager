@@ -1,17 +1,19 @@
 package org.folio.verticle.consumers.util;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import static org.folio.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -106,6 +109,30 @@ public class MarcImportEventsHandlerTest {
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
 
+  @SneakyThrows
+  @Test
+  public void testSaveItemWithTitle() {
+    String title = "The Journal of ecclesiastical history.";
+    handler.handle(journalService, constructItemPayload(title), TEST_TENANT);
+
+    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+
+    assertEquals(title, actualJournalRecord.getTitle());
+  }
+
+  @SneakyThrows
+  @Test
+  public void testSaveHoldingsWithTitle() {
+    String title = "The Journal of ecclesiastical history.";
+    handler.handle(journalService, constructItemPayload(title), TEST_TENANT);
+
+    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+
+    assertEquals(title, actualJournalRecord.getTitle());
+  }
+
   private DataImportEventPayload constructAuthorityPayload(org.marc4j.marc.Record marcRecord) {
     var record = new Record()
       .withId(UUID.randomUUID().toString())
@@ -125,5 +152,21 @@ public class MarcImportEventsHandlerTest {
     } catch (IOException e) {
       return null;
     }
+  }
+
+  private DataImportEventPayload constructItemPayload(String title) {
+    var context = Map.of("INSTANCE", Json.encode(constructInstanceWithTitle(title)));
+    return new DataImportEventPayload().withEventType(DI_INVENTORY_ITEM_CREATED.value())
+      .withContext(new HashMap<>(context));
+  }
+
+  private DataImportEventPayload constructHoldingsPayload(String title) {
+    var context = Map.of("INSTANCE", Json.encode(constructInstanceWithTitle(title)));
+    return new DataImportEventPayload().withEventType(DI_INVENTORY_HOLDING_CREATED.value())
+      .withContext(new HashMap<>(context));
+  }
+
+  private Map<String, String> constructInstanceWithTitle(String title) {
+    return Map.of("title", title);
   }
 }

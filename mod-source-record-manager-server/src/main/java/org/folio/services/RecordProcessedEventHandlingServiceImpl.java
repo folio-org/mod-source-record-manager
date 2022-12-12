@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.DecodeException;
@@ -33,15 +32,11 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
 
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
-  private JobMonitoringService jobMonitoringService;
-
 
   public RecordProcessedEventHandlingServiceImpl(@Autowired JobExecutionProgressService jobExecutionProgressService,
-                                                 @Autowired JobExecutionService jobExecutionService,
-                                                 @Autowired JobMonitoringService jobMonitoringService) {
+                                                 @Autowired JobExecutionService jobExecutionService) {
     this.jobExecutionProgressService = jobExecutionProgressService;
     this.jobExecutionService = jobExecutionService;
-    this.jobMonitoringService = jobMonitoringService;
   }
 
   @Override
@@ -117,7 +112,6 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
                 .withTotal(progress.getTotal()));
 
             return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
-              .compose(ar -> jobMonitoringService.deleteByJobExecutionId(jobExecutionId, params.getTenantId()))
               .map(true);
           })
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));

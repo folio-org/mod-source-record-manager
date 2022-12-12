@@ -78,8 +78,8 @@ import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -213,7 +213,11 @@ public abstract class AbstractRestTest {
       new ProfileSnapshotWrapper()
         .withProfileId(actionMarcHoldingsCreateProfile.getId())
         .withContentType(ACTION_PROFILE)
-        .withContent(actionMarcHoldingsCreateProfile)));
+        .withContent(actionMarcHoldingsCreateProfile)
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(marcHoldingsMappingProfile.getId())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcHoldingsMappingProfile)))));
 
   protected ProfileSnapshotWrapper profileCreateMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())

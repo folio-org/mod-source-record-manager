@@ -1,8 +1,5 @@
 package org.folio.verticle.consumers.util;
 
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +24,12 @@ import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.services.util.ParsedRecordUtil;
+
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
 @Component
 public class MarcImportEventsHandler implements SpecificEventHandler {
@@ -124,6 +127,12 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             })
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
             .orElseGet(() -> Future.succeededFuture(journalRecord)));
+      }
+    } else if (entityType == HOLDINGS || entityType == ITEM) {
+      String recordAsString = eventPayload.getContext().get(INSTANCE.value());
+      if (StringUtils.isNotBlank(recordAsString)) {
+        var title = (String) Json.decodeValue(recordAsString, Map.class).get("title");
+        journalRecord.setTitle(title);
       }
     }
 
