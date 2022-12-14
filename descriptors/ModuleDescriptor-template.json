@@ -455,6 +455,15 @@
           "permissionsRequired": [
             "mapping-metadata.get"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/mapping-metadata/type/{recordType}",
+          "permissionsRequired": [
+            "mapping-metadata.get"
+          ]
         }
       ]
     },
