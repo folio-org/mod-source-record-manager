@@ -94,7 +94,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
             params, jobExecution.getId(), params.getTenantId(), record);
         }
       } catch (Exception e) {
-        LOGGER.error("Error publishing event with record id: {}",record.getId(), e);
+        LOGGER.warn("sendRecords:: Error publishing event with record id: {}",record.getId(), e);
         record.setErrorRecord(new ErrorRecord().withContent(record.getRawRecord()).withDescription(e.getMessage()));
         failedRecords.add(record);
       }
@@ -106,7 +106,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     GenericCompositeFuture.join(futures).onComplete(ar -> {
       if (ar.failed()) {
-        LOGGER.error("Error publishing events with records", ar.cause());
+        LOGGER.warn("sendRecords:: Error publishing events with records", ar.cause());
         promise.fail(ar.cause());
         return;
       }
@@ -123,7 +123,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    */
   private boolean isParsedContentExists(Record currentRecord) {
     if (currentRecord.getParsedRecord() == null || currentRecord.getParsedRecord().getContent() == null) {
-      LOGGER.error("Record has no parsed content - event will not be sent");
+      LOGGER.warn("isParsedContentExists:: Record has no parsed content - event will not be sent");
       return false;
     }
     return true;
@@ -159,13 +159,13 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       okapiParams.getHeaders().set(RECORD_ID_HEADER, currentRecord.getId());
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
-          LOGGER.info("Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, currentRecord.getId());
+          LOGGER.info("sendDiErrorEvent:: Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, currentRecord.getId());
           payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, currentRecord)
             .compose(payload -> EventHandlingUtil.sendEventToKafka(tenantId, Json.encode(payload), DI_ERROR.value(),
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
           return;
         }
       }
-      LOGGER.warn("Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
   }
 }

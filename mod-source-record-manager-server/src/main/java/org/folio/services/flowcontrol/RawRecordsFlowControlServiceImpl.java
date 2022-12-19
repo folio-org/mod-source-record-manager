@@ -46,7 +46,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   @PostConstruct
   public void init() {
-    LOGGER.info("Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
+    LOGGER.info("init:: Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
   }
 
   /**
@@ -73,7 +73,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       currentState.replaceAll((tenantId, oldValue) -> 0);
       currentState.forEach((tenantId, value) -> eventProcessedService.resetEventsToProcess(tenantId));
 
-      LOGGER.info("State has been reset to initial value, current value: 0");
+      LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
     }
 
     currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
@@ -125,7 +125,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     if (actualCounterValue < 0) {
-      LOGGER.info("Tenant: [{}]. Current value less than zero, because of single record imports or resetting state, back to zero...", tenantId);
+      LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Current value less than zero, because of single record imports or resetting state, back to zero...", tenantId);
       currentState.put(tenantId, 0);
       eventProcessedService.resetEventsToProcess(tenantId);
     } else {
@@ -145,7 +145,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         if (consumer.demand() == 0) {
           consumer.resume();
 
-          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
+          LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
         }
       });

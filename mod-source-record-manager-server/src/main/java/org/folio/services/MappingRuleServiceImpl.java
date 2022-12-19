@@ -57,7 +57,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           .compose(saveRulesIfNotExist(recordType, tenantId, rules))
           .onComplete(ar -> {
             if (ar.failed()) {
-              LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
+              LOGGER.warn("saveDefaultRules:: Can not save rules for tenant {}", tenantId, ar.cause());
               promise.fail(ar.cause());
             } else {
               promise.complete();
@@ -65,12 +65,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           });
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
-        LOGGER.error(errorMessage);
+        LOGGER.warn(errorMessage);
         promise.fail(new InternalServerErrorException(errorMessage));
       }
     } else {
       String errorMessage = "No default rules found";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(errorMessage);
     }
     return promise.future();
@@ -92,7 +92,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
         .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     }
     return promise.future();
@@ -107,7 +107,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       updateRules(optionalRules.get(), recordType, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(new InternalServerErrorException(errorMessage));
     }
     return promise.future();
@@ -139,7 +139,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
     if (recordType == Record.RecordType.MARC_AUTHORITY) {
       String errorMessage = "Can't edit MARC Authority default mapping rules";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     } else {
       promise.complete(null);
@@ -157,7 +157,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       new JsonObject(json);
       return true;
     } catch (Exception e) {
-      LOGGER.error(e.getMessage());
+      LOGGER.warn(e.getMessage());
       return false;
     }
   }
@@ -173,7 +173,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     try {
       return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
     } catch (IOException e) {
-      LOGGER.error(e.getMessage());
+      LOGGER.warn(e.getMessage());
       return Optional.empty();
     }
   }

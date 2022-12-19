@@ -46,7 +46,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     try {
       dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayload.class);
     } catch (DecodeException e) {
-      LOGGER.error("Failed to read eventContent {}", eventContent, e);
+      LOGGER.warn("handle:: Failed to read eventContent {}", eventContent, e);
       promise.fail(e);
       return promise.future();
     }
@@ -61,7 +61,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       } else if (DataImportEventTypes.DI_ERROR.equals(eventType)) {
         errorCount++;
       } else {
-        LOGGER.error("Illegal event type specified '{}' ", eventType);
+        LOGGER.warn("handle:: Illegal event type specified '{}' ", eventType);
         return Future.succeededFuture(false);
       }
 
@@ -69,7 +69,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
         .onComplete(ar -> {
           if (ar.failed()) {
-            LOGGER.error("Failed to handle {} event", eventType, ar.cause());
+            LOGGER.warn("handle:: Failed to handle {} event", eventType, ar.cause());
             updateJobStatusToError(jobExecutionId, params)
               .onComplete(statusAr -> promise.fail(ar.cause()));
           } else {
@@ -77,7 +77,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
           }
         });
     } catch (Exception e) {
-      LOGGER.error("Failed to handle event {}", eventContent, e);
+      LOGGER.warn("handle:: Failed to handle event {}", eventContent, e);
       updateJobStatusToError(jobExecutionId, params);
       promise.fail(e);
     }

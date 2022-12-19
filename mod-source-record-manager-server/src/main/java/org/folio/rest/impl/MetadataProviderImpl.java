@@ -111,7 +111,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobLogEntryDto entities by JobExecution id", e);
+        LOGGER.warn("getMetadataProviderJobLogEntriesByJobExecutionId:: Failed to retrieve JobLogEntryDto entities by JobExecution id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -129,7 +129,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve RecordProcessingLogDto entity by JobExecution id and Record id", e);
+        LOGGER.warn("getMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordId:: Failed to retrieve RecordProcessingLogDto entity by JobExecution id and Record id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -149,7 +149,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
+        LOGGER.warn("getMetadataProviderJobSummaryByJobExecutionId:: Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -181,7 +181,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve unique users info for JobExecutions", e);
+        LOGGER.warn("getMetadataProviderJobExecutionsUsers:: Failed to retrieve unique users info for JobExecutions", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

@@ -42,7 +42,7 @@ public final class EventHandlingUtil {
    */
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
-    LOGGER.debug("Starting to send event to Kafka for eventType: {}", eventType);
+    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}", eventType);
     Event event = createEvent(eventPayload, eventType, tenantId);
 
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
@@ -64,7 +64,7 @@ public final class EventHandlingUtil {
         promise.complete(true);
       } else {
         Throwable cause = war.cause();
-        LOGGER.error("{} write error for event {}:", producerName, eventType, cause);
+        LOGGER.warn("{} write error for event {}:", producerName, eventType, cause);
         handleKafkaPublishingErrors(promise, eventPayload, cause);
       }
     });
@@ -73,9 +73,9 @@ public final class EventHandlingUtil {
 
   private static void logSendingSucceeded(String eventType, String chunkId, String recordId) {
     if (recordId == null) {
-      LOGGER.info("Event with type: {} and chunkId: {} was sent to kafka", eventType, chunkId);
+      LOGGER.info("logSendingSucceeded:: Event with type: {} and chunkId: {} was sent to kafka", eventType, chunkId);
     } else {
-      LOGGER.info("Event with type: {} and recordId: {} was sent to kafka", eventType, recordId);
+      LOGGER.info("logSendingSucceeded:: Event with type: {} and recordId: {} was sent to kafka", eventType, recordId);
     }
   }
 

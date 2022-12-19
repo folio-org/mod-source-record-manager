@@ -62,7 +62,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     String lastChunk = okapiParams.getHeaders().get(LAST_CHUNK_HEADER);
 
     if (StringUtils.isNotBlank(lastChunk)) {
-      LOGGER.error("Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
+      LOGGER.warn("handle:: Source chunk with jobExecutionId: {} , tenantId: {}, chunkId: {} marked as last, prevent sending DI error", jobExecutionId, tenantId, chunkId, throwable);
     } else if (throwable instanceof RecordsPublishingException) {
       List<Record> failedRecords = ((RecordsPublishingException) throwable).getFailedRecords();
       for (Record failedRecord: failedRecords) {
@@ -70,7 +70,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
       }
     } else if (throwable instanceof DuplicateEventException) {
       RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
-      LOGGER.info("Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
+      LOGGER.info("handle:: Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
     } else if (throwable instanceof RawChunkRecordsParsingException) {
       RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
       parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
@@ -99,14 +99,14 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
       okapiParams.getHeaders().set(RECORD_ID_HEADER, record.getId());
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(record.getRecordType())) {
-          LOGGER.info("Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, record.getId());
+          LOGGER.info("sendDiErrorEvent:: Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, record.getId());
           payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, record)
             .compose(payload -> EventHandlingUtil.sendEventToKafka(tenantId, Json.encode(payload), DI_ERROR.value(),
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
           return;
         }
       }
-      LOGGER.warn("Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+      LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
     }
     sendDiError(throwable, jobExecutionId, okapiParams, null);
   }

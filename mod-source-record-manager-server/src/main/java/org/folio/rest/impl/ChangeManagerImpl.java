@@ -62,7 +62,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to delete JobExecutions by ids {}, ", entity.getIds(), e);
+        LOGGER.warn("deleteChangeManagerJobExecutions:: Failed to delete JobExecutions by ids {}, ", entity.getIds(), e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -81,7 +81,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Error during initializing JobExecution entities", e);
+        LOGGER.warn("postChangeManagerJobExecutions:: Error during initializing JobExecution entities", e);
         asyncResultHandler.handle(Future.failedFuture(e));
       }
     });
@@ -99,7 +99,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to update JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsById:: Failed to update JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -118,7 +118,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to get JobExecution by id", e, id));
+        LOGGER.warn(getMessage("getChangeManagerJobExecutionsById:: Failed to get JobExecution by id", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -143,7 +143,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobExecutions by parent id", e);
+        LOGGER.warn("getChangeManagerJobExecutionsChildrenById:: Failed to retrieve JobExecutions by parent id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -161,7 +161,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to update status for JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsStatusById:: Failed to update status for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -178,7 +178,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to set JobProfile for JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsJobProfileById:: Failed to set JobProfile for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -197,7 +197,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to process chunk of RawRecords with JobExecution id {}", e, id));
+        LOGGER.warn(getMessage("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -215,7 +215,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to delete records for JobExecution id {}", e, id));
+        LOGGER.warn(getMessage("deleteChangeManagerJobExecutionsRecordsById:: Failed to delete records for JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -232,7 +232,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to retrieve parsed record by externalId {}", e, externalId));
+        LOGGER.warn(getMessage("getChangeManagerParsedRecords:: Failed to retrieve parsed record by externalId {}", e, externalId));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -249,7 +249,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to update parsed record with id {}", e, id));
+        LOGGER.warn(getMessage("putChangeManagerParsedRecordsById:: Failed to update parsed record with id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

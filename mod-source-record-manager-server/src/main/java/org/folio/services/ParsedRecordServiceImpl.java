@@ -87,7 +87,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
         }
       });
     } catch (Exception e) {
-      log.error("Failed to GET Record from SRS", e);
+      log.warn("getRecordByExternalId:: Failed to GET Record from SRS", e);
       promise.fail(e);
     }
     return promise.future();
@@ -105,7 +105,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
           } else {
             var message = format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED.name(),
               params.getTenantId());
-            log.error(message);
+            log.warn(message);
             return failedFuture(message);
           }
         }));
