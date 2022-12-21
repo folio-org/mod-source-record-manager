@@ -1,3 +1,6 @@
+## 2022-12-22 v3.4.6
+* [MODSOURMAN-923](https://issues.folio.org/browse/MODSOURMAN-923) Spring 5.2.22 fixing Spring4Shell CVE-2022-22965 (MG)
+
 ## 2022-09-20 v3.4.5
 * [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field.
 
