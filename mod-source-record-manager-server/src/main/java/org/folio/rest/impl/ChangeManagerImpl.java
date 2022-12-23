@@ -131,7 +131,7 @@ public class ChangeManagerImpl implements ChangeManager {
   @Override
   public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
                                                    Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    LOGGER.debug("deleteChangeManagerJobExecutionsById:: Method is not implemented");
+    LOGGER.warn("deleteChangeManagerJobExecutionsById:: Method is not implemented");
     asyncResultHandler.handle(Future.succeededFuture(
       PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
   }
