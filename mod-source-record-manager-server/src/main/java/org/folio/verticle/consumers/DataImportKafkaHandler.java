@@ -29,6 +29,7 @@ import java.util.List;
 public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
   static final String RECORD_ID_HEADER = "recordId";
+  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String DATA_IMPORT_KAFKA_HANDLER_UUID = "6713adda-72ce-11ec-90d6-0242ac120003";
 
   private Vertx vertx;
@@ -94,7 +95,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
 
   private String extractJobExecutionId(List<KafkaHeader> headers) {
     return headers.stream()
-      .filter(header -> header.key().equals(RECORD_ID_HEADER))
+      .filter(header -> header.key().equals(JOB_EXECUTION_ID_HEADER))
       .findFirst()
       .map(header -> header.value().toString())
       .orElse(null);

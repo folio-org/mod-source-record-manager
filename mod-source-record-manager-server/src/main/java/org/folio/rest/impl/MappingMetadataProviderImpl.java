@@ -39,6 +39,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMappingMetadataByJobExecutionId:: jobExecutionId {}", jobExecutionId);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         mappingMetadataService.getMappingMetadataDto(jobExecutionId, params)
           .map(GetMappingMetadataByJobExecutionIdResponse::respond200WithApplicationJson)
@@ -57,6 +58,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMappingMetadataTypeByRecordType:: recordType {}", recordType);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         mappingMetadataService.getMappingMetadataDtoByRecordType(
             QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
