@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.HttpStatus.HTTP_CREATED;
@@ -91,6 +92,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<InitJobExecutionsRsDto> initializeJobExecutions(InitJobExecutionsRqDto jobExecutionsRqDto, OkapiConnectionParams params) {
+    LOGGER.debug("initializeJobExecutions:: userId {}", jobExecutionsRqDto.getUserId());
     if (jobExecutionsRqDto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.FILES) && jobExecutionsRqDto.getFiles().isEmpty()) {
       String errorMessage = "Received files must not be empty";
       LOGGER.warn(errorMessage);
@@ -120,6 +122,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecution(JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.debug("updateJobExecution:: jobExecutionId {}", jobExecution.getId());
     return jobExecutionDao.updateBlocking(jobExecution.getId(), currentJobExec -> {
       Promise<JobExecution> promise = Promise.promise();
       if (JobExecution.Status.PARENT.equals(jobExecution.getStatus()) ^ JobExecution.Status.PARENT.equals(currentJobExec.getStatus())) {
@@ -158,6 +161,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> updateJobExecutionStatus(String jobExecutionId, StatusDto status, OkapiConnectionParams params) {
+    LOGGER.debug("updateJobExecutionStatus:: jobExecutionId {}, status {}", jobExecutionId, status.getStatus());
     if (JobExecution.Status.PARENT.name().equals(status.getStatus().name())) {
       String errorMessage = "Cannot update JobExecution status to PARENT";
       LOGGER.warn(errorMessage);
@@ -189,6 +193,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Override
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
+    LOGGER.debug("setJobProfileToJobExecution:: jobExecutionId {}, jobProfileId {}", jobExecutionId, jobProfile.getId());
     return loadJobProfileById(jobProfile.getId(), params)
       .map(profile-> jobProfile.withName(profile.getName()))
       .compose(v-> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
@@ -213,6 +218,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<ProfileSnapshotWrapper> createJobProfileSnapshotWrapper(JobProfileInfo jobProfile, OkapiConnectionParams params) {
+    LOGGER.debug("createJobProfileSnapshotWrapper:: jobProfileId {}", jobProfile.getId());
     Promise<ProfileSnapshotWrapper> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
 
@@ -229,6 +235,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<JobProfile> loadJobProfileById(String jobProfileId, OkapiConnectionParams params) {
+    LOGGER.debug("loadJobProfileById:: jobProfileId {}", jobProfileId);
     Promise<JobProfile> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     client.getDataImportProfilesJobProfilesById(jobProfileId, false, null, response -> {
@@ -365,6 +372,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * Create new JobExecution object and fill fields
    */
   private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, String parentJobExecutionId, String fileName, String userId) {
+    LOGGER.debug("buildNewJobExecution:: parentJobExecutionId {}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
       .withParentJobId(parentJobExecutionId)
@@ -415,6 +423,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<List<String>> saveJobExecutions(List<JobExecution> jobExecutions, String tenantId) {
+    LOGGER.debug("saveJobExecutions:: jobExecutionIds {}, tenantId {}",
+      jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
@@ -448,6 +458,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    * @return future
    */
   private Future<String> postSnapshot(Snapshot snapshot, OkapiConnectionParams params) {
+    LOGGER.debug("postSnapshot:: jobExecutionId {}", snapshot.getJobExecutionId());
     Promise<String> promise = Promise.promise();
 
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
@@ -468,6 +479,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<JobExecution> updateSnapshotStatus(JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.debug("updateSnapshotStatus:: jobExecutionId {}", jobExecution.getId());
     Promise<JobExecution> promise = Promise.promise();
     Snapshot snapshot = new Snapshot()
       .withJobExecutionId(jobExecution.getId())
@@ -527,6 +539,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   }
 
   private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
+    LOGGER.debug("deleteRecordsFromSRS:: jobExecutionId {}", jobExecutionId);
     Promise<Boolean> promise = Promise.promise();
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {

@@ -141,7 +141,7 @@ public class JobExecutionSourceChunkDaoImpl implements JobExecutionSourceChunkDa
             LOGGER.warn("update:: Could not update jobExecutionSourceChunk with id {}", jobExecutionChunk.getId(), updateResult.cause());
             promise.fail(updateResult.cause());
           } else if (updateResult.result().rowCount() != 1) {
-            String errorMessage = String.format("JobExecutionSourceChunk with id '%s' was not found", jobExecutionChunk.getId());
+            String errorMessage = String.format("update:: JobExecutionSourceChunk with id '%s' was not found", jobExecutionChunk.getId());
             LOGGER.warn(errorMessage);
             promise.fail(new NotFoundException(errorMessage));
           } else {

@@ -18,6 +18,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +37,7 @@ import org.folio.services.mappers.processor.MappingParametersProvider;
 @Log4j2
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
-
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private final MappingParametersProvider mappingParametersProvider;
@@ -57,6 +59,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   @Override
   public Future<ParsedRecordDto> getRecordByExternalId(String externalId, OkapiConnectionParams params) {
+    LOGGER.debug("getRecordByExternalId:: externalId {}", externalId);
     Promise<ParsedRecordDto> promise = Promise.promise();
     var client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {

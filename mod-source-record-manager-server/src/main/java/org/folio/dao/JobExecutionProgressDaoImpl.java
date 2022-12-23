@@ -63,6 +63,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   @Override
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
+    LOGGER.debug("initializeJobExecutionProgress:: jobExecutionId {}, totalRecords {}, tenantId {}", jobExecutionId, totalRecords, tenantId);
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);

@@ -47,6 +47,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<Void> saveDefaultRules(Record.RecordType recordType, String tenantId) {
+    LOGGER.debug("saveDefaultRules:: recordType {}, tenantId {}", recordType, tenantId);
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = receiveDefaultRules(recordType);
 
@@ -115,6 +116,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   private Function<Optional<JsonObject>, Future<String>> saveRulesIfNotExist(Record.RecordType recordType,
                                                                              String tenantId, String defaultRules) {
+    LOGGER.debug("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
     return existedRules -> {
       if (existedRules.isEmpty()) {
         return mappingRuleDao.save(new JsonObject(defaultRules), recordType, tenantId);
@@ -137,6 +139,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
+    LOGGER.debug("rejectUnsupportedType:: recordType {}", recordType);
     if (recordType == Record.RecordType.MARC_AUTHORITY) {
       String errorMessage = "Can't edit MARC Authority default mapping rules";
       LOGGER.warn(errorMessage);
@@ -169,6 +172,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
    * @return optional with resource, empty if no file in resources
    */
   private Optional<String> readResourceFromPath(String path) {
+    LOGGER.debug("readResourceFromPath:: path {}", path);
     URL url = Resources.getResource(path);
     try {
       return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
