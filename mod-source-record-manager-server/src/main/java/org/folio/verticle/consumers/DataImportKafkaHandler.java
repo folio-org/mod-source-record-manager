@@ -29,6 +29,7 @@ import java.util.List;
 public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {
   private static final Logger LOGGER = LogManager.getLogger();
   static final String RECORD_ID_HEADER = "recordId";
+  public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   public static final String DATA_IMPORT_KAFKA_HANDLER_UUID = "6713adda-72ce-11ec-90d6-0242ac120003";
 
   private Vertx vertx;
@@ -55,7 +56,7 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
       Event event = Json.decodeValue(record.value(), Event.class);
       String jobExecutionId = extractJobExecutionId(kafkaHeaders);
-      LOGGER.info("Event was received with recordId: '{}' event type: '{}' with jobExecutionId: '{}'", recordId, event.getEventType(), jobExecutionId);
+      LOGGER.info("handle:: Event was received with recordId: '{}' event type: '{}' with jobExecutionId: '{}'", recordId, event.getEventType(), jobExecutionId);
 
       if (StringUtils.isBlank(recordId)) {
         handleLocalEvent(result, okapiConnectionParams, event);
@@ -72,13 +73,13 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
             LOGGER.info(e.getMessage());
             result.complete();
           } else {
-            LOGGER.error("Error with database during collecting of deduplication info for handlerId: {} , eventId: {}. ", DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), e);
+            LOGGER.warn("handle:: Error with database during collecting of deduplication info for handlerId: {} , eventId: {}. ", DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), e);
             result.fail(e);
           }
         });
       return result.future();
     } catch (Exception e) {
-      LOGGER.error("Error during processing data-import result", e);
+      LOGGER.warn("handle:: Error during processing data-import result", e);
       return Future.failedFuture(e);
     }
   }
@@ -87,14 +88,14 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
     eventHandlingService.handle(event.getEventPayload(), okapiConnectionParams)
       .onSuccess(ar -> result.complete())
       .onFailure(ar -> {
-        LOGGER.error("Error during processing DataImport Result: ", ar.getCause());
+        LOGGER.warn("handleLocalEvent:: Error during processing DataImport Result: ", ar.getCause());
         result.fail(ar.getCause());
       });
   }
 
   private String extractJobExecutionId(List<KafkaHeader> headers) {
     return headers.stream()
-      .filter(header -> header.key().equals(RECORD_ID_HEADER))
+      .filter(header -> header.key().equals(JOB_EXECUTION_ID_HEADER))
       .findFirst()
       .map(header -> header.value().toString())
       .orElse(null);

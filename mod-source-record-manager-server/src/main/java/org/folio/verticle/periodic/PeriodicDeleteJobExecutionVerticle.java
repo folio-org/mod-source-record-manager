@@ -37,9 +37,9 @@ public class PeriodicDeleteJobExecutionVerticle extends AbstractPeriodicJobVerti
       .onSuccess(allTenants -> allTenants.forEach(tenantId -> {
         log.info("Check tenant [{}] for marked as deleted jobs", tenantId);
         jobExecutionDao.hardDeleteJobExecutions(diffNumberOfDays, tenantId)
-          .onSuccess(rows -> log.info("Permanent Job Executions Deletion completed for the tenant {}", tenantId))
-          .onFailure(throwable -> log.error("Permanent Job Executions Deletion did not complete for the tenant {}", tenantId, throwable));
+          .onSuccess(rows -> log.info("executePeriodicJob:: Permanent Job Executions Deletion completed for the tenant {}", tenantId))
+          .onFailure(throwable -> log.warn("executePeriodicJob:: Permanent Job Executions Deletion did not complete for the tenant {}", tenantId, throwable));
       }))
-      .onFailure(throwable -> log.error("Tenants Not Found For Permanent Job Executions Deletion", throwable));
+      .onFailure(throwable -> log.warn("executePeriodicJob:: Tenants Not Found For Permanent Job Executions Deletion", throwable));
   }
 }

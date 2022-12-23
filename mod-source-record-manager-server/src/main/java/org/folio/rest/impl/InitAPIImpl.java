@@ -63,7 +63,7 @@ public class InitAPIImpl implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> handler) {
-    LOGGER.info("InitAPI starting...");
+    LOGGER.info("init:: InitAPI starting...");
     try {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
@@ -71,14 +71,14 @@ public class InitAPIImpl implements InitAPI {
       deployConsumersVerticles(vertx)
         .onSuccess(car -> {
           handler.handle(Future.succeededFuture());
-          LOGGER.info("Consumer Verticles were successfully started");
+          LOGGER.info("init:: Consumer Verticles were successfully started");
         })
         .onFailure(th -> {
           handler.handle(Future.failedFuture(th));
-          LOGGER.error("Consumer Verticles were not started", th);
+          LOGGER.warn("init:: Consumer Verticles were not started", th);
         });
     } catch (Throwable th) {
-      LOGGER.error("Error during module init", th);
+      LOGGER.warn("init:: Error during module init", th);
       handler.handle(Future.failedFuture(th));
     }
   }

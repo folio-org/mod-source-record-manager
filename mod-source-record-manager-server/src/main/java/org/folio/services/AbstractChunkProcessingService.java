@@ -179,11 +179,11 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           if (jobExecution.getStatus() == JobExecution.Status.ERROR) {
-            LOGGER.error(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
+            LOGGER.warn(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_ERROR_MSG);
           }
           if (jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
-            LOGGER.error(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
+            LOGGER.warn(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
             return Future.<JobExecution>failedFuture(JOB_EXECUTION_MARKED_AS_CANCELLED_MSG);
           }
           if (jobExecution.getStatus() == JobExecution.Status.COMMITTED) {
