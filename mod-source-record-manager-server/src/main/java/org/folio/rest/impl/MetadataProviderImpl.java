@@ -65,6 +65,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutions:: sortBy {}", sortBy);
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
         JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
         jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
@@ -84,6 +85,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJournalRecordsByJobExecutionId:: jobExecutionId {}, tenantId {}", jobExecutionId, tenantId);
         jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
           .map(jobExecutionOptional -> jobExecutionOptional.orElseThrow(() ->
             new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
@@ -105,6 +107,8 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobLogEntriesByJobExecutionId:: jobExecutionId {}, sortBy {}, errorsOnly {}, entityType {}",
+          jobExecutionId, sortBy, errorsOnly, entityType.name());
         journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
           .map(GetMetadataProviderJobLogEntriesByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -123,6 +127,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordId:: jobExecutionId {}, recordId {}, tenantId {}", jobExecutionId, recordId, tenantId);
         journalRecordService.getRecordProcessingLogDto(jobExecutionId, recordId, tenantId)
           .map(GetMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -141,6 +146,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobSummaryByJobExecutionId:: jobExecutionId {}, tenantId {}", jobExecutionId, tenantId);
         journalRecordService.getJobExecutionSummaryDto(jobExecutionId, tenantId)
           .map(jobSummaryOptional -> jobSummaryOptional
             .map(GetMetadataProviderJobSummaryByJobExecutionIdResponse::respond200WithApplicationJson)
@@ -160,6 +166,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                           Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutionsJobProfiles:: tenantId {}", tenantId);
         jobExecutionService.getRelatedJobProfiles(offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsJobProfilesResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -175,6 +182,7 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderJobExecutionsUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutionsUsers:: tenantId {}", tenantId);
         jobExecutionService.getRelatedUsersInfo(offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsUsersResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
