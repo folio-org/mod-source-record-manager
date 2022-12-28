@@ -61,7 +61,7 @@ public class InvoiceUtil {
     if (isAnyEmpty(edifactAsString, invoiceAsString, invoiceLinesAsString)) {
       event.getContext().keySet().forEach(key -> {
         if (isNotEmpty(event.getContext().get(key))) {
-          LOGGER.error(key + ": " + event.getContext().get(key));
+          LOGGER.warn(key + ": " + event.getContext().get(key));
         }
       });
       throw new JournalRecordMapperException(String.format(EVENT_HAS_NO_DATA_MSG, event.getEventType(),

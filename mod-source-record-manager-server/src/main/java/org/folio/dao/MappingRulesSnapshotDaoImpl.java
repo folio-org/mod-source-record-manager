@@ -52,6 +52,7 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
   @Override
   public Future<String> save(JsonObject rules, String jobExecutionId, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
+    LOGGER.trace("save:: Saving mappingRulesSnapshot for tenant {}", tenantId);
     try {
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(
@@ -61,10 +62,10 @@ public class MappingRulesSnapshotDaoImpl implements MappingRulesSnapshotDao {
       );
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error saving MappingRulesSnapshot entity", e);
+      LOGGER.warn("save:: Error saving MappingRulesSnapshot entity", e);
       promise.fail(e);
     }
-    return promise.future().map(jobExecutionId).onFailure(e -> LOGGER.error("Failed to save MappingRulesSnapshot entity", e));
+    return promise.future().map(jobExecutionId).onFailure(e -> LOGGER.warn("save:: Failed to save MappingRulesSnapshot entity", e));
   }
 
   @Override
