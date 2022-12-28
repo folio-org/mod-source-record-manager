@@ -185,7 +185,7 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_execution_summary_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.5.3"
+      "fromModuleVersion": "mod-source-record-manager-3.5.6"
     },
     {
       "run": "after",

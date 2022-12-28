@@ -25,7 +25,7 @@ BEGIN
       COUNT(*) FILTER (WHERE entity_type = 'INSTANCE' AND action_status = 'ERROR') AS total_instances_errors,
 
       COUNT(*) FILTER (WHERE entity_type = 'HOLDINGS' AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_holdings,
-      COUNT(*) FILTER (WHERE entity_type = 'HOLDINGS' AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_holdings,
+      COUNT(*) FILTER (WHERE entity_type IN ('HOLDINGS','MARC_HOLDINGS') AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_holdings,
       COUNT(*) FILTER (WHERE entity_type = 'HOLDINGS' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_holdings,
       COUNT(*) FILTER (WHERE entity_type = 'HOLDINGS' AND action_status = 'ERROR') AS total_holdings_errors,
 
