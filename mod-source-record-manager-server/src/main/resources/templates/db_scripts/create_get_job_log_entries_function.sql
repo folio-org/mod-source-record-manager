@@ -75,7 +75,7 @@ FROM (
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
                 count(journal_records.source_id) OVER () AS total_count,
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
- 				        array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type IN (''HOLDINGS'', ''MARC_HOLDINGS'')) as holdings_entity_hrid
+ 				        array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%1$s'' and
                entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'') and action_type != ''MATCH''

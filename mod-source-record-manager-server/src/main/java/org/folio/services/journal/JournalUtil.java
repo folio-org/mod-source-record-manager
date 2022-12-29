@@ -59,10 +59,6 @@ public class JournalUtil {
         record = new ObjectMapper().readValue(recordAsString, Record.class);
       }
       String entityAsString = eventPayloadContext.get(entityType.value());
-      String holdingsHrid = null;
-      if (record.getExternalIdsHolder() != null && record.getExternalIdsHolder().getHoldingsHrid() != null) {
-        holdingsHrid = record.getExternalIdsHolder().getHoldingsHrid();
-      }
 
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
@@ -71,8 +67,7 @@ public class JournalUtil {
         .withEntityType(entityType)
         .withActionType(actionType)
         .withActionDate(new Date())
-        .withActionStatus(actionStatus)
-        .withEntityHrId(holdingsHrid);
+        .withActionStatus(actionStatus);
 
       if (!isEmpty(entityAsString)) {
         JsonObject entityJson = new JsonObject(entityAsString);

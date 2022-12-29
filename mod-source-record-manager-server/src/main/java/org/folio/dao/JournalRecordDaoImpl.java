@@ -303,17 +303,16 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     final var entityType = mapToEntityType(row.getString(SOURCE_RECORD_ENTITY_TYPE));
     final var entityHrid = row.getArrayOfStrings(HOLDINGS_ENTITY_HRID);
     final var holdingsActionStatus = mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS));
-    final var sourceRecordActionStatus = mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS));
     return new JobLogEntryDto()
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withSourceRecordId(row.getValue(SOURCE_ID).toString())
       .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
         ? row.getInteger(SOURCE_RECORD_ORDER).toString()
         : row.getString(INVOICE_LINE_NUMBER))
-      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid, sourceRecordActionStatus))
+      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid, holdingsActionStatus))
       .withSourceRecordType(entityType)
       .withHoldingsRecordHridList(ArrayUtils.isEmpty(entityHrid) ? Collections.emptyList() : Arrays.asList(entityHrid))
-      .withSourceRecordActionStatus(sourceRecordActionStatus)
+      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
       .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
       .withHoldingsActionStatus(holdingsActionStatus)
       .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
@@ -326,9 +325,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String[] entityHrid,
-                                     org.folio.rest.jaxrs.model.ActionStatus sourceRecordActionStatus) {
+                                     org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
     return MARC_HOLDINGS.equals(entityType)
-      && isActionStatusUpdatedOrCreated(sourceRecordActionStatus)
+      && isActionStatusUpdatedOrCreated(holdingsActionStatus)
       ? "Holdings " + entityHrid[0]
       : title;
   }
