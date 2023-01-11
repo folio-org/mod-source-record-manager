@@ -100,20 +100,20 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
             ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
             : DI_SRS_MARC_BIB_RECORD_CREATED;
 
-          LOGGER.debug("RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+          LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
           saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
           return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
               okapiConnectionParams, eventType.value())
             .compose(b -> {
-              LOGGER.debug("RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+              LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
               return Future.succeededFuture(chunkId);
             }, th -> {
-              LOGGER.error("RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
+              LOGGER.warn("handle:: RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
               return Future.failedFuture(th);
             });
         });
     } catch (Exception e) {
-      LOGGER.error("Can't process kafka record: ", e);
+      LOGGER.warn("handle:: Can't process kafka record: ", e);
       return Future.failedFuture(e);
     }
   }

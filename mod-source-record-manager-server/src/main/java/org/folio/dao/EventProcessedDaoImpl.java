@@ -75,7 +75,7 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
     try {
       pgClientFactory.createInstance(tenantId).execute(query, Tuple.of(handlerId, eventId), promise);
     } catch (Exception e) {
-      LOGGER.error("Failed to save handlerId {} and eventId {} combination to table {}", handlerId,  eventId, EVENTS_PROCESSED_TABLE_NAME, e);
+      LOGGER.warn("makeSaveCall:: Failed to save handlerId {} and eventId {} combination to table {}", handlerId,  eventId, EVENTS_PROCESSED_TABLE_NAME, e);
       promise.fail(e);
     }
   }
@@ -87,7 +87,7 @@ public class EventProcessedDaoImpl implements EventProcessedDao {
       Tuple queryParams = Tuple.of(counterValue);
       pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Failed to update counter value {} to table {}", counterValue, FLOW_CONTROL_EVENTS_COUNTER_TABLE_NAME, e);
+      LOGGER.warn("updateCounterValue:: Failed to update counter value {} to table {}", counterValue, FLOW_CONTROL_EVENTS_COUNTER_TABLE_NAME, e);
       promise.fail(e);
     }
     return getCounterValueFromRowSet(promise);

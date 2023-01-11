@@ -54,7 +54,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
     Event event = new JsonObject(record.value()).mapTo(Event.class);
-    LOGGER.debug("Event was received with recordId: {} event type: {}", recordId, event.getEventType());
+    LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
 
     eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
       .onSuccess(res -> processJournalEvent(result, record, event, okapiConnectionParams.getTenantId()))
@@ -69,7 +69,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
       eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, tenantId);
       result.complete(record.key());
     } catch (Exception e) {
-      LOGGER.error("Error during processing journal event", e);
+      LOGGER.warn("processJournalEvent:: Error during processing journal event", e);
       result.fail(e);
     }
   }
@@ -79,7 +79,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
       LOGGER.info(e.getMessage());
       result.complete(record.key());
     } else {
-      LOGGER.error("Error with database during collecting of deduplication info for handlerId: {} , eventId: {}", DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), e);
+      LOGGER.warn("processDeduplicationFailure:: Error with database during collecting of deduplication info for handlerId: {} , eventId: {}", DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), e);
       result.fail(e);
     }
   }

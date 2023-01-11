@@ -143,35 +143,35 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<String> save(JournalRecord journalRecord, String tenantId) {
-    LOGGER.info("Trying to save JournalRecord entity to the {} table", JOURNAL_RECORDS_TABLE);
+    LOGGER.info("save:: Trying to save JournalRecord entity to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       journalRecord.withId(UUID.randomUUID().toString());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-      LOGGER.trace("JournalRecordDaoImpl::save query = {};", query);
+      LOGGER.trace("JournalRecordDaoImpl:: save query = {};", query);
       pgClientFactory.createInstance(tenantId).execute(query, prepareInsertQueryParameters(journalRecord), promise);
     } catch (Exception e) {
-      LOGGER.error("Error saving JournalRecord entity", e);
+      LOGGER.warn("save:: Error saving JournalRecord entity", e);
       promise.fail(e);
     }
     return promise.future().map(journalRecord.getId())
-      .onFailure(e -> LOGGER.error("Error saving JournalRecord entity", e));
+      .onFailure(e -> LOGGER.warn("save:: Error saving JournalRecord entity", e));
   }
 
   @Override
   public Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId) {
-    LOGGER.info("Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
+    LOGGER.info("saveBatch:: Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {
       List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(Collectors.toList());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
-      LOGGER.trace("JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
+      LOGGER.trace("saveBatch:: JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
       pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
     } catch (Exception e) {
-      LOGGER.error("Error saving JournalRecord entities", e);
+      LOGGER.warn("saveBatch:: Error saving JournalRecord entities", e);
       promise.fail(e);
     }
-    return promise.future().onFailure(e -> LOGGER.error("Error saving JournalRecord entities", e));
+    return promise.future().onFailure(e -> LOGGER.warn("saveBatch:: Error saving JournalRecord entities", e));
   }
 
   private Tuple prepareInsertQueryParameters(JournalRecord journalRecord) {
@@ -193,7 +193,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<List<JournalRecord>> getByJobExecutionId(String jobExecutionId, String sortBy, String order, String tenantId) {
-    LOGGER.trace("Trying to get list of JournalRecord entities by jobExecutionId = {} from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
+    LOGGER.trace("getByJobExecutionId:: Trying to get list of JournalRecord entities by jobExecutionId = {} from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     try {
       StringBuilder queryBuilder = new StringBuilder(format(SELECT_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE));
@@ -202,10 +202,10 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       }
       String query = queryBuilder.toString();
       Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
-      LOGGER.trace("JournalRecordDaoImpl::getByJobExecutionId query = {}; tuple = {}", query, queryParams);
+      LOGGER.trace("getByJobExecutionId:: JournalRecordDaoImpl::getByJobExecutionId query = {}; tuple = {}", query, queryParams);
       pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting JournalRecord entities by jobExecutionId = {}", jobExecutionId, e);
+      LOGGER.warn("getByJobExecutionId:: Error getting JournalRecord entities by jobExecutionId = {}", jobExecutionId, e);
       promise.fail(e);
     }
     return promise.future().map(this::mapResultSetToJournalRecordsList);
@@ -213,7 +213,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId) {
-    LOGGER.debug("Trying to delete row from the {} table by jobExecutionId = {}", JOURNAL_RECORDS_TABLE, jobExecutionId);
+    LOGGER.debug("deleteByJobExecutionId:: Trying to delete row from the {} table by jobExecutionId = {}", JOURNAL_RECORDS_TABLE, jobExecutionId);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(DELETE_BY_JOB_EXECUTION_ID_QUERY, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
     Tuple queryParams = Tuple.of(UUID.fromString(jobExecutionId));
@@ -224,7 +224,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
-    LOGGER.trace("Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
+    LOGGER.trace("getJobLogEntryDtoCollection:: Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
     if (!jobLogEntrySortableFields.contains(sortBy)) {
       return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
     }
@@ -237,7 +237,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId) {
-    LOGGER.trace("Trying to get RecordProcessingLogDto entity by jobExecutionId = {} and recordId = {}", jobExecutionId, recordId);
+    LOGGER.trace("getRecordProcessingLogDto:: Trying to get RecordProcessingLogDto entity by jobExecutionId = {} and recordId = {}", jobExecutionId, recordId);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY, jobExecutionId, recordId);
     LOGGER.trace("JournalRecordDaoImpl::getRecordProcessingLogDto query = {};", query);
@@ -247,7 +247,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   @Override
   public Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
-    LOGGER.trace("Trying to get JobExecutionSummaryDto by jobExecutionId: '{}' from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
+    LOGGER.trace("getJobExecutionSummaryDto:: Trying to get JobExecutionSummaryDto by jobExecutionId: '{}' from the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
     Promise<RowSet<Row>> promise = Promise.promise();
     String query = format(GET_JOB_SUMMARY_QUERY, jobExecutionId);
     LOGGER.trace("JournalRecordDaoImpl::getJobExecutionSummaryDto query: {}", query);
@@ -327,9 +327,14 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String[] entityHrid,
                                      org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
     return MARC_HOLDINGS.equals(entityType)
-      && org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
+      && isActionStatusUpdatedOrCreated(holdingsActionStatus)
       ? "Holdings " + entityHrid[0]
       : title;
+  }
+
+  private boolean isActionStatusUpdatedOrCreated(org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
+    return org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
+      || org.folio.rest.jaxrs.model.ActionStatus.UPDATED.equals(holdingsActionStatus);
   }
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {

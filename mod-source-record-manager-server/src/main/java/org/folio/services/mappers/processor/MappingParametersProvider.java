@@ -155,7 +155,7 @@ public class MappingParametersProvider {
    * @return initialized mapping params
    */
   private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
-    LOGGER.debug("initializing mapping parameters...");
+    LOGGER.debug("initializeParameters:: initializing mapping parameters...");
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);

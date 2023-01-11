@@ -139,7 +139,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  orderByClause);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
-      LOGGER.error("Error while getting Logs", e);
+      LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapToJobExecutionDtoCollection);
@@ -155,7 +155,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       Tuple queryParams = Tuple.of(UUID.fromString(parentId), limit, offset);
       pgClientFactory.createInstance(tenantId).selectRead(sql, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting jobExecutions by parent id", e);
+      LOGGER.warn("getChildrenJobExecutionsByParentId:: Error getting jobExecutions by parent id", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapToJobExecutionDtoCollection);
@@ -169,7 +169,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_BY_ID_SQL, jobTable);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(UUID.fromString(id)), promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting jobExecution by id", e);
+      LOGGER.warn("getJobExecutionById:: Error getting jobExecution by id", e);
       promise.fail(e);
     }
     return promise.future().map(rowSet -> rowSet.rowCount() == 0 ? Optional.empty()
@@ -184,7 +184,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_RELATED_JOB_PROFILES_SQL, jobTable);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting related Job Profiles", e);
+      LOGGER.warn("getRelatedJobProfiles:: Error getting related Job Profiles", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapRowToJobProfileInfoCollection);
@@ -215,7 +215,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       Tuple queryParams = mapToTuple(jobExecution);
       pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error updating jobExecution", e);
+      LOGGER.warn("updateJobExecution:: Error updating jobExecution", e);
       promise.fail(e);
     }
     return promise.future().compose(rowSet -> rowSet.rowCount() != 1
@@ -277,7 +277,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = StrSubstitutor.replace(UPDATE_BY_IDS_SQL, data);
       pgClientFactory.createInstance(tenantId).execute(query, promise);
     } catch (Exception e) {
-      LOGGER.error("Error deleting jobExecution by ids {}, ", ids, e);
+      LOGGER.warn("softDeleteJobExecutionsByIds:: Error deleting jobExecution by ids {}, ", ids, e);
       promise.fail(e);
     }
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
@@ -290,7 +290,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String query = format(GET_UNIQUE_USERS, tableName);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting unique users ", e);
+      LOGGER.warn("getRelatedUsersInfo:: Error getting unique users ", e);
       promise.fail(e);
     }
     return promise.future().map(this::mapRowToJobExecutionUserInfoCollection);
@@ -482,7 +482,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       fetchJobExecutionIdsConsideredForDeleting(tenantId, diffNumberOfDays, sqlConnection, postgresClient)
         .compose(rowSet -> {
           if (rowSet.rowCount() < 1) {
-            LOGGER.info("Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
+            LOGGER.info("hardDeleteJobExecutions:: Jobs marked as deleted and older than {} days not found", diffNumberOfDays);
             return Future.succeededFuture();
           }
           return mapRowsetValuesToListOfString(rowSet);

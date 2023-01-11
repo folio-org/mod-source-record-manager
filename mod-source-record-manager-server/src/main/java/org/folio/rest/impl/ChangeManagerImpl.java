@@ -56,13 +56,14 @@ public class ChangeManagerImpl implements ChangeManager {
   public void deleteChangeManagerJobExecutions(DeleteJobExecutionsReq entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
+        LOGGER.debug("deleteChangeManagerJobExecutions:: jobExecutionIds {}, tenantId {}", entity.getIds(), tenantId);
         jobExecutionService.softDeleteJobExecutionsByIds(entity.getIds(), tenantId)
           .map(DeleteChangeManagerJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to delete JobExecutions by ids {}, ", entity.getIds(), e);
+        LOGGER.warn("deleteChangeManagerJobExecutions:: Failed to delete JobExecutions by ids {}, ", entity.getIds(), e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -74,6 +75,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                              Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("postChangeManagerJobExecutions:: userId {}", initJobExecutionsRqDto.getUserId());
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
           .map(initJobExecutionsRsDto ->
@@ -81,7 +83,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Error during initializing JobExecution entities", e);
+        LOGGER.warn("postChangeManagerJobExecutions:: Error during initializing JobExecution entities", e);
         asyncResultHandler.handle(Future.failedFuture(e));
       }
     });
@@ -93,13 +95,14 @@ public class ChangeManagerImpl implements ChangeManager {
     vertxContext.runOnContext(v -> {
       try {
         entity.setId(id);
+        LOGGER.debug("putChangeManagerJobExecutionsById:: jobExecutionId {}", entity.getId());
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.updateJobExecutionWithSnapshotStatus(entity, params)
           .map(updatedEntity -> (Response) PutChangeManagerJobExecutionsByIdResponse.respond200WithApplicationJson(updatedEntity))
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to update JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsById:: Failed to update JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -110,6 +113,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
+        LOGGER.debug("getChangeManagerJobExecutionsById:: jobExecutionId {}, tenantId {}", id, tenantId);
         jobExecutionService.getJobExecutionById(id, tenantId)
           .map(optionalJobExecution -> optionalJobExecution.orElseThrow(() ->
             new NotFoundException(format("JobExecution with id '%s' was not found", id))))
@@ -118,7 +122,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to get JobExecution by id", e, id));
+        LOGGER.warn(getMessage("getChangeManagerJobExecutionsById:: Failed to get JobExecution by id", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -127,6 +131,7 @@ public class ChangeManagerImpl implements ChangeManager {
   @Override
   public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
                                                    Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    LOGGER.warn("deleteChangeManagerJobExecutionsById:: Method is not implemented");
     asyncResultHandler.handle(Future.succeededFuture(
       PostChangeManagerJobExecutionsRecordsByIdResponse.respond500WithTextPlain("Method is not implemented")));
   }
@@ -137,13 +142,14 @@ public class ChangeManagerImpl implements ChangeManager {
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getChangeManagerJobExecutionsChildrenById:: parentId {}, tenantId {}", id, tenantId);
         jobExecutionService.getJobExecutionCollectionByParentId(id, offset, limit, tenantId)
           .map(GetChangeManagerJobExecutionsChildrenByIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobExecutions by parent id", e);
+        LOGGER.warn("getChangeManagerJobExecutionsChildrenById:: Failed to retrieve JobExecutions by parent id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -154,6 +160,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("putChangeManagerJobExecutionsStatusById:: jobExecutionId {}", id);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.updateJobExecutionStatus(id, entity, params)
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
@@ -161,7 +168,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to update status for JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsStatusById:: Failed to update status for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -171,6 +178,7 @@ public class ChangeManagerImpl implements ChangeManager {
   public void putChangeManagerJobExecutionsJobProfileById(String id, JobProfileInfo entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("putChangeManagerJobExecutionsJobProfileById:: jobExecutionId {}", id);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.setJobProfileToJobExecution(id, entity, params)
           .map(PutChangeManagerJobExecutionsStatusByIdResponse::respond200WithApplicationJson)
@@ -178,7 +186,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to set JobProfile for JobExecution", e);
+        LOGGER.warn("putChangeManagerJobExecutionsJobProfileById:: Failed to set JobProfile for JobExecution", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -189,6 +197,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("putChangeManagerJobExecutionsJobProfileById:: jobExecutionId {}, rawRecordsId {}", id, entity.getId());
         okapiHeaders.put(CHUNK_ID_HEADER, entity.getId());
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         eventDrivenChunkProcessingService.processChunk(entity, id, params)
@@ -197,7 +206,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to process chunk of RawRecords with JobExecution id {}", e, id));
+        LOGGER.warn(getMessage("postChangeManagerJobExecutionsRecordsById:: Failed to process chunk of RawRecords with JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -208,6 +217,7 @@ public class ChangeManagerImpl implements ChangeManager {
                                                           Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("deleteChangeManagerJobExecutionsRecordsById:: jobExecutionId {}", id);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         jobExecutionService.completeJobExecutionWithError(id, params)
           .map(deleted -> DeleteChangeManagerJobExecutionsRecordsByIdResponse.respond204())
@@ -215,7 +225,7 @@ public class ChangeManagerImpl implements ChangeManager {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to delete records for JobExecution id {}", e, id));
+        LOGGER.warn(getMessage("deleteChangeManagerJobExecutionsRecordsById:: Failed to delete records for JobExecution id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -226,13 +236,14 @@ public class ChangeManagerImpl implements ChangeManager {
                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getChangeManagerParsedRecords:: externalId {}", externalId);
         parsedRecordService.getRecordByExternalId(externalId, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
           .map(GetChangeManagerParsedRecordsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to retrieve parsed record by externalId {}", e, externalId));
+        LOGGER.warn(getMessage("getChangeManagerParsedRecords:: Failed to retrieve parsed record by externalId {}", e, externalId));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -243,13 +254,14 @@ public class ChangeManagerImpl implements ChangeManager {
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("putChangeManagerParsedRecordsById:: id {}, parsedRecordId {}", id, entity.getId());
         parsedRecordService.updateRecord(entity, new OkapiConnectionParams(okapiHeaders, vertxContext.owner()))
           .map(sentEventForProcessing -> PutChangeManagerParsedRecordsByIdResponse.respond202())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error(getMessage("Failed to update parsed record with id {}", e, id));
+        LOGGER.warn(getMessage("putChangeManagerParsedRecordsById:: Failed to update parsed record with id {}", e, id));
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
