@@ -270,7 +270,26 @@
             "finance.transactions.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
-            "finance-storage.fiscal-years.item.get"
+            "finance-storage.fiscal-years.item.get",
+            "modperms.orders.item.post",
+            "modperms.orders.item.put",
+            "orders-storage.purchase-orders.item.get",
+            "orders-storage.po-line-number.get",
+            "orders-storage.po-lines.collection.get",
+            "orders-storage.po-lines.item.post",
+            "orders-storage.alerts.item.post",
+            "orders-storage.reporting-codes.item.post",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get",
+            "isbn-utils.convert-to-13.get"
+          ],
+          "permissionsDesired": [
+            "invoices.acquisitions-units-assignments.assign",
+            "orders.acquisitions-units-assignments.assign",
+            "orders.acquisitions-units-assignments.manage",
+            "orders.item.approve",
+            "orders.item.reopen",
+            "orders.item.unopen"
           ]
         },
         {
