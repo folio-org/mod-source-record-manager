@@ -116,7 +116,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   private Function<Optional<JsonObject>, Future<String>> saveRulesIfNotExist(Record.RecordType recordType,
                                                                              String tenantId, String defaultRules) {
-    LOGGER.debug("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
+    LOGGER.trace("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
     return existedRules -> {
       if (existedRules.isEmpty()) {
         return mappingRuleDao.save(new JsonObject(defaultRules), recordType, tenantId);
