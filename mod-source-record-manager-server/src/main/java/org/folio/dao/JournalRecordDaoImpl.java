@@ -327,9 +327,14 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String[] entityHrid,
                                      org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
     return MARC_HOLDINGS.equals(entityType)
-      && org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
+      && isActionStatusUpdatedOrCreated(holdingsActionStatus)
       ? "Holdings " + entityHrid[0]
       : title;
+  }
+
+  private boolean isActionStatusUpdatedOrCreated(org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
+    return org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
+      || org.folio.rest.jaxrs.model.ActionStatus.UPDATED.equals(holdingsActionStatus);
   }
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {

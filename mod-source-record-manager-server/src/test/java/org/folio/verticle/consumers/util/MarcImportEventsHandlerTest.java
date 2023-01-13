@@ -1,7 +1,8 @@
 package org.folio.verticle.consumers.util;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,11 +111,20 @@ public class MarcImportEventsHandlerTest {
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
 
-  @SneakyThrows
   @Test
-  public void testSaveItemWithTitle() {
+  public void testSaveItemWithTitle() throws JournalRecordMapperException {
     String title = "The Journal of ecclesiastical history.";
-    handler.handle(journalService, constructItemPayload(title), TEST_TENANT);
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructUpdateItemPayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
 
     verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
@@ -121,11 +132,20 @@ public class MarcImportEventsHandlerTest {
     assertEquals(title, actualJournalRecord.getTitle());
   }
 
-  @SneakyThrows
   @Test
-  public void testSaveHoldingsWithTitle() {
+  public void testSaveUpdateHoldingsWithTitle() throws JournalRecordMapperException {
     String title = "The Journal of ecclesiastical history.";
-    handler.handle(journalService, constructItemPayload(title), TEST_TENANT);
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructUpdateHoldingsPayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
 
     verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
@@ -144,6 +164,30 @@ public class MarcImportEventsHandlerTest {
       .withContext(payloadContext);
   }
 
+  private DataImportEventPayload constructUpdateItemPayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INVENTORY_ITEM_UPDATED.value(), DI_INVENTORY_ITEM_UPDATED.value()))
+      .withEventType(DI_INVENTORY_ITEM_UPDATED.value())
+      .withContext(payloadContext);
+  }
+
+  private DataImportEventPayload constructUpdateHoldingsPayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INVENTORY_HOLDING_UPDATED.value(), DI_INVENTORY_HOLDING_UPDATED.value()))
+      .withEventType(DI_COMPLETED.value())
+      .withContext(payloadContext);
+  }
+
   private String marcRecordToJsonContent(org.marc4j.marc.Record marcRecord) {
     try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
       MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
@@ -152,21 +196,5 @@ public class MarcImportEventsHandlerTest {
     } catch (IOException e) {
       return null;
     }
-  }
-
-  private DataImportEventPayload constructItemPayload(String title) {
-    var context = Map.of("INSTANCE", Json.encode(constructInstanceWithTitle(title)));
-    return new DataImportEventPayload().withEventType(DI_INVENTORY_ITEM_CREATED.value())
-      .withContext(new HashMap<>(context));
-  }
-
-  private DataImportEventPayload constructHoldingsPayload(String title) {
-    var context = Map.of("INSTANCE", Json.encode(constructInstanceWithTitle(title)));
-    return new DataImportEventPayload().withEventType(DI_INVENTORY_HOLDING_CREATED.value())
-      .withContext(new HashMap<>(context));
-  }
-
-  private Map<String, String> constructInstanceWithTitle(String title) {
-    return Map.of("title", title);
   }
 }
