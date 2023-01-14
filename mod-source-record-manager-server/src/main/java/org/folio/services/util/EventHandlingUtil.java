@@ -42,7 +42,6 @@ public final class EventHandlingUtil {
    */
   public static Future<Boolean> sendEventToKafka(String tenantId, String eventPayload, String eventType,
                                                  List<KafkaHeader> kafkaHeaders, KafkaConfig kafkaConfig, String key) {
-    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {}", eventType);
     Event event = createEvent(eventPayload, eventType, tenantId);
 
     String topicName = createTopicName(eventType, tenantId, kafkaConfig);
@@ -55,6 +54,8 @@ public final class EventHandlingUtil {
     String recordId = extractHeader(kafkaHeaders, "recordId");
 
     String producerName = eventType + "_Producer";
+    LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {} and recordId: {} and chunkId: {}", eventType, recordId, chunkId);
+
     KafkaProducer<String, String> producer =
       KafkaProducer.createShared(Vertx.currentContext().owner(), producerName, kafkaConfig.getProducerProps());
     producer.write(record, war -> {
