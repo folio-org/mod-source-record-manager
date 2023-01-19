@@ -8,7 +8,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
@@ -28,7 +27,6 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.Status;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,8 +46,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.FILE_UPLOADED;
@@ -72,18 +70,19 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.oneOf;
 
 /**
  * REST tests for MetadataProvider to manager JobExecution entities
@@ -536,6 +535,22 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnFilteredCollectionByExcludingSpecifiedFileNamesOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("fileNameNotAny", "importBib3.bib", "importBib4.bib")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(3))
+      .body("totalRecords", is(3))
+      .body("jobExecutions*.fileName", everyItem(not(oneOf("importBib3.bib", "importBib4.bib"))));
+  }
+
+  @Test
   public void shouldNotReturnJobExecutionsWithoutSpecifiedProfileId() {
     String profileId = "d0ebb7b0-2f0f-11eb-adc1-0242ac120002";
     List<JobExecution> createdJobExecution = constructAndPostInitJobExecutionRqDto(4).getJobExecutions();
@@ -729,7 +744,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + UUID.randomUUID())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND)
-      .body(Matchers.notNullValue(String.class));
+      .body(notNullValue(String.class));
   }
 
   @Test
@@ -745,7 +760,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + jobExec.getId() + "?sortBy=foo&order=asc")
       .then()
       .statusCode(HttpStatus.SC_BAD_REQUEST)
-      .body(Matchers.notNullValue(String.class));
+      .body(notNullValue(String.class));
   }
 
   private JobExecution putJobExecution(JobExecution jobExecution) {

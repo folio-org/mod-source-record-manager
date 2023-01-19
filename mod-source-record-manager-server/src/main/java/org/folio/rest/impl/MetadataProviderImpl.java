@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
-                                               List<String> uiStatusAny, String hrId, String fileName,
+                                               List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
                                                List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
                                                List<String> sortBy, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
@@ -67,7 +68,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         LOGGER.debug("getMetadataProviderJobExecutions:: sortBy {}", sortBy);
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, fileNameNotAny, profileIdAny, userId, completedAfter, completedBefore);
         jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -197,7 +198,8 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
-                                                     List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {
+                                                     List<String> fileNameNotAny, List<String> profileIdAny, String userId,
+                                                     Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .collect(Collectors.toList());
@@ -213,6 +215,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withUiStatusAny(uiStatuses)
       .withHrIdPattern(hrIdPattern)
       .withFileNamePattern(fileNamePattern)
+      .withFileNameNotAny(fileNameNotAny)
       .withProfileIdAny(profileIdAny)
       .withUserId(userId)
       .withCompletedAfter(completedAfter)
