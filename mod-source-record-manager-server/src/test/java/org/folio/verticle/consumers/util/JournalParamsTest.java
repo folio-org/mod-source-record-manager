@@ -17,6 +17,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_MATCHED;
@@ -31,6 +32,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDIN
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import io.vertx.core.json.JsonObject;
@@ -310,4 +312,39 @@ public class JournalParamsTest {
   public void shouldThrowExceptionWhenJournalParamsNameIsNotAvailable() {
     JournalParams.JournalParamsEnum.getValue("not available event");
   }
+
+  @Test
+  public void shouldReturnInstanceCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndInstanceCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_INSTANCE_CREATED,
+      JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldReturnHoldingsCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndHoldingsCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_HOLDING_CREATED,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldReturnItemCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndItemCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_ITEM_CREATED,
+      JournalRecord.EntityType.ITEM, JournalRecord.ActionType.CREATE);
+  }
+
+  private void returnJournalParamsByEventTypeAndLastEventInChain(DataImportEventTypes eventType, DataImportEventTypes lastEvent,
+                                                                 JournalRecord.EntityType expectedEntityType,
+                                                                 JournalRecord.ActionType expectedActionType) {
+    eventPayload.setEventType(eventType.value());
+    eventPayload.setEventsChain(List.of(lastEvent.value()));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    Assert.assertTrue(journalParamsOptional.isPresent());
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(expectedEntityType, journalParams.journalEntityType);
+    Assert.assertEquals(expectedActionType, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
 }
