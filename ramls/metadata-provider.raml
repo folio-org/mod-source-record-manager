@@ -71,6 +71,11 @@ resourceTypes:
           type: string
           example: importBib1.bib
           required: false
+        fileNameNotAny:
+          description: Filter by specified file names
+          type: string[]
+          example: ["No file name"]
+          required: false
         profileIdAny:
           description: Filter by specified job profile ids
           type: string[]
