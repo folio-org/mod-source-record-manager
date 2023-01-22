@@ -165,6 +165,22 @@ public class JournalParamsTest {
   }
 
   @Test
+  public void shouldPopulateEntityTypeOrderForDiOrderCreatedWhenEventTypeIsDiCompleted() {
+    eventPayload.setEventType(DI_COMPLETED.value());
+    context.put(EntityType.ORDER.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+    eventPayload.setEventsChain(Collections.singletonList("DI_ORDER_CREATED"));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(JournalRecord.EntityType.ORDER, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
+  @Test
   public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiMarcHoldingRecordCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.CREATE);
   }
