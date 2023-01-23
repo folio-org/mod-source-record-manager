@@ -66,6 +66,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ORDER;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -884,6 +885,45 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("itemSummary.totalErrors", is(0))
         .body("authoritySummary", nullValue())
         .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(0)).extract().response().prettyPrint();
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnCreatedRecordOrderSummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, ORDER, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("orderSummary.totalCreatedEntities", is(1))
+        .body("orderSummary.totalUpdatedEntities", is(0))
+        .body("orderSummary.totalDiscardedEntities", is(0))
+        .body("orderSummary.totalErrors", is(0))
+        .body("authoritySummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("instanceSummary", nullValue())
         .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0)).extract().response().prettyPrint();
 
