@@ -120,7 +120,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           return jobExecutionService.getJobExecutionById(jobExecutionId, okapiConnectionParams.getTenantId())
             .compose(jobExecutionOptional -> {
               if (jobExecutionOptional.isPresent()) {
-                return setEventTypeForOrderIfNeeded(jobExecutionOptional.get(), eventType);
+                return setOrderEventTypeIfNeeded(jobExecutionOptional.get(), eventType);
               } else {
                 LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
                 return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s chunkId:%s chunkNumber: %s", jobExecutionId, chunkId, chunkNumber)));
@@ -142,7 +142,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     }
   }
 
-  private Future<DataImportEventTypes> setEventTypeForOrderIfNeeded(JobExecution jobExecution, DataImportEventTypes dataImportEventTypes) {
+  private Future<DataImportEventTypes> setOrderEventTypeIfNeeded(JobExecution jobExecution, DataImportEventTypes dataImportEventTypes) {
     if (jobExecution.getJobProfileSnapshotWrapper() != null) {
       ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
       List<ProfileSnapshotWrapper> actionProfiles = profileSnapshotWrapper
@@ -151,14 +151,14 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
         .filter(e -> e.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
         .collect(Collectors.toList());
 
-      if (!actionProfiles.isEmpty() && checkIfOrderActionProfileExists(actionProfiles)) {
+      if (!actionProfiles.isEmpty() && checkIfOrderCreateActionProfileExists(actionProfiles)) {
         dataImportEventTypes = DI_MARC_BIB_FOR_ORDER_CREATED;
       }
     }
     return Future.succeededFuture(dataImportEventTypes);
   }
 
-  private static boolean checkIfOrderActionProfileExists(List<ProfileSnapshotWrapper> actionProfiles) {
+  private static boolean checkIfOrderCreateActionProfileExists(List<ProfileSnapshotWrapper> actionProfiles) {
     for (ProfileSnapshotWrapper actionProfile : actionProfiles) {
       LinkedHashMap<String, String> content = new ObjectMapper().convertValue(actionProfile.getContent(), LinkedHashMap.class);
       if (content.get(FOLIO_RECORD).equals(ORDER_TYPE) && content.get(ACTION_FIELD).equals(CREATE_ACTION)) {
