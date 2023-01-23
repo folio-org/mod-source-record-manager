@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 
 import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 public class JournalParams {
@@ -271,13 +272,23 @@ public class JournalParams {
     DI_ORDER_CREATED_READY_FOR_POST_PROCESSING {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return getJournalParamsUsingLastEventInChain(eventPayload);
+        return eventPayload.getEventsChain().stream().reduce((first, second) -> second)
+          .filter(lastEventType -> lastEventType.equals(DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_ITEM_CREATED.value()))
+          .map(NAMES::get)
+          .flatMap(journalParamsEnumItem -> journalParamsEnumItem.getJournalParams(eventPayload));
       }
     },
     DI_COMPLETED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return getJournalParamsUsingLastEventInChain(eventPayload);
+        String lastEventType = eventPayload.getEventsChain().stream().reduce((first, second) -> second).get();
+        JournalParamsEnum journalParamsEnumItem = NAMES.get(lastEventType);
+        if (journalParamsEnumItem != null) {
+          return journalParamsEnumItem.getJournalParams(eventPayload);
+        }
+        return Optional.empty();
       }
     },
     DI_ERROR {
@@ -303,15 +314,6 @@ public class JournalParams {
 
     private static final Map<String, JournalParamsEnum> NAMES = Stream.of(values())
       .collect(Collectors.toMap(JournalParamsEnum::toString, Function.identity()));
-
-    private static Optional<JournalParams> getJournalParamsUsingLastEventInChain(DataImportEventPayload eventPayload) {
-      String lastEventType = eventPayload.getEventsChain().stream().reduce((first, second) -> second).get();
-      JournalParamsEnum journalParamsEnumItem = NAMES.get(lastEventType);
-      if (journalParamsEnumItem != null) {
-        return journalParamsEnumItem.getJournalParams(eventPayload);
-      }
-      return Optional.empty();
-    }
 
     public static JournalParamsEnum getValue(final String name) {
       JournalParamsEnum value = NAMES.get(name);

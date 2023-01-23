@@ -3,6 +3,8 @@ package org.folio.verticle.consumers.util;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +35,7 @@ import org.marc4j.marc.MarcFactory;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import org.folio.DataImportEventPayload;
@@ -151,6 +154,19 @@ public class MarcImportEventsHandlerTest {
     var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testDoNotSaveJournalRecordWhenEventOrderReadyForPostprocessingAndLastEventIsNotInventoryEntitiesCreated() throws JournalRecordMapperException {
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject())));
+
+    var payload = new DataImportEventPayload()
+      .withEventType(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING.value())
+      .withEventsChain(List.of(DI_PENDING_ORDER_CREATED.value()));
+
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    Mockito.verifyNoInteractions(journalService);
   }
 
   private DataImportEventPayload constructAuthorityPayload(org.marc4j.marc.Record marcRecord) {
