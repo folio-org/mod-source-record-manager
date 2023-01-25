@@ -89,7 +89,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   @Before
   public void setUp() {
     storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService,jobExecutionService, mappingRuleCache,  vertx);
-    when(jobExecutionService.getJobExecutionById(any(), TENANT_ID))
+    when(jobExecutionService.getJobExecutionById(anyString(), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
   }
 

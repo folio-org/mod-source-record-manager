@@ -120,6 +120,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           return jobExecutionService.getJobExecutionById(jobExecutionId, okapiConnectionParams.getTenantId())
             .compose(jobExecutionOptional -> {
               if (jobExecutionOptional.isPresent()) {
+                LOGGER.debug("handle:: JobExecution found by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
                 return setOrderEventTypeIfNeeded(jobExecutionOptional.get(), eventType);
               } else {
                 LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
@@ -153,6 +154,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
       if (!actionProfiles.isEmpty() && checkIfOrderCreateActionProfileExists(actionProfiles)) {
         dataImportEventTypes = DI_MARC_BIB_FOR_ORDER_CREATED;
+        LOGGER.debug("setOrderEventTypeIfNeeded:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
       }
     }
     return Future.succeededFuture(dataImportEventTypes);
