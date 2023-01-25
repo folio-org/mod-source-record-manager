@@ -236,6 +236,11 @@
       "run": "after",
       "snippet": "DROP TABLE IF EXISTS job_monitoring CASCADE;",
       "fromModuleVersion": "mod-source-record-manager-3.5.4"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS order_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.6.0"
     }
   ]
 }
