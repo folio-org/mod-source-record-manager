@@ -13,6 +13,7 @@ public final class JournalRecordsColumns {
   public static final String ENTITY_ID = "entity_id";
   public static final String INSTANCE_ID = "instance_id";
   public static final String HOLDINGS_ID = "holdings_id";
+  public static final String ORDER_ID = "order_id";
   public static final String ENTITY_HRID = "entity_hrid";
   public static final String ACTION_STATUS = "action_status";
   public static final String ACTION_DATE = "action_date";
