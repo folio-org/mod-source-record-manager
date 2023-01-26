@@ -27,7 +27,6 @@ import org.folio.services.util.ParsedRecordUtil;
 
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 
@@ -108,7 +107,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
-    var entityType = journalRecord.getEntityType();
+    var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM ?
+      MARC_BIBLIOGRAPHIC : journalRecord.getEntityType());
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
       journalRecord.setTitle(NO_TITLE_MESSAGE);
@@ -127,12 +127,6 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             })
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
             .orElseGet(() -> Future.succeededFuture(journalRecord)));
-      }
-    } else if (entityType == HOLDINGS || entityType == ITEM) {
-      String recordAsString = eventPayload.getContext().get(INSTANCE.value());
-      if (StringUtils.isNotBlank(recordAsString)) {
-        var title = (String) Json.decodeValue(recordAsString, Map.class).get("title");
-        journalRecord.setTitle(title);
       }
     }
 

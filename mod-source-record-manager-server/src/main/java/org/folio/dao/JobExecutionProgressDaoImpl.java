@@ -63,6 +63,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
 
   @Override
   public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
+    LOGGER.debug("initializeJobExecutionProgress:: jobExecutionId {}, totalRecords {}, tenantId {}", jobExecutionId, totalRecords, tenantId);
     Promise<JobExecutionProgress> promise = Promise.promise();
     Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
@@ -84,7 +85,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
             pgClient.rollbackTx(tx.future(), r -> promise.complete());
             return;
           }
-          LOGGER.error(FAILED_INITIALIZATION_MESSAGE, jobExecutionId, saveAr.cause());
+          LOGGER.warn(FAILED_INITIALIZATION_MESSAGE, jobExecutionId, saveAr.cause());
           pgClient.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
         }
       });
@@ -111,7 +112,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
         if (updateAr.succeeded()) {
           pgClient.endTx(tx.future(), endTx -> promise.complete(updateAr.result()));
         } else {
-          LOGGER.error(rollbackMessage, updateAr.cause());
+          LOGGER.warn(rollbackMessage, updateAr.cause());
           pgClient.rollbackTx(tx.future(), r -> promise.fail(updateAr.cause()));
         }
       });
@@ -126,7 +127,7 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
       Tuple queryParams = Tuple.of(jobExecutionId, successCountDelta, errorCountDelta);
       pgClientFactory.createInstance(tenantId).execute(preparedQuery, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error updating jobExecutionProgress", e);
+      LOGGER.warn("updateCompletionCounts:: Error updating jobExecutionProgress", e);
       promise.fail(e);
     }
     return promise.future().compose(rowSet -> {

@@ -42,7 +42,7 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       Criteria idCrit = constructCriteria(ID_FIELD, sourceRecordId);
       pgClientFactory.createInstance(tenantId).get(TABLE_NAME, SourceRecordState.class, new Criterion(idCrit), true, false, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting sourceRecord state by source id", e);
+      LOGGER.warn("get:: Error getting sourceRecord state by source id", e);
       promise.fail(e);
     }
     return promise.future()
@@ -56,7 +56,7 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       Criteria idCrit = constructCriteria(ID_FIELD, sourceRecordId);
       pgClientFactory.createInstance(tenantId).get(conn, TABLE_NAME, SourceRecordState.class, new Criterion(idCrit), true, false, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting sourceRecord state by source id", e);
+      LOGGER.warn("get:: Error getting sourceRecord state by source id", e);
       promise.fail(e);
     }
     return promise.future()
@@ -89,7 +89,7 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
         if (ValidationHelper.isDuplicate(ar.cause().getMessage())) {
           promise.complete(state.getId());
         } else {
-          LOGGER.error("Error saving SourceRecordState entity", ar.cause());
+          LOGGER.warn("save:: Error saving SourceRecordState entity", ar.cause());
           promise.fail(ar.cause());
         }
       }
@@ -112,18 +112,18 @@ public class SourceRecordStateDaoImpl implements SourceRecordStateDao {
       CQLWrapper wrapper = new CQLWrapper(new Criterion(idCrit));
       pgClientFactory.createInstance(tenantId).update(conn, TABLE_NAME, state, wrapper, true, updateResult -> {
         if (updateResult.failed()) {
-          LOGGER.error("Could not update state SourceRecordState sourceRecordId {}", state.getSourceRecordId(), updateResult.cause());
+          LOGGER.warn("update:: Could not update state SourceRecordState sourceRecordId {}", state.getSourceRecordId(), updateResult.cause());
           promise.fail(updateResult.cause());
         } else if (updateResult.result().rowCount() != 1) {
           String errorMessage = String.format("SourceRecordState with sourceRecordId '%s' was not found", state.getSourceRecordId());
-          LOGGER.error(errorMessage);
+          LOGGER.warn(errorMessage);
           promise.fail(new NotFoundException(errorMessage));
         } else {
           promise.complete(state);
         }
       });
     } catch (Exception e) {
-      LOGGER.error("Error updating SourceRecordState", e);
+      LOGGER.warn("update:: Error updating SourceRecordState", e);
       promise.fail(e);
     }
     return promise.future();

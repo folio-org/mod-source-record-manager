@@ -42,7 +42,7 @@ public class MappingRuleCache {
       .map(optional -> optional.isPresent() ? optional : Optional.of(new JsonObject()))
       .onComplete(ar -> {
         if (ar.failed()) {
-          LOGGER.error("Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
+          LOGGER.warn("loadMappingRules:: Failed to load mapping rules for tenant '{}' from data base", key.getTenantId(), ar.cause());
           future.completeExceptionally(ar.cause());
           return;
         }

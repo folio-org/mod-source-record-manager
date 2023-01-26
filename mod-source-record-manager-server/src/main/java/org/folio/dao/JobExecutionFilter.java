@@ -28,6 +28,7 @@ public class JobExecutionFilter {
   private List<JobExecution.UiStatus> uiStatusAny;
   private String hrIdPattern;
   private String fileNamePattern;
+  private List<String> fileNameNotAny;
   private List<String> profileIdAny;
   private String userId;
   private Date completedAfter;
@@ -60,6 +61,11 @@ public class JobExecutionFilter {
 
   public JobExecutionFilter withFileNamePattern(String fileNamePattern) {
     this.fileNamePattern = fileNamePattern;
+    return this;
+  }
+
+  public JobExecutionFilter withFileNameNotAny(List<String> fileNameNotAny) {
+    this.fileNameNotAny = fileNameNotAny;
     return this;
   }
 
@@ -115,6 +121,9 @@ public class JobExecutionFilter {
       if (isNotEmpty(fileNamePattern)) {
         addCondition(conditionBuilder, buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
+    }
+    if (isNotEmpty(fileNameNotAny)) {
+      addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD,fileNameNotAny));
     }
     if (isNotEmpty(profileIdAny)) {
       addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));

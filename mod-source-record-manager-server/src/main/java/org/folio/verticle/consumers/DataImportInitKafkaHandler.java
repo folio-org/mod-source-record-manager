@@ -55,7 +55,7 @@ public class DataImportInitKafkaHandler implements AsyncRecordHandler<String, St
         if (jobExecutionOptional.isPresent()) {
           JobExecution jobExecution = jobExecutionOptional.get();
           if (jobExecution.getStatus() == JobExecution.Status.FILE_UPLOADED) {
-            LOGGER.info("Moving from file uploaded to in progress state for jobExecutionId: {}", jobExecutionId);
+            LOGGER.info("checkAndUpdateToInProgressState:: Moving from file uploaded to in progress state for jobExecutionId: {}", jobExecutionId);
             StatusDto statusDto = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
             return jobExecutionService.updateJobExecutionStatus(jobExecutionId, statusDto, params);
           }

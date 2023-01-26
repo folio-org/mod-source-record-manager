@@ -45,7 +45,7 @@ public class ApplicationConfig {
       .maxRequestSize(maxRequestSize)
       .build();
 
-    LOGGER.info("kafkaConfig: " + kafkaConfig);
+    LOGGER.info("kafkaConfigBean:: kafkaConfig: " + kafkaConfig);
 
     return kafkaConfig;
   }

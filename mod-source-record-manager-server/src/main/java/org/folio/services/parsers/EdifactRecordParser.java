@@ -90,7 +90,7 @@ public final class EdifactRecordParser implements RecordParser {
           }
       }
     } catch (Exception e) {
-      LOGGER.error("Error during parse EDIFACT record from raw record", e);
+      LOGGER.warn("parseRecord:: Error during parse EDIFACT record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage())));
@@ -108,7 +108,7 @@ public final class EdifactRecordParser implements RecordParser {
   }
 
   private JsonObject processParsingEventError(EDIStreamReader reader) {
-    LOGGER.error("Error during parse EDIFACT {} {}, from the {} event.", reader.getText(), reader.getErrorType(), reader.getEventType());
+    LOGGER.warn("processParsingEventError:: Error during parse EDIFACT {} {}, from the {} event.", reader.getText(), reader.getErrorType(), reader.getEventType());
     return buildErrorObject(reader.getText(), reader.getErrorType().name());
   }
 

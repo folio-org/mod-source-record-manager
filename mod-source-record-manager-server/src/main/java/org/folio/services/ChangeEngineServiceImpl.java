@@ -178,7 +178,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
                   .onComplete(r -> {
                     if (r.failed()) {
-                      LOGGER.error("Error during update jobExecution and snapshot status", r.cause());
+                      LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution and snapshot status", r.cause());
                     }
                   });
                 jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
@@ -195,7 +195,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             });
         }
       }).onFailure(th -> {
-        LOGGER.error("Error parsing records: {}", th.getMessage());
+        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records: {}", th.getMessage());
         promise.fail(th);
       });
     return promise.future();
@@ -219,13 +219,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc or Instance update");
+    LOGGER.info("updateRecords:: Records have not been saved in record-storage, because job contains action for Marc or Instance update");
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
   }
 
   private Future<Boolean> deleteRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
-    LOGGER.info("Records have not been saved in record-storage, because job contains action for Marc delete");
+    LOGGER.info("deleteRecords:: Records have not been saved in record-storage, because job contains action for Marc delete");
     return recordsPublishingService
       .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value());
   }
@@ -368,7 +368,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, sourceChunkId).stream()
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
-          LOGGER.info("Parsed {} records out of {}", counter.intValue(), rawRecords.size());
+          LOGGER.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
           jobExecutionSourceChunkDao.getById(sourceChunkId, tenantId)
             .compose(optional -> optional
               .map(sourceChunk -> jobExecutionSourceChunkDao
@@ -476,13 +476,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             .map(Future<List<String>>::result)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
-          LOGGER.info("MARC_BIB invalid list ids: {}", invalidMarcBibIds);
+          LOGGER.info("filterMarcHoldingsBy004Field:: MARC_BIB invalid list ids: {}", invalidMarcBibIds);
           var validMarcBibRecords = records.stream()
             .filter(record -> {
               var controlFieldValue = getControlFieldValue(record, TAG_004);
               return isValidMarcHoldings(jobExecution, okapiParams, invalidMarcBibIds, record, controlFieldValue);
             }).collect(Collectors.toList());
-          LOGGER.info("Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
+          LOGGER.info("filterMarcHoldingsBy004Field:: Total marc holdings records: {}, invalid marc bib ids: {}, valid marc bib records: {}",
             records.size(), invalidMarcBibIds.size(), validMarcBibRecords.size());
           promise.complete(validMarcBibRecords);
         } else {
@@ -496,23 +496,23 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var sourceStorageBatchClient = getSourceStorageBatchClient(okapiParams);
     try {
       sourceStorageBatchClient.postSourceStorageBatchVerifiedRecords(marcBibIds, asyncResult -> {
-        LOGGER.info("Verify list of marc bib ids: {} ", marcBibIds);
+        LOGGER.info("verifyMarcHoldings004Field:: Verify list of marc bib ids: {} ", marcBibIds);
         List<String> invalidMarcBibIds = new ArrayList<>();
         if (asyncResult.succeeded() && asyncResult.result().statusCode() == 200) {
           var body = asyncResult.result().body();
-          LOGGER.info("Response from SRS with invalid MARC Bib ids: {}", body);
+          LOGGER.info("verifyMarcHoldings004Field:: Response from SRS with invalid MARC Bib ids: {}", body);
           var object = new JsonObject(body);
           var ids = object.getJsonArray("invalidMarcBibIds");
           invalidMarcBibIds = ids.getList();
-          LOGGER.info("List of marc bib ids: {}", invalidMarcBibIds);
+          LOGGER.info("verifyMarcHoldings004Field:: List of marc bib ids: {}", invalidMarcBibIds);
         } else {
-          LOGGER.info("The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
+          LOGGER.info("verifyMarcHoldings004Field:: The marc holdings not found in the SRS: {} and status code: {}", asyncResult.result(),
             asyncResult.result().statusCode());
         }
         promise.complete(invalidMarcBibIds);
       });
     } catch (Exception e) {
-      LOGGER.error("Error during call post request to SRS: {}", e.getMessage());
+      LOGGER.warn("verifyMarcHoldings004Field:: Error during call post request to SRS: {}", e.getMessage());
       promise.complete(Collections.emptyList());
     }
     return promise.future();
@@ -535,7 +535,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     var eventPayload = getDataImportPayload(record, jobExecution, okapiParams);
     eventPayload.getContext().put(RECORD_ID_HEADER, record.getId());
     var key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
-    LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+    LOGGER.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
     record.setParsedRecord(null);
     record.setErrorRecord(new ErrorRecord()
       .withContent(record.getRawRecord().getContent())
@@ -546,7 +546,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(eventPayload), DI_ERROR.value(), kafkaHeaders, kafkaConfig, key)
       .onFailure(
-        th -> LOGGER.error("Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
+        th -> LOGGER.warn("populateError:: Error publishing DI_ERROR event for MARC Holdings record with id {}", record.getId(), th));
   }
 
   private DataImportEventPayload getDataImportPayload(Record record, JobExecution jobExecution,
@@ -600,7 +600,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void postProcessMarcHoldingsRecord(Record record, InitialRecord rawRecord) {
     if (isBlank(getControlFieldValue(record, TAG_004))) {
-      LOGGER.error(HOLDINGS_004_TAG_ERROR_MESSAGE);
+      LOGGER.warn(HOLDINGS_004_TAG_ERROR_MESSAGE);
       record.setParsedRecord(null);
       record.setErrorRecord(new ErrorRecord()
         .withContent(rawRecord)
@@ -627,10 +627,10 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       recordParsedResult.setErrors(new JsonObject()
         .put(MESSAGE_KEY, String.format("Error during analyze leader line for determining record type for record with id %s", recordId))
         .put("error", parsedRecord));
-      LOGGER.warn("Marc record analyzer found problem on leader line in marc file for record with id: {}, for jobExecutionId: {} from chunk with id: {} from file: {}",
+      LOGGER.warn("checkLeaderLine:: Marc record analyzer found problem on leader line in marc file for record with id: {}, for jobExecutionId: {} from chunk with id: {} from file: {}",
         recordId, jobExecution.getId(), chunkId, fileName);
     } else {
-      LOGGER.info("Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
+      LOGGER.info("checkLeaderLine:: Marc record analyzer parsed record with id: {} and type: {} for jobExecutionId: {} from chunk with id: {} from file: {}",
         recordId, marcRecordType, jobExecution.getId(), chunkId, fileName);
     }
   }

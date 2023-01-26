@@ -39,6 +39,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMappingMetadataByJobExecutionId:: jobExecutionId {}", jobExecutionId);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         mappingMetadataService.getMappingMetadataDto(jobExecutionId, params)
           .map(GetMappingMetadataByJobExecutionIdResponse::respond200WithApplicationJson)
@@ -46,7 +47,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve MappingMetadataDto entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
+        LOGGER.warn("getMappingMetadataByJobExecutionId:: Failed to retrieve MappingMetadataDto entity for JobExecution with id {} for tenant {}", jobExecutionId, tenantId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -57,6 +58,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
                                                  Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMappingMetadataTypeByRecordType:: recordType {}", recordType);
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
         mappingMetadataService.getMappingMetadataDtoByRecordType(
             QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
@@ -66,7 +68,7 @@ public class MappingMetadataProviderImpl implements MappingMetadata {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve MappingMetadataDto entity for recordType {} and tenant {}",
+        LOGGER.warn("getMappingMetadataTypeByRecordType:: Failed to retrieve MappingMetadataDto entity for recordType {} and tenant {}",
           recordType, tenantId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }

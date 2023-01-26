@@ -43,7 +43,7 @@ public final class DbUtil {
           postgresClient.endTx(tx.future(), endTx -> promise.complete(result.result()));
         } else {
           postgresClient.rollbackTx(tx.future(), r -> {
-            LOGGER.error("Rollback transaction", result.cause());
+            LOGGER.warn("executeInTransaction:: Rollback transaction", result.cause());
             promise.fail(result.cause());
           });
         }
