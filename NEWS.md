@@ -4,6 +4,7 @@
 * [MODSOURMAN-890](https://issues.folio.org/browse/MODSOURMAN-890) The '2' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 * [MODSOURMAN-891](https://issues.folio.org/browse/MODSOURMAN-891) SRS MARC Created when No Create Action in Job Profile
 * [MODSOURMAN-941](https://issues.folio.org/browse/MODSOURMAN-941) Add query param to allow filtering by fileName
+* [MODSOURMAN-948](https://issues.folio.org/browse/MODSOURMAN-948) Improve schema for the 'journal_records'-table to be able to import Orders
 * [MODSOURMAN-937](https://issues.folio.org/browse/MODSOURMAN-937) Send DI_MARC_BIB_FOR_ORDER_CREATED event for Importing Orders
 
 ## 2022-10-24 v3.5.0
