@@ -235,7 +235,7 @@ curl -w '\n' -X POST -D -   \
 Send PUT request with JobProfile info to **/change-manager/jobExecutions/{jobExecutionId}/jobProfile**
 
 ```
-curl -w '\n' -X POST -D -   \
+curl -w '\n' -X PUT -D -   \
    -H "Content-type: application/json"   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
@@ -249,7 +249,7 @@ curl -w '\n' -X POST -D -   \
 {
   "id": "e34d7b92-9b83-11eb-a8b3-0242ac130003",
   "name": "Default - Create instance and SRS MARC Bib",
-  "dataType": "MARC_BIB"
+  "dataType": "MARC"
 }
 ```
 

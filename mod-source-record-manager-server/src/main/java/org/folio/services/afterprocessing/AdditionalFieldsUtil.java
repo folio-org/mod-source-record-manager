@@ -141,7 +141,7 @@ public final class AdditionalFieldsUtil {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
+      LOGGER.warn("addFieldToMarcRecord:: Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
     }
     return result;
   }
@@ -178,7 +178,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional controlled field {} to record {}", field, record.getId(), e);
+      LOGGER.warn("addControlledFieldToMarcRecord:: Failed to add additional controlled field {} to record {}", field, record.getId(), e);
     }
     return result;
   }
@@ -216,7 +216,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to add additional data field {} to record {}", tag, record.getId(), e);
+      LOGGER.warn("addDataFieldToMarcRecord:: Failed to add additional data field {} to record {}", tag, record.getId(), e);
     }
     return result;
   }
@@ -260,7 +260,7 @@ public final class AdditionalFieldsUtil {
         }
 
       } catch (Exception e) {
-        LOGGER.error("Error during the search a field in the record", e);
+        LOGGER.warn("isFieldExist:: Error during the search a field in the record", e);
         return false;
       }
     }
@@ -284,7 +284,7 @@ public final class AdditionalFieldsUtil {
             .map(ControlField::getData)
             .orElse(null);
       } catch (Exception e) {
-        LOGGER.error("Error during the search a field in the record", e);
+        LOGGER.warn("getControlFieldValue:: Error during the search a field in the record", e);
         return null;
       }
     }
@@ -312,7 +312,7 @@ public final class AdditionalFieldsUtil {
           }
         }
       } catch (Exception e) {
-        LOGGER.error("Error during the search a field in the record", e);
+        LOGGER.warn("getValue:: Error during the search a field in the record", e);
         return null;
       }
     }
@@ -351,7 +351,7 @@ public final class AdditionalFieldsUtil {
         result = true;
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to remove controlled field {} from record {}", field, record.getId(), e);
+      LOGGER.warn("removeField:: Failed to remove controlled field {} from record {}", field, record.getId(), e);
     }
     return result;
   }
@@ -368,7 +368,7 @@ public final class AdditionalFieldsUtil {
       try {
         return parsedRecordContentCache.get(record.getParsedRecord().getContent());
       } catch (Exception e) {
-        LOGGER.error("Error during the transformation to marc record", e);
+        LOGGER.warn("computeMarcRecord:: Error during the transformation to marc record", e);
         return null;
       }
     }

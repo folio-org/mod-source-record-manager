@@ -55,7 +55,7 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
       .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
       .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
       .compose(s -> Future.succeededFuture(record.key()), th -> {
-        log.error("Update record state was failed while handle {} event", eventType);
+        log.warn("handle:: Update record state was failed while handle {} event", eventType);
         return Future.failedFuture(th);
       });
   }

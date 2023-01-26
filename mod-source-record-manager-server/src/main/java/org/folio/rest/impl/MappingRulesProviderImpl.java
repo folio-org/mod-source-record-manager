@@ -11,6 +11,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.folio.dataimport.util.ExceptionHelper;
@@ -24,6 +26,7 @@ public class MappingRulesProviderImpl implements MappingRules {
   private String tenantId;
   @Autowired
   private MappingRuleService mappingRuleService;
+  private static final Logger LOGGER = LogManager.getLogger();
 
   public MappingRulesProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -33,6 +36,7 @@ public class MappingRulesProviderImpl implements MappingRules {
 
   @Override
   public void getMappingRulesByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    LOGGER.debug("getMappingRulesByRecordType:: recordType {}", recordType);
     succeededFuture()
       .compose(ar -> mappingRuleService.get(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib, marc-holdings or marc-authority supported")), tenantId))
@@ -47,6 +51,7 @@ public class MappingRulesProviderImpl implements MappingRules {
 
   @Override
   public void putMappingRulesByRecordType(String recordType, String entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    LOGGER.debug("putMappingRulesByRecordType:: recordType {}", recordType);
     succeededFuture()
       .compose(ar -> mappingRuleService.update(entity, QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))
@@ -59,6 +64,7 @@ public class MappingRulesProviderImpl implements MappingRules {
 
   @Override
   public void putMappingRulesRestoreByRecordType(String recordType, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    LOGGER.debug("putMappingRulesRestoreByRecordType:: recordType {}", recordType);
     succeededFuture()
       .compose(ar -> mappingRuleService.restore(QueryPathUtil.toRecordType(recordType).orElseThrow(() ->
         new BadRequestException("Only marc-bib or marc-holdings supported")), tenantId))

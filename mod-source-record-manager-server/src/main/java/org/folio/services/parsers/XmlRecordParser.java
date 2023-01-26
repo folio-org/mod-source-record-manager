@@ -33,7 +33,7 @@ public class XmlRecordParser implements RecordParser {
         result.setParsedRecord(new JsonObject());
       }
     } catch (Exception e) {
-      LOGGER.error("Error during parse MARC record from MARC XML data", e);
+      LOGGER.warn("parseRecord:: Error during parse MARC record from MARC XML data", e);
       result.setErrors(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage()));

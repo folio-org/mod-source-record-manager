@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,14 +60,15 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
-                                               List<String> uiStatusAny, String hrId, String fileName,
+                                               List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
                                                List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
                                                List<String> sortBy, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutions:: sortBy {}", sortBy);
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, profileIdAny, userId, completedAfter, completedBefore);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, fileNameNotAny, profileIdAny, userId, completedAfter, completedBefore);
         jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -84,6 +86,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJournalRecordsByJobExecutionId:: jobExecutionId {}, tenantId {}", jobExecutionId, tenantId);
         jobExecutionService.getJobExecutionById(jobExecutionId, tenantId)
           .map(jobExecutionOptional -> jobExecutionOptional.orElseThrow(() ->
             new NotFoundException(format("JobExecution with id '%s' was not found", jobExecutionId))))
@@ -105,13 +108,15 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobLogEntriesByJobExecutionId:: jobExecutionId {}, sortBy {}, errorsOnly {}, entityType {}",
+          jobExecutionId, sortBy, errorsOnly, entityType.name());
         journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
           .map(GetMetadataProviderJobLogEntriesByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobLogEntryDto entities by JobExecution id", e);
+        LOGGER.warn("getMetadataProviderJobLogEntriesByJobExecutionId:: Failed to retrieve JobLogEntryDto entities by JobExecution id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -123,13 +128,14 @@ public class MetadataProviderImpl implements MetadataProvider {
 
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordId:: jobExecutionId {}, recordId {}, tenantId {}", jobExecutionId, recordId, tenantId);
         journalRecordService.getRecordProcessingLogDto(jobExecutionId, recordId, tenantId)
           .map(GetMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve RecordProcessingLogDto entity by JobExecution id and Record id", e);
+        LOGGER.warn("getMetadataProviderJobLogEntriesRecordsByJobExecutionIdAndRecordId:: Failed to retrieve RecordProcessingLogDto entity by JobExecution id and Record id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -141,6 +147,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                             Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobSummaryByJobExecutionId:: jobExecutionId {}, tenantId {}", jobExecutionId, tenantId);
         journalRecordService.getJobExecutionSummaryDto(jobExecutionId, tenantId)
           .map(jobSummaryOptional -> jobSummaryOptional
             .map(GetMetadataProviderJobSummaryByJobExecutionIdResponse::respond200WithApplicationJson)
@@ -149,7 +156,7 @@ public class MetadataProviderImpl implements MetadataProvider {
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
+        LOGGER.warn("getMetadataProviderJobSummaryByJobExecutionId:: Failed to retrieve JobExecutionSummaryDto by jobExecution id {}", jobExecutionId, e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -160,6 +167,7 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                           Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutionsJobProfiles:: tenantId {}", tenantId);
         jobExecutionService.getRelatedJobProfiles(offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsJobProfilesResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -175,13 +183,14 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderJobExecutionsUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
+        LOGGER.debug("getMetadataProviderJobExecutionsUsers:: tenantId {}", tenantId);
         jobExecutionService.getRelatedUsersInfo(offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsUsersResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
-        LOGGER.error("Failed to retrieve unique users info for JobExecutions", e);
+        LOGGER.warn("getMetadataProviderJobExecutionsUsers:: Failed to retrieve unique users info for JobExecutions", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });
@@ -189,7 +198,8 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
-                                                     List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore) {
+                                                     List<String> fileNameNotAny, List<String> profileIdAny, String userId,
+                                                     Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
       .collect(Collectors.toList());
@@ -205,6 +215,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withUiStatusAny(uiStatuses)
       .withHrIdPattern(hrIdPattern)
       .withFileNamePattern(fileNamePattern)
+      .withFileNameNotAny(fileNameNotAny)
       .withProfileIdAny(profileIdAny)
       .withUserId(userId)
       .withCompletedAfter(completedAfter)
