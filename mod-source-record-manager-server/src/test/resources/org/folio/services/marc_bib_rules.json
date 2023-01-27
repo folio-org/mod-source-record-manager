@@ -191,8 +191,7 @@
                   "type": "concat_subfields_by_name, remove_ending_punc,trim",
                   "parameter": {
                     "subfieldsToConcat": [
-                      "c",
-                      "q"
+                      "c", "q"
                     ],
                     "subfieldsToStopConcat": [
                       "z"
@@ -240,8 +239,7 @@
                   "type": "concat_subfields_by_name, remove_ending_punc,trim",
                   "parameter": {
                     "subfieldsToConcat": [
-                      "q",
-                      "c"
+                      "q", "c"
                     ],
                     "subfieldsToStopConcat": [
                       "a"
@@ -1455,6 +1453,13 @@
               ]
             }
           ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
+          ]
         }
       ]
     }
@@ -1521,6 +1526,13 @@
                 }
               ]
             }
+          ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
           ]
         }
       ]
@@ -1618,6 +1630,13 @@
               ]
             }
           ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
+          ]
         }
       ]
     }
@@ -1674,6 +1693,13 @@
                 }
               ]
             }
+          ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
           ]
         }
       ]
@@ -2006,10 +2032,7 @@
       "subFieldDelimiter": [
         {
           "value": "~",
-          "subfields": [
-            "a",
-            "b"
-          ]
+          "subfields": ["a","b"]
         }
       ],
       "rules": [
