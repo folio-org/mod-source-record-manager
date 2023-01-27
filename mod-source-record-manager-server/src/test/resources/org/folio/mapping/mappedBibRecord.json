@@ -13,7 +13,11 @@
     }
   ],
   "editions": [],
-  "series": [],
+  "series": [
+    {
+      "value": "Eighteenth century Part 1"
+    }
+  ],
   "identifiers": [
     {
       "value": "89894004",
@@ -88,15 +92,42 @@
     }
   ],
   "subjects": [
-    "Great Britain--Civilization--18th century",
-    "Great Britain--History--18th century",
-    "English literature--18th century",
-    "Eighteenth century",
-    "Great Britain",
-    "Civilization",
-    "1700 - 1799",
-    "History",
-    "English literature"
+    {
+      "value": "Great Britain--Civilization--18th century"
+    },
+    {
+      "value": "Great Britain--History--18th century"
+    },
+    {
+      "value": "English literature--18th century"
+    },
+    {
+      "value": "Eighteenth century"
+    },
+    {
+      "value": "Great Britain"
+    },
+    {
+      "value": "Civilization"
+    },
+    {
+      "value": "1700 - 1799"
+    },
+    {
+      "value": "History"
+    },
+    {
+      "value": "English literature"
+    },
+    {
+      "value": "Eighteenth century"
+    },
+    {
+      "value": "English literature"
+    },
+    {
+      "value": "Eighteenth century"
+    }
   ],
   "classifications": [],
   "publication": [

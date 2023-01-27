@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 
 import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 public class JournalParams {
@@ -266,6 +267,17 @@ public class JournalParams {
         return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_ORDER_CREATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return eventPayload.getEventsChain().stream().reduce((first, second) -> second)
+          .filter(lastEventType -> lastEventType.equals(DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_ITEM_CREATED.value()))
+          .map(NAMES::get)
+          .flatMap(journalParamsEnumItem -> journalParamsEnumItem.getJournalParams(eventPayload));
       }
     },
     DI_COMPLETED {
