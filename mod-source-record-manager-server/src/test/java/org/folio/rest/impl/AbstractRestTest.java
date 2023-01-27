@@ -204,6 +204,27 @@ public abstract class AbstractRestTest {
         .withContentType(ACTION_PROFILE)
         .withContent(actionProfile)));
 
+  protected JobProfile orderJobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create Order")
+    .withDataType(JobProfile.DataType.MARC);
+
+  private final ActionProfile orderActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create Order")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.ORDER);
+  protected ProfileSnapshotWrapper orderProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(orderJobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(orderJobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(orderActionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(orderActionProfile)));
+
   protected ProfileSnapshotWrapper profileMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
