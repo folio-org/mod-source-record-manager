@@ -6,6 +6,7 @@
 * [MODSOURMAN-941](https://issues.folio.org/browse/MODSOURMAN-941) Add query param to allow filtering by fileName
 * [MODSOURMAN-936](https://issues.folio.org/browse/MODSOURMAN-936) Add logic in Journal Handler for Post-Processing event
 * [MODSOURMAN-948](https://issues.folio.org/browse/MODSOURMAN-948) Improve schema for the 'journal_records'-table to be able to import Orders
+* [MODSOURMAN-937](https://issues.folio.org/browse/MODSOURMAN-937) Send DI_MARC_BIB_FOR_ORDER_CREATED event for Importing Orders
 
 ## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
