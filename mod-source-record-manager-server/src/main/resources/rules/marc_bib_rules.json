@@ -1453,6 +1453,13 @@
               ]
             }
           ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
+          ]
         }
       ]
     }
@@ -1519,6 +1526,13 @@
                 }
               ]
             }
+          ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
           ]
         }
       ]
@@ -1616,6 +1630,13 @@
               ]
             }
           ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
+          ]
         }
       ]
     }
@@ -1672,6 +1693,13 @@
                 }
               ]
             }
+          ]
+        },
+        {
+          "target": "alternativeTitles.authorityId",
+          "description": "Authority ID that controlling the alternative title",
+          "subfield": [
+            "9"
           ]
         }
       ]
