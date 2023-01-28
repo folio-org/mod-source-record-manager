@@ -22,6 +22,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 
 /**
  * Journal util class for building specific 'JournalRecord'-objects, based on parameters.
@@ -73,7 +74,7 @@ public class JournalUtil {
         JsonObject entityJson = new JsonObject(entityAsString);
         journalRecord.setEntityId(entityJson.getString("id"));
 
-        if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM) {
+        if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM || entityType == PO_LINE) {
           if (entityType == HOLDINGS) {
             journalRecord.setInstanceId(entityJson.getString("instanceId"));
           }
@@ -86,6 +87,9 @@ public class JournalUtil {
               journalRecord.setInstanceId(holdingsJson.getString("instanceId"));
             }
             journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
+          }
+          if(entityType == PO_LINE){
+            journalRecord.setOrderId(entityJson.getString("orderId"));
           }
           journalRecord.setEntityHrId(entityJson.getString("hrid"));
         }
