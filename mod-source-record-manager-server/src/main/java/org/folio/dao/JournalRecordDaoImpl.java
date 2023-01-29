@@ -42,82 +42,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
-import static org.folio.dao.util.JournalRecordsColumns.ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.ACTION_TYPE;
-import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.AUTHORITY_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ENTITY_TYPE;
-import static org.folio.dao.util.JournalRecordsColumns.ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.HOLDINGS_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ID;
-import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_JOURNAL_RECORD_ID;
-import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_NUMBER;
-import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.JOB_EXECUTION_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ID;
-import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
-import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
-import static org.folio.dao.util.JournalRecordsColumns.TITLE;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_AUTHORITIES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_HOLDINGS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INSTANCES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_INVOICES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ITEMS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_ORDERS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_CREATED_SOURCE_RECORDS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_AUTHORITIES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_HOLDINGS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INSTANCES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_INVOICES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ITEMS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_ORDERS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_DISCARDED_SOURCE_RECORDS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_HOLDINGS_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INSTANCES_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_INVOICES_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ITEMS_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_ORDERS_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_SOURCE_RECORDS_ERRORS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_AUTHORITIES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_HOLDINGS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INSTANCES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INVOICES;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ITEMS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ORDERS;
-import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.*;
 import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -321,6 +246,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
       .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
       .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+      .withPoLineActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
       .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
       .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
         ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
@@ -363,6 +289,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
           AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
         .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
+        .withRelatedPoLineInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          PO_LINE_ACTION_STATUS, PO_LINE_ENTITY_ID, PO_LINE_ENTITY_HRID, PO_LINE_ENTITY_ERROR))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
         .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row)));
@@ -415,7 +343,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
         TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
       .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
-        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
+        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS))
+      .withPoLineSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_PO_LINES, TOTAL_UPDATED_PO_LINES,
+        TOTAL_DISCARDED_PO_LINES, TOTAL_PO_LINES_ERRORS));
   }
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,

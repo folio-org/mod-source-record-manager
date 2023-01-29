@@ -25,7 +25,7 @@ DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean, entityType text)
     RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                   source_record_action_status text, instance_action_status text, holdings_action_status text, item_action_status text,
-                  authority_action_status text, order_action_status text, invoice_action_status text, error text, total_count bigint,
+                  authority_action_status text, order_action_status text, po_line_action_status text, invoice_action_status text, error text, total_count bigint,
                   invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[], source_record_order_array integer[])
 AS $$
 DECLARE
@@ -54,6 +54,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        get_entity_status(item_actions, item_errors_number) AS item_action_status,
        get_entity_status(authority_actions, authority_errors_number) AS authority_action_status,
        get_entity_status(order_actions, order_errors_number) AS order_action_status,
+       get_entity_status(po_line_actions, po_line_errors_number) AS po_line_action_status,
        null AS invoice_action_status, rec_errors.error, records_actions.total_count,
        null AS invoiceLineJournalRecordId,
        records_actions.source_record_entity_type,
@@ -73,12 +74,14 @@ FROM (
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''AUTHORITY'' AND journal_records.error != '''') AS authority_errors_number,
                 array_agg(action_type) FILTER (WHERE entity_type = ''ORDER'') AS order_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ORDER'' AND journal_records.error != '''') AS order_errors_number,
+                array_agg(action_type) FILTER (WHERE entity_type = ''PO_LINE'') AS po_line_actions,
+                count(journal_records.source_id) FILTER (WHERE entity_type = ''PO_LINE'' AND journal_records.error != '''') AS po_line_errors_number,
                 count(journal_records.source_id) OVER () AS total_count,
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
  				        array_agg(journal_records.entity_hrid) FILTER (WHERE entity_hrid !='''' and  entity_type = ''HOLDINGS'') as holdings_entity_hrid
          FROM journal_records
          WHERE journal_records.job_execution_id = ''%1$s'' and
-               entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'') and action_type != ''MATCH''
+               entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''ORDER'', ''AUTHORITY'', ''PO_LINE'') and action_type != ''MATCH''
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
          HAVING count(journal_records.source_id) FILTER (WHERE (%3$L = ''ALL'' or entity_type = ANY(%4$L)) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
@@ -104,6 +107,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, source_recor
        null AS item_action_status,
        null AS authority_action_status,
        null AS order_action_status,
+       null AS po_line_action_status,
        get_entity_status(invoice_actions, invoice_errors_number) AS invoice_action_status,
        error,
        records_actions.total_count,

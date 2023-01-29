@@ -60,15 +60,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ORDER;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyString;
@@ -924,6 +916,46 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("holdingSummary", nullValue())
         .body("itemSummary", nullValue())
         .body("instanceSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(0)).extract().response().prettyPrint();
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnCreatedRecordPoLineSummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("poLineSummary.totalCreatedEntities", is(1))
+        .body("poLineSummary.totalUpdatedEntities", is(0))
+        .body("poLineSummary.totalDiscardedEntities", is(0))
+        .body("poLineSummary.totalErrors", is(0))
+        .body("authoritySummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("instanceSummary", nullValue())
+        .body("orderSummary", nullValue())
         .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0)).extract().response().prettyPrint();
 

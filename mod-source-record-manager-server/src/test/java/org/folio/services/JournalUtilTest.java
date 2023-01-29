@@ -322,6 +322,7 @@ public class JournalUtilTest {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
+    String purchaseOrderId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -329,11 +330,12 @@ public class JournalUtilTest {
       .put("order", 1);
 
     JsonObject orderJson = new JsonObject()
-      .put("id", entityId);
+      .put("id", entityId)
+      .put("purchaseOrderId", purchaseOrderId);
 
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-    context.put(ORDER.value(), orderJson.encode());
+    context.put(PO_LINE.value(), orderJson.encode());
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -341,14 +343,15 @@ public class JournalUtilTest {
       .withContext(context);
 
     JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, ORDER, COMPLETED);
+      CREATE, PO_LINE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
     Assert.assertEquals(recordId, journalRecord.getSourceId());
     Assert.assertEquals(entityId, journalRecord.getEntityId());
+    Assert.assertEquals(purchaseOrderId, journalRecord.getOrderId());
     Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
-    Assert.assertEquals(ORDER, journalRecord.getEntityType());
+    Assert.assertEquals(PO_LINE, journalRecord.getEntityType());
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());
