@@ -88,8 +88,8 @@ public class JournalUtil {
             }
             journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
           }
-          if(entityType == PO_LINE){
-            journalRecord.setOrderId(entityJson.getString("orderId"));
+          if (entityType == PO_LINE){
+            journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
           journalRecord.setEntityHrId(entityJson.getString("hrid"));
         }

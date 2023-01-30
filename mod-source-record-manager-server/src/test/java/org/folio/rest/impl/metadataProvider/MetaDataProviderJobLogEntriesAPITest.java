@@ -15,7 +15,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ORDER;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.everyItem;
@@ -238,6 +238,36 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].instanceActionStatus", is(ActionStatus.CREATED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnPoLineCreatedWhenMarcCreate(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].poLineActionStatus", is(ActionStatus.CREATED.value()));
 
       async.complete();
     }));
@@ -623,15 +653,15 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String itemId = UUID.randomUUID().toString();
     String itemHrid = "it001";
 
-    String orderId = UUID.randomUUID().toString();
-    String orderHrid = "o001";
+    String poLineId = UUID.randomUUID().toString();
+    String poLineHrid = "po001";
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, orderId, orderHrid, null,  0, CREATE, ORDER, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, poLineId, poLineHrid, null,  0, CREATE, PO_LINE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -655,9 +685,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo.idList[0]", is(itemId))
         .body("relatedItemInfo.hridList[0]", is(itemHrid))
         .body("relatedItemInfo.error", emptyOrNullString())
-        .body("relatedOrderInfo.idList[0]", is(orderId))
-        .body("relatedOrderInfo.hridList[0]", is(orderHrid))
-        .body("relatedOrderInfo.error", emptyOrNullString())
+        .body("relatedPoLineInfo.idList[0]", is(poLineId))
+        .body("relatedPoLineInfo.hridList[0]", is(poLineHrid))
+        .body("relatedPoLineInfo.error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList", empty())
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());
@@ -709,9 +739,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo.idList.size", is(0))
         .body("relatedItemInfo.hridList.size", is(0))
         .body("relatedItemInfo.error", emptyOrNullString())
-        .body("relatedOrderInfo.idList.size", is(0))
-        .body("relatedOrderInfo.hridList.size", is(0))
-        .body("relatedOrderInfo.error", emptyOrNullString())
+        .body("relatedPoLineInfo.idList.size", is(0))
+        .body("relatedPoLineInfo.hridList.size", is(0))
+        .body("relatedPoLineInfo.error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
         .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
         .body("relatedInvoiceInfo.error", emptyOrNullString())

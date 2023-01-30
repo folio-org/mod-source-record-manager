@@ -78,11 +78,6 @@ import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.JOB_EXECUTION_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ERROR;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
@@ -118,6 +113,11 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INVOICES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ITEMS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ORDERS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ID;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ERROR;
 import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -320,7 +320,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withHoldingsActionStatus(holdingsActionStatus)
       .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
       .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
-      .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
+      .withPoLineActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
       .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
       .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
         ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
@@ -361,8 +361,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
         .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
-        .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-          ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
+        .withRelatedPoLineInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          PO_LINE_ACTION_STATUS, PO_LINE_ENTITY_ID, PO_LINE_ENTITY_HRID, PO_LINE_ENTITY_ERROR))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
         .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row)));

@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 @RunWith(VertxUnitRunner.class)
@@ -314,6 +316,46 @@ public class JournalUtilTest {
     Assert.assertEquals(recordId, journalRecord.getSourceId());
     Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
+    Assert.assertNotNull(journalRecord.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForOrderCreated() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String entityId = UUID.randomUUID().toString();
+    String purchaseOrderId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    JsonObject orderJson = new JsonObject()
+      .put("id", entityId)
+      .put("purchaseOrderId", purchaseOrderId);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(PO_LINE.value(), orderJson.encode());
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_COMPLETED")
+      .withEventsChain(Collections.singletonList("DI_ORDER_CREATED"))
+      .withContext(context);
+
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      CREATE, PO_LINE, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.getSourceId());
+    Assert.assertEquals(entityId, journalRecord.getEntityId());
+    Assert.assertEquals(purchaseOrderId, journalRecord.getOrderId());
+    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
+    Assert.assertEquals(PO_LINE, journalRecord.getEntityType());
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());

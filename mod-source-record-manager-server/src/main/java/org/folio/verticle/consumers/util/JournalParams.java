@@ -269,6 +269,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_ORDER_CREATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.PO_LINE,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_ORDER_CREATED_READY_FOR_POST_PROCESSING {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
