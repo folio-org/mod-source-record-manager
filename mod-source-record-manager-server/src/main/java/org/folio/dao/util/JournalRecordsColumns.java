@@ -24,7 +24,6 @@ public final class JournalRecordsColumns {
   public static final String HOLDINGS_ACTION_STATUS = "holdings_action_status";
   public static final String ITEM_ACTION_STATUS = "item_action_status";
   public static final String AUTHORITY_ACTION_STATUS = "authority_action_status";
-  public static final String ORDER_ACTION_STATUS = "order_action_status";
   public static final String PO_LINE_ACTION_STATUS = "po_line_action_status";
   public static final String INVOICE_ACTION_STATUS = "invoice_action_status";
   public static final String INVOICE_LINE_ACTION_STATUS = "invoice_line_action_status";
@@ -43,9 +42,6 @@ public final class JournalRecordsColumns {
   public static final String ITEM_ENTITY_ERROR = "item_entity_error";
   public static final String AUTHORITY_ENTITY_ID = "authority_entity_id";
   public static final String AUTHORITY_ENTITY_ERROR = "authority_entity_error";
-  public static final String ORDER_ENTITY_ID = "order_entity_id";
-  public static final String ORDER_ENTITY_HRID = "order_entity_hrid";
-  public static final String ORDER_ENTITY_ERROR = "order_entity_error";
   public static final String PO_LINE_ENTITY_ID = "po_line_entity_id";
   public static final String PO_LINE_ENTITY_HRID = "po_line_entity_hrid";
   public static final String PO_LINE_ENTITY_ERROR = "po_line_entity_error";
@@ -80,10 +76,6 @@ public final class JournalRecordsColumns {
   public static final String TOTAL_UPDATED_ORDERS = "total_updated_orders";
   public static final String TOTAL_DISCARDED_ORDERS = "total_discarded_orders";
   public static final String TOTAL_ORDERS_ERRORS = "total_orders_errors";
-  public static final String TOTAL_CREATED_PO_LINES = "total_created_po_lines";
-  public static final String TOTAL_UPDATED_PO_LINES = "total_updated_po_lines";
-  public static final String TOTAL_DISCARDED_PO_LINES = "total_discarded_po_lines";
-  public static final String TOTAL_PO_LINES_ERRORS = "total_po_lines_errors";
   public static final String TOTAL_CREATED_INVOICES = "total_created_invoices";
   public static final String TOTAL_UPDATED_INVOICES = "total_updated_invoices";
   public static final String TOTAL_DISCARDED_INVOICES = "total_discarded_invoices";

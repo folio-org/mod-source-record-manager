@@ -245,7 +245,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withHoldingsActionStatus(holdingsActionStatus)
       .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
       .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
-      .withOrderActionStatus(mapNameToEntityActionStatus(row.getString(ORDER_ACTION_STATUS)))
       .withPoLineActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
       .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
       .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
@@ -287,8 +286,6 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
         .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
-        .withRelatedOrderInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-          ORDER_ACTION_STATUS, ORDER_ENTITY_ID, ORDER_ENTITY_HRID, ORDER_ENTITY_ERROR))
         .withRelatedPoLineInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           PO_LINE_ACTION_STATUS, PO_LINE_ENTITY_ID, PO_LINE_ENTITY_HRID, PO_LINE_ENTITY_ERROR))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
@@ -343,9 +340,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withInvoiceSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_INVOICES, TOTAL_UPDATED_INVOICES,
         TOTAL_DISCARDED_INVOICES, TOTAL_INVOICES_ERRORS))
       .withOrderSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_ORDERS, TOTAL_UPDATED_ORDERS,
-        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS))
-      .withPoLineSummary(mapToEntityProcessingSummary(row, TOTAL_CREATED_PO_LINES, TOTAL_UPDATED_PO_LINES,
-        TOTAL_DISCARDED_PO_LINES, TOTAL_PO_LINES_ERRORS));
+        TOTAL_DISCARDED_ORDERS, TOTAL_ORDERS_ERRORS));
   }
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,

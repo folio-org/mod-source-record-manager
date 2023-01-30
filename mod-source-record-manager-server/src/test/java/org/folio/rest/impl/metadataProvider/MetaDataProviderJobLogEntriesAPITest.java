@@ -644,9 +644,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String itemId = UUID.randomUUID().toString();
     String itemHrid = "it001";
 
-    String orderId = UUID.randomUUID().toString();
-    String orderHrid = "o001";
-
     String poLineId = UUID.randomUUID().toString();
     String poLineHrid = "po001";
 
@@ -655,7 +652,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, orderId, orderHrid, null,  0, CREATE, ORDER, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, poLineId, poLineHrid, null,  0, CREATE, PO_LINE, COMPLETED, null))
       .onFailure(context::fail);
 
@@ -680,9 +676,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo.idList[0]", is(itemId))
         .body("relatedItemInfo.hridList[0]", is(itemHrid))
         .body("relatedItemInfo.error", emptyOrNullString())
-        .body("relatedOrderInfo.idList[0]", is(orderId))
-        .body("relatedOrderInfo.hridList[0]", is(orderHrid))
-        .body("relatedOrderInfo.error", emptyOrNullString())
         .body("relatedPoLineInfo.idList[0]", is(poLineId))
         .body("relatedPoLineInfo.hridList[0]", is(poLineHrid))
         .body("relatedPoLineInfo.error", emptyOrNullString())
@@ -737,9 +730,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo.idList.size", is(0))
         .body("relatedItemInfo.hridList.size", is(0))
         .body("relatedItemInfo.error", emptyOrNullString())
-        .body("relatedOrderInfo.idList.size", is(0))
-        .body("relatedOrderInfo.hridList.size", is(0))
-        .body("relatedOrderInfo.error", emptyOrNullString())
+        .body("relatedPoLineInfo.idList.size", is(0))
+        .body("relatedPoLineInfo.hridList.size", is(0))
+        .body("relatedPoLineInfo.error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
         .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
         .body("relatedInvoiceInfo.error", emptyOrNullString())
