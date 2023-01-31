@@ -1,3 +1,6 @@
+-- Request to delete get_job_log_entries with a different return format.
+DROP FUNCTION IF EXISTS get_job_execution_summary(uuid);
+
 CREATE OR REPLACE FUNCTION get_job_execution_summary(job_id uuid)
 RETURNS TABLE(
   job_execution_id uuid, total_errors bigint,
