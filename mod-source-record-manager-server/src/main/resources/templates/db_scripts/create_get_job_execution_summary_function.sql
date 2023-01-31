@@ -39,10 +39,10 @@ BEGIN
       COUNT(*) FILTER (WHERE entity_type = 'AUTHORITY' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_authorities,
       COUNT(*) FILTER (WHERE entity_type = 'AUTHORITY' AND action_status = 'ERROR') AS total_authorities_errors,
 
-      COUNT(DISTINCT(order_id)) FILTER (WHERE entity_type = 'PO_LINE' AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_orders,
+      COUNT(*) FILTER (WHERE entity_type = 'PO_LINE' AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_orders,
       0 AS total_updated_orders,
-      COUNT(DISTINCT(order_id)) FILTER (WHERE entity_type = 'PO_LINE' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_orders,
-      COUNT(DISTINCT(order_id)) FILTER (WHERE entity_type = 'PO_LINE' AND action_status = 'ERROR') AS total_orders_errors,
+      COUNT(*) FILTER (WHERE entity_type = 'PO_LINE' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_orders,
+      COUNT(*) FILTER (WHERE entity_type = 'PO_LINE' AND action_status = 'ERROR') AS total_orders_errors,
 
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'COMPLETED') AS total_created_invoices,
       0 AS total_updated_invoices,

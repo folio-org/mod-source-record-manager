@@ -898,26 +898,11 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
-    String orderId = UUID.randomUUID().toString();
-
-    JournalRecord poLineJournalRecord = new JournalRecord()
-      .withJobExecutionId(jobExecutionId)
-      .withSourceId(sourceRecordId)
-      .withTitle(recordTitle)
-      .withSourceRecordOrder(0)
-      .withEntityType(PO_LINE)
-      .withActionType(CREATE)
-      .withActionStatus(COMPLETED)
-      .withError(null)
-      .withActionDate(new Date())
-      .withEntityId(UUID.randomUUID().toString())
-      .withEntityHrId(null)
-      .withOrderId(orderId);
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> journalRecordDao.save(poLineJournalRecord, TENANT_ID).map(poLineJournalRecord))
-      .compose(v -> journalRecordDao.save(poLineJournalRecord, TENANT_ID).map(poLineJournalRecord))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, PO_LINE, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -932,7 +917,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
-        .body("orderSummary.totalCreatedEntities", is(1))
+        .body("orderSummary.totalCreatedEntities", is(2))
         .body("orderSummary.totalUpdatedEntities", is(0))
         .body("orderSummary.totalDiscardedEntities", is(0))
         .body("orderSummary.totalErrors", is(0))
@@ -942,6 +927,47 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("instanceSummary", nullValue())
         .body("invoiceSummary", nullValue())
         .body("totalErrors", is(0)).extract().response().prettyPrint();
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedEntityOrderSummary(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0).getId();
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "Error during creating";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, PO_LINE, ERROR, errorMessage))
+      .compose(v -> createJournalRecord(jobExecutionId, sourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, PO_LINE, ERROR, errorMessage))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + jobExecutionId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(jobExecutionId))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("orderSummary.totalCreatedEntities", is(0))
+        .body("orderSummary.totalUpdatedEntities", is(0))
+        .body("orderSummary.totalDiscardedEntities", is(2))
+        .body("orderSummary.totalErrors", is(2))
+        .body("authoritySummary", nullValue())
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("instanceSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(1)).extract().response().prettyPrint();
 
       async.complete();
     }));
