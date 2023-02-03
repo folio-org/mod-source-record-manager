@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
@@ -48,5 +49,10 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   @Override
   public Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId) {
     return journalRecordDao.getJobExecutionSummaryDto(jobExecutionId, tenantId);
+  }
+
+  @Override
+  public Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId) {
+    return journalRecordDao.updateErrorJournalRecordsByOrderIdAndJobExecution(jobExecutionId, orderId, error, tenantId);
   }
 }

@@ -1,34 +1,36 @@
 package org.folio.verticle.consumers.util;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.JournalRecordService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.services.util.ParsedRecordUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 
 @Component
 public class MarcImportEventsHandler implements SpecificEventHandler {
@@ -42,8 +44,13 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       MARC_BIBLIOGRAPHIC, marcBibTitleExtractor(),
       MARC_AUTHORITY, marcAuthorityTitleExtractor()
     );
+  public static final String PO_LINE_KEY = "PO_LINE";
+  public static final String PO_LINE_TITLE = "titleOrPackage";
 
   private final MappingRuleCache mappingRuleCache;
+
+  @Autowired
+  private JournalRecordService journalRecordService;
 
   @Autowired
   public MarcImportEventsHandler(MappingRuleCache mappingRuleCache) {
@@ -100,8 +107,33 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      populateRecordTitleIfNeeded(journalRecord, eventPayload)
-        .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+      if (Objects.equals(journalRecord.getEntityType(), PO_LINE) && journalRecord.getError() != null) {
+        processJournalRecordForOrder(journalService, eventPayload, tenantId, journalRecord);
+      } else {
+        populateRecordTitleIfNeeded(journalRecord, eventPayload)
+          .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+      }
+    }
+  }
+
+  private void processJournalRecordForOrder(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, JournalRecord journalRecord) {
+    populateOrderTitleIfNeeded(journalRecord, eventPayload);
+    if (journalRecord.getOrderId() != null) {
+      journalRecordService.updateErrorJournalRecordsByOrderIdAndJobExecution(journalRecord.getJobExecutionId(), journalRecord.getOrderId(), journalRecord.getError(), tenantId)
+        .onComplete(e -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+    } else {
+      journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
+    }
+  }
+
+  private void populateOrderTitleIfNeeded(JournalRecord journalRecord, DataImportEventPayload eventPayload) {
+    String poLine = eventPayload.getContext().get(PO_LINE_KEY);
+    if (StringUtils.isNotEmpty(poLine)) {
+      JsonObject jsonPoLine = new JsonObject(poLine);
+      String title = jsonPoLine.getString(PO_LINE_TITLE);
+      if (StringUtils.isNotEmpty(poLine)) {
+        journalRecord.setTitle(title);
+      }
     }
   }
 

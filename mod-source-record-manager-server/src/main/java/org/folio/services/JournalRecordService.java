@@ -65,4 +65,14 @@ public interface JournalRecordService {
    * @return future with {@link Optional} of JobExecutionSummaryDto
    */
   Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
+
+  /**
+   * Updates  JournalRecords error-field with current error-message by the same orderId and jobExecutionId
+   * @param jobExecutionId jobExecutionId
+   * @param orderId orderId
+   * @param error error
+   * @param tenantId tenantId
+   * @return Future with JournalRecords updated number
+   */
+  Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId);
 }
