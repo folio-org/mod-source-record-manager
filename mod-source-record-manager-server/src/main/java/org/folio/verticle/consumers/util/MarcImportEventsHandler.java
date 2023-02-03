@@ -117,7 +117,6 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   }
 
   private void processJournalRecordForOrder(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, JournalRecord journalRecord) {
-    populateOrderTitleIfNeeded(journalRecord, eventPayload);
     if (journalRecord.getOrderId() != null) {
       journalRecordService.updateErrorJournalRecordsByOrderIdAndJobExecution(journalRecord.getJobExecutionId(), journalRecord.getOrderId(), journalRecord.getError(), tenantId)
         .onComplete(e -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
