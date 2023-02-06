@@ -20,7 +20,8 @@
 
   <properties>
     <raml-module-builder.version>35.0.1</raml-module-builder.version>
-    <vertx.version>4.3.4</vertx.version>
+    <vertx.version>4.3.7</vertx.version>
+    <spring.version>5.3.23</spring.version>
     <junit.version>4.13.2</junit.version>
     <rest-assured.version>4.3.1</rest-assured.version>
     <wiremock.version>2.27.2</wiremock.version>
@@ -183,6 +184,13 @@
         <groupId>io.vertx</groupId>
         <artifactId>vertx-stack-depchain</artifactId>
         <version>${vertx.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-framework-bom</artifactId>
+        <version>${spring.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
