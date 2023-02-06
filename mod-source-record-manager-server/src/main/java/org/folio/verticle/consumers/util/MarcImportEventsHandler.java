@@ -107,8 +107,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      if (Objects.equals(journalRecord.getEntityType(), PO_LINE) && journalRecord.getError() != null) {
-        processJournalRecordForOrder(journalService, eventPayload, tenantId, journalRecord);
+      if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
+        processJournalRecordForOrder(journalService, tenantId, journalRecord);
       } else {
         populateRecordTitleIfNeeded(journalRecord, eventPayload)
           .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
@@ -116,7 +116,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     }
   }
 
-  private void processJournalRecordForOrder(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, JournalRecord journalRecord) {
+  private void processJournalRecordForOrder(JournalService journalService, String tenantId, JournalRecord journalRecord) {
     if (journalRecord.getOrderId() != null) {
       journalRecordService.updateErrorJournalRecordsByOrderIdAndJobExecution(journalRecord.getJobExecutionId(), journalRecord.getOrderId(), journalRecord.getError(), tenantId)
         .onComplete(e -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
@@ -124,18 +124,6 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
     }
   }
-
-  private void populateOrderTitleIfNeeded(JournalRecord journalRecord, DataImportEventPayload eventPayload) {
-    String poLine = eventPayload.getContext().get(PO_LINE_KEY);
-    if (StringUtils.isNotEmpty(poLine)) {
-      JsonObject jsonPoLine = new JsonObject(poLine);
-      String title = jsonPoLine.getString(PO_LINE_TITLE);
-      if (StringUtils.isNotEmpty(poLine)) {
-        journalRecord.setTitle(title);
-      }
-    }
-  }
-
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
     var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM ?
