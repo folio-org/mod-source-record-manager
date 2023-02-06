@@ -49,12 +49,12 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
   private final MappingRuleCache mappingRuleCache;
 
-  @Autowired
   private JournalRecordService journalRecordService;
 
   @Autowired
-  public MarcImportEventsHandler(MappingRuleCache mappingRuleCache) {
+  public MarcImportEventsHandler(MappingRuleCache mappingRuleCache, JournalRecordService journalRecordService) {
     this.mappingRuleCache = mappingRuleCache;
+    this.journalRecordService = journalRecordService;
   }
 
   private static BiFunction<ParsedRecord, JsonObject, String> marcBibTitleExtractor() {
