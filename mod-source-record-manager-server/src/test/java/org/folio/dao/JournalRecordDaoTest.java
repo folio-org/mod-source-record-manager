@@ -202,22 +202,18 @@ public class JournalRecordDaoTest extends AbstractRestTest {
       .withOrderId(UUID.randomUUID().toString())
       .withError("Testing Error");
 
-    Future<List<JournalRecord>> createdFuture = journalRecordDao.save(journalRecord1, TENANT_ID)
+    Future<Integer> updatedFuture = journalRecordDao.save(journalRecord1, TENANT_ID)
       .compose(ar -> journalRecordDao.save(journalRecord2, TENANT_ID))
       .compose(ar -> journalRecordDao.save(journalRecord3, TENANT_ID))
-      .compose(ar -> journalRecordDao.getByJobExecutionId(jobExec.getId(), "action_type", "asc", TENANT_ID));
+      .compose(ar -> journalRecordDao.updateErrorJournalRecordsByOrderIdAndJobExecution(jobExec.getId(), orderId,"Testing Error", TENANT_ID));
+
 
     Async async = testContext.async();
-    Future<Integer> updatedFuture = journalRecordDao.updateErrorJournalRecordsByOrderIdAndJobExecution(jobExec.getId(), orderId,"Testing Error", TENANT_ID);
-
-    createdFuture.onComplete(ar -> {
+    updatedFuture.onComplete(ar -> {
       testContext.verify(v -> {
         Assert.assertTrue(ar.succeeded());
-        updatedFuture.onComplete(e -> {
-          Assert.assertTrue(e.succeeded());
-          int updatedCount = e.result();
-          Assert.assertEquals(updatedCount, 2);
-        });
+          int updatedCount = ar.result();
+          Assert.assertEquals(2, updatedCount);
       });
       async.complete();
     });
