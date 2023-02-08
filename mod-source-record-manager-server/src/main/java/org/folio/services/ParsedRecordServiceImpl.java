@@ -63,7 +63,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     Promise<ParsedRecordDto> promise = Promise.promise();
     var client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.getSourceStorageSourceRecordsById(externalId, "EXTERNAL", response -> {
+      client.getSourceStorageSourceRecordsById(externalId, "EXTERNAL", null, response -> {
         if (HTTP_OK.toInt() == response.result().statusCode()) {
           Buffer bodyAsBuffer = response.result().bodyAsBuffer();
           Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
