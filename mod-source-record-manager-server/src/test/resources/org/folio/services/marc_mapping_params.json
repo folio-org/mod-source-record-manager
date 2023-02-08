@@ -27,5 +27,6 @@
   "marcFieldProtectionSettings": [],
   "tenantConfiguration": "",
   "authorityNoteTypes": [],
-  "authoritySourceFiles": []
+  "authoritySourceFiles": [],
+  "organizations": null
 }
