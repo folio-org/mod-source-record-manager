@@ -9,6 +9,7 @@
 * [MODSOURMAN-937](https://issues.folio.org/browse/MODSOURMAN-937) Send DI_MARC_BIB_FOR_ORDER_CREATED event for Importing Orders
 * [MODSOURMAN-932](https://issues.folio.org/browse/MODSOURMAN-932) Fill Journal Record info for Orders upon receiving DI_COMPLETED event
 * [MODSOURMAN-946](https://issues.folio.org/browse/MODSOURMAN-946) Handle DI_ERROR event for POLines
+* [MODSOURMAN-955](https://issues.folio.org/browse/MODSOURMAN-955) Include OrderId to the DTO that is used to display the json for POLine in DI log
 
 ## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
