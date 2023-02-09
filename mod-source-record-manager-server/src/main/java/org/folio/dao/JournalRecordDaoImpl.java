@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.ProcessedEntityInfo;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.folio.rest.jaxrs.model.RelatedInvoiceLineInfo;
+import org.folio.rest.jaxrs.model.RelatedPoLineInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -127,6 +128,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String SOURCE_RECORD_ENTITY_TYPE = "source_record_entity_type";
+  public static final String ORDER_ENTITY_ID = "order_entity_id";
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
@@ -374,8 +376,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
           ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_ENTITY_ERROR))
         .withRelatedAuthorityInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
-        .withRelatedPoLineInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-          PO_LINE_ACTION_STATUS, PO_LINE_ENTITY_ID, PO_LINE_ENTITY_HRID, PO_LINE_ENTITY_ERROR))
+        .withRelatedPoLineInfo(new RelatedPoLineInfo()
+            .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
+            .withIdList(constructListFromColumn(row, PO_LINE_ENTITY_ID))
+            .withHridList(constructListFromColumn(row, PO_LINE_ENTITY_HRID))
+            .withError(row.getString(PO_LINE_ENTITY_ERROR))
+            .withOrderId(row.getString(ORDER_ENTITY_ID)))
         .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
           INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
         .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row)));
