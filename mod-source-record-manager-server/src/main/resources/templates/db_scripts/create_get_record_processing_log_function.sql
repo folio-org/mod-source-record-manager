@@ -2,7 +2,7 @@
 DROP FUNCTION IF EXISTS get_record_processing_log(uuid, uuid);
 
 CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, recordId uuid)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text[], instance_entity_hrid text[], instance_entity_error text, holdings_action_status text, holdings_entity_id text[], holdings_entity_hrid text[], holdings_entity_error text, item_action_status text, item_entity_id text[], item_entity_hrid text[], item_entity_error text, authority_action_status text, authority_entity_id text[], authority_entity_error text, po_line_action_status text, po_line_entity_id text[], po_line_entity_hrid text[], po_line_entity_error text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text[], instance_entity_hrid text[], instance_entity_error text, holdings_action_status text, holdings_entity_id text[], holdings_entity_hrid text[], holdings_entity_error text, item_action_status text, item_entity_id text[], item_entity_hrid text[], item_entity_error text, authority_action_status text, authority_entity_id text[], authority_entity_error text, po_line_action_status text, po_line_entity_id text[], po_line_entity_hrid text[], po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
 AS $$
 BEGIN
     RETURN QUERY
@@ -42,6 +42,7 @@ BEGIN
             records_actions.po_line_entity_id,
             records_actions.po_line_entity_hrid,
             records_actions.po_line_entity_error[1],
+            records_actions.order_entity_id,
 
             null AS invoice_action_status,
             null AS invoice_entity_id,
@@ -93,6 +94,7 @@ BEGIN
                 array_agg(entity_hrid) FILTER (WHERE entity_type = 'PO_LINE') AS po_line_entity_hrid,
                 array_agg(entity_id) FILTER (WHERE entity_type = 'PO_LINE') AS po_line_entity_id,
                 array_agg(error) FILTER (WHERE entity_type = 'PO_LINE') AS po_line_entity_error,
+                (array_agg(order_id) FILTER (WHERE entity_type = 'PO_LINE'))[1] AS order_entity_id,
 
                 array_agg(DISTINCT instance_id) FILTER (WHERE instance_id IS NOT NULL AND (entity_type = 'HOLDINGS' OR entity_type = 'ITEM')) AS instance_id_value,
                 array_agg(holdings_id) FILTER (WHERE holdings_id IS NOT NULL AND entity_type = 'ITEM') AS holdings_id_value
@@ -132,6 +134,7 @@ BEGIN
                 null AS po_line_entity_id,
                 null AS po_line_entity_hrid,
                 null AS po_line_entity_error,
+                null AS order_entity_id,
                 get_entity_status(records_actions.invoice_actions, records_actions.invoice_errors_number) AS invoice_action_status,
                 records_actions.invoice_entity_id,
                 records_actions.invoice_entity_hrid,
