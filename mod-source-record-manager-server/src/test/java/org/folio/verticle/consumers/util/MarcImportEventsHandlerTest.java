@@ -178,7 +178,7 @@ public class MarcImportEventsHandlerTest {
   }
 
   @Test
-  public void testShouldUpdateJournalRecordsIfPOLineWithErrorAndWithoutOrderId() throws JournalRecordMapperException {
+  public void testShouldNotUpdateJournalRecordsIfPOLineWithErrorAndWithoutOrderId() throws JournalRecordMapperException {
     String title = "The Journal of ecclesiastical history.";
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
       Map.of("245", List.of(
@@ -194,6 +194,7 @@ public class MarcImportEventsHandlerTest {
 
     verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalRecordService, times(0)).updateErrorJournalRecordsByOrderIdAndJobExecution(anyString(), anyString(), anyString(), anyString());
 
     assertNull(actualJournalRecord.getTitle());
   }
