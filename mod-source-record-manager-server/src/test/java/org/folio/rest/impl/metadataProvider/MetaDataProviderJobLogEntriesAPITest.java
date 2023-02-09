@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Date;
@@ -244,16 +245,15 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnPoLineCreatedWithOrderIdWhenMarcCreate(TestContext context) {
+  public void shouldReturnPoLineCreatedWhenMarcCreate(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
-    String orderId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, null, orderId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -268,8 +268,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
-        .body("entries[0].poLineActionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].orderId", is(orderId));
+        .body("entries[0].poLineActionStatus", is(ActionStatus.CREATED.value()));
 
       async.complete();
     }));
@@ -322,6 +321,38 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedHoldingsInfo.idList[0]", is("holdingsEntityID"))
         .body("relatedHoldingsInfo.hridList[0]", is("ho00000000001"))
         .body("relatedHoldingsInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnPoLineWithOrderIdWhenMarcCreate(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String orderId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, "Test error", orderId))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId()+ "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("relatedPoLineInfo", notNullValue())
+        .body("relatedPoLineInfo.orderId", is(orderId))
+        .body("relatedPoLineInfo.error", is("Test error"));
 
       async.complete();
     }));
