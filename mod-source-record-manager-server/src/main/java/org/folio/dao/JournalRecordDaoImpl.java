@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -138,6 +139,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final String GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM get_job_log_entries('%s', '%s', '%s', %s, %s, %b, '%s')";
   private static final String GET_JOB_LOG_RECORD_PROCESSING_ENTRIES_BY_JOB_EXECUTION_AND_RECORD_ID_QUERY = "SELECT * FROM get_record_processing_log('%s', '%s')";
   private static final String GET_JOB_SUMMARY_QUERY = "SELECT * FROM get_job_execution_summary('%s')";
+  private static final String UPDATE_ERROR_JOURNAL_RECORD_BY_ORDER_ID_AND_JOB_EXECUTION_ID = "UPDATE %s.%s SET error = $1  WHERE order_id = $2 AND job_execution_id = $3;";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -256,6 +258,17 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     pgClientFactory.createInstance(tenantId).select(query, promise);
     return promise.future().map(rows -> rows.rowCount() > 0
       ? Optional.of(mapRowToJobExecutionSummaryDto(rows.iterator().next())) : Optional.empty());
+  }
+
+  @Override
+  public Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId) {
+    LOGGER.info("updateErrorJournalRecordsByOrderIdAndJobExecution:: Trying to update JournalRecord entities by jobExecutionId: '{}' in the {} table", jobExecutionId, JOURNAL_RECORDS_TABLE);
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String query = format(UPDATE_ERROR_JOURNAL_RECORD_BY_ORDER_ID_AND_JOB_EXECUTION_ID, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
+    LOGGER.trace("JournalRecordDaoImpl::updateErrorJournalRecordsByOrderIdAndJobExecution query = {};", query);
+    Tuple queryParams = Tuple.of(error, orderId, UUID.fromString(jobExecutionId));
+    pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
+    return promise.future().map(SqlResult::rowCount);
   }
 
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
@@ -419,7 +432,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private EntityProcessingSummary mapToEntityProcessingSummary(Row row, String totalCreatedColumn, String totalUpdatedColumn,
-                                                              String totalDiscardedColumn, String totalErrorsColumn) {
+                                                               String totalDiscardedColumn, String totalErrorsColumn) {
     Integer totalCreated = row.getInteger(totalCreatedColumn);
     Integer totalUpdated = row.getInteger(totalUpdatedColumn);
     Integer totalDiscarded = row.getInteger(totalDiscardedColumn);

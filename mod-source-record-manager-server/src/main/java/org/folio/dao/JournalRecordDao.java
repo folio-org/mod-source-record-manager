@@ -87,4 +87,14 @@ public interface JournalRecordDao {
    * @return future with {@link Optional} of JobExecutionSummaryDto
    */
   Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
+
+  /**
+   * Updates JournalRecords error-field by orderId and jobExecutionId
+   * @param jobExecutionId job execution id
+   * @param orderId orderId
+   * @param error current error message which should be set
+   * @param tenantId tenantId
+   * @return future with number of updated JournalRecords
+   */
+  Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId);
 }
