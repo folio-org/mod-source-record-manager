@@ -11,9 +11,11 @@ import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isAnyEmpty;
@@ -34,6 +36,8 @@ public class InvoiceUtil {
 
   public static final String INVOICE_TITLE = "INVOICE";
 
+  public static final String ERROR_INVOICE_TITLE = "ERROR_INVOICE";
+
   public static final String FIELD_DESCRIPTION = "description";
   public static final String FIELD_FOLIO_INVOICE_NO = "folioInvoiceNo";
   public static final String FIELD_ID = "id";
@@ -52,13 +56,16 @@ public class InvoiceUtil {
   private static final String NO_INVOICE_TITLE_MESSAGE = "No content";
   private static final String NO_VENDOR_INVOICE_NUMBER = "0";
 
-  public static LinkedList<JournalRecord> buildJournalRecordByEvent(DataImportEventPayload event)
+  public static List<JournalRecord> buildJournalRecordByEvent(DataImportEventPayload event)
     throws JournalRecordMapperException, JsonProcessingException {
     String edifactAsString = event.getContext().get(EDIFACT_INVOICE.value());
     String invoiceAsString = event.getContext().get(INVOICE.value());
     String invoiceLinesAsString = event.getContext().get(INVOICE_LINES_KEY);
 
     if (isAnyEmpty(edifactAsString, invoiceAsString, invoiceLinesAsString)) {
+      if(event.getContext().containsKey(ERROR_KEY)) {
+        return buildErrorJournalRecord(event);
+      }
       event.getContext().keySet().forEach(key -> {
         if (isNotEmpty(event.getContext().get(key))) {
           LOGGER.warn(key + ": " + event.getContext().get(key));
@@ -153,6 +160,41 @@ public class InvoiceUtil {
       return invoiceLines;
     } catch (Exception e) {
       throw new JournalRecordMapperException(INVOICE_LINE_MAPPING_EXCEPTION_MSG, e);
+    }
+  }
+
+  private static List<JournalRecord> buildErrorJournalRecord(DataImportEventPayload eventPayload) throws JournalRecordMapperException {
+    try {
+      String edifactRecordAsString = eventPayload.getContext().get(EDIFACT_INVOICE.value());
+      Record edifactRecord = new ObjectMapper().readValue(edifactRecordAsString, Record.class);
+
+      Integer invoiceOrder = edifactRecord.getOrder() != null ? edifactRecord.getOrder() : 0;
+
+      JournalRecord journalRecordInvoice = new JournalRecord()
+        .withJobExecutionId(eventPayload.getJobExecutionId())
+        .withSourceId(edifactRecord.getId())
+        .withSourceRecordOrder(invoiceOrder)
+        .withEntityType(INVOICE)
+        .withTitle(ERROR_INVOICE_TITLE)
+        .withActionType(ActionType.CREATE)
+        .withActionDate(new Date())
+        .withActionStatus(ActionStatus.ERROR)
+        .withError(eventPayload.getContext().get(ERROR_KEY));
+
+      JournalRecord journalRecordEdifact = new JournalRecord()
+        .withJobExecutionId(eventPayload.getJobExecutionId())
+        .withSourceId(edifactRecord.getId())
+        .withSourceRecordOrder(invoiceOrder)
+        .withEntityType(JournalRecord.EntityType.EDIFACT)
+        .withEntityId(edifactRecord.getId())
+        .withActionType(ActionType.CREATE)
+        .withActionDate(new Date())
+        .withActionStatus(ActionStatus.ERROR)
+        .withError(eventPayload.getContext().get(ERROR_KEY));
+
+      return Arrays.asList(journalRecordEdifact, journalRecordInvoice);
+    } catch (Exception e) {
+      throw new JournalRecordMapperException(INVOICE_MAPPING_EXCEPTION_MSG, e);
     }
   }
 
