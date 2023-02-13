@@ -314,6 +314,40 @@ public class ImportInvoiceJournalConsumerVerticleMockTest extends AbstractRestTe
     async.complete();
   }
 
+  @Test
+  public void shouldProcessInvoiceErrorWithoutParsedContentAndWithError(TestContext context) throws IOException {
+    Async async = context.async();
+
+    // given
+    HashMap<String, String> payloadContext = new HashMap<>();
+
+    Record record = new Record().withId(UUID.randomUUID().toString());
+    payloadContext.put(EDIFACT_INVOICE.value(), Json.encode(record));
+
+    payloadContext.put(ERROR_KEY, ERROR);
+
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withTenant(DI_POST_INVOICE_LINES_SUCCESS_TENANT)
+      .withOkapiUrl(OKAPI_URL)
+      .withToken(TOKEN)
+      .withContext(payloadContext)
+      .withProfileSnapshot(profileSnapshotWrapper)
+      .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
+
+    Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
+
+    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+
+    Mockito.verify(journalService).saveBatch(invoiceRecordCaptor.capture(), Mockito.anyString());
+
+    JsonArray jsonArray = invoiceRecordCaptor.getValue();
+    Assert.assertEquals(2, jsonArray.size());
+
+    async.complete();
+  }
+
   private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withId(EVENT_ID).withEventPayload(Json.encode(record));

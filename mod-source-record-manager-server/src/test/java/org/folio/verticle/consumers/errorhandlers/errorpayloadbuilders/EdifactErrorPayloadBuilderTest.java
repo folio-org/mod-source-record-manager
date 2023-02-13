@@ -17,7 +17,9 @@ import org.folio.processing.mapping.MappingManager;
 import org.folio.processing.mapping.mapper.MappingContext;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.JobExecutionService;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.EdifactDiErrorPayloadBuilder;
@@ -97,7 +99,8 @@ public class EdifactErrorPayloadBuilderTest {
       mockedStatic.when(() -> MappingManager.map(any(DataImportEventPayload.class), any(MappingContext.class)))
         .thenReturn(new DataImportEventPayload().withContext(getPayloadContext()));
       payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
-        getOkapiParams(), JOB_EXECUTION_ID, new Record().withRecordType(Record.RecordType.EDIFACT));
+        getOkapiParams(), JOB_EXECUTION_ID, new Record().withRecordType(Record.RecordType.EDIFACT)
+          .withParsedRecord(new ParsedRecord().withId(UUID.randomUUID().toString())));
     }
 
     payloadFuture.onComplete(ar -> {
@@ -140,6 +143,37 @@ public class EdifactErrorPayloadBuilderTest {
       assertNull(recordFromContext.getRawRecord());
 
       assertFalse(result.getContext().containsKey(INVOICE_FIELD));
+      assertFalse(result.getContext().containsKey(INVOICE_LINES_FILED));
+
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldBuildEventPayloadWithoutParsedContent(TestContext context) {
+    Async async = context.async();
+    when(jobExecutionService.getJobExecutionById(JOB_EXECUTION_ID, TENANT_ID))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withId(JOB_EXECUTION_ID).withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper().withContentType(MAPPING_PROFILE)))));
+
+    Future<DataImportEventPayload> payloadFuture;
+    try(var mockedStatic = Mockito.mockStatic(MappingManager.class)) {
+      mockedStatic.when(() -> MappingManager.map(any(DataImportEventPayload.class), any(MappingContext.class)))
+        .thenReturn(new DataImportEventPayload().withContext(getPayloadContext()));
+      payloadFuture = payloadBuilder.buildEventPayload(new RecordTooLargeException(LARGE_PAYLOAD_ERROR_MESSAGE),
+        getOkapiParams(), JOB_EXECUTION_ID, new Record().withRecordType(Record.RecordType.EDIFACT)
+          .withRawRecord(new RawRecord()));
+    }
+
+    payloadFuture.onComplete(ar -> {
+      DataImportEventPayload result = ar.result();
+      assertEquals(DI_ERROR.value(), result.getEventType());
+      assertEquals(LARGE_PAYLOAD_ERROR_MESSAGE, result.getContext().get(ERROR_KEY));
+      assertTrue(result.getContext().containsKey(EDIFACT_INVOICE_FIELD));
+
+      Record recordFromContext = getRecordFromContext(result);
+      assertNull(recordFromContext.getParsedRecord());
+
+      assertTrue(result.getContext().containsKey(INVOICE_FIELD));
       assertFalse(result.getContext().containsKey(INVOICE_LINES_FILED));
 
       async.complete();

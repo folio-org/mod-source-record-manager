@@ -1,10 +1,12 @@
 package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.SneakyThrows;
 import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.MappingManager;
@@ -25,10 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 import static org.folio.ActionProfile.FolioRecord.INVOICE;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
@@ -126,17 +130,25 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
     return context;
   }
 
-  private DataImportEventPayload mapPayloadWithPopulatingInvoiceDetails(DataImportEventPayload dataImportEventPayload) {
-    DataImportEventPayload mappedPayload = MappingManager.map(dataImportEventPayload, new MappingContext());
-    mappedPayload.setEventType(DI_ERROR.value());
+  @SneakyThrows
+  public DataImportEventPayload mapPayloadWithPopulatingInvoiceDetails(DataImportEventPayload dataImportEventPayload) {
+    String edifactRecordAsString = dataImportEventPayload.getContext().get(EDIFACT_INVOICE.value());
+    Record edifactRecord = new ObjectMapper().readValue(edifactRecordAsString, Record.class);
+    if(Objects.nonNull(edifactRecord.getParsedRecord())) {
+      DataImportEventPayload mappedPayload = MappingManager.map(dataImportEventPayload, new MappingContext());
+      mappedPayload.setEventType(DI_ERROR.value());
 
-    JsonObject mappingResult = new JsonObject(mappedPayload.getContext().get(INVOICE.value()));
-    JsonObject invoiceJson = mappingResult.getJsonObject(INVOICE_FIELD);
-    JsonObject invoiceLineCollection = new JsonObject().put(INVOICE_LINES_FIELD, new JsonArray(invoiceJson.remove(INVOICE_LINES_FIELD).toString()));
-    mappedPayload.getContext().put(INVOICE_LINES_KEY, Json.encode(invoiceLineCollection));
-    mappedPayload.getContext().put(INVOICE.value(), invoiceJson.encode());
+      JsonObject mappingResult = new JsonObject(mappedPayload.getContext().get(INVOICE.value()));
+      JsonObject invoiceJson = mappingResult.getJsonObject(INVOICE_FIELD);
+      JsonObject invoiceLineCollection = new JsonObject().put(INVOICE_LINES_FIELD, new JsonArray(invoiceJson.remove(INVOICE_LINES_FIELD).toString()));
+      mappedPayload.getContext().put(INVOICE_LINES_KEY, Json.encode(invoiceLineCollection));
+      mappedPayload.getContext().put(INVOICE.value(), invoiceJson.encode());
 
-    return mappedPayload;
+      return mappedPayload;
+    } else {
+      dataImportEventPayload.setEventType(DI_ERROR.value());
+      return dataImportEventPayload;
+    }
   }
 
   private DataImportEventPayload makeLightweightPayload(Record record, DataImportEventPayload payload) {
