@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 
 public interface ChunkProcessingService {
@@ -15,5 +16,7 @@ public interface ChunkProcessingService {
    * @return - true if chunk was processed correctly
    */
   Future<Boolean> processChunk(RawRecordsDto chunk, String jobExecutionId, OkapiConnectionParams params);
+
+  Future<Boolean> processChunk(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params);
 
 }
