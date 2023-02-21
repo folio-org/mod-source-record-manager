@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,7 +45,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -108,6 +106,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
       .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -195,10 +194,8 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(savedRecordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
-    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.empty()));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -242,6 +239,19 @@ public class StoredRecordChunksKafkaHandlerTest {
     assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
     assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
+  }
+
+  @Test
+  public void shouldNotHandleEventWhenJobExecutionWasCancelled() {
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withStatus(JobExecution.Status.CANCELLED))));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    assertTrue(future.succeeded());
   }
 
 }

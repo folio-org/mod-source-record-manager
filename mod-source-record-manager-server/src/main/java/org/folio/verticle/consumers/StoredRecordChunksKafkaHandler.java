@@ -3,6 +3,7 @@ package org.folio.verticle.consumers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.future.FailedFuture;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotFoundException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,6 +56,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
 
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")
@@ -102,45 +105,53 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     String chunkNumber = okapiConnectionParams.getHeaders().get("chunkNumber");
     String jobExecutionId = okapiConnectionParams.getHeaders().get("jobExecutionId");
 
-    Event event = Json.decodeValue(record.value(), Event.class);
+    return jobExecutionService.getJobExecutionById(jobExecutionId, okapiConnectionParams.getTenantId())
+      .compose(jobExecutionOptional -> jobExecutionOptional.map(jobExecution -> {
 
-    try {
-      return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
-        .compose(res -> {
-          RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
-          List<Record> storedRecords = recordsBatchResponse.getRecords();
+          if (isNeedToSkip(jobExecution)) {
+            LOGGER.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
+            return Future.succeededFuture(chunkId);
+          }
 
-          // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
-          DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
-            ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
-            : DI_SRS_MARC_BIB_RECORD_CREATED;
+          Event event = Json.decodeValue(record.value(), Event.class);
 
-          LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
-          saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
-          return jobExecutionService.getJobExecutionById(jobExecutionId, okapiConnectionParams.getTenantId())
-            .compose(jobExecutionOptional -> {
-              if (jobExecutionOptional.isPresent()) {
-                LOGGER.debug("handle:: JobExecution found by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
-                return setOrderEventTypeIfNeeded(jobExecutionOptional.get(), eventType);
-              } else {
-                LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
-                return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s chunkId:%s chunkNumber: %s", jobExecutionId, chunkId, chunkNumber)));
-              }
-            })
-            .compose(eventTypes -> recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
-              okapiConnectionParams, eventTypes.value()))
-            .compose(b -> {
-              LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
-              return Future.succeededFuture(chunkId);
-            }, th -> {
-              LOGGER.warn("handle:: RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
-              return Future.failedFuture(th);
-            });
-        });
-    } catch (Exception e) {
-      LOGGER.warn("handle:: Can't process kafka record: ", e);
-      return Future.failedFuture(e);
-    }
+          try {
+            return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
+              .compose(res -> {
+                RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
+                List<Record> storedRecords = recordsBatchResponse.getRecords();
+
+                // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
+                DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
+                  ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
+                  : DI_SRS_MARC_BIB_RECORD_CREATED;
+
+                LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+                saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
+                return Future.succeededFuture(jobExecution)
+                  .compose(jobExecutionFuture -> {
+                    LOGGER.debug("handle:: JobExecution found by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
+                    return setOrderEventTypeIfNeeded(jobExecutionFuture, eventType);
+                  })
+                  .compose(eventTypes -> recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
+                    okapiConnectionParams, eventTypes.value()))
+                  .compose(b -> {
+                    LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
+                    return Future.succeededFuture(chunkId);
+                  }, th -> {
+                    LOGGER.warn("handle:: RecordsBatchResponse processing has failed with errors chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId, th);
+                    return Future.failedFuture(th);
+                  });
+              });
+          } catch (Exception e) {
+            LOGGER.warn("handle:: Can't process kafka record: ", e);
+            return new FailedFuture<String>(e);
+          }
+        })
+        .orElseGet(() -> {
+          LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
+          return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s chunkId:%s chunkNumber: %s", jobExecutionId, chunkId, chunkNumber)));
+        }));
   }
 
   private Future<DataImportEventTypes> setOrderEventTypeIfNeeded(JobExecution jobExecution, DataImportEventTypes dataImportEventTypes) {

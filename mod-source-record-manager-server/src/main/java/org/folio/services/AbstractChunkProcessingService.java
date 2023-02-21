@@ -51,27 +51,35 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExecution -> {
+        .map(jobExecution -> mapJobExecution(incomingChunk, jobExecution, params))
+        .orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+  }
 
-          if (isNotSupportedJobProfileExists(jobExecution)) {
-            throw new UnsupportedProfileException("Unsupported type of Job Profile.");
-          }
+  @Override
+  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params) {
+    LOGGER.debug("AbstractChunkProcessingService:: processChunk with jobExecutionId: {}", jobExecution.getId());
+    prepareChunk(incomingChunk);
+    return mapJobExecution(incomingChunk, jobExecution, params);
+  }
+  private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params) {
+    if (isNotSupportedJobProfileExists(jobExecution)) {
+      throw new UnsupportedProfileException("Unsupported type of Job Profile.");
+    }
 
-          JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
-            .withId(incomingChunk.getId())
-            .withJobExecutionId(jobExecutionId)
-            .withLast(incomingChunk.getRecordsMetadata().getLast())
-            .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
-            .withChunkSize(incomingChunk.getInitialRecords().size())
-            .withCreatedDate(new Date());
+    JobExecutionSourceChunk sourceChunk = new JobExecutionSourceChunk()
+      .withId(incomingChunk.getId())
+      .withJobExecutionId(jobExecution.getId())
+      .withLast(incomingChunk.getRecordsMetadata().getLast())
+      .withState(JobExecutionSourceChunk.State.IN_PROGRESS)
+      .withChunkSize(incomingChunk.getInitialRecords().size())
+      .withCreatedDate(new Date());
 
-          return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-            .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params))
-            .map(true)
-            .recover(throwable -> throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE) ?
-              Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecutionId))) :
-              Future.failedFuture(throwable));
-        }).orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
+    return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
+      .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params))
+      .map(true)
+      .recover(throwable -> throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE) ?
+        Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecution.getId()))) :
+        Future.failedFuture(throwable));
   }
 
   private boolean isNotSupportedJobProfileExists(JobExecution jobExecution) {
