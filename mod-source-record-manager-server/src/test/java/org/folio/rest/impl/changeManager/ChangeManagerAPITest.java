@@ -999,7 +999,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldProcessChunkOfRawRecords(TestContext testContext) throws IOException {
+  public void shouldProcessChunkOfRawRecords(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
@@ -1088,7 +1088,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(100))
+      .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
@@ -1146,7 +1146,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(100))
+      .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
 
     verify(1, getRequestedFor(urlEqualTo(IDENTIFIER_TYPES_URL)));
@@ -1253,7 +1253,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(100))
+      .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
 
     async.complete();
@@ -1305,7 +1305,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(JobExecution.Status.PARSING_IN_PROGRESS.name()))
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(100))
+      .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
