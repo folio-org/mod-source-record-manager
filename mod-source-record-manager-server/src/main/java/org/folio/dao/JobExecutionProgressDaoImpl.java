@@ -62,13 +62,12 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
   }
 
   @Override
-  public Future<JobExecutionProgress> initializeJobExecutionProgress(String jobExecutionId, Integer totalRecords, String tenantId) {
+  public Future<JobExecutionProgress> initializeJobExecutionProgress(AsyncResult<SQLConnection> connection, String jobExecutionId, Integer totalRecords, String tenantId) {
     LOGGER.debug("initializeJobExecutionProgress:: jobExecutionId {}, totalRecords {}, tenantId {}", jobExecutionId, totalRecords, tenantId);
     Promise<JobExecutionProgress> promise = Promise.promise();
-    Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
 
-    getSelectResult(tx, pgClient, jobExecutionId, tenantId)
+    getSelectResult(connection, pgClient, jobExecutionId, tenantId)
       .compose(selectResult -> {
         JobExecutionProgress progress = new JobExecutionProgress()
           .withJobExecutionId(jobExecutionId)
@@ -79,14 +78,14 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
       })
       .onComplete(saveAr -> {
         if (saveAr.succeeded()) {
-          pgClient.endTx(tx.future(), endTx -> promise.complete(saveAr.result()));
+          promise.complete(saveAr.result());
         } else {
           if (ValidationHelper.isDuplicate(saveAr.cause().getMessage())) {
-            pgClient.rollbackTx(tx.future(), r -> promise.complete());
+            promise.complete();
             return;
           }
           LOGGER.warn(FAILED_INITIALIZATION_MESSAGE, jobExecutionId, saveAr.cause());
-          pgClient.rollbackTx(tx.future(), r -> promise.fail(saveAr.cause()));
+          promise.fail(saveAr.cause());
         }
       });
     return promise.future();
@@ -99,7 +98,9 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     Promise<SQLConnection> tx = Promise.promise();
     PostgresClient pgClient = pgClientFactory.createInstance(tenantId);
 
-    getSelectResult(tx, pgClient, jobExecutionId, tenantId)
+    pgClient.startTx(tx);
+    tx.future()
+      .compose(sqlConnection -> getSelectResult(tx.future(), pgClient, jobExecutionId, tenantId))
       .map(progressResults -> {
         Optional<JobExecutionProgress> optionalJobExecutionProgress = mapResultSetToOptionalJobExecutionProgress(progressResults);
         if (optionalJobExecutionProgress.isEmpty()) {
@@ -157,24 +158,20 @@ public class JobExecutionProgressDaoImpl implements JobExecutionProgressDao {
     return promise.future();
   }
 
-  private Future<RowSet<Row>> getSelectResult(Promise<SQLConnection> tx, PostgresClient pgClient, String jobExecutionId, String tenantId) {
+  private Future<RowSet<Row>> getSelectResult(AsyncResult<SQLConnection> tx, PostgresClient pgClient, String jobExecutionId, String tenantId) {
     Tuple queryParams = Tuple.of(jobExecutionId);
 
     return Future.succeededFuture()
       .compose(v -> {
-        pgClient.startTx(tx);
-        return tx.future();
-      })
-      .compose(sqlConnection -> {
         String selectProgressQuery = buildSelectProgressQuery(tenantId);
         Promise<RowSet<Row>> selectResult = Promise.promise();
-        pgClient.execute(tx.future(), selectProgressQuery, queryParams, selectResult);
+        pgClient.execute(tx, selectProgressQuery, queryParams, selectResult);
         return selectResult.future();
       })
       .compose(selectResult -> {
         Promise<RowSet<Row>> getProgressPromise = Promise.promise();
         String query = buildSelectByJobExecutionIdQuery(tenantId);
-        pgClient.execute(tx.future(), query, queryParams, getProgressPromise);
+        pgClient.execute(tx, query, queryParams, getProgressPromise);
         return getProgressPromise.future();
       });
   }

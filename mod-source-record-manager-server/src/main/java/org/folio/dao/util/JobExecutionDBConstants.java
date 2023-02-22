@@ -91,6 +91,11 @@ public final class JobExecutionDBConstants {
     "total AS (SELECT count(*) AS total_count FROM unique_users)" +
     "SELECT j.*, p.* FROM unique_users j LEFT JOIN total p ON true LIMIT $1 OFFSET $2";
 
+  public static final String UPDATE_PROGRESS_SQL =
+    "UPDATE %s " +
+    "SET progress_current = $2, progress_total = $3 " +
+    "WHERE id = $1";
+
   private JobExecutionDBConstants() {
   }
 }
