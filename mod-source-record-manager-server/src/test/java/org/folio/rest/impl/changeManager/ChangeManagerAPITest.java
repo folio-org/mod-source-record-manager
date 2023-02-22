@@ -1088,7 +1088,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_OK)
       .body("runBy.firstName", is("DIKU"))
-      .body("progress.total", is(rawRecordsDto.getRecordsMetadata().getTotal()))
+      .body("progress.total", is(rawRecordsDto_2.getRecordsMetadata().getTotal()))
       .body("startedDate", notNullValue(Date.class)).log().all();
     async.complete();
   }
