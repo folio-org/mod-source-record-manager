@@ -11,6 +11,7 @@
 * [MODSOURMAN-946](https://issues.folio.org/browse/MODSOURMAN-946) Handle DI_ERROR event for POLines
 * [MODSOURMAN-955](https://issues.folio.org/browse/MODSOURMAN-955) Include OrderId to the DTO that is used to display the json for POLine in DI log
 * [MODSOURMAN-899](https://issues.folio.org/browse/MODSOURMAN-899) Do not process chunks when the DI is stopped
+* [MODSOURMAN-961](https://issues.folio.org/browse/MODSOURMAN-961) Provide actual incoming records total amount on request jobExecution by id
 
 ## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field

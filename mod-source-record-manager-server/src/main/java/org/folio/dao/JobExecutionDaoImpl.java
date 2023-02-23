@@ -84,6 +84,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_COUNT_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_BY_IDS_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_PROGRESS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
@@ -220,6 +221,22 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
     return promise.future().compose(rowSet -> rowSet.rowCount() != 1
       ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture(jobExecution));
+  }
+
+  @Override
+  public Future<Void> updateJobExecutionProgress(AsyncResult<SQLConnection> connection, Progress progress, String tenantId) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    String errorMessage = String.format("JobExecution with id '%s' was not found during progress update", progress.getJobExecutionId());
+    try {
+      String preparedQuery = format(UPDATE_PROGRESS_SQL, formatFullTableName(tenantId, TABLE_NAME));
+      Tuple queryParams = Tuple.of(progress.getJobExecutionId(), progress.getCurrent(), progress.getTotal());
+      pgClientFactory.createInstance(tenantId).execute(connection, preparedQuery, queryParams, promise);
+    } catch (Exception e) {
+      LOGGER.warn("updateJobExecutionProgress:: Error updating jobExecution progress, jobId: {}", progress.getJobExecutionId(), e);
+      promise.fail(e);
+    }
+    return promise.future().compose(rowSet -> rowSet.rowCount() != 1
+      ? Future.failedFuture(new NotFoundException(errorMessage)) : Future.succeededFuture());
   }
 
   @Override
