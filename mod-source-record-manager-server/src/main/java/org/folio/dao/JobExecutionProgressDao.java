@@ -6,7 +6,6 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.persist.Conn;
 import org.folio.rest.persist.SQLConnection;
 
 import java.util.Optional;
