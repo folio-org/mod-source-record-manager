@@ -1,6 +1,15 @@
-## 2022-xx-xx v3.6.0-SNAPSHOT
+## 2022-02-24 v3.6.0-SNAPSHOT
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
 * [MODSOURMAN-837](https://issues.folio.org/browse/MODSOURMAN-837) MARC bib - FOLIO instance mapping | Update default mapping to change how Relator term is populated on instance record
+* [MODSOURMAN-892](https://issues.folio.org/browse/MODSOURMAN-892) Logging improvement - Configuration
+* [MODDATAIMP-736](https://issues.folio.org/browse/MODDATAIMP-736) Adjust logging configuration in all DI modules to display datetime in a proper format
+* [MODSOURMAN-888](https://issues.folio.org/browse/MODSOURMAN-888) Link update: Implement API endpoint to retrieve mapping metadata by record type
+* [MODSOURMAN-927](https://issues.folio.org/browse/MODSOURMAN-927) No title displays in import log when SRS MARC and Instance are not updated
+* [MODSOURMAN-705](https://issues.folio.org/browse/MODSOURMAN-705) Logging improvement
+* [MODSOURMAN-930](https://issues.folio.org/browse/MODSOURMAN-930) Add missed permissions for invoice data import flow
+* [MODSOURMAN-928](https://issues.folio.org/browse/MODSOURMAN-928) MARC-to-MARC Holdings update log is unexpected
+* [MODSOURMAN-831](https://issues.folio.org/browse/MODSOURMAN-831) Change the SRS MARC column in the summary section for EDIFACT logs
+* [MODDATAIMP-758](https://issues.folio.org/browse/MODDATAIMP-758) Improve logging (hide SQL requests)
 * [MODSOURMAN-890](https://issues.folio.org/browse/MODSOURMAN-890) The '2' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 * [MODSOURMAN-891](https://issues.folio.org/browse/MODSOURMAN-891) SRS MARC Created when No Create Action in Job Profile
 * [MODSOURMAN-941](https://issues.folio.org/browse/MODSOURMAN-941) Add query param to allow filtering by fileName
@@ -12,6 +21,12 @@
 * [MODSOURMAN-955](https://issues.folio.org/browse/MODSOURMAN-955) Include OrderId to the DTO that is used to display the json for POLine in DI log
 * [MODSOURMAN-899](https://issues.folio.org/browse/MODSOURMAN-899) Do not process chunks when the DI is stopped
 * [MODSOURMAN-961](https://issues.folio.org/browse/MODSOURMAN-961) Provide actual incoming records total amount on request jobExecution by id
+* [MODSOURMAN-924](https://issues.folio.org/browse/MODSOURMAN-924) Mapping bib's $9 into subjects, series, alternativeTitles fields
+* [MODSOURMAN-949](https://issues.folio.org/browse/MODSOURMAN-949) Add permissions for links update
+* [MODSOURMAN-932](https://issues.folio.org/browse/MODSOURMAN-932) Fill Journal Record info for Orders upon receiving DI_COMPLETED event
+* [MODDATAIMP-750](https://issues.folio.org/browse/MODDATAIMP-750) Update util dependencies
+* [MODSOURMAN-939](https://issues.folio.org/browse/MODSOURMAN-939) Handle EDIFACT parsing exceptions - complete job with error
+* [MODSOURMAN-939](https://issues.folio.org/browse/MODSOURMAN-939) Handle EDIFACT parsing exceptions - complete job with error
 
 ## 2022-10-24 v3.5.0
 * [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
