@@ -155,7 +155,7 @@
                 {
                   "type": "set_identifier_type_id_by_value",
                   "parameter": {
-                    "name": [
+                    "names": [
                       "System control number"
                     ]
                   }
