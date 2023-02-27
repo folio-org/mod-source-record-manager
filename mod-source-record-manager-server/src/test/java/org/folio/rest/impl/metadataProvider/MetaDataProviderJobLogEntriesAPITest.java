@@ -110,7 +110,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
-        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.UPDATED.value()));
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
       async.complete();
     }));
@@ -140,7 +140,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
-        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.UPDATED.value()));
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
       async.complete();
     }));
