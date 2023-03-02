@@ -1029,7 +1029,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("sourceRecordSummary.totalCreatedEntities", is(1))
-        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("totalErrors", is(0));
@@ -1058,7 +1058,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .then()
         .statusCode(HttpStatus.SC_OK)
         .body("sourceRecordSummary.totalCreatedEntities", is(1))
-        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("totalErrors", is(0));
