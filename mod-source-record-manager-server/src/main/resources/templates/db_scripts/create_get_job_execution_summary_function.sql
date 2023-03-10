@@ -52,7 +52,11 @@ BEGIN
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type = 'INVOICE' AND (action_type = 'NON_MATCH' OR action_status = 'ERROR')) AS total_discarded_invoices,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'ERROR') AS total_invoices_errors
     FROM journal_records
-    WHERE journal_records.job_execution_id = job_id
+	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY'], action_type)))[1] as id
+        FROM journal_records
+        WHERE journal_records.job_execution_id = job_id
+			  group by entity_id, entity_type, action_status) AS actions
+      ON actions.id = journal_records.id
     GROUP BY (journal_records.job_execution_id);
 END;
 $$ LANGUAGE plpgsql;
