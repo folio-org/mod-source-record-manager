@@ -64,7 +64,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        ARRAY[records_actions.source_record_order] AS source_record_order_array
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
-                array_agg(action_type ORDER BY array_position(array[''MODIFY'', ''UPDATE'', ''CREATE''], action_type)) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
+                array_agg(action_type ORDER BY array_position(array[''NON_MATCH'', ''MODIFY'', ''UPDATE'', ''CREATE''], action_type)) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
                 count(journal_records.source_id) FILTER (WHERE (entity_type = ''MARC_BIBLIOGRAPHIC'' OR entity_type = ''MARC_HOLDINGS'' OR entity_type = ''MARC_AUTHORITY'') AND journal_records.error != '''') AS marc_errors_number,
                 array[(array_agg(action_type ORDER BY action_date DESC) FILTER (WHERE entity_type = ''INSTANCE'' AND (entity_id IS NOT NULL OR action_type = ''NON_MATCH'')))[1]::text] AS instance_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''INSTANCE'' AND journal_records.error != '''') AS instance_errors_number,
