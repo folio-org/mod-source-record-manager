@@ -3,6 +3,7 @@ package org.folio.rest.impl.metadataProvider;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
@@ -269,6 +270,37 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].poLineActionStatus", is(ActionStatus.CREATED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnAuthorityDiscardedWhenErrorOnMatch(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "authorityEntityID", null, recordTitle,  0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordType", is(MARC_AUTHORITY.value()))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].error", is(notNullValue()))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()));
 
       async.complete();
     }));
