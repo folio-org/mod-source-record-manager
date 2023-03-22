@@ -1105,6 +1105,45 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnCreatedInstanceWhenInstanceCreatedInNonMatchSection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String title = "title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, UUID.randomUUID().toString(), null, title,  0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, NON_MATCH, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, UUID.randomUUID().toString(), null, title,  0, CREATE, INSTANCE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(0))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("instanceSummary.totalCreatedEntities", is(1))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(0))
+        .body("instanceSummary.totalErrors", is(0))
+        .body("holdingSummary", nullValue())
+        .body("itemSummary", nullValue())
+        .body("authoritySummary", nullValue())
+        .body("orderSummary", nullValue())
+        .body("invoiceSummary", nullValue())
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnInstanceDiscardedWithErrorsWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
