@@ -1,3 +1,6 @@
+## 2023-03-29 v3.6.2
+* folio-kafka-wrapper bumped up to 2.7.1
+
 ## 2023-03-29 v3.6.1
 * [MODSOURMAN-835](https://issues.folio.org/browse/MODSOURMAN-957) Show Discarded in summary when NON_MATCH and no other action
 * [MODSOURCE-610](https://issues.folio.org/browse/MODSOURCE-610) Enable logs for MATCH action
