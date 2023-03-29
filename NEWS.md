@@ -1,6 +1,11 @@
-## 2023-03-xo v3.6.1-SNAPSHOT
+## 2023-03-29 v3.6.1
+* [MODSOURMAN-835](https://issues.folio.org/browse/MODSOURMAN-957) Show Discarded in summary when NON_MATCH and no other action
+* [MODSOURCE-610](https://issues.folio.org/browse/MODSOURCE-610) Enable logs for MATCH action
 * [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
+* [MODDATAIMP-791](https://issues.folio.org/browse/MODDATAIMP-791) Adjust module permissions for DI wrt PO prefixes and suffixes
 * [MODDATAIMP-786](https://issues.folio.org/browse/MODDATAIMP-786) Update data-import-util library to v1.11.0
+* [MODSOURMAN-931](https://issues.folio.org/browse/MODSOURMAN-931) Unexpected parameter property name in /mapping-rules/marc-authority
+* [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
 
 ## 2023-02-24 v3.6.0
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
