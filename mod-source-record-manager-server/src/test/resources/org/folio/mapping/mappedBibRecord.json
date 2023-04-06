@@ -129,7 +129,16 @@
       "value": "Eighteenth century"
     }
   ],
-  "classifications": [],
+  "classifications": [
+    {
+      "classificationNumber": "300.723 HEA",
+      "classificationTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    },
+    {
+      "classificationNumber": "338.76292092",
+      "classificationTypeId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    }
+  ],
   "publication": [
     {
       "publisher": "Research Publications",
