@@ -85,10 +85,6 @@ public class JournalUtil {
           journalRecord.setEntityHrId(entityJson.getString("hrid"));
           return Lists.newArrayList(journalRecord);
         }
-        if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
-          journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
-          return Lists.newArrayList(journalRecord);
-        }
         if (entityType == HOLDINGS) {
           return processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record);
         }
@@ -98,6 +94,9 @@ public class JournalUtil {
         if (eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
           return processErrors(actionType, entityType, actionStatus, eventPayloadContext, record);
         }
+      }
+      if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+        journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
       }
       return Lists.newArrayList(journalRecord);
     } catch (Exception e) {
