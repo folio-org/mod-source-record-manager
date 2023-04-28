@@ -104,14 +104,16 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     if (journalParamsOptional.isPresent()) {
       JournalParams journalParams = journalParamsOptional.get();
-      JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
-        processJournalRecordForOrder(journalService, tenantId, journalRecord);
-      } else {
-        populateRecordTitleIfNeeded(journalRecord, eventPayload)
-          .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+      for (JournalRecord journalRecord : journalRecords) {
+        if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
+          processJournalRecordForOrder(journalService, tenantId, journalRecord);
+        } else {
+          populateRecordTitleIfNeeded(journalRecord, eventPayload)
+            .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecords), tenantId));
+        }
       }
     }
   }
