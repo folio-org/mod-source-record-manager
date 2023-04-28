@@ -265,7 +265,7 @@ public class JournalUtilTest {
     Assert.assertEquals(CREATE, journalRecord.getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
     Assert.assertNotNull(journalRecord.getActionDate());
-  }
+  }*/
 
   @Test
   public void shouldBuildJournalRecordWhenNoRecord() throws JournalRecordMapperException {
@@ -279,17 +279,17 @@ public class JournalUtilTest {
       .withJobExecutionId(testJobExecutionId)
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
       CREATE, JournalRecord.EntityType.EDIFACT, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(0, journalRecord.getSourceRecordOrder().intValue());
-    Assert.assertEquals(testError, journalRecord.getError());
-    Assert.assertEquals(testJobExecutionId, journalRecord.getJobExecutionId());
-    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
-    Assert.assertNotNull(journalRecord.getActionDate());
+    Assert.assertEquals(0, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(testError, journalRecord.get(0).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(JournalRecord.EntityType.EDIFACT, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
   }
 
   @Test
@@ -309,17 +309,17 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
       CREATE, INSTANCE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.getSourceId());
-    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
-    Assert.assertEquals(INSTANCE, journalRecord.getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
-    Assert.assertNotNull(journalRecord.getActionDate());
+    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
   }
 
   @Test
@@ -347,18 +347,18 @@ public class JournalUtilTest {
       .withEventsChain(Collections.singletonList("DI_ORDER_CREATED"))
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
       CREATE, PO_LINE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.getSourceId());
-    Assert.assertEquals(entityId, journalRecord.getEntityId());
-    Assert.assertEquals(purchaseOrderId, journalRecord.getOrderId());
-    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
-    Assert.assertEquals(PO_LINE, journalRecord.getEntityType());
-    Assert.assertEquals(CREATE, journalRecord.getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.getActionStatus());
-    Assert.assertNotNull(journalRecord.getActionDate());
-  }*/
+    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(entityId, journalRecord.get(0).getEntityId());
+    Assert.assertEquals(purchaseOrderId, journalRecord.get(0).getOrderId());
+    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(PO_LINE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+  }
 }

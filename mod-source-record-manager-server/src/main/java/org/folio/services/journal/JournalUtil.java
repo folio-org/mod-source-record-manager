@@ -35,6 +35,7 @@ public class JournalUtil {
 
   public static final String ERROR_KEY = "ERROR";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
+  public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
 
   private JournalUtil() {
 
@@ -94,7 +95,7 @@ public class JournalUtil {
         if (entityType == ITEM) {
           return processItems(actionType, entityType, actionStatus, eventPayloadContext, record);
         }
-        if (eventPayloadContext.get("ERRORS") != null) {
+        if (eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
           return processErrors(actionType, entityType, actionStatus, eventPayloadContext, record);
         }
       }
