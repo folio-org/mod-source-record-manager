@@ -64,44 +64,44 @@ public class JournalUtil {
         record = new ObjectMapper().readValue(recordAsString, Record.class);
       }
 
-      if (entityType == INSTANCE || entityType == PO_LINE) {
-        String entityAsString = eventPayloadContext.get(entityType.value());
+      String entityAsString = eventPayloadContext.get(entityType.value());
+      JournalRecord journalRecord = new JournalRecord()
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withSourceRecordOrder(record.getOrder())
+        .withEntityType(entityType)
+        .withActionType(actionType)
+        .withActionDate(new Date())
+        .withActionStatus(actionStatus);
 
-        JournalRecord journalRecord = new JournalRecord()
-          .withJobExecutionId(record.getSnapshotId())
-          .withSourceId(record.getId())
-          .withSourceRecordOrder(record.getOrder())
-          .withEntityType(entityType)
-          .withActionType(actionType)
-          .withActionDate(new Date())
-          .withActionStatus(actionStatus);
-
-        if (!isEmpty(entityAsString)) {
-          JsonObject entityJson = new JsonObject(entityAsString);
-          journalRecord.setEntityId(entityJson.getString("id"));
+      if (!isEmpty(entityAsString)) {
+        JsonObject entityJson = new JsonObject(entityAsString);
+        journalRecord.setEntityId(entityJson.getString("id"));
+        if (entityType == INSTANCE || entityType == PO_LINE) {
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
           journalRecord.setEntityHrId(entityJson.getString("hrid"));
+          return Lists.newArrayList(journalRecord);
         }
         if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
           journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
+          return Lists.newArrayList(journalRecord);
         }
-        return Lists.newArrayList(journalRecord);
+        if (entityType == HOLDINGS) {
+          return processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record);
+        }
+        if (entityType == ITEM) {
+          return processItems(actionType, entityType, actionStatus, eventPayloadContext, record);
+        }
+        if (eventPayloadContext.get("ERRORS") != null) {
+          return processErrors(actionType, entityType, actionStatus, eventPayloadContext, record);
+        }
       }
-      if (entityType == HOLDINGS) {
-        return processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record);
-      }
-      if (entityType == ITEM) {
-        return processItems(actionType, entityType, actionStatus, eventPayloadContext, record);
-      }
-      if (eventPayloadContext.get("ERRORS") != null) {
-        return processErrors(actionType, entityType, actionStatus, eventPayloadContext, record);
-      }
+      return Lists.newArrayList(journalRecord);
     } catch (Exception e) {
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
-    return Lists.newArrayList();
   }
 
   private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
