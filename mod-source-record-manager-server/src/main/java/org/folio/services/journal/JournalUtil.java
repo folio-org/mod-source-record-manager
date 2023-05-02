@@ -91,15 +91,17 @@ public class JournalUtil {
           journalRecord.setEntityHrId(entityJson.getString(HRID_KEY));
           return Lists.newArrayList(journalRecord);
         }
+        List<JournalRecord> resultedJournalRecords = new ArrayList<>();
         if (entityType == HOLDINGS) {
-          return processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record);
+          resultedJournalRecords.addAll(processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record));
         }
         if (entityType == ITEM) {
-          return processItems(actionType, entityType, actionStatus, eventPayloadContext, record);
+          resultedJournalRecords.addAll(processItems(actionType, entityType, actionStatus, eventPayloadContext, record));
         }
         if (eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
-          return processErrors(actionType, entityType, actionStatus, eventPayloadContext, record);
+          resultedJournalRecords.addAll(processErrors(actionType, entityType, actionStatus, eventPayloadContext, record));
         }
+        return resultedJournalRecords;
       }
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
         journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
@@ -108,27 +110,6 @@ public class JournalUtil {
     } catch (Exception e) {
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
-  }
-
-  private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
-    JsonArray errors = new JsonArray(eventPayloadContext.get(entityType.value()));
-    List<JournalRecord> journalErrorRecords = new ArrayList<>();
-
-    for (int i = 0; i < errors.size(); i++) {
-      JsonObject errorAsJson = errors.getJsonObject(i);
-      JournalRecord journalRecord = new JournalRecord()
-        .withJobExecutionId(record.getSnapshotId())
-        .withSourceId(record.getId())
-        .withSourceRecordOrder(record.getOrder())
-        .withEntityType(entityType)
-        .withActionType(actionType)
-        .withActionDate(new Date())
-        .withActionStatus(actionStatus)
-        .withError(errorAsJson.getString(ERROR_KEY))
-        .withEntityId(errorAsJson.getString(ID_KEY));
-      journalErrorRecords.add(journalRecord);
-    }
-    return journalErrorRecords;
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
@@ -183,6 +164,27 @@ public class JournalUtil {
       journalRecords.add(journalRecord);
     }
     return journalRecords;
+  }
+
+  private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
+    JsonArray errors = new JsonArray(eventPayloadContext.get(MULTIPLE_ERRORS_KEY));
+    List<JournalRecord> journalErrorRecords = new ArrayList<>();
+
+    for (int i = 0; i < errors.size(); i++) {
+      JsonObject errorAsJson = new JsonObject(errors.getString(i));
+      JournalRecord journalRecord = new JournalRecord()
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withSourceRecordOrder(record.getOrder())
+        .withEntityType(entityType)
+        .withActionType(actionType)
+        .withActionDate(new Date())
+        .withActionStatus(actionStatus)
+        .withError(errorAsJson.getString("error"))
+        .withEntityId(errorAsJson.getString(ID_KEY));
+      journalErrorRecords.add(journalRecord);
+    }
+    return journalErrorRecords;
   }
 
   private static Map<String, String> initalizeHoldingsIdInstanceIdMap(HashMap<String, String> eventPayloadContext) {

@@ -607,4 +607,98 @@ public class JournalUtilTest {
     Assert.assertEquals(COMPLETED, journalRecords.get(1).getActionStatus());
     Assert.assertNotNull(journalRecords.get(1).getActionDate());
   }
+
+  @Test
+  public void shouldBuildSeveralJournalRecordsWithErrorsIfMultipleErrorsExists() throws JournalRecordMapperException {
+    String itemId = UUID.randomUUID().toString();
+    String itemHrid = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String firstErrorUUID = UUID.randomUUID().toString();
+    String secondErrorUUID = UUID.randomUUID().toString();
+
+
+    JsonObject itemJson = new JsonObject()
+      .put("id", itemId)
+      .put("hrid", itemHrid)
+      .put("holdingsRecordId", holdingsId);
+
+    JsonObject instanceJson = new JsonObject()
+      .put("id", instanceId)
+      .put("hrid", instanceHrid);
+
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    JsonArray multipleItems = new JsonArray();
+    multipleItems.add(itemJson.encode());
+
+    JsonObject firstError = new JsonObject();
+    firstError.put("id", firstErrorUUID);
+    firstError.put("error", "Testing first error message!");
+
+    JsonObject secondError = new JsonObject();
+    secondError.put("id", secondErrorUUID);
+    secondError.put("error", "Testing second error message!");
+
+    JsonArray multipleErrors = new JsonArray();
+    multipleErrors.add(firstError.encode());
+    multipleErrors.add(secondError.encode());
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(ITEM.value(), String.valueOf(multipleItems));
+    context.put(INSTANCE.value(), instanceJson.encode());
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put("ERRORS", String.valueOf(multipleErrors));
+
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_INVENTORY_ITEM_CREATED")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, ITEM, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(3, journalRecords.size());
+
+    Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
+    Assert.assertEquals(itemHrid, journalRecords.get(0).getEntityHrId());
+    Assert.assertEquals(instanceId, journalRecords.get(0).getInstanceId());
+    Assert.assertEquals(holdingsId, journalRecords.get(0).getHoldingsId());
+    Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecords.get(0).getActionDate());
+
+    Assert.assertEquals(snapshotId, journalRecords.get(1).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecords.get(1).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(1).getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecords.get(1).getEntityType());
+    Assert.assertEquals(firstErrorUUID, journalRecords.get(1).getEntityId());
+    Assert.assertEquals(CREATE, journalRecords.get(1).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(1).getActionStatus());
+    Assert.assertEquals("Testing first error message!", journalRecords.get(1).getError());
+
+    Assert.assertEquals(snapshotId, journalRecords.get(2).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecords.get(2).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(2).getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecords.get(2).getEntityType());
+    Assert.assertEquals(secondErrorUUID, journalRecords.get(2).getEntityId());
+    Assert.assertEquals(CREATE, journalRecords.get(2).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(2).getActionStatus());
+    Assert.assertEquals("Testing second error message!", journalRecords.get(2).getError());
+
+    Assert.assertNotNull(journalRecords.get(1).getActionDate());
+
+  }
 }
