@@ -1,7 +1,10 @@
 package org.folio.verticle.consumers.util;
 
+import com.google.common.collect.Lists;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
@@ -18,6 +21,7 @@ import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,18 +108,30 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     if (journalParamsOptional.isPresent()) {
       JournalParams journalParams = journalParamsOptional.get();
-      List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      for (JournalRecord journalRecord : journalRecords) {
-        if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
-          processJournalRecordForOrder(journalService, tenantId, journalRecord);
-        } else {
-          populateRecordTitleIfNeeded(journalRecord, eventPayload)
-            .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecords), tenantId));
-        }
+      CompositeFuture.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
+        .onComplete(e ->
+        {
+          List<JsonObject> jsonObjects = new ArrayList<>();
+          journalRecords.forEach(journalRecord -> jsonObjects.add(JsonObject.mapFrom(journalRecord)));
+          journalService.saveBatch(new JsonArray(jsonObjects), tenantId);
+        });
+    }
+  }
+
+  private List<Future> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
+    List<Future<JournalRecord>> futureRecords = new ArrayList<>();
+    for (JournalRecord journalRecord : journalRecords) {
+      if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
+        processJournalRecordForOrder(journalService, tenantId, journalRecord);
+        futureRecords.add(Future.succeededFuture());
+      } else {
+        futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
       }
     }
+    return Lists.newArrayList(futureRecords);
   }
 
   private void processJournalRecordForOrder(JournalService journalService, String tenantId, JournalRecord journalRecord) {
@@ -126,6 +142,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
     }
   }
+
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
     var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM ?

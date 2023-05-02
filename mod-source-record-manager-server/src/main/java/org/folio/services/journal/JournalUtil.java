@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +37,11 @@ public class JournalUtil {
   public static final String ERROR_KEY = "ERROR";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
   public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
+  public static final String ID_KEY = "id";
+  public static final String HOLDINGS_RECORD_ID_KEY = "holdingsRecordId";
+  public static final String INSTANCE_ID_KEY = "instanceId";
+  public static final String HRID_KEY = "hrid";
+  public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
 
   private JournalUtil() {
 
@@ -48,8 +54,8 @@ public class JournalUtil {
       .orElse(EMPTY);
   }
 
-  public static List<JournalRecord> buildJournalRecordByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
-                                                              JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
+  public static List<JournalRecord> buildJournalRecordsByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                               JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
 
@@ -76,13 +82,13 @@ public class JournalUtil {
         .withActionStatus(actionStatus);
 
       if (!isEmpty(entityAsString)) {
-        JsonObject entityJson = new JsonObject(entityAsString);
-        journalRecord.setEntityId(entityJson.getString("id"));
         if (entityType == INSTANCE || entityType == PO_LINE) {
+          JsonObject entityJson = new JsonObject(entityAsString);
+          journalRecord.setEntityId(entityJson.getString(ID_KEY));
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
-          journalRecord.setEntityHrId(entityJson.getString("hrid"));
+          journalRecord.setEntityHrId(entityJson.getString(HRID_KEY));
           return Lists.newArrayList(journalRecord);
         }
         if (entityType == HOLDINGS) {
@@ -118,19 +124,19 @@ public class JournalUtil {
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus)
-        .withError(errorAsJson.getString("error"))
-        .withEntityId(errorAsJson.getString("id"));
+        .withError(errorAsJson.getString(ERROR_KEY))
+        .withEntityId(errorAsJson.getString(ID_KEY));
       journalErrorRecords.add(journalRecord);
     }
     return journalErrorRecords;
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
-    JsonArray multipleEntities = new JsonArray(eventPayloadContext.get(entityType.value()));
+    JsonArray multipleHoldingss = new JsonArray(eventPayloadContext.get(entityType.value()));
     List<JournalRecord> journalRecords = new ArrayList<>();
 
-    for (int i = 0; i < multipleEntities.size(); i++) {
-      JsonObject entityAsJson = multipleEntities.getJsonObject(i);
+    for (int i = 0; i < multipleHoldingss.size(); i++) {
+      JsonObject HoldingsAsJson = new JsonObject(multipleHoldingss.getString(i));
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
@@ -139,21 +145,21 @@ public class JournalUtil {
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus)
-        .withEntityId(entityAsJson.getString("id"))
-        .withEntityHrId(entityAsJson.getString("hrid"))
-        .withInstanceId(entityAsJson.getString("instanceId"))
-        .withPermanentLocationId(entityAsJson.getString("permanentLocationId"));
+        .withEntityId(HoldingsAsJson.getString(ID_KEY))
+        .withEntityHrId(HoldingsAsJson.getString(HRID_KEY))
+        .withInstanceId(HoldingsAsJson.getString(INSTANCE_ID_KEY))
+        .withPermanentLocationId(HoldingsAsJson.getString(PERMANENT_LOCATION_ID_KEY));
       journalRecords.add(journalRecord);
     }
     return journalRecords;
   }
 
   private static List<JournalRecord> processItems(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
-    JsonArray multipleEntities = new JsonArray(eventPayloadContext.get(entityType.value()));
+    JsonArray multipleItems = new JsonArray(eventPayloadContext.get(entityType.value()));
     List<JournalRecord> journalRecords = new ArrayList<>();
 
-    for (int i = 0; i < multipleEntities.size(); i++) {
-      JsonObject entityAsJson = multipleEntities.getJsonObject(i);
+    for (int i = 0; i < multipleItems.size(); i++) {
+      JsonObject itemAsJson = new JsonObject(multipleItems.getString(i));
       JournalRecord journalRecord = new JournalRecord()
         .withJobExecutionId(record.getSnapshotId())
         .withSourceId(record.getId())
@@ -162,21 +168,30 @@ public class JournalUtil {
         .withActionType(actionType)
         .withActionDate(new Date())
         .withActionStatus(actionStatus)
-        .withEntityId(entityAsJson.getString("id"))
-        .withEntityHrId(entityAsJson.getString("hrid"))
-        .withInstanceId(entityAsJson.getString("instanceId"));
+        .withEntityId(itemAsJson.getString(ID_KEY))
+        .withEntityHrId(itemAsJson.getString(HRID_KEY))
+        .withInstanceId(itemAsJson.getString(INSTANCE_ID_KEY));
 
       if (eventPayloadContext.containsKey(INSTANCE.value())) {
         JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
-        journalRecord.setInstanceId(instanceJson.getString("id"));
+        journalRecord.setInstanceId(instanceJson.getString(ID_KEY));
       } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
-        JsonObject holdingsJson = new JsonObject(eventPayloadContext.get(HOLDINGS.value()));
-        journalRecord.setInstanceId(holdingsJson.getString("instanceId"));
+        Map<String, String> holdingsIdInstanceId = initalizeHoldingsIdInstanceIdMap(eventPayloadContext);
+        journalRecord.setInstanceId(holdingsIdInstanceId.get(itemAsJson.getString(HOLDINGS_RECORD_ID_KEY)));
       }
-      journalRecord.setHoldingsId(entityAsJson.getString("holdingsRecordId"));
+      journalRecord.setHoldingsId(itemAsJson.getString(HOLDINGS_RECORD_ID_KEY));
       journalRecords.add(journalRecord);
     }
     return journalRecords;
   }
 
+  private static Map<String, String> initalizeHoldingsIdInstanceIdMap(HashMap<String, String> eventPayloadContext) {
+    Map<String, String> holdingsIdInstanceId = new HashMap<>();
+    JsonArray multipleHoldings = new JsonArray(eventPayloadContext.get(HOLDINGS.value()));
+    for (int j = 0; j < multipleHoldings.size(); j++) {
+      JsonObject holding = new JsonObject(multipleHoldings.getString(j));
+      holdingsIdInstanceId.put(holding.getString(ID_KEY), holding.getString(INSTANCE_ID_KEY));
+    }
+    return holdingsIdInstanceId;
+  }
 }
