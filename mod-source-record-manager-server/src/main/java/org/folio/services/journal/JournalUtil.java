@@ -81,6 +81,10 @@ public class JournalUtil {
         .withActionDate(new Date())
         .withActionStatus(actionStatus);
 
+      if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+        journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
+      }
+
       if (!isEmpty(entityAsString)) {
         if (entityType == INSTANCE || entityType == PO_LINE) {
           JsonObject entityJson = new JsonObject(entityAsString);
@@ -91,20 +95,21 @@ public class JournalUtil {
           journalRecord.setEntityHrId(entityJson.getString(HRID_KEY));
           return Lists.newArrayList(journalRecord);
         }
-        List<JournalRecord> resultedJournalRecords = new ArrayList<>();
-        if (entityType == HOLDINGS) {
-          resultedJournalRecords.addAll(processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record));
+        if (entityType == HOLDINGS || entityType == ITEM || eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
+          List<JournalRecord> resultedJournalRecords = new ArrayList<>();
+          if (entityType == HOLDINGS) {
+            resultedJournalRecords.addAll(processHoldings(actionType, entityType, actionStatus, eventPayloadContext, record));
+          }
+          if (entityType == ITEM) {
+            resultedJournalRecords.addAll(processItems(actionType, entityType, actionStatus, eventPayloadContext, record));
+          }
+          if (eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
+            resultedJournalRecords.addAll(processErrors(actionType, entityType, actionStatus, eventPayloadContext, record));
+          }
+          return resultedJournalRecords;
+        } else {
+          return Lists.newArrayList(journalRecord);
         }
-        if (entityType == ITEM) {
-          resultedJournalRecords.addAll(processItems(actionType, entityType, actionStatus, eventPayloadContext, record));
-        }
-        if (eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null) {
-          resultedJournalRecords.addAll(processErrors(actionType, entityType, actionStatus, eventPayloadContext, record));
-        }
-        return resultedJournalRecords;
-      }
-      if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
-        journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
       }
       return Lists.newArrayList(journalRecord);
     } catch (Exception e) {
