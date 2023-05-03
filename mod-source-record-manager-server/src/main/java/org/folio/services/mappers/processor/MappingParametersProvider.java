@@ -2,26 +2,29 @@ package org.folio.services.mappers.processor;
 
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
 import com.google.common.base.Objects;
-import org.apache.commons.lang.StringUtils;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.AuthorityNoteType;
-import org.folio.AuthoritySourceFile;
-import org.folio.Authoritynotetypes;
-import org.folio.Authoritysourcefiles;
-import org.folio.okapi.common.GenericCompositeFuture;
-
+import com.google.common.reflect.TypeToken;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.AlternativeTitleType;
 import org.folio.Alternativetitletypes;
+import org.folio.AuthorityNoteType;
+import org.folio.AuthoritySourceFile;
+import org.folio.Authoritynotetypes;
+import org.folio.Authoritysourcefiles;
 import org.folio.CallNumberType;
 import org.folio.Callnumbertypes;
 import org.folio.ClassificationType;
@@ -56,6 +59,7 @@ import org.folio.ItemDamageStatus;
 import org.folio.ItemNoteType;
 import org.folio.Itemdamagedstatuses;
 import org.folio.Itemnotetypes;
+import org.folio.LinkingRuleDto;
 import org.folio.Loantype;
 import org.folio.Loantypes;
 import org.folio.Location;
@@ -71,19 +75,12 @@ import org.folio.Statisticalcodes;
 import org.folio.Statisticalcodetypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
@@ -97,6 +94,7 @@ public class MappingParametersProvider {
   private int settingsLimit;
 
   private static final String TENANT_CONFIGURATION_ZONE_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+  private static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -184,13 +182,15 @@ public class MappingParametersProvider {
     Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
+    Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
 
 
     return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture,
+        linkingRulesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -223,6 +223,7 @@ public class MappingParametersProvider {
           .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
+          .withLinkingRules(linkingRulesFuture.result())
       ).onFailure(e -> LOGGER.error("Something happened while initializing mapping parameters", e));
   }
 
@@ -764,6 +765,30 @@ public class MappingParametersProvider {
           promise.complete(timeZone);
         } else {
           promise.complete(StringUtils.EMPTY);
+        }
+      }
+    });
+    return promise.future();
+  }
+
+  /**
+   * Requests for linking rules from mod-entities-links.
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return linking rules
+   */
+  private Future<List<LinkingRuleDto>> getLinkingRules(OkapiConnectionParams params) {
+    Promise<List<LinkingRuleDto>> promise = Promise.promise();
+    RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
+      if (RestUtil.validateAsyncResult(ar, promise)) {
+        JsonObject response = ar.result().getJson();
+        if (response != null) {
+          List<LinkingRuleDto> linkingRules = response.mapTo(new TypeToken<List<LinkingRuleDto>>(){}.getRawType()
+            .asSubclass(List.class));
+          promise.complete(linkingRules);
+        } else {
+          promise.complete(Collections.emptyList());
         }
       }
     });

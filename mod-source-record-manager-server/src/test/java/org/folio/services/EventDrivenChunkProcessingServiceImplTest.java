@@ -34,6 +34,7 @@ import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
@@ -135,6 +136,9 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
   @Spy
   private RecordsPublishingService recordsPublishingService;
+  @Spy
+  @InjectMocks
+  private FieldModificationService fieldModificationService;
 
   private AutoCloseable mocks;
   private KafkaConfig kafkaConfig;
@@ -182,7 +186,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
-      hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig);
+      hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
+      fieldModificationService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);

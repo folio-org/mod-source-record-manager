@@ -51,6 +51,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
@@ -131,6 +132,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
+  @Spy
+  @InjectMocks
+  private FieldModificationService fieldModificationService;
 
   @Spy
   RecordsPublishingService recordsPublishingService;
@@ -187,7 +191,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
+      fieldModificationService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
