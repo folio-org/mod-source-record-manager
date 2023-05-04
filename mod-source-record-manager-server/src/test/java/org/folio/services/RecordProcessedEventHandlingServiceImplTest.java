@@ -450,52 +450,5 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
         });
       async.complete();
     });
-
- /*   // given
-    Async async = context.async();
-    RawRecordsDto rawRecordsDto = new RawRecordsDto()
-      .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD)))
-      .withRecordsMetadata(new RecordsMetadata()
-        .withLast(true)
-        .withCounter(2)
-        .withTotal(2)
-        .withContentType(RecordsMetadata.ContentType.MARC_RAW));
-
-    HashMap<String, String> payloadContext = new HashMap<>();
-    DataImportEventPayload datImpErrorEventPayload = new DataImportEventPayload()
-      .withEventType(DataImportEventTypes.DI_ERROR.value())
-      .withContext(payloadContext);
-
-
-    DataImportEventPayload datImpCompletedEventPayload = new DataImportEventPayload()
-      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
-      .withContext(payloadContext);
-
-    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
-      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .map(jobExecution -> {
-        datImpErrorEventPayload.withJobExecutionId(jobExecution.getId());
-        return datImpCompletedEventPayload.withJobExecutionId(jobExecution.getId());
-      })
-      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto, datImpErrorEventPayload.getJobExecutionId(), params));
-
-    // when
-    Future<Optional<JobExecution>> jobFuture = future
-      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
-      .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
-
-    // then
-    jobFuture.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      context.assertTrue(ar.result().isPresent());
-      JobExecution jobExecution = ar.result().get();
-      context.assertEquals(ERROR, jobExecution.getStatus());
-      context.assertEquals(JobExecution.UiStatus.ERROR, jobExecution.getUiStatus());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
-      context.assertNotNull(jobExecution.getStartedDate());
-      context.assertNotNull(jobExecution.getCompletedDate());
-      verify(2, putRequestedFor(new UrlPathPattern(new RegexPattern(SNAPSHOT_SERVICE_URL + "/.*"), true)));
-      async.complete();
-    });*/
   }
 }
