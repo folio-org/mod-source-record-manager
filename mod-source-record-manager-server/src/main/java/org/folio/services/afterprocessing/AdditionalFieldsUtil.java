@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import java.util.function.Consumer;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -217,6 +218,47 @@ public final class AdditionalFieldsUtil {
       }
     } catch (Exception e) {
       LOGGER.warn("addDataFieldToMarcRecord:: Failed to add additional data field {} to record {}", tag, record.getId(), e);
+    }
+    return result;
+  }
+
+  /**
+   * Modifies fields for given codes with given modification for marc record
+   *
+   * @param folioRecord record that needs to be updated
+   * @param tags    list of data field tags
+   * @param modification  action to apply to each of desired data fields
+   * @return true if succeeded, false otherwise
+   */
+  public static boolean modifyDataFieldsForMarcRecord(Record folioRecord, List<String> tags, Consumer<DataField> modification) {
+    boolean result = false;
+    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+      org.marc4j.marc.Record marcRecord = computeMarcRecord(folioRecord);
+      if (marcRecord == null) {
+        return result;
+      }
+
+      MarcWriter streamWriter = new MarcStreamWriter(new ByteArrayOutputStream());
+      MarcJsonWriter jsonWriter = new MarcJsonWriter(os);
+
+      marcRecord.getDataFields().stream()
+        .filter(dataField -> tags.contains(dataField.getTag()))
+          .forEach(modification);
+
+      // use stream writer to recalculate leader
+      streamWriter.write(marcRecord);
+      jsonWriter.write(marcRecord);
+
+      String parsedContentString = new JsonObject(os.toString()).encode();
+      // save parsed content string to cache then set it on the record
+      parsedRecordContentCache.put(parsedContentString, marcRecord);
+      folioRecord.setParsedRecord(
+        folioRecord
+          .getParsedRecord()
+          .withContent(parsedContentString));
+      result = true;
+    } catch (Exception e) {
+      LOGGER.warn("modifyDataFieldsForMarcRecord:: Failed to modify data fields for record {}", folioRecord.getId(), e);
     }
     return result;
   }

@@ -3,6 +3,8 @@ package org.folio.services.afterprocessing;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
 import org.folio.rest.jaxrs.model.ParsedRecord;
@@ -25,6 +27,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFie
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyDataFieldsForMarcRecord;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
@@ -284,6 +287,35 @@ public class AdditionalFieldsUtilTest {
     Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
     // when
     boolean added = addDataFieldToMarcRecord(record, TAG_999, INDICATOR, INDICATOR, SUBFIELD_I, instanceId);
+    // then
+    Assert.assertTrue(added);
+    Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
+  }
+
+  @Test
+  public void shouldUpdateFieldsWithProvidedAction() {
+    // given
+    String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\"," +
+      "\"fields\":[{\"001\":\"ybp7406411\"}," +
+      "{\"501\":{\"subfields\":[{\"a\":\"data\"},{\"9\":\"remove\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
+      "{\"507\":{\"subfields\":[{\"a\":\"data\"},{\"9\":\"keep\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
+      "{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
+    String expectedParsedContent = "{\"leader\":\"00118nam  22000731a 4500\"," +
+      "\"fields\":[{\"001\":\"ybp7406411\"}," +
+      "{\"501\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
+      "{\"507\":{\"subfields\":[{\"a\":\"data\"},{\"9\":\"keep\"}],\"ind1\":\" \",\"ind2\":\" \"}}," +
+      "{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
+    List<String> tagsForAction = List.of("500", "501");
+    ParsedRecord parsedRecord = new ParsedRecord();
+    parsedRecord.setContent(parsedContent);
+    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    // when
+    boolean added = modifyDataFieldsForMarcRecord(record, tagsForAction, dataField -> {
+      var subfields9 = dataField.getSubfields().stream()
+        .filter(subfield -> '9' == subfield.getCode())
+        .collect(Collectors.toList());
+      subfields9.forEach(dataField::removeSubfield);
+    });
     // then
     Assert.assertTrue(added);
     Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
