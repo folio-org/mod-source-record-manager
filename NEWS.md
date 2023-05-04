@@ -1,6 +1,7 @@
 ## 2023-03-xo v3.6.1-SNAPSHOT
 * [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
 * [MODDATAIMP-786](https://issues.folio.org/browse/MODDATAIMP-786) Update data-import-util library to v1.11.0
+* [MODSOURMAN-965](https://issues.folio.org/browse/MODSOURMAN-965) Adjust progress tracking mechanism with regard to multiple values being created
 
 ## 2023-02-24 v3.6.0
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
