@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
@@ -146,6 +147,8 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("Create instance")))));
     WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
       .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
+    WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
+      .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
   }
 
   @Test
