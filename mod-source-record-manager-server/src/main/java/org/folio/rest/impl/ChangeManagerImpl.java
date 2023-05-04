@@ -90,7 +90,7 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void putChangeManagerJobExecutionsById(String id, String lang, JobExecution entity, Map<String, String> okapiHeaders,
+  public void putChangeManagerJobExecutionsById(String id, JobExecution entity, Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
@@ -109,7 +109,7 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void getChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
+  public void getChangeManagerJobExecutionsById(String id, Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(c -> {
       try {
@@ -129,7 +129,7 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void deleteChangeManagerJobExecutionsById(String id, String lang, Map<String, String> okapiHeaders,
+  public void deleteChangeManagerJobExecutionsById(String id, Map<String, String> okapiHeaders,
                                                    Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     LOGGER.warn("deleteChangeManagerJobExecutionsById:: Method is not implemented");
     asyncResultHandler.handle(Future.succeededFuture(
@@ -138,7 +138,7 @@ public class ChangeManagerImpl implements ChangeManager {
 
 
   @Override
-  public void getChangeManagerJobExecutionsChildrenById(String id, int limit, int offset, Map<String, String> okapiHeaders,
+  public void getChangeManagerJobExecutionsChildrenById(String id, int limit, String totalRecords, int offset, Map<String, String> okapiHeaders,
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
