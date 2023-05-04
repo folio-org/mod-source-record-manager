@@ -619,19 +619,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
                                                   OkapiConnectionParams okapiParams) {
-    if (TRUE.equals(removeSubfield9ForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
+    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
       return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
     }
 
     return Future.succeededFuture(folioRecords);
   }
 
-  private Boolean removeSubfield9ForProfile(ProfileSnapshotWrapper profileSnapshot) {
+  private Boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ACTION_PROFILE) {
         ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
         if (TRUE.equals(actionProfile.getRemove9Subfields())
-          || TRUE.equals(removeSubfield9ForProfile(childWrapper))) {
+          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
           return true;
         }
       }

@@ -60,7 +60,7 @@
     },
     {
       "id": "data-import-converter-storage",
-      "version": "1.2"
+      "version": "1.4"
     },
     {
       "id": "modes-of-issuance",
@@ -289,7 +289,8 @@
             "acquisitions-units-storage.memberships.collection.get",
             "isbn-utils.convert-to-13.get",
             "instance-authority-links.instances.collection.get",
-            "instance-authority-links.instances.collection.put"
+            "instance-authority-links.instances.collection.put",
+            "instance-authority.linking-rules.collection.get"
           ],
           "permissionsDesired": [
             "invoices.acquisitions-units-assignments.assign",
@@ -402,7 +403,8 @@
             "users.collection.get",
             "orders.po-lines.collection.get",
             "instance-authority-links.instances.collection.get",
-            "instance-authority-links.instances.collection.put"
+            "instance-authority-links.instances.collection.put",
+            "instance-authority.linking-rules.collection.get"
           ]
         }
       ]
@@ -502,6 +504,9 @@
           "pathPattern": "/mapping-metadata/type/{recordType}",
           "permissionsRequired": [
             "mapping-metadata.get"
+          ],
+          "modulePermissions": [
+            "instance-authority.linking-rules.collection.get"
           ]
         }
       ]
