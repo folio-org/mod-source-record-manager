@@ -784,14 +784,15 @@ public class MappingParametersProvider {
     Promise<List<LinkingRuleDto>> promise = Promise.promise();
     RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
+        var result = ar.result();
+        JsonObject response = result.getJson();
         if (response != null) {
           List<LinkingRuleDto> linkingRules = response.mapTo(new TypeToken<List<LinkingRuleDto>>(){}.getRawType()
             .asSubclass(List.class));
           log.info("Retrieve linking rules success, count: {}", linkingRules.size());
           promise.complete(linkingRules);
         } else {
-          log.info("Retrieve linking rules fail");
+          log.info("Retrieve linking rules fail: {}, {}, {}", result.getCode(), result.getBody(), result.getResponse());
           promise.complete(Collections.emptyList());
         }
       }
