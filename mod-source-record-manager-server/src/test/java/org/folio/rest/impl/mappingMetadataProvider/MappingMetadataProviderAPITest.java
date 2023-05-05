@@ -1,8 +1,12 @@
 package org.folio.rest.impl.mappingMetadataProvider;
 
+import static java.util.Collections.emptyList;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.restassured.RestAssured;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -89,6 +93,9 @@ public class MappingMetadataProviderAPITest extends AbstractRestTest {
 
   @Test
   public void shouldReturnDefaultMappingMetadataByRecordTypeOnGet(TestContext context) throws IOException {
+    WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
+      .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
+
     JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(MARC_BIB_RULES_PATH));
     JsonObject expectedParams = new JsonObject(TestUtil.readFileFromPath(MARC_PARAMS_PATH));
     JsonObject actual = new JsonObject(RestAssured.given()

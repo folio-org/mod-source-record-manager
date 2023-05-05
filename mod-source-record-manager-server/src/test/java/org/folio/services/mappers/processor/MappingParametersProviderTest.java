@@ -67,6 +67,7 @@ public class MappingParametersProviderTest {
     "/configurations/entries?query="
       + URLEncoder.encode(
       "(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+  protected static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -204,6 +205,9 @@ public class MappingParametersProviderTest {
     WireMock.stubFor(
       get(TENANT_CONFIGURATIONS_SETTINGS_URL)
         .willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
+    WireMock.stubFor(
+      get(LINKING_RULES_URL)
+        .willReturn(okJson(new JsonArray().toString())));
   }
 
   @Test

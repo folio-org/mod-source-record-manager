@@ -471,6 +471,9 @@ Successful response contains no content (HTTP status 204).
 ### When overlay (both overlays - via Instance = FOLIO or Instance = MARC):
 The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field.
 
+### When job profile contains any ActionProfile with `remove9Subfields` set to true
+Remove $9 subfield from all 'controllable' fields (Linking rules are queried to get list of 'controllable' tags)
+
 ## Delete job executions with all related data
 UI allows to delete multiple job executions from Landing page and View All page.
 Data import marks jobs as deleted after user hits the Delete button. Queries to get/update job executions filter out records, marked as deleted.

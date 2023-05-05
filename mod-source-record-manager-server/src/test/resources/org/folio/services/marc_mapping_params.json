@@ -28,5 +28,6 @@
   "tenantConfiguration": "",
   "authorityNoteTypes": [],
   "authoritySourceFiles": [],
-  "organizations": null
+  "organizations": null,
+  "linkingRules": []
 }
