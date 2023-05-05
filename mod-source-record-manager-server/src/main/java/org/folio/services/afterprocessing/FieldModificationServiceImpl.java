@@ -28,14 +28,13 @@ public class FieldModificationServiceImpl implements FieldModificationService {
 
   @Override
   public Future<List<Record>> remove9Subfields(String jobExecutionId, List<Record> folioRecords, OkapiConnectionParams okapiParams) {
-    log.info("remove9Subfields:: called for job {}", jobExecutionId);
+    log.trace("remove9Subfields:: called for job {}", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams).map(mappingParameters -> {
-      log.info("remove9Subfields:: mappingParameters retrieved for job {} with linkingRules count {}", jobExecutionId,
+      log.trace("remove9Subfields:: mappingParameters retrieved for job {} with linkingRules count {}", jobExecutionId,
         mappingParameters.getLinkingRules().size());
       var linkableFields = mappingParameters.getLinkingRules().stream()
         .map(LinkingRuleDto::getBibField)
         .collect(Collectors.toList());
-      log.info("remove9Subfields:: linkableFields extracted for job {}: {}", jobExecutionId, linkableFields);
 
       folioRecords.stream()
         .filter(folioRecord -> Record.RecordType.MARC_BIB.equals(folioRecord.getRecordType()))
@@ -46,18 +45,9 @@ public class FieldModificationServiceImpl implements FieldModificationService {
   }
   
   private void removeSubfields(DataField dataField) {
-    log.info("removeSubfields:: called for dataField {} with subfields {}",
-      dataField.getTag(), dataField.getSubfields().stream()
-        .map(Subfield::getCode)
-        .collect(Collectors.toList()));
     var subfields9 = dataField.getSubfields().stream()
       .filter(subfield -> SUBFIELD_9 == subfield.getCode())
       .collect(Collectors.toList());
     subfields9.forEach(dataField::removeSubfield);
-
-    log.info("removeSubfields:: dataField {} with subfields after removal {}",
-      dataField.getTag(), dataField.getSubfields().stream()
-        .map(Subfield::getCode)
-        .collect(Collectors.toList()));
   }
 }

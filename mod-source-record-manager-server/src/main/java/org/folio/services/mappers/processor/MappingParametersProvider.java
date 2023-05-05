@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
-import com.google.common.reflect.TypeToken;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -20,7 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +81,6 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
-import org.folio.rest.jaxrs.model.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -91,7 +88,6 @@ import org.springframework.stereotype.Component;
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
-@Log4j2
 @Component
 public class MappingParametersProvider {
 
@@ -796,13 +792,12 @@ public class MappingParametersProvider {
           try {
             linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
-            log.warn("Unable to parse linking rules response: {}", e.getMessage());
+            LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
             promise.fail(e);
           }
-          log.info("Retrieve linking rules success, count: {}", linkingRules.size());
           promise.complete(linkingRules);
         } else {
-          log.info("Retrieve linking rules fail: {}, {}, {}", result.getCode(), result.getBody(), result.getResponse());
+          LOGGER.warn("Retrieve linking rules fail: {}", result.getCode());
           promise.complete(Collections.emptyList());
         }
       }
