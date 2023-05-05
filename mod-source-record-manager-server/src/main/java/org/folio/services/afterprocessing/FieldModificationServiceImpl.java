@@ -30,7 +30,8 @@ public class FieldModificationServiceImpl implements FieldModificationService {
   public Future<List<Record>> remove9Subfields(String jobExecutionId, List<Record> folioRecords, OkapiConnectionParams okapiParams) {
     log.info("remove9Subfields:: called for job {}", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams).map(mappingParameters -> {
-      log.info("remove9Subfields:: mappingParameters retrieved for job {}", jobExecutionId);
+      log.info("remove9Subfields:: mappingParameters retrieved for job {} with linkingRules count {}", jobExecutionId,
+        mappingParameters.getLinkingRules().size());
       var linkableFields = mappingParameters.getLinkingRules().stream()
         .map(LinkingRuleDto::getBibField)
         .collect(Collectors.toList());

@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +86,7 @@ import org.springframework.stereotype.Component;
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
  */
+@Log4j2
 @Component
 public class MappingParametersProvider {
 
@@ -786,8 +788,10 @@ public class MappingParametersProvider {
         if (response != null) {
           List<LinkingRuleDto> linkingRules = response.mapTo(new TypeToken<List<LinkingRuleDto>>(){}.getRawType()
             .asSubclass(List.class));
+          log.info("Retrieve linking rules success, count: {}", linkingRules.size());
           promise.complete(linkingRules);
         } else {
+          log.info("Retrieve linking rules fail");
           promise.complete(Collections.emptyList());
         }
       }
