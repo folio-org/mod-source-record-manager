@@ -793,7 +793,7 @@ public class MappingParametersProvider {
             linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
             LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
-            promise.fail(e);
+            promise.complete(Collections.emptyList());
           }
           promise.complete(linkingRules);
         } else {
