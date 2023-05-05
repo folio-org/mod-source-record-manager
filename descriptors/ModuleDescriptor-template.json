@@ -77,10 +77,6 @@
     {
       "id": "authority-source-files",
       "version": "1.0"
-    },
-    {
-      "id": "instance-authority-linking-rules",
-      "version": "1.0"
     }
   ],
   "provides": [
@@ -543,6 +539,12 @@
           "permissionsRequired": []
         }
       ]
+    }
+  ],
+  "optional": [
+    {
+      "id": "instance-authority-linking-rules",
+      "version": "1.0"
     }
   ],
   "permissionSets": [
