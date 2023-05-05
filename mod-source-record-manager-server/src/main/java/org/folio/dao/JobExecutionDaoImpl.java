@@ -167,7 +167,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String query = format(GET_BY_ID_SQL, jobTable);
-      pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(UUID.fromString(id)), promise);
+      pgClientFactory.createInstance(tenantId).select(query, Tuple.of(UUID.fromString(id)), promise);
     } catch (Exception e) {
       LOGGER.error("Error getting jobExecution by id", e);
       promise.fail(e);
