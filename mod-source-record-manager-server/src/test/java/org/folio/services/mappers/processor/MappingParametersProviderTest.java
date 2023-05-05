@@ -12,6 +12,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.LinkingRuleDto;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.junit.Assert;
@@ -207,7 +208,7 @@ public class MappingParametersProviderTest {
         .willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
     WireMock.stubFor(
       get(LINKING_RULES_URL)
-        .willReturn(okJson(new JsonArray().toString())));
+        .willReturn(okJson(new JsonArray().add(new LinkingRuleDto()).toString())));
   }
 
   @Test
@@ -221,6 +222,7 @@ public class MappingParametersProviderTest {
           MappingParameters result = ar.result();
           context.assertNotNull(result);
           context.assertTrue(result.isInitialized());
+          context.assertTrue(result.getLinkingRules().size() > 0);
           async.complete();
         });
   }

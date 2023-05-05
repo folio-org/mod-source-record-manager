@@ -1,5 +1,8 @@
 package org.folio.services.mappers.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
@@ -13,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -79,6 +83,7 @@ import org.folio.dataimport.util.RestUtil;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
+import org.folio.rest.jaxrs.model.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -785,10 +790,15 @@ public class MappingParametersProvider {
     RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
         var result = ar.result();
-        JsonObject response = result.getJson();
-        if (response != null) {
-          List<LinkingRuleDto> linkingRules = response.mapTo(new TypeToken<List<LinkingRuleDto>>(){}.getRawType()
-            .asSubclass(List.class));
+        String response = result.getBody();
+        if (StringUtils.isNotBlank(response)) {
+          List<LinkingRuleDto> linkingRules = new LinkedList<>();
+          try {
+            linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
+          } catch (JsonProcessingException e) {
+            log.warn("Unable to parse linking rules response: {}", e.getMessage());
+            promise.fail(e);
+          }
           log.info("Retrieve linking rules success, count: {}", linkingRules.size());
           promise.complete(linkingRules);
         } else {
