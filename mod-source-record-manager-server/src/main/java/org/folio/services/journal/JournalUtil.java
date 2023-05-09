@@ -155,8 +155,7 @@ public class JournalUtil {
         .withActionDate(new Date())
         .withActionStatus(actionStatus)
         .withEntityId(itemAsJson.getString(ID_KEY))
-        .withEntityHrId(itemAsJson.getString(HRID_KEY))
-        .withInstanceId(itemAsJson.getString(INSTANCE_ID_KEY));
+        .withEntityHrId(itemAsJson.getString(HRID_KEY));
 
       if (eventPayloadContext.containsKey(INSTANCE.value())) {
         JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
