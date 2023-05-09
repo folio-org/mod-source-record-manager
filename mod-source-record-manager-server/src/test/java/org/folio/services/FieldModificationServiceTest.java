@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +73,36 @@ public class FieldModificationServiceTest {
       .result().get(0);
 
     assertEquals(expectedParsedContent, actualRecord.getParsedRecord().getContent());
+  }
+
+  @Test
+  public void shouldFailOnMissingLinkingRules() {
+    // given
+    when(mappingParametersProvider.get(any(), any()))
+      .thenReturn(Future.succeededFuture(new MappingParameters()));
+
+    var initialRecord = record(Record.RecordType.MARC_AUTHORITY);
+
+    var result = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
+      .cause();
+
+    assertEquals(IllegalStateException.class, result.getClass());
+    assertEquals("Can't remove $9 subfields without linking rules.", result.getMessage());
+  }
+
+  @Test
+  public void shouldFailOnEmptyLinkingRules() {
+    // given
+    when(mappingParametersProvider.get(any(), any()))
+      .thenReturn(Future.succeededFuture(new MappingParameters().withLinkingRules(emptyList())));
+
+    var initialRecord = record(Record.RecordType.MARC_AUTHORITY);
+
+    var result = fieldModificationService.remove9Subfields(null, singletonList(initialRecord), null)
+      .cause();
+
+    assertEquals(IllegalStateException.class, result.getClass());
+    assertEquals("Can't remove $9 subfields without linking rules.", result.getMessage());
   }
 
   private Record record(Record.RecordType recordType) {
