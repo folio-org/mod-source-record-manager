@@ -5,6 +5,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyData
 import io.vertx.core.Future;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.folio.LinkingRuleDto;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
@@ -12,6 +13,7 @@ import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.marc4j.marc.DataField;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 public class FieldModificationServiceImpl implements FieldModificationService {
   
@@ -25,7 +27,15 @@ public class FieldModificationServiceImpl implements FieldModificationService {
 
   @Override
   public Future<List<Record>> remove9Subfields(String jobExecutionId, List<Record> folioRecords, OkapiConnectionParams okapiParams) {
+    log.trace("remove9Subfields:: called for job {}", jobExecutionId);
     return mappingParametersProvider.get(jobExecutionId, okapiParams).map(mappingParameters -> {
+      if (mappingParameters.getLinkingRules() == null || mappingParameters.getLinkingRules().isEmpty()) {
+        log.warn("Linking rules can't be 'null' for $9 removal.");
+        throw new IllegalStateException("Can't remove $9 subfields without linking rules.");
+      }
+
+      log.trace("remove9Subfields:: mappingParameters retrieved for job {} with linkingRules count {}", jobExecutionId,
+        mappingParameters.getLinkingRules().size());
       var linkableFields = mappingParameters.getLinkingRules().stream()
         .map(LinkingRuleDto::getBibField)
         .collect(Collectors.toList());

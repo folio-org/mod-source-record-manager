@@ -1,9 +1,11 @@
 package org.folio.services.mappers.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
-import com.google.common.reflect.TypeToken;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -13,6 +15,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -782,12 +785,19 @@ public class MappingParametersProvider {
     Promise<List<LinkingRuleDto>> promise = Promise.promise();
     RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null) {
-          List<LinkingRuleDto> linkingRules = response.mapTo(new TypeToken<List<LinkingRuleDto>>(){}.getRawType()
-            .asSubclass(List.class));
+        var result = ar.result();
+        String response = result.getBody();
+        if (StringUtils.isNotBlank(response)) {
+          List<LinkingRuleDto> linkingRules = new LinkedList<>();
+          try {
+            linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
+          } catch (JsonProcessingException e) {
+            LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
+            promise.complete(Collections.emptyList());
+          }
           promise.complete(linkingRules);
         } else {
+          LOGGER.warn("Retrieve linking rules fail: {}", result.getCode());
           promise.complete(Collections.emptyList());
         }
       }
