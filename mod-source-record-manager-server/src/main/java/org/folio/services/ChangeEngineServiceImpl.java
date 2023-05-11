@@ -634,6 +634,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
           || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
           return true;
         }
+      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+        return true;
       }
     }
     return false;
