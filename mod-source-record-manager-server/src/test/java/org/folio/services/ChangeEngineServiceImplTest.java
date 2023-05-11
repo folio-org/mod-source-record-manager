@@ -4,6 +4,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -34,6 +35,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
+import org.folio.MatchProfile;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.folio.rest.jaxrs.model.MappingProfile;
@@ -449,11 +451,8 @@ public class ChangeEngineServiceImplTest {
     JobExecution jobExecution = getTestJobExecution();
     jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
       .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
-        .withContentType(ACTION_PROFILE)
-        .withContent(new JsonObject(Json.encode(new ActionProfile()
-          .withAction(ActionProfile.Action.DELETE)
-          .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY)
-          .withRemove9Subfields(false))).getMap())
+        .withContentType(MATCH_PROFILE)
+        .withContent(new JsonObject(Json.encode(new MatchProfile())).getMap())
         .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
           .withContentType(ACTION_PROFILE)
           .withContent(new JsonObject(Json.encode(new ActionProfile()
