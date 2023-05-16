@@ -427,7 +427,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withActionStatus(mapNameToEntityActionStatus(row.getString(actionStatus)))
       .withId(row.getString(id))
       .withHrid(row.getString(hrid))
-      .withPermanentLocation(row.getString(permanentLocationId))
+      .withPermanentLocationId(row.getString(permanentLocationId))
       .withError(row.getString(error));
   }
 

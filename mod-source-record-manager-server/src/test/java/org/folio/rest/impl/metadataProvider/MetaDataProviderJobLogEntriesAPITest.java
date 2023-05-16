@@ -1138,7 +1138,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     }));
   }
 
-  //add permanent location 
+  //add permanent location
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsHoldings(TestContext context) {
     Async async = context.async();
