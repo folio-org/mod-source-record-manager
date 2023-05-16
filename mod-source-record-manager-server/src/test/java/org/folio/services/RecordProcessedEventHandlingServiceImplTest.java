@@ -408,4 +408,52 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       async.complete();
     });
   }
+
+  @Test
+  public void shouldMarkJobExecutionAsErrorOnHandleDICompletedIfMultipleErrorsExists(TestContext context) {
+    // given
+    Async async = context.async();
+    HashMap<String, String> payloadContext = new HashMap<>();
+    JsonArray multipleErrors = new JsonArray();
+    JsonObject error = new JsonObject();
+    error.put("id", "123");
+    error.put("error", "Error message!");
+    multipleErrors.add(error);
+    payloadContext.put("ERRORS", String.valueOf(multipleErrors));
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
+      .withContext(payloadContext);
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> {
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+      });
+
+    // when
+    Future<JobExecutionProgress> jobFuture = future
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
+      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
+
+    // then
+    jobFuture.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      JobExecutionProgress updatedProgress = ar.result();
+      context.assertEquals(1, updatedProgress.getCurrentlyFailed());
+      context.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+
+      Async async2 = context.async();
+      jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
+        .onComplete(jobAr -> {
+          context.assertTrue(jobAr.succeeded());
+          context.assertTrue(jobAr.result().isPresent());
+          JobExecution jobExecution = jobAr.result().get();
+          context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
+          async2.complete();
+        });
+      async.complete();
+    });
+  }
 }

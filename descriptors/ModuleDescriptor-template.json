@@ -502,7 +502,35 @@
             "mapping-metadata.get"
           ],
           "modulePermissions": [
-            "instance-authority.linking-rules.collection.get"
+            "configuration.entries.collection.get",
+            "converter-storage.field-protection-settings.get",
+            "instance-authority.linking-rules.collection.get",
+            "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.authority-note-types.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get"
           ]
         }
       ]
