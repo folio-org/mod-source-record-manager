@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -9,6 +10,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -21,6 +23,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
+import io.vertx.core.json.jackson.DatabindCodec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,6 +52,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,6 +121,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final MappingMetadataService mappingMetadataService;
   private final JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   private final KafkaConfig kafkaConfig;
+  private final FieldModificationService fieldModificationService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -131,7 +136,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired RecordsPublishingService recordsPublishingService,
                                  @Autowired MappingMetadataService mappingMetadataService,
                                  @Autowired JobProfileSnapshotValidationService jobProfileSnapshotValidationService,
-                                 @Autowired KafkaConfig kafkaConfig) {
+                                 @Autowired KafkaConfig kafkaConfig,
+                                 @Autowired FieldModificationService fieldModificationService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
@@ -140,6 +146,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.mappingMetadataService = mappingMetadataService;
     this.jobProfileSnapshotValidationService = jobProfileSnapshotValidationService;
     this.kafkaConfig = kafkaConfig;
+    this.fieldModificationService = fieldModificationService;
   }
 
   @Override
@@ -384,7 +391,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
     filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
 
-    return promise.future();
+    return promise.future()
+      .compose(folioRecords -> this.postProcessRecords(jobExecution, folioRecords, okapiParams));
   }
 
   public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
@@ -607,6 +615,30 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .withDescription(new JsonObject().put(MESSAGE_KEY, HOLDINGS_004_TAG_ERROR_MESSAGE).encode())
       );
     }
+  }
+
+  private Future<List<Record>> postProcessRecords(JobExecution jobExecution, List<Record> folioRecords,
+                                                  OkapiConnectionParams okapiParams) {
+    if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(jobExecution.getJobProfileSnapshotWrapper()))) {
+      return fieldModificationService.remove9Subfields(jobExecution.getId(), folioRecords, okapiParams);
+    }
+
+    return Future.succeededFuture(folioRecords);
+  }
+
+  private Boolean shouldRemoveSubfield9FromRecordFieldsForProfile(ProfileSnapshotWrapper profileSnapshot) {
+    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
+      if (childWrapper.getContentType() == ACTION_PROFILE) {
+        ActionProfile actionProfile = DatabindCodec.mapper().convertValue(childWrapper.getContent(), ActionProfile.class);
+        if (TRUE.equals(actionProfile.getRemove9Subfields())
+          || TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+          return true;
+        }
+      } else if (TRUE.equals(shouldRemoveSubfield9FromRecordFieldsForProfile(childWrapper))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private RecordType inferRecordType(JobExecution jobExecution, ParsedResult recordParsedResult, String recordId,

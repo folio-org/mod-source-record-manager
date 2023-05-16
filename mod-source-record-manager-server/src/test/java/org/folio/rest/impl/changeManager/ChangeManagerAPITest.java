@@ -72,6 +72,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
@@ -138,7 +140,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withCounter(15)
       .withTotal(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
+    .withInitialRecords(singletonList(new InitialRecord().withRecord(CORRECT_RAW_RECORD_1))
     );
 
   private final JsonObject userResponse = new JsonObject()
@@ -163,7 +165,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(RAW_RECORD_WITH_999_ff_s_SUBFIELD))
+    .withInitialRecords(singletonList(new InitialRecord().withRecord(RAW_RECORD_WITH_999_ff_s_SUBFIELD))
     );
 
   private RawRecordsDto rawRecordsDto_4 = new RawRecordsDto()
@@ -172,7 +174,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(RAW_RECORD_WITH_INVALID_LEADER))
+    .withInitialRecords(singletonList(new InitialRecord().withRecord(RAW_RECORD_WITH_INVALID_LEADER))
     );
 
   private RawRecordsDto authorityRawRecordsDto = new RawRecordsDto()
@@ -181,7 +183,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(MARC_AUTHORITY_RAW_RECORD_WITH_999_s_SUBFIELD)));
+    .withInitialRecords(singletonList(new InitialRecord().withRecord(MARC_AUTHORITY_RAW_RECORD_WITH_999_s_SUBFIELD)));
 
   private RawRecordsDto marcHoldingsRawRecordDto = new RawRecordsDto()
     .withId(UUID.randomUUID().toString())
@@ -189,7 +191,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withLast(false)
       .withCounter(15)
       .withContentType(RecordsMetadata.ContentType.MARC_RAW))
-    .withInitialRecords(Collections.singletonList(new InitialRecord().withRecord(MARC_HOLDINGS_RAW_RECORD_WITH_999_ff_s_SUBFIELD))
+    .withInitialRecords(singletonList(new InitialRecord().withRecord(MARC_HOLDINGS_RAW_RECORD_WITH_999_ff_s_SUBFIELD))
     );
 
   @Spy
@@ -208,6 +210,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("not default job profile")))));
     WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
       .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
+    WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
+      .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
   }
 
   @Test
@@ -1496,11 +1500,11 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .withProfileId(jobProfile.getId())
       .withContentType(JOB_PROFILE)
       .withContent(jobProfile)
-      .withChildSnapshotWrappers(Collections.singletonList(
+      .withChildSnapshotWrappers(singletonList(
         new ProfileSnapshotWrapper()
           .withContentType(MATCH_PROFILE)
           .withContent(JsonObject.mapFrom(matchProfile).getMap())
-          .withChildSnapshotWrappers(Collections.singletonList(
+          .withChildSnapshotWrappers(singletonList(
             new ProfileSnapshotWrapper()
               .withContentType(ACTION_PROFILE)
               .withContent(JsonObject.mapFrom(updateMarcAction).getMap())))));

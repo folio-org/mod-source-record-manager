@@ -238,7 +238,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     LOGGER.debug("loadJobProfileById:: jobProfileId {}", jobProfileId);
     Promise<JobProfile> promise = Promise.promise();
     DataImportProfilesClient client = new DataImportProfilesClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-    client.getDataImportProfilesJobProfilesById(jobProfileId, false, null, response -> {
+    client.getDataImportProfilesJobProfilesById(jobProfileId, false, response -> {
       if (response.result().statusCode() == HTTP_OK.toInt()) {
         promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(JobProfile.class)));
       } else {
@@ -463,7 +463,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.postSourceStorageSnapshots(null, snapshot, response -> {
+      client.postSourceStorageSnapshots(snapshot, response -> {
         if (response.result().statusCode() != HttpStatus.HTTP_CREATED.toInt()) {
           LOGGER.warn("postSnapshot:: Error during post for new Snapshot. Status message: {}", response.result().statusMessage());
           promise.fail(new HttpException(response.result().statusCode(), "Error during post for new Snapshot."));
@@ -487,7 +487,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), null, snapshot, response -> {
+      client.putSourceStorageSnapshotsByJobExecutionId(jobExecution.getId(), snapshot, response -> {
         if (response.result().statusCode() == HttpStatus.HTTP_OK.toInt()) {
           promise.complete(jobExecution);
         } else {
@@ -543,7 +543,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<Boolean> promise = Promise.promise();
     SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.deleteSourceStorageSnapshotsByJobExecutionId(jobExecutionId, null, response -> {
+      client.deleteSourceStorageSnapshotsByJobExecutionId(jobExecutionId, response -> {
         if (response.result().statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
           promise.complete(true);
         } else {

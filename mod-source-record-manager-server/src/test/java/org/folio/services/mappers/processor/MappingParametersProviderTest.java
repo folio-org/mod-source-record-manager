@@ -1,5 +1,15 @@
 package org.folio.services.mappers.processor;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -12,6 +22,11 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import org.folio.LinkingRuleDto;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.junit.Assert;
@@ -19,16 +34,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 
 @RunWith(VertxUnitRunner.class)
 public class MappingParametersProviderTest {
@@ -67,6 +72,7 @@ public class MappingParametersProviderTest {
     "/configurations/entries?query="
       + URLEncoder.encode(
       "(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+  protected static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
@@ -204,6 +210,9 @@ public class MappingParametersProviderTest {
     WireMock.stubFor(
       get(TENANT_CONFIGURATIONS_SETTINGS_URL)
         .willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
+    WireMock.stubFor(
+      get(LINKING_RULES_URL)
+        .willReturn(okJson(new JsonArray().add(new LinkingRuleDto()).toString())));
   }
 
   @Test
@@ -217,6 +226,26 @@ public class MappingParametersProviderTest {
           MappingParameters result = ar.result();
           context.assertNotNull(result);
           context.assertTrue(result.isInitialized());
+          context.assertTrue(result.getLinkingRules().size() > 0);
+          async.complete();
+        });
+  }
+
+  @Test
+  public void shouldReturnEmptyLinkingRulesOnEmptyApiResponseGetItemFromCache(TestContext context) {
+    Async async = context.async();
+    WireMock.stubFor(
+      get(LINKING_RULES_URL)
+        .willReturn(ok()));
+
+    mappingParametersProvider
+      .get("1", okapiConnectionParams)
+      .onComplete(
+        ar -> {
+          MappingParameters result = ar.result();
+          context.assertNotNull(result);
+          context.assertTrue(result.isInitialized());
+          context.assertEquals(0, result.getLinkingRules().size());
           async.complete();
         });
   }
