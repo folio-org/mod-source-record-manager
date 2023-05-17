@@ -8,11 +8,16 @@ import io.vertx.pgclient.PgConnection;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.persist.PostgresClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -35,7 +40,23 @@ public class PostgresClientFactory {
    */
   public PostgresClient createInstance(String tenantId) {
     LOGGER.warn("createInstance:: getPostgresClient");
+
+    Field connectionPool = null;
+    try {
+      connectionPool = PostgresClient.class.getDeclaredField("CONNECTION_POOL");
+      connectionPool.setAccessible(true);
+      //PostgresClient postgresClient = (MultiKeyMap<Object, PostgresClient>)connectionPool.get(vertx, tenantId);
+
+      Method getConnectionPoolSize = PostgresClient.class.getDeclaredMethod("getConnectionPoolSize");
+      getConnectionPoolSize.setAccessible(true);
+      int size = (int)getConnectionPoolSize.invoke(null, null);
+      LOGGER.warn("ConnectionPoolSize = {}", size);
+    } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+      LOGGER.error("Access to private field", e);
+    }
+
     PostgresClient postgresClient = PostgresClient.getInstance(vertx, tenantId);
+    getAllConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("all connection number = {}", res));
     getUsedConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("active connection number = {}", res));
     return postgresClient;
   }
@@ -45,7 +66,18 @@ public class PostgresClientFactory {
     try {
       postgresClient.execute("select count(state) from pg_stat_activity where state = 'active';", promise);
     } catch (Exception e) {
-      LOGGER.warn("updateCounterValue:: Failed to get counter value to table", e);
+      LOGGER.warn("updateCounterValue:: Failed to get active connection number", e);
+      promise.fail(e);
+    }
+    return getCounterValueFromRowSet(promise);
+  }
+
+  private Future<Integer> getAllConnectionNumber(PostgresClient postgresClient) {
+    Promise<RowSet<Row>> promise = Promise.promise();
+    try {
+      postgresClient.execute("select count(state) from pg_stat_activity;", promise);
+    } catch (Exception e) {
+      LOGGER.warn("updateCounterValue:: Failed to get all connection number", e);
       promise.fail(e);
     }
     return getCounterValueFromRowSet(promise);
