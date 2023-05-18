@@ -65,7 +65,7 @@ public class PostgresClientFactory {
 
 
       Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
-      connectionPoolField.setAccessible(true);
+      pgPoolsField.setAccessible(true);
       Map<Vertx, PgPool> PG_POOLS = (Map<Vertx,PgPool>)pgPoolsField.get(postgresClient);
       LOGGER.warn("connection: PG_POOLS.Keys {}", PG_POOLS.keySet().size());
       LOGGER.warn("connection: PG_POOLS.Values {}", PG_POOLS.values().size());
