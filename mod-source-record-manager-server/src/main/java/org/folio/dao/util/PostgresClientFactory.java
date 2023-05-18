@@ -40,24 +40,31 @@ public class PostgresClientFactory {
    */
   public PostgresClient createInstance(String tenantId) {
     LOGGER.warn("createInstance:: getPostgresClient");
+    PostgresClient postgresClient = PostgresClient.getInstance(vertx, tenantId);
 
-    Field connectionPool = null;
+    Field connectionPoolField = null;
     try {
-      connectionPool = PostgresClient.class.getDeclaredField("CONNECTION_POOL");
-      connectionPool.setAccessible(true);
-      //PostgresClient postgresClient = (MultiKeyMap<Object, PostgresClient>)connectionPool.get(vertx, tenantId);
+      connectionPoolField = PostgresClient.class.getDeclaredField("CONNECTION_POOL");
+      connectionPoolField.setAccessible(true);
+      MultiKeyMap<Object, PostgresClient> CONNECTION_POOL = (MultiKeyMap<Object, PostgresClient>)connectionPoolField.get(postgresClient);
+      LOGGER.warn("Keys {}", CONNECTION_POOL.keySet().size());
+      LOGGER.warn("Values {}", CONNECTION_POOL.values().size());
+
+      CONNECTION_POOL.entrySet().stream().forEach(e -> LOGGER.warn("connection: key {}", e));
+      CONNECTION_POOL.values().stream().forEach(e -> LOGGER.warn("connection: value {}", e));
 
       Method getConnectionPoolSize = PostgresClient.class.getDeclaredMethod("getConnectionPoolSize");
       getConnectionPoolSize.setAccessible(true);
       int size = (int)getConnectionPoolSize.invoke(null, null);
       LOGGER.warn("ConnectionPoolSize = {}", size);
+
     } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       LOGGER.error("Access to private field", e);
     }
 
-    PostgresClient postgresClient = PostgresClient.getInstance(vertx, tenantId);
-    getAllConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("all connection number = {}", res));
-    getUsedConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("active connection number = {}", res));
+
+    //getAllConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("all connection number = {}", res));
+    //getUsedConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("active connection number = {}", res));
     return postgresClient;
   }
 
