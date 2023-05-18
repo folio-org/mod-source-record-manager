@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.pgclient.PgConnection;
+import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -41,22 +43,35 @@ public class PostgresClientFactory {
   public PostgresClient createInstance(String tenantId) {
     LOGGER.warn("createInstance:: getPostgresClient");
     PostgresClient postgresClient = PostgresClient.getInstance(vertx, tenantId);
+    LOGGER.warn("connection: postgresClient {}", postgresClient);
 
-    Field connectionPoolField = null;
     try {
-      connectionPoolField = PostgresClient.class.getDeclaredField("CONNECTION_POOL");
+      Field connectionPoolField = PostgresClient.class.getDeclaredField("CONNECTION_POOL");
       connectionPoolField.setAccessible(true);
       MultiKeyMap<Object, PostgresClient> CONNECTION_POOL = (MultiKeyMap<Object, PostgresClient>)connectionPoolField.get(postgresClient);
-      LOGGER.warn("Keys {}", CONNECTION_POOL.keySet().size());
-      LOGGER.warn("Values {}", CONNECTION_POOL.values().size());
+      LOGGER.warn("connection: CONNECTION_POOL.Keys {}", CONNECTION_POOL.keySet().size());
+      LOGGER.warn("connection: CONNECTION_POOL.Values {}", CONNECTION_POOL.values().size());
 
-      CONNECTION_POOL.entrySet().stream().forEach(e -> LOGGER.warn("connection: key {}", e));
-      CONNECTION_POOL.values().stream().forEach(e -> LOGGER.warn("connection: value {}", e));
+      CONNECTION_POOL.entrySet().stream().forEach(e -> LOGGER.warn("connection: CONNECTION_POOL.key {}", e));
+      CONNECTION_POOL.values().stream().forEach(e -> LOGGER.warn("connection: CONNECTION_POOL.value {}", e));
+
+      PostgresClient pgClient = CONNECTION_POOL.values().stream().findFirst().get();
+      LOGGER.warn("connection: Values {}", CONNECTION_POOL.values().size());
 
       Method getConnectionPoolSize = PostgresClient.class.getDeclaredMethod("getConnectionPoolSize");
       getConnectionPoolSize.setAccessible(true);
       int size = (int)getConnectionPoolSize.invoke(null, null);
       LOGGER.warn("ConnectionPoolSize = {}", size);
+
+
+      Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
+      connectionPoolField.setAccessible(true);
+      Map<Vertx, PgPool> PG_POOLS = (Map<Vertx,PgPool>)pgPoolsField.get(postgresClient);
+      LOGGER.warn("connection: PG_POOLS.Keys {}", PG_POOLS.keySet().size());
+      LOGGER.warn("connection: PG_POOLS.Values {}", PG_POOLS.values().size());
+
+      PG_POOLS.entrySet().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.key {}", e));
+      PG_POOLS.values().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.value {}", e));
 
     } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       LOGGER.error("Access to private field", e);
