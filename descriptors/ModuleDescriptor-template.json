@@ -19,6 +19,10 @@
       "version": "15.0 16.0"
     },
     {
+      "id": "configuration",
+      "version": "2.0"
+    },
+    {
       "id": "identifier-types",
       "version": "1.2"
     },
@@ -76,6 +80,66 @@
     },
     {
       "id": "authority-source-files",
+      "version": "1.0"
+    },
+    {
+      "id": "call-number-types",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-types",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-relationship-types",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-statuses",
+      "version": "1.0"
+    },
+    {
+      "id": "item-damaged-statuses",
+      "version": "1.0"
+    },
+    {
+      "id": "item-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "ill-policies",
+      "version": "1.0"
+    },
+    {
+      "id": "loan-types",
+      "version": "2.2"
+    },
+    {
+      "id": "locations",
+      "version": "3.0"
+    },
+    {
+      "id": "material-types",
+      "version": "2.2"
+    },
+    {
+      "id": "nature-of-content-terms",
+      "version": "1.0"
+    },
+    {
+      "id": "statistical-codes",
+      "version": "1.0"
+    },
+    {
+      "id": "statistical-code-types",
+      "version": "1.0"
+    },
+    {
+      "id": "field-protection-settings",
       "version": "1.0"
     }
   ],
