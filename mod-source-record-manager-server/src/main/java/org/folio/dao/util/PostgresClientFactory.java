@@ -65,7 +65,7 @@ public class PostgresClientFactory {
 
       Method getClientMethod = PostgresClient.class.getDeclaredMethod("getClient");
       getClientMethod.setAccessible(true);
-      PgPool pgPool = (PgPool)getClientMethod.invoke(null, null);
+      PgPool pgPool = (PgPool)getClientMethod.invoke(postgresClient, null);
       LOGGER.warn("connection: pgPool = {}", pgPool);
       LOGGER.warn("connection: pgPool.size = {}", pgPool.size());
 
