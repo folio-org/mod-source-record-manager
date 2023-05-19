@@ -4,11 +4,14 @@ package org.folio.dao.util;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.pgclient.PgConnection;
 import io.vertx.pgclient.PgPool;
+import io.vertx.pgclient.impl.PgPoolImpl;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.Tuple;
+import io.vertx.sqlclient.impl.PoolBase;
+import io.vertx.sqlclient.impl.PoolImpl;
+import io.vertx.sqlclient.impl.pool.SqlConnectionPool;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,9 +22,9 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
-
-import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class PostgresClientFactory {
@@ -65,22 +68,31 @@ public class PostgresClientFactory {
 
       Method getClientMethod = PostgresClient.class.getDeclaredMethod("getClient");
       getClientMethod.setAccessible(true);
-      PgPool pgPool = (PgPool)getClientMethod.invoke(postgresClient, null);
+      io.vertx.pgclient.impl.PgPoolImpl pgPool = (PgPoolImpl)getClientMethod.invoke(postgresClient, null);
       LOGGER.warn("connection: pgPool = {}", pgPool);
       LOGGER.warn("connection: pgPool.size = {}", pgPool.size());
 
-      Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
-      pgPoolsField.setAccessible(true);
+      Field poolField = PgPoolImpl.class.getSuperclass().getDeclaredFields()[2];
+      poolField.setAccessible(true);
+      io.vertx.sqlclient.impl.PoolImpl poolImpl = (PoolImpl) poolField.get(pgPool);
+      LOGGER.warn("connection: poolImpl.size() = {}", poolImpl.size());
 
-      Field modifiers = Field.class.getDeclaredField("modifiers");
-      modifiers.setAccessible(true);
+      Field sqlConnectionPoolField = PoolImpl.class.getDeclaredField("pool");
+      sqlConnectionPoolField.setAccessible(true);
+      SqlConnectionPool sqlConnectionPool = (SqlConnectionPool)sqlConnectionPoolField.get(poolImpl);
+      LOGGER.warn("connection: SqlConnectionPool pool = {}", sqlConnectionPool);
+      LOGGER.warn("connection: SqlConnectionPool pool.available() = {}", sqlConnectionPool.available());
 
-      Map<Vertx, PgPool> PG_POOLS = (Map<Vertx,PgPool>)pgPoolsField.get(postgresClient);
-      LOGGER.warn("connection: PG_POOLS.Keys {}", PG_POOLS.keySet().size());
-      LOGGER.warn("connection: PG_POOLS.Values {}", PG_POOLS.values().size());
-
-      PG_POOLS.entrySet().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.key {}", e));
-      PG_POOLS.values().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.value {}", e));
+//      Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
+//      pgPoolsField.setAccessible(true);
+//
+//      Field modifiers = Field.class.getDeclaredField("modifiers");
+//      modifiers.setAccessible(true);
+//      Map<Vertx, PgPool> PG_POOLS = (Map<Vertx,PgPool>)pgPoolsField.get(postgresClient);
+//      LOGGER.warn("connection: PG_POOLS.Keys {}", PG_POOLS.keySet().size());
+//      LOGGER.warn("connection: PG_POOLS.Values {}", PG_POOLS.values().size());
+//      PG_POOLS.entrySet().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.key {}", e));
+//      PG_POOLS.values().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.value {}", e));
 
     } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       LOGGER.error("Access to private field", e);
@@ -90,6 +102,19 @@ public class PostgresClientFactory {
     //getAllConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("all connection number = {}", res));
     //getUsedConnectionNumber(postgresClient).onSuccess(res -> LOGGER.warn("active connection number = {}", res));
     return postgresClient;
+  }
+
+  List<Field> getAllFields(Class clazz) {
+    if (clazz == null) {
+      return Collections.emptyList();
+    }
+
+    List<Field> result = new ArrayList<>(getAllFields(clazz.getSuperclass()));
+    List<Field> filteredFields = Arrays.stream(clazz.getDeclaredFields())
+      .filter(f -> Modifier.isPublic(f.getModifiers()) || Modifier.isProtected(f.getModifiers()))
+      .collect(Collectors.toList());
+    result.addAll(filteredFields);
+    return result;
   }
 
   private Future<Integer> getUsedConnectionNumber(PostgresClient postgresClient) {
