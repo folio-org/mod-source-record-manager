@@ -58,11 +58,16 @@ public class PostgresClientFactory {
       PostgresClient pgClient = CONNECTION_POOL.values().stream().findFirst().get();
       LOGGER.warn("connection: Values {}", CONNECTION_POOL.values().size());
 
-      Method getConnectionPoolSize = PostgresClient.class.getDeclaredMethod("getConnectionPoolSize");
-      getConnectionPoolSize.setAccessible(true);
-      int size = (int)getConnectionPoolSize.invoke(null, null);
-      LOGGER.warn("ConnectionPoolSize = {}", size);
+      Method getConnectionPoolSizeMethod = PostgresClient.class.getDeclaredMethod("getConnectionPoolSize");
+      getConnectionPoolSizeMethod.setAccessible(true);
+      int size = (int)getConnectionPoolSizeMethod.invoke(null, null);
+      LOGGER.warn("connection: getConnectionPoolSize = {}", size);
 
+      Method getClientMethod = PostgresClient.class.getDeclaredMethod("getClient");
+      getClientMethod.setAccessible(true);
+      PgPool pgPool = (PgPool)getClientMethod.invoke(null, null);
+      LOGGER.warn("connection: pgPool = {}", pgPool);
+      LOGGER.warn("connection: pgPool.size = {}", pgPool.size());
 
       Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
       pgPoolsField.setAccessible(true);
