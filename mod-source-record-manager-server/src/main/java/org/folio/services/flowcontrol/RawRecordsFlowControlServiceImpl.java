@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
@@ -85,7 +86,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    currentState.merge(tenantId, recordsCount, Integer::sum);
     increaseCounterInDb(tenantId, recordsCount);
 
     LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, recordsCount);
@@ -110,7 +110,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    currentState.merge(tenantId, -recordsCount, Integer::sum);
     decreaseCounterInDb(tenantId, recordsCount);
 
     LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, recordsCount);
@@ -152,13 +151,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
   }
 
-  private void increaseCounterInDb(String tenantId, Integer recordsCount) {
-    eventProcessedService.increaseEventsToProcess(tenantId, recordsCount)
-      .onSuccess(counterValueFromDb -> currentState.put(tenantId, counterValueFromDb));
+  public void increaseCounterInDb(String tenantId, Integer recordsCount) {
+    currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v + recordsCount);
   }
 
-  private void decreaseCounterInDb(String tenantId, Integer recordsCount) {
-    eventProcessedService.decreaseEventsToProcess(tenantId, recordsCount)
-      .onSuccess(counterValueFromDb -> currentState.put(tenantId, counterValueFromDb));
+  public void decreaseCounterInDb(String tenantId, Integer recordsCount) {
+    currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v - recordsCount);
   }
 }

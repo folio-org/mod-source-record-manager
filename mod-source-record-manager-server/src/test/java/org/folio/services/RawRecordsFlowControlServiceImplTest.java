@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import io.vertx.core.Future;
 import org.folio.kafka.KafkaConsumerWrapper;
 import org.folio.services.flowcontrol.RawRecordsFlowControlServiceImpl;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
@@ -14,14 +13,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RawRecordsFlowControlServiceImplTest {
@@ -30,8 +23,9 @@ public class RawRecordsFlowControlServiceImplTest {
 
   @Mock
   private KafkaConsumersStorage kafkaConsumersStorage;
-  @Mock
-  private EventProcessedService eventProcessedService;
+
+//  @Mock
+//  private EventProcessedService eventProcessedService;
 
   @InjectMocks
   private RawRecordsFlowControlServiceImpl service;
@@ -62,8 +56,7 @@ public class RawRecordsFlowControlServiceImplTest {
   public void shouldNotPauseWhenMaxSimultaneousRecordsNotExceeded() {
     ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 20);
 
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 5))
-      .thenReturn(Future.succeededFuture(5));
+    service.increaseCounterInDb(TENANT_ID, 5);
 
     service.trackChunkReceivedEvent(TENANT_ID, 5);
     service.trackChunkReceivedEvent(TENANT_ID, 5);
@@ -82,8 +75,7 @@ public class RawRecordsFlowControlServiceImplTest {
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 20))
-      .thenReturn(Future.succeededFuture(20));
+    service.increaseCounterInDb(TENANT_ID, 20);
 
     service.trackChunkReceivedEvent(TENANT_ID, 20);
 
@@ -101,9 +93,8 @@ public class RawRecordsFlowControlServiceImplTest {
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 20))
-      .thenReturn(Future.succeededFuture(20));
 
+    service.increaseCounterInDb(TENANT_ID, 20);
     service.trackChunkReceivedEvent(TENANT_ID, 20);
 
     // 20 records exceeds max 20, consumer running - so need to pause
@@ -116,8 +107,7 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 50);
     ReflectionTestUtils.setField(service, "recordsThreshold", 25);
 
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 10))
-      .thenReturn(Future.succeededFuture(10));
+    service.increaseCounterInDb(TENANT_ID, 10);
 
     service.trackChunkReceivedEvent(TENANT_ID, 10);
     service.trackChunkReceivedEvent(TENANT_ID, 10);
@@ -138,9 +128,8 @@ public class RawRecordsFlowControlServiceImplTest {
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 5))
-      .thenReturn(Future.succeededFuture(5));
 
+    service.increaseCounterInDb(TENANT_ID, 5);
     service.trackChunkReceivedEvent(TENANT_ID, 5);
     service.trackRecordCompleteEvent(TENANT_ID, 4);
 
@@ -159,9 +148,8 @@ public class RawRecordsFlowControlServiceImplTest {
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 5))
-      .thenReturn(Future.succeededFuture(5));
 
+    service.increaseCounterInDb(TENANT_ID, 5);
     service.trackChunkReceivedEvent(TENANT_ID, 5);
     service.trackRecordCompleteEvent(TENANT_ID, 4);
 
@@ -180,11 +168,9 @@ public class RawRecordsFlowControlServiceImplTest {
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerBeforePause));
-    when(eventProcessedService.increaseEventsToProcess(TENANT_ID, 5))
-      .thenReturn(Future.succeededFuture(5));
-    when(eventProcessedService.decreaseEventsToProcess(TENANT_ID, 5))
-      .thenReturn(Future.succeededFuture(0));
 
+    service.increaseCounterInDb(TENANT_ID, 5);
+    service.decreaseCounterInDb(TENANT_ID, 5);
     service.trackChunkReceivedEvent(TENANT_ID, 5);
 
     KafkaConsumerWrapper<String, String> consumerBeforeResume = mock(KafkaConsumerWrapper.class);

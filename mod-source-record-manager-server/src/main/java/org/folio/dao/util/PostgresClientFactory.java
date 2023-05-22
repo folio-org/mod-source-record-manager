@@ -4,12 +4,9 @@ package org.folio.dao.util;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.pgclient.PgPool;
 import io.vertx.pgclient.impl.PgPoolImpl;
-import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.impl.PoolBase;
 import io.vertx.sqlclient.impl.PoolImpl;
 import io.vertx.sqlclient.impl.pool.SqlConnectionPool;
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -23,7 +20,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -82,17 +82,6 @@ public class PostgresClientFactory {
       SqlConnectionPool sqlConnectionPool = (SqlConnectionPool)sqlConnectionPoolField.get(poolImpl);
       LOGGER.warn("connection: SqlConnectionPool pool = {}", sqlConnectionPool);
       LOGGER.warn("connection: SqlConnectionPool pool.available() = {}", sqlConnectionPool.available());
-
-//      Field pgPoolsField = PostgresClient.class.getDeclaredField("PG_POOLS");
-//      pgPoolsField.setAccessible(true);
-//
-//      Field modifiers = Field.class.getDeclaredField("modifiers");
-//      modifiers.setAccessible(true);
-//      Map<Vertx, PgPool> PG_POOLS = (Map<Vertx,PgPool>)pgPoolsField.get(postgresClient);
-//      LOGGER.warn("connection: PG_POOLS.Keys {}", PG_POOLS.keySet().size());
-//      LOGGER.warn("connection: PG_POOLS.Values {}", PG_POOLS.values().size());
-//      PG_POOLS.entrySet().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.key {}", e));
-//      PG_POOLS.values().stream().forEach(e -> LOGGER.warn("connection: PG_POOLS.value {}", e));
 
     } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       LOGGER.error("Access to private field", e);
