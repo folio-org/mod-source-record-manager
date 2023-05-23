@@ -8,6 +8,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import org.folio.services.migration.CustomMigrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.folio.Record;
@@ -23,6 +24,8 @@ public class ModTenantAPI extends TenantAPI {
 
   @Autowired
   private MappingRuleService mappingRuleService;
+  @Autowired
+  private CustomMigrationService customMigrationService;
 
   public ModTenantAPI() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -36,6 +39,7 @@ public class ModTenantAPI extends TenantAPI {
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_BIB, tenantId))
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_HOLDING, tenantId))
         .compose(ar -> mappingRuleService.saveDefaultRules(Record.RecordType.MARC_AUTHORITY, tenantId))
+        .compose(ar -> customMigrationService.doCustomMigrations(attributes, tenantId))
         .compose(ar -> saveTenantId(tenantId, context))
         .map(num));
   }
