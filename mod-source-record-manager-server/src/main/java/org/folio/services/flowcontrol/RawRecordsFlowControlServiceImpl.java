@@ -71,8 +71,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
-      currentState.replaceAll((tenantId, oldValue) -> 0);
-      LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
+      //currentState.replaceAll((tenantId, oldValue) -> 0);
+      //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
+      LOGGER.info("--------------- resetState:: The try to reset state ---------------");
     }
 
     currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
@@ -96,6 +97,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), recordsCount, maxSimultaneousRecords);
         }
       });
+    } else {
+      LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
     }
   }
 
