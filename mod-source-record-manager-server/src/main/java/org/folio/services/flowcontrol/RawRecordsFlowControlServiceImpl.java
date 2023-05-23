@@ -108,8 +108,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, skip updating current value ---------------", tenantId);
-    //decreaseCounterInDb(tenantId, recordsCount);
+    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes. Records: {} ---------------", tenantId, recordsCount);
+    decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
 
