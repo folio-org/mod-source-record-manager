@@ -143,10 +143,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
+    LOGGER.info("--------------- increaseCounterInDb:: Tenant: [{}]. Increase on: {} ---------------", tenantId, recordsCount);
     currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v + recordsCount);
+
   }
 
   public void decreaseCounterInDb(String tenantId, Integer recordsCount) {
+    LOGGER.info("--------------- decreaseCounterInDb:: Tenant: [{}]. Decrease on: {} ---------------", tenantId, recordsCount);
     currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v - recordsCount);
   }
 }
