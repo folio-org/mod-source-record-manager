@@ -83,9 +83,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     if (!enableFlowControl) {
       return;
     }
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. RecordsCount chunk received: {} ---------------", tenantId, recordsCount);
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Received chunk. Records: {} ---------------", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is on pause. Records: {} ---------------", tenantId, currentState.get(tenantId));
     if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       rawRecordsReadConsumers.forEach(consumer -> {
@@ -104,8 +105,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, recordsCount);
-    decreaseCounterInDb(tenantId, recordsCount);
+    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, skip updating current value ---------------", tenantId);
+    //decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
 
@@ -115,12 +116,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Decrease on recordsCount: {}", tenantId, recordsCount);
+    LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Handled record. Records: {}", tenantId, recordsCount);
     decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
+    LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current value: {}", tenantId, currentState.get(tenantId));
     if (currentState.get(tenantId) <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       rawRecordsReadConsumers.forEach(consumer -> {
