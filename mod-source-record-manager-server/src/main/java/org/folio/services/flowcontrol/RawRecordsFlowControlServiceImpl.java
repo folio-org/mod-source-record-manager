@@ -64,14 +64,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT5M}")
+  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT1M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
     }
 
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
-      //currentState.replaceAll((tenantId, oldValue) -> 0);
+      currentState.replaceAll((tenantId, oldValue) -> 0);
       //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
       LOGGER.info("--------------- resetState:: The try to reset state ---------------");
     }
@@ -87,14 +87,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Received chunk. Records: {} ---------------", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is on pause. Records: {} ---------------", tenantId, currentState.get(tenantId));
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is pause needed? Records: {} ---------------", tenantId, currentState.get(tenantId));
     if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+      LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
+        LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
         if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), recordsCount, maxSimultaneousRecords);
+            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
         }
       });
     } else {
@@ -128,7 +130,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current value: {}", tenantId, currentState.get(tenantId));
     if (currentState.get(tenantId) <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+      LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
+        LOGGER.info("resume:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
         if (consumer.demand() == 0) {
           consumer.resume();
           LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
