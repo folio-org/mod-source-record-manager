@@ -87,17 +87,19 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Received chunk. Records: {} ---------------", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is pause needed? Records: {} ---------------", tenantId, currentState.get(tenantId));
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is pause needed? Records: {} >= {} ---------------",
+      tenantId, currentState.get(tenantId), maxSimultaneousRecords);
+
     if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
         LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        if (consumer.demand() > 0) {
+        //if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
-        }
+        //}
       });
     } else {
       LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
@@ -133,11 +135,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
         LOGGER.info("resume:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        if (consumer.demand() == 0) {
+        //if (consumer.demand() == 0) {
           consumer.resume();
           LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
-        }
+        //}
       });
     }
   }
