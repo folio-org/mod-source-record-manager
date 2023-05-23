@@ -84,9 +84,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
     LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. RecordsCount chunk received: {} ---------------", tenantId, recordsCount);
-
     increaseCounterInDb(tenantId, recordsCount);
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, recordsCount);
+
     if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       rawRecordsReadConsumers.forEach(consumer -> {
@@ -111,21 +110,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   @Override
-  public void trackRecordCompleteEvent(String tenantId, Integer actualCounterValue) {
+  public void trackRecordCompleteEvent(String tenantId, Integer recordsCount) {
     if (!enableFlowControl) {
       return;
     }
 
-    LOGGER.info("--------------- trackRecordCompleteEvent:: Tenant: [{}], CounterValue: {} ---------------", tenantId, actualCounterValue);
-    if (actualCounterValue < 0) {
-      LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Current value less than zero, because of single record imports or resetting state, back to zero...", tenantId);
-      currentState.put(tenantId, 0);
-    } else {
-      LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Set actualCounterValue: {}", tenantId, actualCounterValue);
-      currentState.put(tenantId, actualCounterValue);
-    }
-
-    LOGGER.info("--------------- trackRecordCompleteEvent:: Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, actualCounterValue);
+    LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Decrease on recordsCount: {}", tenantId, recordsCount);
+    decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
 
@@ -145,11 +136,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
     LOGGER.info("--------------- increaseCounterInDb:: Tenant: [{}]. Increase on: {} ---------------", tenantId, recordsCount);
     currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v + recordsCount);
-
+    LOGGER.info("--------------- increaseCounterInDb:: Tenant: [{}]. currentState value is: {} ---------------", tenantId, currentState.get(tenantId));
   }
 
   public void decreaseCounterInDb(String tenantId, Integer recordsCount) {
     LOGGER.info("--------------- decreaseCounterInDb:: Tenant: [{}]. Decrease on: {} ---------------", tenantId, recordsCount);
-    currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v - recordsCount);
+    currentState.compute(tenantId, (k, v) -> v == null || v < 0 ? 0 : v - recordsCount);
+    LOGGER.info("--------------- decreaseCounterInDb:: Tenant: [{}]. currentState value is: {} ---------------", tenantId, currentState.get(tenantId));
   }
 }

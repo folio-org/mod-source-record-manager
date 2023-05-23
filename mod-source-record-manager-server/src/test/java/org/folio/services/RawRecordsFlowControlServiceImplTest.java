@@ -103,14 +103,14 @@ public class RawRecordsFlowControlServiceImplTest {
     ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 50);
     ReflectionTestUtils.setField(service, "recordsThreshold", 25);
 
-    service.increaseCounterInDb(TENANT_ID, 10);
+    //service.increaseCounterInDb(TENANT_ID, 10);
 
-    service.trackChunkReceivedEvent(TENANT_ID, 10);
-    service.trackChunkReceivedEvent(TENANT_ID, 10);
-    service.trackChunkReceivedEvent(TENANT_ID, 10);
-    service.trackRecordCompleteEvent(TENANT_ID, 29);
+    service.trackChunkReceivedEvent(TENANT_ID, 40);
+//    service.trackChunkReceivedEvent(TENANT_ID, 10);
+//    service.trackChunkReceivedEvent(TENANT_ID, 10);
+    service.trackRecordCompleteEvent(TENANT_ID, 11);
 
-    // 30 rec not exceeds max 50, after complete event 29 not less than 25 threshold, - so no any interaction with consumers storage
+    // 30 rec doesn't exceed max 50, after complete event 29 not less than 25 threshold, - so no any interaction with consumers storage
     verifyNoInteractions(kafkaConsumersStorage);
   }
 
