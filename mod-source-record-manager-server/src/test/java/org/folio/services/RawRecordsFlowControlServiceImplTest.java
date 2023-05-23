@@ -55,12 +55,8 @@ public class RawRecordsFlowControlServiceImplTest {
   @Test
   public void shouldNotPauseWhenMaxSimultaneousRecordsNotExceeded() {
     ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 20);
-
+    service.trackChunkReceivedEvent(TENANT_ID, 15);
     service.increaseCounterInDb(TENANT_ID, 5);
-
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
 
     // 15 records not exceeds max 20, so no interaction
     verifyNoMoreInteractions(kafkaConsumersStorage);
@@ -129,8 +125,7 @@ public class RawRecordsFlowControlServiceImplTest {
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
-    service.increaseCounterInDb(TENANT_ID, 5);
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
+    service.increaseCounterInDb(TENANT_ID, 10);
     service.trackRecordCompleteEvent(TENANT_ID, 4);
 
     // after record complete event, current value 4 less than resume threshold, need to resume if paused (in our case consumer running)
@@ -149,8 +144,7 @@ public class RawRecordsFlowControlServiceImplTest {
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
-    service.increaseCounterInDb(TENANT_ID, 5);
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
+    service.increaseCounterInDb(TENANT_ID, 10);
     service.trackRecordCompleteEvent(TENANT_ID, 4);
 
     // after record complete event, current value 4 less than resume threshold, need to resume consumer

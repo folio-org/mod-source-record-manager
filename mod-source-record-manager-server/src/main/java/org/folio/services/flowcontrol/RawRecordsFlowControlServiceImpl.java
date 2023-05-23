@@ -72,8 +72,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
       currentState.replaceAll((tenantId, oldValue) -> 0);
-      currentState.forEach((tenantId, value) -> eventProcessedService.resetEventsToProcess(tenantId));
-
       LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
     }
 
@@ -85,18 +83,15 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     if (!enableFlowControl) {
       return;
     }
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. RecordsCount chunk received: {} ---------------", tenantId, recordsCount);
 
     increaseCounterInDb(tenantId, recordsCount);
-
-    LOGGER.info("--------------- Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, recordsCount);
-
+    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Current value after chunk received: {} ---------------", tenantId, recordsCount);
     if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() > 0) {
           consumer.pause();
-
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), recordsCount, maxSimultaneousRecords);
         }
@@ -110,10 +105,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    decreaseCounterInDb(tenantId, recordsCount);
-
     LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes, update current value to: {} ---------------", tenantId, recordsCount);
-
+    decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
 
@@ -123,27 +116,25 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
+    LOGGER.info("--------------- trackRecordCompleteEvent:: Tenant: [{}], CounterValue: {} ---------------", tenantId, actualCounterValue);
     if (actualCounterValue < 0) {
       LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Current value less than zero, because of single record imports or resetting state, back to zero...", tenantId);
       currentState.put(tenantId, 0);
-      eventProcessedService.resetEventsToProcess(tenantId);
     } else {
+      LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Set actualCounterValue: {}", tenantId, actualCounterValue);
       currentState.put(tenantId, actualCounterValue);
     }
 
-    LOGGER.info("--------------- Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, actualCounterValue);
-
+    LOGGER.info("--------------- trackRecordCompleteEvent:: Tenant: [{}]. Current value after complete event: {} ---------------", tenantId, actualCounterValue);
     resumeIfThresholdAllows(tenantId);
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
     if (currentState.get(tenantId) <= recordsThreshold) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-
       rawRecordsReadConsumers.forEach(consumer -> {
         if (consumer.demand() == 0) {
           consumer.resume();
-
           LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
         }
