@@ -76,7 +76,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       LOGGER.info("--------------- resetState:: The try to reset state. ---------------");
 
       for (String key : currentState.keySet()) {
-        if (currentState.get(key) / recordsThreshold > 0) {
+        if (currentState.get(key) / recordsThreshold == 0) {
           LOGGER.info("--------------- resetState:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
           Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
           rawRecordsReadConsumers.forEach(consumer -> {
@@ -142,7 +142,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current state: {}", tenantId, currentState.get(tenantId));
-    if (currentState.get(tenantId) / recordsThreshold > 0) {
+    if (currentState.get(tenantId) / recordsThreshold == 0) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. rawRecordsReadConsumers:: size: {}", tenantId, rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
