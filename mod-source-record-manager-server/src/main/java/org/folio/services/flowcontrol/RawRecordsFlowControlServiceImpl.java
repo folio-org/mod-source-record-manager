@@ -73,7 +73,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
       //currentState.replaceAll((tenantId, oldValue) -> 0);
       //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
-      LOGGER.info("--------------- resetState:: The try to reset state ---------------");
+      LOGGER.info("--------------- resetState:: The try to reset state. Current state is: {} ---------------",
+        currentState.values().stream().findFirst().get());
     }
 
     currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
@@ -92,12 +93,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       //Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand(), consumer.toString());
-        //if (consumer.demand() > 0) {
+        LOGGER.info("pause:: consumerId: {}, demand:{}, consumer: {}", consumer.getId(), consumer.demand(), consumer.toString());
+        if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), maxSimultaneousRecords);
-        //}
+        }
       });
     //} else {
     //  LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
