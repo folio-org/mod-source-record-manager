@@ -71,7 +71,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
-      currentState.replaceAll((tenantId, oldValue) -> 0);
+      //currentState.replaceAll((tenantId, oldValue) -> 0);
       //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
       LOGGER.info("--------------- resetState:: The try to reset state ---------------");
     }
@@ -87,23 +87,20 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Received chunk. Records: {} ---------------", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Check is pause needed? Records: {} >= {} ---------------",
-      tenantId, currentState.get(tenantId), maxSimultaneousRecords);
-
-    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
+    //if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
         LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        //if (consumer.demand() > 0) {
+        if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
-        //}
+        }
       });
-    } else {
-      LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
-    }
+    //} else {
+    //  LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
+    //}
   }
 
   @Override
