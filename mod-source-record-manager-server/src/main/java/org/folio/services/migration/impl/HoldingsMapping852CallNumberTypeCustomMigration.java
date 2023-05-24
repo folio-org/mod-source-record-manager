@@ -5,7 +5,6 @@ import static org.folio.Record.RecordType.MARC_HOLDING;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.List;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
 import org.springframework.beans.factory.annotation.Autowired;
