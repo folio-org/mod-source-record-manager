@@ -51,7 +51,7 @@ public class HoldingsMapping852CallNumberTypeCustomMigration implements CustomMi
         for (int j = 0; j < entities.size(); j++) {
           var rule = entities.getJsonObject(j);
           if ("callNumberTypeId".equals(rule.getString("target"))) {
-            rule.put("subfield", new JsonArray(List.of("b")));
+            rule.put("subfield", JsonArray.of("b"));
           }
         }
       }
