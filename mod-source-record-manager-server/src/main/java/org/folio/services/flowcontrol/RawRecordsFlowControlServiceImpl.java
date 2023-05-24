@@ -92,12 +92,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       //Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        if (consumer.demand() > 0) {
+        LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand(), consumer.toString());
+        //if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
             tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), maxSimultaneousRecords);
-        }
+        //}
       });
     //} else {
     //  LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers on pause ---------------", tenantId);
@@ -132,12 +132,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("resume:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        if (consumer.demand() == 0) {
-          consumer.resume();
+        LOGGER.info("resume:: consumerId: {}, demand:{}, consumer: {}", consumer.getId(), consumer.demand(), consumer);
+        //if (consumer.demand() == 0) {
+          //consumer.resume();
           LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
-        }
+        //}
       });
     }
   }
