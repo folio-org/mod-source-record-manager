@@ -88,14 +88,15 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     increaseCounterInDb(tenantId, recordsCount);
 
     //if (currentState.get(tenantId) >= maxSimultaneousRecords) {
-      Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
+      Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersList();
+      //Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
         LOGGER.info("pause:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
         if (consumer.demand() > 0) {
           consumer.pause();
           LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
+            tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), maxSimultaneousRecords);
         }
       });
     //} else {
@@ -127,16 +128,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current value: {}", tenantId, currentState.get(tenantId));
-    if (currentState.get(tenantId) <= recordsThreshold) {
+    if (currentState.get(tenantId) > recordsThreshold + 200) {
       Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
       LOGGER.info("rawRecordsReadConsumers:: size: {}", rawRecordsReadConsumers.size());
       rawRecordsReadConsumers.forEach(consumer -> {
         LOGGER.info("resume:: consumerId: {}, demand:{}", consumer.getId(), consumer.demand());
-        //if (consumer.demand() == 0) {
+        if (consumer.demand() == 0) {
           consumer.resume();
           LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
             tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
-        //}
+        }
       });
     }
   }
