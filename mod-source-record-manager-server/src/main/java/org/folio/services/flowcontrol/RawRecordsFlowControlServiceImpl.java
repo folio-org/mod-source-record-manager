@@ -74,7 +74,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       //currentState.replaceAll((tenantId, oldValue) -> 0);
       //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
       LOGGER.info("--------------- resetState:: The try to reset state. Current state is: {} ---------------",
-        currentState.values().stream().findFirst().get());
+        currentState.get("fs09000000"));
     }
 
     currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
