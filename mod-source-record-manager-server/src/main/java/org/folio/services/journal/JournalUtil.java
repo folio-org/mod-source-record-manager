@@ -1,6 +1,8 @@
 package org.folio.services.journal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
@@ -10,11 +12,14 @@ import org.folio.rest.jaxrs.model.Record;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -43,8 +48,8 @@ public class JournalUtil {
       .orElse(EMPTY);
   }
 
-  public static JournalRecord buildJournalRecordByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
-                                                        JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
+  public static List<JournalRecord> buildJournalRecordsByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                               JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
 
@@ -59,49 +64,82 @@ public class JournalUtil {
       } else {
         record = new ObjectMapper().readValue(recordAsString, Record.class);
       }
+      List<JournalRecord> journalRecords = new LinkedList<>();
+
+      if(isNotBlank(eventPayloadContext.get("NOT_MATCHED_NUMBER"))) {
+        int notMatchedNumber = Integer.parseInt(eventPayloadContext.get("NOT_MATCHED_NUMBER"));
+        for (int i = 0; i<notMatchedNumber;i++) {
+          journalRecords.add(constructBlankJournalRecord(record, JournalRecord.ActionType.NON_MATCH,entityType,actionStatus)
+            .withEntityType(entityType)
+            .withEntityId(UUID.randomUUID().toString()));
+        }
+        return journalRecords;
+      }
+
       String entityAsString = eventPayloadContext.get(entityType.value());
+      if (isBlank(entityAsString)) {
+        journalRecords.add(constructBlankJournalRecord(record, actionType, entityType, actionStatus));
+        return journalRecords;
+      }
 
-      JournalRecord journalRecord = new JournalRecord()
-        .withJobExecutionId(record.getSnapshotId())
-        .withSourceId(record.getId())
-        .withSourceRecordOrder(record.getOrder())
-        .withEntityType(entityType)
-        .withActionType(actionType)
-        .withActionDate(new Date())
-        .withActionStatus(actionStatus);
-
-      if (!isEmpty(entityAsString)) {
-        JsonObject entityJson = new JsonObject(entityAsString);
-        journalRecord.setEntityId(entityJson.getString("id"));
-
-        if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM || entityType == PO_LINE) {
-          if (entityType == HOLDINGS) {
-            journalRecord.setInstanceId(entityJson.getString("instanceId"));
-          }
-          if (entityType == ITEM) {
-            if (eventPayloadContext.containsKey(INSTANCE.value())) {
-              JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
-              journalRecord.setInstanceId(instanceJson.getString("id"));
-            } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
-              JsonObject holdingsJson = new JsonObject(eventPayloadContext.get(HOLDINGS.value()));
-              journalRecord.setInstanceId(holdingsJson.getString("instanceId"));
-            }
-            journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
-          }
-          if (entityType == PO_LINE){
-            journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
-          }
-          journalRecord.setEntityHrId(entityJson.getString("hrid"));
+      Object entityJson = Json.decodeValue(entityAsString);
+      if (entityJson instanceof JsonObject) {
+        journalRecords.add(processSingleJournalRecord(eventPayload, actionType, entityType, actionStatus, (JsonObject) entityJson, record));
+      } else if (entityJson instanceof JsonArray) {
+        for (Object entity : ((JsonArray) entityJson)) {
+          journalRecords.add(processSingleJournalRecord(eventPayload, actionType, entityType, actionStatus, (JsonObject) entity, record));
         }
       }
 
-      if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
-        journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
-      }
-
-      return journalRecord;
+      return journalRecords;
     } catch (Exception e) {
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  static JournalRecord processSingleJournalRecord(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                    JournalRecord.ActionStatus actionStatus,JsonObject entityJson,Record record) {
+    HashMap<String, String> eventPayloadContext = eventPayload.getContext();
+    JournalRecord journalRecord = constructBlankJournalRecord(record, actionType, entityType, actionStatus);
+      journalRecord.setEntityId(entityJson.getString("id"));
+
+      if (entityType == INSTANCE || entityType == HOLDINGS || entityType == ITEM || entityType == PO_LINE) {
+        if (entityType == HOLDINGS) {
+          journalRecord.setInstanceId(entityJson.getString("instanceId"));
+
+        }
+        if (entityType == ITEM) {
+          if (eventPayloadContext.containsKey(INSTANCE.value())) {
+            JsonObject instanceJson = new JsonObject(eventPayloadContext.get(INSTANCE.value()));
+            journalRecord.setInstanceId(instanceJson.getString("id"));
+          } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
+            JsonObject holdingsJson = new JsonObject(eventPayloadContext.get(HOLDINGS.value()));
+            journalRecord.setInstanceId(holdingsJson.getString("instanceId"));
+          }
+          journalRecord.setHoldingsId(entityJson.getString("holdingsRecordId"));
+        }
+        if (entityType == PO_LINE) {
+          journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
+        }
+        journalRecord.setEntityHrId(entityJson.getString("hrid"));
+      }
+
+
+    if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+      journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
+    }
+
+    return journalRecord;
+  }
+
+  static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) {
+    return new JournalRecord()
+      .withJobExecutionId(record.getSnapshotId())
+      .withSourceId(record.getId())
+      .withSourceRecordOrder(record.getOrder())
+      .withEntityType(entityType)
+      .withActionType(actionType)
+      .withActionDate(new Date())
+      .withActionStatus(actionStatus);
   }
 }

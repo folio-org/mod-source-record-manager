@@ -5,12 +5,14 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
@@ -65,9 +67,11 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
       DI_INVENTORY_INSTANCE_NOT_MATCHED.value(),
       DI_INVENTORY_HOLDING_CREATED.value(),
       DI_INVENTORY_HOLDING_UPDATED.value(),
+      DI_INVENTORY_HOLDING_MATCHED.value(),
       DI_INVENTORY_HOLDING_NOT_MATCHED.value(),
       DI_INVENTORY_ITEM_CREATED.value(),
       DI_INVENTORY_ITEM_UPDATED.value(),
+      DI_INVENTORY_ITEM_MATCHED.value(),
       DI_INVENTORY_ITEM_NOT_MATCHED.value(),
       DI_INVENTORY_AUTHORITY_UPDATED.value(),
       DI_INVENTORY_AUTHORITY_NOT_MATCHED.value(),

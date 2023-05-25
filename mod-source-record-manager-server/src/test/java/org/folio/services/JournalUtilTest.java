@@ -53,8 +53,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -86,8 +86,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
       .withContext(context);
 
-    JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
+    JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED).get(0);
   }
 
   @Test
@@ -107,8 +107,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_HOLDING_NOT_MATCHED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      NON_MATCH, HOLDINGS, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      NON_MATCH, HOLDINGS, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -147,8 +147,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_HOLDING_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, HOLDINGS, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, HOLDINGS, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -197,8 +197,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_ITEM_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, ITEM, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, ITEM, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -249,8 +249,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_ITEM_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, ITEM, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, ITEM, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -278,8 +278,8 @@ public class JournalUtilTest {
       .withJobExecutionId(testJobExecutionId)
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, JournalRecord.EntityType.EDIFACT, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, JournalRecord.EntityType.EDIFACT, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(0, journalRecord.getSourceRecordOrder().intValue());
@@ -308,8 +308,8 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, INSTANCE, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
@@ -346,8 +346,8 @@ public class JournalUtilTest {
       .withEventsChain(Collections.singletonList("DI_ORDER_CREATED"))
       .withContext(context);
 
-    JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
-      CREATE, PO_LINE, COMPLETED);
+    JournalRecord journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, PO_LINE, COMPLETED).get(0);
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());

@@ -2,6 +2,7 @@ package org.folio.verticle.consumers.util;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.DataImportEventPayload;
@@ -104,14 +105,14 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     if (journalParamsOptional.isPresent()) {
       JournalParams journalParams = journalParamsOptional.get();
-      JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
-        processJournalRecordForOrder(journalService, tenantId, journalRecord);
+      if (Objects.equals(journalRecords.get(0).getEntityType(), PO_LINE)) {
+        processJournalRecordForOrder(journalService, tenantId, journalRecords.get(0));
       } else {
-        populateRecordTitleIfNeeded(journalRecord, eventPayload)
-          .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+        populateRecordTitleIfNeeded(journalRecords, eventPayload)
+          .onComplete(ar -> journalService.saveBatch(new JsonArray(journalRecords.stream().map(JsonObject::mapFrom).collect(Collectors.toList())), tenantId));
       }
     }
   }
@@ -124,13 +125,13 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
     }
   }
-  private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
+  private Future<List<JournalRecord>> populateRecordTitleIfNeeded(List<JournalRecord> journalRecords,
                                                             DataImportEventPayload eventPayload) {
-    var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM ?
-      MARC_BIBLIOGRAPHIC : journalRecord.getEntityType());
+    var entityType = (journalRecords.get(0).getEntityType() == HOLDINGS || journalRecords.get(0).getEntityType() == ITEM ?
+      MARC_BIBLIOGRAPHIC : journalRecords.get(0).getEntityType());
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
-      journalRecord.setTitle(NO_TITLE_MESSAGE);
+      journalRecords.forEach(r->r.setTitle(NO_TITLE_MESSAGE));
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
         var parsedRecord = Json.decodeValue(recordAsString, Record.class).getParsedRecord();
@@ -144,11 +145,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
-            .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
-            .orElseGet(() -> Future.succeededFuture(journalRecord)));
+            .map(title -> Future.succeededFuture(journalRecords.stream().map(r->r.withTitle(title)).collect(Collectors.toList())))
+            .orElseGet(() -> Future.succeededFuture(journalRecords)));
       }
     }
 
-    return Future.succeededFuture(journalRecord);
+    return Future.succeededFuture(journalRecords);
   }
 }

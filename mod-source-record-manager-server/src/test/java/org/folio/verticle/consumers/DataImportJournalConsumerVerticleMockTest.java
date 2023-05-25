@@ -3,6 +3,7 @@ package org.folio.verticle.consumers;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -105,6 +106,9 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   @Captor
   private ArgumentCaptor<JsonObject> journalRecordCaptor;
 
+  @Captor
+  private ArgumentCaptor<JsonArray> journalRecordsCaptor;
+
   private DataImportJournalKafkaHandler dataImportJournalKafkaHandler;
 
   private final String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
@@ -159,14 +163,14 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
       .withTenant(TENANT_ID)
       .withToken("token");
 
-    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+    Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
+    Mockito.verify(journalService).saveBatch(journalRecordsCaptor.capture(), Mockito.anyString());
 
-    JsonObject jsonObject = journalRecordCaptor.getValue();
+    JsonObject jsonObject = journalRecordsCaptor.getValue().getJsonObject(0);
     Assert.assertEquals("Entity Type:", EntityType.INSTANCE.value(), jsonObject.getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.COMPLETED.value(), jsonObject.getString(ACTION_STATUS_KEY));
@@ -200,9 +204,9 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
+    Mockito.verify(journalService).saveBatch(journalRecordsCaptor.capture(), Mockito.anyString());
 
-    JsonObject jsonObject = journalRecordCaptor.getValue();
+    JsonObject jsonObject = journalRecordsCaptor.getValue().getJsonObject(0);
     Assert.assertEquals("Entity Type:", HOLDINGS.value(), jsonObject.getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.UPDATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.COMPLETED.value(), jsonObject.getString(ACTION_STATUS_KEY));
@@ -237,9 +241,9 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), Mockito.anyString());
+    Mockito.verify(journalService).saveBatch(journalRecordsCaptor.capture(), Mockito.anyString());
 
-    JsonObject jsonObject = journalRecordCaptor.getValue();
+    JsonObject jsonObject = journalRecordsCaptor.getValue().getJsonObject(0);
     Assert.assertEquals("Entity Type:", EntityType.INSTANCE.value(), jsonObject.getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
@@ -270,9 +274,9 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
+    Mockito.verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
 
-    JsonObject jsonObject = journalRecordCaptor.getValue();
+    JsonObject jsonObject = journalRecordsCaptor.getValue().getJsonObject(0);
     Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonObject.getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonObject.getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonObject.getString(ACTION_STATUS_KEY));
@@ -292,16 +296,16 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
         put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
       }});
 
-    Mockito.doNothing().when(journalService).save(ArgumentMatchers.any(JsonObject.class), ArgumentMatchers.any(String.class));
+    Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
     // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    Mockito.verify(journalService).save(journalRecordCaptor.capture(), eq(TENANT_ID));
+    Mockito.verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
 
-    JournalRecord journalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
     Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
     Assert.assertEquals("Action Type:", ActionType.MODIFY, journalRecord.getActionType());
     Assert.assertEquals("Action Status:", ActionStatus.COMPLETED, journalRecord.getActionStatus());
@@ -327,7 +331,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+    verify(journalService, never()).saveBatch(any(JsonArray.class), eq(TENANT_ID));
     assertTrue(future.succeeded());
   }
 
@@ -349,7 +353,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
-    verify(journalService, never()).save(any(JsonObject.class), eq(TENANT_ID));
+    verify(journalService, never()).saveBatch(any(JsonArray.class), eq(TENANT_ID));
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof PgException);
   }

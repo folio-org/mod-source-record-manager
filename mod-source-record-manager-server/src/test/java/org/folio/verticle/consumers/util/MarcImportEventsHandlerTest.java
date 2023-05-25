@@ -2,7 +2,9 @@ package org.folio.verticle.consumers.util;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
@@ -29,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.services.JournalRecordService;
@@ -61,6 +64,8 @@ public class MarcImportEventsHandlerTest {
 
   @Captor
   private ArgumentCaptor<JsonObject> journalRecordCaptor;
+  @Captor
+  private ArgumentCaptor<JsonArray> journalRecordsCaptor;
   @Mock
   private MappingRuleCache mappingRuleCache;
   @Mock
@@ -96,8 +101,8 @@ public class MarcImportEventsHandlerTest {
 
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
@@ -116,8 +121,8 @@ public class MarcImportEventsHandlerTest {
 
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
@@ -137,10 +142,10 @@ public class MarcImportEventsHandlerTest {
     var payload = constructUpdateItemPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordsCaptor.getValue();
 
-    assertEquals(title, actualJournalRecord.getTitle());
+    assertEquals(title, actualJournalRecord.getJsonObject(0).mapTo(JournalRecord.class).getTitle());
   }
 
   @Test
@@ -158,8 +163,8 @@ public class MarcImportEventsHandlerTest {
     var payload = constructUpdateHoldingsPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
   }
@@ -224,6 +229,48 @@ public class MarcImportEventsHandlerTest {
     assertNull(actualJournalRecord.getTitle());
   }
 
+  @Test
+  public void testSaveNonMatchHoldings() throws JournalRecordMapperException {
+    String title = "The Journal of ecclesiastical history.";
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructMatchHoldingsPayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecords = journalRecordsCaptor.getValue();
+
+    assertEquals(3, actualJournalRecords.size());
+  }
+
+  @Test
+  public void testSaveNonMatchItems() throws JournalRecordMapperException {
+    String title = "The Journal of ecclesiastical history.";
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructMatchItemsPayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordsCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecords = journalRecordsCaptor.getValue();
+
+    assertEquals(5, actualJournalRecords.size());
+  }
+
   private DataImportEventPayload constructAuthorityPayload(org.marc4j.marc.Record marcRecord) {
     var record = new Record()
       .withId(UUID.randomUUID().toString())
@@ -286,6 +333,35 @@ public class MarcImportEventsHandlerTest {
       .withEventType(DI_ERROR.value())
       .withContext(payloadContext)
       .withJobExecutionId(UUID.randomUUID().toString());
+  }
+
+  private DataImportEventPayload constructMatchHoldingsPayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    payloadContext.put("HOLDINGS","[{\"instanceId\":\"946c4945-b711-4e67-bfb9-83fa30be6332\",\"hrid\":\"ho001\",\"id\":\"946c4945-b711-4e67-bfb9-83fa37be6312\"},{\"instanceId\":\"946c4945-b711-4e67-bfb9-83fa30be6331\",\"hrid\":\"ho002\",\"id\":\"946c4945-b111-4e67-bfb9-83fa30be6312\"}]");
+    payloadContext.put("NOT_MATCHED_NUMBER","3");
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INVENTORY_HOLDING_NOT_MATCHED.value(), DI_INVENTORY_HOLDING_NOT_MATCHED.value()))
+      .withEventType(DI_COMPLETED.value())
+      .withContext(payloadContext);
+  }
+
+  private DataImportEventPayload constructMatchItemsPayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    payloadContext.put("HOLDINGS","{\"instanceId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\",\"hrid\":\"ho001\",\"id\":\"946c4945-b711-4e67-bfb9-83fa30be6312\"}");
+    payloadContext.put("ITEM","[{\"holdingsRecordId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\",\"hrid\":\"it001\",\"id\":\"946c4945-b711-4e67-bfb9-83fa30be4312\"},{\"holdingsRecordId\":\"946c4945-b711-4e67-bfb9-83fa30be633b\",\"hrid\":\"it002\",\"id\":\"946c4945-b711-4e67-bfb9-83fa30be6312\"}]");
+    payloadContext.put("NOT_MATCHED_NUMBER","5");
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INVENTORY_ITEM_NOT_MATCHED.value(), DI_INVENTORY_ITEM_NOT_MATCHED.value()))
+      .withEventType(DI_COMPLETED.value())
+      .withContext(payloadContext);
   }
 
   private String marcRecordToJsonContent(org.marc4j.marc.Record marcRecord) {
