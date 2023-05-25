@@ -1,5 +1,6 @@
 package org.folio.services.flowcontrol;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.kafka.KafkaConsumerWrapper;
@@ -10,11 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 
@@ -44,6 +46,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
+  private final Map<String, Pair<Integer, Integer>> previousState = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void init() {
@@ -72,6 +75,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
     for (String key : currentState.keySet()) {
+      if (previousState.get(key) == null) {
+        previousState.put(key, Pair.of(currentState.get(key), 0));
+      } else {
+        if (Objects.equals(previousState.get(key).getKey(), currentState.get(key))) {
+          previousState.put(key, Pair.of(currentState.get(key), previousState.get(key).getValue() + 1));
+        }
+      }
+
       if (currentState.get(key) > maxSimultaneousRecords) {
         LOGGER.info("--------------- resetState:: Tenant: [{}]. Pause. Current state: {}. ---------------", key, currentState.get(key));
         rawRecordsReadConsumers.forEach(consumer -> {
@@ -80,8 +91,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           }
         });
       } else {
-        if ((currentState.get(key) <= 0) || (currentState.get(key) / recordsThreshold == 0)) {
-          LOGGER.info("--------------- resetState:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
+        if ((currentState.get(key) <= 0) || (currentState.get(key) / recordsThreshold == 0) ||
+          previousState.get(key).getValue() >= 10)  {
+          LOGGER.info("--------------- resetState:: Tenant: [{}]. Resume. Current state: {}. Pause cycles: {} ---------------",
+            key, currentState.get(key), previousState.get(key).getValue());
+          previousState.remove(key);
           rawRecordsReadConsumers.forEach(consumer -> {
             if (consumer.demand() == 0) {
               consumer.resume();
