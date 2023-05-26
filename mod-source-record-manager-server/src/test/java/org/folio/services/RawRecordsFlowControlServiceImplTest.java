@@ -149,7 +149,7 @@ public class RawRecordsFlowControlServiceImplTest {
 
     // after record complete event, current value 4 less than resume threshold, need to resume consumer
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerWrapper).resume();
+    verify(consumerWrapper).fetch(50);
   }
 
   @Test
