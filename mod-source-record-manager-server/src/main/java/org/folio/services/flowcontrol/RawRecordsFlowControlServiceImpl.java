@@ -86,10 +86,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     if (!enableFlowControl) {
       return;
     }
+
     LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Records: {} ---------------", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
-    if (currentState.get(tenantId) > maxSimultaneousRecords) {
+    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
       consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
         LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. Pause:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
         if (consumer.demand() > 0) {
@@ -128,20 +129,15 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Current state: {}", tenantId, currentState.get(tenantId));
-    if ((currentState.get(tenantId) <= 0) || (currentState.get(tenantId) < recordsThreshold)) {
-      LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current state: {}", tenantId, currentState.get(tenantId));
+    if (currentState.get(tenantId) < recordsThreshold) {
       for (String key : currentState.keySet()) {
-        if ((currentState.get(key) <= 0) || (currentState.get(key) < recordsThreshold)) {
-          LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
-          consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-            .forEach(consumer -> {
-              if (consumer.demand() == 0) {
-                consumer.fetch(maxSimultaneousRecords);
-              }
-            });
-        } else {
-          LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------", key, currentState.get(key));
-        }
+        LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
+        consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+          .forEach(consumer -> {
+            if (consumer.demand() == 0) {
+              consumer.fetch(maxSimultaneousRecords);
+            }
+          });
       }
     } else {
       LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------",

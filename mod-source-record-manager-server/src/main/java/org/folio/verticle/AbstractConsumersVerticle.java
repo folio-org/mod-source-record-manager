@@ -54,7 +54,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         constructModuleName() + "_" + getClass().getSimpleName()));
 
       kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-        .forEach(consumer -> {if (consumer.demand() > 0) consumer.fetch(50);});
+        .forEach(consumer -> {if (consumer.demand() > 0) consumer.pause();});
     });
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
