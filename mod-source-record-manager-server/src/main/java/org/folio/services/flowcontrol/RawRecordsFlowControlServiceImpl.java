@@ -42,8 +42,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   @Autowired
   private KafkaConsumersStorage consumersStorage;
-  @Autowired
-  private EventProcessedService eventProcessedService;
 
   /**
    * Represents the current state of flow control to make decisions when need to make pause/resume calls.
@@ -54,7 +52,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
-  //private final Map<String, Pair<Integer, Integer>> previousState = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void init() {
@@ -75,64 +72,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(initialDelayString = "PT1S", fixedRateString = "${di.flow.control.reset.state.interval:PT1S}")
+  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT1M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
-    }
-
-//    Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-//    for (String key : currentState.keySet()) {
-//      if (previousState.get(key) == null) {
-//        previousState.put(key, Pair.of(currentState.get(key), 0));
-//      } else {
-//        if (Objects.equals(previousState.get(key).getKey(), currentState.get(key))) {
-//          previousState.put(key, Pair.of(currentState.get(key), previousState.get(key).getValue() + 1));
-//        }
-//      }
-//
-//      if (currentState.get(key) > maxSimultaneousRecords) {
-//        LOGGER.info("--------------- resetState:: Tenant: [{}]. Pause. Current state: {}. ---------------", key, currentState.get(key));
-//        rawRecordsReadConsumers.forEach(consumer -> {
-//          if ((consumer.demand() > 0)) {
-//            consumer.pause();
-//          }
-//        });
-//      } else {
-//        if ((currentState.get(key) <= 0) || (currentState.get(key) / recordsThreshold == 0) ||
-//          previousState.get(key).getValue() >= 10)  {
-//          LOGGER.info("--------------- resetState:: Tenant: [{}]. Resume. Current state: {}. Pause cycles: {} ---------------",
-//            key, currentState.get(key), previousState.get(key).getValue());
-//          previousState.remove(key);
-//          rawRecordsReadConsumers.forEach(consumer -> {
-//            if (consumer.demand() == 0) {
-//              consumer.resume();
-//            }
-//          });
-//        } else {
-//          LOGGER.info("--------------- resetState:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------", key, currentState.get(key));
-//        }
-//      }
-//    }
-
-    if (currentState.values().stream().anyMatch(counter -> counter > 0)) {
-      //currentState.replaceAll((tenantId, oldValue) -> 0);
-      //LOGGER.info("resetState:: State has been reset to initial value, current value: 0");
-      LOGGER.info("--------------- resetState:: The try to reset state. ---------------");
-
-      for (String key : currentState.keySet()) {
-        if ((currentState.get(key) <= 0) || (currentState.get(key) / recordsThreshold == 0)) {
-          LOGGER.info("--------------- resetState:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
-          Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-          rawRecordsReadConsumers.forEach(consumer -> {
-            if (consumer.demand() == 0) {
-              consumer.resume();
-            }
-          });
-        } else {
-          LOGGER.info("--------------- resetState:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------", key, currentState.get(key));
-        }
-      }
     }
 
     currentState.forEach((tenantId, counterVal) -> resumeIfThresholdAllows(tenantId));
@@ -186,19 +129,22 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
-    LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current state: {}", tenantId, currentState.get(tenantId));
-    if ((currentState.get(tenantId) <= 0) || (currentState.get(tenantId) / recordsThreshold == 0)) {
-      Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-      LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. rawRecordsReadConsumers:: size: {}", tenantId, rawRecordsReadConsumers.size());
-      rawRecordsReadConsumers.forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Resume:: consumerId: {}, demand:{}", tenantId, consumer.getId(), consumer.demand());
-        if (consumer.demand() == 0) {
-          //consumer.resume();
-          consumer.fetch(maxSimultaneousRecords);
-          LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is resumed for all tenants, because {} met threshold {}",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), this.currentState, recordsThreshold);
+    LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Current state: {}", tenantId, currentState.get(tenantId));
+    if ((currentState.get(tenantId) <= 0) || (currentState.get(tenantId) < recordsThreshold)) {
+      LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Try to resume. Current state: {}", tenantId, currentState.get(tenantId));
+      for (String key : currentState.keySet()) {
+        if ((currentState.get(key) <= 0) || (currentState.get(key) < recordsThreshold)) {
+          LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
+          consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+            .forEach(consumer -> {
+              if (consumer.demand() == 0) {
+                consumer.fetch(maxSimultaneousRecords);
+              }
+            });
+        } else {
+          LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------", key, currentState.get(key));
         }
-      });
+      }
     } else {
       LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------",
         tenantId, currentState.get(tenantId));
