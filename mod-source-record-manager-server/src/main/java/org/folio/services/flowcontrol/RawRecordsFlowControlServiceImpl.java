@@ -90,9 +90,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     increaseCounterInDb(tenantId, recordsCount);
 
     if (currentState.get(tenantId) > maxSimultaneousRecords) {
-      Collection<KafkaConsumerWrapper<String, String>> rawRecordsReadConsumers = consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-      LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. consumers.size: {}", tenantId, rawRecordsReadConsumers.size());
-      rawRecordsReadConsumers.forEach(consumer -> {
+      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
         LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. Pause:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
         if (consumer.demand() > 0) {
           consumer.pause();

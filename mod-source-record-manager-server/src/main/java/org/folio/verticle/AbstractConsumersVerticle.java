@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 public abstract class AbstractConsumersVerticle extends AbstractVerticle {
@@ -36,6 +37,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .createSubscriptionDefinition(kafkaConfig.getEnvId(),
           KafkaTopicNameHelper.getDefaultNameSpace(),
           event);
+
       KafkaConsumerWrapper<String, String> consumerWrapper = KafkaConsumerWrapper.<String, String>builder()
         .context(context)
         .vertx(vertx)
@@ -50,6 +52,9 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
       futures.add(consumerWrapper.start(getHandler(),
         constructModuleName() + "_" + getClass().getSimpleName()));
+
+      kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+        .forEach(consumer -> {if (consumer.demand() > 0) consumer.fetch(50);});
     });
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());
