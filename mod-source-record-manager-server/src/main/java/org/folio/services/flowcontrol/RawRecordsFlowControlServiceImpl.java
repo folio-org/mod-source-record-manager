@@ -52,6 +52,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
+  private final Map<String, Integer> historyState = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void init() {
@@ -117,11 +118,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
+    Integer preValue = historyState.get(tenantId);
+    historyState.put(tenantId, Objects.equals(preValue, currentState.get(tenantId)) ? 0 : preValue++);
+
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}",
-          tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId));
-        if ((consumer.demand() == 0) && (currentState.get(tenantId) <= 0)) {
+        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}, historyState: {}",
+          tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
+        if ((consumer.demand() == 0) && (historyState.get(tenantId) > 5)) {
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
           consumer.fetch(maxSimultaneousRecords);
         }
