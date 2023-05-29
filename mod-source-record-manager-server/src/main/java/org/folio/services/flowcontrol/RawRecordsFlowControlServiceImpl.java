@@ -33,7 +33,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:50}")
+  @Value("${di.flow.control.max.simultaneous.records:1}")
   private Integer maxSimultaneousRecords;
   @Value("${di.flow.control.records.threshold:25}")
   private Integer recordsThreshold;
@@ -72,7 +72,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT1M}")
+  @Scheduled(initialDelayString = "PT2M", fixedRateString = "${di.flow.control.reset.state.interval:PT2M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
@@ -87,8 +87,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Records count: {}", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
+    LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Record count: {}, Current state: {}",
+      tenantId, recordsCount, currentState.get(tenantId));
   }
 
   @Override
@@ -97,8 +98,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {}", tenantId, recordsCount);
     decreaseCounterInDb(tenantId, recordsCount);
+    LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {}, Current state: {}",
+      tenantId, recordsCount, currentState.get(tenantId));
     resumeIfThresholdAllows(tenantId);
   }
 
@@ -108,8 +110,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Completed Records: {}", tenantId, recordsCount);
     decreaseCounterInDb(tenantId, recordsCount);
+    LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
+      tenantId, recordsCount, currentState.get(tenantId));
     resumeIfThresholdAllows(tenantId);
   }
 
@@ -118,28 +121,18 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId));
-        if (consumer.demand() == 0) {
+        if ((consumer.demand() == 0) && (currentState.get(tenantId) == 0)) {
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-          consumer.fetch(1);
+          consumer.fetch(maxSimultaneousRecords);
         }
       });
   }
 
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
-
-    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
-      LOGGER.info("increaseCounterInDb :: Tenant: [{}]. ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-    });
-
     currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v + recordsCount);
   }
 
   public void decreaseCounterInDb(String tenantId, Integer recordsCount) {
-
-    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
-      LOGGER.info("increaseCounterInDb :: Tenant: [{}]. ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-    });
-
     currentState.compute(tenantId, (k, v) -> v == null || v < 0 ? 0 : v - recordsCount);
   }
 
