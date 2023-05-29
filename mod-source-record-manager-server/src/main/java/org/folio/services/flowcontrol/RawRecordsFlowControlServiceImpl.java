@@ -121,7 +121,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId));
-        if ((consumer.demand() == 0) && (currentState.get(tenantId) == 0)) {
+        if ((consumer.demand() == 0) && (currentState.get(tenantId) <= 0)) {
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
           consumer.fetch(maxSimultaneousRecords);
         }
