@@ -114,9 +114,10 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
-    LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Current state: {}", tenantId, currentState.get(tenantId));
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
+        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}",
+          tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId));
         if (consumer.demand() == 0) {
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
           consumer.fetch(1);
