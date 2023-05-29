@@ -121,20 +121,24 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
-    Integer preValue = historyState.get(tenantId);
-    if ((preValue == null) || (preValue.equals(currentState.get(tenantId)))) {
-      historyState.put(tenantId, 0);
-    } else {
-      historyState.put(tenantId, ++preValue);
+
+    historyState.putIfAbsent(tenantId, 0);
+    if (historyState.get(tenantId).equals(currentState.get(tenantId))) {
+      Integer previousValue = historyState.get(tenantId);
+      historyState.put(tenantId, ++previousValue);
+      LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Current state:{}, History state: {}",
+        tenantId, currentState.get(tenantId), historyState.get(tenantId));
     }
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if ((consumer.demand() == 0) && (currentState.get(tenantId) < 25)) {
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) < 25)) || historyState.get(tenantId) > 1) {
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch :: ConsumerId: {}, Demand:{}, History state: {}",
+            tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
           consumer.fetch(maxSimultaneousRecords);
+          historyState.put(tenantId, 0);
         }
       });
   }
