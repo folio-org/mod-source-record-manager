@@ -119,7 +119,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
     Integer preValue = historyState.get(tenantId);
-    historyState.put(tenantId, Objects.equals(preValue, currentState.get(tenantId)) ? 0 : preValue++);
+    historyState.put(tenantId, (preValue == null || (preValue.equals(currentState.get(tenantId))) ? 0 : preValue++));
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
