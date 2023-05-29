@@ -89,20 +89,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Records count: {}", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
-
-//    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
-//      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
-//        LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. Try to pause:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-//        if (consumer.demand() == 0) {
-//          consumer.fetch(maxSimultaneousRecords);
-//          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-//            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
-//        }
-//      });
-//    } else {
-//      LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers are resume. Current state: {} ---------------",
-//        tenantId, currentState.get(tenantId));
-//    }
   }
 
   @Override
@@ -111,7 +97,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {} ---------------", tenantId, recordsCount);
+    LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {}", tenantId, recordsCount);
     decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
@@ -129,18 +115,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Current state: {}", tenantId, currentState.get(tenantId));
-    if (currentState.get(tenantId) < recordsThreshold) {
-      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-        .forEach(consumer -> {
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Try to fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-          if (consumer.demand() == 0) {
-            consumer.fetch(maxSimultaneousRecords);
-          }
-        });
-    } else {
-      LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------",
-        tenantId, currentState.get(tenantId));
-    }
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(consumer -> {
+        if (consumer.demand() == 0) {
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+          consumer.fetch(1);
+        }
+      });
   }
 
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
