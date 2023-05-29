@@ -87,22 +87,22 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Records: {} ---------------", tenantId, recordsCount);
+    LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Records count: {}", tenantId, recordsCount);
     increaseCounterInDb(tenantId, recordsCount);
 
-    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
-      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
-        LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. Pause:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
-        if (consumer.demand() > 0) {
-          consumer.pause();
-          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
-            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
-        }
-      });
-    } else {
-      LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers are resume. Current state: {} ---------------",
-        tenantId, currentState.get(tenantId));
-    }
+//    if (currentState.get(tenantId) >= maxSimultaneousRecords) {
+//      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
+//        LOGGER.info("trackChunkReceivedEvent :: Tenant: [{}]. Try to pause:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+//        if (consumer.demand() == 0) {
+//          consumer.fetch(maxSimultaneousRecords);
+//          LOGGER.info("Tenant: [{}]. Kafka consumer - id: {}, subscription - {} is paused, because {} exceeded {} max simultaneous records",
+//            tenantId, consumer.getId(), DI_RAW_RECORDS_CHUNK_READ.value(), currentState.get(tenantId), maxSimultaneousRecords);
+//        }
+//      });
+//    } else {
+//      LOGGER.info("--------------- trackChunkReceivedEvent:: Tenant: [{}]. Consumers are resume. Current state: {} ---------------",
+//        tenantId, currentState.get(tenantId));
+//    }
   }
 
   @Override
@@ -111,7 +111,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    LOGGER.info("--------------- Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {} ---------------", tenantId, recordsCount);
+    LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {} ---------------", tenantId, recordsCount);
     decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
@@ -130,15 +130,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   private void resumeIfThresholdAllows(String tenantId) {
     LOGGER.info("resumeIfThresholdAllows:: Tenant: [{}]. Current state: {}", tenantId, currentState.get(tenantId));
     if (currentState.get(tenantId) < recordsThreshold) {
-      for (String key : currentState.keySet()) {
-        LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Resume. Current state: {}. ---------------", key, currentState.get(key));
-        consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-          .forEach(consumer -> {
-            if (consumer.demand() == 0) {
-              consumer.fetch(maxSimultaneousRecords);
-            }
-          });
-      }
+      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+        .forEach(consumer -> {
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Try to fetch:: ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+          if (consumer.demand() == 0) {
+            consumer.fetch(maxSimultaneousRecords);
+          }
+        });
     } else {
       LOGGER.info("--------------- resumeIfThresholdAllows:: Tenant: [{}]. Consumers on pause. Current state: {}. ---------------",
         tenantId, currentState.get(tenantId));
@@ -146,15 +144,21 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
-    LOGGER.info("--------------- increaseCounterInDb:: Tenant: [{}]. Increase on: {} ---------------", tenantId, recordsCount);
+
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
+      LOGGER.info("increaseCounterInDb :: Tenant: [{}]. ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+    });
+
     currentState.compute(tenantId, (k, v) -> v == null ? recordsCount : v + recordsCount);
-    LOGGER.info("--------------- increaseCounterInDb:: Tenant: [{}]. Current state: {} ---------------", tenantId, currentState.get(tenantId));
   }
 
   public void decreaseCounterInDb(String tenantId, Integer recordsCount) {
-    LOGGER.info("--------------- decreaseCounterInDb:: Tenant: [{}]. Decrease on: {} ---------------", tenantId, recordsCount);
+
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()).forEach(consumer -> {
+      LOGGER.info("increaseCounterInDb :: Tenant: [{}]. ConsumerId: {}, Demand:{}", tenantId, consumer.getId(), consumer.demand());
+    });
+
     currentState.compute(tenantId, (k, v) -> v == null || v < 0 ? 0 : v - recordsCount);
-    LOGGER.info("--------------- decreaseCounterInDb:: Tenant: [{}]. Current state: {} ---------------", tenantId, currentState.get(tenantId));
   }
 
 }
