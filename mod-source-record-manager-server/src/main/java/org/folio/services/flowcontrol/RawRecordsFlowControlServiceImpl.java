@@ -33,7 +33,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:1}")
+  @Value("${di.flow.control.max.simultaneous.records:2}")
   private Integer maxSimultaneousRecords;
   @Value("${di.flow.control.records.threshold:25}")
   private Integer recordsThreshold;
@@ -136,11 +136,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if (((consumer.demand() == 0) && (currentState.get(tenantId) < 25)) || historyState.get(tenantId).getValue() > 1) {
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) || historyState.get(tenantId).getValue() > 0) {
+          consumer.fetch(maxSimultaneousRecords);
+
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch :: ConsumerId: {}, Demand:{}, History state: {}",
             tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
-          consumer.fetch(maxSimultaneousRecords);
+
           historyState.put(tenantId, Pair.of(0,0));
+          currentState.put(tenantId, 0);
         }
       });
   }
