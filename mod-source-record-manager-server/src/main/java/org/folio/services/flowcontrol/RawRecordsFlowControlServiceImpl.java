@@ -52,7 +52,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
-  private final Map<String, Integer> historyState = new ConcurrentHashMap<>();
+  private final Map<String, Pair<Integer, Integer>> historyState = new ConcurrentHashMap<>();
 
   @PostConstruct
   public void init() {
@@ -122,25 +122,25 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
 
-    historyState.putIfAbsent(tenantId, 0);
-    if (historyState.get(tenantId).equals(currentState.get(tenantId))) {
-      Integer previousValue = historyState.get(tenantId);
-      historyState.put(tenantId, ++previousValue);
+    historyState.putIfAbsent(tenantId, Pair.of(0,0));
+    if (historyState.get(tenantId).getKey().equals(currentState.get(tenantId))) {
+      Integer previousValue = historyState.get(tenantId).getValue();
+      historyState.put(tenantId, Pair.of(historyState.get(tenantId).getKey(), ++previousValue));
       LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Current state:{}, History state: {}",
         tenantId, currentState.get(tenantId), historyState.get(tenantId));
     } else {
-      historyState.put(tenantId, 0);
+      historyState.put(tenantId, Pair.of(currentState.get(tenantId),0));
     }
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if (((consumer.demand() == 0) && (currentState.get(tenantId) < 25)) || historyState.get(tenantId) > 1) {
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) < 25)) || historyState.get(tenantId).getValue() > 1) {
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch :: ConsumerId: {}, Demand:{}, History state: {}",
             tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
           consumer.fetch(maxSimultaneousRecords);
-          historyState.put(tenantId, 0);
+          historyState.put(tenantId, Pair.of(0,0));
         }
       });
   }
