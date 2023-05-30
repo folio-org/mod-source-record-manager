@@ -129,7 +129,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Current state:{}, History state: {}",
         tenantId, currentState.get(tenantId), historyState.get(tenantId));
     } else {
-      historyState.put(tenantId, currentState.get(tenantId));
+      historyState.put(tenantId, 0);
     }
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
