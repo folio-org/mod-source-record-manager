@@ -1,14 +1,8 @@
 package org.folio.services.flowcontrol;
 
-import io.vertx.kafka.client.consumer.impl.KafkaConsumerImpl;
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.kafka.KafkaConsumerWrapper;
-import org.folio.rest.persist.PostgresClient;
-import org.folio.services.EventProcessedService;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,23 +11,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 
 @Service
 @EnableScheduling
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${di.flow.control.max.simultaneous.records:2}")
+  @Value("${di.flow.control.max.simultaneous.chunks:2}")
   private Integer maxSimultaneousRecords;
   @Value("${di.flow.control.records.threshold:25}")
   private Integer recordsThreshold;
@@ -48,7 +37,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * It is basically counter, that increasing when DI_RAW_RECORDS_CHUNK_READ event comes and decreasing when
    * DI_COMPLETE, DI_ERROR come.
    *
-   * When current state equals or exceeds di.flow.control.max.simultaneous.records - all raw records consumers from consumer's group should pause.
+   * When current state equals or exceeds di.flow.control.max.simultaneous.chunks - all raw records consumers from consumer's group should pause.
    * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
@@ -132,21 +121,29 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       historyState.put(tenantId, Pair.of(currentState.get(tenantId),0));
     }
 
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_PARSED.value())
+      .forEach(
+        consumer -> {
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. DI_RAW_RECORDS_CHUNK_PARSED. " +
+            "ConsumerId:{}, Demand:{}, Load limit:{}", tenantId, consumer.getId(), consumer.demand(), consumer.getLoadLimit());
+        }
+      );
+
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
+        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. DI_RAW_RECORDS_CHUNK_READ. " +
+            "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
         if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) || historyState.get(tenantId).getValue() > 0) {
-
           if (consumer.demand() > maxSimultaneousRecords) {
             consumer.pause();
           }
-
           consumer.fetch(maxSimultaneousRecords);
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch :: ConsumerId: {}, Demand:{}, History state: {}",
-            tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
 
-          historyState.put(tenantId, Pair.of(0,0));
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
+            "ConsumerId: {}, Demand:{}, History state: {}", tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
+
+          historyState.put(tenantId, Pair.of(0, 0));
           currentState.put(tenantId, 0);
         }
       });
