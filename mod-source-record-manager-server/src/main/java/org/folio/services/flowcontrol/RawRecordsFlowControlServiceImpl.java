@@ -62,7 +62,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(initialDelayString = "PT2M", fixedRateString = "${di.flow.control.reset.state.interval:PT2M}")
+  @Scheduled(initialDelayString = "PT3M", fixedRateString = "${di.flow.control.reset.state.interval:PT2M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
@@ -94,7 +94,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     decreaseCounterInDb(tenantId, recordsCount);
     LOGGER.info("trackChunkDuplicateEvent:: Tenant: [{}]. Chunk duplicate event comes. Duplicate Records: {}, Current state: {}",
       tenantId, recordsCount, currentState.get(tenantId));
-    resumeIfThresholdAllows(tenantId);
+    //resumeIfThresholdAllows(tenantId);
   }
 
   @Override
@@ -106,7 +106,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     decreaseCounterInDb(tenantId, recordsCount);
     LOGGER.info("trackRecordCompleteEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
       tenantId, recordsCount, currentState.get(tenantId));
-    resumeIfThresholdAllows(tenantId);
+    //resumeIfThresholdAllows(tenantId);
   }
 
   private void resumeIfThresholdAllows(String tenantId) {
@@ -135,10 +135,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
         if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) || historyState.get(tenantId).getValue() > 0) {
-          if (consumer.demand() > maxSimultaneousRecords) {
-            consumer.pause();
-          }
-          consumer.fetch(maxSimultaneousRecords);
+//          if (consumer.demand() > maxSimultaneousRecords) {
+//            consumer.pause();
+//          }
+//          consumer.fetch(maxSimultaneousRecords);
+          consumer.resume();
+          consumer.pause();
 
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId: {}, Demand:{}, History state: {}", tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
