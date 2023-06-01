@@ -73,6 +73,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
           consumer.resume();
+          LOGGER.info("resetState :: Resume :: DI_RAW_RECORDS_CHUNK_READ. " +
+            "ConsumerId:{}, Demand:{}, Load limit:{}", consumer.getId(), consumer.demand(), consumer.getLoadLimit());
       });
 
 //    currentState.forEach((tenantId, counterVal) -> {
@@ -91,10 +93,12 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Record count: {}, Current state: {}",
       tenantId, recordsCount, currentState.get(tenantId));
 
-
-    LOGGER.info("resetState !!!");
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-      .forEach(KafkaConsumerWrapper::pause);
+      .forEach(consumer -> {
+        consumer.pause();
+        LOGGER.info("trackChunkReceivedEvent :: Pause :: DI_RAW_RECORDS_CHUNK_READ. " +
+          "ConsumerId:{}, Demand:{}, Load limit:{}", consumer.getId(), consumer.demand(), consumer.getLoadLimit());
+      });
   }
 
   @Override
@@ -151,8 +155,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 //            consumer.pause();
 //          }
 //          consumer.fetch(maxSimultaneousRecords);
-          consumer.resume();
-          consumer.pause();
+ //         consumer.resume();
+//          consumer.pause();
 
           LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId: {}, Demand:{}, History state: {}", tenantId, consumer.getId(), consumer.demand(), historyState.get(tenantId));
