@@ -57,6 +57,8 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .forEach(consumer -> {if (consumer.demand() > 0) {
           consumer.pause();
           //consumer.fetch(2);
+          consumer.resume();
+          consumer.pause();
         }});
     });
 
