@@ -68,10 +68,17 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
-    currentState.forEach((tenantId, counterVal) -> {
-      LOGGER.info("resetState:: Tenant: [{}] ", tenantId);
-      resumeIfThresholdAllows(tenantId);
-    });
+    LOGGER.info("resetState !!!");
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(consumer -> {
+          consumer.resume();
+          consumer.pause();
+      });
+
+//    currentState.forEach((tenantId, counterVal) -> {
+//      LOGGER.info("resetState:: Tenant: [{}] ", tenantId);
+//      resumeIfThresholdAllows(tenantId);
+//    });
   }
 
   @Override

@@ -56,9 +56,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
       kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
         .forEach(consumer -> {if (consumer.demand() > 0) {
           consumer.pause();
-          //consumer.fetch(2);
-          consumer.resume();
-          consumer.pause();
+          consumer.fetch(1);
         }});
     });
 
