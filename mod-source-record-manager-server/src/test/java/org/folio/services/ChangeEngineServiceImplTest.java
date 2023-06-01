@@ -4,6 +4,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -14,8 +15,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
@@ -32,9 +35,11 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
+import org.folio.MatchProfile;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.MappingMetadataDto;
 import org.folio.rest.jaxrs.model.MappingProfile;
+import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.junit.Before;
 import org.junit.Test;
@@ -93,6 +98,8 @@ public class ChangeEngineServiceImplTest {
   private MappingMetadataService mappingMetadataService;
   @Mock
   private JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
+  @Mock
+  private FieldModificationService fieldModificationService;
 
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
@@ -436,6 +443,72 @@ public class ChangeEngineServiceImplTest {
     }
 
     verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+  }
+
+  @Test
+  public void shouldRemoveSubfield9WhenSpecified() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(MATCH_PROFILE)
+        .withContent(new JsonObject(Json.encode(new MatchProfile())).getMap())
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withContentType(ACTION_PROFILE)
+          .withContent(new JsonObject(Json.encode(new ActionProfile()
+            .withAction(ActionProfile.Action.DELETE)
+            .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY)
+            .withRemove9Subfields(true))).getMap())
+        ))
+      ))
+    );
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.AUTHORITY);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+      .thenReturn(Future.succeededFuture(true));
+    doAnswer(invocationOnMock -> Future.succeededFuture(invocationOnMock.getArgument(1)))
+      .when(fieldModificationService).remove9Subfields(any(), any(), any());
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    var actual = serviceFuture.result();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    verify(fieldModificationService).remove9Subfields(eq(jobExecution.getId()), any(), any());
+  }
+
+  @Test
+  public void shouldNotRemoveSubfield9WhenNotSpecified() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(ACTION_PROFILE)
+        .withContent(new JsonObject(Json.encode(new ActionProfile()
+          .withAction(ActionProfile.Action.DELETE)
+          .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY)
+          .withRemove9Subfields(false))).getMap())
+      ))
+    );
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.AUTHORITY);
+    when(jobExecutionSourceChunkDao.getById(any(), any()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+      .thenReturn(Future.succeededFuture(true));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    var actual = serviceFuture.result();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
+    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    verifyNoInteractions(fieldModificationService);
   }
 
   private void mockServicesForParseRawRecordsChunkForJobExecution() {

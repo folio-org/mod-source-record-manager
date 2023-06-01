@@ -61,7 +61,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
                                                List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
-                                               List<String> sortBy, int offset, int limit, Map<String, String> okapiHeaders,
+                                               List<String> sortBy, String totalRecords, int offset, int limit,
+                                               Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
@@ -102,7 +103,7 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   @Override
   public void getMetadataProviderJobLogEntriesByJobExecutionId(String jobExecutionId, String sortBy, MetadataProviderJobLogEntriesJobExecutionIdGetOrder order, boolean errorsOnly,
-                                                               MetadataProviderJobLogEntriesJobExecutionIdGetEntityType entityType, int offset, int limit,
+                                                               MetadataProviderJobLogEntriesJobExecutionIdGetEntityType entityType, String totalRecords, int offset, int limit,
                                                                Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     vertxContext.runOnContext(v -> {
@@ -162,7 +163,7 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobExecutionsJobProfiles(int offset, int limit, Map<String, String> okapiHeaders,
+  public void getMetadataProviderJobExecutionsJobProfiles(String totalRecords, int offset, int limit, Map<String, String> okapiHeaders,
                                                           Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
@@ -179,7 +180,7 @@ public class MetadataProviderImpl implements MetadataProvider {
   }
 
   @Override
-  public void getMetadataProviderJobExecutionsUsers(int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getMetadataProviderJobExecutionsUsers(String totalRecords, int offset, int limit, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         LOGGER.debug("getMetadataProviderJobExecutionsUsers:: tenantId {}", tenantId);

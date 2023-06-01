@@ -4,11 +4,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
 
 import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 
+import io.vertx.core.json.Json;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -154,6 +156,9 @@ public class ChangeManagerParsedRecordsAPITest extends AbstractRestTest {
   @Test
   public void shouldUpdateParsedRecordOnPut(TestContext testContext) throws InterruptedException {
     Async async = testContext.async();
+
+    WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
+      .willReturn(WireMock.ok().withBody(Json.encode(emptyList()))));
 
     ParsedRecordDto parsedRecordDto = new ParsedRecordDto()
       .withId(UUID.randomUUID().toString())

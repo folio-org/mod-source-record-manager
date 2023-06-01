@@ -1,5 +1,11 @@
 package org.folio.services;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.created;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
@@ -7,20 +13,10 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.mockito.ArgumentMatchers.*;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.created;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Collections;
-import java.util.UUID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
@@ -34,23 +30,41 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
 import org.folio.DataImportEventPayload;
-import org.folio.dao.MappingRuleDaoImpl;
-import org.folio.dao.JobExecutionProgressDaoImpl;
+import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
+import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
+import org.folio.kafka.KafkaConfig;
+import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
+import org.folio.rest.impl.AbstractRestTest;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionProgress;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
-import org.folio.rest.jaxrs.model.JobProfileInfo;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.DataImportEventTypes;
-import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.services.afterprocessing.FieldModificationServiceImpl;
+import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.journal.JournalServiceImpl;
+import org.folio.services.mappers.processor.MappingParametersProvider;
+import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
@@ -60,19 +74,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import org.folio.TestUtil;
-import org.folio.dao.util.PostgresClientFactory;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
-import org.folio.kafka.KafkaConfig;
-import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
-import org.folio.rest.impl.AbstractRestTest;
-import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
-import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
-import org.folio.services.journal.JournalServiceImpl;
-import org.folio.services.mappers.processor.MappingParametersProvider;
-import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(VertxUnitRunner.class)
@@ -131,6 +132,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private MappingParamsSnapshotDaoImpl mappingParamsSnapshotDao;
+  @Spy
+  @InjectMocks
+  private FieldModificationServiceImpl fieldModificationService;
 
   @Spy
   RecordsPublishingService recordsPublishingService;
@@ -187,7 +191,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig);
+    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
+      fieldModificationService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
@@ -400,6 +405,54 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertFalse(ar.result());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldMarkJobExecutionAsErrorOnHandleDICompletedIfMultipleErrorsExists(TestContext context) {
+    // given
+    Async async = context.async();
+    HashMap<String, String> payloadContext = new HashMap<>();
+    JsonArray multipleErrors = new JsonArray();
+    JsonObject error = new JsonObject();
+    error.put("id", "123");
+    error.put("error", "Error message!");
+    multipleErrors.add(error);
+    payloadContext.put("ERRORS", String.valueOf(multipleErrors));
+    DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
+      .withEventType(DataImportEventTypes.DI_COMPLETED.value())
+      .withContext(payloadContext);
+
+    Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
+      .compose(jobExecution -> {
+        dataImportEventPayload.setJobExecutionId(jobExecution.getId());
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+      });
+
+    // when
+    Future<JobExecutionProgress> jobFuture = future
+      .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
+      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
+
+    // then
+    jobFuture.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      JobExecutionProgress updatedProgress = ar.result();
+      context.assertEquals(1, updatedProgress.getCurrentlyFailed());
+      context.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+
+      Async async2 = context.async();
+      jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
+        .onComplete(jobAr -> {
+          context.assertTrue(jobAr.succeeded());
+          context.assertTrue(jobAr.result().isPresent());
+          JobExecution jobExecution = jobAr.result().get();
+          context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
+          async2.complete();
+        });
       async.complete();
     });
   }

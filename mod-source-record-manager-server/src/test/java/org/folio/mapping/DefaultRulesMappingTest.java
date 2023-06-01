@@ -2,6 +2,8 @@ package org.folio.mapping;
 
 import io.vertx.core.json.JsonObject;
 import java.io.IOException;
+import java.util.List;
+import org.folio.CallNumberType;
 import org.folio.TestUtil;
 import org.folio.processing.mapping.defaultmapper.RecordMapper;
 import org.folio.processing.mapping.defaultmapper.RecordMapperBuilder;
@@ -20,24 +22,25 @@ public class DefaultRulesMappingTest {
   public void testMarcToInstance() throws IOException {
     mapper = RecordMapperBuilder.buildMapper("MARC_BIB");
     JsonObject parsedRecord = readJson(RECORDS_PATH + "parsedBibRecord.json");
-    JsonObject expectedMappedAuthority = readJson(RECORDS_PATH + "mappedBibRecord.json");
+    JsonObject expectedMappedInstance = readJson(RECORDS_PATH + "mappedBibRecord.json");
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_bib_rules.json");
 
 
     var actualInstance = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
-    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualInstance).put("id", "0").encode());
+    Assert.assertEquals(expectedMappedInstance.encode(), JsonObject.mapFrom(actualInstance).put("id", "0").encode());
   }
 
   @Test
   public void testMarcToHoldings() throws IOException {
     mapper = RecordMapperBuilder.buildMapper("MARC_HOLDINGS");
     JsonObject parsedRecord = readJson(RECORDS_PATH + "parsedHoldingsRecord.json");
-    JsonObject expectedMappedAuthority = readJson(RECORDS_PATH + "mappedHoldingsRecord.json");
+    JsonObject expectedMappedHoldings = readJson(RECORDS_PATH + "mappedHoldingsRecord.json");
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_holdings_rules.json");
 
 
-    var actualHoldings = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
-    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualHoldings).put("id", "0").encode());
+    var actualHoldings = mapper.mapRecord(parsedRecord, new MappingParameters()
+      .withCallNumberTypes(getCallNumberTypeRefs()), mappingRules);
+    Assert.assertEquals(expectedMappedHoldings.encode(), JsonObject.mapFrom(actualHoldings).put("id", "0").encode());
   }
 
   @Test
@@ -50,6 +53,13 @@ public class DefaultRulesMappingTest {
 
     var actualAuthority = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
     Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).encode());
+  }
+
+  private List<CallNumberType> getCallNumberTypeRefs(){
+    return List.of(
+      new CallNumberType().withName("Library of Congress classification")
+        .withId("95467209-6d7b-468b-94df-0f5d7ad2747d")
+    );
   }
 
   private JsonObject readJson(String filePath) throws IOException {

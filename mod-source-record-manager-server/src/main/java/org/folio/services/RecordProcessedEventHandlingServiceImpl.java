@@ -29,6 +29,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
 
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String ERROR_KEY = "ERROR";
+  public static final String ERRORS_KEY = "ERRORS";
 
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
@@ -57,7 +58,11 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       int successCount= 0;
       int errorCount = 0;
       if (DataImportEventTypes.DI_COMPLETED.equals(eventType)) {
-        successCount++;
+        if (dataImportEventPayload.getContext().containsKey(ERRORS_KEY)) {
+          errorCount++;
+        } else {
+          successCount++;
+        }
       } else if (DataImportEventTypes.DI_ERROR.equals(eventType)) {
         errorCount++;
       } else {
