@@ -3,6 +3,7 @@ package org.folio.services.flowcontrol;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.kafka.KafkaConsumerWrapper;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,7 +73,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
           consumer.resume();
-          consumer.pause();
       });
 
 //    currentState.forEach((tenantId, counterVal) -> {
@@ -90,6 +90,11 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     increaseCounterInDb(tenantId, recordsCount);
     LOGGER.info("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Record count: {}, Current state: {}",
       tenantId, recordsCount, currentState.get(tenantId));
+
+
+    LOGGER.info("resetState !!!");
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(KafkaConsumerWrapper::pause);
   }
 
   @Override
