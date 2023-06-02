@@ -4,8 +4,13 @@ _Describe the purpose of the pull request. Include background information if nec
 ## Approach
 _How does this change fulfill the purpose?_
 
-#### TODOS and Open Questions
-- [ ] Use GitHub checklists. When solved, check the box and explain the answer.
-- [ ] Check logging.
-## Learning
-_Describe the research stage. Add links to blog posts, patterns, libraries or addons used to solve this problem._
+## Is this change testable? If not - why?
+
+
+## Checklist
+- [ ] I have updated NEWS.md.
+- [ ] I have added javadocs to new methods.
+- [ ] I have commented my code, particularly in hard-to-understand areas.
+- [ ] I have made corresponding changes to the documentation e.g. README.md.
+- [ ] I have ran karate tests against this feature.
+
