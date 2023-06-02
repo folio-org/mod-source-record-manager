@@ -131,7 +131,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) || historyState.get(tenantId).getValue() > 0) {
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) ||
+          (historyState.get(tenantId).getKey() > 0 && historyState.get(tenantId).getValue() > 0)) {
           if (consumer.demand() > maxSimultaneousChunks) {
             consumer.pause(); //set demand to 0, because fetch can only add new demand value when demand > 0
           }
