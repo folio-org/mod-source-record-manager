@@ -45,16 +45,6 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   @PostConstruct
   public void init() {
     LOGGER.info("init:: Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
-
-    // A read stream is either in "flowing" or "fetch" mode
-    // initially the stream is in "flowing" mode
-    // when the stream is in "flowing" mode, elements are delivered to the handler
-    // when the stream is in "fetch" mode, only the number of requested elements will be delivered to the handler
-    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-      .forEach(consumer -> {
-        consumer.pause();
-        consumer.fetch(maxSimultaneousChunks);
-      });
   }
 
   /**
@@ -89,6 +79,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
+    initFetchMode(tenantId);
     increaseCounterInDb(tenantId, recordsCount);
     LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Record count: {}, Current state: {} ",
       tenantId, recordsCount, currentState.get(tenantId));
@@ -117,6 +108,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   }
 
   private void decreaseState(String tenantId, Integer recordsCount) {
+    initFetchMode(tenantId);
     decreaseCounterInDb(tenantId, recordsCount);
     resumeIfThresholdAllows(tenantId);
   }
@@ -157,6 +149,21 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           currentState.put(tenantId, 0);
         }
       });
+  }
+
+  private void initFetchMode(String tenantId) {
+
+    // A read stream is either in "flowing" or "fetch" mode
+    // initially the stream is in "flowing" mode
+    // when the stream is in "flowing" mode, elements are delivered to the handler
+    // when the stream is in "fetch" mode, only the number of requested elements will be delivered to the handler
+    if (currentState.containsKey(tenantId) && (currentState.get(tenantId) == 0)) {
+      consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+        .forEach(consumer -> {
+          consumer.pause();
+          consumer.fetch(maxSimultaneousChunks);
+        });
+    }
   }
 
   public void increaseCounterInDb(String tenantId, Integer recordsCount) {
