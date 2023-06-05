@@ -24,9 +24,6 @@ public class RawRecordsFlowControlServiceImplTest {
   @Mock
   private KafkaConsumersStorage kafkaConsumersStorage;
 
-//  @Mock
-//  private EventProcessedService eventProcessedService;
-
   @InjectMocks
   private RawRecordsFlowControlServiceImpl service;
 
@@ -38,7 +35,7 @@ public class RawRecordsFlowControlServiceImplTest {
   @Test
   public void shouldSkipWhenFlowControlDisabled() {
     ReflectionTestUtils.setField(service, "enableFlowControl", false);
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 10);
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     service.trackChunkReceivedEvent(TENANT_ID, 10);
@@ -53,36 +50,41 @@ public class RawRecordsFlowControlServiceImplTest {
   }
 
   @Test
-  public void shouldNotPauseWhenMaxSimultaneousRecordsNotExceeded() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 20);
-    service.trackChunkReceivedEvent(TENANT_ID, 15);
-    service.increaseCounterInDb(TENANT_ID, 5);
+  public void shouldNotPauseWhenMaxSimultaneousChunksNotExceeded() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
+    service.increaseCounterInDb(TENANT_ID, 25);
+    service.trackChunkReceivedEvent(TENANT_ID, 50);
 
-    // 15 records not exceeds max 20, so no interaction
     verifyNoMoreInteractions(kafkaConsumersStorage);
   }
 
   @Test
-  public void shouldNotPauseWhenMaxSimultaneousRecordsExceededAndConsumerAlreadyPaused() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 20);
+  public void shouldFetchWhenMaxSimultaneousChunksLowThreshold() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
+    ReflectionTestUtils.setField(service, "recordsThreshold", 25);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
+    when(consumerWrapper.getId()).thenReturn(1);
     when(consumerWrapper.demand()).thenReturn(0L); // 0 means consumer already paused
+
+    service.trackChunkReceivedEvent(TENANT_ID, 50);
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
-    service.increaseCounterInDb(TENANT_ID, 20);
 
-    service.trackChunkReceivedEvent(TENANT_ID, 20);
+    service.trackRecordCompleteEvent(TENANT_ID, 26);
 
-    // 20 records exceeds max 20, but consumer already paused - no need to pause
+    // 24 low than threshold 25
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerWrapper, never()).pause();
+    verify(consumerWrapper).fetch(1L);
   }
 
   @Test
-  public void shouldPauseWhenMaxSimultaneousRecordsExceededAndConsumerIsRunning() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 20);
+  public void shouldEnableFetchWhenConsumerIsOnPause() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
+    ReflectionTestUtils.setField(service, "recordsThreshold", 25);
+
+    service.trackChunkReceivedEvent(TENANT_ID, 50);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
     when(consumerWrapper.demand()).thenReturn(1L); // > 0 means that consumer running
@@ -90,33 +92,16 @@ public class RawRecordsFlowControlServiceImplTest {
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerWrapper));
 
-    service.increaseCounterInDb(TENANT_ID, 20);
-    service.trackChunkReceivedEvent(TENANT_ID, 20);
-
-    // 20 records exceeds max 20, consumer running - so need to pause
-    verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerWrapper).pause();
-  }
-
-  @Test
-  public void shouldNotResumeWhenCompleteThresholdNotExceeded() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 50);
-    ReflectionTestUtils.setField(service, "recordsThreshold", 25);
-
-    //service.increaseCounterInDb(TENANT_ID, 10);
-
-    service.trackChunkReceivedEvent(TENANT_ID, 40);
-//    service.trackChunkReceivedEvent(TENANT_ID, 10);
-//    service.trackChunkReceivedEvent(TENANT_ID, 10);
-    service.trackRecordCompleteEvent(TENANT_ID, 11);
+    service.resetState();
+    service.resetState();
 
     // 30 rec doesn't exceed max 50, after complete event 29 not less than 25 threshold, - so no any interaction with consumers storage
-    verifyNoInteractions(kafkaConsumersStorage);
+    verify(consumerWrapper).fetch(1L);
   }
 
   @Test
   public void shouldNotResumeWhenCompleteThresholdExceededAndConsumerAlreadyResumed() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 10);
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 10);
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
@@ -135,7 +120,7 @@ public class RawRecordsFlowControlServiceImplTest {
 
   @Test
   public void shouldResumeWhenCompleteThresholdExceededAndConsumerPaused() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 10);
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 10);
     ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     KafkaConsumerWrapper<String, String> consumerWrapper = mock(KafkaConsumerWrapper.class);
@@ -149,33 +134,26 @@ public class RawRecordsFlowControlServiceImplTest {
 
     // after record complete event, current value 4 less than resume threshold, need to resume consumer
     verify(kafkaConsumersStorage).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerWrapper).fetch(50);
+    verify(consumerWrapper).fetch(10L);
   }
 
   @Test
-  public void shouldReactToDuplicateEventAndResume() {
-    ReflectionTestUtils.setField(service, "maxSimultaneousRecords", 5);
-    ReflectionTestUtils.setField(service, "recordsThreshold", 3);
-
-    KafkaConsumerWrapper<String, String> consumerBeforePause = mock(KafkaConsumerWrapper.class);
-    when(consumerBeforePause.demand()).thenReturn(1L); // > 0 means consumer running
-
-    when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
-      .thenReturn(Collections.singletonList(consumerBeforePause));
-
-    service.trackChunkReceivedEvent(TENANT_ID, 5);
+  public void shouldReactToDuplicateEventAndFetchNextChunk() {
+    ReflectionTestUtils.setField(service, "maxSimultaneousChunks", 1);
+    ReflectionTestUtils.setField(service, "recordsThreshold", 5);
 
     KafkaConsumerWrapper<String, String> consumerBeforeResume = mock(KafkaConsumerWrapper.class);
+    when(consumerBeforeResume.getId()).thenReturn(1);
     when(consumerBeforeResume.demand()).thenReturn(0L); // 0 means consumer is paused
 
     when(kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value()))
       .thenReturn(Collections.singletonList(consumerBeforeResume));
 
-    service.trackChunkDuplicateEvent(TENANT_ID, 5);
+    service.trackChunkReceivedEvent(TENANT_ID, 50);
+    service.trackChunkDuplicateEvent(TENANT_ID, 46);
 
     // 5 events comes and consumer paused, these events were duplicates and compensate 5 events came and after this consumer resumed
     verify(kafkaConsumersStorage, times(1)).getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value());
-    verify(consumerBeforePause).pause();
-    //verify(consumerBeforeResume).resume();
+    verify(consumerBeforeResume).fetch(1L);
   }
 }

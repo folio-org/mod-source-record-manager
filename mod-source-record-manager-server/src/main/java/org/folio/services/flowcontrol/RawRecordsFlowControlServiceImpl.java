@@ -90,9 +90,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
+    decreaseState(tenantId, recordsCount);
     LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
       tenantId, recordsCount, currentState.get(tenantId));
-    decreaseState(tenantId, recordsCount);
   }
 
   @Override
@@ -101,9 +101,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
       return;
     }
 
+    decreaseState(tenantId, recordsCount);
     LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
       tenantId, recordsCount, currentState.get(tenantId));
-    decreaseState(tenantId, recordsCount);
   }
 
   private void decreaseState(String tenantId, Integer recordsCount) {

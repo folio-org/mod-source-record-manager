@@ -68,18 +68,6 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSaveAndDecreaseCounter(TestContext context) {
-    Async async = context.async();
-
-    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
-    saveFuture.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      assertEquals(Integer.valueOf(-1), ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
   public void shouldThrowConstraintViolationWhenSavingAndDecreasingCounter(TestContext context) {
     Async async = context.async();
 
