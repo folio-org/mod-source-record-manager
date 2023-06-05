@@ -52,18 +52,6 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
       futures.add(consumerWrapper.start(getHandler(),
         constructModuleName() + "_" + getClass().getSimpleName()));
-
-      // A read stream is either in "flowing" or "fetch" mode
-      // initially the stream is in "flowing" mode
-      // when the stream is in "flowing" mode, elements are delivered to the handler
-      // when the stream is in "fetch" mode, only the number of requested elements will be delivered to the handler
-      kafkaConsumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
-        .forEach(consumer -> {
-          if (consumer.demand() > 0) {
-            consumer.pause();             //sets the fetch mode and resets the demand to 0
-            consumer.fetch(2);     //sets initial demand value
-          }
-        });
     });
 
     GenericCompositeFuture.all(futures).onComplete(ar -> startPromise.complete());

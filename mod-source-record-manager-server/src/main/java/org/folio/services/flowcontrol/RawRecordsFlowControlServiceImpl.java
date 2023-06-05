@@ -45,6 +45,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   @PostConstruct
   public void init() {
     LOGGER.info("init:: Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
+
+    // A read stream is either in "flowing" or "fetch" mode
+    // initially the stream is in "flowing" mode
+    // when the stream is in "flowing" mode, elements are delivered to the handler
+    // when the stream is in "fetch" mode, only the number of requested elements will be delivered to the handler
+    consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
+      .forEach(consumer -> {
+        consumer.pause();
+        consumer.fetch(maxSimultaneousChunks);
+      });
   }
 
   /**
