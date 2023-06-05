@@ -32,14 +32,19 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
   private KafkaConsumersStorage consumersStorage;
 
   /**
-   * Represents the current state of flow control to make decisions when need to make pause/resume calls.
+   * Represents the current state of flow control to make decisions when need to make new fetch call.
    * It is basically counter, that increasing when DI_RAW_RECORDS_CHUNK_READ event comes and decreasing when
-   * DI_COMPLETE, DI_ERROR come.
+   * DI_COMPLETE, DI_ERROR, duplicated chunks come.
    *
-   * When current state equals or exceeds di.flow.control.max.simultaneous.chunks - all raw records consumers from consumer's group should pause.
-   * When current state equals or below di.flow.control.records.threshold - all raw records consumers from consumer's group should resume.
+   * When current state below di.flow.control.records.threshold - all raw records consumers from consumer's group should fetch.
    */
   private final Map<String, Integer> currentState = new ConcurrentHashMap<>();
+
+  /**
+   * Represents the previous flow control state to decide when to turn on the consumer to get the next chunk of data,
+   * in case a module instance has not received any messages in 2 minutes (for example, when the second module
+   * instance processed them).
+   */
   private final Map<String, Pair<Integer, Integer>> historyState = new ConcurrentHashMap<>();
 
   @PostConstruct
@@ -52,9 +57,9 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
    * This is distributed system and count of raw records pushed to process can be not corresponding
    * with DI_COMPLETE/DI_ERROR, for example because of imports are stuck.
    *
-   * For example, batch size - 10, max simultaneous - 20, records threshold - 10.
-   * Flow control receives 20 records and pause consumers, 5 DI_COMPLETE events came, 15 was missed due to some DB issue.
-   * Current state would equals to 15 and threshold will never met 10 records so consumers will be paused forever
+   * For example, batch size - 50 records, max simultaneous - 1 batch, records threshold - 25.
+   * Flow control receives 50 records (1 batch) and pause consumers, 20 DI_COMPLETE events came, 30 was missed due to some DB issue.
+   * Current state would equals to 30 and threshold will never met 24 records so consumers will be paused forever
    * and as a result all subsequent imports will not have a chance to execute.
    *
    * This scheduled method to reset state intended to prevent that. The correlation between max simultaneous and records
