@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
@@ -21,7 +22,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private static final Integer instanceId = (int)(Math.random() * 10 + 1);
+  private static final Integer instanceId = new Random().nextInt(9);
 
   @Value("${di.flow.control.max.simultaneous.chunks:2}")
   private Integer maxSimultaneousChunks;
