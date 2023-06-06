@@ -63,9 +63,9 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
         return result.future();
       }
 
-      eventProcessedService.collectDataAndDecreaseEventsToProcess(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
+      eventProcessedService.collectData(DATA_IMPORT_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
         .onSuccess(res -> {
-          flowControlService.trackRecordCompleteEvent(okapiConnectionParams.getTenantId(), res);
+          flowControlService.trackRecordCompleteEvent(okapiConnectionParams.getTenantId(), 1);
           handleLocalEvent(result, okapiConnectionParams, event);
         })
         .onFailure(e -> {

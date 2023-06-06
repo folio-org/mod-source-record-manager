@@ -37,7 +37,6 @@ public class EventProcessedDaoTest extends AbstractRestTest {
     super.setUp(context);
     handlerId = UUID.randomUUID().toString();
     eventId = UUID.randomUUID().toString();
-    eventProcessedDao.resetEventsToProcess(TENANT_ID);
   }
 
   @Test
@@ -69,22 +68,10 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldSaveAndDecreaseCounter(TestContext context) {
-    Async async = context.async();
-
-    Future<Integer> saveFuture = eventProcessedDao.saveAndDecreaseEventsToProcess(handlerId, eventId, TENANT_ID);
-    saveFuture.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      assertEquals(Integer.valueOf(-1), ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
   public void shouldThrowConstraintViolationWhenSavingAndDecreasingCounter(TestContext context) {
     Async async = context.async();
 
-    Future<Integer> saveFuture = eventProcessedDao.saveAndDecreaseEventsToProcess(handlerId, eventId, TENANT_ID);
+    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
     saveFuture.onComplete(ar -> {
       Future<RowSet<Row>> reSaveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
       reSaveFuture.onComplete(re -> {
@@ -96,27 +83,4 @@ public class EventProcessedDaoTest extends AbstractRestTest {
     });
   }
 
-  @Test
-  public void shouldDecreaseCounter(TestContext context) {
-    Async async = context.async();
-
-    Future<Integer> future = eventProcessedDao.decreaseEventsToProcess(TENANT_ID, 5);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      assertEquals(Integer.valueOf(-5), ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void shouldIncreaseCounter(TestContext context) {
-    Async async = context.async();
-
-    Future<Integer> future = eventProcessedDao.increaseEventsToProcess(TENANT_ID, 5);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      assertEquals(Integer.valueOf(5), ar.result());
-      async.complete();
-    });
-  }
 }
