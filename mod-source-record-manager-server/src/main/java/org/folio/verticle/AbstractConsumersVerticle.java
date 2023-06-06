@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_READ;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 public abstract class AbstractConsumersVerticle extends AbstractVerticle {

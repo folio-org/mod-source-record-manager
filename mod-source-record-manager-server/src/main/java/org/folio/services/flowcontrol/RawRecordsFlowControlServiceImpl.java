@@ -120,25 +120,19 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Current state:{}, History state: {}",
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Before: Current state:{}, History state: {}",
       tenantId, currentState.get(tenantId), historyState.get(tenantId));
+    updatePreviousStateValue(tenantId);
 
-    historyState.putIfAbsent(tenantId, Pair.of(0,0));
-    if (historyState.get(tenantId).getKey().equals(currentState.get(tenantId))) {
-      Integer previousValue = historyState.get(tenantId).getValue();
-      historyState.put(tenantId, Pair.of(historyState.get(tenantId).getKey(), ++previousValue));
-      LOGGER.debug("resumeIfThresholdAllows :: Tenant: [{}]. Increase counter. Current state:{}, History state: {}",
-        tenantId, currentState.get(tenantId), historyState.get(tenantId));
-    } else {
-      historyState.put(tenantId, Pair.of(currentState.get(tenantId),0));
-    }
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. After: Current state:{}, History state: {}",
+      tenantId, currentState.get(tenantId), historyState.get(tenantId));
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
         LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if (((consumer.demand() == 0) && (currentState.get(tenantId) < recordsThreshold)) ||
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) <= recordsThreshold)) ||
           (historyState.get(tenantId).getKey() > 0 && historyState.get(tenantId).getValue() > 0)) {
           if (consumer.demand() > maxSimultaneousChunks) {
             consumer.pause(); //set demand to 0, because fetch can only add new demand value when demand > 0
@@ -154,6 +148,13 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           currentState.put(tenantId, 0);
         }
       });
+  }
+
+  private void updatePreviousStateValue(String tenantId) {
+    historyState.putIfAbsent(tenantId, Pair.of(0,0));
+    historyState.computeIfPresent(tenantId, (k, v) ->
+      v.getKey().equals(currentState.get(tenantId)) ? Pair.of(v.getKey(), v.getValue() + 1):
+        Pair.of(currentState.get(tenantId),0));
   }
 
   private void initFetchMode(String tenantId) {
