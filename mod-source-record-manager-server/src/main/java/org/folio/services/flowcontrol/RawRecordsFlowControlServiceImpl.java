@@ -1,6 +1,5 @@
 package org.folio.services.flowcontrol;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -77,7 +75,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     currentState.forEach((tenantId, counterVal) -> {
-      LOGGER.info("resetState:: Tenant: [{}], InstanceIs:{} ", tenantId, instanceId);
+      LOGGER.info("resetState:: Tenant: [{}], instanceId:{} ", tenantId, instanceId);
       resumeIfThresholdAllows(tenantId);
     });
   }
@@ -90,7 +88,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     initFetchMode(tenantId);
     increaseCounterInDb(tenantId, recordsCount);
-    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], InstanceIs:{}. Chunk received. Record count: {}, Current state: {} ",
+    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], instanceId:{}. Chunk received. Record count: {}, Current state: {} ",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -101,7 +99,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], InstanceIs:{}. Record count: {}, Current state:{}",
+    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -112,7 +110,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}], InstanceIs:{}. Record count: {}, Current state:{}",
+    LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}], instanceId:{}. Record count: {}, Current state:{}",
       tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
@@ -124,16 +122,16 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. Before: Current state:{}, History state: {}",
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Before: Current state:{}, History state: {}",
       tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
     updatePreviousStateValue(tenantId);
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. After: Current state:{}, History state: {}",
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. After: Current state:{}, History state: {}",
       tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. DI_RAW_RECORDS_CHUNK_READ. " +
+        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
           tenantId, instanceId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
         if (((consumer.demand() == 0) && (currentState.get(tenantId) <= recordsThreshold))  || isFetchEligible(tenantId)) {
@@ -142,7 +140,7 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           }
           consumer.fetch(maxSimultaneousChunks);
 
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], instanceId:{}. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state:{}", tenantId, instanceId, consumer.getId(), consumer.demand(),
             currentState.get(tenantId), historyState.get(tenantId));
 
