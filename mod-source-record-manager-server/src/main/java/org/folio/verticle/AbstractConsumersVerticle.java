@@ -36,6 +36,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .createSubscriptionDefinition(kafkaConfig.getEnvId(),
           KafkaTopicNameHelper.getDefaultNameSpace(),
           event);
+
       KafkaConsumerWrapper<String, String> consumerWrapper = KafkaConsumerWrapper.<String, String>builder()
         .context(context)
         .vertx(vertx)
