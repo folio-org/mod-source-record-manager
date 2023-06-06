@@ -1,5 +1,6 @@
 package org.folio.services.flowcontrol;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,6 +22,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
 @EnableScheduling
 public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlService {
   private static final Logger LOGGER = LogManager.getLogger();
+
+  private static final Integer instanceId = (int)(Math.random() * 10 + 1);
 
   @Value("${di.flow.control.max.simultaneous.chunks:2}")
   private Integer maxSimultaneousChunks;
@@ -49,31 +53,31 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   @PostConstruct
   public void init() {
-    LOGGER.info("init:: Flow control feature is {}", enableFlowControl ? "enabled" : "disabled");
+    LOGGER.info("init:: Flow control feature is {}, instanceId: {}", enableFlowControl ? "enabled" : "disabled", instanceId);
   }
 
   /**
-   * This method schedules resetting state of flow control. By default, it triggered each 2 mins.
+   * This method schedules resetting state of flow control. By default, it triggered each 1 mins.
    * This is distributed system and count of raw records pushed to process can be not corresponding
    * with DI_COMPLETE/DI_ERROR, for example because of imports are stuck.
    *
    * For example, batch size - 50 records, max simultaneous - 1 batch, records threshold - 25.
    * Flow control receives 50 records (1 batch) and pause consumers, 20 DI_COMPLETE events came, 30 was missed due to some DB issue.
-   * Current state would equals to 30 and threshold will never met 24 records so consumers will be paused forever
+   * Current state would equals to 30 and threshold will never met 25 records so consumers will be paused forever
    * and as a result all subsequent imports will not have a chance to execute.
    *
    * This scheduled method to reset state intended to prevent that. The correlation between max simultaneous and records
    * threshold can be missed during resetting that can cause that resume/pause cycle may not be as usual, because we are
    * starting from clear state after reset, but any events would not be missed and consumers never pause forever.
    */
-  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT2M}")
+  @Scheduled(initialDelayString = "PT1M", fixedRateString = "${di.flow.control.reset.state.interval:PT1M}")
   public void resetState() {
     if (!enableFlowControl) {
       return;
     }
 
     currentState.forEach((tenantId, counterVal) -> {
-      LOGGER.info("resetState:: Tenant: [{}] ", tenantId);
+      LOGGER.info("resetState:: Tenant: [{}], InstanceIs:{} ", tenantId, instanceId);
       resumeIfThresholdAllows(tenantId);
     });
   }
@@ -86,8 +90,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
     initFetchMode(tenantId);
     increaseCounterInDb(tenantId, recordsCount);
-    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}]. Chunk received. Record count: {}, Current state: {} ",
-      tenantId, recordsCount, currentState.get(tenantId));
+    LOGGER.debug("trackChunkReceivedEvent:: Tenant: [{}], InstanceIs:{}. Chunk received. Record count: {}, Current state: {} ",
+      tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
   @Override
@@ -97,8 +101,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
-      tenantId, recordsCount, currentState.get(tenantId));
+    LOGGER.debug("trackRecordCompleteEvent:: Tenant: [{}], InstanceIs:{}. Record count: {}, Current state:{}",
+      tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
   @Override
@@ -108,8 +112,8 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
     }
 
     decreaseState(tenantId, recordsCount);
-    LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}]. Record count: {}, Current state:{}",
-      tenantId, recordsCount, currentState.get(tenantId));
+    LOGGER.debug("trackChunkDuplicateEvent:: Tenant: [{}], InstanceIs:{}. Record count: {}, Current state:{}",
+      tenantId, instanceId, recordsCount, currentState.get(tenantId));
   }
 
   private void decreaseState(String tenantId, Integer recordsCount) {
@@ -120,27 +124,26 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
 
   private void resumeIfThresholdAllows(String tenantId) {
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Before: Current state:{}, History state: {}",
-      tenantId, currentState.get(tenantId), historyState.get(tenantId));
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. Before: Current state:{}, History state: {}",
+      tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
     updatePreviousStateValue(tenantId);
 
-    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. After: Current state:{}, History state: {}",
-      tenantId, currentState.get(tenantId), historyState.get(tenantId));
+    LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. After: Current state:{}, History state: {}",
+      tenantId, instanceId, currentState.get(tenantId), historyState.get(tenantId));
 
     consumersStorage.getConsumersByEvent(DI_RAW_RECORDS_CHUNK_READ.value())
       .forEach(consumer -> {
-        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. DI_RAW_RECORDS_CHUNK_READ. " +
+        LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. DI_RAW_RECORDS_CHUNK_READ. " +
             "ConsumerId:{}, Demand:{}, Current state:{}, History state: {}",
-          tenantId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
-        if (((consumer.demand() == 0) && (currentState.get(tenantId) <= recordsThreshold)) ||
-          (historyState.get(tenantId).getKey() > 0 && historyState.get(tenantId).getValue() > 0)) {
+          tenantId, instanceId, consumer.getId(), consumer.demand(), currentState.get(tenantId), historyState.get(tenantId));
+        if (((consumer.demand() == 0) && (currentState.get(tenantId) <= recordsThreshold))  || isFetchEligible(tenantId)) {
           if (consumer.demand() > maxSimultaneousChunks) {
             consumer.pause(); //set demand to 0, because fetch can only add new demand value when demand > 0
           }
           consumer.fetch(maxSimultaneousChunks);
 
-          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}]. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
-            "ConsumerId:{}, Demand:{}, Current state:{}, History state:{}", tenantId, consumer.getId(), consumer.demand(),
+          LOGGER.info("resumeIfThresholdAllows :: Tenant: [{}], InstanceIs:{}. Fetch: DI_RAW_RECORDS_CHUNK_READ. " +
+            "ConsumerId:{}, Demand:{}, Current state:{}, History state:{}", tenantId, instanceId, consumer.getId(), consumer.demand(),
             currentState.get(tenantId), historyState.get(tenantId));
 
           //counters reset
@@ -148,6 +151,14 @@ public class RawRecordsFlowControlServiceImpl implements RawRecordsFlowControlSe
           currentState.put(tenantId, 0);
         }
       });
+  }
+
+  private boolean isFetchEligible(String tenantId) {
+    return isMoreThenZero(historyState.get(tenantId)) > 0;
+  }
+
+  private int isMoreThenZero(Pair<Integer, Integer> pair) {
+    return pair.getKey() > 0 && pair.getValue() > 0 ? 1 : 0;
   }
 
   private void updatePreviousStateValue(String tenantId) {
