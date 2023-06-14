@@ -232,8 +232,8 @@ public class JournalParams {
     DI_INVENTORY_ITEM_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
-        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
-          JournalRecord.EntityType.HOLDINGS,
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+          JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
