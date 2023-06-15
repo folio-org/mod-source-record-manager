@@ -683,6 +683,13 @@ Alternative rules:
 ```
 ##### Note: 
 For the function "set_contributor_type_id_by_code_or_name" there should be set additional parameters: "contributorCodeSubfield" and "contributorNameSubfield" for searching from subfield "4" as code for Contributors and from subfield "e" as name for Contributors.
+Also, there was added a brand new function called "trim_punctuation". It will provide the same functionality as the "trim"+"trim_period" functions. 
+Moreover, it provides **additional mechanism for the punctuations**:
+If ending punctuation of the last mapped subfield of the field is a period or comma, then it will be removed, **EXCEPT**
+1.If the last mapped text ends with a single letter and then a period (e.g. Brown, Sterling K.), then ending period will not removed.
+2.If the last mapped text ends with a period, followed by a comma, (e.g. Brown, Sterling K,.), then the comma will be removed, but the period will leave.
+3.If the last mapped text ends with a hyphen (e.g. Kaluuya, Daniel, 1989-), then the hyphen will not removed.
+
 ```json
   Rule:
 "710": [
@@ -779,7 +786,7 @@ For the function "set_contributor_type_id_by_code_or_name" there should be set a
 {
 "conditions": [
 {
-"type": "trim_period, trim"
+"type": "trim_punctuation",
 }
 ]
 }
@@ -789,7 +796,7 @@ For the function "set_contributor_type_id_by_code_or_name" there should be set a
 }
 ],
 ```
-
+##### **NOTE**: Regarding ending punctuation - if the mapped text ends with (".", ",", ";") then it will be(the last symbol) removed for the matching with Contributor Type.
 
 #
 ### REST API
