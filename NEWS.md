@@ -1,3 +1,7 @@
+## 2023-06-27 v3.6.3
+* [MODSOURMAN-1005](https://issues.folio.org/browse/MODSOURMAN-1005) Define changes needed to allow R/W split of the DB (MODSOURMAN-966)
+* [MODSOURMAN-1007](https://issues.folio.org/browse/MODSOURMAN-1007) Investigate Timeout exceptions during big imports (MODSOURMAN-989)
+
 ## 2023-03-29 v3.6.2
 * folio-kafka-wrapper bumped up to 2.7.1
 
@@ -8,7 +12,6 @@
 * [MODDATAIMP-791](https://issues.folio.org/browse/MODDATAIMP-791) Adjust module permissions for DI wrt PO prefixes and suffixes
 * [MODDATAIMP-786](https://issues.folio.org/browse/MODDATAIMP-786) Update data-import-util library to v1.11.0
 * [MODSOURMAN-931](https://issues.folio.org/browse/MODSOURMAN-931) Unexpected parameter property name in /mapping-rules/marc-authority
-* [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
 
 ## 2023-02-24 v3.6.0
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
