@@ -664,7 +664,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("sourceRecordId", is(sourceRecordId))
         .body("sourceRecordTitle", is(recordTitle))
         .body("sourceRecordOrder", is(0))
-        .body("sourceRecordActionStatus", is(ActionStatus.UPDATED.value()));
+        .body("sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
       async.complete();
     }));
