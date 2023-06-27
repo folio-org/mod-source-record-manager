@@ -1,3 +1,7 @@
+## 2023-06-27 v3.5.7
+* [MODSOURMAN-1006](https://issues.folio.org/browse/MODSOURMAN-1006) Define changes needed to allow R/W split of the DB (MODSOURMAN-966)
+* [MODSOURMAN-1008](https://issues.folio.org/browse/MODSOURMAN-1008) Investigate Timeout exceptions during big imports (MODSOURMAN-989)
+
 ## 2022-12-08 v3.5.6
 * [MODSOURMAN-911](https://issues.folio.org/browse/MODSOURMAN-911) FIx script version to enable the fix
 * [MODSOURMAN-920](https://issues.folio.org/browse/MODSOURMAN-920) The "500" error appears when user creates "MARC Holdings" record
