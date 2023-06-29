@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
@@ -126,7 +127,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   }
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
-    var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM ?
+    var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM || journalRecord.getEntityType() == INSTANCE ?
       MARC_BIBLIOGRAPHIC : journalRecord.getEntityType());
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
