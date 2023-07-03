@@ -3,6 +3,7 @@ package org.folio.verticle.consumers.util;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
@@ -224,6 +225,27 @@ public class MarcImportEventsHandlerTest {
     assertNull(actualJournalRecord.getTitle());
   }
 
+  @Test
+  public void testSaveUpdateInstanceWithTitle() throws JournalRecordMapperException {
+    String title = "The Journal of ecclesiastical history.";
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructUpdateInstancePayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+
+    assertEquals(title, actualJournalRecord.getTitle());
+  }
+
   private DataImportEventPayload constructAuthorityPayload(org.marc4j.marc.Record marcRecord) {
     var record = new Record()
       .withId(UUID.randomUUID().toString())
@@ -258,6 +280,19 @@ public class MarcImportEventsHandlerTest {
       .withEventType(DI_COMPLETED.value())
       .withContext(payloadContext);
   }
+
+  private DataImportEventPayload constructUpdateInstancePayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)));
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INVENTORY_INSTANCE_UPDATED.value(), DI_INVENTORY_INSTANCE_UPDATED.value()))
+      .withEventType(DI_COMPLETED.value())
+      .withContext(payloadContext);
+  }
+
 
   private DataImportEventPayload constructCreateErrorPOLinePayloadWithoutOrderId(org.marc4j.marc.Record marcRecord) {
     var record = new Record()
