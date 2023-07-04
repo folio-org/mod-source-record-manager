@@ -4,8 +4,7 @@ DECLARE status text;
 BEGIN
     SELECT
         CASE WHEN errorsNumber != 0 THEN 'DISCARDED'
-             WHEN array_length(actions, 1) > 1 THEN 'MULTIPLE'
-             WHEN array_length(actions, 1) = 1 THEN
+             WHEN array_length(actions, 1) > 0 THEN
                 CASE actions[1]
                     WHEN 'CREATE' THEN 'CREATED'
                     WHEN 'UPDATE' THEN 'UPDATED'
@@ -31,6 +30,7 @@ CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField
                   authority_action_status text, po_line_action_status text, invoice_action_status text, error text, total_count bigint,
                   invoice_line_journal_record_id uuid, source_record_entity_type text, holdings_entity_hrid text[], source_record_order_array integer[])
 AS $$
+
 DECLARE
     v_sortingField text DEFAULT sortingfield;
     v_entityAttribute text[] DEFAULT ARRAY[upper(entityType)];
@@ -64,17 +64,17 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        ARRAY[records_actions.source_record_order] AS source_record_order_array
 FROM (
          SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
-                array_agg(action_type ORDER BY array_position(array[''NON_MATCH'', ''MODIFY'', ''UPDATE'', ''CREATE''], action_type)) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
+                array_agg(action_type ORDER BY array_position(array[''MATCH'', ''NON_MATCH'', ''MODIFY'', ''UPDATE'', ''CREATE''], action_type)) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')) AS marc_actions,
                 count(journal_records.source_id) FILTER (WHERE (entity_type = ''MARC_BIBLIOGRAPHIC'' OR entity_type = ''MARC_HOLDINGS'' OR entity_type = ''MARC_AUTHORITY'') AND journal_records.error != '''') AS marc_errors_number,
-                array[(array_agg(action_type ORDER BY action_date DESC) FILTER (WHERE entity_type = ''INSTANCE'' AND (entity_id IS NOT NULL OR action_type = ''NON_MATCH'')))[1]::text] AS instance_actions,
+                array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH'', ''MATCH''], action_type)) FILTER (WHERE entity_type = ''INSTANCE'' AND (entity_id IS NOT NULL OR action_type = ''NON_MATCH'')) AS instance_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''INSTANCE'' AND journal_records.error != '''') AS instance_errors_number,
-                array_agg(action_type) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_actions,
+                array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH''], action_type)) FILTER (WHERE entity_type = ''HOLDINGS'') AS holdings_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''HOLDINGS'' AND journal_records.error != '''') AS holdings_errors_number,
-                array_agg(action_type) FILTER (WHERE entity_type = ''ITEM'') AS item_actions,
+                array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH''], action_type)) FILTER (WHERE entity_type = ''ITEM'') AS item_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''ITEM'' AND journal_records.error != '''') AS item_errors_number,
-                array_agg(action_type) FILTER (WHERE entity_type = ''AUTHORITY'') AS authority_actions,
+                array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH''], action_type)) FILTER (WHERE entity_type = ''AUTHORITY'') AS authority_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''AUTHORITY'' AND journal_records.error != '''') AS authority_errors_number,
-                array_agg(action_type) FILTER (WHERE entity_type = ''PO_LINE'') AS po_line_actions,
+                array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH''], action_type)) FILTER (WHERE entity_type = ''PO_LINE'') AS po_line_actions,
                 count(journal_records.source_id) FILTER (WHERE entity_type = ''PO_LINE'' AND journal_records.error != '''') AS po_line_errors_number,
                 count(journal_records.source_id) OVER () AS total_count,
                 (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,

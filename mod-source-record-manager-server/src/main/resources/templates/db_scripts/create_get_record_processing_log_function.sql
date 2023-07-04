@@ -75,7 +75,7 @@ BEGIN
     	    FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY')) AS marc
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
-    	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances
+    	    FROM temp_result WHERE entity_type = 'INSTANCE' AND entity_id IS NOT NULL) AS instances
     	ON marc.source_id = instances.source_id
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
