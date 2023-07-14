@@ -246,6 +246,16 @@
       "run": "after",
       "snippet": "DROP FUNCTION IF EXISTS save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid); DROP TABLE IF EXISTS flow_control_events_counter;",
       "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS permanent_location_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_record_processing_log_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
     }
   ]
 }
