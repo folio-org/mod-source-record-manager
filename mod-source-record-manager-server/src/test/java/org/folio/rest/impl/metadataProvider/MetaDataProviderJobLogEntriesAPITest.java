@@ -29,8 +29,6 @@ import static org.hamcrest.Matchers.nullValue;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.IntSupplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
