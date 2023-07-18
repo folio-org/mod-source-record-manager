@@ -1,4 +1,5 @@
 ## 2023-xx-xx v3.7.0-SNAPSHOT
+* [MODSOURMAN-999](https://issues.folio.org/browse/MODSOURMAN-999) Upgrade mod-source-record-manager to Java 17
 * [MODSOURMAN-974](https://issues.folio.org/browse/MODSOURMAN-974) MARC bib $9 handling | Remove $9 subfields from linkable fields
 
 ## 2023-03-xo v3.6.1-SNAPSHOT
