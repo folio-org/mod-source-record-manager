@@ -829,10 +829,10 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInstanceInfo.idList.size", empty())
         .body("relatedInstanceInfo.hridList.size", empty())
         .body("relatedInstanceInfo.error", nullValue())
-        .body("relatedHoldingsInfo.size", is(0))
-        .body("relatedItemInfo.size", is(0))
-        .body("relatedPoLineInfo.idList.size", is(0))
-        .body("relatedPoLineInfo.hridList.size", is(0))
+        .body("relatedHoldingsInfo.size", empty())
+        .body("relatedItemInfo.size", empty())
+        .body("relatedPoLineInfo.idList.size", empty())
+        .body("relatedPoLineInfo.hridList.size", empty())
         .body("relatedPoLineInfo.error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList[0]", is(invoiceId))
         .body("relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
@@ -1136,7 +1136,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     }));
   }
 
-  //add permanent location
   @Test
   public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsHoldings(TestContext context) {
     Async async = context.async();
@@ -1153,13 +1152,15 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String[] itemId = generateRandomUUIDs(4);
     String[] itemHrid = {"it001","it002","it003","it004"};
 
+    String[] permanentLocation = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
+
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
 
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1], holdingsHrid[1], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], holdingsHrid[2], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[0]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1], holdingsHrid[1], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[1]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], holdingsHrid[2], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[2]))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[0],null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[1], itemHrid[1], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[2], itemHrid[2], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
@@ -1182,15 +1183,18 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInstanceInfo.idList[0]", is(instanceId))
         .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
         .body("relatedInstanceInfo.error", emptyOrNullString())
-        .body("relatedHoldingsInfo.size", is(3))
+        .body("relatedHoldingsInfo.size()", is(3))
         .body("relatedHoldingsInfo[0].id", is(holdingsId[0]))
         .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid[0]))
+        .body("relatedHoldingsInfo[0].permanentLocationId", is(permanentLocation[0]))
         .body("relatedHoldingsInfo[0].error", emptyOrNullString())
         .body("relatedHoldingsInfo[1].id", is(holdingsId[1]))
         .body("relatedHoldingsInfo[1].hrid", is(holdingsHrid[1]))
+        .body("relatedHoldingsInfo[1].permanentLocationId", is(permanentLocation[1]))
         .body("relatedHoldingsInfo[1].error", emptyOrNullString())
         .body("relatedHoldingsInfo[2].id", is(holdingsId[2]))
         .body("relatedHoldingsInfo[2].hrid", is(holdingsHrid[2]))
+        .body("relatedHoldingsInfo[2].permanentLocationId", is(permanentLocation[2]))
         .body("relatedHoldingsInfo[2].error", emptyOrNullString())
         .body("relatedItemInfo[0].id", is(itemId[0]))
         .body("relatedItemInfo[0].hrid", is(itemHrid[0]))
@@ -1245,7 +1249,8 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .withEntityHrId(entityHrid)
       .withOrderId(orderId)
       .withInstanceId(instanceId)
-      .withHoldingsId(holdingsId);
+      .withHoldingsId(holdingsId)
+      .withPermanentLocationId(permanentLocation);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
   }
 
