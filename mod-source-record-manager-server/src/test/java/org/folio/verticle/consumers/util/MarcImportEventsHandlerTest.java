@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.services.JournalRecordService;
@@ -61,7 +62,7 @@ public class MarcImportEventsHandlerTest {
   private final MarcFactory marcFactory = MarcFactory.newInstance();
 
   @Captor
-  private ArgumentCaptor<JsonObject> journalRecordCaptor;
+  private ArgumentCaptor<JsonArray> journalRecordCaptor;
   @Mock
   private MappingRuleCache mappingRuleCache;
   @Mock
@@ -97,8 +98,8 @@ public class MarcImportEventsHandlerTest {
 
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
@@ -117,8 +118,8 @@ public class MarcImportEventsHandlerTest {
 
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(expectedTitleStart + " " + expectedTitleEnd, actualJournalRecord.getTitle());
   }
@@ -138,8 +139,8 @@ public class MarcImportEventsHandlerTest {
     var payload = constructUpdateItemPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
   }
@@ -159,8 +160,8 @@ public class MarcImportEventsHandlerTest {
     var payload = constructUpdateHoldingsPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
   }
@@ -193,8 +194,8 @@ public class MarcImportEventsHandlerTest {
     var payload = constructCreateErrorPOLinePayloadWithoutOrderId(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
     verify(journalRecordService, times(0)).updateErrorJournalRecordsByOrderIdAndJobExecution(anyString(), anyString(), anyString(), anyString());
 
     assertNull(actualJournalRecord.getTitle());
@@ -217,10 +218,10 @@ public class MarcImportEventsHandlerTest {
     handler.handle(journalService, payload, TEST_TENANT);
 
     verify(journalRecordService).updateErrorJournalRecordsByOrderIdAndJobExecution(anyString(), anyString(), anyString(), anyString());
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
     verify(journalRecordService, times(1)).updateErrorJournalRecordsByOrderIdAndJobExecution(anyString(), anyString(), anyString(), anyString());
 
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertNull(actualJournalRecord.getTitle());
   }
@@ -240,8 +241,8 @@ public class MarcImportEventsHandlerTest {
     var payload = constructUpdateInstancePayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
-    verify(journalService).save(journalRecordCaptor.capture(), eq(TEST_TENANT));
-    var actualJournalRecord = journalRecordCaptor.getValue().mapTo(JournalRecord.class);
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
   }
