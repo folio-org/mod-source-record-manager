@@ -38,7 +38,7 @@ public class JournalUtil {
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
   public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
   public static final String ID_KEY = "id";
-  public static final String HOLDINGS_RECORD_ID_KEY = "holdingsRecordId";
+  public static final String HOLDING_ID_KEY = "holdingId";
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
@@ -163,9 +163,9 @@ public class JournalUtil {
         journalRecord.setInstanceId(instanceJson.getString(ID_KEY));
       } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
         Map<String, String> holdingsIdInstanceId = initalizeHoldingsIdInstanceIdMap(eventPayloadContext);
-        journalRecord.setInstanceId(holdingsIdInstanceId.get(itemAsJson.getString(HOLDINGS_RECORD_ID_KEY)));
+        journalRecord.setInstanceId(holdingsIdInstanceId.get(itemAsJson.getString(HOLDING_ID_KEY)));
       }
-      journalRecord.setHoldingsId(itemAsJson.getString(HOLDINGS_RECORD_ID_KEY));
+      journalRecord.setHoldingsId(itemAsJson.getString(HOLDING_ID_KEY));
       journalRecords.add(journalRecord);
     }
     return journalRecords;

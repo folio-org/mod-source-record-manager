@@ -180,7 +180,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)
@@ -234,7 +234,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject holdingsJson = new JsonObject()
       .put("id", holdingsId)
@@ -465,12 +465,12 @@ public class JournalUtilTest {
     JsonObject firstItemJson = new JsonObject()
       .put("id", firstItemId)
       .put("hrid", firstItemHrid)
-      .put("holdingsRecordId", firstHoldingsId);
+      .put("holdingId", firstHoldingsId);
 
     JsonObject secondItemJson = new JsonObject()
       .put("id", secondItemId)
       .put("hrid", secondItemHrid)
-      .put("holdingsRecordId", secondHoldingsId);
+      .put("holdingId", secondHoldingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)
@@ -542,12 +542,12 @@ public class JournalUtilTest {
     JsonObject firstItemJson = new JsonObject()
       .put("id", firstItemId)
       .put("hrid", firstItemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject secondItemJson = new JsonObject()
       .put("id", secondItemId)
       .put("hrid", secondItemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject holdingsJson = new JsonObject()
       .put("id", holdingsId)
@@ -623,7 +623,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)
@@ -717,7 +717,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingsRecordId", holdingsId);
+      .put("holdingId", holdingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)

@@ -36,6 +36,7 @@ public final class JournalRecordsColumns {
   public static final String INSTANCE_ENTITY_ERROR = "instance_entity_error";
   public static final String HOLDINGS_ENTITY_ID = "holdings_entity_id";
   public static final String HOLDINGS_ENTITY_HRID = "holdings_entity_hrid";
+  public static final String HOLDINGS_PERMANENT_LOCATION_ID = "holdings_permanent_location_id";
   public static final String HOLDINGS_ENTITY_ERROR = "holdings_entity_error";
   public static final String ITEM_ENTITY_ID = "item_entity_id";
   public static final String ITEM_ENTITY_HRID = "item_entity_hrid";
