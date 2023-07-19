@@ -105,6 +105,7 @@ public class JournalUtilTest {
 
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put("NOT_MATCHED_NUMBER", "1");
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_HOLDING_NOT_MATCHED")

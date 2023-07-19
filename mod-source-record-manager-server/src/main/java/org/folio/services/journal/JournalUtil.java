@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
@@ -41,6 +42,7 @@ public class JournalUtil {
   public static final String HOLDING_ID_KEY = "holdingId";
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
+  private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
 
   private JournalUtil() {
@@ -83,6 +85,20 @@ public class JournalUtil {
 
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
         journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
+      }
+
+      if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
+        && (entityType == HOLDINGS || entityType == ITEM)) {
+        List<JournalRecord> resultedJournalRecords = new ArrayList<>();
+        if (isNotBlank(eventPayloadContext.get(NOT_MATCHED_NUMBER))) {
+          int notMatchedNumber = Integer.parseInt(eventPayloadContext.get(NOT_MATCHED_NUMBER));
+          for (int i = 0; i < notMatchedNumber; i++) {
+            resultedJournalRecords.add(constructBlankJournalRecord(record, JournalRecord.ActionType.NON_MATCH, entityType, actionStatus)
+              .withEntityType(entityType)
+              .withEntityId(UUID.randomUUID().toString()));
+          }
+        }
+        return resultedJournalRecords;
       }
 
       if (!isEmpty(entityAsString)) {
@@ -200,5 +216,16 @@ public class JournalUtil {
       holdingsIdInstanceId.put(holding.getString(ID_KEY), holding.getString(INSTANCE_ID_KEY));
     }
     return holdingsIdInstanceId;
+  }
+
+  private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) {
+    return new JournalRecord()
+      .withJobExecutionId(record.getSnapshotId())
+      .withSourceId(record.getId())
+      .withSourceRecordOrder(record.getOrder())
+      .withEntityType(entityType)
+      .withActionType(actionType)
+      .withActionDate(new Date())
+      .withActionStatus(actionStatus);
   }
 }
