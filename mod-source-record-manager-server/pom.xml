@@ -14,6 +14,7 @@
     <sonar.exclusions>org.folio.services.mappers.processor.**</sonar.exclusions>
     <sonar.exclusions>**/org/folio/rest/impl/ModTenantAPI.java</sonar.exclusions>
     <sonar.coverage.exclusions>**/services/JournalRecordService.java</sonar.coverage.exclusions>
+    <aspectj.version>1.9.19</aspectj.version>
     <lombok.version>1.18.24</lombok.version>
     <testcontainers.version>1.16.0</testcontainers.version>
     <kafkaclients.version>3.3.2</kafkaclients.version>
@@ -293,12 +294,12 @@
       </plugin>
 
       <plugin>
-        <groupId>com.nickwongdev</groupId>
+        <groupId>dev.aspectj</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.12.6</version>
+        <version>1.13.1</version>
         <configuration>
           <verbose>true</verbose>
-          <complianceLevel>11</complianceLevel>
+          <release>17</release>
           <includes>
             <include>**/impl/*.java</include>
             <include>**/*.aj</include>
@@ -324,12 +325,12 @@
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.6</version>
+            <version>${aspectj.version}</version>
           </dependency>
           <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.9.6</version>
+            <version>${aspectj.version}</version>
           </dependency>
         </dependencies>
       </plugin>
