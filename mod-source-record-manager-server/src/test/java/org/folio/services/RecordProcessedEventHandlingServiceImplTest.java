@@ -13,6 +13,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.PARSING_IN_PROGRESS
 import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERRORS_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -214,6 +215,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // given
     Async async = context.async();
     HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(ERRORS_KEY, "[]");
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DataImportEventTypes.DI_COMPLETED.value())
       .withContext(payloadContext);
