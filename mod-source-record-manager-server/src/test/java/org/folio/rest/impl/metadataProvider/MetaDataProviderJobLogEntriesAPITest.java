@@ -1154,6 +1154,8 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
 
     String[] permanentLocation = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
 
+    String errorMsg = "test error";
+
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
@@ -1164,7 +1166,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[0],null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[1], itemHrid[1], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[2], itemHrid[2], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[3], itemHrid[3], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[3], null, null,  0, CREATE, ITEM, ERROR, errorMsg, null,null, null,null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -1205,9 +1207,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo[2].holdingsId", is(holdingsId[1]))
         .body("relatedItemInfo[2].error", emptyOrNullString())
         .body("relatedItemInfo[3].id", is(itemId[3]))
-        .body("relatedItemInfo[3].hrid", is(itemHrid[3]))
-        .body("relatedItemInfo[3].holdingsId", is(holdingsId[1]))
-        .body("relatedItemInfo[3].error", emptyOrNullString())
+        .body("relatedItemInfo[3].hrid", emptyOrNullString())
+        .body("relatedItemInfo[3].holdingsId", emptyOrNullString())
+        .body("relatedItemInfo[3].error", is(errorMsg))
         .body("relatedInvoiceInfo.idList", empty())
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());
