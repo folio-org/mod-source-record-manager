@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
+import io.vertx.core.json.JsonArray;
 
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
@@ -57,6 +58,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.testcontainers.shaded.org.bouncycastle.est.CACertsResponse;
 
 @RunWith(VertxUnitRunner.class)
 public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
@@ -114,6 +116,53 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneEntryIfTwoErrorsDuringMultipleCreation(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String[] holdingsId = generateRandomUUIDs(3);
+    String[] holdingsHrid = {"h001","h002","h003"};
+
+    String[] permanentLocation = {UUID.randomUUID().toString()};
+
+    String errorMsg1 = "test error1";
+    String errorMsg2 = "test error2";
+    String errorArray = "[test error1, test error2]";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[0]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1],null, null,  0, CREATE, HOLDINGS, ERROR, errorMsg1, null,null,null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], null, null,  0, CREATE, HOLDINGS, ERROR, errorMsg2, null,null,null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries", hasSize(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[0].holdingsActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].error", is(errorArray));
       async.complete();
     }));
   }
