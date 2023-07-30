@@ -66,7 +66,7 @@ public class ParsedRecordsDiErrorProviderTest {
       .withInitialRecords(Lists.newArrayList(new InitialRecord()))
       .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_JSON));
     when(changeEngineService.getParsedRecordsFromInitialRecords(eq(rawRecordsDto.getInitialRecords()),
-      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), anyString()))
+      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), false, anyString()))
         .thenReturn(Lists.newArrayList(new Record().withParsedRecord(new ParsedRecord())));
     Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, rawRecordsDto);
     parserRecordsFuture.onComplete(ar -> {

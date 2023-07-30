@@ -193,14 +193,15 @@ public class ChangeManagerImpl implements ChangeManager {
   }
 
   @Override
-  public void postChangeManagerJobExecutionsRecordsById(String id, RawRecordsDto entity, Map<String, String> okapiHeaders,
+  public void postChangeManagerJobExecutionsRecordsById(String id, boolean acceptInstanceId, RawRecordsDto entity,
+                                                        Map<String, String> okapiHeaders,
                                                         Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         LOGGER.debug("putChangeManagerJobExecutionsJobProfileById:: jobExecutionId {}, rawRecordsId {}", id, entity.getId());
         okapiHeaders.put(CHUNK_ID_HEADER, entity.getId());
         OkapiConnectionParams params = new OkapiConnectionParams(okapiHeaders, vertxContext.owner());
-        eventDrivenChunkProcessingService.processChunk(entity, id, params)
+        eventDrivenChunkProcessingService.processChunk(entity, id, acceptInstanceId, params)
           .map(processed -> PostChangeManagerJobExecutionsRecordsByIdResponse.respond204())
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

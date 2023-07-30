@@ -1051,6 +1051,51 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldProcessChunkOfRawRecordsWith999SubfieldByAcceptInstanceIdParameter(TestContext testContext) {
+    InitJobExecutionsRsDto response =
+      constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_3)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH + "?acceptInstanceId=true")
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+//    async = testContext.async();
+//    RestAssured.given()
+//      .spec(spec)
+//      .when()
+//      .get(JOB_EXECUTION_PATH + jobExec.getId())
+//      .then()
+//      .statusCode(HttpStatus.SC_OK)
+//      .body("status", is(CANCELLED.value()));
+//    async.complete();
+  }
+
+  @Test
   public void shouldProcessChunkOfRawRecordsWithDuplicatedTags(TestContext testContext) {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);

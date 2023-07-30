@@ -245,7 +245,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     var optionalRecordIdHeader = kafkaHeadersCaptor.getValue().stream()
@@ -342,7 +342,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
@@ -365,7 +365,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
@@ -392,7 +392,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
@@ -415,7 +415,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
@@ -439,7 +439,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
         .thenReturn(Future.succeededFuture(true));
-      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams).result();
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
     verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
@@ -620,7 +620,7 @@ public class ChangeEngineServiceImplTest {
     try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
       mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), anyList(), any(), any()))
         .thenReturn(eventSentResult);
-      return service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", okapiConnectionParams);
+      return service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams);
     }
   }
 }

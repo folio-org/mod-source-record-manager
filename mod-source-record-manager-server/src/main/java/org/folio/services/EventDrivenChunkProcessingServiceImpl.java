@@ -37,12 +37,12 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   @Override
-  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
+  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params) {
     LOGGER.debug("processRawRecordsChunk:: Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
     Promise<Boolean> promise = Promise.promise();
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), acceptInstanceId, params))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
