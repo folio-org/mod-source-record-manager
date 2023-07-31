@@ -298,7 +298,9 @@ public class ChangeEngineServiceImplTest {
 
   @Test
   public void shouldReturnMarcBibRecordWith999ByAcceptInstanceId() {
+
     boolean acceptInstanceId = true;
+
     RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_BIB_REC_WITH_FF);
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())

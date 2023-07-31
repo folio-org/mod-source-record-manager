@@ -6,35 +6,36 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import org.folio.dataimport.util.OkapiConnectionParams;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import org.folio.services.ChangeEngineServiceImpl;
 import org.folio.services.JobExecutionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class ParsedRecordsDiErrorProviderTest {
@@ -66,7 +67,7 @@ public class ParsedRecordsDiErrorProviderTest {
       .withInitialRecords(Lists.newArrayList(new InitialRecord()))
       .withRecordsMetadata(new RecordsMetadata().withContentType(RecordsMetadata.ContentType.MARC_JSON));
     when(changeEngineService.getParsedRecordsFromInitialRecords(eq(rawRecordsDto.getInitialRecords()),
-      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), false, anyString()))
+      eq(rawRecordsDto.getRecordsMetadata().getContentType()), eq(jobExecution), eq(false), anyString()))
         .thenReturn(Lists.newArrayList(new Record().withParsedRecord(new ParsedRecord())));
     Future<List<Record>> parserRecordsFuture = diErrorProvider.getParsedRecordsFromInitialRecords(getOkapiParams(), JOB_EXECUTION_ID, rawRecordsDto);
     parserRecordsFuture.onComplete(ar -> {
