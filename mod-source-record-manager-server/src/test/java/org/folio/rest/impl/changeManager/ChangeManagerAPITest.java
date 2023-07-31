@@ -1083,16 +1083,6 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
-
-//    async = testContext.async();
-//    RestAssured.given()
-//      .spec(spec)
-//      .when()
-//      .get(JOB_EXECUTION_PATH + jobExec.getId())
-//      .then()
-//      .statusCode(HttpStatus.SC_OK)
-//      .body("status", is(CANCELLED.value()));
-//    async.complete();
   }
 
   @Test
