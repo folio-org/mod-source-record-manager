@@ -644,10 +644,12 @@ public class JournalUtilTest {
     JsonObject firstError = new JsonObject();
     firstError.put("id", firstErrorUUID);
     firstError.put("error", "Testing first error message!");
+    firstError.put("holdingId", holdingsId);
 
     JsonObject secondError = new JsonObject();
     secondError.put("id", secondErrorUUID);
     secondError.put("error", "Testing second error message!");
+    secondError.put("holdingId", holdingsId);
 
     JsonArray multipleErrors = new JsonArray();
     multipleErrors.add(firstError);
@@ -690,6 +692,7 @@ public class JournalUtilTest {
     Assert.assertEquals(CREATE, journalRecords.get(1).getActionType());
     Assert.assertEquals(ERROR, journalRecords.get(1).getActionStatus());
     Assert.assertEquals("Testing first error message!", journalRecords.get(1).getError());
+    Assert.assertEquals(holdingsId, journalRecords.get(1).getHoldingsId());
 
     Assert.assertEquals(snapshotId, journalRecords.get(2).getJobExecutionId());
     Assert.assertEquals(recordId, journalRecords.get(2).getSourceId());
@@ -698,7 +701,7 @@ public class JournalUtilTest {
     Assert.assertEquals(secondErrorUUID, journalRecords.get(2).getEntityId());
     Assert.assertEquals(CREATE, journalRecords.get(2).getActionType());
     Assert.assertEquals(ERROR, journalRecords.get(2).getActionStatus());
-    Assert.assertEquals("Testing second error message!", journalRecords.get(2).getError());
+    Assert.assertEquals(holdingsId, journalRecords.get(2).getHoldingsId());
 
     Assert.assertNotNull(journalRecords.get(1).getActionDate());
 

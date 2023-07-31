@@ -203,6 +203,9 @@ public class JournalUtil {
         .withActionStatus(JournalRecord.ActionStatus.ERROR)
         .withError(errorAsJson.getString("error"))
         .withEntityId(errorAsJson.getString(ID_KEY));
+      if (entityType == ITEM) {
+        journalRecord.withHoldingsId(errorAsJson.getString(HOLDING_ID_KEY));
+      }
       journalErrorRecords.add(journalRecord);
     }
     return journalErrorRecords;
