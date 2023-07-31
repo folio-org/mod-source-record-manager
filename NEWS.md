@@ -1,3 +1,6 @@
+## 2023-07-31 v3.6.4
+* [MODSOURMAN-987](https://issues.folio.org/browse/MODSOURMAN-987) No title displays in import log when SRS MARC and Instance are not updated
+
 ## 2023-06-27 v3.6.3
 * [MODSOURMAN-1005](https://issues.folio.org/browse/MODSOURMAN-1005) Define changes needed to allow R/W split of the DB (MODSOURMAN-966)
 * [MODSOURMAN-1007](https://issues.folio.org/browse/MODSOURMAN-1007) Investigate Timeout exceptions during big imports (MODSOURMAN-989)
