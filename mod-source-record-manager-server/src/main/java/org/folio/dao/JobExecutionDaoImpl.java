@@ -41,7 +41,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -487,15 +486,16 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     if (row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1) {
       return null;
     }
-    var compositeData = row.getArrayOfJsonObjects(JOB_PROFILE_COMPOSITE_DATA);
-    if (Objects.nonNull(compositeData) && compositeData.length > 0) {
+    var compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
+    if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
       var detailsDto = new JobExecutionCompositeDetailsDto();
-      Arrays.stream(compositeData).forEach(o -> {
-        var status = JobExecutionDto.Status.valueOf(o.getString(JOB_PROFILE_COMPOSITE_DATA_STATUS));
+      compositeData.forEach(o -> {
+        JsonObject jo = (JsonObject) o;
+        var status = JobExecutionDto.Status.valueOf(jo.getString(JOB_PROFILE_COMPOSITE_DATA_STATUS));
         var stateDto = new JobExecutionCompositeDetailDto()
-          .withChunksCount(o.getInteger("cnt"))
-          .withTotalRecordsCount(o.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT))
-          .withTotalRecordsCount(o.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
+          .withChunksCount(jo.getInteger("cnt"))
+          .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT))
+          .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
         switch (status) {
           case NEW:
             detailsDto.setNewState(stateDto);
