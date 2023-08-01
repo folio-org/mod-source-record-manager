@@ -46,12 +46,12 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   @Override
-  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, OkapiConnectionParams params) {
+  public Future<Boolean> processChunk(RawRecordsDto incomingChunk, String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params) {
     LOGGER.debug("AbstractChunkProcessingService:: processChunk for jobExecutionId: {}", jobExecutionId);
     prepareChunk(incomingChunk);
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExecution -> mapJobExecution(incomingChunk, jobExecution, params))
+        .map(jobExecution -> mapJobExecution(incomingChunk, jobExecution, acceptInstanceId, params))
         .orElse(Future.failedFuture(new NotFoundException(String.format("Couldn't find JobExecution with id %s", jobExecutionId)))));
   }
 
@@ -59,9 +59,9 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   public Future<Boolean> processChunk(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.debug("AbstractChunkProcessingService:: processChunk with jobExecutionId: {}", jobExecution.getId());
     prepareChunk(incomingChunk);
-    return mapJobExecution(incomingChunk, jobExecution, params);
+    return mapJobExecution(incomingChunk, jobExecution, false, params);
   }
-  private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, OkapiConnectionParams params) {
+  private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, boolean acceptInstanceId, OkapiConnectionParams params) {
     if (isNotSupportedJobProfileExists(jobExecution)) {
       throw new UnsupportedProfileException("Unsupported type of Job Profile.");
     }
@@ -75,7 +75,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
       .withCreatedDate(new Date());
 
     return jobExecutionSourceChunkDao.save(sourceChunk, params.getTenantId())
-      .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), params))
+      .compose(ar -> processRawRecordsChunk(incomingChunk, sourceChunk, jobExecution.getId(), acceptInstanceId, params))
       .map(true)
       .recover(throwable -> throwable instanceof PgException && ((PgException) throwable).getCode().equals(UNIQUE_CONSTRAINT_VIOLATION_CODE) ?
         Future.failedFuture(new DuplicateEventException(String.format("Source chunk with %s id for %s jobExecution is already exists", incomingChunk.getId(), jobExecution.getId()))) :
@@ -172,7 +172,8 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
    * @param params         - okapi connection params
    * @return future with boolean
    */
-  protected abstract Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params);
+  protected abstract Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk,
+                                                            String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params);
 
   /**
    * Checks JobExecution current status and updates it if needed

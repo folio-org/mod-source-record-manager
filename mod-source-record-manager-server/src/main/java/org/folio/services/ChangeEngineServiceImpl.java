@@ -151,11 +151,11 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   @Override
   public Future<List<Record>> parseRawRecordsChunkForJobExecution(RawRecordsDto chunk, JobExecution jobExecution,
-                                                                  String sourceChunkId, OkapiConnectionParams params) {
+                                                                  String sourceChunkId, boolean acceptInstanceId, OkapiConnectionParams params) {
     Promise<List<Record>> promise = Promise.promise();
     Future<List<Record>> futureParsedRecords =
       parseRecords(chunk.getInitialRecords(), chunk.getRecordsMetadata().getContentType(), jobExecution, sourceChunkId,
-        params.getTenantId(), params);
+        params.getTenantId(), acceptInstanceId, params);
 
     futureParsedRecords
       .compose(parsedRecords -> isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
@@ -360,11 +360,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
    * @param jobExecution  - job execution of record's parsing
    * @param sourceChunkId - id of the JobExecutionSourceChunk
    * @param tenantId      - tenant id
+   * @param acceptInstanceId - allow the 999ff$i field to be set and also create an instance with value in 999ff$i
+   * @param okapiParams   - OkapiConnectionParams to interact with external services
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
                                             JobExecution jobExecution, String sourceChunkId, String tenantId,
-                                            OkapiConnectionParams okapiParams) {
+                                            boolean acceptInstanceId, OkapiConnectionParams okapiParams) {
     if (CollectionUtils.isEmpty(rawRecords)) {
       return Future.succeededFuture(Collections.emptyList());
     }
@@ -372,7 +374,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     // if number of records is more than THRESHOLD_CHUNK_SIZE update the progress every 20% of processed records,
     // otherwise update it once after all the records are processed
     int partition = rawRecords.size() > THRESHOLD_CHUNK_SIZE ? rawRecords.size() / 5 : rawRecords.size();
-    var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, sourceChunkId).stream()
+    var records = getParsedRecordsFromInitialRecords(rawRecords, recordContentType, jobExecution, acceptInstanceId, sourceChunkId).stream()
       .peek(stat -> { //NOSONAR
         if (counter.incrementAndGet() % partition == 0) {
           LOGGER.info("parseRecords:: Parsed {} records out of {}", counter.intValue(), rawRecords.size());
@@ -398,13 +400,20 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,
                                                          RecordsMetadata.ContentType recordContentType,
                                                          JobExecution jobExecution,
+                                                         boolean acceptInstanceId,
                                                          String sourceChunkId) {
     var parser = RecordParserBuilder.buildParser(recordContentType);
 
     return rawRecords.stream()
       .map(rawRecord -> {
         var parsedResult = parser.parseRecord(rawRecord.getRecord());
-        parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
+
+        if (!acceptInstanceId) {
+          parsedResult = addErrorMessageWhen999ffFieldExistsOnCreateAction(jobExecution, parsedResult);
+        } else {
+          LOGGER.debug("getParsedRecordsFromInitialRecords:: acceptInstanceId = true, sourceChunkId = {}, jobExecutionId = {} ",
+            sourceChunkId, jobExecution.getId());
+        }
 
         var recordId = UUID.randomUUID().toString();
         var record = new Record()

@@ -214,7 +214,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     Async async = context.async();
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
+      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -242,7 +242,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
+      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -266,7 +266,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
+      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -294,7 +294,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     Future<Boolean> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params));
+      .compose(jobExecution -> chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
@@ -322,7 +322,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
 
     Future<Optional<JobExecution>> jobFuture = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
-      .compose(jobExecution -> chunkProcessingService.processChunk(lastRawRecordsDto, jobExecution.getId(), params).otherwise(true).map(jobExecution))
+      .compose(jobExecution -> chunkProcessingService.processChunk(lastRawRecordsDto, jobExecution.getId(), false, params).otherwise(true).map(jobExecution))
       .compose(jobExecution -> jobExecutionService.getJobExecutionById(jobExecution.getId(), params.getTenantId()));
 
     jobFuture.onComplete(ar -> {
