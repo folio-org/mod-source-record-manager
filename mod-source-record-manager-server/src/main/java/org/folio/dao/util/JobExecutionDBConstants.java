@@ -10,6 +10,7 @@ public final class JobExecutionDBConstants {
   public static final String JOB_PROFILE_NAME_FIELD = "job_profile_name";
   public static final String JOB_PROFILE_HIDDEN_FIELD = "job_profile_hidden";
   public static final String JOB_PROFILE_DATA_TYPE_FIELD = "job_profile_data_type";
+  public static final String JOB_PROFILE_COMPOSITE_DATA = "composite_data";
   public static final String PROFILE_SNAPSHOT_WRAPPER_FIELD = "job_profile_snapshot_wrapper";
   public static final String SOURCE_PATH_FIELD = "source_path";
   public static final String FILE_NAME_FIELD = "file_name";
@@ -29,6 +30,8 @@ public final class JobExecutionDBConstants {
   public static final String CURRENTLY_PROCESSED_FIELD = "currently_processed";
   public static final String TOTAL_FIELD = "total";
   public static final String IS_DELETED_FIELD = "is_deleted";
+  public static final String JOB_PART_NUMBER = "job_part_number";
+  public static final String TOTAL_JOB_PARTS = "total_job_parts";
 
   public static final String GET_BY_ID_SQL = "SELECT * FROM %s WHERE id = $1 AND is_deleted = false";
   public static final String UPDATE_BY_IDS_SQL = "UPDATE ${tenantName}.${tableName} SET ${setFieldName} = ${setFieldValue} WHERE ${setConditionalFieldName} IN ('${setConditionalFieldValues}') RETURNING ${returningFieldNames}";
@@ -64,7 +67,18 @@ public final class JobExecutionDBConstants {
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
     "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
-    "p.succeeded_records_count + p.error_records_count currently_processed " +
+    "p.succeeded_records_count + p.error_records_count currently_processed, " +
+    "(select jsonb_agg(x) composite_data " +
+    "from (select status, " +
+    "count(1)  cnt, " +
+    "sum(p1.total_records_count) total_records_count, " +
+    "sum(p1.succeeded_records_count + p1.error_records_count) currently_processed " +
+    "FROM %s j1 " +
+    "LEFT JOIN %s p1 ON j1.id = p1.job_execution_id " +
+    "where j1.parent_job_id = j.id " +
+    "and j1.id != j1.parent_job_id " +
+    "and j1.subordination_type = 'COMPOSITE_CHILD' " +
+    "group by status) x) composite_data " +
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
