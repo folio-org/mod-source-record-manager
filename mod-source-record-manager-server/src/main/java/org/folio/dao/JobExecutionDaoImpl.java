@@ -495,40 +495,40 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         var stateDto = new JobExecutionCompositeDetailDto()
           .withChunksCount(jo.getInteger("cnt"))
           .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT))
-          .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
+          .withCurrentlyProcessedCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
         switch (status) {
           case NEW:
             detailsDto.setNewState(stateDto);
             break;
           case FILE_UPLOADED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setFileUploadedState(stateDto);
             break;
           case PARSING_IN_PROGRESS:
             detailsDto.setNewState(stateDto);
             break;
           case PARSING_FINISHED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setParsingFinishedState(stateDto);
             break;
           case PROCESSING_IN_PROGRESS:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setProcessingInProgressState(stateDto);
             break;
           case PROCESSING_FINISHED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setProcessingFinishedState(stateDto);
             break;
           case COMMIT_IN_PROGRESS:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setCommitInProgressState(stateDto);
             break;
           case COMMITTED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setCommittedState(stateDto);
             break;
           case ERROR:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setErrorState(stateDto);
             break;
           case DISCARDED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setDiscardedState(stateDto);
             break;
           case CANCELLED:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setCancelledState(stateDto);
             break;
         }
       });
