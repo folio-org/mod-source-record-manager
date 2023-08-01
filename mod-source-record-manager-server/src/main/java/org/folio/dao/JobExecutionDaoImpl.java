@@ -484,6 +484,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   private JobExecutionCompositeDetailsDto mapToJobExecutionCompositeDetailsDto(Row row) {
+    if (row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1) {
+      return null;
+    }
     var compositeData = row.getArrayOfJsonObjects(JOB_PROFILE_COMPOSITE_DATA);
     if (Objects.nonNull(compositeData) && compositeData.length > 0) {
       var detailsDto = new JobExecutionCompositeDetailsDto();
