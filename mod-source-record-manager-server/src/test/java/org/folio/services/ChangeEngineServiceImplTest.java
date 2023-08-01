@@ -1,10 +1,55 @@
 package org.folio.services;
 
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import org.folio.MatchProfile;
+import org.folio.dao.JobExecutionSourceChunkDao;
+import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
+import org.folio.dataimport.util.marc.MarcRecordType;
+import org.folio.kafka.KafkaConfig;
+import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.MappingMetadataDto;
+import org.folio.rest.jaxrs.model.MappingProfile;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.Record;
+import org.folio.rest.jaxrs.model.RecordsMetadata;
+import org.folio.services.afterprocessing.FieldModificationService;
+import org.folio.services.afterprocessing.HrIdFieldService;
+import org.folio.services.util.EventHandlingUtil;
+import org.folio.services.validation.JobProfileSnapshotValidationService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -20,44 +65,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-
-import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.producer.KafkaHeader;
-
-import org.folio.MatchProfile;
-import org.folio.rest.jaxrs.model.*;
-import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.afterprocessing.FieldModificationService;
-import org.folio.services.validation.JobProfileSnapshotValidationService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import org.folio.dao.JobExecutionSourceChunkDao;
-import org.folio.dataimport.util.OkapiConnectionParams;
-import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
-import org.folio.dataimport.util.marc.MarcRecordType;
-import org.folio.kafka.KafkaConfig;
-import org.folio.services.afterprocessing.HrIdFieldService;
-import org.folio.services.util.EventHandlingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChangeEngineServiceImplTest {
@@ -299,8 +306,6 @@ public class ChangeEngineServiceImplTest {
   @Test
   public void shouldReturnMarcBibRecordWith999ByAcceptInstanceId() {
 
-    boolean acceptInstanceId = true;
-
     RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_BIB_REC_WITH_FF);
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
@@ -308,6 +313,8 @@ public class ChangeEngineServiceImplTest {
       .withJobProfileSnapshotWrapper(constructCreateInstanceSnapshotWrapper())
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC));
+
+    boolean acceptInstanceId = true;
 
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
     when(jobExecutionSourceChunkDao.getById(any(), any()))
