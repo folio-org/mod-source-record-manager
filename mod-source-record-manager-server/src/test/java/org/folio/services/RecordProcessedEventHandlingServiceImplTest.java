@@ -224,7 +224,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
         dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params);
       });
 
     // when
@@ -256,7 +256,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
         dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params);
       });
 
     // when
@@ -306,7 +306,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
         dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params);
       });
 
     // when
@@ -359,7 +359,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
         datImpErrorEventPayload.withJobExecutionId(jobExecution.getId());
         return datImpCompletedEventPayload.withJobExecutionId(jobExecution.getId());
       })
-      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto, datImpErrorEventPayload.getJobExecutionId(), params));
+      .compose(ar -> chunkProcessingService.processChunk(rawRecordsDto, datImpErrorEventPayload.getJobExecutionId(), false, params));
 
     // when
     Future<Optional<JobExecution>> jobFuture = future
@@ -430,7 +430,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(initJobExecutionsRsDto -> jobExecutionService.setJobProfileToJobExecution(initJobExecutionsRsDto.getParentJobExecutionId(), jobProfileInfo, params))
       .compose(jobExecution -> {
         dataImportEventPayload.setJobExecutionId(jobExecution.getId());
-        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), params);
+        return chunkProcessingService.processChunk(rawRecordsDto, jobExecution.getId(), false, params);
       });
 
     // when

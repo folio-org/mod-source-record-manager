@@ -42,7 +42,8 @@ public class ParsedRecordsDiErrorProvider {
       .compose(jobExecutionOptional -> {
         if (jobExecutionOptional.isPresent()) {
           RecordsMetadata.ContentType contentType = rawRecordsDto.getRecordsMetadata().getContentType();
-          return Future.succeededFuture(changeEngineService.getParsedRecordsFromInitialRecords(rawRecordsDto.getInitialRecords(), contentType, jobExecutionOptional.get(), ERROR_SOURCE_CHUNK_ID));
+          return Future.succeededFuture(changeEngineService.getParsedRecordsFromInitialRecords(rawRecordsDto.getInitialRecords(),
+            contentType, jobExecutionOptional.get(), false, ERROR_SOURCE_CHUNK_ID));
         }
         return Future.succeededFuture(Lists.newArrayList());
       });
