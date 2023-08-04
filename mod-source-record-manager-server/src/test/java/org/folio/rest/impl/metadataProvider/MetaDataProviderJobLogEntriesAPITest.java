@@ -842,6 +842,92 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnDiscardedForHoldingsIfNoHoldingsCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, HOLDINGS, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].id", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].hrid", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].error", is(testError));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForItemsIfNoItemsCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, ITEM, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo[0].id", emptyOrNullString())
+        .body("relatedItemInfo[0].hrid", emptyOrNullString())
+        .body("relatedItemInfo[0].error", is(testError));
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnDataForParticularInvoiceLine(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);

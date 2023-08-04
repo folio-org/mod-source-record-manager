@@ -393,10 +393,10 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     resultSet.forEach(r -> {
       ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(r, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
       ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(r, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, HOLDINGS_ENTITY_ID, ITEM_ENTITY_ERROR);
-      if (Objects.nonNull(processedHoldings.getId())) {
+      if (Objects.nonNull(processedHoldings.getActionStatus())) {
         processedHoldingsInfo.add(processedHoldings);
       }
-      if (Objects.nonNull(processedItem.getId())) {
+      if (Objects.nonNull(processedItem.getActionStatus())) {
         processedItemInfo.add(processedItem);
       }
     });
