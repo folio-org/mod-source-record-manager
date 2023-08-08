@@ -97,7 +97,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       LOGGER.warn(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
-      String parentJobExecutionId = UUID.randomUUID().toString();
+      String parentJobId = jobExecutionsRqDto.getParentJobId();
+      String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
           List<JobExecution> jobExecutions =
@@ -306,9 +307,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
       case COMPOSITE: {
         var parentJobId = dto.getParentJobId();
-        File file = files.get(0);
         var isParent = StringUtils.isBlank(parentJobId);
-        var jobExecution = buildNewJobExecution(isParent, true, true, isParent ? parentJobExecutionId : parentJobId, file.getName(), userId)
+        File file = files.get(0);
+        var jobExecution = buildNewJobExecution(isParent, true, true, parentJobExecutionId, file.getName(), userId)
           .withJobPartNumber(dto.getJobPartNumber())
           .withTotalJobParts(dto.getTotalJobParts());
 
