@@ -409,13 +409,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     } else {
       job.withSubordinationType(isComposite ?
           JobExecution.SubordinationType.COMPOSITE_PARENT :
-          isSingle ?
-            JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
+          isSingle ? JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
         .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
-        .withUiStatus(isComposite ? JobExecution.UiStatus.RUNNING :
-          isSingle ?
-            JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()) :
-            JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+        .withUiStatus(isSingle ?
+          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()) :
+          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
     }
     return job;
   }
