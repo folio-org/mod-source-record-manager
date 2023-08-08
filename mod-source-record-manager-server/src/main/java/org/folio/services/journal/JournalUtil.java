@@ -94,8 +94,7 @@ public class JournalUtil {
           int notMatchedNumber = Integer.parseInt(eventPayloadContext.get(NOT_MATCHED_NUMBER));
           for (int i = 0; i < notMatchedNumber; i++) {
             resultedJournalRecords.add(constructBlankJournalRecord(record, JournalRecord.ActionType.NON_MATCH, entityType, actionStatus)
-              .withEntityType(entityType)
-              .withEntityId(UUID.randomUUID().toString()));
+              .withEntityType(entityType));
           }
         }
         return resultedJournalRecords;

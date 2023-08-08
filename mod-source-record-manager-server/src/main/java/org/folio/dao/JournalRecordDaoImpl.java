@@ -369,26 +369,28 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     List<ProcessedItemInfo> processedItemInfo = new LinkedList<>();
 
     Row row = resultSet.iterator().next();
-    recordProcessingLogSummary
-      .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-      .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
-      .withSourceRecordTitle(row.getString(TITLE))
-      .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-      .withError(row.getString(SOURCE_ENTITY_ERROR))
-      .withRelatedInstanceInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-        INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
-      .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-        AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
-      .withRelatedPoLineInfo(new RelatedPoLineInfo()
-        .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
-        .withIdList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_ID))
-        .withHridList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_HRID))
-        .withError(row.getString(PO_LINE_ENTITY_ERROR))
-        .withOrderId(row.getString(ORDER_ENTITY_ID)))
-      .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
-        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
-      .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row));
+    if (resultSet.size() > 0) {
+      recordProcessingLogSummary
+        .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+        .withSourceRecordTitle(row.getString(TITLE))
+        .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
+        .withError(row.getString(SOURCE_ENTITY_ERROR))
+        .withRelatedInstanceInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
+          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
+        .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
+          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
+        .withRelatedPoLineInfo(new RelatedPoLineInfo()
+          .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
+          .withIdList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_ID))
+          .withHridList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_HRID))
+          .withError(row.getString(PO_LINE_ENTITY_ERROR))
+          .withOrderId(row.getString(ORDER_ENTITY_ID)))
+        .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+          INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
+        .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row));
+    }
 
     resultSet.forEach(r -> {
       ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(r, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
@@ -401,8 +403,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       }
     });
     recordProcessingLogSummary.
-      withRelatedItemInfo(processedItemInfo.stream().distinct().collect(Collectors.toList()))
-      .withRelatedHoldingsInfo(processedHoldingsInfo.stream().distinct().collect(Collectors.toList()));
+      withRelatedItemInfo(processedItemInfo.stream().distinct().toList())
+      .withRelatedHoldingsInfo(processedHoldingsInfo.stream().distinct().toList());
 
     return recordProcessingLogSummary;
   }
