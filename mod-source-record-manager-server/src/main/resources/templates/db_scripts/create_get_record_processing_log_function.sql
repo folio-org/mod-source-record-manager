@@ -1,16 +1,7 @@
--- Script to create function to get data import record processing log entries (recordProcessingLogDto).
 DROP FUNCTION IF EXISTS get_record_processing_log(uuid, uuid);
 
-
 CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, recordId uuid)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text,
-				  source_record_action_status text, source_entity_error text, instance_action_status text,
-				  instance_entity_id text[], instance_entity_hrid text[], instance_entity_error text,
-				  holdings_action_status text, holdings_entity_hrid text[], holdings_entity_id text[],
-				   holdings_entity_error text, item_action_status text, item_entity_hrid text[], item_entity_id text[],
-				  item_entity_error text, authority_action_status text, authority_entity_id text[],
-				  authority_entity_error text, po_line_action_status text, po_line_entity_id text[], po_line_entity_hrid text[],
-				  po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text, holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text, authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
 AS $$
 BEGIN
     RETURN QUERY
@@ -21,13 +12,13 @@ BEGIN
                     		THEN 'CREATED'
                   		WHEN action_type IN ('UPDATE', 'MODIFY')
                     		THEN 'UPDATED'
-                		END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, action_type_by_source.title
+                		END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
     		INNER JOIN
-    		(SELECT entity_type as entity_type_max, COALESCE(journal_records.entity_id, journal_records.source_id::TEXT) as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max, max(journal_records.title) as title
+    		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max
             	FROM journal_records
     			WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE')
-            	GROUP BY entity_type, COALESCE(journal_records.entity_id, journal_records.source_id::TEXT),action_status) AS action_type_by_source
+            	GROUP BY entity_type,entity_id,action_status) AS action_type_by_source
     		ON journal_records.id = action_type_by_source.id_max)
         (SELECT
     	      COALESCE(marc.job_execution_id,instances.job_execution_id,holdings.job_execution_id,items.job_execution_id) AS job_execution_id,
@@ -38,27 +29,28 @@ BEGIN
     	      marc.error AS source_entity_error,
 
     	      instances.action_type AS instance_action_status,
-    	      ARRAY[COALESCE(instances.entity_id,holdings.instance_id,items.instance_id)] AS instance_entity_id,
-    	      ARRAY[instances.entity_hrid] AS instance_entity_hrid,
+    	      COALESCE(instances.entity_id,holdings.instance_id,items.instance_id) AS instance_entity_id,
+    	      instances.entity_hrid AS instance_entity_hrid,
     	      instances.error AS instance_entity_error,
 
     	      holdings.action_type AS holdings_action_status,
-			      ARRAY[holdings.entity_hrid] AS holdings_entity_hrid,
-    	      ARRAY[COALESCE(holdings.entity_id,items.holdings_id)] AS holdings_entity_id,
+			      holdings.entity_hrid AS holdings_entity_hrid,
+    	      COALESCE(holdings.entity_id,items.holdings_id) AS holdings_entity_id,
+    	      holdings.permanent_location_id AS holdings_permanent_location_id,
     	      holdings.error AS holdings_entity_error,
 
     	      items.action_type AS item_action_status,
-			      ARRAY[items.entity_hrid] AS item_entity_hrid,
-    	      ARRAY[items.entity_id] AS item_entity_id,
+			      items.entity_hrid AS item_entity_hrid,
+    	      items.entity_id AS item_entity_id,
     	      items.error AS item_entity_error,
 
     	      authority.action_type AS authority_action_status,
-    	      ARRAY[authority.entity_id] AS authority_entity_id,
+    	      authority.entity_id AS authority_entity_id,
     	      authority.error AS authority_entity_error,
 
     	      po_lines.action_type AS po_line_action_status,
-    	      ARRAY[po_lines.entity_id] AS po_line_entity_id,
-    	      ARRAY[po_lines.entity_hrid] AS po_line_entity_hrid,
+    	      po_lines.entity_id AS po_line_entity_id,
+    	      po_lines.entity_hrid AS po_line_entity_hrid,
     	      po_lines.error AS po_line_entity_error,
     	      po_lines.order_id AS order_entity_id,
 
@@ -75,7 +67,7 @@ BEGIN
     	    FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY')) AS marc
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
-    	    FROM temp_result WHERE entity_type = 'INSTANCE' AND entity_id IS NOT NULL) AS instances
+    	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances
     	ON marc.source_id = instances.source_id
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
@@ -85,16 +77,14 @@ BEGIN
     	    (SELECT action_type,entity_id,entity_hrid,temp_result.source_id,error,order_id,temp_result.job_execution_id,temp_result.title,temp_result.source_record_order
     	    FROM temp_result WHERE entity_type = 'PO_LINE') AS po_lines
     	ON po_lines.source_id = marc.source_id
-      RIGHT JOIN (SELECT NULL AS NULLS) AS NULLS ON true
-    	CROSS JOIN
-    	    (SELECT action_type, entity_id, entity_hrid, error, instance_id, holdings.job_execution_id, holdings.source_id, holdings.title, holdings.source_record_order
-             FROM (SELECT * FROM temp_result WHERE entity_type = 'HOLDINGS') AS holdings RIGHT JOIN (SELECT NULL AS null_holdings) AS null_holdings ON true) AS holdings
-    	CROSS JOIN
-    	    (SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id, items.job_execution_id, items.source_id, items.title, items.source_record_order
-             FROM (SELECT * FROM temp_result WHERE entity_type = 'ITEM') AS items RIGHT JOIN (SELECT NULL AS null_item) AS null_item ON true) AS items
-     	WHERE (instances.entity_id = COALESCE(holdings.instance_id, instances.entity_id) OR instances.entity_id IS NULL) AND
-     	(holdings.entity_id = COALESCE(items.holdings_id, holdings.entity_id) OR holdings.entity_id IS NULL) AND
-     	COALESCE(marc.job_execution_id,instances.job_execution_id,holdings.job_execution_id,items.job_execution_id) IS NOT NULL
+    	FULL JOIN
+    	    (SELECT action_type, entity_id, entity_hrid, error, instance_id, permanent_location_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
+    	    FROM temp_result WHERE entity_type = 'HOLDINGS') AS holdings
+    	ON instances.entity_id = holdings.instance_id
+    	FULL JOIN
+    	    (SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
+    	    FROM temp_result WHERE entity_type = 'ITEM') AS items
+    	ON holdings.entity_id = items.holdings_id
     	ORDER BY holdings.entity_hrid)
       UNION
         	SELECT invoice_line_info.job_execution_id,
@@ -105,32 +95,27 @@ BEGIN
                   WHEN edifact_actions[array_length(edifact_actions, 1)] = 'CREATE' THEN 'CREATED'
                 END AS source_record_action_status,
                 records_actions.source_record_error[1],
-
                 null AS instance_action_status,
                 null AS instance_entity_id,
                 null AS instance_entity_hrid,
                 null AS instance_entity_error,
-
                 null AS holdings_action_status,
                 null AS holdings_entity_hrid,
                 null AS holdings_entity_id,
+                null AS holdings_permanent_location_id,
                 null AS holdings_entity_error,
-
                 null AS item_action_status,
                 null AS item_entity_hrid,
                 null AS item_entity_id,
                 null AS item_entity_error,
-
                 null AS authority_action_status,
                 null AS authority_entity_id,
                 null AS authority_entity_error,
-
                 null AS po_line_action_status,
                 null AS po_line_entity_id,
                 null AS po_line_entity_hrid,
                 null AS po_line_entity_error,
                 null AS order_entity_id,
-
                 get_entity_status(records_actions.invoice_actions, records_actions.invoice_errors_number) AS invoice_action_status,
                 records_actions.invoice_entity_id,
                 records_actions.invoice_entity_hrid,

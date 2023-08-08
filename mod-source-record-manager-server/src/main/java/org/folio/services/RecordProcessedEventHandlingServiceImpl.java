@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
@@ -30,6 +31,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String ERROR_KEY = "ERROR";
   public static final String ERRORS_KEY = "ERRORS";
+  private static final String EMPTY_ARRAY = "[]";
 
   private JobExecutionProgressService jobExecutionProgressService;
   private JobExecutionService jobExecutionService;
@@ -55,10 +57,12 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     String jobExecutionId = dataImportEventPayload.getJobExecutionId();
     try {
       DataImportEventTypes eventType = DataImportEventTypes.valueOf(dataImportEventPayload.getEventType());
-      int successCount= 0;
+      int successCount = 0;
       int errorCount = 0;
       if (DataImportEventTypes.DI_COMPLETED.equals(eventType)) {
-        if (dataImportEventPayload.getContext().containsKey(ERRORS_KEY)) {
+        JsonArray errors = new JsonArray(dataImportEventPayload.getContext().get(ERRORS_KEY) != null ?
+          dataImportEventPayload.getContext().get(ERRORS_KEY) : EMPTY_ARRAY);
+        if (!errors.isEmpty()) {
           errorCount++;
         } else {
           successCount++;

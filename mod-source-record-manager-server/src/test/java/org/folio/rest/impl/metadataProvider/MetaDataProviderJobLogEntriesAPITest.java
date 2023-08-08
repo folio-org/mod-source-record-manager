@@ -29,6 +29,8 @@ import static org.hamcrest.Matchers.nullValue;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
+import io.vertx.core.json.JsonArray;
 
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
@@ -56,6 +58,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.testcontainers.shaded.org.bouncycastle.est.CACertsResponse;
 
 @RunWith(VertxUnitRunner.class)
 public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
@@ -113,6 +116,53 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneEntryIfTwoErrorsDuringMultipleCreation(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String[] holdingsId = generateRandomUUIDs(3);
+    String[] holdingsHrid = {"h001","h002","h003"};
+
+    String[] permanentLocation = {UUID.randomUUID().toString()};
+
+    String errorMsg1 = "test error1";
+    String errorMsg2 = "test error2";
+    String errorArray = "[test error1, test error2]";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[0]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1],null, null,  0, CREATE, HOLDINGS, ERROR, errorMsg1, null,null,null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], null, null,  0, CREATE, HOLDINGS, ERROR, errorMsg2, null,null,null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries", hasSize(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[0].holdingsActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].error", is(errorArray));
       async.complete();
     }));
   }
@@ -380,9 +430,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("error", emptyOrNullString())
         .body("relatedInstanceInfo.idList[0]", is("instanceEntityID"))
         .body("relatedInstanceInfo.error", emptyOrNullString())
-        .body("relatedHoldingsInfo.idList[0]", is("holdingsEntityID"))
-        .body("relatedHoldingsInfo.hridList[0]", is("ho00000000001"))
-        .body("relatedHoldingsInfo.error", emptyOrNullString());
+        .body("relatedHoldingsInfo[0].id", is("holdingsEntityID"))
+        .body("relatedHoldingsInfo[0].hrid", is("ho00000000001"))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString());
 
       async.complete();
     }));
@@ -754,9 +804,9 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, poLineId, poLineHrid, null,  0, CREATE, PO_LINE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, poLineId, poLineHrid, null,  0, CREATE, PO_LINE, COMPLETED, null, null,instanceId,null,null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -774,12 +824,12 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInstanceInfo.idList[0]", is(instanceId))
         .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
         .body("relatedInstanceInfo.error", emptyOrNullString())
-        .body("relatedHoldingsInfo.idList[0]", is(holdingsId))
-        .body("relatedHoldingsInfo.hridList[0]", is(holdingsHrid))
-        .body("relatedHoldingsInfo.error", emptyOrNullString())
-        .body("relatedItemInfo.idList[0]", is(itemId))
-        .body("relatedItemInfo.hridList[0]", is(itemHrid))
-        .body("relatedItemInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo[0].id", is(itemId))
+        .body("relatedItemInfo[0].hrid", is(itemHrid))
+        .body("relatedItemInfo[0].error", emptyOrNullString())
         .body("relatedPoLineInfo.idList[0]", is(poLineId))
         .body("relatedPoLineInfo.hridList[0]", is(poLineHrid))
         .body("relatedPoLineInfo.error", emptyOrNullString())
@@ -787,6 +837,92 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForHoldingsIfNoHoldingsCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, HOLDINGS, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].id", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].hrid", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].error", is(testError));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForItemsIfNoItemsCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, ITEM, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo[0].id", emptyOrNullString())
+        .body("relatedItemInfo[0].hrid", emptyOrNullString())
+        .body("relatedItemInfo[0].error", is(testError));
       async.complete();
     }));
   }
@@ -828,12 +964,8 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInstanceInfo.idList.size", empty())
         .body("relatedInstanceInfo.hridList.size", empty())
         .body("relatedInstanceInfo.error", nullValue())
-        .body("relatedHoldingsInfo.idList.size", empty())
-        .body("relatedHoldingsInfo.hridList.size", empty())
-        .body("relatedHoldingsInfo.error", emptyOrNullString())
-        .body("relatedItemInfo.idList.size", empty())
-        .body("relatedItemInfo.hridList.size", empty())
-        .body("relatedItemInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size", empty())
+        .body("relatedItemInfo.size", empty())
         .body("relatedPoLineInfo.idList.size", empty())
         .body("relatedPoLineInfo.hridList.size", empty())
         .body("relatedPoLineInfo.error", emptyOrNullString())
@@ -1139,6 +1271,88 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     }));
   }
 
+  @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsHoldings(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String[] holdingsId = generateRandomUUIDs(3);
+    String[] holdingsHrid = {"h001","h002","h003"};
+
+    String[] itemId = generateRandomUUIDs(4);
+    String[] itemHrid = {"it001","it002","it003","it004"};
+
+    String[] permanentLocation = {UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString()};
+
+    String errorMsg = "test error";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[0]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1], holdingsHrid[1], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[1]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], holdingsHrid[2], null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null, permanentLocation[2]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[0],null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[1], itemHrid[1], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[2], itemHrid[2], null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId[1],null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[3], null, null,  0, CREATE, ITEM, ERROR, errorMsg, null,null, null,null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(3))
+        .body("relatedHoldingsInfo[0].id", is(holdingsId[0]))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid[0]))
+        .body("relatedHoldingsInfo[0].permanentLocationId", is(permanentLocation[0]))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedHoldingsInfo[1].id", is(holdingsId[1]))
+        .body("relatedHoldingsInfo[1].hrid", is(holdingsHrid[1]))
+        .body("relatedHoldingsInfo[1].permanentLocationId", is(permanentLocation[1]))
+        .body("relatedHoldingsInfo[1].error", emptyOrNullString())
+        .body("relatedHoldingsInfo[2].id", is(holdingsId[2]))
+        .body("relatedHoldingsInfo[2].hrid", is(holdingsHrid[2]))
+        .body("relatedHoldingsInfo[2].permanentLocationId", is(permanentLocation[2]))
+        .body("relatedHoldingsInfo[2].error", emptyOrNullString())
+        .body("relatedItemInfo[0].id", is(itemId[0]))
+        .body("relatedItemInfo[0].hrid", is(itemHrid[0]))
+        .body("relatedItemInfo[0].holdingsId", is(holdingsId[0]))
+        .body("relatedItemInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo[2].id", is(itemId[2]))
+        .body("relatedItemInfo[2].hrid", is(itemHrid[2]))
+        .body("relatedItemInfo[2].holdingsId", is(holdingsId[1]))
+        .body("relatedItemInfo[2].error", emptyOrNullString())
+        .body("relatedItemInfo[3].id", is(itemId[3]))
+        .body("relatedItemInfo[3].hrid", emptyOrNullString())
+        .body("relatedItemInfo[3].holdingsId", emptyOrNullString())
+        .body("relatedItemInfo[3].error", is(errorMsg))
+        .body("relatedInvoiceInfo.idList", empty())
+        .body("relatedInvoiceInfo.hridList", empty())
+        .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
                                                     JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId) {
     JournalRecord journalRecord = new JournalRecord()
@@ -1155,5 +1369,29 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .withEntityHrId(entityHrid)
       .withOrderId(orderId);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+  private Future<JournalRecord> createJournalRecordAllFields(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
+                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId,String instanceId,String holdingsId,String permanentLocation) {
+    JournalRecord journalRecord = new JournalRecord()
+      .withJobExecutionId(jobExecutionId)
+      .withSourceId(sourceId)
+      .withTitle(title)
+      .withSourceRecordOrder(recordOrder)
+      .withEntityType(entityType)
+      .withActionType(actionType)
+      .withActionStatus(actionStatus)
+      .withError(errorMessage)
+      .withActionDate(new Date())
+      .withEntityId(entityId)
+      .withEntityHrId(entityHrid)
+      .withOrderId(orderId)
+      .withInstanceId(instanceId)
+      .withHoldingsId(holdingsId)
+      .withPermanentLocationId(permanentLocation);
+    return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
+  }
+
+  private String[] generateRandomUUIDs(int n) {
+    return IntStream.range(0,n).mapToObj(i->UUID.randomUUID().toString()).toArray(String[]::new);
   }
 }

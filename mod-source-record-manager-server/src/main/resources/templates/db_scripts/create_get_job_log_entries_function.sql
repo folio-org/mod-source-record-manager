@@ -85,10 +85,14 @@ FROM (
          GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
          HAVING count(journal_records.source_id) FILTER (WHERE (%3$L = ''ALL'' or entity_type = ANY(%4$L)) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
-         LEFT JOIN (SELECT journal_records.source_id, journal_records.error
-                    FROM journal_records
-                    WHERE journal_records.job_execution_id = ''%1$s'') AS rec_errors
-            ON rec_errors.source_id = records_actions.source_id AND rec_errors.error != ''''
+         LEFT JOIN (SELECT journal_records.source_id,
+              CASE
+                WHEN COUNT(*) = 1 THEN array_to_string(array_agg(journal_records.error), '', '')
+                ELSE ''['' || array_to_string(array_agg(journal_records.error), '', '') || '']''
+              END AS error
+            FROM journal_records
+            WHERE journal_records.job_execution_id = ''%1$s'' AND journal_records.error != '''' GROUP BY journal_records.source_id) AS rec_errors
+          ON rec_errors.source_id = records_actions.source_id
          LEFT JOIN (SELECT journal_records.source_id, journal_records.title
                     FROM journal_records
                     WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles

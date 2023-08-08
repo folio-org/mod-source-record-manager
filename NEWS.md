@@ -2,6 +2,7 @@
 * [MODSOURMAN-1011](https://issues.folio.org/browse/MODSOURMAN-1011) Import An Instance With A Known Identifier (new acceptInstanceId parameter)
 * [MODSOURMAN-999](https://issues.folio.org/browse/MODSOURMAN-999) Upgrade mod-source-record-manager to Java 17
 * [MODSOURMAN-974](https://issues.folio.org/browse/MODSOURMAN-974) MARC bib $9 handling | Remove $9 subfields from linkable fields
+* [MODSOURMAN-971](https://issues.folio.org/browse/MODSOURMAN-971) Adjust journal records population to create multiple journal records for each Holdings/Item
 
 ## 2023-03-xo v3.6.1-SNAPSHOT
 * [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
