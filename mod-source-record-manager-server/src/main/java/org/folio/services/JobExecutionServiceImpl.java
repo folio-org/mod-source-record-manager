@@ -411,7 +411,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           JobExecution.SubordinationType.COMPOSITE_PARENT :
           isSingle ?
             JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(isComposite ? JobExecution.Status.PROCESSING_IN_PROGRESS : isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
+        .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
         .withUiStatus(isComposite ? JobExecution.UiStatus.RUNNING :
           isSingle ?
             JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()) :
