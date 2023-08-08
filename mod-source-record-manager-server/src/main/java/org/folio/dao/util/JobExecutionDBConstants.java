@@ -40,8 +40,8 @@ public final class JobExecutionDBConstants {
     "INSERT INTO %s.%s (id, hrid, parent_job_id, subordination_type, source_path, file_name, " +
     "progress_current, progress_total, started_date, completed_date, status, ui_status, error_status, job_user_first_name, " +
     "job_user_last_name, user_id, job_profile_id, job_profile_name, job_profile_data_type, job_profile_snapshot_wrapper, "
-      + "job_profile_hidden) " +
-    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)";
+      + "job_profile_hidden, job_part_number, total_job_parts) " +
+    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)";
 
   public static final String UPDATE_SQL =
     "UPDATE %s " +

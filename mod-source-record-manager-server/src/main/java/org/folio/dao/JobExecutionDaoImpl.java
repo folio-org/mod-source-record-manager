@@ -375,7 +375,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
       jobExecution.getJobProfileSnapshotWrapper() == null
         ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()),
-      jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden());
+      jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden(),
+      jobExecution.getJobPartNumber(),
+      jobExecution.getTotalJobParts());
   }
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {

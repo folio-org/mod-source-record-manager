@@ -307,7 +307,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       case COMPOSITE: {
         var parentJobId = dto.getParentJobId();
         File file = files.get(0);
-        var jobExecution = buildNewJobExecution(StringUtils.isNotBlank(parentJobId), true, true, parentJobExecutionId, file.getName(), userId);
+        var jobExecution = buildNewJobExecution(StringUtils.isNotBlank(parentJobId), true, true, parentJobId, file.getName(), userId)
+          .withJobPartNumber(dto.getJobPartNumber())
+          .withTotalJobParts(dto.getTotalJobParts());
+
         return Collections.singletonList(jobExecution);
       }
 
