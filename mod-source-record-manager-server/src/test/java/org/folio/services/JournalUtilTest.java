@@ -57,7 +57,7 @@ public class JournalUtilTest {
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
       .withContext(context);
 
-    List<JournalRecord>  journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       CREATE, INSTANCE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
@@ -95,7 +95,7 @@ public class JournalUtilTest {
       .withEventType("DI_COMPLETED")
       .withContext(context);
 
-    List<JournalRecord>  journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       CREATE, AUTHORITY, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
