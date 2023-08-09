@@ -22,6 +22,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -101,13 +102,15 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == INSTANCE || entityType == PO_LINE) {
+        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY) {
           JsonObject entityJson = new JsonObject(entityAsString);
           journalRecord.setEntityId(entityJson.getString(ID_KEY));
+          if (entityType == INSTANCE || entityType == PO_LINE) {
+            journalRecord.setEntityHrId(entityJson.getString(HRID_KEY));
+          }
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
-          journalRecord.setEntityHrId(entityJson.getString(HRID_KEY));
           return Lists.newArrayList(journalRecord);
         }
         if ((entityType == HOLDINGS || entityType == ITEM || eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null)
