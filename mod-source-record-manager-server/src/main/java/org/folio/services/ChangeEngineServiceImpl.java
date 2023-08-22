@@ -356,12 +356,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   /**
    * Parse list of source records
    *
-   * @param rawRecords    - list of raw records for parsing
-   * @param jobExecution  - job execution of record's parsing
-   * @param sourceChunkId - id of the JobExecutionSourceChunk
-   * @param tenantId      - tenant id
+   * @param rawRecords       - list of raw records for parsing
+   * @param jobExecution     - job execution of record's parsing
+   * @param sourceChunkId    - id of the JobExecutionSourceChunk
+   * @param tenantId         - tenant id
    * @param acceptInstanceId - allow the 999ff$i field to be set and also create an instance with value in 999ff$i
-   * @param okapiParams   - OkapiConnectionParams to interact with external services
+   * @param okapiParams      - OkapiConnectionParams to interact with external services
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
@@ -678,12 +678,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+          if (record.getMatchedId() != null) {
+            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+          }
         }
       } else if (MARC_AUTHORITY.equals(recordType)) {
         for (Record record : records) {
           if (record.getParsedRecord() != null) {
-            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+            if (record.getMatchedId() != null) {
+              addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+            }
             String inventoryId = UUID.randomUUID().toString();
             addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
             var hrid = getControlFieldValue(record, TAG_001).trim();
