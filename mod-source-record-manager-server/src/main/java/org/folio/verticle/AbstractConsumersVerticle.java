@@ -3,12 +3,20 @@ package org.folio.verticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import org.folio.kafka.*;
+import org.folio.kafka.AsyncRecordHandler;
+import org.folio.kafka.BackPressureGauge;
+import org.folio.kafka.GlobalLoadSensor;
+import org.folio.kafka.KafkaConfig;
+import org.folio.kafka.KafkaConsumerWrapper;
+import org.folio.kafka.KafkaTopicNameHelper;
+import org.folio.kafka.ProcessRecordErrorHandler;
+import org.folio.kafka.SubscriptionDefinition;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.verticle.consumers.consumerstorage.KafkaConsumersStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +35,9 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   @Autowired
   private KafkaConsumersStorage kafkaConsumersStorage;
 
+  @Value("${srm.kafka.DataImportConsumer.globalLoadLimit:35}")
+  private int globalLoadLimit;
+
   @Override
   public void start(Promise<Void> startPromise) {
     List<Future<Void>> futures = new ArrayList<>();
@@ -43,6 +54,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
         .kafkaConfig(kafkaConfig)
         .loadLimit(loadLimit)
         .globalLoadSensor(globalLoadSensor)
+        .addToGlobalLoad(shouldAddToGlobalLoad())
         .subscriptionDefinition(subscriptionDefinition)
         .processRecordErrorHandler(getErrorHandler())
         .backPressureGauge(getBackPressureGauge())
@@ -70,6 +82,13 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   public abstract AsyncRecordHandler<String, String> getHandler();
 
   /**
+   * Include messages from this consumer to mutate global load counts
+   */
+  public Boolean shouldAddToGlobalLoad() {
+    return null;
+  }
+
+  /**
    * By default error handler is null and so not invoked by folio-kafka-wrapper for failure cases.
    * If you need to add error handling logic and send DI_ERROR events - override this method with own error handler
    * implementation for  particular consumer instance.
@@ -87,6 +106,6 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    * @return back pressure gauge implementation
    */
   public BackPressureGauge<Integer, Integer, Integer> getBackPressureGauge() {
-    return null;
+    return (g, l, t) -> (l > 0 && l > t) || (g > globalLoadLimit);
   }
 }
