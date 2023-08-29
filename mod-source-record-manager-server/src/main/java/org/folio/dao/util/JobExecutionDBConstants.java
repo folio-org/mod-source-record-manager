@@ -49,7 +49,7 @@ public final class JobExecutionDBConstants {
     "progress_current = $7, progress_total = $8, started_date = $9, completed_date = $10, " +
     "status = $11, ui_status = $12, error_status = $13, job_user_first_name = $14, job_user_last_name = $15, " +
     "user_id = $16, job_profile_id = $17, job_profile_name = $18, job_profile_data_type = $19, " +
-    "job_profile_snapshot_wrapper = $20, job_profile_hidden = $21" +
+    "job_profile_snapshot_wrapper = $20, job_profile_hidden = $21, job_part_number = $22, total_job_parts = $23 " +
     "WHERE id = $1";
 
   public static final String GET_CHILDREN_JOBS_BY_PARENT_ID_SQL =
