@@ -521,6 +521,12 @@ LOGGER.warn(errorMessage);
         if (response.result().statusCode() == HttpStatus.HTTP_OK.toInt()) {
           promise.complete(jobExecution);
         } else {
+          LOGGER.warn(
+            "Update snapshot status failed for jobExecution with id {}. Response code={}",
+            jobExecution.getId(),
+            response.result().statusCode()
+          );
+          LOGGER.warn("Response: {}", response.result().bodyAsString());
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
             Promise<JobExecution> jobExecutionPromise = Promise.promise();
             jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
