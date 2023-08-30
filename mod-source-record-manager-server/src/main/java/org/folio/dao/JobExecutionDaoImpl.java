@@ -487,8 +487,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       for (Object o : compositeData) {
         JsonObject jo = (JsonObject) o;
         
-        processed += jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED);
-        total += jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT);
+        processed += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED)).orElse(0);
+        total += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT)).orElse(0);
       }
 
       return progressDto.withCurrent(processed).withTotal(total);
