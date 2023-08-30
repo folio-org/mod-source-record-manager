@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -19,6 +20,8 @@ import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dao.util.SortField;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailDto;
+import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailsDto;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
@@ -29,6 +32,7 @@ import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +69,8 @@ import static org.folio.dao.util.JobExecutionDBConstants.GET_UNIQUE_USERS;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.INSERT_SQL;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PART_NUMBER;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_COMPOSITE_DATA;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_DATA_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
@@ -82,6 +88,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_COUNT_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_JOB_PARTS;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_PROGRESS_SQL;
@@ -125,6 +132,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   public static final String DELETE_FROM_JOB_EXECUTION_TABLE = "DELETE from %s.%s where id = ANY ($1)";
   public static final String JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME = "job_execution_source_chunks";
   public static final String JOURNAL_RECORDS_TABLE_NAME = "journal_records";
+  public static final String JOB_PROFILE_COMPOSITE_DATA_STATUS = "status";
+  public static final String JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT = "total_records_count";
+  public static final String JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED = "currently_processed";
 
   @Autowired
   private PostgresClientFactory pgClientFactory;
@@ -137,7 +147,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String orderByClause = buildOrderByClause(sortFields);
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
-      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, filterCriteria,  orderByClause);
+      String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, jobTable, progressTable, filterCriteria, orderByClause);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
@@ -285,7 +295,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     try {
       Map<String, String> data = new HashMap<>();
       data.put(TENANT_NAME, convertToPsqlStandard(tenantId));
-      data.put(DB_TABLE_NAME_FIELD,TABLE_NAME);
+      data.put(DB_TABLE_NAME_FIELD, TABLE_NAME);
       data.put(SET_FIELD_NAME, IS_DELETED);
       data.put(SET_FIELD_VALUE, TRUE);
       data.put(SET_CONDITIONAL_FIELD_NAME, ID);
@@ -299,6 +309,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
     return promise.future().map(this::mapRowSetToDeleteChangeManagerJobExeResp);
   }
+
   @Override
   public Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
@@ -330,7 +341,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     return jobExecutionUserInfo;
   }
 
-  private DeleteJobExecutionsResp mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet){
+  private DeleteJobExecutionsResp mapRowSetToDeleteChangeManagerJobExeResp(RowSet<Row> rowSet) {
     DeleteJobExecutionsResp deleteJobExecutionsResp = new DeleteJobExecutionsResp();
     List<JobExecutionDetail> jobExecutionDetails = new ArrayList<>();
     rowSet.forEach(row -> {
@@ -366,7 +377,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         ? jobExecution.getJobProfileInfo().getDataType().toString() : null,
       jobExecution.getJobProfileSnapshotWrapper() == null
         ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()),
-      jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden());
+      jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden(),
+      jobExecution.getJobPartNumber(),
+      jobExecution.getTotalJobParts());
   }
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
@@ -411,7 +424,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD)))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
       .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) == null
-        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class));
+        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class))
+      .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
+      .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS));
   }
 
   private JobExecutionDto mapRowToJobExecutionDto(Row row) {
@@ -433,7 +448,10 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
       .withUserId(row.getValue(USER_ID_FIELD).toString())
       .withProgress(mapRowToProgress(row))
-      .withJobProfileInfo(mapRowToJobProfileInfo(row));
+      .withJobProfileInfo(mapRowToJobProfileInfo(row))
+      .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
+      .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS))
+      .withCompositeDetails(mapToJobExecutionCompositeDetailsDto(row));
   }
 
   private Date mapRowToCompletedDate(Row row) {
@@ -442,6 +460,10 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   private Progress mapRowToProgress(Row row) {
+    if (row.get(JobExecutionDto.SubordinationType.class, SUBORDINATION_TYPE_FIELD).equals(SubordinationType.COMPOSITE_PARENT)) {
+      return mapRowToProgressComposite(row);
+    }
+
     Integer processedCount = row.getInteger(CURRENTLY_PROCESSED_FIELD);
     Integer total = row.getInteger(TOTAL_FIELD);
     if (processedCount == null) {
@@ -457,6 +479,29 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withTotal(total);
   }
 
+  private Progress mapRowToProgressComposite(Row row) {
+    JsonArray compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
+
+    if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
+      Progress progressDto = new Progress()
+        .withJobExecutionId(row.getValue(ID_FIELD).toString());
+
+      int processed = 0;
+      int total = 0;
+
+      for (Object o : compositeData) {
+        JsonObject jo = (JsonObject) o;
+        
+        processed += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED)).orElse(0);
+        total += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT)).orElse(0);
+      }
+
+      return progressDto.withCurrent(processed).withTotal(total);
+    }
+
+    return null;
+  }
+
   private JobProfileInfo mapRowToJobProfileInfo(Row row) {
     UUID profileId = row.getUUID(JOB_PROFILE_ID_FIELD);
     if (Objects.nonNull(profileId)) {
@@ -466,6 +511,61 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withHidden(row.getBoolean(JOB_PROFILE_HIDDEN_FIELD))
         .withDataType(Objects.isNull(row.getString(JOB_PROFILE_DATA_TYPE_FIELD))
           ? null : JobProfileInfo.DataType.fromValue(row.getString(JOB_PROFILE_DATA_TYPE_FIELD)));
+    }
+    return null;
+  }
+
+  private JobExecutionCompositeDetailsDto mapToJobExecutionCompositeDetailsDto(Row row) {
+    if (row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1) {
+      return null;
+    }
+    var compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
+    if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
+      var detailsDto = new JobExecutionCompositeDetailsDto();
+      compositeData.forEach(o -> {
+        JsonObject jo = (JsonObject) o;
+        var status = JobExecutionDto.Status.valueOf(jo.getString(JOB_PROFILE_COMPOSITE_DATA_STATUS));
+        var stateDto = new JobExecutionCompositeDetailDto()
+          .withChunksCount(jo.getInteger("cnt"))
+          .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT))
+          .withCurrentlyProcessedCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
+        switch (status) {
+          case NEW:
+            detailsDto.setNewState(stateDto);
+            break;
+          case FILE_UPLOADED:
+            detailsDto.setFileUploadedState(stateDto);
+            break;
+          case PARSING_IN_PROGRESS:
+            detailsDto.setNewState(stateDto);
+            break;
+          case PARSING_FINISHED:
+            detailsDto.setParsingFinishedState(stateDto);
+            break;
+          case PROCESSING_IN_PROGRESS:
+            detailsDto.setProcessingInProgressState(stateDto);
+            break;
+          case PROCESSING_FINISHED:
+            detailsDto.setProcessingFinishedState(stateDto);
+            break;
+          case COMMIT_IN_PROGRESS:
+            detailsDto.setCommitInProgressState(stateDto);
+            break;
+          case COMMITTED:
+            detailsDto.setCommittedState(stateDto);
+            break;
+          case ERROR:
+            detailsDto.setErrorState(stateDto);
+            break;
+          case DISCARDED:
+            detailsDto.setDiscardedState(stateDto);
+            break;
+          case CANCELLED:
+            detailsDto.setCancelledState(stateDto);
+            break;
+        }
+      });
+      return detailsDto;
     }
     return null;
   }
@@ -517,7 +617,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
           return CompositeFuture.all(jobExecutionProgressFuture, jobExecutionSourceChunksFuture, journalRecordsFuture)
             .compose(ar -> Future.<RowSet<Row>>future(rowSetPromise -> deleteFromJobExecutionTable(uuids, sqlConnection, tenantId, rowSetPromise, postgresClient)))
             .map(true);
-    }));
+        }));
   }
 
   private Future<List<String>> mapRowsetValuesToListOfString(RowSet<Row> rowset) {

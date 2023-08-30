@@ -10,14 +10,17 @@ import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 
 import static java.lang.String.format;
@@ -112,6 +115,41 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
                 .withTotal(progress.getTotal()));
 
             return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
+              .compose(updatedExecution -> {
+                if (updatedExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD)) {
+
+                  return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
+                    .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
+                    .compose(parentExecution -> 
+                      jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+                        .map(JobExecutionDtoCollection::getJobExecutions)
+                        .map(children ->
+                          children.stream()
+                            .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+                            .allMatch(child -> 
+                              Arrays.asList(
+                                JobExecutionDto.UiStatus.RUNNING_COMPLETE,
+                                JobExecutionDto.UiStatus.CANCELLED,
+                                JobExecutionDto.UiStatus.ERROR,
+                                JobExecutionDto.UiStatus.DISCARDED
+                              ).contains(child.getUiStatus())
+                            )
+                        )
+                        .compose(allChildrenCompleted -> {
+                          if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                            LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                            parentExecution.withStatus(JobExecution.Status.COMMITTED)
+                              .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+                              .withCompletedDate(new Date());
+                            return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+                          }
+                          return Future.succeededFuture(parentExecution);
+                        })
+                    );
+                } else {
+                  return Future.succeededFuture(updatedExecution);
+                }
+              })
               .map(true);
           })
           .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
