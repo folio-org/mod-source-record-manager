@@ -20,6 +20,7 @@ import org.folio.services.progress.JobExecutionProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import static java.lang.String.format;
@@ -125,7 +126,14 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
                         .map(children ->
                           children.stream()
                             .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
-                            .allMatch(child -> child.getUiStatus() == JobExecutionDto.UiStatus.RUNNING_COMPLETE)
+                            .allMatch(child -> 
+                              Arrays.asList(
+                                JobExecutionDto.UiStatus.RUNNING_COMPLETE,
+                                JobExecutionDto.UiStatus.CANCELLED,
+                                JobExecutionDto.UiStatus.ERROR,
+                                JobExecutionDto.UiStatus.DISCARDED
+                              ).contains(child.getUiStatus())
+                            )
                         )
                         .compose(allChildrenCompleted -> {
                           if (Boolean.TRUE.equals(allChildrenCompleted)) {
