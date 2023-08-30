@@ -422,7 +422,9 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withTotal(row.getInteger(PROGRESS_TOTAL_FIELD)))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
       .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) == null
-        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class));
+        ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class))
+      .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
+      .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS));
   }
 
   private JobExecutionDto mapRowToJobExecutionDto(Row row) {
