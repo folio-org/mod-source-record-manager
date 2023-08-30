@@ -32,6 +32,7 @@ import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -446,7 +447,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
       .withUserId(row.getValue(USER_ID_FIELD).toString())
-      .withProgress(row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1 ? mapRowToProgress(row) : mapRowToProgressComposite(row))
+      .withProgress(mapRowToProgress(row))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
       .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
       .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS))
@@ -459,6 +460,10 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
   }
 
   private Progress mapRowToProgress(Row row) {
+    if (row.get(JobExecutionDto.SubordinationType.class, SUBORDINATION_TYPE_FIELD).equals(SubordinationType.COMPOSITE_PARENT)) {
+      return mapRowToProgressComposite(row);
+    }
+
     Integer processedCount = row.getInteger(CURRENTLY_PROCESSED_FIELD);
     Integer total = row.getInteger(TOTAL_FIELD);
     if (processedCount == null) {
