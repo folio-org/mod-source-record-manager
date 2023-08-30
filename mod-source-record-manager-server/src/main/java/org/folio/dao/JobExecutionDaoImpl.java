@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -445,7 +446,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         .withFirstName(row.getString(JOB_USER_FIRST_NAME_FIELD))
         .withLastName(row.getString(JOB_USER_LAST_NAME_FIELD)))
       .withUserId(row.getValue(USER_ID_FIELD).toString())
-      .withProgress(mapRowToProgress(row))
+      .withProgress(row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1 ? mapRowToProgress(row) : mapRowToProgressComposite(row))
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
       .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
       .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS))
@@ -471,6 +472,29 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withJobExecutionId(row.getValue(ID_FIELD).toString())
       .withCurrent(processedCount)
       .withTotal(total);
+  }
+
+  private Progress mapRowToProgressComposite(Row row) {
+    JsonArray compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
+
+    if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
+      Progress progressDto = new Progress()
+        .withJobExecutionId(row.getValue(ID_FIELD).toString());
+
+      int processed = 0;
+      int total = 0;
+
+      for (Object o : compositeData) {
+        JsonObject jo = (JsonObject) o;
+        
+        processed += jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED);
+        total += jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT);
+      }
+
+      return progressDto.withCurrent(processed).withTotal(total);
+    }
+
+    return null;
   }
 
   private JobProfileInfo mapRowToJobProfileInfo(Row row) {
