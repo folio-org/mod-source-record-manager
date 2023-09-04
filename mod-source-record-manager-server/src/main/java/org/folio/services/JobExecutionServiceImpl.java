@@ -150,7 +150,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
-          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
+          var subordinationType = jobExec.getSubordinationType();
+          if (JobExecution.SubordinationType.PARENT_MULTIPLE == subordinationType || JobExecution.SubordinationType.COMPOSITE_PARENT == subordinationType) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
