@@ -297,6 +297,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
     String userId = dto.getUserId();
     var sourceType = dto.getSourceType();
+    var runBy = buildRunByFromUserInfo(userInfo);
     switch (sourceType) {
       case ONLINE: {
         JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
@@ -305,7 +306,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
         return Collections.singletonList(buildNewJobExecution(true, true, false, parentJobExecutionId, NO_FILE_NAME, userId)
           .withJobProfileInfo(jobProfileInfo)
-          .withRunBy(buildRunByFromUserInfo(userInfo)));
+          .withRunBy(runBy));
       }
 
       case COMPOSITE: {
@@ -314,7 +315,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         File file = files.get(0);
         var jobExecution = buildNewJobExecution(isParent, true, true, parentJobExecutionId, file.getName(), userId)
           .withJobPartNumber(dto.getJobPartNumber())
-          .withTotalJobParts(dto.getTotalJobParts());
+          .withTotalJobParts(dto.getTotalJobParts())
+          .withRunBy(runBy);
 
         return Collections.singletonList(jobExecution);
       }
@@ -323,14 +325,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         List<JobExecution> result = new ArrayList<>();
         if (files.size() > 1) {
           for (File file : files) {
-            result.add(buildNewJobExecution(false, false, false, parentJobExecutionId, file.getName(), userId));
+            result.add(buildNewJobExecution(false, false, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
           }
-          result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId));
+          result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId).withRunBy(runBy));
         } else {
           File file = files.get(0);
-          result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId));
+          result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
         }
-        result.forEach(job -> job.setRunBy(buildRunByFromUserInfo(userInfo)));
+//        result.forEach(job -> job.setRunBy(runBy));
         return result;
       }
       default:
@@ -458,6 +460,7 @@ LOGGER.warn(errorMessage);
       jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
+      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
