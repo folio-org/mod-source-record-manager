@@ -85,7 +85,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    * Include messages from this consumer to mutate global load counts
    */
   public Boolean shouldAddToGlobalLoad() {
-    return null;
+    return true;
   }
 
   /**
