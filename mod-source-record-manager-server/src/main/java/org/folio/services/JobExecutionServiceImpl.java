@@ -101,8 +101,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
-          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
+//          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
@@ -150,7 +150,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExec -> {
-          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
+          var subordinationType = jobExec.getSubordinationType();
+          if (JobExecution.SubordinationType.PARENT_MULTIPLE == subordinationType || JobExecution.SubordinationType.COMPOSITE_PARENT == subordinationType) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
@@ -296,6 +297,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
     String userId = dto.getUserId();
     var sourceType = dto.getSourceType();
+    var runBy = buildRunByFromUserInfo(userInfo);
     switch (sourceType) {
       case ONLINE: {
         JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
@@ -304,7 +306,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
         return Collections.singletonList(buildNewJobExecution(true, true, false, parentJobExecutionId, NO_FILE_NAME, userId)
           .withJobProfileInfo(jobProfileInfo)
-          .withRunBy(buildRunByFromUserInfo(userInfo)));
+          .withRunBy(runBy));
       }
 
       case COMPOSITE: {
@@ -313,7 +315,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         File file = files.get(0);
         var jobExecution = buildNewJobExecution(isParent, true, true, parentJobExecutionId, file.getName(), userId)
           .withJobPartNumber(dto.getJobPartNumber())
-          .withTotalJobParts(dto.getTotalJobParts());
+          .withTotalJobParts(dto.getTotalJobParts())
+          .withRunBy(runBy);
 
         return Collections.singletonList(jobExecution);
       }
@@ -322,14 +325,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         List<JobExecution> result = new ArrayList<>();
         if (files.size() > 1) {
           for (File file : files) {
-            result.add(buildNewJobExecution(false, false, false, parentJobExecutionId, file.getName(), userId));
+            result.add(buildNewJobExecution(false, false, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
           }
-          result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId));
+          result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId).withRunBy(runBy));
         } else {
           File file = files.get(0);
-          result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId));
+          result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
         }
-        result.forEach(job -> job.setRunBy(buildRunByFromUserInfo(userInfo)));
+//        result.forEach(job -> job.setRunBy(runBy));
         return result;
       }
       default:
@@ -339,8 +342,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private RunBy buildRunByFromUserInfo(UserInfo info) {
     RunBy result = new RunBy();
-    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    LOGGER.warn("Got UserInfo {}", info);
+//    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//    LOGGER.warn("Got UserInfo {}", info);
     if (info != null) {
       result.setFirstName(info.getFirstName());
       result.setLastName(info.getLastName());
@@ -359,23 +362,23 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
-LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 if (RestUtil.validateAsyncResult(getUserResult, promise)) {
           JsonObject response = getUserResult.result().getJson();
-LOGGER.warn("Got response {}", response.encodePrettily());
+//LOGGER.warn("Got response {}", response.encodePrettily());
 if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-LOGGER.warn("Bad totalRecords/users");
+//LOGGER.warn("Bad totalRecords/users");
             promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
           } else {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
-LOGGER.warn(errorMessage);
+//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
-LOGGER.warn(errorMessage);
+//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else {
@@ -457,6 +460,7 @@ LOGGER.warn(errorMessage);
       jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
+//      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }

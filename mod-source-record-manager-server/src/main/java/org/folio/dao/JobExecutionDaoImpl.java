@@ -24,6 +24,7 @@ import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailDto;
 import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailsDto;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
@@ -32,7 +33,6 @@ import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
-import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.persist.SQLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +148,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, jobTable, progressTable, filterCriteria, orderByClause);
+//      LOGGER.warn("------> query: " + query);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
@@ -491,7 +492,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
 
       for (Object o : compositeData) {
         JsonObject jo = (JsonObject) o;
-        
+
         processed += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED)).orElse(0);
         total += Optional.ofNullable(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT)).orElse(0);
       }
