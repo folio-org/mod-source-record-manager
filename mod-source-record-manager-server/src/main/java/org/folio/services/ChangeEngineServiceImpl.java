@@ -356,12 +356,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   /**
    * Parse list of source records
    *
-   * @param rawRecords    - list of raw records for parsing
-   * @param jobExecution  - job execution of record's parsing
-   * @param sourceChunkId - id of the JobExecutionSourceChunk
-   * @param tenantId      - tenant id
+   * @param rawRecords       - list of raw records for parsing
+   * @param jobExecution     - job execution of record's parsing
+   * @param sourceChunkId    - id of the JobExecutionSourceChunk
+   * @param tenantId         - tenant id
    * @param acceptInstanceId - allow the 999ff$i field to be set and also create an instance with value in 999ff$i
-   * @param okapiParams   - OkapiConnectionParams to interact with external services
+   * @param okapiParams      - OkapiConnectionParams to interact with external services
    * @return - list of records with parsed or error data
    */
   private Future<List<Record>> parseRecords(List<InitialRecord> rawRecords, RecordsMetadata.ContentType recordContentType,
@@ -418,11 +418,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         var recordId = UUID.randomUUID().toString();
         var record = new Record()
           .withId(recordId)
-          .withMatchedId(recordId)
           .withRecordType(inferRecordType(jobExecution, parsedResult, recordId, sourceChunkId))
           .withSnapshotId(jobExecution.getId())
           .withOrder(rawRecord.getOrder())
-          .withGeneration(0)
           .withState(Record.State.ACTUAL)
           .withRawRecord(new RawRecord().withContent(rawRecord.getRecord()));
         if (parsedResult.isHasError()) {
@@ -432,7 +430,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         } else {
           record.setParsedRecord(new ParsedRecord().withId(recordId).withContent(parsedResult.getParsedRecord().encode()));
           if (jobExecution.getJobProfileInfo().getDataType().equals(DataType.MARC)) {
-            postProcessMarcRecord(record, rawRecord, jobExecution);
+            postProcessMarcRecord(record, rawRecord);
           }
         }
         return record;
@@ -589,13 +587,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return new SourceStorageBatchClient(okapiUrl, tenantId, token);
   }
 
-  private void postProcessMarcRecord(Record record, InitialRecord rawRecord, JobExecution jobExecution) {
-    String matchedId = getValue(record, TAG_999, SUBFIELD_S);
-    if (StringUtils.isNotBlank(matchedId) && hasIndicator(record, SUBFIELD_S)) {
-      record.setMatchedId(matchedId);
-      record.setGeneration(null); // in case the same record is re-imported, generation should be calculated on SRS side
-    }
-
+  private void postProcessMarcRecord(Record record, InitialRecord rawRecord) {
     var recordType = record.getRecordType();
     if (recordType == MARC_BIB) {
       postProcessMarcBibRecord(record);
@@ -686,12 +678,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       Record.RecordType recordType = records.get(0).getRecordType();
       if (MARC_BIB.equals(recordType) || MARC_HOLDING.equals(recordType)) {
         for (Record record : records) {
-          addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+          if (record.getMatchedId() != null) {
+            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+          }
         }
       } else if (MARC_AUTHORITY.equals(recordType)) {
         for (Record record : records) {
           if (record.getParsedRecord() != null) {
-            addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+            if (record.getMatchedId() != null) {
+              addFieldToMarcRecord(record, TAG_999, SUBFIELD_S, record.getMatchedId());
+            }
             String inventoryId = UUID.randomUUID().toString();
             addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
             var hrid = getControlFieldValue(record, TAG_001).trim();

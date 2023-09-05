@@ -1981,7 +1981,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     Assert.assertNotNull(dataImportEventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
 
     JsonObject record = new JsonObject(dataImportEventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
-    Assert.assertEquals("e27a5374-0857-462e-ac84-fb4795229c7a", record.getString("matchedId"));
+    Assert.assertNull(record.getString("matchedId"));
   }
 
   @Test
@@ -2027,7 +2027,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
     Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
     Assert.assertEquals( "{\"error\":\"A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
@@ -2083,7 +2083,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
     Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
     Assert.assertEquals( "{\"error\":\"A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
@@ -2185,7 +2185,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
     Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
     Assert.assertEquals( "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}", recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }

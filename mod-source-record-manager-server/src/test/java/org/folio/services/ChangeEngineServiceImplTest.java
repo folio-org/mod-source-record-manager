@@ -328,7 +328,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getMatchedId(), equalTo("7ca42730-9ba6-4bc8-98d3-f068728504c9"));
+    assertThat(actual.get(0).getMatchedId(), nullValue());
     assertThat(actual.get(0).getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
   }
 
@@ -348,7 +348,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
-    assertThat(actual.get(0).getMatchedId(), equalTo("7ca42730-9ba6-4bc8-98d3-f068728504c9"));
+    assertThat(actual.get(0).getMatchedId(), nullValue());
     assertThat(actual.get(0).getExternalIdsHolder().getInstanceId(), equalTo("29573076-a7ee-462a-8f9b-2659ab7df23c"));
   }
 
