@@ -148,7 +148,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, jobTable, progressTable, filterCriteria, orderByClause);
-      LOGGER.warn("------> query: " + query);
+//      LOGGER.warn("------> query: " + query);
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);

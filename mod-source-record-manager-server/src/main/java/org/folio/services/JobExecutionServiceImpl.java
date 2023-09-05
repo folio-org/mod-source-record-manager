@@ -101,8 +101,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
-          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
+//          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
@@ -342,8 +342,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private RunBy buildRunByFromUserInfo(UserInfo info) {
     RunBy result = new RunBy();
-    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    LOGGER.warn("Got UserInfo {}", info);
+//    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//    LOGGER.warn("Got UserInfo {}", info);
     if (info != null) {
       result.setFirstName(info.getFirstName());
       result.setLastName(info.getLastName());
@@ -362,23 +362,23 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
-LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 if (RestUtil.validateAsyncResult(getUserResult, promise)) {
           JsonObject response = getUserResult.result().getJson();
-LOGGER.warn("Got response {}", response.encodePrettily());
+//LOGGER.warn("Got response {}", response.encodePrettily());
 if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-LOGGER.warn("Bad totalRecords/users");
+//LOGGER.warn("Bad totalRecords/users");
             promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
           } else {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
-LOGGER.warn(errorMessage);
+//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
-LOGGER.warn(errorMessage);
+//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else {
@@ -460,7 +460,7 @@ LOGGER.warn(errorMessage);
       jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
-      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
+//      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
