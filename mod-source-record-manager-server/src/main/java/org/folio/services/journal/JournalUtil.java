@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
@@ -36,6 +38,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
  */
 public class JournalUtil {
 
+  private static final Logger LOGGER = LogManager.getLogger();
   public static final String ERROR_KEY = "ERROR";
   private static final String ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG = "Can`t map 'RECORD' or/and '%s'";
   public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
@@ -132,12 +135,14 @@ public class JournalUtil {
       }
       return Lists.newArrayList(journalRecord);
     } catch (Exception e) {
+      LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
   }
 
-  private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
-    JsonArray multipleHoldings = new JsonArray(eventPayloadContext.get(entityType.value()));
+  private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                     JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
+    JsonArray multipleHoldings = getJsonArrayOfHoldings(eventPayloadContext.get(entityType.value()));
     List<JournalRecord> journalRecords = new ArrayList<>();
 
     for (int i = 0; i < multipleHoldings.size(); i++) {
@@ -159,7 +164,16 @@ public class JournalUtil {
     return journalRecords;
   }
 
-  private static List<JournalRecord> processItems(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
+  private static JsonArray getJsonArrayOfHoldings(String json) {
+    try {
+      return new JsonArray(json);
+    } catch (Exception e) {
+      return JsonArray.of(new JsonObject(json));
+    }
+  }
+
+  private static List<JournalRecord> processItems(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                  JournalRecord.ActionStatus actionStatus, HashMap<String, String> eventPayloadContext, Record record) {
     JsonArray multipleItems = new JsonArray(eventPayloadContext.get(entityType.value()));
     List<JournalRecord> journalRecords = new ArrayList<>();
 
@@ -189,7 +203,8 @@ public class JournalUtil {
     return journalRecords;
   }
 
-  private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, HashMap<String, String> eventPayloadContext, Record record) {
+  private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                   HashMap<String, String> eventPayloadContext, Record record) {
     JsonArray errors = new JsonArray(eventPayloadContext.get(MULTIPLE_ERRORS_KEY));
     List<JournalRecord> journalErrorRecords = new ArrayList<>();
 
@@ -223,7 +238,8 @@ public class JournalUtil {
     return holdingsIdInstanceId;
   }
 
-  private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) {
+  private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.ActionType actionType,
+                                                           JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) {
     return new JournalRecord()
       .withJobExecutionId(record.getSnapshotId())
       .withSourceId(record.getId())

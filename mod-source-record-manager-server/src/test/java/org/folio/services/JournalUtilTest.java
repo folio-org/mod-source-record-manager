@@ -26,6 +26,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
@@ -164,6 +165,39 @@ public class JournalUtilTest {
   }
 
   @Test
+  public void shouldBuildJournalRecordForSingleHolding() throws JournalRecordMapperException {
+    String instanceId = UUID.randomUUID().toString();
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = UUID.randomUUID().toString();
+
+    JsonObject holdingsJson = new JsonObject()
+      .put("id", holdingsId)
+      .put("hrid", holdingsHrid)
+      .put("instanceId", instanceId);
+
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(HOLDINGS.value(), holdingsJson.encode());
+    context.put(MARC_HOLDINGS.value(), recordJson.encode());
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_INVENTORY_HOLDING_CREATED")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, HOLDINGS, COMPLETED);
+
+    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords);
+  }
+
+  @Test
   public void shouldBuildJournalRecordForHolding() throws JournalRecordMapperException {
     String instanceId = UUID.randomUUID().toString();
     String holdingsId = UUID.randomUUID().toString();
@@ -196,6 +230,11 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       CREATE, HOLDINGS, COMPLETED);
 
+    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords);
+  }
+
+  private static void assertForHoldings(String instanceId, String holdingsId, String holdingsHrid, String recordId,
+                                        String snapshotId, List<JournalRecord> journalRecords) {
     Assert.assertNotNull(journalRecords);
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
     Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
