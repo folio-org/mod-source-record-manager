@@ -67,4 +67,13 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
     return (globalLoad, localLoad, threshold) -> localLoad < 0;
   }
 
+  @Override
+  public Boolean shouldAddToGlobalLoad() {
+    /*
+    since flow control will handle back pressure for this consumer, do not include its messages in the global load
+    counts.
+     */
+    return false;
+  }
+
 }
