@@ -124,6 +124,7 @@ import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ERROR;
+import static org.folio.rest.jaxrs.model.ActionStatus.UPDATED;
 import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
@@ -356,8 +357,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private boolean isActionStatusUpdatedOrCreated(org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
-    return org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus)
-      || org.folio.rest.jaxrs.model.ActionStatus.UPDATED.equals(holdingsActionStatus);
+    return org.folio.rest.jaxrs.model.ActionStatus.CREATED.equals(holdingsActionStatus) || UPDATED.equals(holdingsActionStatus);
   }
 
   private RecordProcessingLogDto mapRowSetToRecordProcessingLogDto(RowSet<Row> resultSet) {
@@ -395,7 +395,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     resultSet.forEach(r -> {
       ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(r, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
       ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(r, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, HOLDINGS_ENTITY_ID, ITEM_ENTITY_ERROR);
-      if (Objects.nonNull(processedHoldings.getActionStatus())) {
+      if (Objects.nonNull(processedHoldings.getActionStatus()) || processedItem.getActionStatus() == UPDATED) {
         processedHoldingsInfo.add(processedHoldings);
       }
       if (Objects.nonNull(processedItem.getActionStatus())) {

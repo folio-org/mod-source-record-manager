@@ -259,7 +259,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingId", holdingsId);
+      .put("holdingsRecordId", holdingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)
@@ -313,7 +313,7 @@ public class JournalUtilTest {
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingId", holdingsId);
+      .put("holdingsRecordId", holdingsId);
 
     JsonObject holdingsJson = new JsonObject()
       .put("id", holdingsId)
@@ -489,7 +489,6 @@ public class JournalUtilTest {
     multipleHoldings.add(firstHoldingsAsJson);
     multipleHoldings.add(secondHoldingsAsJson);
 
-
     HashMap<String, String> context = new HashMap<>();
     context.put(HOLDINGS.value(), String.valueOf(multipleHoldings.encode()));
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
@@ -544,7 +543,7 @@ public class JournalUtilTest {
     JsonObject firstItemJson = new JsonObject()
       .put("id", firstItemId)
       .put("hrid", firstItemHrid)
-      .put("holdingId", firstHoldingsId);
+      .put("holdingsRecordId", firstHoldingsId);
 
     JsonObject secondItemJson = new JsonObject()
       .put("id", secondItemId)
@@ -566,7 +565,6 @@ public class JournalUtilTest {
     JsonArray multipleItems = new JsonArray();
     multipleItems.add(firstItemJson);
     multipleItems.add(secondItemJson);
-
 
     HashMap<String, String> context = new HashMap<>();
     context.put(ITEM.value(), String.valueOf(multipleItems));
@@ -621,7 +619,7 @@ public class JournalUtilTest {
     JsonObject firstItemJson = new JsonObject()
       .put("id", firstItemId)
       .put("hrid", firstItemHrid)
-      .put("holdingId", holdingsId);
+      .put("holdingsRecordId", holdingsId);
 
     JsonObject secondItemJson = new JsonObject()
       .put("id", secondItemId)
@@ -698,11 +696,10 @@ public class JournalUtilTest {
     String firstErrorUUID = UUID.randomUUID().toString();
     String secondErrorUUID = UUID.randomUUID().toString();
 
-
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
       .put("hrid", itemHrid)
-      .put("holdingId", holdingsId);
+      .put("holdingsRecordId", holdingsId);
 
     JsonObject instanceJson = new JsonObject()
       .put("id", instanceId)
@@ -738,7 +735,6 @@ public class JournalUtilTest {
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put("ERRORS", String.valueOf(multipleErrors));
-
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -782,7 +778,6 @@ public class JournalUtilTest {
     Assert.assertEquals(holdingsId, journalRecords.get(2).getHoldingsId());
 
     Assert.assertNotNull(journalRecords.get(1).getActionDate());
-
   }
 
   @Test
@@ -794,7 +789,6 @@ public class JournalUtilTest {
     String holdingsId = UUID.randomUUID().toString();
     String firstErrorUUID = UUID.randomUUID().toString();
     String secondErrorUUID = UUID.randomUUID().toString();
-
 
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)

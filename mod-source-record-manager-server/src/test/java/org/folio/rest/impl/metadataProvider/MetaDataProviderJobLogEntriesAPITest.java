@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -30,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
-import io.vertx.core.json.JsonArray;
 
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
@@ -58,7 +58,6 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.testcontainers.shaded.org.bouncycastle.est.CACertsResponse;
 
 @RunWith(VertxUnitRunner.class)
 public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
@@ -1345,6 +1344,58 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo[3].hrid", emptyOrNullString())
         .body("relatedItemInfo[3].holdingsId", emptyOrNullString())
         .body("relatedItemInfo[3].error", is(errorMsg))
+        .body("relatedInvoiceInfo.idList", empty())
+        .body("relatedInvoiceInfo.hridList", empty())
+        .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsUpdate(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+    String[] holdingsId = generateRandomUUIDs(2);
+    String[] itemId = generateRandomUUIDs(2);
+    String[] itemHrid = {"it001", "it002"};
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId[0], null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[1], itemHrid[1], null, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId[1], null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(2))
+        .body("relatedHoldingsInfo[0].id", in(holdingsId))
+        .body("relatedHoldingsInfo[1].id", in(holdingsId))
+        .body("relatedItemInfo[0].id", in(itemId))
+        .body("relatedItemInfo[0].hrid", in(itemHrid))
+        .body("relatedItemInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo[1].id", in(itemId))
+        .body("relatedItemInfo[1].hrid", in(itemHrid))
+        .body("relatedItemInfo[1].error", emptyOrNullString())
         .body("relatedInvoiceInfo.idList", empty())
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());

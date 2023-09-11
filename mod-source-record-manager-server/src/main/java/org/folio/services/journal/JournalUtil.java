@@ -44,6 +44,7 @@ public class JournalUtil {
   public static final String MULTIPLE_ERRORS_KEY = "ERRORS";
   public static final String ID_KEY = "id";
   public static final String HOLDING_ID_KEY = "holdingId";
+  public static final String HOLDINGS_RECORD_ID_KEY = "holdingsRecordId";
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
@@ -97,7 +98,7 @@ public class JournalUtil {
         if (isNotBlank(eventPayloadContext.get(NOT_MATCHED_NUMBER))) {
           int notMatchedNumber = Integer.parseInt(eventPayloadContext.get(NOT_MATCHED_NUMBER));
           for (int i = 0; i < notMatchedNumber; i++) {
-            resultedJournalRecords.add(constructBlankJournalRecord(record, JournalRecord.ActionType.NON_MATCH, entityType, actionStatus)
+            resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus)
               .withEntityType(entityType));
           }
         }
@@ -195,12 +196,18 @@ public class JournalUtil {
         journalRecord.setInstanceId(instanceJson.getString(ID_KEY));
       } else if (eventPayloadContext.containsKey(HOLDINGS.value())) {
         Map<String, String> holdingsIdInstanceId = initalizeHoldingsIdInstanceIdMap(eventPayloadContext);
-        journalRecord.setInstanceId(holdingsIdInstanceId.get(itemAsJson.getString(HOLDING_ID_KEY)));
+        journalRecord.setInstanceId(holdingsIdInstanceId.get(getHoldingsId(itemAsJson)));
       }
-      journalRecord.setHoldingsId(itemAsJson.getString(HOLDING_ID_KEY));
+      journalRecord.setHoldingsId(getHoldingsId(itemAsJson));
       journalRecords.add(journalRecord);
     }
     return journalRecords;
+  }
+
+  private static String getHoldingsId(JsonObject jsonObject) {
+    return jsonObject.getString(HOLDINGS_RECORD_ID_KEY) != null
+      ? jsonObject.getString(HOLDINGS_RECORD_ID_KEY)
+      : jsonObject.getString(HOLDING_ID_KEY);
   }
 
   private static List<JournalRecord> processErrors(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
@@ -238,14 +245,14 @@ public class JournalUtil {
     return holdingsIdInstanceId;
   }
 
-  private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.ActionType actionType,
-                                                           JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus) {
+  private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.EntityType entityType,
+                                                           JournalRecord.ActionStatus actionStatus) {
     return new JournalRecord()
       .withJobExecutionId(record.getSnapshotId())
       .withSourceId(record.getId())
       .withSourceRecordOrder(record.getOrder())
       .withEntityType(entityType)
-      .withActionType(actionType)
+      .withActionType(JournalRecord.ActionType.NON_MATCH)
       .withActionDate(new Date())
       .withActionStatus(actionStatus);
   }
