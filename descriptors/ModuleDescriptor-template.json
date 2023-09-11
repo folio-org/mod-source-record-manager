@@ -75,14 +75,6 @@
       "version": "1.1"
     },
     {
-      "id": "authority-note-types",
-      "version": "1.0"
-    },
-    {
-      "id": "authority-source-files",
-      "version": "1.0"
-    },
-    {
       "id": "call-number-types",
       "version": "1.0"
     },
@@ -636,6 +628,14 @@
   "optional": [
     {
       "id": "instance-authority-linking-rules",
+      "version": "1.0"
+    },
+    {
+      "id": "authority-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "authority-source-files",
       "version": "1.0"
     }
   ],
