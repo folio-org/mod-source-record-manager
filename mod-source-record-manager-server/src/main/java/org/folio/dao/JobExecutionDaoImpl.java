@@ -89,6 +89,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIEL
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_COUNT_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_JOB_PARTS;
+import static org.folio.dao.util.JobExecutionDBConstants.TOTAL_RECORDS_IN_FILE;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_BY_IDS_SQL;
 import static org.folio.dao.util.JobExecutionDBConstants.UPDATE_PROGRESS_SQL;
@@ -380,7 +381,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         ? null : JsonObject.mapFrom(jobExecution.getJobProfileSnapshotWrapper()),
       jobExecution.getJobProfileInfo() != null && jobExecution.getJobProfileInfo().getHidden(),
       jobExecution.getJobPartNumber(),
-      jobExecution.getTotalJobParts());
+      jobExecution.getTotalJobParts(),
+      jobExecution.getTotalRecordsInFile());
   }
 
   private JobExecutionDtoCollection mapToJobExecutionDtoCollection(RowSet<Row> rowSet) {
@@ -427,7 +429,8 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withJobProfileSnapshotWrapper(row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD) == null
         ? null : row.getJsonObject(PROFILE_SNAPSHOT_WRAPPER_FIELD).mapTo(ProfileSnapshotWrapper.class))
       .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
-      .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS));
+      .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS))
+      .withTotalRecordsInFile(row.getInteger(TOTAL_RECORDS_IN_FILE));
   }
 
   private JobExecutionDto mapRowToJobExecutionDto(Row row) {
@@ -452,6 +455,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       .withJobProfileInfo(mapRowToJobProfileInfo(row))
       .withJobPartNumber(row.getInteger(JOB_PART_NUMBER))
       .withTotalJobParts(row.getInteger(TOTAL_JOB_PARTS))
+      .withTotalRecordsInFile(row.getInteger(TOTAL_RECORDS_IN_FILE))
       .withCompositeDetails(mapToJobExecutionCompositeDetailsDto(row));
   }
 
