@@ -250,7 +250,12 @@
     {
       "run": "after",
       "snippetPath": "alter_job_executions_table_for_chunk_support.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.6.4-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-3.6.5-SNAPSHOT"
+    },
+    {
+      "run": "after",
+      "snippetPath": "alter_job_executions_table_for_total_records.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.6.5-SNAPSHOT"
     }
   ]
 }
