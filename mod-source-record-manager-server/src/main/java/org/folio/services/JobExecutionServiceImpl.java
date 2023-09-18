@@ -38,7 +38,6 @@ import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
-import org.folio.rest.jaxrs.model.JobExecution.UiStatus;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
