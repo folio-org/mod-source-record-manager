@@ -195,6 +195,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }, params.getTenantId())
         .compose(jobExecution -> updateSnapshotStatus(jobExecution, params))
         .compose(jobExecution -> {
+          // if this composite child finished, check if all other children are finished
+          // if so, then mark the composite parent as completed
           if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) && (
             jobExecution.getUiStatus() == JobExecution.UiStatus.RUNNING_COMPLETE ||
             jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED ||
@@ -206,6 +208,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
               .compose(parentExecution -> 
                 this.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
                   .map(JobExecutionDtoCollection::getJobExecutions)
+                  // ensure all other children are completed
                   .map(children ->
                     children.stream()
                       .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
