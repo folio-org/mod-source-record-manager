@@ -38,6 +38,7 @@ import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
 import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
+import org.folio.rest.jaxrs.model.JobExecution.UiStatus;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -194,7 +195,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }, params.getTenantId())
         .compose(jobExecution -> updateSnapshotStatus(jobExecution, params))
         .compose(jobExecution -> {
-          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD)) {
+          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) && (
+            jobExecution.getUiStatus() == JobExecution.UiStatus.RUNNING_COMPLETE ||
+            jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED ||
+            jobExecution.getUiStatus() == JobExecution.UiStatus.ERROR ||
+            jobExecution.getUiStatus() == JobExecution.UiStatus.DISCARDED
+          )) {
             return this.getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
               .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
               .compose(parentExecution -> 
