@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfile;
@@ -36,6 +37,7 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -190,7 +192,40 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           }
           return promise.future();
         }, params.getTenantId())
-        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params))
+        .compose(jobExecution -> {
+          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD)) {
+            return this.getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+              .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
+              .compose(parentExecution -> 
+                this.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+                  .map(JobExecutionDtoCollection::getJobExecutions)
+                  .map(children ->
+                    children.stream()
+                      .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+                      .allMatch(child -> 
+                        Arrays.asList(
+                          JobExecutionDto.UiStatus.RUNNING_COMPLETE,
+                          JobExecutionDto.UiStatus.CANCELLED,
+                          JobExecutionDto.UiStatus.ERROR,
+                          JobExecutionDto.UiStatus.DISCARDED
+                        ).contains(child.getUiStatus())
+                      )
+                  )
+                  .compose(allChildrenCompleted -> {
+                    if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                      LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                      parentExecution.withStatus(JobExecution.Status.COMMITTED)
+                        .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+                        .withCompletedDate(new Date());
+                      return this.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+                    }
+                    return Future.succeededFuture(parentExecution);
+                  })
+              );
+          }
+          return Future.succeededFuture(jobExecution);
+        });
     }
   }
 
