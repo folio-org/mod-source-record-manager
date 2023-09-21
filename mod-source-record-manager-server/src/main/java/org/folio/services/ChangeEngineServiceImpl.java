@@ -11,6 +11,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -292,10 +293,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsMarcActionProfile(
-      jobExecution.getJobProfileSnapshotWrapper(),
-      List.of(FolioRecord.INSTANCE),
-      Action.CREATE);
+    return containsCreateInstanceActionWithMatch(jobExecution.getJobProfileSnapshotWrapper());
+  }
+
+  private boolean containsCreateInstanceActionWithMatch(ProfileSnapshotWrapper profileSnapshot) {
+    for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
+      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+        && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
+        return childWrapper.getReactTo() == MATCH;
+      } else if (containsCreateInstanceActionWithMatch(childWrapper)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
