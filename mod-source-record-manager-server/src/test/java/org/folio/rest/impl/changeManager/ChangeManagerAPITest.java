@@ -703,7 +703,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   @Test
   public void shouldUpdateStatusOfCompositeParentMultipleChildren() {
     List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test", 2);
-    assertThat(executions.size(), is(2));
+    assertThat(executions.size(), is(3));
     JobExecution parent = executions.get(0);
     JobExecution child1 = executions.get(1);
     JobExecution child2 = executions.get(2);
