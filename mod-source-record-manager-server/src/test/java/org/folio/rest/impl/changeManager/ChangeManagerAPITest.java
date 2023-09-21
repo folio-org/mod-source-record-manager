@@ -86,6 +86,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 
@@ -651,6 +652,98 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_OK)
       .body("status", is(status.getStatus().name()))
       .body("uiStatus", is(Status.valueOf(status.getStatus().name()).getUiStatus()));
+  }
+
+  @Test
+  public void shouldUpdateStatusOfCompositeParent() {
+    List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test", 1);
+    assertThat(executions.size(), is(2));
+    JobExecution parent = executions.get(0);
+    JobExecution child = executions.get(1);
+
+    // update child to a non-completion state; should NOT update parent
+    StatusDto progressStatus = new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(progressStatus).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(not(JobExecution.Status.COMMITTED)))
+      .body("uiStatus", is(not(JobExecution.UiStatus.RUNNING_COMPLETE)));
+
+    // update child to a completion state; should now update parent
+    StatusDto completeStatus = new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(completeStatus).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.COMMITTED))
+      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE));
+  }
+
+  @Test
+  public void shouldUpdateStatusOfCompositeParentMultipleChildren() {
+    List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test", 2);
+    assertThat(executions.size(), is(2));
+    JobExecution parent = executions.get(0);
+    JobExecution child1 = executions.get(1);
+    JobExecution child2 = executions.get(2);
+
+    // complete child1; parent should NOT update yet though, since child 2 is not completed
+    StatusDto completeStatus = new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(completeStatus).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child1.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(not(JobExecution.Status.COMMITTED)))
+      .body("uiStatus", is(not(JobExecution.UiStatus.RUNNING_COMPLETE)));
+
+    // after this, both children are completed so the parent should complete
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(completeStatus).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child2.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(JOB_EXECUTION_PATH + parent.getId())
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("status", is(JobExecution.Status.COMMITTED))
+      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE));
   }
 
   @Test

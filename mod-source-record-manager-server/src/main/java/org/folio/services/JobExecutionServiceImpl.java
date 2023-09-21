@@ -79,6 +79,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String NO_FILE_NAME = "No file name";
 
+  private static final List<JobExecution.UiStatus> COMPLETE_STATUSES = Collections.unmodifiableList(Arrays.asList(
+      JobExecution.UiStatus.CANCELLED,
+      JobExecution.UiStatus.DISCARDED,
+      JobExecution.UiStatus.ERROR,
+      JobExecution.UiStatus.RUNNING_COMPLETE
+    ));
+
   @Autowired
   private JobExecutionDao jobExecutionDao;
   @Autowired
@@ -196,12 +203,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .compose(jobExecution -> {
           // if this composite child finished, check if all other children are finished
           // if so, then mark the composite parent as completed
-          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) && (
-            jobExecution.getUiStatus() == JobExecution.UiStatus.RUNNING_COMPLETE ||
-            jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED ||
-            jobExecution.getUiStatus() == JobExecution.UiStatus.ERROR ||
-            jobExecution.getUiStatus() == JobExecution.UiStatus.DISCARDED
-          )) {
+          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) && 
+              COMPLETE_STATUSES.contains(jobExecution.getUiStatus())) {
             return this.getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
               .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
               .compose(parentExecution -> 
@@ -211,14 +214,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                   .map(children ->
                     children.stream()
                       .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
-                      .allMatch(child -> 
-                        Arrays.asList(
-                          JobExecutionDto.UiStatus.RUNNING_COMPLETE,
-                          JobExecutionDto.UiStatus.CANCELLED,
-                          JobExecutionDto.UiStatus.ERROR,
-                          JobExecutionDto.UiStatus.DISCARDED
-                        ).contains(child.getUiStatus())
-                      )
+                      .map(JobExecutionDto::getUiStatus)
+                      .map(JobExecutionDto.UiStatus::toString)
+                      .map(JobExecution.UiStatus::fromValue)
+                      .allMatch(COMPLETE_STATUSES::contains)
                   )
                   .compose(allChildrenCompleted -> {
                     if (Boolean.TRUE.equals(allChildrenCompleted)) {
