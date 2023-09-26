@@ -539,7 +539,7 @@ public abstract class AbstractRestTest {
       result.add(
         RestAssured.given()
           .spec(spec)
-          .body(JsonObject.mapFrom(requestDto).toString())
+          .body(JsonObject.mapFrom(childRequestDto).toString())
           .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0)
       );
     }
