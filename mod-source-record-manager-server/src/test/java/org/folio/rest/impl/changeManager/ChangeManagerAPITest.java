@@ -14,9 +14,10 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.ObserveKeyValues;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.folio.MatchProfile;
-import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
@@ -152,7 +153,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   {
     try {
-      rawRecordsDto_2 = new JsonObject(TestUtil.readFileFromPath(RAW_DTO_PATH)).mapTo(RawRecordsDto.class);
+      rawRecordsDto_2 = new JsonObject(readFileFromPath(RAW_DTO_PATH)).mapTo(RawRecordsDto.class);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -363,7 +364,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      jsonFiles = readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -696,8 +697,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + parent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.COMMITTED))
-      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE));
+      .body("status", is(JobExecution.Status.COMMITTED.toString()))
+      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE.toString()));
   }
 
   @Test
@@ -724,8 +725,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + parent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(not(JobExecution.Status.COMMITTED)))
-      .body("uiStatus", is(not(JobExecution.UiStatus.RUNNING_COMPLETE)));
+      .body("status", is(not(JobExecution.Status.COMMITTED.toString())))
+      .body("uiStatus", is(not(JobExecution.UiStatus.RUNNING_COMPLETE.toString())));
 
     // after this, both children are completed so the parent should complete
     RestAssured.given()
@@ -742,8 +743,36 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .get(JOB_EXECUTION_PATH + parent.getId())
       .then()
       .statusCode(HttpStatus.SC_OK)
-      .body("status", is(JobExecution.Status.COMMITTED))
-      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE));
+      .body("status", is(JobExecution.Status.COMMITTED.toString()))
+      .body("uiStatus", is(JobExecution.UiStatus.RUNNING_COMPLETE.toString()));
+  }
+
+  @Test
+  public void shouldNotUpdateStatusOfCompositeUnknownParent() {
+    InitJobExecutionsRqDto childRequestDto = new InitJobExecutionsRqDto();
+    childRequestDto.getFiles().add(new File().withName("test"));
+    childRequestDto.setUserId(okapiUserIdHeader);
+    childRequestDto.setSourceType(InitJobExecutionsRqDto.SourceType.COMPOSITE);
+    childRequestDto.setParentJobId("aaaaaaaa-bbbb-1ccc-8ddd-eeeeeeeeeeee");
+    childRequestDto.setJobPartNumber(1);
+    childRequestDto.setTotalJobParts(1);
+
+    JobExecution child =
+      RestAssured.given()
+        .spec(spec)
+        .body(JsonObject.mapFrom(childRequestDto).toString())
+        .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+
+    // update child to a completion state; should now attempt to update parent
+    // the parent does not exist, though, so it should throw a 500
+    StatusDto completeStatus = new StatusDto().withStatus(StatusDto.Status.COMMITTED);
+    RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(completeStatus).toString())
+      .when()
+      .put(JOB_EXECUTION_PATH + child.getId() + STATUS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
   }
 
   @Test
@@ -1554,7 +1583,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .willReturn(WireMock.serverError()));
 
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    String jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+    String jsonFiles = readFileFromPath(FILES_PATH);
     List<File> filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {});
 
     requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
@@ -2250,7 +2279,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      jsonFiles = readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -2291,7 +2320,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
+      jsonFiles = readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -2485,4 +2514,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NOT_FOUND);
   }
 
+  public static String readFileFromPath(String path) throws IOException {
+    return new String(FileUtils.readFileToByteArray(new java.io.File(path)));
+  }
 }
