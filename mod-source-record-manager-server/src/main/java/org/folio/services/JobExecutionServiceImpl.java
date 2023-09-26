@@ -110,8 +110,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
-//          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-//          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
