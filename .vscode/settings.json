@@ -1,6 +1,0 @@
-{
-  "sonarlint.connectedMode.project": {
-    "connectionId": "folio-org",
-    "projectKey": "org.folio:mod-source-record-manager"
-  }
-}
