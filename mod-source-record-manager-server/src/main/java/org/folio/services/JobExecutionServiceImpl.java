@@ -384,8 +384,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private RunBy buildRunByFromUserInfo(UserInfo info) {
     RunBy result = new RunBy();
-//    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-//    LOGGER.warn("Got UserInfo {}", info);
     if (info != null) {
       result.setFirstName(info.getFirstName());
       result.setLastName(info.getLastName());
@@ -404,23 +402,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
-//LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-if (RestUtil.validateAsyncResult(getUserResult, promise)) {
+        if (RestUtil.validateAsyncResult(getUserResult, promise)) {
           JsonObject response = getUserResult.result().getJson();
-//LOGGER.warn("Got response {}", response.encodePrettily());
-if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-//LOGGER.warn("Bad totalRecords/users");
+          if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
             promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
           } else {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
-//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
-//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else {
@@ -502,7 +495,6 @@ if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
       jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
-//      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
