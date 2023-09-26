@@ -15,9 +15,9 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.folio.MatchProfile;
+import org.folio.TestUtil;
 import org.folio.dao.JournalRecordDao;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
@@ -153,7 +153,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
 
   {
     try {
-      rawRecordsDto_2 = new JsonObject(readFileFromPath(RAW_DTO_PATH)).mapTo(RawRecordsDto.class);
+      rawRecordsDto_2 = new JsonObject(TestUtil.readFileFromPath(RAW_DTO_PATH)).mapTo(RawRecordsDto.class);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -364,7 +364,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = readFileFromPath(FILES_PATH);
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -1583,7 +1583,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .willReturn(WireMock.serverError()));
 
     InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
-    String jsonFiles = readFileFromPath(FILES_PATH);
+    String jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
     List<File> filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {});
 
     requestDto.getFiles().addAll(filesList.stream().limit(1).collect(Collectors.toList()));
@@ -2279,7 +2279,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = readFileFromPath(FILES_PATH);
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -2320,7 +2320,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String jsonFiles;
     List<File> filesList;
     try {
-      jsonFiles = readFileFromPath(FILES_PATH);
+      jsonFiles = TestUtil.readFileFromPath(FILES_PATH);
       filesList = new ObjectMapper().readValue(jsonFiles, new TypeReference<>() {
       });
     } catch (IOException e) {
@@ -2512,9 +2512,5 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId())
       .then()
       .statusCode(HttpStatus.SC_NOT_FOUND);
-  }
-
-  public static String readFileFromPath(String path) throws IOException {
-    return new String(FileUtils.readFileToByteArray(new java.io.File(path)));
   }
 }
