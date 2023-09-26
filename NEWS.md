@@ -1,4 +1,5 @@
 ## 2023-xx-xx v3.7.0-SNAPSHOT
+* [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
 * [MODSOURMAN-1003](https://issues.folio.org/browse/MODSOURMAN-1003) Allow create action with non-matches for instance
 * [MODSOURMAN-1029](https://issues.folio.org/browse/MODSOURMAN-1029) Introduce Global Backpressure For Kafka Consumption
 * [MODSOURMAN-1031](https://issues.folio.org/browse/MODSOURMAN-1031) The status of holdings is not displayed in the Import log after uploading file for creating holdings
