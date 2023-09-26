@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfile;
@@ -36,6 +37,7 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +79,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String NO_FILE_NAME = "No file name";
 
+  private static final List<JobExecution.UiStatus> COMPLETE_STATUSES = Collections.unmodifiableList(Arrays.asList(
+      JobExecution.UiStatus.CANCELLED,
+      JobExecution.UiStatus.DISCARDED,
+      JobExecution.UiStatus.ERROR,
+      JobExecution.UiStatus.RUNNING_COMPLETE
+    ));
+
   @Autowired
   private JobExecutionDao jobExecutionDao;
   @Autowired
@@ -101,8 +110,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
-//          LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-//          LOGGER.warn("uid={}, userInfo={}, username={}", jobExecutionsRqDto.getUserId(), userInfo, userInfo == null ? null : userInfo.getUserName());
           List<JobExecution> jobExecutions =
             prepareJobExecutionList(parentJobExecutionId, jobExecutionsRqDto.getFiles(), userInfo, jobExecutionsRqDto);
           List<Snapshot> snapshots = prepareSnapshotList(jobExecutions);
@@ -190,7 +197,40 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           }
           return promise.future();
         }, params.getTenantId())
-        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params))
+        .compose(jobExecution -> {
+          // if this composite child finished, check if all other children are finished
+          // if so, then mark the composite parent as completed
+          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) && 
+              COMPLETE_STATUSES.contains(jobExecution.getUiStatus())) {
+            return this.getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+              .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
+              .compose(parentExecution -> 
+                this.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+                  .map(JobExecutionDtoCollection::getJobExecutions)
+                  // ensure all other children are completed
+                  .map(children ->
+                    children.stream()
+                      .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+                      .map(JobExecutionDto::getUiStatus)
+                      .map(JobExecutionDto.UiStatus::toString)
+                      .map(JobExecution.UiStatus::fromValue)
+                      .allMatch(COMPLETE_STATUSES::contains)
+                  )
+                  .compose(allChildrenCompleted -> {
+                    if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                      LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                      parentExecution.withStatus(JobExecution.Status.COMMITTED)
+                        .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+                        .withCompletedDate(new Date());
+                      return this.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+                    }
+                    return Future.succeededFuture(parentExecution);
+                  })
+              );
+          }
+          return Future.succeededFuture(jobExecution);
+        });
     }
   }
 
@@ -342,8 +382,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private RunBy buildRunByFromUserInfo(UserInfo info) {
     RunBy result = new RunBy();
-//    LOGGER.warn("BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-//    LOGGER.warn("Got UserInfo {}", info);
     if (info != null) {
       result.setFirstName(info.getFirstName());
       result.setLastName(info.getLastName());
@@ -362,23 +400,18 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     Promise<UserInfo> promise = Promise.promise();
     RestUtil.doRequest(params, GET_USER_URL + userId, HttpMethod.GET, null)
       .onComplete(getUserResult -> {
-//LOGGER.warn("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-if (RestUtil.validateAsyncResult(getUserResult, promise)) {
+        if (RestUtil.validateAsyncResult(getUserResult, promise)) {
           JsonObject response = getUserResult.result().getJson();
-//LOGGER.warn("Got response {}", response.encodePrettily());
-if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
-//LOGGER.warn("Bad totalRecords/users");
+          if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
             promise.fail("Error, missing field(s) 'totalRecords' and/or 'users' in user response object");
           } else {
             int recordCount = response.getInteger("totalRecords");
             if (recordCount > 1) {
               String errorMessage = "There are more then one user by requested user id : " + userId;
-//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else if (recordCount == 0) {
               String errorMessage = "No user found by user id :" + userId;
-//LOGGER.warn(errorMessage);
               LOGGER.warn(errorMessage);
               promise.fail(errorMessage);
             } else {
@@ -460,7 +493,6 @@ if (!response.containsKey("totalRecords") || !response.containsKey("users")) {
       jobExecutions.stream().map(JobExecution::getId).collect(Collectors.toList()), tenantId);
     List<Future<String>> savedJobExecutionFutures = new ArrayList<>();
     for (JobExecution jobExecution : jobExecutions) {
-//      LOGGER.warn("----------> jobExecution to save: " + jobExecution);
       Future<String> savedJobExecutionFuture = jobExecutionDao.save(jobExecution, tenantId);
       savedJobExecutionFutures.add(savedJobExecutionFuture);
     }
