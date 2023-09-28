@@ -181,6 +181,12 @@ public abstract class AbstractRestTest {
     .withIncomingRecordType(EntityType.MARC_HOLDINGS)
     .withExistingRecordType(EntityType.HOLDINGS);
 
+  private final MappingProfile marcInstanceMappingProfile = new MappingProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Instance ")
+    .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+    .withExistingRecordType(EntityType.INSTANCE);
+
   private final ActionProfile actionMarcAuthorityCreateProfile = new ActionProfile()
     .withId(UUID.randomUUID().toString())
     .withName("Create MARC-Holdings ")
@@ -253,6 +259,22 @@ public abstract class AbstractRestTest {
         .withProfileId(UUID.randomUUID().toString())
         .withContentType(MAPPING_PROFILE)
         .withContent(marcHoldingsMappingProfile)))));
+
+  protected ProfileSnapshotWrapper profileCreateMarcInstanceSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+      .withProfileId(UUID.randomUUID().toString())
+      .withContentType(ACTION_PROFILE)
+      .withReactTo(ProfileSnapshotWrapper.ReactTo.NON_MATCH)
+      .withContent(actionProfile)
+      .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(MAPPING_PROFILE)
+        .withContent(marcInstanceMappingProfile)
+      ))));
 
   protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())

@@ -53,7 +53,6 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -2027,6 +2026,60 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
     RecordCollection recordCollection = Json
       .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
+    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    Assert.assertEquals("{\"error\":\"A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
+      recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+  }
+
+  @Test
+  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) throws InterruptedException {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_INSTANCE_JOB_PROFILE_ID + "?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
+        .withName("Default - Create instance and SRS MARC Bib")))));
+
+    WireMock.stubFor(post(RECORDS_SERVICE_URL)
+      .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(profileCreateMarcInstanceSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(profileCreateMarcInstanceSnapshotWrapperResponse))));
+
+    Async async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID)
+        .withDataType(DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
+    async.complete();
+
+    async = testContext.async();
+    RestAssured.given()
+      .spec(spec)
+      .body(rawRecordsDto_3)
+      .when()
+      .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
+
+    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(
+      ObserveKeyValues.on(topicToObserve, 1).observeFor(30, TimeUnit.SECONDS).build());
+
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
     Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
     Assert.assertNull(recordCollection.getRecords().get(0).getErrorRecord());
   }
