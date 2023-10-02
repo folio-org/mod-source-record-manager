@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.resource.MetadataProvider.GetMetadataProviderJobSummaryByJobExecutionIdResponse.respond404WithTextPlain;
@@ -203,15 +202,15 @@ public class MetadataProviderImpl implements MetadataProvider {
                                                      String userId, Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
-      .collect(Collectors.toList());
+      .toList();
 
     List<JobExecution.UiStatus> uiStatuses = uiStatusAny.stream()
       .map(JobExecution.UiStatus::fromValue)
-      .collect(Collectors.toList());
+      .toList();
 
     var subordinationTypes = subordinationTypeNotAny.stream()
       .map(JobExecutionDto.SubordinationType::fromValue)
-      .collect(Collectors.toList());
+      .toList();
 
     return new JobExecutionFilter()
       .withStatusAny(statuses)

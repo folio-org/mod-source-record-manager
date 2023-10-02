@@ -149,7 +149,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
       String jobTable = formatFullTableName(tenantId, TABLE_NAME);
       String progressTable = formatFullTableName(tenantId, PROGRESS_TABLE_NAME);
       String query = format(GET_JOBS_NOT_PARENT_SQL, jobTable, filterCriteria, jobTable, progressTable, jobTable, progressTable, filterCriteria, orderByClause);
-//      LOGGER.warn("------> query: " + query);
+
       pgClientFactory.createInstance(tenantId).selectRead(query, Tuple.of(limit, offset), promise);
     } catch (Exception e) {
       LOGGER.warn("getJobExecutionsWithoutParentMultiple:: Error while getting Logs", e);
@@ -524,52 +524,35 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     if (row.getColumnIndex(JOB_PROFILE_COMPOSITE_DATA) == -1) {
       return null;
     }
-    var compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
+    JsonArray compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
     if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
       var detailsDto = new JobExecutionCompositeDetailsDto();
-      compositeData.forEach(o -> {
+
+      compositeData.forEach((Object o) -> {
         JsonObject jo = (JsonObject) o;
-        var status = JobExecutionDto.Status.valueOf(jo.getString(JOB_PROFILE_COMPOSITE_DATA_STATUS));
-        var stateDto = new JobExecutionCompositeDetailDto()
+        JobExecutionDto.Status status = JobExecutionDto.Status.valueOf(jo.getString(JOB_PROFILE_COMPOSITE_DATA_STATUS));
+
+        JobExecutionCompositeDetailDto stateDto = new JobExecutionCompositeDetailDto()
           .withChunksCount(jo.getInteger("cnt"))
           .withTotalRecordsCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_TOTAL_RECORDS_COUNT))
           .withCurrentlyProcessedCount(jo.getInteger(JOB_PROFILE_COMPOSITE_DATA_CURRENTLY_PROCESSED));
+
         switch (status) {
-          case NEW:
-            detailsDto.setNewState(stateDto);
-            break;
-          case FILE_UPLOADED:
-            detailsDto.setFileUploadedState(stateDto);
-            break;
-          case PARSING_IN_PROGRESS:
-            detailsDto.setNewState(stateDto);
-            break;
-          case PARSING_FINISHED:
-            detailsDto.setParsingFinishedState(stateDto);
-            break;
-          case PROCESSING_IN_PROGRESS:
-            detailsDto.setProcessingInProgressState(stateDto);
-            break;
-          case PROCESSING_FINISHED:
-            detailsDto.setProcessingFinishedState(stateDto);
-            break;
-          case COMMIT_IN_PROGRESS:
-            detailsDto.setCommitInProgressState(stateDto);
-            break;
-          case COMMITTED:
-            detailsDto.setCommittedState(stateDto);
-            break;
-          case ERROR:
-            detailsDto.setErrorState(stateDto);
-            break;
-          case DISCARDED:
-            detailsDto.setDiscardedState(stateDto);
-            break;
-          case CANCELLED:
-            detailsDto.setCancelledState(stateDto);
-            break;
+          case NEW -> detailsDto.setNewState(stateDto);
+          case FILE_UPLOADED -> detailsDto.setFileUploadedState(stateDto);
+          case PARSING_IN_PROGRESS -> detailsDto.setNewState(stateDto);
+          case PARSING_FINISHED -> detailsDto.setParsingFinishedState(stateDto);
+          case PROCESSING_IN_PROGRESS -> detailsDto.setProcessingInProgressState(stateDto);
+          case PROCESSING_FINISHED -> detailsDto.setProcessingFinishedState(stateDto);
+          case COMMIT_IN_PROGRESS -> detailsDto.setCommitInProgressState(stateDto);
+          case COMMITTED -> detailsDto.setCommittedState(stateDto);
+          case ERROR -> detailsDto.setErrorState(stateDto);
+          case DISCARDED -> detailsDto.setDiscardedState(stateDto);
+          case CANCELLED -> detailsDto.setCancelledState(stateDto);
+          default -> throw new IllegalStateException("Invalid child status: " + status);
         }
       });
+
       return detailsDto;
     }
     return null;

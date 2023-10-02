@@ -339,7 +339,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     var sourceType = dto.getSourceType();
     var runBy = buildRunByFromUserInfo(userInfo);
     switch (sourceType) {
-      case ONLINE: {
+      case ONLINE -> {
         JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
         if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
           jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
@@ -349,7 +349,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           .withRunBy(runBy));
       }
 
-      case COMPOSITE: {
+      case COMPOSITE -> {
         var parentJobId = dto.getParentJobId();
         var isParent = StringUtils.isBlank(parentJobId);
         File file = files.get(0);
@@ -361,7 +361,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         return Collections.singletonList(jobExecution);
       }
 
-      case FILES: {
+      case FILES -> {
         List<JobExecution> result = new ArrayList<>();
         if (files.size() > 1) {
           for (File file : files) {
@@ -372,10 +372,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           File file = files.get(0);
           result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
         }
-//        result.forEach(job -> job.setRunBy(runBy));
         return result;
       }
-      default:
+      default ->
         throw new IllegalArgumentException("InitJobExecutionsRqDto.getSourceType() can not be null");
     }
   }
@@ -452,13 +451,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withStatus(JobExecution.Status.NEW)
         .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
     } else {
-      job.withSubordinationType(isComposite ?
-          JobExecution.SubordinationType.COMPOSITE_PARENT :
-          isSingle ? JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
-        .withUiStatus(isSingle ?
-          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()) :
-          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      if (isComposite) {
+        job.setSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+      } else if (isSingle) {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE);
+      } else {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE);
+      }
+
+      if (isSingle) {
+        job.setStatus(JobExecution.Status.NEW);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
+      } else {
+        job.setStatus(JobExecution.Status.PARENT);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      }
     }
     return job;
   }

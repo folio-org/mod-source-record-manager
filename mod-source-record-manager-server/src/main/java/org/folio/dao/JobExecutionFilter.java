@@ -102,7 +102,7 @@ public class JobExecutionFilter {
     if (isNotEmpty(statusAny)) {
       List<String> statuses = statusAny.stream()
         .map(JobExecution.Status::toString)
-        .collect(Collectors.toList());
+        .toList();
 
       addCondition(conditionBuilder, buildInCondition(STATUS_FIELD, statuses));
     }
@@ -115,7 +115,7 @@ public class JobExecutionFilter {
     if (isNotEmpty(uiStatusAny)) {
       List<String> uiStatuses = uiStatusAny.stream()
         .map(JobExecution.UiStatus::toString)
-        .collect(Collectors.toList());
+        .toList();
 
       addCondition(conditionBuilder, buildInCondition(UI_STATUS_FIELD, uiStatuses));
     }
@@ -137,7 +137,7 @@ public class JobExecutionFilter {
       addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));
     }
     if (isNotEmpty(subordinationTypeNotAny)) {
-      var subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).collect(Collectors.toList());
+      List<String> subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).toList();
       addCondition(conditionBuilder, buildNotInCondition(SUBORDINATION_TYPE_FIELD, subordinationTypes));
     }
     if (isNotEmpty(userId)) {
