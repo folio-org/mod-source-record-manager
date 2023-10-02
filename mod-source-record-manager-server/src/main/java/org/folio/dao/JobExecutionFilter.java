@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +17,7 @@ import static org.folio.dao.util.JobExecutionDBConstants.IS_DELETED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 
@@ -30,6 +32,7 @@ public class JobExecutionFilter {
   private String fileNamePattern;
   private List<String> fileNameNotAny;
   private List<String> profileIdAny;
+  private List<JobExecutionDto.SubordinationType> subordinationTypeNotAny;
   private String userId;
   private Date completedAfter;
   private Date completedBefore;
@@ -71,6 +74,11 @@ public class JobExecutionFilter {
 
   public JobExecutionFilter withProfileIdAny(List<String> profileIdAny) {
     this.profileIdAny = profileIdAny;
+    return this;
+  }
+
+  public JobExecutionFilter withSubordinationTypeNotAny(List<JobExecutionDto.SubordinationType> subordinationTypeNotAny) {
+    this.subordinationTypeNotAny = subordinationTypeNotAny;
     return this;
   }
 
@@ -123,10 +131,14 @@ public class JobExecutionFilter {
       }
     }
     if (isNotEmpty(fileNameNotAny)) {
-      addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD,fileNameNotAny));
+      addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD, fileNameNotAny));
     }
     if (isNotEmpty(profileIdAny)) {
       addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));
+    }
+    if (isNotEmpty(subordinationTypeNotAny)) {
+      var subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).collect(Collectors.toList());
+      addCondition(conditionBuilder, buildNotInCondition(SUBORDINATION_TYPE_FIELD, subordinationTypes));
     }
     if (isNotEmpty(userId)) {
       addCondition(conditionBuilder, buildEqualCondition(USER_ID_FIELD, userId));
