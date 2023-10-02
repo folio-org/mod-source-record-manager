@@ -372,7 +372,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
           File file = files.get(0);
           result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
         }
-//        result.forEach(job -> job.setRunBy(runBy));
         return result;
       }
       default:
@@ -452,13 +451,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         .withStatus(JobExecution.Status.NEW)
         .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
     } else {
-      job.withSubordinationType(isComposite ?
-          JobExecution.SubordinationType.COMPOSITE_PARENT :
-          isSingle ? JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
-        .withUiStatus(isSingle ?
-          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()) :
-          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      if (isComposite) {
+        job.setSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+      } else if (isSingle) {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE);
+      } else {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE);
+      }
+
+      if (isSingle) {
+        job.setStatus(JobExecution.Status.NEW);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
+      } else {
+        job.setStatus(JobExecution.Status.PARENT);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      }
     }
     return job;
   }
