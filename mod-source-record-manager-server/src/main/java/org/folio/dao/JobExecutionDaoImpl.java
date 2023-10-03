@@ -545,7 +545,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
             detailsDto.setFileUploadedState(stateDto);
             break;
           case PARSING_IN_PROGRESS:
-            detailsDto.setNewState(stateDto);
+            detailsDto.setParsingInProgressState(stateDto);
             break;
           case PARSING_FINISHED:
             detailsDto.setParsingFinishedState(stateDto);
