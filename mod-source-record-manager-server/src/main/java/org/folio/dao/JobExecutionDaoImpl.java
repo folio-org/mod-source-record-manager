@@ -540,7 +540,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
         switch (status) {
           case NEW -> detailsDto.setNewState(stateDto);
           case FILE_UPLOADED -> detailsDto.setFileUploadedState(stateDto);
-          case PARSING_IN_PROGRESS -> detailsDto.setNewState(stateDto);
+          case PARSING_IN_PROGRESS -> detailsDto.setParsingInProgressState(stateDto);
           case PARSING_FINISHED -> detailsDto.setParsingFinishedState(stateDto);
           case PROCESSING_IN_PROGRESS -> detailsDto.setProcessingInProgressState(stateDto);
           case PROCESSING_FINISHED -> detailsDto.setProcessingFinishedState(stateDto);

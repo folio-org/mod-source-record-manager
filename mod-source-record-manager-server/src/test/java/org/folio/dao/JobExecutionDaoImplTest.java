@@ -10,7 +10,6 @@ import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.util.Strings;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -19,15 +18,17 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionCompositeDetailsDto;
 import org.folio.rest.jaxrs.model.JobExecutionDetail;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JobExecutionServiceImpl;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,10 +37,14 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,11 +61,12 @@ import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
-@Log4j2
 public class JobExecutionDaoImplTest extends AbstractRestTest {
   public static final String GENERIC_SELECT_QUERY_TO_GET_COUNT = "select count(*) from %s where %s IN ('%s')";
   public static final String JOB_EXECUTION = "job_execution";
@@ -98,7 +104,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
     headers.put(OKAPI_TENANT_HEADER, TENANT_ID);
@@ -246,7 +252,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     InitJobExecutionsRsDto response =
       constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
-    assertThat(createdJobExecutions.size(), Matchers.is(1));
+    assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
     jobExec.withCompletedDate(Date.from(completedDate));
@@ -320,4 +326,161 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
     return selectResult.future();
   }
 
+  @Test
+  public void testCompositeDetailsAndProgress(TestContext context) {
+    // many children so each status can have a unique # of children
+    List<JobExecution> executions = constructAndPostCompositeInitJobExecutionRqDto("test-name", 1+2+3+4+5+6+7+8+9+10+11);
+
+    List<Future> futures = new ArrayList<>();
+
+    for (int i = 1; i < 1 + 1; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.NEW),
+        1));
+    }
+    for (int i = 2; i < 2 + 2; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.FILE_UPLOADED),
+        2));
+    }
+    for (int i = 4; i < 4 + 3; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS),
+        4));
+    }
+    for (int i = 7; i < 7 + 4; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.PARSING_FINISHED),
+        8));
+    }
+    for (int i = 11; i < 11 + 5; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.PROCESSING_IN_PROGRESS),
+        16));
+    }
+    for (int i = 16; i < 16 + 6; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.PROCESSING_FINISHED),
+        32));
+    }
+    for (int i = 22; i < 22 + 7; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.COMMIT_IN_PROGRESS),
+        64));
+    }
+    for (int i = 29; i < 29 + 8; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.COMMITTED),
+        128));
+    }
+    for (int i = 37; i < 37 + 9; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR),
+        256));
+    }
+    for (int i = 46; i < 46 + 10; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.DISCARDED),
+        512));
+    }
+    for (int i = 56; i < 56 + 11; i++) {
+      futures.add(setStatusAndRecordsForCompositeChild(executions.get(i),
+        new StatusDto().withStatus(StatusDto.Status.CANCELLED),
+        1024));
+    }
+
+    CompositeFuture.all(futures).onComplete(context.asyncAssertSuccess(v -> {
+      jobExecutionDao
+        .getJobExecutionsWithoutParentMultiple(
+          new JobExecutionFilter().withSubordinationTypeNotAny(Arrays.asList(SubordinationType.COMPOSITE_CHILD)),
+          null, 0, 100, params.getTenantId()
+        )
+        .onComplete(context.asyncAssertSuccess(result -> {
+          assertThat(result.getTotalRecords(), is(1));
+
+          JobExecutionDto execution = result.getJobExecutions().get(0);
+          JobExecutionCompositeDetailsDto compositeDetails = execution.getCompositeDetails();
+
+          assertThat(compositeDetails.getNewState().getChunksCount(), is(1));
+          assertThat(compositeDetails.getNewState().getCurrentlyProcessedCount(), is(2));
+          assertThat(compositeDetails.getNewState().getTotalRecordsCount(), is(10));
+
+          assertThat(compositeDetails.getFileUploadedState().getChunksCount(), is(2));
+          assertThat(compositeDetails.getFileUploadedState().getCurrentlyProcessedCount(), is(2 * 4));
+          assertThat(compositeDetails.getFileUploadedState().getTotalRecordsCount(), is(2 * 20));
+
+          assertThat(compositeDetails.getParsingInProgressState().getChunksCount(), is(3));
+          assertThat(compositeDetails.getParsingInProgressState().getCurrentlyProcessedCount(), is(3 * 8));
+          assertThat(compositeDetails.getParsingInProgressState().getTotalRecordsCount(), is(3 * 40));
+
+          assertThat(compositeDetails.getParsingFinishedState().getChunksCount(), is(4));
+          assertThat(compositeDetails.getParsingFinishedState().getCurrentlyProcessedCount(), is(4 * 16));
+          assertThat(compositeDetails.getParsingFinishedState().getTotalRecordsCount(), is(4 * 80));
+
+          assertThat(compositeDetails.getProcessingInProgressState().getChunksCount(), is(5));
+          assertThat(compositeDetails.getProcessingInProgressState().getCurrentlyProcessedCount(), is(5 * 32));
+          assertThat(compositeDetails.getProcessingInProgressState().getTotalRecordsCount(), is(5 * 160));
+
+          assertThat(compositeDetails.getProcessingFinishedState().getChunksCount(), is(6));
+          assertThat(compositeDetails.getProcessingFinishedState().getCurrentlyProcessedCount(), is(6 * 64));
+          assertThat(compositeDetails.getProcessingFinishedState().getTotalRecordsCount(), is(6 * 320));
+
+          assertThat(compositeDetails.getCommitInProgressState().getChunksCount(), is(7));
+          assertThat(compositeDetails.getCommitInProgressState().getCurrentlyProcessedCount(), is(7 * 128));
+          assertThat(compositeDetails.getCommitInProgressState().getTotalRecordsCount(), is(7 * 640));
+
+          assertThat(compositeDetails.getCommittedState().getChunksCount(), is(8));
+          assertThat(compositeDetails.getCommittedState().getCurrentlyProcessedCount(), is(8 * 256));
+          assertThat(compositeDetails.getCommittedState().getTotalRecordsCount(), is(8 * 1280));
+
+          assertThat(compositeDetails.getErrorState().getChunksCount(), is(9));
+          assertThat(compositeDetails.getErrorState().getCurrentlyProcessedCount(), is(9 * 512));
+          assertThat(compositeDetails.getErrorState().getTotalRecordsCount(), is(9 * 2560));
+
+          assertThat(compositeDetails.getDiscardedState().getChunksCount(), is(10));
+          assertThat(compositeDetails.getDiscardedState().getCurrentlyProcessedCount(), is(10 * 1024));
+          assertThat(compositeDetails.getDiscardedState().getTotalRecordsCount(), is(10 * 5120));
+
+          assertThat(compositeDetails.getCancelledState().getChunksCount(), is(11));
+          assertThat(compositeDetails.getCancelledState().getCurrentlyProcessedCount(), is(11 * 2048));
+          assertThat(compositeDetails.getCancelledState().getTotalRecordsCount(), is(11 * 10240));
+
+          assertThat(
+            execution.getProgress().getCurrent(),
+            is(1 * 2 + 2 * 4 + 3 * 8 + 4 * 16 + 5 * 32 + 6 * 64 + 7 * 128 + 8 * 256 + 9 * 512 + 10 * 1024 + 11 * 2048)
+          );
+          assertThat(
+            execution.getProgress().getTotal(),
+            is(1 * 10 + 2 * 20 + 3 * 40 + 4 * 80 + 5 * 160 + 6 * 320 + 7 * 640 + 8 * 1280 + 9 * 2560 + 10 * 5120 + 11 * 10240)
+          );
+        }));
+    }));
+  }
+
+  @Test
+  public void testCompositeDetailsAndProgressEmpty(TestContext context) {
+    constructAndPostCompositeInitJobExecutionRqDto("test-name", 0);
+
+    jobExecutionDao
+      .getJobExecutionsWithoutParentMultiple(
+        new JobExecutionFilter().withSubordinationTypeNotAny(Arrays.asList(SubordinationType.COMPOSITE_CHILD)),
+        null, 0, 100, params.getTenantId()
+      )
+      .onComplete(context.asyncAssertSuccess(result -> {
+        assertThat(result.getTotalRecords(), is(1));
+
+        JobExecutionDto execution = result.getJobExecutions().get(0);
+
+        assertThat(execution.getCompositeDetails(), is(nullValue()));
+        assertThat(execution.getCompositeDetails(), is(nullValue()));
+      }));
+  }
+
+  private Future<Void> setStatusAndRecordsForCompositeChild(JobExecution execution, StatusDto status, int baseCount) {
+    updateJobExecutionStatus(execution, status);
+    return jobExecutionProgressDao.save(new JobExecutionProgress().withJobExecutionId(execution.getId())
+      .withCurrentlySucceeded(baseCount)
+      .withCurrentlyFailed(baseCount)
+      .withTotal(baseCount * 10), params.getTenantId()).mapEmpty();
+  }
 }
