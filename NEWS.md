@@ -1,3 +1,7 @@
+## 2023-10-04 v3.7.0
+* [MODDATAIMP-866](https://issues.folio.org/browse/MODDATAIMP-866) Add composite parent and child job types for new DI splitting workflow
+  * New interface version for `change-manager`: `v1.1`
+
 ## 2023-07-31 v3.6.4
 * [MODSOURMAN-987](https://issues.folio.org/browse/MODSOURMAN-987) No title displays in import log when SRS MARC and Instance are not updated
 

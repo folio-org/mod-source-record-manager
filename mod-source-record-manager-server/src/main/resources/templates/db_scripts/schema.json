@@ -245,17 +245,17 @@
     {
       "run": "after",
       "snippet": "DROP FUNCTION IF EXISTS save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid); DROP TABLE IF EXISTS flow_control_events_counter;",
-      "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
     },
     {
       "run": "after",
       "snippetPath": "alter_job_executions_table_for_chunk_support.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.6.5-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
     },
     {
       "run": "after",
       "snippetPath": "alter_job_executions_table_for_total_records.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.6.5-SNAPSHOT"
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
     }
   ]
 }
