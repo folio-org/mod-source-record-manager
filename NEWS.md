@@ -8,6 +8,7 @@
 * [MODSOURMAN-974](https://issues.folio.org/browse/MODSOURMAN-974) MARC bib $9 handling | Remove $9 subfields from linkable fields
 * [MODSOURMAN-971](https://issues.folio.org/browse/MODSOURMAN-971) Adjust journal records population to create multiple journal records for each Holdings/Item
 * [MODSOURMAN-1014](https://issues.folio.org/browse/MODSOURMAN-1014) Upgrade folio-kafka-wrapper to 3.0.0 version
+* [MODSOURMAN-1049](https://issues.folio.org/browse/MODSOURMAN-1049) Add composite job types (bump interface `source-manager-job-executions` to version `3.3`)
 
 ## 2023-03-xo v3.6.1-SNAPSHOT
 * [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
