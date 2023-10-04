@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetEntityType;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
@@ -208,7 +209,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .map(JobExecution.UiStatus::fromValue)
       .toList();
 
-    var subordinationTypes = subordinationTypeNotAny.stream()
+    List<SubordinationType> subordinationTypes = subordinationTypeNotAny.stream()
       .map(JobExecutionDto.SubordinationType::fromValue)
       .toList();
 
