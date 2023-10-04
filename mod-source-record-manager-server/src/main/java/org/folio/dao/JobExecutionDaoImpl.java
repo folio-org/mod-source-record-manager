@@ -526,7 +526,7 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
     }
     JsonArray compositeData = row.getJsonArray(JOB_PROFILE_COMPOSITE_DATA);
     if (Objects.nonNull(compositeData) && !compositeData.isEmpty()) {
-      var detailsDto = new JobExecutionCompositeDetailsDto();
+      JobExecutionCompositeDetailsDto detailsDto = new JobExecutionCompositeDetailsDto();
 
       compositeData.forEach((Object o) -> {
         JsonObject jo = (JsonObject) o;

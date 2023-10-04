@@ -37,6 +37,7 @@ import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto.SourceType;
 import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,8 +157,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExec -> {
-          var subordinationType = jobExec.getSubordinationType();
+        .map((JobExecution jobExec) -> {
+          SubordinationType subordinationType = jobExec.getSubordinationType();
           if (JobExecution.SubordinationType.PARENT_MULTIPLE == subordinationType || JobExecution.SubordinationType.COMPOSITE_PARENT == subordinationType) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
@@ -336,8 +337,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    */
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
     String userId = dto.getUserId();
-    var sourceType = dto.getSourceType();
-    var runBy = buildRunByFromUserInfo(userInfo);
+    SourceType sourceType = dto.getSourceType();
+    RunBy runBy = buildRunByFromUserInfo(userInfo);
     switch (sourceType) {
       case ONLINE: {
         JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();

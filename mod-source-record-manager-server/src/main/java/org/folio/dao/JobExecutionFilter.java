@@ -137,7 +137,7 @@ public class JobExecutionFilter {
       addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));
     }
     if (isNotEmpty(subordinationTypeNotAny)) {
-      var subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).collect(Collectors.toList());
+      List<String> subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).collect(Collectors.toList());
       addCondition(conditionBuilder, buildNotInCondition(SUBORDINATION_TYPE_FIELD, subordinationTypes));
     }
     if (isNotEmpty(userId)) {
