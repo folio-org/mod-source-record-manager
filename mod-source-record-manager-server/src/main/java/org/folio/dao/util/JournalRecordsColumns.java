@@ -18,6 +18,7 @@ public final class JournalRecordsColumns {
   public static final String ACTION_STATUS = "action_status";
   public static final String ACTION_DATE = "action_date";
   public static final String ERROR = "error";
+  public static final String TENANT_ID = "tenant_id";
 
   public static final String SOURCE_RECORD_ACTION_STATUS = "source_record_action_status";
   public static final String INSTANCE_ACTION_STATUS = "instance_action_status";
