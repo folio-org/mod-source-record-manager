@@ -61,6 +61,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -509,6 +510,41 @@ public abstract class AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
+  }
+
+  /** Returns list of [parent, child1, ..., childN] */
+  protected List<JobExecution> constructAndPostCompositeInitJobExecutionRqDto(String filename, int children) {
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().add(new File().withName(filename));
+    requestDto.setUserId(okapiUserIdHeader);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.COMPOSITE);
+
+    JobExecution parent = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+
+    List<JobExecution> result = new ArrayList<>();
+    result.add(parent);
+
+    for (int i = 1; i <= children; i++) {
+      InitJobExecutionsRqDto childRequestDto = new InitJobExecutionsRqDto();
+      childRequestDto.getFiles().add(new File().withName(filename + i));
+      childRequestDto.setUserId(okapiUserIdHeader);
+      childRequestDto.setSourceType(InitJobExecutionsRqDto.SourceType.COMPOSITE);
+      childRequestDto.setParentJobId(parent.getId());
+      childRequestDto.setJobPartNumber(i);
+      childRequestDto.setTotalJobParts(children);
+
+      result.add(
+        RestAssured.given()
+          .spec(spec)
+          .body(JsonObject.mapFrom(childRequestDto).toString())
+          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0)
+      );
+    }
+
+    return result;
   }
 
   protected io.restassured.response.Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
