@@ -49,6 +49,7 @@ public class JournalUtil {
   public static final String HRID_KEY = "hrid";
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
+  private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
 
   private JournalUtil() {
 
@@ -86,7 +87,10 @@ public class JournalUtil {
         .withEntityType(entityType)
         .withActionType(actionType)
         .withActionDate(new Date())
-        .withActionStatus(actionStatus);
+        .withActionStatus(actionStatus)
+        // tenantId field is filled in only for the case when record/entity has been changed on central tenant
+        // by data import initiated on a member tenant
+        .withTenantId(eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY));
 
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
         journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
