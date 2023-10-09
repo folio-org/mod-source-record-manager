@@ -32,9 +32,11 @@ public final class JournalRecordsColumns {
   public static final String TOTAL_COUNT = "total_count";
 
   public static final String SOURCE_ENTITY_ERROR = "source_entity_error";
+  public static final String SOURCE_RECORD_TENANT_ID = "source_record_tenant_id";
   public static final String INSTANCE_ENTITY_ID = "instance_entity_id";
   public static final String INSTANCE_ENTITY_HRID = "instance_entity_hrid";
   public static final String INSTANCE_ENTITY_ERROR = "instance_entity_error";
+  public static final String INSTANCE_ENTITY_TENANT_ID = "instance_entity_tenant_id";
   public static final String HOLDINGS_ENTITY_ID = "holdings_entity_id";
   public static final String HOLDINGS_ENTITY_HRID = "holdings_entity_hrid";
   public static final String HOLDINGS_PERMANENT_LOCATION_ID = "holdings_permanent_location_id";

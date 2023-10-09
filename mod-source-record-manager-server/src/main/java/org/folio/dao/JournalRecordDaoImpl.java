@@ -68,6 +68,7 @@ import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_TENANT_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
@@ -88,6 +89,7 @@ import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_TENANT_ID;
 import static org.folio.dao.util.JournalRecordsColumns.TENANT_ID;
 import static org.folio.dao.util.JournalRecordsColumns.TITLE;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
@@ -380,10 +382,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
         .withError(row.getString(SOURCE_ENTITY_ERROR))
+        .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
         .withRelatedInstanceInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
+          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR, INSTANCE_ENTITY_TENANT_ID))
         .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
+          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR, INSTANCE_ENTITY_TENANT_ID))
         .withRelatedPoLineInfo(new RelatedPoLineInfo()
           .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
           .withIdList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_ID))
@@ -420,11 +423,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withError(row.getString(error));
   }
 
-  private ProcessedEntityInfo constructProcessedEntityWithSingleIdInfoBasedOnEntityType(Row row, String actionStatus, String id, String hrid, String error) {
+  private ProcessedEntityInfo constructProcessedEntityWithSingleIdInfoBasedOnEntityType(Row row, String actionStatus, String id, String hrid, String error, String entityTenantId) {
     return new ProcessedEntityInfo()
       .withActionStatus(mapNameToEntityActionStatus(row.getString(actionStatus)))
       .withIdList(constructSingletonListFromColumn(row, id))
       .withHridList(constructSingletonListFromColumn(row, hrid))
+      .withTenantId(row.getString(entityTenantId))
       .withError(row.getString(error));
   }
 
