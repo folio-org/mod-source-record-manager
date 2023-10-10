@@ -1433,8 +1433,19 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .body("error", emptyOrNullString())));
   }
 
-  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
-                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId, String tenantId) {
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
+                                                    String entityHrid, String title, int recordOrder,
+                                                    JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                    JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId) {
+    return createJournalRecord(jobExecutionId, sourceId, entityId, entityHrid, title, recordOrder, actionType,
+      entityType, actionStatus, errorMessage, orderId, null);
+  }
+
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
+                                                    String entityHrid, String title, int recordOrder,
+                                                    JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                    JournalRecord.ActionStatus actionStatus, String errorMessage,
+                                                    String orderId, String tenantId) {
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(jobExecutionId)
       .withSourceId(sourceId)
@@ -1449,24 +1460,6 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .withEntityHrId(entityHrid)
       .withOrderId(orderId)
       .withTenantId(tenantId);
-    return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
-  }
-
-  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
-                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId) {
-    JournalRecord journalRecord = new JournalRecord()
-      .withJobExecutionId(jobExecutionId)
-      .withSourceId(sourceId)
-      .withTitle(title)
-      .withSourceRecordOrder(recordOrder)
-      .withEntityType(entityType)
-      .withActionType(actionType)
-      .withActionStatus(actionStatus)
-      .withError(errorMessage)
-      .withActionDate(new Date())
-      .withEntityId(entityId)
-      .withEntityHrId(entityHrid)
-      .withOrderId(orderId);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
   }
 
