@@ -383,10 +383,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
         .withError(row.getString(SOURCE_ENTITY_ERROR))
         .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
-        .withRelatedInstanceInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR, INSTANCE_ENTITY_TENANT_ID))
+        .withRelatedInstanceInfo(constructInstanceProcessingInfo(row))
         .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR, INSTANCE_ENTITY_TENANT_ID))
+          AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
         .withRelatedPoLineInfo(new RelatedPoLineInfo()
           .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
           .withIdList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_ID))
@@ -423,12 +422,17 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withError(row.getString(error));
   }
 
-  private ProcessedEntityInfo constructProcessedEntityWithSingleIdInfoBasedOnEntityType(Row row, String actionStatus, String id, String hrid, String error, String entityTenantId) {
+  private ProcessedEntityInfo constructInstanceProcessingInfo(Row row) {
+    return constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row, INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID,
+      INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR)
+      .withTenantId(row.getString(INSTANCE_ENTITY_TENANT_ID));
+  }
+
+  private ProcessedEntityInfo constructProcessedEntityWithSingleIdInfoBasedOnEntityType(Row row, String actionStatus, String id, String hrid, String error) {
     return new ProcessedEntityInfo()
       .withActionStatus(mapNameToEntityActionStatus(row.getString(actionStatus)))
       .withIdList(constructSingletonListFromColumn(row, id))
       .withHridList(constructSingletonListFromColumn(row, hrid))
-      .withTenantId(row.getString(entityTenantId))
       .withError(row.getString(error));
   }
 
