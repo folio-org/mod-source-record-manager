@@ -1,9 +1,11 @@
 package org.folio.services;
 
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.DataImportEventPayload;
+import org.folio.Record;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalUtil;
@@ -17,10 +19,13 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.folio.DataImportEventTypes.DI_ERROR;
+import static org.folio.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
+import static org.folio.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -32,6 +37,8 @@ import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalUtilTest {
+
+  private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
 
   @Test
   public void shouldBuildJournalRecordForInstance() throws JournalRecordMapperException {
@@ -848,4 +855,35 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecords.get(0).getActionDate());
   }
+
+  @Test
+  public void shouldBuildJournalRecordWithCentralTenantIdFromPayload() throws JournalRecordMapperException {
+    String expectedCentralTenantId = "mobius";
+
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withSnapshotId(UUID.randomUUID().toString())
+      .withOrder(1);
+
+    HashMap<String, String> context = new HashMap<>() {{
+      put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+      put(CENTRAL_TENANT_ID_KEY, expectedCentralTenantId);
+    }};
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
+
+    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(record.getId(), journalRecords.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(expectedCentralTenantId, journalRecords.get(0).getTenantId());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+  }
+
 }
