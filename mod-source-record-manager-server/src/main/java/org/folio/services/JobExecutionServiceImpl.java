@@ -5,8 +5,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.HttpException;
-
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
@@ -25,24 +25,26 @@ import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.RunBy;
 import org.folio.rest.jaxrs.model.Snapshot;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.UserInfo;
-import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto.SourceType;
+import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.exceptions.JobDuplicateUpdateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,6 +80,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String NO_FILE_NAME = "No file name";
 
+  private static final List<JobExecution.UiStatus> COMPLETE_STATUSES = Collections.unmodifiableList(Arrays.asList(
+      JobExecution.UiStatus.CANCELLED,
+      JobExecution.UiStatus.DISCARDED,
+      JobExecution.UiStatus.ERROR,
+      JobExecution.UiStatus.RUNNING_COMPLETE
+    ));
+
   @Autowired
   private JobExecutionDao jobExecutionDao;
   @Autowired
@@ -98,7 +107,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       LOGGER.warn(errorMessage);
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
-      String parentJobExecutionId = UUID.randomUUID().toString();
+      String parentJobId = jobExecutionsRqDto.getParentJobId();
+      String parentJobExecutionId = StringUtils.isNotBlank(parentJobId) ? parentJobId : UUID.randomUUID().toString();
       return lookupUser(jobExecutionsRqDto.getUserId(), params)
         .compose(userInfo -> {
           List<JobExecution> jobExecutions =
@@ -147,8 +157,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public Future<JobExecutionDtoCollection> getJobExecutionCollectionByParentId(String parentId, int offset, int limit, String tenantId) {
     return jobExecutionDao.getJobExecutionById(parentId, tenantId)
       .compose(optionalJobExecution -> optionalJobExecution
-        .map(jobExec -> {
-          if (JobExecution.SubordinationType.PARENT_MULTIPLE.equals(jobExec.getSubordinationType())) {
+        .map((JobExecution jobExec) -> {
+          SubordinationType subordinationType = jobExec.getSubordinationType();
+          if (JobExecution.SubordinationType.PARENT_MULTIPLE == subordinationType || JobExecution.SubordinationType.COMPOSITE_PARENT == subordinationType) {
             return jobExecutionDao.getChildrenJobExecutionsByParentId(jobExec.getId(), offset, limit, tenantId);
           } else {
             return Future.succeededFuture(new JobExecutionDtoCollection().withTotalRecords(0));
@@ -168,26 +179,59 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       return Future.failedFuture(new BadRequestException(errorMessage));
     } else {
       return jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-        Promise<JobExecution> promise = Promise.promise();
-        try {
-          if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
-            String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
-            LOGGER.warn(message);
-            promise.fail(new BadRequestException(message));
-          } else {
-            jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
-            jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
-            updateJobExecutionIfErrorExist(status, jobExecution);
-            promise.complete(jobExecution);
+          Promise<JobExecution> promise = Promise.promise();
+          try {
+            if (JobExecution.Status.PARENT.name().equals(jobExecution.getStatus().name())) {
+              String message = format("JobExecution %s current status is PARENT and cannot be updated", jobExecutionId);
+              LOGGER.warn(message);
+              promise.fail(new BadRequestException(message));
+            } else {
+              jobExecution.setStatus(JobExecution.Status.fromValue(status.getStatus().name()));
+              jobExecution.setUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(status.getStatus().name()).getUiStatus()));
+              updateJobExecutionIfErrorExist(status, jobExecution);
+              promise.complete(jobExecution);
+            }
+          } catch (Exception e) {
+            String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
+            LOGGER.warn(errorMessage, e);
+            promise.fail(errorMessage);
           }
-        } catch (Exception e) {
-          String errorMessage = "Error updating JobExecution with id " + jobExecutionId;
-          LOGGER.warn(errorMessage, e);
-          promise.fail(errorMessage);
-        }
-        return promise.future();
-      }, params.getTenantId())
-        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params));
+          return promise.future();
+        }, params.getTenantId())
+        .compose(jobExecution -> updateSnapshotStatus(jobExecution, params))
+        .compose(jobExecution -> {
+          // if this composite child finished, check if all other children are finished
+          // if so, then mark the composite parent as completed
+          if (jobExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD) &&
+              COMPLETE_STATUSES.contains(jobExecution.getUiStatus())) {
+            return this.getJobExecutionById(jobExecution.getParentJobId(), params.getTenantId())
+              .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
+              .compose(parentExecution ->
+                this.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
+                  .map(JobExecutionDtoCollection::getJobExecutions)
+                  // ensure all other children are completed
+                  .map(children ->
+                    children.stream()
+                      .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
+                      .map(JobExecutionDto::getUiStatus)
+                      .map(JobExecutionDto.UiStatus::toString)
+                      .map(JobExecution.UiStatus::fromValue)
+                      .allMatch(COMPLETE_STATUSES::contains)
+                  )
+                  .compose(allChildrenCompleted -> {
+                    if (Boolean.TRUE.equals(allChildrenCompleted)) {
+                      LOGGER.info("All children for job {} have completed!", parentExecution.getId());
+                      parentExecution.withStatus(JobExecution.Status.COMMITTED)
+                        .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
+                        .withCompletedDate(new Date());
+                      return this.updateJobExecutionWithSnapshotStatus(parentExecution, params);
+                    }
+                    return Future.succeededFuture(parentExecution);
+                  })
+              );
+          }
+          return Future.succeededFuture(jobExecution);
+        });
     }
   }
 
@@ -195,16 +239,16 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   public Future<JobExecution> setJobProfileToJobExecution(String jobExecutionId, JobProfileInfo jobProfile, OkapiConnectionParams params) {
     LOGGER.debug("setJobProfileToJobExecution:: jobExecutionId {}, jobProfileId {}", jobExecutionId, jobProfile.getId());
     return loadJobProfileById(jobProfile.getId(), params)
-      .map(profile-> jobProfile.withName(profile.getName()))
-      .compose(v-> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
-        if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-          throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
-        }
-        return createJobProfileSnapshotWrapper(jobProfile, params)
-          .map(profileSnapshotWrapper -> jobExecution
-            .withJobProfileInfo(jobProfile)
-            .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
-      }, params.getTenantId())
+      .map(profile -> jobProfile.withName(profile.getName()))
+      .compose(v -> jobExecutionDao.updateBlocking(jobExecutionId, jobExecution -> {
+          if (jobExecution.getJobProfileSnapshotWrapper() != null) {
+            throw new BadRequestException(String.format("JobExecution already associated to JobProfile with id '%s'", jobProfile.getId()));
+          }
+          return createJobProfileSnapshotWrapper(jobProfile, params)
+            .map(profileSnapshotWrapper -> jobExecution
+              .withJobProfileInfo(jobProfile)
+              .withJobProfileSnapshotWrapper(profileSnapshotWrapper));
+        }, params.getTenantId())
         .recover(throwable -> {
           StatusDto statusDto = new StatusDto().withStatus(ERROR).withErrorStatus(PROFILE_SNAPSHOT_CREATING_ERROR);
           return updateJobExecutionStatus(jobExecutionId, statusDto, params)
@@ -224,7 +268,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     client.postDataImportProfilesJobProfileSnapshotsById(jobProfile.getId(), response -> {
       if (response.result().statusCode() == HTTP_CREATED.toInt()) {
-          promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
+        promise.handle(Try.itGet(() -> response.result().bodyAsJsonObject().mapTo(ProfileSnapshotWrapper.class)));
       } else {
         String message = String.format("Error creating ProfileSnapshotWrapper by JobProfile id '%s', response code %s", jobProfile.getId(), response.result().statusCode());
         LOGGER.warn(message);
@@ -293,27 +337,47 @@ public class JobExecutionServiceImpl implements JobExecutionService {
    */
   private List<JobExecution> prepareJobExecutionList(String parentJobExecutionId, List<File> files, UserInfo userInfo, InitJobExecutionsRqDto dto) {
     String userId = dto.getUserId();
-    if (dto.getSourceType().equals(InitJobExecutionsRqDto.SourceType.ONLINE)) {
-      JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-      if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
-        jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
+    SourceType sourceType = dto.getSourceType();
+    RunBy runBy = buildRunByFromUserInfo(userInfo);
+    switch (sourceType) {
+      case ONLINE -> {
+        JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
+        if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
+          jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
+        }
+        return Collections.singletonList(buildNewJobExecution(true, true, false, parentJobExecutionId, NO_FILE_NAME, userId)
+          .withJobProfileInfo(jobProfileInfo)
+          .withRunBy(runBy));
       }
-      return Collections.singletonList(buildNewJobExecution(true, true, parentJobExecutionId, NO_FILE_NAME, userId)
-        .withJobProfileInfo(jobProfileInfo)
-        .withRunBy(buildRunByFromUserInfo(userInfo)));
-    }
-    List<JobExecution> result = new ArrayList<>();
-    if (files.size() > 1) {
-      for (File file : files) {
-        result.add(buildNewJobExecution(false, false, parentJobExecutionId, file.getName(), userId));
+
+      case COMPOSITE -> {
+        var parentJobId = dto.getParentJobId();
+        var isParent = StringUtils.isBlank(parentJobId);
+        File file = files.get(0);
+        var jobExecution = buildNewJobExecution(isParent, true, true, parentJobExecutionId, file.getName(), userId)
+          .withJobPartNumber(dto.getJobPartNumber())
+          .withTotalJobParts(dto.getTotalJobParts())
+          .withRunBy(runBy);
+
+        return Collections.singletonList(jobExecution);
       }
-      result.add(buildNewJobExecution(true, false, parentJobExecutionId, null, userId));
-    } else {
-      File file = files.get(0);
-      result.add(buildNewJobExecution(true, true, parentJobExecutionId, file.getName(), userId));
+
+      case FILES -> {
+        List<JobExecution> result = new ArrayList<>();
+        if (files.size() > 1) {
+          for (File file : files) {
+            result.add(buildNewJobExecution(false, false, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
+          }
+          result.add(buildNewJobExecution(true, false, false, parentJobExecutionId, null, userId).withRunBy(runBy));
+        } else {
+          File file = files.get(0);
+          result.add(buildNewJobExecution(true, true, false, parentJobExecutionId, file.getName(), userId).withRunBy(runBy));
+        }
+        return result;
+      }
+      default ->
+        throw new IllegalArgumentException("InitJobExecutionsRqDto.getSourceType() can not be null");
     }
-    result.forEach(job -> job.setRunBy(buildRunByFromUserInfo(userInfo)));
-    return result;
   }
 
   private RunBy buildRunByFromUserInfo(UserInfo info) {
@@ -356,7 +420,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
               String userName = jsonUser.getString("username");
               UserInfo userInfo = new UserInfo()
                 .withFirstName(Objects.isNull(userPersonalInfo)
-                  ? userName  : userPersonalInfo.getString("firstName"))
+                  ? userName : userPersonalInfo.getString("firstName"))
                 .withLastName(Objects.isNull(userPersonalInfo)
                   ? DEFAULT_LASTNAME : userPersonalInfo.getString("lastName"))
                 .withUserName(userName);
@@ -371,7 +435,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   /**
    * Create new JobExecution object and fill fields
    */
-  private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, String parentJobExecutionId, String fileName, String userId) {
+  private JobExecution buildNewJobExecution(boolean isParent, boolean isSingle, boolean isComposite, String parentJobExecutionId, String fileName, String userId) {
     LOGGER.debug("buildNewJobExecution:: parentJobExecutionId {}, fileName {}, userId {}", parentJobExecutionId, fileName, userId);
     JobExecution job = new JobExecution()
       .withId(isParent ? parentJobExecutionId : UUID.randomUUID().toString())
@@ -384,15 +448,25 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withUserId(userId)
       .withStartedDate(new Date());
     if (!isParent) {
-      job.withSubordinationType(JobExecution.SubordinationType.CHILD)
+      job.withSubordinationType(isComposite ? JobExecution.SubordinationType.COMPOSITE_CHILD : JobExecution.SubordinationType.CHILD)
         .withStatus(JobExecution.Status.NEW)
         .withUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
     } else {
-      job.withSubordinationType(isSingle ? JobExecution.SubordinationType.PARENT_SINGLE : JobExecution.SubordinationType.PARENT_MULTIPLE)
-        .withStatus(isSingle ? JobExecution.Status.NEW : JobExecution.Status.PARENT)
-        .withUiStatus(isSingle ?
-          JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus())
-          : JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      if (isComposite) {
+        job.setSubordinationType(JobExecution.SubordinationType.COMPOSITE_PARENT);
+      } else if (isSingle) {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE);
+      } else {
+        job.setSubordinationType(JobExecution.SubordinationType.PARENT_MULTIPLE);
+      }
+
+      if (isSingle) {
+        job.setStatus(JobExecution.Status.NEW);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.NEW.value()).getUiStatus()));
+      } else {
+        job.setStatus(JobExecution.Status.PARENT);
+        job.setUiStatus(JobExecution.UiStatus.valueOf(Status.valueOf(JobExecution.Status.PARENT.value()).getUiStatus()));
+      }
     }
     return job;
   }
@@ -491,6 +565,12 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         if (response.result().statusCode() == HttpStatus.HTTP_OK.toInt()) {
           promise.complete(jobExecution);
         } else {
+          LOGGER.warn(
+            "Update snapshot status failed for jobExecution with id {}. Response code={}",
+            jobExecution.getId(),
+            response.result().statusCode()
+          );
+          LOGGER.warn("Response: {}", response.result().bodyAsString());
           jobExecutionDao.updateBlocking(jobExecution.getId(), jobExec -> {
             Promise<JobExecution> jobExecutionPromise = Promise.promise();
             jobExec.setErrorStatus(JobExecution.ErrorStatus.SNAPSHOT_UPDATE_ERROR);
@@ -515,7 +595,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   private JobExecution verifyJobExecution(JobExecution jobExecution) {
     if (jobExecution.getStatus() == JobExecution.Status.ERROR || jobExecution.getStatus() == COMMITTED
-    || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
+      || jobExecution.getStatus() == JobExecution.Status.CANCELLED) {
       String msg = String.format("JobExecution with status '%s' cannot be forcibly completed", jobExecution.getStatus());
       LOGGER.info(msg);
       throw new JobDuplicateUpdateException(msg);
@@ -572,8 +652,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       if (jobExecution.getErrorStatus().equals(JobExecution.ErrorStatus.FILE_PROCESSING_ERROR)) {
         jobExecution.setProgress(jobExecution.getProgress().withTotal(0));
       }
-    }
-    else if (status.getStatus() == CANCELLED) {
+    } else if (status.getStatus() == CANCELLED) {
       jobExecution.setCompletedDate(new Date());
     }
   }

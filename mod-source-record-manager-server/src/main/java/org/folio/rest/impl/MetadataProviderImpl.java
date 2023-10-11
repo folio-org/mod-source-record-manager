@@ -12,8 +12,10 @@ import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.ExceptionHelper;
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetOrder;
 import org.folio.rest.jaxrs.model.MetadataProviderJournalRecordsJobExecutionIdGetOrder;
+import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetEntityType;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
@@ -30,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.resource.MetadataProvider.GetMetadataProviderJobSummaryByJobExecutionIdResponse.respond404WithTextPlain;
@@ -60,15 +61,15 @@ public class MetadataProviderImpl implements MetadataProvider {
   @Override
   public void getMetadataProviderJobExecutions(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                List<String> uiStatusAny, String hrId, String fileName, List<String> fileNameNotAny,
-                                               List<String> profileIdAny, String userId, Date completedAfter, Date completedBefore,
-                                               List<String> sortBy, String totalRecords, int offset, int limit,
-                                               Map<String, String> okapiHeaders,
+                                               List<String> profileIdAny, List<String> subordinationTypeNotAny, String userId, Date completedAfter,
+                                               Date completedBefore, List<String> sortBy, String totalRecords, int offset, int limit, Map<String, String> okapiHeaders,
                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     vertxContext.runOnContext(v -> {
       try {
         LOGGER.debug("getMetadataProviderJobExecutions:: sortBy {}", sortBy);
         List<SortField> sortFields = mapSortQueryToSortFields(sortBy);
-        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, fileNameNotAny, profileIdAny, userId, completedAfter, completedBefore);
+        JobExecutionFilter filter = buildJobExecutionFilter(statusAny, profileIdNotAny, statusNot, uiStatusAny, hrId, fileName, fileNameNotAny, profileIdAny,
+                                      subordinationTypeNotAny, userId, completedAfter, completedBefore);
         jobExecutionService.getJobExecutionsWithoutParentMultiple(filter, sortFields, offset, limit, tenantId)
           .map(GetMetadataProviderJobExecutionsResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
@@ -198,15 +199,19 @@ public class MetadataProviderImpl implements MetadataProvider {
 
   private JobExecutionFilter buildJobExecutionFilter(List<String> statusAny, List<String> profileIdNotAny, String statusNot,
                                                      List<String> uiStatusAny, String hrIdPattern, String fileNamePattern,
-                                                     List<String> fileNameNotAny, List<String> profileIdAny, String userId,
-                                                     Date completedAfter, Date completedBefore) {
+                                                     List<String> fileNameNotAny, List<String> profileIdAny, List<String> subordinationTypeNotAny,
+                                                     String userId, Date completedAfter, Date completedBefore) {
     List<JobExecution.Status> statuses = statusAny.stream()
       .map(JobExecution.Status::fromValue)
-      .collect(Collectors.toList());
+      .toList();
 
     List<JobExecution.UiStatus> uiStatuses = uiStatusAny.stream()
       .map(JobExecution.UiStatus::fromValue)
-      .collect(Collectors.toList());
+      .toList();
+
+    List<SubordinationType> subordinationTypes = subordinationTypeNotAny.stream()
+      .map(JobExecutionDto.SubordinationType::fromValue)
+      .toList();
 
     return new JobExecutionFilter()
       .withStatusAny(statuses)
@@ -217,6 +222,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       .withFileNamePattern(fileNamePattern)
       .withFileNameNotAny(fileNameNotAny)
       .withProfileIdAny(profileIdAny)
+      .withSubordinationTypeNotAny(subordinationTypes)
       .withUserId(userId)
       .withCompletedAfter(completedAfter)
       .withCompletedBefore(completedBefore);
