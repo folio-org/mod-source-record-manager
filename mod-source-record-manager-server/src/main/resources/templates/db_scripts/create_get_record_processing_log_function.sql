@@ -1,18 +1,18 @@
 DROP FUNCTION IF EXISTS get_record_processing_log(uuid, uuid);
 
 CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, recordId uuid)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text, holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text, authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
+    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, source_record_tenant_id text, instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text, instance_entity_tenant_id text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text, holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text, authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
 AS $$
 BEGIN
     RETURN QUERY
         WITH temp_result AS (SELECT id, journal_records.job_execution_id, journal_records.source_id, journal_records.entity_type, journal_records.entity_id, journal_records.entity_hrid,
     					 CASE WHEN error_max != ''  OR action_type = 'NON_MATCH'
                     		THEN 'DISCARDED'
-                  		WHEN action_type = 'CREATE'
+                    WHEN action_type = 'CREATE'
                     		THEN 'CREATED'
-                  		WHEN action_type IN ('UPDATE', 'MODIFY')
+                    WHEN action_type IN ('UPDATE', 'MODIFY')
                     		THEN 'UPDATED'
-                		END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
+               END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
     		INNER JOIN
     		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max
@@ -27,11 +27,13 @@ BEGIN
     	      COALESCE(marc.title,instances.title,holdings.title,items.title) AS title,
     	      marc.action_type AS source_record_action_status,
     	      marc.error AS source_entity_error,
+            marc.tenant_id AS source_record_tenant_id,
 
     	      instances.action_type AS instance_action_status,
     	      COALESCE(instances.entity_id,holdings.instance_id,items.instance_id) AS instance_entity_id,
     	      instances.entity_hrid AS instance_entity_hrid,
     	      instances.error AS instance_entity_error,
+    	      instances.tenant_id AS instance_entity_tenant_id,
 
     	      holdings.action_type AS holdings_action_status,
 			      holdings.entity_hrid AS holdings_entity_hrid,
@@ -63,10 +65,10 @@ BEGIN
             null AS invoice_line_entity_hrid,
             null AS invoice_line_entity_error
       FROM
-    	    (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id
+    	    (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
     	    FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY')) AS marc
     	LEFT JOIN
-    	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
+    	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order, temp_result.tenant_id
     	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances
     	ON marc.source_id = instances.source_id
     	LEFT JOIN
@@ -95,10 +97,12 @@ BEGIN
                   WHEN edifact_actions[array_length(edifact_actions, 1)] = 'CREATE' THEN 'CREATED'
                 END AS source_record_action_status,
                 records_actions.source_record_error[1],
+                records_actions.source_record_tenant_id,
                 null AS instance_action_status,
                 null AS instance_entity_id,
                 null AS instance_entity_hrid,
                 null AS instance_entity_error,
+                null AS instance_entity_tenant_id,
                 null AS holdings_action_status,
                 null AS holdings_entity_hrid,
                 null AS holdings_entity_id,
@@ -144,6 +148,7 @@ BEGIN
                        array_agg(action_type) FILTER (WHERE entity_type = 'EDIFACT') AS edifact_actions,
                        count(journal_records.source_id) FILTER (WHERE entity_type = 'EDIFACT' AND journal_records.error != '') AS edifact_errors_number,
                        array_agg(error) FILTER (WHERE entity_type = 'EDIFACT') AS source_record_error,
+                       journal_records.tenant_id AS source_record_tenant_id,
 
                        array_agg(action_type) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_actions,
                        count(journal_records.source_id) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE' AND journal_records.error != '') AS invoice_errors_number,
@@ -152,7 +157,7 @@ BEGIN
                        array_agg(error) FILTER (WHERE entity_type = 'INVOICE' AND journal_records.title = 'INVOICE') AS invoice_entity_error
                 FROM journal_records
                 WHERE journal_records.source_id = invoice_line_info.source_id AND (entity_type = 'EDIFACT' OR journal_records.title = 'INVOICE')
-                GROUP BY journal_records.source_id, journal_records.job_execution_id, journal_records.source_record_order
+                GROUP BY journal_records.source_id, journal_records.job_execution_id,journal_records.source_record_order, journal_records.tenant_id
             ) AS records_actions ON TRUE;
 END;
 $$ LANGUAGE plpgsql;

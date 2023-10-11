@@ -9,6 +9,7 @@
 * [MODSOURMAN-971](https://issues.folio.org/browse/MODSOURMAN-971) Adjust journal records population to create multiple journal records for each Holdings/Item
 * [MODSOURMAN-1014](https://issues.folio.org/browse/MODSOURMAN-1014) Upgrade folio-kafka-wrapper to 3.0.0 version
 * [MODDATAIMP-866](https://issues.folio.org/browse/MODDATAIMP-866) Add composite job types to support DI splitting workflow (bump interface `source-manager-job-executions` to version `3.3`)
+* [MODSOURMAN-1044](https://issues.folio.org/browse/MODSOURMAN-1044) Adjust logs during marc-to-marc matching on central tenant
 
 ## 2023-03-xo v3.6.1-SNAPSHOT
 * [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log

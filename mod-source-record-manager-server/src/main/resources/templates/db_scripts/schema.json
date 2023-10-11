@@ -271,6 +271,11 @@
       "run": "after",
       "snippetPath": "alter_job_executions_table_for_total_records.sql",
       "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS tenant_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
     }
   ]
 }

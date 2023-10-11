@@ -1404,8 +1404,48 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     }));
   }
 
-  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
-                                                    JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId) {
+  @Test
+  public void shouldReturnCentralTenantIdForMarcRecordAndInstanceIfItIsSavedInJournalRecord(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String expectedCentralTenantId = "mobius";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null, expectedCentralTenantId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null, expectedCentralTenantId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionId", is(createdJobExecution.getId()))
+      .body("sourceRecordId", is(sourceRecordId))
+      .body("sourceRecordTitle", is(recordTitle))
+      .body("sourceRecordOrder", is(0))
+      .body("sourceRecordTenantId", is(expectedCentralTenantId))
+      .body("relatedInstanceInfo.idList[0]", is(instanceId))
+      .body("relatedInstanceInfo.tenantId", is(expectedCentralTenantId))
+      .body("error", emptyOrNullString())));
+  }
+
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
+                                                    String entityHrid, String title, int recordOrder,
+                                                    JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                    JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId) {
+    return createJournalRecord(jobExecutionId, sourceId, entityId, entityHrid, title, recordOrder, actionType,
+      entityType, actionStatus, errorMessage, orderId, null);
+  }
+
+  private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
+                                                    String entityHrid, String title, int recordOrder,
+                                                    JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
+                                                    JournalRecord.ActionStatus actionStatus, String errorMessage,
+                                                    String orderId, String tenantId) {
     JournalRecord journalRecord = new JournalRecord()
       .withJobExecutionId(jobExecutionId)
       .withSourceId(sourceId)
@@ -1418,9 +1458,11 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .withActionDate(new Date())
       .withEntityId(entityId)
       .withEntityHrId(entityHrid)
-      .withOrderId(orderId);
+      .withOrderId(orderId)
+      .withTenantId(tenantId);
     return journalRecordDao.save(journalRecord, TENANT_ID).map(journalRecord);
   }
+
   private Future<JournalRecord> createJournalRecordAllFields(String jobExecutionId, String sourceId, String entityId, String entityHrid, String title, int recordOrder, JournalRecord.ActionType actionType,
                                                     JournalRecord.EntityType entityType, JournalRecord.ActionStatus actionStatus, String errorMessage, String orderId,String instanceId,String holdingsId,String permanentLocation) {
     JournalRecord journalRecord = new JournalRecord()

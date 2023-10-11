@@ -68,6 +68,7 @@ import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ENTITY_TENANT_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INSTANCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_ENTITY_ERROR;
@@ -88,6 +89,8 @@ import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ORDER;
+import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_TENANT_ID;
+import static org.folio.dao.util.JournalRecordsColumns.TENANT_ID;
 import static org.folio.dao.util.JournalRecordsColumns.TITLE;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_AUTHORITIES_ERRORS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_COUNT;
@@ -139,7 +142,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
 
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title, instance_id, holdings_id, order_id, permanent_location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title, instance_id, holdings_id, order_id, permanent_location_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
@@ -200,7 +203,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       journalRecord.getInstanceId(),
       journalRecord.getHoldingsId(),
       journalRecord.getOrderId(),
-      journalRecord.getPermanentLocationId());
+      journalRecord.getPermanentLocationId(),
+      journalRecord.getTenantId());
   }
 
   @Override
@@ -281,11 +285,11 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private List<JournalRecord> mapResultSetToJournalRecordsList(RowSet<Row> resultSet) {
     List<JournalRecord> journalRecords = new ArrayList<>();
-    resultSet.forEach(row -> journalRecords.add(mapRowJsonToJournalRecord(row)));
+    resultSet.forEach(row -> journalRecords.add(mapRowToJournalRecord(row)));
     return journalRecords;
   }
 
-  private JournalRecord mapRowJsonToJournalRecord(Row row) {
+  private JournalRecord mapRowToJournalRecord(Row row) {
     return new JournalRecord()
       .withId(row.getValue(ID).toString())
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
@@ -301,7 +305,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withActionType(ActionType.valueOf(row.getString(ACTION_TYPE)))
       .withActionStatus(ActionStatus.valueOf(row.getString(ACTION_STATUS)))
       .withError(row.getString(ERROR))
-      .withActionDate(Date.from(LocalDateTime.parse(row.getValue(ACTION_DATE).toString()).toInstant(ZoneOffset.UTC)));
+      .withActionDate(Date.from(LocalDateTime.parse(row.getValue(ACTION_DATE).toString()).toInstant(ZoneOffset.UTC)))
+      .withTenantId(row.getString(TENANT_ID));
   }
 
   private String prepareSortingClause(String sortBy, String order) {
@@ -377,8 +382,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
         .withError(row.getString(SOURCE_ENTITY_ERROR))
-        .withRelatedInstanceInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
-          INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID, INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR))
+        .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
+        .withRelatedInstanceInfo(constructInstanceProcessingInfo(row))
         .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
           AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
         .withRelatedPoLineInfo(new RelatedPoLineInfo()
@@ -415,6 +420,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withIdList(constructListFromColumn(row, ids))
       .withHridList(constructListFromColumn(row, hrids))
       .withError(row.getString(error));
+  }
+
+  private ProcessedEntityInfo constructInstanceProcessingInfo(Row row) {
+    return constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row, INSTANCE_ACTION_STATUS, INSTANCE_ENTITY_ID,
+      INSTANCE_ENTITY_HRID, INSTANCE_ENTITY_ERROR)
+      .withTenantId(row.getString(INSTANCE_ENTITY_TENANT_ID));
   }
 
   private ProcessedEntityInfo constructProcessedEntityWithSingleIdInfoBasedOnEntityType(Row row, String actionStatus, String id, String hrid, String error) {
