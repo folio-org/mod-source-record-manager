@@ -1,4 +1,4 @@
-## 2023-xx-xx v3.7.0-SNAPSHOT
+## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
 * [MODSOURMAN-1003](https://issues.folio.org/browse/MODSOURMAN-1003) Allow create action with non-matches for instance
 * [MODSOURMAN-1029](https://issues.folio.org/browse/MODSOURMAN-1029) Introduce Global Backpressure For Kafka Consumption
@@ -10,11 +10,6 @@
 * [MODSOURMAN-1014](https://issues.folio.org/browse/MODSOURMAN-1014) Upgrade folio-kafka-wrapper to 3.0.0 version
 * [MODDATAIMP-866](https://issues.folio.org/browse/MODDATAIMP-866) Add composite job types to support DI splitting workflow (bump interface `source-manager-job-executions` to version `3.3`)
 * [MODSOURMAN-1044](https://issues.folio.org/browse/MODSOURMAN-1044) Adjust logs during marc-to-marc matching on central tenant
-
-## 2023-03-xo v3.6.1-SNAPSHOT
-* [MODSOURMAN-957](https://issues.folio.org/browse/MODSOURMAN-957) The '1' number of SRS MARC and Instance are displayed in cells in the row with the 'Updated' row header at the individual import job's log
-* [MODDATAIMP-786](https://issues.folio.org/browse/MODDATAIMP-786) Update data-import-util library to v1.11.0
-* [MODSOURMAN-965](https://issues.folio.org/browse/MODSOURMAN-965) Adjust progress tracking mechanism with regard to multiple values being created
 
 ## 2023-02-24 v3.6.0
 * [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
