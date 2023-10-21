@@ -90,8 +90,8 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
         }
         else {
-          sendDiErrorEvent(new RawChunkRecordsParsingException(record.getErrorRecord().getDescription()),
-            params, jobExecution.getId(), params.getTenantId(), record);
+          futures.add(sendDiErrorEvent(new RawChunkRecordsParsingException(record.getErrorRecord().getDescription()),
+            params, jobExecution.getId(), params.getTenantId(), record));
         }
       } catch (Exception e) {
         LOGGER.warn("sendRecords:: Error publishing event with record id: {}",record.getId(), e);
@@ -151,7 +151,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       .withToken(params.getToken());
   }
 
-  public void sendDiErrorEvent(Throwable throwable,
+  public Future<Boolean> sendDiErrorEvent(Throwable throwable,
                                OkapiConnectionParams okapiParams,
                                String jobExecutionId,
                                String tenantId,
@@ -160,12 +160,12 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
           LOGGER.info("sendDiErrorEvent:: Start building DI_ERROR payload for jobExecutionId {} and recordId {}", jobExecutionId, currentRecord.getId());
-          payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, currentRecord)
+          return payloadBuilder.buildEventPayload(throwable, okapiParams, jobExecutionId, currentRecord)
             .compose(payload -> EventHandlingUtil.sendEventToKafka(tenantId, Json.encode(payload), DI_ERROR.value(),
               KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null));
-          return;
         }
       }
       LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
+      return Future.failedFuture(new NotFoundException(format("Couldn't find DI_ERROR payload builder for recordType %s", currentRecord.getRecordType())));
   }
 }
