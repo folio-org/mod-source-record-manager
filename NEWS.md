@@ -1,3 +1,6 @@
+## 2023-10-23 v3.7.1
+* [MODSOURMAN-1064](https://issues.folio.org/browse/MODSOURMAN-1064) Adjust log configuration
+
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
 * [MODSOURMAN-1003](https://issues.folio.org/browse/MODSOURMAN-1003) Allow create action with non-matches for instance
