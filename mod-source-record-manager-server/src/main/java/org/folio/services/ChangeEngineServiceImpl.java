@@ -54,6 +54,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
 import org.folio.services.afterprocessing.FieldModificationService;
+import org.folio.services.journal.JournalUtil;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -123,6 +124,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   private final KafkaConfig kafkaConfig;
   private final FieldModificationService fieldModificationService;
+  private final IncomingRecordService incomingRecordService;
+  private final JournalRecordService journalRecordService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -138,7 +141,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired MappingMetadataService mappingMetadataService,
                                  @Autowired JobProfileSnapshotValidationService jobProfileSnapshotValidationService,
                                  @Autowired KafkaConfig kafkaConfig,
-                                 @Autowired FieldModificationService fieldModificationService) {
+                                 @Autowired FieldModificationService fieldModificationService,
+                                 @Autowired IncomingRecordService incomingRecordService,
+                                 @Autowired JournalRecordService journalRecordService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
@@ -148,6 +153,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.jobProfileSnapshotValidationService = jobProfileSnapshotValidationService;
     this.kafkaConfig = kafkaConfig;
     this.fieldModificationService = fieldModificationService;
+    this.incomingRecordService = incomingRecordService;
+    this.journalRecordService = journalRecordService;
   }
 
   @Override
@@ -159,9 +166,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), acceptInstanceId, params);
 
     futureParsedRecords
-      .compose(parsedRecords -> isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
-        ? Future.succeededFuture(parsedRecords)
-        : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords)))
+      .compose(parsedRecords -> {
+        saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
+
+        return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
+          ? Future.succeededFuture(parsedRecords)
+          : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords));
+      })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
@@ -207,6 +218,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.fail(th);
       });
     return promise.future();
+  }
+
+  private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
+    if (!parsedRecords.isEmpty()) {
+      incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
+      journalRecordService.saveBatch(JournalUtil.buildJournalRecordsByRecords(parsedRecords), tenantId);
+    }
   }
 
   /**

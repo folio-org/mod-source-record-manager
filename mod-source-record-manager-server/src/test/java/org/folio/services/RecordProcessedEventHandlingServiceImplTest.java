@@ -42,6 +42,7 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.IncomingRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
@@ -136,16 +137,21 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private FieldModificationServiceImpl fieldModificationService;
+  @Spy
+  @InjectMocks
+  private IncomingRecordServiceImpl incomingRecordService;
+  @Spy
+  @InjectMocks
+  private JournalRecordServiceImpl journalRecordService;
+  @Spy
+  @InjectMocks
+  private IncomingRecordDaoImpl incomingRecordDao;
 
   @Spy
   RecordsPublishingService recordsPublishingService;
-  private MappingRuleCache mappingRuleCache;
-  private ChangeEngineService changeEngineService;
   private ChunkProcessingService chunkProcessingService;
   private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
   private OkapiConnectionParams params;
-  private MappingMetadataService mappingMetadataService;
-  private KafkaConfig kafkaConfig;
 
   private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
@@ -166,17 +172,10 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     .withId(jobProfile.getId())
     .withDataType(DataType.MARC);
 
-  private final JsonObject userResponse = new JsonObject()
-    .put("users",
-      new JsonArray().add(new JsonObject()
-        .put("username", "diku_admin")
-        .put("personal", new JsonObject().put("firstName", "DIKU").put("lastName", "ADMINISTRATOR"))))
-    .put("totalRecords", 1);
-
   @Before
   public void setUp() throws IOException {
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");
-    kafkaConfig = KafkaConfig.builder()
+    KafkaConfig kafkaConfig = KafkaConfig.builder()
       .kafkaHost(hostAndPort[0])
       .kafkaPort(hostAndPort[1])
       .envId(KAFKA_ENV_ID)
@@ -185,15 +184,16 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     MockitoAnnotations.openMocks(this);
 
-    mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
+    MappingRuleCache mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
     mappingRuleDao = when(mock(MappingRuleDaoImpl.class).get(any(), anyString())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(rules)))).getMock();
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
-    mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
+    MappingMetadataService mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
-    changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer, hrIdFieldService , recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
-      fieldModificationService);
+    ChangeEngineService changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
+      hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig, fieldModificationService,
+      incomingRecordService, journalRecordService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);

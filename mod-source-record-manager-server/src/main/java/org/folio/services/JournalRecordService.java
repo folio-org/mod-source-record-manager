@@ -2,10 +2,12 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -75,4 +77,12 @@ public interface JournalRecordService {
    * @return Future with JournalRecords updated number
    */
   Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId);
+
+  /**
+   * Saves set of {@link JournalRecord} entities
+   *
+   * @param journalRecords journal records to save
+   * @param tenantId       tenant id
+   */
+  void saveBatch(List<JournalRecord> journalRecords, String tenantId);
 }
