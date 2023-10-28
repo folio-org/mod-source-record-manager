@@ -1,3 +1,6 @@
+## 2023-10-28 v3.7.2
+* [MODSOURCE-710](https://issues.folio.org/browse/MODSOURCE-710) Update data-import-processing-core to v4.1.1
+
 ## 2023-10-23 v3.7.1
 * [MODSOURMAN-1064](https://issues.folio.org/browse/MODSOURMAN-1064) Adjust log configuration
 
