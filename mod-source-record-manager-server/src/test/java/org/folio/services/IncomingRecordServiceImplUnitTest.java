@@ -27,7 +27,13 @@ public class IncomingRecordServiceImplUnitTest {
   }
 
   @Test
-  public void saveBatch() {
+  public void shouldGetById() {
+    incomingRecordService.getById(any(), any());
+    verify(incomingRecordDao).getById(any(), any());
+  }
+
+  @Test
+  public void shouldSaveBatch() {
     incomingRecordService.saveBatch(any(), any());
     verify(incomingRecordDao).saveBatch(any(), any());
   }
