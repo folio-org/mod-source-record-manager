@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.folio.DataImportEventTypes.DI_ERROR;
-import static org.folio.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
@@ -886,4 +885,39 @@ public class JournalUtilTest {
     Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
   }
 
+  @Test
+  public void shouldBuildJournalRecordForNonMatchWithErrorAndMatchedNumberNotAvailable() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String expectedErrorMessage = "matching error message";
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(ERROR_KEY, expectedErrorMessage);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      NON_MATCH, ITEM, ERROR);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(1, journalRecords.size());
+
+    JournalRecord journalRecord = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.getSourceId());
+    Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
+    Assert.assertEquals(ITEM, journalRecord.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecord.getActionType());
+    Assert.assertEquals(ERROR, journalRecord.getActionStatus());
+    Assert.assertEquals(expectedErrorMessage, journalRecord.getError());
+    Assert.assertNotNull(journalRecord.getActionDate());
+  }
 }
