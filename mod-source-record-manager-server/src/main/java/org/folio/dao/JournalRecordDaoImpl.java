@@ -192,7 +192,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       UUID.fromString(journalRecord.getJobExecutionId()),
       UUID.fromString(journalRecord.getSourceId()),
       journalRecord.getSourceRecordOrder(),
-      journalRecord.getEntityType().toString(),
+      journalRecord.getEntityType() != null ? journalRecord.getEntityType().toString() : EMPTY,
       journalRecord.getEntityId(),
       journalRecord.getEntityHrId() != null ? journalRecord.getEntityHrId() : EMPTY,
       journalRecord.getActionType().toString(),
