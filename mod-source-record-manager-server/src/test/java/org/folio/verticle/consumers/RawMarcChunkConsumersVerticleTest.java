@@ -67,6 +67,8 @@ import static org.junit.Assert.*;
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   private static final String RAW_RECORD_WITH_999_ff_field = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
+
+  private static final String INVALID_RECORD = "00557nam a22002053i 4500001001200000005001700012008004100029020001800070040002100088041000800109100001900117245004400136250001200180264001800192336002600210337002800236338002700264700001900291999004100310\u001E00000010150\u001E20230724074007.2\u001E230724|2020||||||||||||       |||||und||\u001E  \u001Fa9788408232421\u001E\\\\\u001FaCC-ClU\u001Fbspa\u001Ferda\u001E\\\\\u001Faspa\u001E1 \u001FaChicot, Marcos\u001E00\u001FaEl asesinato de Platón / Chicot Marcos\u001E  \u001FaPrimera\u001E 1\u001FbPlaneta\u001Fc2020\u001E  \u001Fatext\u001Fbtxt\u001F2rdacontent\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001E1 \u001FaChicot, Marcos\u001Eff\u001Fi7e1ea9dd-f65d-4758-a738-fa1d61365267\u001E\u001D";
   private static final String RAW_EDIFACT_RECORD_PATH = "src/test/resources/records/edifact/565751us20210122.edi";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
@@ -348,6 +350,24 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+  }
+
+  @Test
+  public void shouldSendEventDiErrorWhenParsingFailedForUpdateScenarios() throws InterruptedException {
+    // given
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+            .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+            RecordsMetadata.ContentType.MARC_RAW, INVALID_RECORD);
 
     // when
     kafkaCluster.send(request);
