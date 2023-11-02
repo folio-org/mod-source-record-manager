@@ -99,10 +99,14 @@ public class JournalUtil {
       if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
         && (entityType == HOLDINGS || entityType == ITEM)) {
         List<JournalRecord> resultedJournalRecords = new ArrayList<>();
-        if (isNotBlank(eventPayloadContext.get(NOT_MATCHED_NUMBER))) {
-          int notMatchedNumber = Integer.parseInt(eventPayloadContext.get(NOT_MATCHED_NUMBER));
+
+        String notMatchedNumberField = eventPayloadContext.get(NOT_MATCHED_NUMBER);
+        boolean isNotMatchedNumberPresent = isNotBlank(notMatchedNumberField);
+
+        if (isNotMatchedNumberPresent || actionType == JournalRecord.ActionType.NON_MATCH) {
+          int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
           for (int i = 0; i < notMatchedNumber; i++) {
-            resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus)
+            resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus, journalRecord.getError())
               .withEntityType(entityType));
           }
         }
@@ -250,7 +254,7 @@ public class JournalUtil {
   }
 
   private static JournalRecord constructBlankJournalRecord(Record record, JournalRecord.EntityType entityType,
-                                                           JournalRecord.ActionStatus actionStatus) {
+                                                           JournalRecord.ActionStatus actionStatus, String error) {
     return new JournalRecord()
       .withJobExecutionId(record.getSnapshotId())
       .withSourceId(record.getId())
@@ -258,6 +262,7 @@ public class JournalUtil {
       .withEntityType(entityType)
       .withActionType(JournalRecord.ActionType.NON_MATCH)
       .withActionDate(new Date())
-      .withActionStatus(actionStatus);
+      .withActionStatus(actionStatus)
+      .withError(error);
   }
 }
