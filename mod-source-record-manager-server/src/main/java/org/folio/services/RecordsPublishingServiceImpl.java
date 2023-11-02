@@ -166,6 +166,6 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
         }
       }
       LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
-      return Future.failedFuture(new NotFoundException(format("Couldn't find DI_ERROR payload builder for recordType %s", currentRecord.getRecordType())));
+      return Future.failedFuture(throwable);
   }
 }
