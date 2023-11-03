@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.dao.IncomingRecordDaoImpl.INCOMING_RECORDS_TABLE;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.CURRENTLY_PROCESSED_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.ERROR_STATUS_FIELD;
@@ -597,12 +598,13 @@ public class JobExecutionDaoImpl implements JobExecutionDao {
             return Future.succeededFuture();
           }
 
-          UUID[] uuids = jobExecutionIds.stream().map(UUID::fromString).collect(Collectors.toList()).toArray(UUID[]::new);
+          UUID[] uuids = jobExecutionIds.stream().map(UUID::fromString).toList().toArray(UUID[]::new);
 
           Future<RowSet<Row>> jobExecutionProgressFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(PROGRESS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
           Future<RowSet<Row>> jobExecutionSourceChunksFuture = Future.future(rowSetPromise -> deleteFromRelatedTableWithDeprecatedNaming(JOB_EXECUTION_SOURCE_CHUNKS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
           Future<RowSet<Row>> journalRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(JOURNAL_RECORDS_TABLE_NAME, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
-          return CompositeFuture.all(jobExecutionProgressFuture, jobExecutionSourceChunksFuture, journalRecordsFuture)
+          Future<RowSet<Row>> incomingRecordsFuture = Future.future(rowSetPromise -> deleteFromRelatedTable(INCOMING_RECORDS_TABLE, uuids, sqlConnection, tenantId, rowSetPromise, postgresClient));
+          return CompositeFuture.all(jobExecutionProgressFuture, jobExecutionSourceChunksFuture, journalRecordsFuture, incomingRecordsFuture)
             .compose(ar -> Future.<RowSet<Row>>future(rowSetPromise -> deleteFromJobExecutionTable(uuids, sqlConnection, tenantId, rowSetPromise, postgresClient)))
             .map(true);
         }));

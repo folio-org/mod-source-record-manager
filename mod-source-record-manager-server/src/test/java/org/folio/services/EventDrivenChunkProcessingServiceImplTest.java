@@ -43,6 +43,7 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.JobExecutionSourceChunkDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
+import org.folio.dao.IncomingRecordDaoImpl;
 import org.folio.dao.MappingParamsSnapshotDaoImpl;
 import org.folio.dao.MappingRuleDaoImpl;
 import org.folio.dao.MappingRulesSnapshotDaoImpl;
@@ -110,6 +111,12 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @InjectMocks
   @Spy
   private JobExecutionServiceImpl jobExecutionService;
+  @InjectMocks
+  @Spy
+  private IncomingRecordServiceImpl incomingRecordService;
+  @InjectMocks
+  @Spy
+  private IncomingRecordDaoImpl incomingRecordDao;
   @InjectMocks
   @Spy
   private JournalRecordServiceImpl journalRecordService;
@@ -186,7 +193,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig,
-      fieldModificationService);
+      fieldModificationService, incomingRecordService, journalRecordService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);

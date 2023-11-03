@@ -101,6 +101,10 @@ public class ChangeEngineServiceImplTest {
   private JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   @Mock
   private FieldModificationService fieldModificationService;
+  @Mock
+  private IncomingRecordService incomingRecordService;
+  @Mock
+  private JournalRecordService journalRecordService;
 
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
