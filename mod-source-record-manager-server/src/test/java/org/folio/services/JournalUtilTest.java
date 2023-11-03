@@ -122,6 +122,82 @@ public class JournalUtilTest {
   }
 
   @Test
+  public void shouldBuildJournalRecordsByRecordsWithoutError() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
+
+    assertThat(journalRecords).hasSize(1);
+    assertThat(journalRecords.get(0).getId()).isNotBlank();
+    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
+    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
+    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getError()).isNull();
+  }
+
+  @Test
+  public void shouldBuildJournalRecordsByRecordsWithError() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    ErrorRecord errorRecord = new ErrorRecord().withDescription("error");
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
+      .withErrorRecord(errorRecord);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
+
+    assertThat(journalRecords).hasSize(1);
+    assertThat(journalRecords.get(0).getId()).isNotBlank();
+    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
+    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(ERROR);
+    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getError()).isEqualTo(errorRecord.getDescription());
+  }
+
+  @Test
+  public void shouldBuildIncomingRecordsByRecords() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRawRecord(new RawRecord().withContent("rawRecord"))
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
+      .withParsedRecord(new ParsedRecord().withContent("parsedRecord"));
+
+    List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(List.of(record));
+
+    assertThat(incomingRecords).hasSize(1);
+    assertThat(incomingRecords.get(0).getId()).isEqualTo(record.getId());
+    assertThat(incomingRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(incomingRecords.get(0).getOrder()).isEqualTo(record.getOrder());
+    assertThat(incomingRecords.get(0).getRawRecordContent()).isEqualTo("rawRecord");
+    assertThat(incomingRecords.get(0).getRecordType()).isEqualTo(IncomingRecord.RecordType.MARC_BIB);
+    assertThat(incomingRecords.get(0).getParsedRecordContent()).isEqualTo("parsedRecord");
+  }
+
+  @Test
   public void shouldBuildJournalRecordForInstance() throws JournalRecordMapperException {
     String instanceId = UUID.randomUUID().toString();
     String instanceHrid = UUID.randomUUID().toString();
