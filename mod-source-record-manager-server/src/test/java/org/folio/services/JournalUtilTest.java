@@ -6,7 +6,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.DataImportEventPayload;
 import org.folio.Record;
+import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.IncomingRecord;
+import org.folio.rest.jaxrs.model.ParsedRecord;
+import org.folio.rest.jaxrs.model.RawRecord;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalUtil;
 import org.junit.Assert;
@@ -18,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.folio.DataImportEventTypes.DI_ERROR;
 import static org.folio.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
@@ -38,6 +43,82 @@ import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 public class JournalUtilTest {
 
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
+
+  @Test
+  public void shouldBuildJournalRecordsByRecordsWithoutError() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
+
+    assertThat(journalRecords).hasSize(1);
+    assertThat(journalRecords.get(0).getId()).isNotBlank();
+    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
+    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
+    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getError()).isNull();
+  }
+
+  @Test
+  public void shouldBuildJournalRecordsByRecordsWithError() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    ErrorRecord errorRecord = new ErrorRecord().withDescription("error");
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
+      .withErrorRecord(errorRecord);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
+
+    assertThat(journalRecords).hasSize(1);
+    assertThat(journalRecords.get(0).getId()).isNotBlank();
+    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
+    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
+    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
+    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
+    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(ERROR);
+    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getError()).isEqualTo(errorRecord.getDescription());
+  }
+
+  @Test
+  public void shouldBuildIncomingRecordsByRecords() {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
+      .withId(recordId)
+      .withSnapshotId(snapshotId)
+      .withOrder(0)
+      .withRawRecord(new RawRecord().withContent("rawRecord"))
+      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
+      .withParsedRecord(new ParsedRecord().withContent("parsedRecord"));
+
+    List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(List.of(record));
+
+    assertThat(incomingRecords).hasSize(1);
+    assertThat(incomingRecords.get(0).getId()).isEqualTo(record.getId());
+    assertThat(incomingRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
+    assertThat(incomingRecords.get(0).getOrder()).isEqualTo(record.getOrder());
+    assertThat(incomingRecords.get(0).getRawRecordContent()).isEqualTo("rawRecord");
+    assertThat(incomingRecords.get(0).getRecordType()).isEqualTo(IncomingRecord.RecordType.MARC_BIB);
+    assertThat(incomingRecords.get(0).getParsedRecordContent()).isEqualTo("parsedRecord");
+  }
 
   @Test
   public void shouldBuildJournalRecordForInstance() throws JournalRecordMapperException {
