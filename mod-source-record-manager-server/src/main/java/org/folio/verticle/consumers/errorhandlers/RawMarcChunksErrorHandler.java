@@ -114,7 +114,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   private void sendDiError(Throwable throwable, String jobExecutionId, OkapiConnectionParams okapiParams, Record record) {
     HashMap<String, String> context = new HashMap<>();
     context.put(ERROR_KEY, throwable.getMessage());
-    if (record != null) {
+    if (record != null && record.getRecordType() != null) {
       context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
     }
 
