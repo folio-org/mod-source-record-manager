@@ -42,7 +42,7 @@ public class IncomingRecordDaoImpl implements IncomingRecordDao {
       LOGGER.warn("saveBatch:: Error saving IncomingRecord entity", e);
       promise.fail(e);
     }
-    return promise.future().onFailure(e -> LOGGER.warn("saveBatch:: Error saving JournalRecord entity", e));
+    return promise.future().onFailure(e -> LOGGER.warn("saveBatch:: Error saving IncomingRecord entity", e));
   }
 
   private Tuple prepareInsertQueryParameters(IncomingRecord incomingRecord) {
