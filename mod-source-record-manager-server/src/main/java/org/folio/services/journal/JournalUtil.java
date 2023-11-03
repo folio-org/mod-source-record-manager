@@ -9,9 +9,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,6 +64,45 @@ public class JournalUtil {
       .or(() -> Optional.ofNullable(context.get(MARC_AUTHORITY.value())))
       .or(() -> Optional.ofNullable(context.get(MARC_HOLDINGS.value())))
       .orElse(EMPTY);
+  }
+
+  public static List<JournalRecord> buildJournalRecordsByRecords(List<Record> records) {
+    return records.stream().map(record -> {
+      JournalRecord journalRecord = new JournalRecord()
+        .withId(UUID.randomUUID().toString())
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withSourceRecordOrder(record.getOrder())
+        .withActionType(JournalRecord.ActionType.PARSE)
+        .withActionDate(new Date())
+        .withActionStatus(record.getErrorRecord() == null ? JournalRecord.ActionStatus.COMPLETED : JournalRecord.ActionStatus.ERROR);
+      if (record.getRecordType() != null) {
+        Arrays.stream(JournalRecord.EntityType.values())
+          .filter(v -> v.value().startsWith(record.getRecordType().value()))
+          .findFirst().ifPresent(journalRecord::setEntityType);
+      }
+      if (record.getErrorRecord() != null) {
+        journalRecord.setError(record.getErrorRecord().getDescription());
+      }
+      return journalRecord;
+    }).toList();
+  }
+
+  public static List<IncomingRecord> buildIncomingRecordsByRecords(List<Record> records) {
+    return records.stream().map(record -> {
+      IncomingRecord incomingRecord = new IncomingRecord()
+        .withId(record.getId())
+        .withJobExecutionId(record.getSnapshotId())
+        .withOrder(record.getOrder())
+        .withRawRecordContent(record.getRawRecord().getContent());
+      if (record.getRecordType() != null) {
+        incomingRecord.setRecordType(IncomingRecord.RecordType.fromValue(record.getRecordType().value()));
+      }
+      if (record.getParsedRecord() != null) {
+        incomingRecord.setParsedRecordContent(String.valueOf(record.getParsedRecord().getContent()));
+      }
+      return incomingRecord;
+    }).toList();
   }
 
   public static List<JournalRecord> buildJournalRecordsByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
