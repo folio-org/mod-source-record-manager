@@ -73,6 +73,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
+import static org.folio.dao.IncomingRecordDaoImpl.INCOMING_RECORDS_TABLE;
 import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
@@ -504,13 +505,14 @@ public abstract class AbstractRestTest {
     PostgresClient pgClient = PostgresClient.getInstance(vertx, TENANT_ID);
     pgClient.delete(CHUNKS_TABLE_NAME, new Criterion(), event1 ->
       pgClient.delete(JOURNAL_RECORDS_TABLE, new Criterion(), event2 ->
-        pgClient.delete(JOB_EXECUTION_PROGRESS_TABLE, new Criterion(), event3 ->
-          pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event4 -> {
-            if (event3.failed()) {
-              context.fail(event3.cause());
-            }
-            async.complete();
-          }))));
+        pgClient.delete(INCOMING_RECORDS_TABLE, new Criterion(), event3 ->
+          pgClient.delete(JOB_EXECUTION_PROGRESS_TABLE, new Criterion(), event4 ->
+            pgClient.delete(JOB_EXECUTIONS_TABLE_NAME, new Criterion(), event5 -> {
+              if (event4.failed()) {
+                context.fail(event4.cause());
+              }
+              async.complete();
+            })))));
   }
 
   protected InitJobExecutionsRsDto constructAndPostInitJobExecutionRqDto(int filesNumber) {
