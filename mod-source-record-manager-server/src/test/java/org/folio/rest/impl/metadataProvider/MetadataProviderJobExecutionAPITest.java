@@ -9,6 +9,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.http.HttpStatus;
+import org.folio.dao.IncomingRecordDaoImpl;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
@@ -16,6 +17,7 @@ import org.folio.rest.impl.changeManager.ChangeManagerAPITest;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsReq;
 import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDto;
@@ -95,6 +97,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   private static final String GET_JOB_EXECUTION_SUMMARY_PATH = "/metadata-provider/jobSummary";
   private static final String GET_JOB_EXECUTION_JOB_PROFILES_PATH = "/metadata-provider/jobExecutions/jobProfiles";
   private static final String GET_UNIQUE_USERS_INFO = "/metadata-provider/jobExecutions/users";
+  private static final String GET_INCOMING_RECORDS_BY_ID = "/metadata-provider/incomingRecords/";
 
   private final JsonObject userResponse = new JsonObject()
     .put("users",
@@ -108,6 +111,9 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   @Spy
   @InjectMocks
   private JournalRecordDaoImpl journalRecordDao;
+  @Spy
+  @InjectMocks
+  private IncomingRecordDaoImpl incomingRecordDao;
   private AutoCloseable mocks;
 
   @Before
@@ -1726,4 +1732,39 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
       .body("totalRecords", is(0));
   }
 
+  @Test
+  public void shouldReturnNotFoundIncomingRecordById() {
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_INCOMING_RECORDS_BY_ID + UUID.randomUUID())
+      .then()
+      .statusCode(HttpStatus.SC_NOT_FOUND);
+  }
+
+  @Test
+  public void shouldReturnIncomingRecordById(TestContext context) {
+    Async async = context.async();
+    List<JobExecution> createdJobExecutions = constructAndPostInitJobExecutionRqDto(1).getJobExecutions();
+    JobExecution jobExecution = createdJobExecutions.get(0);
+    String jobExecutionId = jobExecution.getId();
+    String id = UUID.randomUUID().toString();
+
+    IncomingRecord incomingRecord = new IncomingRecord()
+      .withId(id).withJobExecutionId(jobExecutionId).withRecordType(IncomingRecord.RecordType.MARC_BIB).withOrder(0)
+      .withRawRecordContent("rawRecord").withParsedRecordContent("parsedRecord");
+
+    incomingRecordDao.saveBatch(List.of(incomingRecord), TENANT_ID)
+      .onComplete(v -> {
+        RestAssured.given()
+          .spec(spec)
+          .when()
+          .get(GET_INCOMING_RECORDS_BY_ID + id)
+          .then()
+          .statusCode(HttpStatus.SC_OK)
+          .body("id", is(id))
+          .body("jobExecutionId", is(jobExecutionId));
+        async.complete();
+      });
+  }
 }
