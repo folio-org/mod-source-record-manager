@@ -501,6 +501,15 @@
           "permissionsRequired": [
             "metadata-provider.jobexecutions.get"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/incomingRecords/{recordId}",
+          "permissionsRequired": [
+            "metadata-provider.incomingrecords.get"
+          ]
         }
       ]
     },
@@ -652,6 +661,11 @@
       "description": "Get JobExecutionLogDto"
     },
     {
+      "permissionName": "metadata-provider.incomingrecords.get",
+      "displayName": "Metadata Provider - get incoming record",
+      "description": "Get IncomingRecord"
+    },
+    {
       "permissionName": "change-manager.jobexecutions.post",
       "displayName": "Change Manager - create jobExecutions",
       "description": "Post JobExecution"
@@ -718,6 +732,7 @@
       "subPermissions": [
         "metadata-provider.jobexecutions.get",
         "metadata-provider.logs.get",
+        "metadata-provider.incomingrecords.get",
         "change-manager.jobexecutions.post",
         "change-manager.jobexecutions.put",
         "change-manager.jobexecutions.get",
