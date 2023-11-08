@@ -1,3 +1,8 @@
+## 2023-11-08 v3.7.3
+* [MODSOURMAN-1066](https://issues.folio.org/browse/MODSOURMAN-1066) Data import with parsing error gets stuck
+* [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
+* [MODSOURMAN-1082](https://issues.folio.org/browse/MODSOURMAN-1082) Log details are not shown in some error cases
+
 ## 2023-10-28 v3.7.2
 * [MODSOURCE-710](https://issues.folio.org/browse/MODSOURCE-710) Update data-import-processing-core to v4.1.1
 
