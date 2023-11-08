@@ -89,6 +89,7 @@ public class JobExecutionDaoImplUnitTest {
         Assert.assertEquals(jobExecution.getUserId(), ar.result().getUserId());
         Assert.assertEquals(jobExecution.getJobProfileInfo().getId(), ar.result().getJobProfileInfo().getId());
         Assert.assertEquals(jobExecution.getJobProfileInfo().getName(), ar.result().getJobProfileInfo().getName());
+        Assert.assertEquals(jobExecution.getJobProfileInfo().getHidden(), ar.result().getJobProfileInfo().getHidden());
 
         verify(pgClient).execute(anyString(), any(Tuple.class), any(Handler.class));
       });

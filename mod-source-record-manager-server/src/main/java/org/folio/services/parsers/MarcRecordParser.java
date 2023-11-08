@@ -48,7 +48,7 @@ public final class MarcRecordParser implements RecordParser {
         result.setParsedRecord(new JsonObject());
       }
     } catch (Exception e) {
-      LOGGER.error("Error during parse MARC record from raw record", e);
+      LOGGER.warn("parseRecord:: Error during parse MARC record from raw record", e);
       prepareResultWithError(result, Collections.singletonList(new JsonObject()
         .put("name", e.getClass().getName())
         .put("message", e.getMessage())));

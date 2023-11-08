@@ -25,5 +25,9 @@
   "loanTypes": [],
   "itemNoteTypes": [],
   "marcFieldProtectionSettings": [],
-  "tenantConfiguration": ""
+  "tenantConfiguration": "",
+  "authorityNoteTypes": [],
+  "authoritySourceFiles": [],
+  "organizations": null,
+  "linkingRules": []
 }

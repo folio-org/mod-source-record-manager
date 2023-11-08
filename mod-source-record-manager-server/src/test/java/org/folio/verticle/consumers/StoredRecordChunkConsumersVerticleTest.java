@@ -1,10 +1,11 @@
 package org.folio.verticle.consumers;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import net.mguenther.kafka.junit.ReadKeyValues;
@@ -15,9 +16,6 @@ import org.apache.http.HttpStatus;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -26,14 +24,7 @@ import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
-import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +34,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(VertxUnitRunner.class)
 public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
@@ -62,21 +68,11 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     jobExec = createdJobExecutions.get(0);
-
-    RestAssured.given()
-      .spec(spec)
-      .body(new JobProfileInfo()
-        .withName("MARC records")
-        .withId(JOB_PROFILE_ID)
-        .withDataType(JobProfileInfo.DataType.MARC))
-      .when()
-      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
-      .then()
-      .statusCode(HttpStatus.SC_OK);
   }
 
   @Test
   public void shouldPublishDiErrorWhenLeaderRecordTypeValueIsInvalid() throws InterruptedException {
+    linkJobProfileToJobExecution();
     // given
     String parsedContentWithInvalidRecordTypeValue = "{\"leader\": \"13112c7m a2200553Ii 3900\"}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContentWithInvalidRecordTypeValue, 1);
@@ -98,6 +94,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldPublishCoupleDiErrorsWhenWrongPayload() throws InterruptedException {
+    linkJobProfileToJobExecution();
     String wrongPayload = "{\"leader\": \"13112c7m a2200553Ii 4300\"}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(wrongPayload, 7);
 
@@ -113,6 +110,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldPublishCoupleOfSuccessEventsAndCoupleOfDiErrorEvents() throws InterruptedException {
+    linkJobProfileToJobExecution();
     String correctContent = "{\"leader\":\"00116nam  22000731a 4700\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     String wrongContent = "{\"leader\": \"13113c7m a2200553Ii 4800\"}";
 
@@ -137,6 +135,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldSendEventsWithRecords() throws InterruptedException {
+    linkJobProfileToJobExecution();
     // given
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
@@ -158,6 +157,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
 
   @Test
   public void shouldObserveOnlySingleEventInCaseOfDuplicates() throws InterruptedException {
+    linkJobProfileToJobExecution();
     // given
     String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
     RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
@@ -173,6 +173,32 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), eventPayload.getEventType());
+  }
+
+  @Test
+  public void shouldSendEventForOrderIfOrderActionProfileExists() throws InterruptedException {
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(orderProfileSnapshotWrapperResponse))));
+    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.ok().withBody(Json.encode(orderProfileSnapshotWrapperResponse))));
+    linkJobProfileToJobExecution();
+    // given
+    String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
+    RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
+
+    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_MARC_BIB_FOR_ORDER_CREATED, 1);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_MARC_BIB_FOR_ORDER_CREATED.value(), eventPayload.getEventType());
+    assertEquals(TENANT_ID, eventPayload.getTenant());
+    assertNotNull(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value()));
+    assertNotNull(eventPayload.getContext().get(JOB_PROFILE_SNAPSHOT_ID));
   }
 
   private RecordsBatchResponse getRecordsBatchResponse(String parsedContent, Integer totalRecords) {
@@ -215,5 +241,18 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
       }
     }
     return result;
+  }
+
+  private void linkJobProfileToJobExecution() {
+    RestAssured.given()
+      .spec(spec)
+      .body(new JobProfileInfo()
+        .withName("MARC records")
+        .withId(JOB_PROFILE_ID)
+        .withDataType(JobProfileInfo.DataType.MARC))
+      .when()
+      .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK);
   }
 }

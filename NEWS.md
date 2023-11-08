@@ -1,4 +1,160 @@
-## 2021-xx-xx v3.3.0-SNAPSHOT
+## 2023-xx-xx v3.8.0-SNAPSHOT
+* [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
+
+
+## 2023-10-13 v3.7.0
+* [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
+* [MODSOURMAN-1003](https://issues.folio.org/browse/MODSOURMAN-1003) Allow create action with non-matches for instance
+* [MODSOURMAN-1029](https://issues.folio.org/browse/MODSOURMAN-1029) Introduce Global Backpressure For Kafka Consumption
+* [MODSOURMAN-1031](https://issues.folio.org/browse/MODSOURMAN-1031) The status of holdings is not displayed in the Import log after uploading file for creating holdings
+* [MODSOURMAN-1011](https://issues.folio.org/browse/MODSOURMAN-1011) Import An Instance With A Known Identifier (new acceptInstanceId parameter)
+* [MODSOURMAN-999](https://issues.folio.org/browse/MODSOURMAN-999) Upgrade mod-source-record-manager to Java 17
+* [MODSOURMAN-974](https://issues.folio.org/browse/MODSOURMAN-974) MARC bib $9 handling | Remove $9 subfields from linkable fields
+* [MODSOURMAN-971](https://issues.folio.org/browse/MODSOURMAN-971) Adjust journal records population to create multiple journal records for each Holdings/Item
+* [MODSOURMAN-1014](https://issues.folio.org/browse/MODSOURMAN-1014) Upgrade folio-kafka-wrapper to 3.0.0 version
+* [MODDATAIMP-866](https://issues.folio.org/browse/MODDATAIMP-866) Add composite job types to support DI splitting workflow (bump interface `source-manager-job-executions` to version `3.3`)
+* [MODSOURMAN-1044](https://issues.folio.org/browse/MODSOURMAN-1044) Adjust logs during marc-to-marc matching on central tenant
+
+## 2023-02-24 v3.6.0
+* [MODSOURMAN-873](https://issues.folio.org/browse/MODSOURMAN-873) Add MARC 720 field to default MARC Bib-Instance mapping and adjust relator term mapping
+* [MODSOURMAN-837](https://issues.folio.org/browse/MODSOURMAN-837) MARC bib - FOLIO instance mapping | Update default mapping to change how Relator term is populated on instance record
+* [MODSOURMAN-892](https://issues.folio.org/browse/MODSOURMAN-892) Logging improvement - Configuration
+* [MODDATAIMP-736](https://issues.folio.org/browse/MODDATAIMP-736) Adjust logging configuration in all DI modules to display datetime in a proper format
+* [MODSOURMAN-888](https://issues.folio.org/browse/MODSOURMAN-888) Link update: Implement API endpoint to retrieve mapping metadata by record type
+* [MODSOURMAN-927](https://issues.folio.org/browse/MODSOURMAN-927) No title displays in import log when SRS MARC and Instance are not updated
+* [MODSOURMAN-705](https://issues.folio.org/browse/MODSOURMAN-705) Logging improvement
+* [MODSOURMAN-930](https://issues.folio.org/browse/MODSOURMAN-930) Add missed permissions for invoice data import flow
+* [MODSOURMAN-928](https://issues.folio.org/browse/MODSOURMAN-928) MARC-to-MARC Holdings update log is unexpected
+* [MODSOURMAN-831](https://issues.folio.org/browse/MODSOURMAN-831) Change the SRS MARC column in the summary section for EDIFACT logs
+* [MODDATAIMP-758](https://issues.folio.org/browse/MODDATAIMP-758) Improve logging (hide SQL requests)
+* [MODSOURMAN-890](https://issues.folio.org/browse/MODSOURMAN-890) The '2' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
+* [MODSOURMAN-891](https://issues.folio.org/browse/MODSOURMAN-891) SRS MARC Created when No Create Action in Job Profile
+* [MODSOURMAN-941](https://issues.folio.org/browse/MODSOURMAN-941) Add query param to allow filtering by fileName
+* [MODSOURMAN-936](https://issues.folio.org/browse/MODSOURMAN-936) Add logic in Journal Handler for Post-Processing event
+* [MODSOURMAN-948](https://issues.folio.org/browse/MODSOURMAN-948) Improve schema for the 'journal_records'-table to be able to import Orders
+* [MODSOURMAN-937](https://issues.folio.org/browse/MODSOURMAN-937) Send DI_MARC_BIB_FOR_ORDER_CREATED event for Importing Orders
+* [MODSOURMAN-932](https://issues.folio.org/browse/MODSOURMAN-932) Fill Journal Record info for Orders upon receiving DI_COMPLETED event
+* [MODSOURMAN-946](https://issues.folio.org/browse/MODSOURMAN-946) Handle DI_ERROR event for POLines
+* [MODSOURMAN-955](https://issues.folio.org/browse/MODSOURMAN-955) Include OrderId to the DTO that is used to display the json for POLine in DI log
+* [MODSOURMAN-899](https://issues.folio.org/browse/MODSOURMAN-899) Do not process chunks when the DI is stopped
+* [MODSOURMAN-961](https://issues.folio.org/browse/MODSOURMAN-961) Provide actual incoming records total amount on request jobExecution by id
+* [MODSOURMAN-924](https://issues.folio.org/browse/MODSOURMAN-924) Mapping bib's $9 into subjects, series, alternativeTitles fields
+* [MODSOURMAN-949](https://issues.folio.org/browse/MODSOURMAN-949) Add permissions for links update
+* [MODSOURMAN-932](https://issues.folio.org/browse/MODSOURMAN-932) Fill Journal Record info for Orders upon receiving DI_COMPLETED event
+* [MODDATAIMP-750](https://issues.folio.org/browse/MODDATAIMP-750) Update util dependencies
+* [MODSOURMAN-939](https://issues.folio.org/browse/MODSOURMAN-939) Handle EDIFACT parsing exceptions - complete job with error
+* [MODSOURMAN-939](https://issues.folio.org/browse/MODSOURMAN-939) Handle EDIFACT parsing exceptions - complete job with error
+
+## 2022-10-24 v3.5.0
+* [MODSOURMAN-858](https://issues.folio.org/browse/MODSOURMAN-858) Mapping bib's $9 into contributors.authorityId field
+* [MODSOURMAN-838](https://issues.folio.org/browse/MODSOURMAN-838) Search by LCCN "010 $a" subfield value with "\" at the end don't retrieve results
+* [MODSOURMAN-868](https://issues.folio.org/browse/MODSOURMAN-868) Allow sorting of JobExecutions by 'started_date'
+* [MODSOURMAN-827](https://issues.folio.org/browse/MODSOURMAN-827) Updated instance mapping rules for 590 field to mark notes as staff only
+* [MODSOURMAN-889](https://issues.folio.org/browse/MODSOURMAN-889) folio-di-support 1.6.0 fixing Spring4Shell CVE-2022-22965
+* [MODSOURMAN-846](https://issues.folio.org/browse/MODSOURMAN-846) Optimize Data Access Patterns To Update Job Execution Progress
+* [MODSOURMAN-828](https://issues.folio.org/browse/MODSOURMAN-828) Cache Metadata Snapshot of Data Import Job
+* [MODSOURMAN-883](https://issues.folio.org/browse/MODSOURMAN-883) Upgrade to RMB v35.0.1
+* [MODSOURMAN-822](https://issues.folio.org/browse/MODSOURMAN-822) Fix sorting for "Records" column
+* [MODSOURMAN-887](https://issues.folio.org/browse/MODSOURMAN-887) Fix sorting for "Status" column
+* [MODSOURMAN-885](https://issues.folio.org/browse/MODSOURMAN-885) Installation/migration: column jep1.jobexecutionid does not exist
+* [MODSOURMAN-866](https://issues.folio.org/browse/MODSOURMAN-866) Assign each authority record to an Authority Source file list
+* [MODSOURMAN-832](https://issues.folio.org/browse/MODSOURMAN-832) Upgrade Users interface to 16.0
+* [MODSOURMAN-815](https://issues.folio.org/browse/MODSOURMAN-815) Support MARC-MARC Holdings update action
+
+## 2022-09-20 v3.4.5
+* [MODSOURMAN-874](https://issues.folio.org/browse/MODSOURMAN-874) Data import: fails the creation of a Holding through a match on the 999 ff field.
+
+## 2022-09-06 v3.4.4
+* [MODSOURMAN-870](https://issues.folio.org/browse/MODSOURMAN-870) Error while updating module after fix for schema differences between MG Bugfest and clean MG deployment
+
+## 2022-09-05 v3.4.3
+* [MODSOURMAN-854](https://issues.folio.org/browse/MODSOURMAN-854) Importing MARC Authority and Holdings records with 999 marc fields, with default Create job profiles, causes data problems.
+* [MODSOURMAN-833](https://issues.folio.org/browse/MODSOURMAN-833) Schema differences between MG Bugfest and clean MG deployment: mod-source-record-manager
+* [MODSOURMAN-859](https://issues.folio.org/browse/MODSOURMAN-859) DI stops processing the following files after using an incorrect type of JobProfile
+
+## 2022-08-25 v3.4.2
+* [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
+* [MODSOURMAN-852](https://issues.folio.org/browse/MODSOURMAN-852) Fail job for unsupported profile (match MARC BIB to Instance and update MARC BIB)
+* [MODSOURCE-521](https://issues.folio.org/browse/MODSOURCE-521) Populate 035 fields for exceptional cases of Update action
+
+## 2022-08-03 v3.4.1
+* [MODSOURMAN-818](https://issues.folio.org/browse/MODSOURMAN-818) Improve endpoints to get job executions profiles and users
+* [MODSOURMAN-836](https://issues.folio.org/browse/MODSOURMAN-836) Return job users and profiles only for jobs with COMMITTED, ERROR, CANCELED statuses
+* [MODSOURMAN-823](https://issues.folio.org/browse/MODSOURMAN-823) View all logs: broken alphabetical sorting via the "Job profile" column
+* [MODSOURMAN-840](https://issues.folio.org/browse/MODSOURMAN-840) Importing MARC records with 999 ff fields using Create jobs without match profiles causes data problems.
+
+## 2022-07-05 v3.4.0
+* [MODSOURMAN-691](https://issues.folio.org/browse/MODSOURMAN-691) Support Delete MARC Authority Action
+* [MODSOURMAN-707](https://issues.folio.org/browse/MODSOURMAN-707) Suppress Delete Authority job logs from Data Import log UI
+* [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
+* [MODSOURMAN-724](https://issues.folio.org/browse/MODSOURMAN-724) SRM does not process and save error records
+* [MODSOURMAN-727](https://issues.folio.org/browse/MODSOURMAN-727) Fix mapping for Authority 010 tag
+* [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
+* [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
+* [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
+* [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
+* [MODSOURMAN-756](https://issues.folio.org/browse/MODSOURMAN-756) Fix unnecessary No content logs in View All page when import fails
+* [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
+* [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
+* [MODSOURMAN-771](https://issues.folio.org/browse/MODSOURMAN-771) Provisioned for marking Job Executions to be deleted
+* [MODSOURMAN-778](https://issues.folio.org/browse/MODSOURMAN-778) Add permission for Purchase Order Lines matching
+* [MODSOURMAN-784](https://issues.folio.org/browse/MODSOURMAN-784) The status of instance is not updated in the Import log after uploading MARC file for modify
+* [MODSOURMAN-785](https://issues.folio.org/browse/MODSOURMAN-785) JobExecutions APIs updated to filter out "Deleted" jobs
+* [MODSOURMAN-786](https://issues.folio.org/browse/MODSOURMAN-786) To restrict update of JobExecution that is marked as "Deleted"
+* [MODSOURMAN-780](https://issues.folio.org/browse/MODSOURMAN-780) Implement endpoint for adding summary for work accomplished in a job
+* [MODSOURMAN-779](https://issues.folio.org/browse/MODSOURMAN-779) Add "CANCELLED" status for Import jobs that are stopped by users.
+* [MODSOURMAN-791](https://issues.folio.org/browse/MODSOURMAN-791) Reduce Conversion of Parsed Content Into A MARC4J Record
+* [MODSOURMAN-792](https://issues.folio.org/browse/MODSOURMAN-792) Initialize mapping parameters without race conditions
+* [MODSOURMAN-790](https://issues.folio.org/browse/MODSOURMAN-790) Implement endpoint to get job executions users.
+* [MODSOURMAN-796](https://issues.folio.org/browse/MODSOURMAN-796) Change logic to initialize job execution progress after reading file instead of processing the first chunk
+* [MODSOURMAN-798](https://issues.folio.org/browse/MODSOURMAN-798) Change cache invalidation policy for LP data.
+* [MODSOURMAN-795](https://issues.folio.org/browse/MODSOURMAN-795) Improve summary endpoint by parameter "errorsOnly".
+* [MODSOURMAN-802](https://issues.folio.org/browse/MODSOURMAN-802) Block sending "Cancel" signal to finished task.
+* [MODSOURMAN-805](https://issues.folio.org/browse/MODSOURMAN-805) Use exclusiveSubfield for authority rules
+* [MODSOURMAN-808](https://issues.folio.org/browse/MODSOURMAN-808) Drop deprecated job_execution(s!) table.
+* [MODSOURMAN-710](https://issues.folio.org/browse/MODSOURMAN-710) Improve performance of sql query for retrieving log data for json screen
+* [MODSOURMAN-775](https://issues.folio.org/browse/MODSOURMAN-775) Logs show incorrectly formatted request id.
+* [MODSOURMAN-810](https://issues.folio.org/browse/MODSOURMAN-810) Improve summary endpoint by parameter "entityType"
+* [MODSOURMAN-811](https://issues.folio.org/browse/MODSOURMAN-811) Ensure proper work of flow control in multi-instances and multi-partitions envs
+* [MODSOURMAN-813](https://issues.folio.org/browse/MODSOURMAN-813) Remove JobExecutionCache to improve progress bar on distributed envs
+* [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Adjust totalRecords field for filtered jobLogEntries
+* [MODSOURMAN-814](https://issues.folio.org/browse/MODSOURMAN-814) Send DI_MARC_FOR_UPDATE_RECEIVED event if job profile contains action for instance update
+* [MODSOURMAN-806](https://issues.folio.org/browse/MODSOURMAN-806) Construct JournalRecord for DI_ERRORs even if there is no Record .
+
+## 2022-04-08 v3.3.8
+* [MODSOURMAN-768](https://issues.folio.org/browse/MODSOURMAN-768) Fix schema upgrade for SRM
+
+## 2022-04-07 v3.3.7
+* [MODSOURMAN-763](https://issues.folio.org/browse/MODSOURMAN-763) Weird log display for a job that updates or creates
+* [MODSOURMAN-767](https://issues.folio.org/browse/MODSOURMAN-767) Fix state is "In progress" after successful quickMarc update
+* [MODSOURMAN-762](https://issues.folio.org/browse/MODSOURMAN-762) Fix migration issues
+
+## 2022-04-06 v3.3.6
+* [MODSOURMAN-751](https://issues.folio.org/browse/MODSOURMAN-751) Improve sql query used by UI to know is processing completed
+* [MODSOURMAN-756](https://issues.folio.org/browse/MODSOURMAN-751) Fix unnecessary No content logs in View All page when import fails
+
+## 2022-04-01 v3.3.5
+* [MODSOURMAN-752](https://issues.folio.org/browse/MODSOURMAN-752) Fix PgException while restore mapping rules
+
+## 2022-04-01 v3.3.4
+* [MODSOURMAN-749](https://issues.folio.org/browse/MODSOURMAN-749) Make it possible to restore default mapping rules for Authority records
+
+## 2022-03-30 v3.3.3
+* [MODSOURMAN-746](https://issues.folio.org/browse/MODSOURMAN-746) Avoid creation of trigger for old job progress table which cases an error during jobProgress saving
+
+## 2022-03-29 v3.3.2
+* [MODSOURMAN-728](https://issues.folio.org/browse/MODSOURMAN-728) Fix migration issue during upgrade
+* [MODSOURMAN-741](https://issues.folio.org/browse/MODSOURMAN-741) Add missed `inventory-storage.holdings-sources.collection.get` permission
+
+## 2022-03-26 v3.3.1
+* [MODSOURMAN-722](https://issues.folio.org/browse/MODSOURMAN-722) Journal does not show error status when importing EDIFACT
+* [MODSOURMAN-724](https://issues.folio.org/browse/MODSOURMAN-724) SRM does not process and save error records
+* [MODSOURMAN-727](https://issues.folio.org/browse/MODSOURMAN-727) Fix mapping for Authority 010 tag
+* [MODSOURMAN-715](https://issues.folio.org/browse/MODSOURMAN-715) marc record type NA causes data-import to not complete
+* [MODSOURMAN-732](https://issues.folio.org/browse/MODSOURMAN-732) Upgrade Vertx to 4.2.6
+* [MODDATAIMP-472](https://issues.folio.org/browse/MODDATAIMP-472) EDIFACT files with txt file extensions do not import
+
+## 2022-03-03 v3.3.0
 * [MODSOURMAN-694](https://issues.folio.org/browse/MODSOURMAN-694) Improve sql query for retrieving job execution sourcechunks
 * [MODSOURMAN-695](https://issues.folio.org/browse/MODSOURMAN-695) Upgrade RMB and Vertx versions that contain fixes for the connection pool
 * [MODINVOICE-356](https://issues.folio.org/browse/MODINVOICE-356) Fix progress bar stuck behaviour after the RecordTooLargeException
@@ -33,12 +189,36 @@
 * [MODSOURMAN-675](https://issues.folio.org/browse/MODSOURMAN-675) Data Import handles repeated 020 $a:s in an unexpected manner when creating Instance Identifiers
 * [MODSOURMAN-676](https://issues.folio.org/browse/MODSOURMAN-676) Provide Instance UUID for populating Inventory hotlinks for holdings/items
 * [MODSOURMAN-682](https://issues.folio.org/browse/MODSOURMAN-682) Consume Authority log event
+* [MODSOURMAN-699](https://issues.folio.org/browse/MODSOURMAN-699) Fix Can`t map 'RECORD' or/and 'MARC_BIBLIOGRAPHIC' statements from logs
+* [MODSOURMAN-714](https://issues.folio.org/browse/MODSOURMAN-714) Legacy 999 (non-ff) fields cause data import failure
+* [MODSOURMAN-719](https://issues.folio.org/browse/MODSOURMAN-719) The 001 is copied to the 035 when the record is updated even though it is unnecessary
 
-## 2021-10-xx v3.2.3-SNAPSHOT
+## 2022-02-24 v3.2.9
+* [MODSOURMAN-706](https://issues.folio.org/browse/MODSOURMAN-706) Error loading MappingParametersSnapshot
+
+## 2022-02-09 v3.2.8
+* [MODSOURMAN-688](https://issues.folio.org/browse/MODSOURMAN-688) Update folio-kafka-wrapper to v2.4.3 to allow adding ENV prefix to events_cache Kafka topic [KAFKAWRAP-19](https://issues.folio.org/browse/KAFKAWRAP-20)
+
+## 2021-12-15 v3.2.7
+* [MODSOURMAN-647](https://issues.folio.org/browse/MODSOURMAN-647) Failed to handle DI_ERROR when 004 is invalid in MARC Holdings
+* [MODSOURMAN-646](https://issues.folio.org/browse/MODSOURMAN-646) Log4j vulnerability correction
+
+## 2021-12-03 v3.2.6
+* [MODSOURMAN-621](https://issues.folio.org/browse/MODSOURMAN-621) Fix saving of default mapping rules
+
+## 2021-11-12 v3.2.5
+* [MODSOURMAN-594](https://issues.folio.org/browse/MODSOURMAN-594) Cannot build journal record when entity non match
+
+##2021-11-10 v3.2.4
+* [MODSOURMAN-595](https://issues.folio.org/browse/MODSOURMAN-595) "View all" and "Load more" buttons do not load all logs in Data Import
+
+## 2021-10-29 v3.2.3
 * [MODSOURMAN-522](https://issues.folio.org/browse/MODSOURMAN-522) Fix the effect of DI_ERROR messages when trying to duplicate records on the import job progress bar
+* [MODDICORE-184](https://issues.folio.org/browse/MODDICORE-184) Update the MARC-Instance field mapping for InstanceType (336$a and $b)
+* Updated data-import-processing-core to v3.2.2
 
 ## 2021-10-19 v3.2.2
-* [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Kiwi bugfest cannot import a large file; adjust mapping metadata snapshots creation
+* [MODSOURMAN-586](https://issues.folio.org/browse/MODSOURMAN-586) Adjust mapping metadata snapshots creation
 
 ## 2021-10-13 v3.2.1
 * [MODSOURMAN-583](https://issues.folio.org/browse/MODSOURMAN-583) Schema name can't replace in snippet (schema.json)

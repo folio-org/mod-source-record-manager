@@ -1,49 +1,65 @@
 package org.folio.verticle.consumers.util;
 
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
+import com.google.common.collect.Lists;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.JournalRecordService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
 import org.folio.services.util.ParsedRecordUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 
 @Component
 public class MarcImportEventsHandler implements SpecificEventHandler {
 
   public static final String INSTANCE_TITLE_FIELD_PATH = "title";
 
+  public static final String NO_TITLE_MESSAGE = "No content";
+
   private static final Map<JournalRecord.EntityType, BiFunction<ParsedRecord, JsonObject, String>> titleExtractorMap =
     Map.of(
       MARC_BIBLIOGRAPHIC, marcBibTitleExtractor(),
       MARC_AUTHORITY, marcAuthorityTitleExtractor()
     );
+  public static final String PO_LINE_KEY = "PO_LINE";
+  public static final String PO_LINE_TITLE = "titleOrPackage";
 
   private final MappingRuleCache mappingRuleCache;
 
+  private JournalRecordService journalRecordService;
+
   @Autowired
-  public MarcImportEventsHandler(MappingRuleCache mappingRuleCache) {
+  public MarcImportEventsHandler(MappingRuleCache mappingRuleCache, JournalRecordService journalRecordService) {
     this.mappingRuleCache = mappingRuleCache;
+    this.journalRecordService = journalRecordService;
   }
 
   private static BiFunction<ParsedRecord, JsonObject, String> marcBibTitleExtractor() {
@@ -79,7 +95,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   public static Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
     return mappingRules.getMap().keySet().stream()
       .filter(fieldTag -> mappingRules.getJsonArray(fieldTag).stream()
-        .map(o -> (JsonObject) o)
+        .map(JsonObject.class::cast)
         .anyMatch(fieldMappingRule -> INSTANCE_TITLE_FIELD_PATH.equals(fieldMappingRule.getString("target"))))
       .findFirst();
   }
@@ -93,19 +109,48 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
     if (journalParamsOptional.isPresent()) {
       JournalParams journalParams = journalParamsOptional.get();
-      JournalRecord journalRecord = JournalUtil.buildJournalRecordByEvent(eventPayload,
+      List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      populateRecordTitleIfNeeded(journalRecord, eventPayload)
-        .onComplete(ar -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+      CompositeFuture.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
+        .onComplete(e ->
+        {
+          List<JsonObject> jsonObjects = new ArrayList<>();
+          journalRecords.forEach(journalRecord -> jsonObjects.add(JsonObject.mapFrom(journalRecord)));
+          journalService.saveBatch(new JsonArray(jsonObjects), tenantId);
+        });
+    }
+  }
+
+  private List<Future> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
+    List<Future<JournalRecord>> futureRecords = new ArrayList<>();
+    for (JournalRecord journalRecord : journalRecords) {
+      if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
+        processJournalRecordForOrder(journalService, tenantId, journalRecord);
+        futureRecords.add(Future.succeededFuture());
+      } else {
+        futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
+      }
+    }
+    return Lists.newArrayList(futureRecords);
+  }
+
+  private void processJournalRecordForOrder(JournalService journalService, String tenantId, JournalRecord journalRecord) {
+    if (journalRecord.getOrderId() != null && journalRecord.getError() != null) {
+      journalRecordService.updateErrorJournalRecordsByOrderIdAndJobExecution(journalRecord.getJobExecutionId(), journalRecord.getOrderId(), journalRecord.getError(), tenantId)
+        .onComplete(e -> journalService.save(JsonObject.mapFrom(journalRecord), tenantId));
+    } else {
+      journalService.save(JsonObject.mapFrom(journalRecord), tenantId);
     }
   }
 
   private Future<JournalRecord> populateRecordTitleIfNeeded(JournalRecord journalRecord,
                                                             DataImportEventPayload eventPayload) {
-    var entityType = journalRecord.getEntityType();
+    var entityType = (journalRecord.getEntityType() == HOLDINGS || journalRecord.getEntityType() == ITEM || journalRecord.getEntityType() == INSTANCE ?
+      MARC_BIBLIOGRAPHIC : journalRecord.getEntityType());
 
     if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY) {
+      journalRecord.setTitle(NO_TITLE_MESSAGE);
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
         var parsedRecord = Json.decodeValue(recordAsString, Record.class).getParsedRecord();
@@ -120,7 +165,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
             .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
-            .orElse(Future.succeededFuture(journalRecord)));
+            .orElseGet(() -> Future.succeededFuture(journalRecord)));
       }
     }
 

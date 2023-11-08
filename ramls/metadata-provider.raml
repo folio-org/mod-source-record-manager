@@ -16,15 +16,16 @@ types:
   edifactParsedContent: !include raml-storage/schemas/dto/edifactParsedContent.json
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
-  jobExecutionLogDto: !include raml-storage/schemas/dto/jobExecutionLogDto.json
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
   jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
   jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
   recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
+  jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
+  jobProfileInfoCollection: !include raml-storage/schemas/common/profileInfoCollection.json
+  jobExecutionUserInfoCollection: !include raml-storage/schemas/dto/jobExecutionUserInfoCollection.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
-  language: !include raml-storage/raml-util/traits/language.raml
   pageable:  !include raml-storage/raml-util/traits/pageable.raml
   searchable: !include raml-storage/raml-util/traits/searchable.raml
 
@@ -69,10 +70,20 @@ resourceTypes:
           type: string
           example: importBib1.bib
           required: false
+        fileNameNotAny:
+          description: Filter by specified file names
+          type: string[]
+          example: ["No file name"]
+          required: false
         profileIdAny:
           description: Filter by specified job profile ids
           type: string[]
           example: ["d0ebb7b0-2f0f-11eb-adc1-0242ac120002", "91f9b8d6-d80e-4727-9783-73fb53e3c786"]
+          required: false
+        subordinationTypeNotAny:
+          description: Filter by specified SubordinationTypes
+          type: string[]
+          example: ["COMPOSITE_CHILD"]
           required: false
         userId:
           description: Filter by user id
@@ -97,24 +108,12 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: jobExecutionDtoCollection
+              type: jobExecutionDtoCollection
         500:
           description: "Internal server error"
           body:
             text/plain:
               example: "Internal server error"
-  /logs/{jobExecutionId}:
-      get:
-        responses:
-          200:
-            body:
-              application/json:
-                schema: jobExecutionLogDto
-          500:
-            description: "Internal server error"
-            body:
-              text/plain:
-                example: "Internal server error"
   /journalRecords/{jobExecutionId}:
     get:
       description: get journal records by job execution id
@@ -133,7 +132,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: journalRecordCollection
+              type: journalRecordCollection
         400:
           description: "Bad request"
           body:
@@ -161,11 +160,23 @@ resourceTypes:
           enum: [asc, desc]
           required: false
           default: asc
+        errorsOnly:
+          description: "Filter by occurrence of error field"
+          example: true
+          type: boolean
+          required: false
+          default: false
+        entityType:
+          description: "Filter by entity type: MARC, INSTANCE, HOLDINGS, AUTHORITY, ITEM, ORDER, INVOICE"
+          example: MARC
+          enum: [MARC, INSTANCE, HOLDINGS, AUTHORITY, ITEM, ORDER, INVOICE, ALL]
+          required: false
+          default: ALL
       responses:
         200:
           body:
             application/json:
-              schema: jobLogEntryDtoCollection
+              type: jobLogEntryDtoCollection
         400:
           description: "Bad request"
           body:
@@ -178,7 +189,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              schema: recordProcessingLogDto
+              type: recordProcessingLogDto
         400:
           description: "Bad request"
           body:
@@ -189,3 +200,46 @@ resourceTypes:
           body:
             text/plain:
               example: "Not found"
+  /jobSummary/{jobExecutionId}:
+    get:
+      description: get summary result for import job
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobExecutionSummaryDto
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
+  /jobExecutions/jobProfiles:
+    get:
+      is: [
+          pageable
+      ]
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobProfileInfoCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+  /jobExecutions/users:
+    get:
+      is: [pageable]
+      description: get unique users for job JobExecutions
+      responses:
+        200:
+          body:
+            application/json:
+              type: jobExecutionUserInfoCollection
+        500:
+          description: "Internal server error"
+          body:
+            text/plain:
+              example: "Internal server error"
+

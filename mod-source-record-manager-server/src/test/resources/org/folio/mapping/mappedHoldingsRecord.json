@@ -1,0 +1,124 @@
+{
+  "id": "0",
+  "hrid": "366832",
+  "formerIds": [
+    "(CStRLIN)NYCX1604275S",
+    "(NIC)notisABP6388",
+    "366832",
+    "(OCoLC)1604275"
+  ],
+  "permanentLocationId": "fe19bae4-da28-472b-be90-d442e2428ead",
+  "electronicAccess": [
+    {
+      "uri": "uri",
+      "linkText": "linkText",
+      "materialsSpecification": "materialsSpecification",
+      "publicNote": "publicNote",
+      "relationshipId": "fe19bae4-da28-472b-be90-d442e2428ead"
+    }
+  ],
+  "callNumberTypeId": "95467209-6d7b-468b-94df-0f5d7ad2747d",
+  "callNumber": "M3 .M93 1955",
+  "callNumberSuffix": "+",
+  "notes": [
+    {
+      "note": "note$a ; note$u ; note$3 ; note$5 ; note$6 ; note$8",
+      "staffOnly": false
+    },
+    {
+      "note": "note$a ; note$b ; note$c ; note$d ; note$e ; note$3 ; note$5 ; note$6 ; note$8",
+      "staffOnly": false
+    },
+    {
+      "note": "note$a ; note$b ; note$c ; note$d ; note$e ; note$f ; note$h ; note$i ; note$j ; note$k ; note$l ; note$n ; note$o ; note$u ; note$x ; note$z ; note$2 ; note$3 ; note$5 ; note$8",
+      "staffOnly": false
+    }
+  ],
+  "holdingsStatements": [
+    {
+      "statement": "holdingsStatements.statement",
+      "note": "holdingsStatements.note",
+      "staffNote": "holdingsStatements.staffNote"
+    },
+    {
+      "statement": "ser.1:grp.1:abt.1:v.1-6; ser.1:grp.1:abt.2:v.1-2"
+    },
+    {
+      "statement": "ser.1:grp.2:v.1-2; ser.1:grp.3; ser.1:grp.4:v.1-4"
+    },
+    {
+      "statement": "ser.2:grp.5:v.1-20"
+    },
+    {
+      "statement": "ser.2:grp.6:v.1-2; ser.2:grp.7:v.1-4"
+    },
+    {
+      "statement": "ser.3:grp.8-10"
+    },
+    {
+      "statement": "ser.4:grp.11:v.1-10; ser.4:grp.12:v.1-6"
+    },
+    {
+      "statement": "ser.4:grp.13:abt.1:v.1; ser.4:grp.13:abt.2"
+    },
+    {
+      "statement": "ser.5:grp.14:v.1-6; ser.5:grp.15:v.1-8; ser.6:grp.16"
+    },
+    {
+      "statement": "ser.7:grp.17:v.1-2; ser.7:grp.18"
+    },
+    {
+      "statement": "ser.8:grp.19:abt.1-2; ser.8:grp.20:abt.1:v.1-3"
+    },
+    {
+      "statement": "ser.8:grp.20:abt.2; ser.8:grp.21"
+    },
+    {
+      "statement": "ser.8:grp.22:abt.1-2; ser.8:grp.23:v.1-2"
+    },
+    {
+      "statement": "ser.9:grp.24:abt.1-2; ser.9:grp.25:v.1-2"
+    },
+    {
+      "statement": "ser.9:v.26; ser.9:grp.27:v.1-2"
+    },
+    {
+      "statement": "ser.10:grp.28:abt.1:v.1-4; ser.10:grp.28:abt.2"
+    },
+    {
+      "statement": "ser.10:grp.28:abt.3/5:v.1; ser.10:grp.28:abt.3/5:v.1a;10:grp.28:abt.3/5:v.2-3"
+    },
+    {
+      "statement": "ser.10:grp.29:v.1-3; ser.10:grp.30:v.1-2,4"
+    },
+    {
+      "statement": "ser.10:grp.31:v.1-3"
+    },
+    {
+      "statement": "ser.10:grp.33:abt.1-2; ser.10:grp.34"
+    },
+    {
+      "statement": "(1955-2010)"
+    }
+  ],
+  "holdingsStatementsForIndexes": [
+    {
+      "statement": "holdingsStatementsForIndexes.statement",
+      "note": "holdingsStatementsForIndexes.note",
+      "staffNote": "holdingsStatementsForIndexes.staffNote"
+    }
+  ],
+  "holdingsStatementsForSupplements": [
+    {
+      "statement": "holdingsStatementsForSupplements.statement",
+      "note": "holdingsStatementsForSupplements.note",
+      "staffNote": "holdingsStatementsForSupplements.staffNote"
+    },
+    {
+      "statement": "ser.10:grp.31:vorabdruck"
+    }
+  ],
+  "copyNumber": "3",
+  "statisticalCodeIds": [],
+  "sourceId": "036ee84a-6afd-4c3c-9ad3-4a12ab875f59"
+}

@@ -1,6 +1,7 @@
 package org.folio.dao;
 
 import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionDto;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,8 +13,11 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.dao.util.JobExecutionDBConstants.COMPLETED_DATE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.FILE_NAME_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.HRID_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.IS_DELETED_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_HIDDEN_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.JOB_PROFILE_ID_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.STATUS_FIELD;
+import static org.folio.dao.util.JobExecutionDBConstants.SUBORDINATION_TYPE_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 
@@ -26,7 +30,9 @@ public class JobExecutionFilter {
   private List<JobExecution.UiStatus> uiStatusAny;
   private String hrIdPattern;
   private String fileNamePattern;
+  private List<String> fileNameNotAny;
   private List<String> profileIdAny;
+  private List<JobExecutionDto.SubordinationType> subordinationTypeNotAny;
   private String userId;
   private Date completedAfter;
   private Date completedBefore;
@@ -61,8 +67,18 @@ public class JobExecutionFilter {
     return this;
   }
 
+  public JobExecutionFilter withFileNameNotAny(List<String> fileNameNotAny) {
+    this.fileNameNotAny = fileNameNotAny;
+    return this;
+  }
+
   public JobExecutionFilter withProfileIdAny(List<String> profileIdAny) {
     this.profileIdAny = profileIdAny;
+    return this;
+  }
+
+  public JobExecutionFilter withSubordinationTypeNotAny(List<JobExecutionDto.SubordinationType> subordinationTypeNotAny) {
+    this.subordinationTypeNotAny = subordinationTypeNotAny;
     return this;
   }
 
@@ -86,7 +102,7 @@ public class JobExecutionFilter {
     if (isNotEmpty(statusAny)) {
       List<String> statuses = statusAny.stream()
         .map(JobExecution.Status::toString)
-        .collect(Collectors.toList());
+        .toList();
 
       addCondition(conditionBuilder, buildInCondition(STATUS_FIELD, statuses));
     }
@@ -99,7 +115,7 @@ public class JobExecutionFilter {
     if (isNotEmpty(uiStatusAny)) {
       List<String> uiStatuses = uiStatusAny.stream()
         .map(JobExecution.UiStatus::toString)
-        .collect(Collectors.toList());
+        .toList();
 
       addCondition(conditionBuilder, buildInCondition(UI_STATUS_FIELD, uiStatuses));
     }
@@ -114,8 +130,15 @@ public class JobExecutionFilter {
         addCondition(conditionBuilder, buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
     }
+    if (isNotEmpty(fileNameNotAny)) {
+      addCondition(conditionBuilder, buildNotInCondition(FILE_NAME_FIELD, fileNameNotAny));
+    }
     if (isNotEmpty(profileIdAny)) {
       addCondition(conditionBuilder, buildInCondition(JOB_PROFILE_ID_FIELD, profileIdAny));
+    }
+    if (isNotEmpty(subordinationTypeNotAny)) {
+      List<String> subordinationTypes = subordinationTypeNotAny.stream().map(JobExecutionDto.SubordinationType::value).toList();
+      addCondition(conditionBuilder, buildNotInCondition(SUBORDINATION_TYPE_FIELD, subordinationTypes));
     }
     if (isNotEmpty(userId)) {
       addCondition(conditionBuilder, buildEqualCondition(USER_ID_FIELD, userId));
@@ -126,12 +149,17 @@ public class JobExecutionFilter {
     if (completedBefore != null) {
       addCondition(conditionBuilder, buildLessThanOrEqualCondition(COMPLETED_DATE_FIELD, formatter.format(completedBefore)));
     }
-
+    addCondition(conditionBuilder, buildNotBoolCondition(JOB_PROFILE_HIDDEN_FIELD));
+    addCondition(conditionBuilder, buildNotBoolCondition(IS_DELETED_FIELD));
     return conditionBuilder.toString();
   }
 
   private void addCondition(StringBuilder conditionBuilder, String condition) {
     conditionBuilder.append(" AND ").append(condition);
+  }
+
+  private String buildNotBoolCondition(String columnName) {
+    return String.format("NOT %s", columnName);
   }
 
   private String buildInCondition(String columnName, List<String> values) {

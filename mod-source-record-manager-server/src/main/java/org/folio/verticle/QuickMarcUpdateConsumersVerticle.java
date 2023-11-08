@@ -7,7 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.verticle.consumers.QuickMarcUpdateKafkaHandler;
 import org.folio.verticle.consumers.util.QMEventTypes;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
+/**
+ * Verticle to update quick mark.
+ * Marked with SCOPE_PROTOTYPE to support deploying more than 1 instance.
+ * @see org.folio.rest.impl.InitAPIImpl
+ */
+@Component
+@Scope(SCOPE_PROTOTYPE)
 public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle {
 
   @Autowired

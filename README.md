@@ -1,6 +1,6 @@
 # mod-source-record-manager
 
-Copyright (C) 2018-2020 The Open Library Foundation
+Copyright (C) 2018-2023 The Open Library Foundation
 
 This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
@@ -235,7 +235,7 @@ curl -w '\n' -X POST -D -   \
 Send PUT request with JobProfile info to **/change-manager/jobExecutions/{jobExecutionId}/jobProfile**
 
 ```
-curl -w '\n' -X POST -D -   \
+curl -w '\n' -X PUT -D -   \
    -H "Content-type: application/json"   \
    -H "x-okapi-tenant: diku"  \
    -H "x-okapi-token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjQwZDFiZDcxLWVhN2QtNTk4Ny1iZTEwLTEyOGUzODJiZDMwNyIsImNhY2hlX2tleSI6IjMyYTJhNDQ3LWE4MzQtNDE1Ni1iYmZjLTk4YTEyZWVhNzliMyIsImlhdCI6MTU1NzkyMzI2NSwidGVuYW50IjoiZGlrdSJ9.AgPDmXIOsudFB_ugWYvJCdyqq-1AQpsRWLNt9EvzCy0" \
@@ -249,7 +249,7 @@ curl -w '\n' -X POST -D -   \
 {
   "id": "e34d7b92-9b83-11eb-a8b3-0242ac130003",
   "name": "Default - Create instance and SRS MARC Bib",
-  "dataType": "MARC_BIB"
+  "dataType": "MARC"
 }
 ```
 
@@ -470,3 +470,27 @@ Successful response contains no content (HTTP status 204).
 
 ### When overlay (both overlays - via Instance = FOLIO or Instance = MARC):
 The existing OCLC 001/003 are moved down (merged) to an 035 field, and the Instance HRID being placed in the 001 field.
+
+### When job profile contains any ActionProfile with `remove9Subfields` set to true
+Remove $9 subfield from all 'controllable' fields (Linking rules are queried to get list of 'controllable' tags)
+
+## Delete job executions with all related data
+UI allows to delete multiple job executions from Landing page and View All page.
+Data import marks jobs as deleted after user hits the Delete button. Queries to get/update job executions filter out records, marked as deleted.
+The new scheduled job has been introduced to make hard deletes of these records.
+By default it triggers each 24 hours and finds records marked as deleted completed not less than 2 days ago.
+
+These params are configurable:
+1. periodic.job.execution.permanent.delete.interval.ms - interval in milliseconds to trigger job for hard deletion.  
+   (By default it equals to 86400000 that is the same as 24 hours).  
+   Example of applying this property in JAVA_OPTS: ``` -Dperiodic.job.execution.permanent.delete.interval.ms=86400000```
+2. job.execution.difference.number.of.days - number of days from job execution completed date to consider that job execution eligible for deletion.  
+   (By default it equals to 2 days).  
+   Example of applying this property in JAVA_OPTS: ``` -Djob.execution.difference.number.of.days=2```
+
+This scheduled job deletes data from tables:
+1. job_execution
+2. job_execution_progress
+3. job_execution_source_chunks
+4. journal_records
+5. job_monitoring

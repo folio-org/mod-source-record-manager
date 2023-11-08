@@ -46,11 +46,12 @@
   ],
   "010": [
     {
+      "entityPerRepeatedSubfield": true,
+      "keepTrailingBackslash": true,
       "entity": [
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
+          "description": "Identifier Type for LCCN",
           "subfield": [
             "a",
             "z"
@@ -71,7 +72,6 @@
         {
           "target": "identifiers.value",
           "description": "Library of Congress Control Number",
-          "applyRulesOnConcatenatedData": true,
           "subfield": [
             "a",
             "z"
@@ -155,7 +155,7 @@
                 {
                   "type": "set_identifier_type_id_by_value",
                   "parameter": {
-                    "name": [
+                    "names": [
                       "System control number"
                     ]
                   }
@@ -187,6 +187,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "applyRulesOnConcatenatedData": true,
       "rules": []
     },
@@ -210,6 +211,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "applyRulesOnConcatenatedData": true,
       "rules": []
     }
@@ -226,6 +228,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -248,6 +251,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -263,6 +267,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -285,6 +290,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -371,6 +377,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -392,9 +399,9 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -410,6 +417,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -431,9 +439,9 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -449,6 +457,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -470,9 +479,9 @@
         "q",
         "r",
         "s",
-        "t",
-        "w"
+        "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -513,7 +522,6 @@
         "g",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
@@ -532,7 +540,6 @@
         "g",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
@@ -550,7 +557,6 @@
         "a",
         "i",
         "v",
-        "w",
         "x",
         "y",
         "z",
@@ -573,6 +579,7 @@
         "g",
         "q"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -596,6 +603,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -611,6 +619,7 @@
         "g",
         "n"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -634,6 +643,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],
@@ -649,6 +659,7 @@
         "q",
         "g"
       ],
+      "exclusiveSubfield": ["t"],
       "rules": []
     },
     {
@@ -672,6 +683,7 @@
         "s",
         "t"
       ],
+      "requiredSubfield": ["t"],
       "rules": []
     }
   ],

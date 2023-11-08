@@ -12,11 +12,13 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.Event;
+import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
 import org.folio.services.EventProcessedService;
+import org.folio.services.JobExecutionService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
@@ -43,7 +45,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -70,6 +71,8 @@ public class StoredRecordChunksKafkaHandlerTest {
   private EventProcessedService eventProcessedService;
   @Mock
   private MappingRuleCache mappingRuleCache;
+  @Mock
+  private JobExecutionService jobExecutionService;
   @Captor
   private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
@@ -83,7 +86,9 @@ public class StoredRecordChunksKafkaHandlerTest {
 
   @Before
   public void setUp() {
-    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService, mappingRuleCache, vertx);
+    storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService,jobExecutionService, mappingRuleCache,  vertx);
+    when(jobExecutionService.getJobExecutionById(anyString(), anyString()))
+      .thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
   }
 
   @Test
@@ -98,9 +103,10 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withEventPayload(Json.encode(recordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
       .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -142,7 +148,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withEventPayload(Json.encode(savedRecordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
 
     // when
@@ -165,7 +171,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withEventPayload(Json.encode(savedRecordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
 
@@ -188,13 +194,8 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(savedRecordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
-    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
-    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
-    when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
-      .thenReturn(Future.failedFuture(new Exception()));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.empty()));
 
     // when
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
@@ -217,11 +218,11 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withEventPayload(Json.encode(savedRecordsBatch));
 
     when(kafkaRecord.value()).thenReturn(Json.encode(event));
-    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT, TENANT_ID)));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), isNull(), any(OkapiConnectionParams.class), anyString()))
+      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -238,6 +239,19 @@ public class StoredRecordChunksKafkaHandlerTest {
     assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
     assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
     assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
+  }
+
+  @Test
+  public void shouldNotHandleEventWhenJobExecutionWasCancelled() {
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withStatus(JobExecution.Status.CANCELLED))));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    assertTrue(future.succeeded());
   }
 
 }

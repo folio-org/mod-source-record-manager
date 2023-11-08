@@ -27,11 +27,16 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.folio.MappingProfile;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
 import org.folio.rest.jaxrs.model.ActionProfile;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -45,6 +50,7 @@ import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.rest.util.OkapiConnectionParams;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -55,6 +61,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -71,6 +78,8 @@ import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 /**
@@ -121,6 +130,7 @@ public abstract class AbstractRestTest {
   protected static final String LOAN_TYPES_URL = "/loan-types?limit=1000";
   protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=1000";
   protected static final String AUTHORITY_NOTE_TYPES_URL = "/authority-note-types?limit=1000";
+  protected static final String AUTHORITY_SOURCE_FILES_URL = "/authority-source-files?limit=1000";
   protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=1000";
   protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);;
 
@@ -160,6 +170,36 @@ public abstract class AbstractRestTest {
     .withAction(ActionProfile.Action.CREATE)
     .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
 
+  private final ActionProfile actionMarcHoldingsCreateProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS);
+
+  private final MappingProfile marcHoldingsMappingProfile = new MappingProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withIncomingRecordType(EntityType.MARC_HOLDINGS)
+    .withExistingRecordType(EntityType.HOLDINGS);
+
+  private final MappingProfile marcInstanceMappingProfile = new MappingProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Instance ")
+    .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
+    .withExistingRecordType(EntityType.INSTANCE);
+
+  private final ActionProfile actionMarcAuthorityCreateProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create MARC-Holdings ")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.AUTHORITY);
+
+  private final ActionProfile createInvoiceActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create invoice")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.INVOICE);
+
   protected ProfileSnapshotWrapper profileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
     .withId(UUID.randomUUID().toString())
     .withProfileId(jobProfile.getId())
@@ -170,6 +210,116 @@ public abstract class AbstractRestTest {
         .withProfileId(actionProfile.getId())
         .withContentType(ACTION_PROFILE)
         .withContent(actionProfile)));
+
+  protected JobProfile orderJobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create Order")
+    .withDataType(JobProfile.DataType.MARC);
+
+  private final ActionProfile orderActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Create Order")
+    .withAction(ActionProfile.Action.CREATE)
+    .withFolioRecord(ActionProfile.FolioRecord.ORDER);
+  protected ProfileSnapshotWrapper orderProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(orderJobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(orderJobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(orderActionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(orderActionProfile)));
+
+  protected ProfileSnapshotWrapper profileMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(actionMarcHoldingsCreateProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionMarcHoldingsCreateProfile)
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withProfileId(marcHoldingsMappingProfile.getId())
+          .withContentType(MAPPING_PROFILE)
+          .withContent(marcHoldingsMappingProfile)))));
+
+  protected ProfileSnapshotWrapper profileCreateMarcHoldingsSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+      .withProfileId(UUID.randomUUID().toString())
+      .withContentType(ACTION_PROFILE)
+      .withContent(actionMarcHoldingsCreateProfile)
+      .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(MAPPING_PROFILE)
+        .withContent(marcHoldingsMappingProfile)))));
+
+  protected ProfileSnapshotWrapper profileCreateMarcInstanceSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(new JsonObject())
+    .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+      .withProfileId(UUID.randomUUID().toString())
+      .withContentType(ACTION_PROFILE)
+      .withReactTo(ProfileSnapshotWrapper.ReactTo.NON_MATCH)
+      .withContent(actionProfile)
+      .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
+        .withProfileId(UUID.randomUUID().toString())
+        .withContentType(MAPPING_PROFILE)
+        .withContent(marcInstanceMappingProfile)
+      ))));
+
+  protected ProfileSnapshotWrapper profileMarcAuthoritySnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(actionMarcAuthorityCreateProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(actionMarcAuthorityCreateProfile)));
+
+  protected ProfileSnapshotWrapper createInvoiceProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(jobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(jobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(createInvoiceActionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(createInvoiceActionProfile)));
+
+  protected JobProfile updateJobProfile = new JobProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Update MARC Bibs")
+    .withDataType(JobProfile.DataType.MARC);
+
+  private final ActionProfile updateActionProfile = new ActionProfile()
+    .withId(UUID.randomUUID().toString())
+    .withName("Update MARC Bib")
+    .withAction(ActionProfile.Action.UPDATE)
+    .withFolioRecord(ActionProfile.FolioRecord.INSTANCE);
+
+  protected ProfileSnapshotWrapper updateProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(updateJobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(updateJobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withProfileId(updateActionProfile.getId())
+        .withContentType(ACTION_PROFILE)
+        .withContent(updateActionProfile)));
 
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
@@ -192,7 +342,6 @@ public abstract class AbstractRestTest {
     System.setProperty(KAFKA_PORT, hostAndPort[1]);
     System.setProperty(KAFKA_ENV, KAFKA_ENV_VALUE);
     System.setProperty(OKAPI_URL_ENV, OKAPI_URL);
-    System.setProperty("srm.job.execution.cache.expire.seconds", "60");
     runDatabase();
     deployVerticle(context);
   }
@@ -341,6 +490,7 @@ public abstract class AbstractRestTest {
     WireMock.stubFor(get(LOAN_TYPES_URL).willReturn(okJson(new JsonObject().put("loantypes", new JsonArray()).toString())));
     WireMock.stubFor(get(ITEM_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("itemNoteTypes", new JsonArray()).toString())));
     WireMock.stubFor(get(AUTHORITY_NOTE_TYPES_URL).willReturn(okJson(new JsonObject().put("authorityNoteTypes", new JsonArray()).toString())));
+    WireMock.stubFor(get(AUTHORITY_SOURCE_FILES_URL).willReturn(okJson(new JsonObject().put("authoritySourceFiles", new JsonArray()).toString())));
     WireMock.stubFor(get(FIELD_PROTECTION_SETTINGS_URL).willReturn(okJson(new JsonObject().put("marcFieldProtectionSettings", new JsonArray()).toString())));
     WireMock.stubFor(get(TENANT_CONFIGURATIONS_SETTINGS_URL).willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
 
@@ -382,6 +532,41 @@ public abstract class AbstractRestTest {
       .spec(spec)
       .body(JsonObject.mapFrom(requestDto).toString())
       .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class);
+  }
+
+  /** Returns list of [parent, child1, ..., childN] */
+  protected List<JobExecution> constructAndPostCompositeInitJobExecutionRqDto(String filename, int children) {
+    InitJobExecutionsRqDto requestDto = new InitJobExecutionsRqDto();
+    requestDto.getFiles().add(new File().withName(filename));
+    requestDto.setUserId(okapiUserIdHeader);
+    requestDto.setSourceType(InitJobExecutionsRqDto.SourceType.COMPOSITE);
+
+    JobExecution parent = RestAssured.given()
+      .spec(spec)
+      .body(JsonObject.mapFrom(requestDto).toString())
+      .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0);
+
+    List<JobExecution> result = new ArrayList<>();
+    result.add(parent);
+
+    for (int i = 1; i <= children; i++) {
+      InitJobExecutionsRqDto childRequestDto = new InitJobExecutionsRqDto();
+      childRequestDto.getFiles().add(new File().withName(filename + i));
+      childRequestDto.setUserId(okapiUserIdHeader);
+      childRequestDto.setSourceType(InitJobExecutionsRqDto.SourceType.COMPOSITE);
+      childRequestDto.setParentJobId(parent.getId());
+      childRequestDto.setJobPartNumber(i);
+      childRequestDto.setTotalJobParts(children);
+
+      result.add(
+        RestAssured.given()
+          .spec(spec)
+          .body(JsonObject.mapFrom(childRequestDto).toString())
+          .when().post(JOB_EXECUTION_PATH).body().as(InitJobExecutionsRsDto.class).getJobExecutions().get(0)
+      );
+    }
+
+    return result;
   }
 
   protected io.restassured.response.Response updateJobExecutionStatus(JobExecution jobExecution, StatusDto statusDto) {
@@ -436,4 +621,11 @@ public abstract class AbstractRestTest {
     throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
   }
 
+  protected ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
+    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+    consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
+    consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));
+    return consumerRecord;
+  }
 }

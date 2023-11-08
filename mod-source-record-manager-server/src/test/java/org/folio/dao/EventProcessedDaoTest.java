@@ -19,8 +19,13 @@ import org.mockito.Spy;
 import java.io.IOException;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(VertxUnitRunner.class)
 public class EventProcessedDaoTest extends AbstractRestTest {
+
+  private String handlerId;
+  private String eventId;
 
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(Vertx.vertx());
@@ -30,12 +35,12 @@ public class EventProcessedDaoTest extends AbstractRestTest {
   @Before
   public void setUp(TestContext context) throws IOException {
     super.setUp(context);
+    handlerId = UUID.randomUUID().toString();
+    eventId = UUID.randomUUID().toString();
   }
 
   @Test
   public void shouldSaveEventProcessed(TestContext context) {
-    String handlerId = UUID.randomUUID().toString();
-    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
     Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
 
@@ -48,8 +53,6 @@ public class EventProcessedDaoTest extends AbstractRestTest {
 
   @Test
   public void shouldThrowConstraintViolation(TestContext context) {
-    String handlerId = UUID.randomUUID().toString();
-    String eventId = UUID.randomUUID().toString();
     Async async = context.async();
 
     Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
@@ -63,4 +66,21 @@ public class EventProcessedDaoTest extends AbstractRestTest {
       });
     });
   }
+
+  @Test
+  public void shouldThrowConstraintViolationWhenSavingAndDecreasingCounter(TestContext context) {
+    Async async = context.async();
+
+    Future<RowSet<Row>> saveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
+    saveFuture.onComplete(ar -> {
+      Future<RowSet<Row>> reSaveFuture = eventProcessedDao.save(handlerId, eventId, TENANT_ID);
+      reSaveFuture.onComplete(re -> {
+        context.assertTrue(re.failed());
+        context.assertTrue(re.cause() instanceof  PgException);
+        context.assertEquals("ERROR: duplicate key value violates unique constraint \"events_processed_pkey\" (23505)", re.cause().getMessage());
+        async.complete();
+      });
+    });
+  }
+
 }

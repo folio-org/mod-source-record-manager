@@ -18,6 +18,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +37,7 @@ import org.folio.services.mappers.processor.MappingParametersProvider;
 @Log4j2
 @Service
 public class ParsedRecordServiceImpl implements ParsedRecordService {
-
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final AtomicInteger indexer = new AtomicInteger();
 
   private final MappingParametersProvider mappingParametersProvider;
@@ -57,10 +59,11 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
 
   @Override
   public Future<ParsedRecordDto> getRecordByExternalId(String externalId, OkapiConnectionParams params) {
+    LOGGER.debug("getRecordByExternalId:: externalId {}", externalId);
     Promise<ParsedRecordDto> promise = Promise.promise();
     var client = new SourceStorageSourceRecordsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
     try {
-      client.getSourceStorageSourceRecordsById(externalId, "EXTERNAL", response -> {
+      client.getSourceStorageSourceRecordsById(externalId, "EXTERNAL", null, response -> {
         if (HTTP_OK.toInt() == response.result().statusCode()) {
           Buffer bodyAsBuffer = response.result().bodyAsBuffer();
           Try.itGet(() -> mapSourceRecordToParsedRecordDto(bodyAsBuffer))
@@ -87,7 +90,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
         }
       });
     } catch (Exception e) {
-      log.error("Failed to GET Record from SRS", e);
+      log.warn("getRecordByExternalId:: Failed to GET Record from SRS", e);
       promise.fail(e);
     }
     return promise.future();
@@ -105,7 +108,7 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
           } else {
             var message = format("Can not send %s event, no mapping rules found for tenant %s", QM_RECORD_UPDATED.name(),
               params.getTenantId());
-            log.error(message);
+            log.warn(message);
             return failedFuture(message);
           }
         }));
@@ -144,7 +147,8 @@ public class ParsedRecordServiceImpl implements ParsedRecordService {
     eventPayload.put("MAPPING_RULES", mappingRules.encode());
     eventPayload.put("MAPPING_PARAMS", Json.encode(mappingParameters));
     eventPayload.put("SNAPSHOT_ID", snapshotId);
-    eventPayload.put("RECORD_ID", parsedRecordDto.getId());
+    eventPayload.put("RECORD_ID", parsedRecordDto.getParsedRecord().getId());
+    eventPayload.put("RECORD_DTO_ID", parsedRecordDto.getId());
     eventPayload.put("RECORD_TYPE", parsedRecordDto.getRecordType().value());
     return Json.encode(eventPayload);
   }

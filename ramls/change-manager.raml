@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Change Manager
-version: v1.0
+version: v1.1
 protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
@@ -27,16 +27,17 @@ types:
   userInfo: !include raml-storage/schemas/common/userInfo.json
   journalRecord: !include raml-storage/schemas/mod-source-record-manager/journalRecord.json
   dataImportEventTypes: !include raml-storage/schemas/common/dataImportEventTypes.json
+  dataImportInitConfig: !include raml-storage/schemas/common/dataImportInitConfig.json
   jobExecutionProgress: !include raml-storage/schemas/mod-source-record-manager/jobExecutionProgress.json
   dataImportEventPayload: !include raml-storage/schemas/common/dataImportEventPayload.json
   sourceRecordState: !include sourceRecordState.json
-  jobMonitoring: !include raml-storage/schemas/mod-source-record-manager/jobMonitoring.json
+  deleteJobExecutionsReq: !include raml-storage/schemas/mod-source-record-manager/deleteJobExecutionsReq.json
+  deleteJobExecutionsResp: !include raml-storage/schemas/mod-source-record-manager/deleteJobExecutionsResp.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
   pageable:  !include raml-storage/raml-util/traits/pageable.raml
   searchable: !include raml-storage/raml-util/traits/searchable.raml
-  language: !include raml-storage/raml-util/traits/language.raml
 
 resourceTypes:
   collection: !include raml-storage/raml-util/rtypes/collection.raml
@@ -44,16 +45,26 @@ resourceTypes:
 
 /change-manager:
   /jobExecutions:
+    delete:
+      description: Delete JobExecution by multiple IDs
+      body:
+        application/json:
+          schema: deleteJobExecutionsReq
+      responses:
+        200:
+          body:
+            application/json:
+              schema: deleteJobExecutionsResp
     post:
       description: "Initialize JobExecutions"
       body:
         application/json:
-          schema: initJobExecutionsRqDto
+          type: initJobExecutionsRqDto
       responses:
         201:
           body:
             application/json:
-              schema: initJobExecutionsRsDto
+              type: initJobExecutionsRsDto
         500:
           description: "Internal server error"
           body:
@@ -111,7 +122,7 @@ resourceTypes:
           description: "Update JobExecution status"
           body:
             application/json:
-              schema: statusDto
+              type: statusDto
           responses:
             200:
               body:
@@ -138,7 +149,7 @@ resourceTypes:
           description: "Set JobProfile for JobExecution"
           body:
             application/json:
-              schema: jobProfileInfo
+              type: jobProfileInfo
           responses:
             200:
               body:
@@ -163,9 +174,14 @@ resourceTypes:
         post:
           is: [validate]
           description: "Receive chunk of raw records"
+          queryParameters:
+            acceptInstanceId:
+              type: boolean
+              required: false
+              default: false
           body:
             application/json:
-              schema: rawRecordsDto
+              type: rawRecordsDto
           responses:
             204:
             400:
@@ -231,7 +247,7 @@ resourceTypes:
         is: [validate]
         body:
           application/json:
-            schema: parsedRecordDto
+            type: parsedRecordDto
         responses:
           202:
           400:

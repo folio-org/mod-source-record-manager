@@ -2,6 +2,7 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -36,12 +37,12 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   @Override
-  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, OkapiConnectionParams params) {
-    LOGGER.debug("Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
+  protected Future<Boolean> processRawRecordsChunk(RawRecordsDto incomingChunk, JobExecutionSourceChunk sourceChunk, String jobExecutionId, boolean acceptInstanceId, OkapiConnectionParams params) {
+    LOGGER.debug("processRawRecordsChunk:: Starting to process raw records chunk with id: {} for jobExecutionId: {}. Chunk size: {}.", sourceChunk.getId(), jobExecutionId, sourceChunk.getChunkSize());
     Promise<Boolean> promise = Promise.promise();
     initializeJobExecutionProgressIfNecessary(jobExecutionId, incomingChunk, params.getTenantId())
       .compose(ar -> checkAndUpdateJobExecutionStatusIfNecessary(jobExecutionId, new StatusDto().withStatus(StatusDto.Status.PARSING_IN_PROGRESS), params))
-      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), params))
+      .compose(jobExec -> changeEngineService.parseRawRecordsChunkForJobExecution(incomingChunk, jobExec, sourceChunk.getId(), acceptInstanceId, params))
       .onComplete(sendEventsAr -> updateJobExecutionIfAllSourceChunksMarkedAsError(jobExecutionId, params)
         .onComplete(updateAr -> promise.handle(sendEventsAr.map(true))));
     return promise.future();
@@ -52,7 +53,8 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
       .compose(optionalJobExecution -> optionalJobExecution
         .map(jobExecution -> {
           JobExecution.Status jobStatus = jobExecution.getStatus();
-          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())) {
+          if (PARSING_IN_PROGRESS.value().equals(jobStatus.value()) || StatusDto.Status.ERROR.value().equals(jobStatus.value())
+            || StatusDto.Status.CANCELLED.value().equals(jobStatus.value())) {
             return Future.succeededFuture(true);
           }
           return jobExecutionProgressService.initializeJobExecutionProgress(jobExecution.getId(), incomingChunk.getRecordsMetadata().getTotal(), tenantId).map(true);
@@ -60,10 +62,10 @@ public class EventDrivenChunkProcessingServiceImpl extends AbstractChunkProcessi
   }
 
   private Future<Boolean> updateJobExecutionIfAllSourceChunksMarkedAsError(String jobExecutionId, OkapiConnectionParams params) {
-    return jobExecutionSourceChunkDao.get("jobExecutionId==" + jobExecutionId + " AND last==true", 0, 1, params.getTenantId())
-      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.isAllChunksProcessed(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
-      .compose(isAllChunksError -> {
-        if (isAllChunksError) {
+    return jobExecutionSourceChunkDao.get(jobExecutionId, true, 0, 1, params.getTenantId())
+      .compose(chunks -> isNotEmpty(chunks) ? jobExecutionSourceChunkDao.containsErrorChunks(jobExecutionId, params.getTenantId()) : Future.succeededFuture(false))
+      .compose(containsErrorChunks -> {
+        if (containsErrorChunks) {
           StatusDto statusDto = new StatusDto().withStatus(StatusDto.Status.ERROR).withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
           return jobExecutionProgressService.getByJobExecutionId(jobExecutionId, params.getTenantId())
             .compose(progress -> updateJobExecutionState(jobExecutionId, progress, statusDto, params));

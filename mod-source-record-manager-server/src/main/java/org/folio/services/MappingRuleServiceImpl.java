@@ -47,6 +47,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<Void> saveDefaultRules(Record.RecordType recordType, String tenantId) {
+    LOGGER.debug("saveDefaultRules:: recordType {}, tenantId {}", recordType, tenantId);
     Promise<Void> promise = Promise.promise();
     Optional<String> optionalRules = receiveDefaultRules(recordType);
 
@@ -57,7 +58,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           .compose(saveRulesIfNotExist(recordType, tenantId, rules))
           .onComplete(ar -> {
             if (ar.failed()) {
-              LOGGER.error("Can not save rules for tenant {}", tenantId, ar.cause());
+              LOGGER.warn("saveDefaultRules:: Can not save rules for tenant {}", tenantId, ar.cause());
               promise.fail(ar.cause());
             } else {
               promise.complete();
@@ -65,12 +66,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
           });
       } else {
         String errorMessage = "Can not work with rules in non-JSON format";
-        LOGGER.error(errorMessage);
+        LOGGER.warn(errorMessage);
         promise.fail(new InternalServerErrorException(errorMessage));
       }
     } else {
       String errorMessage = "No default rules found";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(errorMessage);
     }
     return promise.future();
@@ -80,6 +81,11 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
     rejectUnsupportedType(recordType, promise);
+    return promise.future().compose(v -> updateRules(rules, recordType, tenantId));
+  }
+
+  private Future<JsonObject> updateRules(String rules, Record.RecordType recordType, String tenantId) {
+    Promise<JsonObject> promise = Promise.promise();
     if (isValidJson(rules)) {
       MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, recordType);
       mappingRuleDao.update(new JsonObject(rules), recordType, tenantId)
@@ -87,7 +93,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
         .onComplete(promise);
     } else {
       String errorMessage = "Can not update rules in non-JSON format";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
     }
     return promise.future();
@@ -96,14 +102,13 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   @Override
   public Future<JsonObject> restore(Record.RecordType recordType, String tenantId) {
     Promise<JsonObject> promise = Promise.promise();
-    rejectUnsupportedType(recordType, promise);
     Optional<String> optionalRules = receiveDefaultRules(recordType);
 
     if (optionalRules.isPresent()) {
-      update(optionalRules.get(), recordType, tenantId).onComplete(promise);
+      updateRules(optionalRules.get(), recordType, tenantId).onComplete(promise);
     } else {
       String errorMessage = "No rules found in resources";
-      LOGGER.error(errorMessage);
+      LOGGER.warn(errorMessage);
       promise.fail(new InternalServerErrorException(errorMessage));
     }
     return promise.future();
@@ -111,6 +116,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   private Function<Optional<JsonObject>, Future<String>> saveRulesIfNotExist(Record.RecordType recordType,
                                                                              String tenantId, String defaultRules) {
+    LOGGER.trace("saveRulesIfNotExist:: recordType {}, defaultRules {}, tenantId {}", recordType, defaultRules, tenantId);
     return existedRules -> {
       if (existedRules.isEmpty()) {
         return mappingRuleDao.save(new JsonObject(defaultRules), recordType, tenantId);
@@ -133,10 +139,13 @@ public class MappingRuleServiceImpl implements MappingRuleService {
   }
 
   private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
+    LOGGER.debug("rejectUnsupportedType:: recordType {}", recordType);
     if (recordType == Record.RecordType.MARC_AUTHORITY) {
-      String errorMessage = "Can't edit/restore MARC Authority default mapping rules";
-      LOGGER.error(errorMessage);
+      String errorMessage = "Can't edit MARC Authority default mapping rules";
+      LOGGER.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
+    } else {
+      promise.complete(null);
     }
   }
 
@@ -151,7 +160,7 @@ public class MappingRuleServiceImpl implements MappingRuleService {
       new JsonObject(json);
       return true;
     } catch (Exception e) {
-      LOGGER.error(e.getMessage());
+      LOGGER.warn(e.getMessage());
       return false;
     }
   }
@@ -163,11 +172,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
    * @return optional with resource, empty if no file in resources
    */
   private Optional<String> readResourceFromPath(String path) {
+    LOGGER.debug("readResourceFromPath:: path {}", path);
     URL url = Resources.getResource(path);
     try {
       return Optional.of(Resources.toString(url, DEFAULT_RULES_ENCODING));
     } catch (IOException e) {
-      LOGGER.error(e.getMessage());
+      LOGGER.warn(e.getMessage());
       return Optional.empty();
     }
   }

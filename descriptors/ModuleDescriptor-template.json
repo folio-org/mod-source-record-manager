@@ -16,7 +16,11 @@
     },
     {
       "id": "users",
-      "version": "15.0"
+      "version": "15.0 16.0"
+    },
+    {
+      "id": "configuration",
+      "version": "2.0"
     },
     {
       "id": "identifier-types",
@@ -60,7 +64,7 @@
     },
     {
       "id": "data-import-converter-storage",
-      "version": "1.2"
+      "version": "1.4"
     },
     {
       "id": "modes-of-issuance",
@@ -71,14 +75,70 @@
       "version": "1.1"
     },
     {
-      "id": "authority-note-types",
+      "id": "call-number-types",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-types",
+      "version": "1.0"
+    },
+    {
+      "id": "holdings-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-relationship-types",
+      "version": "1.0"
+    },
+    {
+      "id": "instance-statuses",
+      "version": "1.0"
+    },
+    {
+      "id": "item-damaged-statuses",
+      "version": "1.0"
+    },
+    {
+      "id": "item-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "ill-policies",
+      "version": "1.0"
+    },
+    {
+      "id": "loan-types",
+      "version": "2.2"
+    },
+    {
+      "id": "locations",
+      "version": "3.0"
+    },
+    {
+      "id": "material-types",
+      "version": "2.2"
+    },
+    {
+      "id": "nature-of-content-terms",
+      "version": "1.0"
+    },
+    {
+      "id": "statistical-codes",
+      "version": "1.0"
+    },
+    {
+      "id": "statistical-code-types",
+      "version": "1.0"
+    },
+    {
+      "id": "field-protection-settings",
       "version": "1.0"
     }
   ],
   "provides": [
     {
       "id": "source-manager-job-executions",
-      "version": "3.0",
+      "version": "3.3",
       "handlers": [
         {
           "methods": [
@@ -93,7 +153,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/metadata-provider/logs/{jobExecutionId}",
+          "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
           "permissionsRequired": [
             "metadata-provider.logs.get"
           ]
@@ -102,9 +162,9 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
+          "pathPattern": "/metadata-provider/jobExecutions/jobProfiles",
           "permissionsRequired": [
-            "metadata-provider.logs.get"
+            "metadata-provider.jobexecutions.get"
           ]
         },
         {
@@ -118,6 +178,15 @@
           "modulePermissions": [
             "source-storage.snapshots.post",
             "users.collection.get"
+          ]
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/change-manager/jobExecutions",
+          "permissionsRequired": [
+            "change-manager.jobexecutions.delete"
           ]
         },
         {
@@ -176,7 +245,7 @@
     },
     {
       "id": "source-manager-records",
-      "version": "2.0",
+      "version": "2.1",
       "handlers": [
         {
           "methods": [
@@ -187,62 +256,102 @@
             "change-manager.records.post"
           ],
           "modulePermissions": [
-            "source-storage.snapshots.get",
-            "source-storage.snapshots.put",
-            "users.collection.get",
+            "configuration.entries.collection.get",
             "converter-storage.field-protection-settings.get",
             "converter-storage.jobprofilesnapshots.get",
-            "inventory-storage.identifier-types.collection.get",
-            "inventory-storage.classification-types.collection.get",
-            "inventory-storage.instance-types.collection.get",
-            "inventory-storage.electronic-access-relationships.collection.get",
-            "inventory-storage.instance-formats.collection.get",
-            "inventory-storage.contributor-types.collection.get",
-            "inventory-storage.contributor-name-types.collection.get",
-            "inventory-storage.instance-note-types.collection.get",
             "inventory-storage.alternative-title-types.collection.get",
-            "inventory-storage.modes-of-issuance.collection.get",
-            "inventory-storage.item-damaged-statuses.collection.get",
-            "inventory-storage.instance-statuses.collection.get",
-            "inventory-storage.nature-of-content-terms.collection.get",
-            "inventory-storage.instance-relationship-types.collection.get",
-            "inventory-storage.holdings-types.collection.get",
-            "inventory-storage.holdings-note-types.collection.get",
-            "inventory-storage.ill-policies.collection.get",
-            "inventory-storage.call-number-types.collection.get",
-            "inventory-storage.statistical-codes.collection.get",
-            "inventory-storage.statistical-code-types.collection.get",
-            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.authorities.collection.get",
+            "inventory-storage.authorities.item.delete",
+            "inventory-storage.authorities.item.get",
+            "inventory-storage.authorities.item.post",
+            "inventory-storage.authorities.item.put",
             "inventory-storage.authority-note-types.collection.get",
-            "inventory-storage.items.collection.get",
-            "inventory-storage.items.item.post",
-            "inventory-storage.items.item.put",
-            "inventory-storage.material-types.item.get",
-            "inventory-storage.material-types.collection.get",
-            "inventory-storage.loan-types.item.get",
-            "inventory-storage.loan-types.collection.get",
-            "inventory-storage.locations.item.get",
-            "inventory-storage.locations.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-sources.collection.get",
+            "inventory-storage.holdings-types.collection.get",
             "inventory-storage.holdings.collection.get",
             "inventory-storage.holdings.item.get",
             "inventory-storage.holdings.item.post",
             "inventory-storage.holdings.item.put",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.instance-types.collection.get",
             "inventory-storage.instances.collection.get",
             "inventory-storage.instances.item.get",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
-            "inventory-storage.authorities.collection.get",
-            "inventory-storage.authorities.item.get",
-            "inventory-storage.authorities.item.post",
-            "inventory-storage.authorities.item.put",
-            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.items.collection.get",
+            "inventory-storage.items.item.post",
+            "inventory-storage.items.item.put",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
             "inventory-storage.preceding-succeeding-titles.collection.get",
-            "inventory-storage.preceding-succeeding-titles.item.get",
-            "inventory-storage.preceding-succeeding-titles.item.put",
             "inventory-storage.preceding-succeeding-titles.item.delete",
-            "configuration.entries.collection.get",
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "mapping-metadata.get",
+            "orders.po-lines.collection.get",
+            "source-storage.records.get",
+            "source-storage.snapshots.get",
+            "source-storage.snapshots.put",
             "source-storage.verified.records",
-            "mapping-metadata.get"
+            "users.collection.get",
+            "orders-storage.order-invoice-relationships.item.post",
+            "finance.exchange-rate.item.get",
+            "finance.expense-classes.collection.get",
+            "finance.funds.budget.item.get",
+            "finance.fiscal-years.item.get",
+            "finance.ledgers.collection.get",
+            "finance.transactions.collection.get",
+            "finance-storage.budgets.collection.get",
+            "finance-storage.budget-expense-classes.collection.get",
+            "finance-storage.fiscal-years.item.get",
+            "modperms.orders.item.post",
+            "modperms.orders.item.put",
+            "orders-storage.purchase-orders.item.get",
+            "orders-storage.po-line-number.get",
+            "orders-storage.po-lines.collection.get",
+            "orders-storage.po-lines.item.post",
+            "orders-storage.alerts.item.post",
+            "orders-storage.reporting-codes.item.post",
+            "orders-storage.configuration.prefixes.collection.get",
+            "orders-storage.configuration.suffixes.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get",
+            "isbn-utils.convert-to-13.get",
+            "instance-authority-links.instances.collection.get",
+            "instance-authority-links.instances.collection.put",
+            "instance-authority.linking-rules.collection.get",
+            "user-tenants.collection.get"
+          ],
+          "permissionsDesired": [
+            "invoices.acquisitions-units-assignments.assign",
+            "orders.acquisitions-units-assignments.assign",
+            "orders.acquisitions-units-assignments.manage",
+            "orders.item.approve",
+            "orders.item.reopen",
+            "orders.item.unopen"
           ]
         },
         {
@@ -285,48 +394,70 @@
             "change-manager.parsedrecords.put"
           ],
           "modulePermissions": [
-            "inventory-storage.identifier-types.collection.get",
-            "inventory-storage.classification-types.collection.get",
-            "inventory-storage.instance-types.collection.get",
-            "inventory-storage.electronic-access-relationships.collection.get",
-            "inventory-storage.instance-formats.collection.get",
-            "inventory-storage.contributor-types.collection.get",
-            "inventory-storage.contributor-name-types.collection.get",
-            "inventory-storage.instance-note-types.collection.get",
-            "inventory-storage.alternative-title-types.collection.get",
-            "inventory-storage.modes-of-issuance.collection.get",
-            "inventory-storage.item-damaged-statuses.collection.get",
-            "inventory-storage.instance-statuses.collection.get",
-            "inventory-storage.nature-of-content-terms.collection.get",
-            "inventory-storage.instance-relationship-types.collection.get",
-            "inventory-storage.holdings-types.collection.get",
-            "inventory-storage.holdings-note-types.collection.get",
-            "inventory-storage.ill-policies.collection.get",
-            "inventory-storage.call-number-types.collection.get",
-            "inventory-storage.statistical-codes.collection.get",
-            "inventory-storage.statistical-code-types.collection.get",
-            "inventory-storage.item-note-types.collection.get",
-            "inventory-storage.authority-note-types.collection.get",
-            "inventory-storage.material-types.item.get",
-            "inventory-storage.material-types.collection.get",
-            "inventory-storage.loan-types.item.get",
-            "inventory-storage.loan-types.collection.get",
-            "inventory-storage.locations.item.get",
-            "inventory-storage.locations.collection.get",
+            "configuration.entries.collection.get",
             "converter-storage.field-protection-settings.get",
+            "converter-storage.jobprofilesnapshots.get",
+            "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.authorities.collection.get",
+            "inventory-storage.authorities.item.get",
+            "inventory-storage.authorities.item.post",
+            "inventory-storage.authorities.item.put",
+            "inventory-storage.authorities.item.delete",
+            "inventory-storage.authority-note-types.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-sources.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.holdings.collection.get",
+            "inventory-storage.holdings.item.get",
+            "inventory-storage.holdings.item.post",
+            "inventory-storage.holdings.item.put",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.instances.collection.get",
             "inventory-storage.instances.item.get",
+            "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put",
             "inventory-storage.instances.preceding-succeeding-titles.collection.put",
-            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.items.collection.get",
+            "inventory-storage.items.item.post",
+            "inventory-storage.items.item.put",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.loan-types.item.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.locations.item.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.material-types.item.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
             "inventory-storage.preceding-succeeding-titles.collection.get",
-            "inventory-storage.preceding-succeeding-titles.item.get",
-            "inventory-storage.preceding-succeeding-titles.item.put",
             "inventory-storage.preceding-succeeding-titles.item.delete",
-            "inventory-storage.holdings.item.get",
-            "inventory-storage.holdings.item.put",
-            "inventory-storage.authorities.item.get",
-            "inventory-storage.authorities.item.put",
-            "configuration.entries.collection.get"
+            "inventory-storage.preceding-succeeding-titles.item.get",
+            "inventory-storage.preceding-succeeding-titles.item.post",
+            "inventory-storage.preceding-succeeding-titles.item.put",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get",
+            "mapping-metadata.get",
+            "source-storage.snapshots.get",
+            "source-storage.snapshots.put",
+            "source-storage.verified.records",
+            "users.collection.get",
+            "orders.po-lines.collection.get",
+            "instance-authority-links.instances.collection.get",
+            "instance-authority-links.instances.collection.put",
+            "instance-authority.linking-rules.collection.get"
           ]
         }
       ]
@@ -351,6 +482,24 @@
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
           "permissionsRequired": [
             "metadata-provider.logs.get"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobSummary/{jobExecutionId}",
+          "permissionsRequired": [
+            "metadata-provider.logs.get"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/jobExecutions/users",
+          "permissionsRequired": [
+            "metadata-provider.jobexecutions.get"
           ]
         }
       ]
@@ -400,6 +549,46 @@
           "permissionsRequired": [
             "mapping-metadata.get"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/mapping-metadata/type/{recordType}",
+          "permissionsRequired": [
+            "mapping-metadata.get"
+          ],
+          "modulePermissions": [
+            "configuration.entries.collection.get",
+            "converter-storage.field-protection-settings.get",
+            "instance-authority.linking-rules.collection.get",
+            "inventory-storage.alternative-title-types.collection.get",
+            "inventory-storage.authority-note-types.collection.get",
+            "inventory-storage.authority-source-files.collection.get",
+            "inventory-storage.call-number-types.collection.get",
+            "inventory-storage.classification-types.collection.get",
+            "inventory-storage.contributor-name-types.collection.get",
+            "inventory-storage.contributor-types.collection.get",
+            "inventory-storage.electronic-access-relationships.collection.get",
+            "inventory-storage.holdings-note-types.collection.get",
+            "inventory-storage.holdings-types.collection.get",
+            "inventory-storage.identifier-types.collection.get",
+            "inventory-storage.ill-policies.collection.get",
+            "inventory-storage.instance-formats.collection.get",
+            "inventory-storage.instance-note-types.collection.get",
+            "inventory-storage.instance-relationship-types.collection.get",
+            "inventory-storage.instance-statuses.collection.get",
+            "inventory-storage.instance-types.collection.get",
+            "inventory-storage.item-damaged-statuses.collection.get",
+            "inventory-storage.item-note-types.collection.get",
+            "inventory-storage.loan-types.collection.get",
+            "inventory-storage.locations.collection.get",
+            "inventory-storage.material-types.collection.get",
+            "inventory-storage.modes-of-issuance.collection.get",
+            "inventory-storage.nature-of-content-terms.collection.get",
+            "inventory-storage.statistical-code-types.collection.get",
+            "inventory-storage.statistical-codes.collection.get"
+          ]
         }
       ]
     },
@@ -437,6 +626,20 @@
       ]
     }
   ],
+  "optional": [
+    {
+      "id": "instance-authority-linking-rules",
+      "version": "1.0"
+    },
+    {
+      "id": "authority-note-types",
+      "version": "1.0"
+    },
+    {
+      "id": "authority-source-files",
+      "version": "1.0"
+    }
+  ],
   "permissionSets": [
     {
       "permissionName": "metadata-provider.jobexecutions.get",
@@ -452,6 +655,11 @@
       "permissionName": "change-manager.jobexecutions.post",
       "displayName": "Change Manager - create jobExecutions",
       "description": "Post JobExecution"
+    },
+    {
+      "permissionName": "change-manager.jobexecutions.delete",
+      "displayName": "Change Manager - delete jobExecutions",
+      "description": "Batch Delete JobExecutions"
     },
     {
       "permissionName": "change-manager.jobexecutions.put",
@@ -530,7 +738,7 @@
     "dockerPull": false,
     "dockerArgs": {
       "HostConfig": {
-        "Memory": 715827883,
+        "Memory": 1073741824,
         "PortBindings": {
           "8081/tcp": [
             {
@@ -575,7 +783,7 @@
       },
       {
         "name": "DB_MAXPOOLSIZE",
-        "value": "5"
+        "value": "15"
       },
       {
         "name": "KAFKA_HOST",
@@ -584,6 +792,14 @@
       {
         "name": "KAFKA_PORT",
         "value": "9092"
+      },
+      {
+        "name": "DB_RECONNECTATTEMPTS",
+        "value": "3"
+      },
+      {
+        "name": "DB_RECONNECTINTERVAL",
+        "value": "1000"
       }
     ]
   }

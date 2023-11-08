@@ -159,4 +159,63 @@ public class JournalRecordDaoTest extends AbstractRestTest {
       async.complete();
     });
   }
+
+  @Test
+  public void shouldUpdateOnly2JournalRecordsByOrderIdAndJobExecutionId(TestContext testContext) {
+    InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
+    List<JobExecution> createdJobExecutions = response.getJobExecutions();
+    Assert.assertThat(createdJobExecutions.size(), is(1));
+    JobExecution jobExec = createdJobExecutions.get(0);
+    String orderId = UUID.randomUUID().toString();
+
+    JournalRecord journalRecord1 = new JournalRecord()
+      .withJobExecutionId(jobExec.getId())
+      .withSourceRecordOrder(0)
+      .withSourceId(UUID.randomUUID().toString())
+      .withEntityType(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC)
+      .withEntityId(UUID.randomUUID().toString())
+      .withActionType(CREATE)
+      .withActionDate(new Date())
+      .withActionStatus(COMPLETED)
+      .withOrderId(orderId);
+
+    JournalRecord journalRecord2 = new JournalRecord()
+      .withJobExecutionId(jobExec.getId())
+      .withSourceRecordOrder(0)
+      .withSourceId(UUID.randomUUID().toString())
+      .withEntityType(JournalRecord.EntityType.INSTANCE)
+      .withEntityId(UUID.randomUUID().toString())
+      .withActionType(MODIFY)
+      .withActionDate(new Date())
+      .withActionStatus(COMPLETED)
+      .withOrderId(orderId);
+
+    JournalRecord journalRecord3 = new JournalRecord()
+      .withJobExecutionId(jobExec.getId())
+      .withSourceRecordOrder(0)
+      .withSourceId(UUID.randomUUID().toString())
+      .withEntityType(JournalRecord.EntityType.INSTANCE)
+      .withEntityId(UUID.randomUUID().toString())
+      .withActionType(DELETE)
+      .withActionDate(new Date())
+      .withActionStatus(COMPLETED)
+      .withOrderId(UUID.randomUUID().toString())
+      .withError("Testing Error");
+
+    Future<Integer> updatedFuture = journalRecordDao.save(journalRecord1, TENANT_ID)
+      .compose(ar -> journalRecordDao.save(journalRecord2, TENANT_ID))
+      .compose(ar -> journalRecordDao.save(journalRecord3, TENANT_ID))
+      .compose(ar -> journalRecordDao.updateErrorJournalRecordsByOrderIdAndJobExecution(jobExec.getId(), orderId,"Testing Error", TENANT_ID));
+
+
+    Async async = testContext.async();
+    updatedFuture.onComplete(ar -> {
+      testContext.verify(v -> {
+        Assert.assertTrue(ar.succeeded());
+          int updatedCount = ar.result();
+          Assert.assertEquals(2, updatedCount);
+      });
+      async.complete();
+    });
+  }
 }

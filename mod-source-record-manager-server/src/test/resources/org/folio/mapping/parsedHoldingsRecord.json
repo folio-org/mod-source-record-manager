@@ -1,0 +1,949 @@
+{
+  "leader": "01240uvs a2200397   4500",
+  "fields": [
+    {
+      "001": "366832"
+    },
+    {
+      "005": "20141106221425.0"
+    },
+    {
+      "008": "750907c19509999enkqr p       0   a0eng d"
+    },
+    {
+      "010": {
+        "subfields": [
+          {
+            "a": "   58020553 "
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "022": {
+        "subfields": [
+          {
+            "a": "0022-0469"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "035": {
+        "subfields": [
+          {
+            "a": "(CStRLIN)NYCX1604275S"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "035": {
+        "subfields": [
+          {
+            "a": "(NIC)notisABP6388"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "035": {
+        "subfields": [
+          {
+            "a": "366832"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "035": {
+        "subfields": [
+          {
+            "a": "(OCoLC)1604275"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "040": {
+        "subfields": [
+          {
+            "d": "CtY"
+          },
+          {
+            "d": "MBTI"
+          },
+          {
+            "d": "CtY"
+          },
+          {
+            "d": "MBTI"
+          },
+          {
+            "d": "NIC"
+          },
+          {
+            "d": "CStRLIN"
+          },
+          {
+            "d": "NIC"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "050": {
+        "subfields": [
+          {
+            "a": "BR140"
+          },
+          {
+            "b": ".J6"
+          }
+        ],
+        "ind1": "0",
+        "ind2": " "
+      }
+    },
+    {
+      "082": {
+        "subfields": [
+          {
+            "a": "270.05"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "222": {
+        "subfields": [
+          {
+            "a": "The Journal of ecclesiastical history"
+          }
+        ],
+        "ind1": "0",
+        "ind2": "4"
+      }
+    },
+    {
+      "245": {
+        "subfields": [
+          {
+            "a": "The Journal of ecclesiastical history."
+          }
+        ],
+        "ind1": "0",
+        "ind2": "4"
+      }
+    },
+    {
+      "260": {
+        "subfields": [
+          {
+            "a": "London,"
+          },
+          {
+            "b": "Cambridge University Press [etc.]"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "265": {
+        "subfields": [
+          {
+            "a": "32 East 57th St., New York, 10022"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "300": {
+        "subfields": [
+          {
+            "a": "v."
+          },
+          {
+            "b": "25 cm."
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "310": {
+        "subfields": [
+          {
+            "a": "Quarterly,"
+          },
+          {
+            "b": "1970-"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "321": {
+        "subfields": [
+          {
+            "a": "Semiannual,"
+          },
+          {
+            "b": "1950-69"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "362": {
+        "subfields": [
+          {
+            "a": "v. 1-   Apr. 1950-"
+          }
+        ],
+        "ind1": "0",
+        "ind2": " "
+      }
+    },
+    {
+      "561": {
+        "subfields": [
+          {
+            "a": "note$a"
+          },
+          {
+            "u": "note$u"
+          },
+          {
+            "3": "note$3"
+          },
+          {
+            "5": "note$5"
+          },
+          {
+            "6": "note$6"
+          },
+          {
+            "8": "note$8"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "562": {
+        "subfields": [
+          {
+            "a": "note$a"
+          },
+          {
+            "b": "note$b"
+          },
+          {
+            "c": "note$c"
+          },
+          {
+            "d": "note$d"
+          },
+          {
+            "e": "note$e"
+          },
+          {
+            "3": "note$3"
+          },
+          {
+            "5": "note$5"
+          },
+          {
+            "6": "note$6"
+          },
+          {
+            "8": "note$8"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "583": {
+        "subfields": [
+          {
+            "a": "note$a"
+          },
+          {
+            "b": "note$b"
+          },
+          {
+            "c": "note$c"
+          },
+          {
+            "d": "note$d"
+          },
+          {
+            "e": "note$e"
+          },
+          {
+            "f": "note$f"
+          },
+          {
+            "h": "note$h"
+          },
+          {
+            "i": "note$i"
+          },
+          {
+            "j": "note$j"
+          },
+          {
+            "k": "note$k"
+          },
+          {
+            "l": "note$l"
+          },
+          {
+            "n": "note$n"
+          },
+          {
+            "o": "note$o"
+          },
+          {
+            "u": "note$u"
+          },
+          {
+            "x": "note$x"
+          },
+          {
+            "z": "note$z"
+          },
+          {
+            "2": "note$2"
+          },
+          {
+            "3": "note$3"
+          },
+          {
+            "5": "note$5"
+          },
+          {
+            "8": "note$8"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "570": {
+        "subfields": [
+          {
+            "a": "Editor:   C. W. Dugmore."
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "650": {
+        "subfields": [
+          {
+            "a": "Church history"
+          },
+          {
+            "x": "Periodicals."
+          }
+        ],
+        "ind1": " ",
+        "ind2": "0"
+      }
+    },
+    {
+      "650": {
+        "subfields": [
+          {
+            "a": "Church history"
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst00860740"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "7"
+      }
+    },
+    {
+      "655": {
+        "subfields": [
+          {
+            "a": "Periodicals"
+          },
+          {
+            "2": "fast"
+          },
+          {
+            "0": "(OCoLC)fst01411641"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "7"
+      }
+    },
+    {
+      "700": {
+        "subfields": [
+          {
+            "a": "Dugmore, C. W."
+          },
+          {
+            "q": "(Clifford William),"
+          },
+          {
+            "e": "ed."
+          }
+        ],
+        "ind1": "1",
+        "ind2": " "
+      }
+    },
+    {
+      "582": {
+        "subfields": [
+          {
+            "k": "callNumberPrefix"
+          },
+          {
+            "h": "callNumber1"
+          },
+          {
+            "i": "callNumber2"
+          },
+          {
+            "m": "callNumberSuffix"
+          },
+          {
+            "t": "copyNumber"
+          }
+        ],
+        "ind1": "0",
+        "ind2": "3"
+      }
+    },
+    {
+      "856": {
+        "subfields": [
+          {
+            "u": "uri"
+          },
+          {
+            "y": "linkText"
+          },
+          {
+            "3": "materialsSpecification"
+          },
+          {
+            "z": "publicNote"
+          }
+        ],
+        "ind1": "0",
+        "ind2": "3"
+      }
+    },
+    {
+      "863": {
+        "subfields": [
+          {
+            "8": "1"
+          },
+          {
+            "a": "1-49"
+          },
+          {
+            "i": "1950-1998"
+          }
+        ],
+        "ind1": "4",
+        "ind2": "0"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "a": "holdingsStatements.statement"
+          },
+          {
+            "z": "holdingsStatements.note"
+          },
+          {
+            "x": "holdingsStatements.staffNote"
+          }
+        ],
+        "ind1": "4",
+        "ind2": "0"
+      }
+    },
+    {
+      "867": {
+        "subfields": [
+          {
+            "a": "holdingsStatementsForSupplements.statement"
+          },
+          {
+            "z": "holdingsStatementsForSupplements.note"
+          },
+          {
+            "x": "holdingsStatementsForSupplements.staffNote"
+          }
+        ],
+        "ind1": "4",
+        "ind2": "0"
+      }
+    },
+    {
+      "868": {
+        "subfields": [
+          {
+            "a": "holdingsStatementsForIndexes.statement"
+          },
+          {
+            "z": "holdingsStatementsForIndexes.note"
+          },
+          {
+            "x": "holdingsStatementsForIndexes.staffNote"
+          }
+        ],
+        "ind1": "4",
+        "ind2": "0"
+      }
+    },
+    {
+      "902": {
+        "subfields": [
+          {
+            "a": "pfnd"
+          },
+          {
+            "b": "Lintz"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "905": {
+        "subfields": [
+          {
+            "a": "19890510120000.0"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "948": {
+        "subfields": [
+          {
+            "a": "20141106"
+          },
+          {
+            "b": "m"
+          },
+          {
+            "d": "batch"
+          },
+          {
+            "e": "lts"
+          },
+          {
+            "x": "addfast"
+          }
+        ],
+        "ind1": "2",
+        "ind2": " "
+      }
+    },
+    {
+      "950": {
+        "subfields": [
+          {
+            "l": "OLIN"
+          },
+          {
+            "a": "BR140"
+          },
+          {
+            "b": ".J86"
+          },
+          {
+            "h": "01/01/01 N"
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "852": {
+        "subfields": [
+          {
+            "b": "mus"
+          },
+          {
+            "t": "3"
+          },
+          {
+            "h": "M3"
+          },
+          {
+            "i": ".M93 1955"
+          },
+          {
+            "m": "+"
+          },
+          {
+            "x": "Rec'd in Music Lib ; Earlier vols. were pd by Mrs. Bueding; ck in Kritische Berichte on H1185407 and its check-in; Each v. to be plated \"From the library of Dr. Ernest Bueding\"; *** Ser.1 wkg.2/1; Ser.1 wkg.1/3,5 : PA; ***Ser.1 Wkg.1 Bd.4 & Bd.6 do not exist.; ***Ser.10 Wkg.32 OP--we have it in c.1 & c.2 sets;"
+          }
+        ],
+        "ind1": "0",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.1:grp.1:abt.1:v.1-6; ser.1:grp.1:abt.2:v.1-2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.1:grp.2:v.1-2; ser.1:grp.3; ser.1:grp.4:v.1-4;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.2:grp.5:v.1-20;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.2:grp.6:v.1-2; ser.2:grp.7:v.1-4;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.3:grp.8-10;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.4:grp.11:v.1-10; ser.4:grp.12:v.1-6;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.4:grp.13:abt.1:v.1; ser.4:grp.13:abt.2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.5:grp.14:v.1-6; ser.5:grp.15:v.1-8; ser.6:grp.16;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.7:grp.17:v.1-2; ser.7:grp.18;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.8:grp.19:abt.1-2; ser.8:grp.20:abt.1:v.1-3;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.8:grp.20:abt.2; ser.8:grp.21;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.8:grp.22:abt.1-2; ser.8:grp.23:v.1-2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.9:grp.24:abt.1-2; ser.9:grp.25:v.1-2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.9:v.26; ser.9:grp.27:v.1-2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.28:abt.1:v.1-4; ser.10:grp.28:abt.2;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.28:abt.3/5:v.1; ser.10:grp.28:abt.3/5:v.1a;10:grp.28:abt.3/5:v.2-3"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.29:v.1-3; ser.10:grp.30:v.1-2,4;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.31:v.1-3;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.33:abt.1-2; ser.10:grp.34;"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "866": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "(1955-2010)"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "867": {
+        "subfields": [
+          {
+            "8": "0"
+          },
+          {
+            "a": "ser.10:grp.31:vorabdruck"
+          }
+        ],
+        "ind1": " ",
+        "ind2": "1"
+      }
+    },
+    {
+      "999": {
+        "ind1": "f",
+        "ind2": "f",
+        "subfields": [
+          {
+            "s": "b90cb1bc-601f-45d7-b99e-b11efd281dcd"
+          }
+        ]
+      }
+    }
+  ]
+}

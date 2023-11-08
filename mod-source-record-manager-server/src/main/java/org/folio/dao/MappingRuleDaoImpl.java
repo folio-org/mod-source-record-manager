@@ -28,7 +28,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
   private static final String TABLE_NAME = "mapping_rules";
   private static final String RULES_JSON_FIELD = "mappingRules";
   private static final String SELECT_BY_TYPE_QUERY = "SELECT jsonb FROM %s.%s WHERE record_type = $1 limit 1";
-  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = jsonb_set(jsonb, '{mappingRules}', '%s') WHERE record_type = $1";
+  private static final String UPDATE_QUERY = "UPDATE %s.%s SET jsonb = $1 WHERE record_type = $2";
   private static final String INSERT_QUERY = "INSERT INTO %s.%s (id, jsonb, record_type) VALUES ($1, $2, $3)";
 
   @Autowired
@@ -40,9 +40,9 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
     try {
       String query = format(SELECT_BY_TYPE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
       Tuple queryParams = Tuple.of(recordType != null ? recordType.toString() : null);
-      pgClientFactory.createInstance(tenantId).select(query, queryParams, promise);
+      pgClientFactory.createInstance(tenantId).selectRead(query, queryParams, promise);
     } catch (Exception e) {
-      LOGGER.error("Error getting mapping rules", e);
+      LOGGER.warn("get:: Error getting mapping rules", e);
       promise.fail(e);
     }
     return promise.future().map(resultSet -> {
@@ -59,6 +59,7 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
   @Override
   public Future<String> save(JsonObject rules, Record.RecordType recordType, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
+    LOGGER.trace("save:: Saving mapping rules tenant id {}", tenantId);
     UUID id = UUID.randomUUID();
     String query = format(INSERT_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
     Tuple queryParams = Tuple.of(
@@ -66,15 +67,15 @@ public class MappingRuleDaoImpl implements MappingRuleDao {
       new JsonObject().put(RULES_JSON_FIELD, rules),
       recordType.toString());
     pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(id.toString()).onFailure(e -> LOGGER.error("Error saving rules", e));
+    return promise.future().map(id.toString()).onFailure(e -> LOGGER.warn("save:: Error saving rules", e));
   }
 
   @Override
   public Future<JsonObject> update(JsonObject rules, Record.RecordType recordType, String tenantId) {
     Promise<RowSet<Row>> promise = Promise.promise();
-    String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME, rules);
-    Tuple queryParams = Tuple.of(recordType.toString());
+    String query = format(UPDATE_QUERY, convertToPsqlStandard(tenantId), TABLE_NAME);
+    Tuple queryParams = Tuple.of(new JsonObject().put(RULES_JSON_FIELD, rules), recordType.toString());
     pgClientFactory.createInstance(tenantId).execute(query, queryParams, promise);
-    return promise.future().map(rules);
+    return promise.future().map(rules).onFailure(e -> LOGGER.warn("update:: Error updating rules", e));
   }
 }

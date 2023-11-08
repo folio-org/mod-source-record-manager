@@ -35,6 +35,7 @@ import org.folio.verticle.consumers.util.QmCompletedEventPayload;
 public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, String> {
 
   private static final String RECORD_ID_KEY = "RECORD_ID";
+  private static final String RECORD_DTO_ID_KEY = "RECORD_DTO_ID";
   private static final String ERROR_KEY = "ERROR";
 
   private final SourceRecordStateService sourceRecordStateService;
@@ -54,7 +55,7 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
       .compose(eventPayload -> sendQmCompletedEvent(eventPayload, tenantId, kafkaHeaders))
       .compose(eventPayload -> updateSourceState(eventPayload, eventType, tenantId))
       .compose(s -> Future.succeededFuture(record.key()), th -> {
-        log.error("Update record state was failed while handle {} event", eventType);
+        log.warn("handle:: Update record state was failed while handle {} event", eventType);
         return Future.failedFuture(th);
       });
   }
@@ -71,7 +72,7 @@ public class QuickMarcUpdateKafkaHandler implements AsyncRecordHandler<String, S
   private Future<SourceRecordState> updateSourceState(Map<String, String> eventPayload, String eventType,
                                                       String tenantId) {
     log.debug("Event was received for {}: {}", eventType, eventPayload);
-    var recordId = eventPayload.get(RECORD_ID_KEY);
+    var recordId = eventPayload.get(RECORD_DTO_ID_KEY);
     if (QMEventTypes.QM_ERROR.name().equals(eventType)) {
       return sourceRecordStateService.updateState(recordId, ERROR, tenantId);
     } else {

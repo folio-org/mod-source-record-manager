@@ -5,12 +5,15 @@ import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -114,4 +117,33 @@ public interface JobExecutionService {
    */
   Future<Boolean> completeJobExecutionWithError(String jobExecutionId, OkapiConnectionParams params);
 
+
+  /**
+   *
+   * @param ids JobExecutions to be deleted using Ids
+   * @param tenantId
+   * @return future of boolean depending upon success and failure
+   */
+  Future<DeleteJobExecutionsResp>  softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
+
+  /**
+   * Searches for JobProfilesInfo,
+   * by default returns all existing related job profiles,
+   * to limit the collection param limit should be explicitly specified
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return future with collection of JobProfileInfo
+   */
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
+
+  /**
+   * Searches unique users for jobExecutions. Returns list of unique users
+   * with "userId", "firstName", "lastName".
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return collection of JobExecutionUserInfoCollection with userIds, firstNames, lastNames
+   */
+  Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
 }

@@ -14,11 +14,11 @@ import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventHandlingService;
 import org.folio.services.EventProcessedService;
+import org.folio.services.flowcontrol.RawRecordsFlowControlService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -51,11 +51,13 @@ public class DataImportKafkaHandlerMockTest {
   private EventHandlingService eventHandlingService;
   @Mock
   private EventProcessedService eventProcessedService;
+  @Mock
+  private RawRecordsFlowControlService flowControlService;
   private DataImportKafkaHandler dataImportKafkaHandler;
 
   @Before
   public void setUp() {
-    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService);
+    dataImportKafkaHandler = new DataImportKafkaHandler(vertx, eventHandlingService, eventProcessedService, flowControlService);
   }
 
   @Test

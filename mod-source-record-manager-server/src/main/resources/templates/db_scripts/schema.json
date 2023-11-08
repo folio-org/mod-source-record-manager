@@ -2,54 +2,30 @@
   "tables": [
     {
       "tableName": "job_executions",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0",
       "withMetadata": false,
       "index": [
         {
           "fieldName": "id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "uiStatus",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         },
         {
           "fieldName": "jobProfileInfo.id",
-          "tOps": "ADD"
+          "tOps": "DELETE"
         }
       ],
       "fullTextIndex": [
         {
-          "fieldName": "subordinationType"
+          "fieldName": "subordinationType",
+          "tOps": "DELETE"
         },
         {
-          "fieldName": "status"
-        }
-      ]
-    },
-    {
-      "tableName": "job_execution_source_chunks",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0",
-      "withMetadata": false,
-      "index": [
-        {
-          "fieldName": "id",
-          "tOps": "ADD"
-        },
-        {
-          "fieldName": "jobExecutionId",
-          "tOps": "ADD"
-        },
-        {
-          "fieldName": "last",
-          "tOps": "ADD"
-        }
-      ],
-      "foreignKeys": [
-        {
-          "fieldName": "jobExecutionId",
-          "targetTable": "job_executions",
-          "tOps": "ADD"
+          "fieldName": "status",
+          "tOps": "DELETE"
         }
       ]
     },
@@ -57,18 +33,6 @@
       "tableName": "mapping_rules",
       "fromModuleVersion": "mod-source-record-manager-1.7.0",
       "withMetadata": false
-    },
-    {
-      "tableName": "job_execution_progress",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0",
-      "withMetadata": false,
-      "foreignKeys": [
-        {
-          "fieldName": "jobExecutionId",
-          "targetTable": "job_executions",
-          "tOps": "ADD"
-        }
-      ]
     },
     {
       "tableName": "source_records_state",
@@ -95,13 +59,13 @@
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId) into completed FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0"
+      "snippet": "CREATE OR REPLACE FUNCTION is_processing_completed(jobExecId uuid) RETURNS boolean AS $completed$ DECLARE completed boolean; BEGIN SELECT count(id) = (SELECT count(id) FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId) into completed FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId AND jsonb->>'state' IN ('COMPLETED', 'ERROR'); RETURN completed; END; $completed$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.6"
     },
     {
       "run": "after",
-      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE (jsonb->>'jobExecutionId')::uuid = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
-      "fromModuleVersion": "mod-source-record-manager-2.1.0"
+      "snippet": "CREATE OR REPLACE FUNCTION processing_contains_error_chunks(jobExecId uuid) RETURNS boolean AS $has_errors$ DECLARE has_errors boolean; BEGIN SELECT count(id) > 0 into has_errors FROM job_execution_source_chunks WHERE jobExecutionId = jobExecId AND jsonb->>'state' = 'ERROR'; RETURN has_errors; END; $has_errors$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.6"
     },
     {
       "run": "after",
@@ -115,12 +79,12 @@
     },
     {
       "run": "after",
-      "snippet": "DELETE FROM job_execution_progress jep1 USING job_execution_progress jep2 WHERE jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid;",
+      "snippet": "DO $$ BEGIN BEGIN DELETE FROM job_execution_progress jep1 USING job_execution_progress jep2 WHERE jep1.ctid < jep2.ctid AND jep1.jobexecutionid = jep2.jobexecutionid; EXCEPTION WHEN undefined_table OR undefined_column THEN NULL; END; END $$;",
       "fromModuleVersion": "mod-source-record-manager-2.2.0"
     },
     {
       "run": "after",
-      "snippet": "ALTER TABLE job_execution_progress DROP CONSTRAINT IF EXISTS job_execution_id_unique; ALTER TABLE job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId);",
+      "snippet": "ALTER TABLE IF EXISTS job_execution_progress DROP CONSTRAINT IF EXISTS job_execution_id_unique; DO $$ BEGIN ALTER TABLE IF EXISTS job_execution_progress ADD CONSTRAINT job_execution_id_unique UNIQUE (jobExecutionId); EXCEPTION WHEN undefined_column THEN NULL; END $$;",
       "fromModuleVersion": "mod-source-record-manager-2.2.0"
     },
     {
@@ -141,22 +105,17 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_log_entries_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
     },
     {
       "run": "after",
       "snippetPath": "create_get_record_processing_log_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.7.0-SNAPSHOT"
     },
     {
       "run": "after",
       "snippet": "DROP INDEX IF EXISTS job_execution_progress_expr_idx;",
       "fromModuleVersion": "mod-source-record-manager-3.0.6"
-    },
-    {
-      "run": "after",
-      "snippet": "CREATE TABLE IF NOT EXISTS job_monitoring (id UUID PRIMARY KEY, job_execution_id UUID REFERENCES job_executions(id), last_event_timestamp timestamp, notification_sent boolean);",
-      "fromModuleVersion": "mod-source-record-manager-3.1.0"
     },
     {
       "run": "after",
@@ -196,12 +155,127 @@
     {
       "run": "after",
       "snippetPath": "replace_job_execution_progress_table.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.3.0"
+      "fromModuleVersion": "mod-source-record-manager-3.3.3"
     },
     {
       "run": "after",
       "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS instance_id text; ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS holdings_id text;",
       "fromModuleVersion": "mod-source-record-manager-3.3.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE IF EXISTS job_execution_source_chunks ADD COLUMN IF NOT EXISTS jobExecutionId uuid; DROP INDEX IF EXISTS job_execution_source_chunks_jobexecutionid_idx; DROP INDEX IF EXISTS job_execution_source_chunks_last_idx;",
+      "fromModuleVersion": "mod-source-record-manager-3.3.8"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_job_execution_source_chunks_table.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.3.8"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS job_profile_hidden BOOLEAN; UPDATE job_execution SET job_profile_hidden = 'f'; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN job_profile_hidden SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE job_execution ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN; UPDATE job_execution SET is_deleted = FALSE; ALTER TABLE job_execution ALTER COLUMN is_deleted SET NOT NULL; ALTER TABLE job_execution ALTER COLUMN is_deleted SET DEFAULT FALSE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_job_execution_summary_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.8.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TYPE job_execution_status ADD VALUE IF NOT EXISTS 'CANCELLED'; ALTER TYPE job_execution_ui_status ADD VALUE IF NOT EXISTS 'CANCELLED';",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_executions CASCADE;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE INDEX IF NOT EXISTS journal_records_source_id_idx ON journal_records USING btree (source_id);",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE TABLE IF NOT EXISTS flow_control_events_counter(events_to_process integer PRIMARY KEY); INSERT INTO flow_control_events_counter (events_to_process) VALUES (0) ON CONFLICT DO NOTHING;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippet": "CREATE OR REPLACE FUNCTION save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid) RETURNS integer AS $$ DECLARE counterValue integer; BEGIN INSERT INTO events_processed(handler_id, event_id) VALUES(handlerId, eventId); UPDATE flow_control_events_counter SET events_to_process = events_to_process - 1; SELECT events_to_process FROM flow_control_events_counter INTO counterValue; RETURN counterValue; END; $$ LANGUAGE plpgsql;",
+      "fromModuleVersion": "mod-source-record-manager-3.4.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "update_source_chunks_table_structure_if_needed.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.4.3"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_index_on_job_execution_started_date.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.5.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "update_set_file_name_from_null_to_no_file_name.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.5.1"
+    },
+    {
+      "run": "after",
+      "snippetPath": "remove_records_where_parent_id_is_null.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.5.1"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP TABLE IF EXISTS job_monitoring CASCADE;",
+      "fromModuleVersion": "mod-source-record-manager-3.5.4"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS order_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.6.0"
+    },
+    {
+      "run": "after",
+      "snippet": "DROP FUNCTION IF EXISTS save_event_and_decrease_flow_control_counter(handlerId uuid, eventId uuid); DROP TABLE IF EXISTS flow_control_events_counter;",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS permanent_location_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_record_processing_log_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_job_log_entries_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "alter_job_executions_table_for_chunk_support.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "alter_job_executions_table_for_total_records.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
+    },
+    {
+      "run": "after",
+      "snippet": "ALTER TABLE journal_records ADD COLUMN IF NOT EXISTS tenant_id text;",
+      "fromModuleVersion": "mod-source-record-manager-3.7.0"
     }
   ]
 }

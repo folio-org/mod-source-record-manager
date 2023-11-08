@@ -7,12 +7,13 @@ import io.vertx.sqlclient.RowSet;
 public interface EventProcessedDao {
 
   /**
-   * Saves eventId and handlerId to database
+   * This method saves eventId and handlerId to deduplication table.
    *
    * @param handlerId handler id
    * @param eventId event id
    * @param tenantId tenant id
-   * @return future if the event not processed yet
+   * @return successful future if event has not been processed already, or failed future otherwise
    */
   Future<RowSet<Row>> save(String handlerId, String eventId, String tenantId);
+
 }

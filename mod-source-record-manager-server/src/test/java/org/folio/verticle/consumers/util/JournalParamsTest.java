@@ -17,6 +17,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_MATCHED;
@@ -25,10 +27,13 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RE
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_MATCHED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDINGS_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import io.vertx.core.json.JsonObject;
@@ -163,6 +168,22 @@ public class JournalParamsTest {
   }
 
   @Test
+  public void shouldPopulateEntityTypePoLineForDiOrderCreatedWhenEventTypeIsDiCompleted() {
+    eventPayload.setEventType(DI_COMPLETED.value());
+    context.put(JournalRecord.EntityType.PO_LINE.value(), new JsonObject().encode());
+    eventPayload.setContext(context);
+    eventPayload.setEventsChain(Collections.singletonList("DI_ORDER_CREATED"));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(JournalRecord.EntityType.PO_LINE, journalParams.journalEntityType);
+    Assert.assertEquals(JournalRecord.ActionType.CREATE, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
+  @Test
   public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiMarcHoldingRecordCreated() {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.CREATE);
   }
@@ -242,7 +263,7 @@ public class JournalParamsTest {
   }
 
   @Test
-  public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibReadyFOrPostProcessing() {
+  public void shouldPopulateEntityTypeMarcBibWhenEventTypeIsDiSrsMarcBibReadyForPostProcessing() {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED_READY_FOR_POST_PROCESSING, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.UPDATE);
   }
 
@@ -281,6 +302,16 @@ public class JournalParamsTest {
     populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_BIB_RECORD_UPDATED, JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, JournalRecord.ActionType.UPDATE);
   }
 
+  @Test
+  public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiSrsMarcHoldingsRecordUpdated() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDINGS_RECORD_UPDATED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.UPDATE);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeMarcHoldingsWhenEventTypeIsDiSrsMarcHoldingsRecordMatched() {
+    populateEntityTypeAndActionTypeByEventType(DI_SRS_MARC_HOLDINGS_RECORD_MATCHED, JournalRecord.EntityType.MARC_HOLDINGS, JournalRecord.ActionType.MATCH);
+  }
+
   private void populateEntityTypeAndActionTypeByEventType(DataImportEventTypes eventType, JournalRecord.EntityType entityType, JournalRecord.ActionType actionType) {
     eventPayload.setEventType(eventType.value());
 
@@ -298,4 +329,50 @@ public class JournalParamsTest {
   public void shouldThrowExceptionWhenJournalParamsNameIsNotAvailable() {
     JournalParams.JournalParamsEnum.getValue("not available event");
   }
+
+  @Test
+  public void shouldReturnInstanceCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndInstanceCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_INSTANCE_CREATED,
+      JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldReturnHoldingsCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndHoldingsCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_HOLDING_CREATED,
+      JournalRecord.EntityType.HOLDINGS, JournalRecord.ActionType.CREATE);
+  }
+
+  @Test
+  public void shouldReturnItemCreatedParamsWhenEventIsOrderCreatedReadyForPostProcessingAndItemCreatedLastInEventsChain() {
+    returnJournalParamsByEventTypeAndLastEventInChain(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING, DI_INVENTORY_ITEM_CREATED,
+      JournalRecord.EntityType.ITEM, JournalRecord.ActionType.CREATE);
+  }
+
+  private void returnJournalParamsByEventTypeAndLastEventInChain(DataImportEventTypes eventType, DataImportEventTypes lastEvent,
+                                                                 JournalRecord.EntityType expectedEntityType,
+                                                                 JournalRecord.ActionType expectedActionType) {
+    eventPayload.setEventType(eventType.value());
+    eventPayload.setEventsChain(List.of(lastEvent.value()));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    Assert.assertTrue(journalParamsOptional.isPresent());
+    var journalParams = journalParamsOptional.get();
+    Assert.assertEquals(expectedEntityType, journalParams.journalEntityType);
+    Assert.assertEquals(expectedActionType, journalParams.journalActionType);
+    Assert.assertEquals(JournalRecord.ActionStatus.COMPLETED, journalParams.journalActionStatus);
+  }
+
+  @Test
+  public void shouldReturnEmptyOptionalWhenEventIsOrderCreatedReadyForPostProcessingAndLastEventIsNotAnyOfInventoryRecordsCreated() {
+    eventPayload.setEventType(DI_ORDER_CREATED_READY_FOR_POST_PROCESSING.value());
+    eventPayload.setEventsChain(List.of(DI_PENDING_ORDER_CREATED.value()));
+
+    var journalParamsOptional =
+      JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+    Assert.assertTrue(journalParamsOptional.isEmpty());
+  }
+
 }

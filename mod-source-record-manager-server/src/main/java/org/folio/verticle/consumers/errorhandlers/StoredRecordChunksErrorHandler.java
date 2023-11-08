@@ -90,6 +90,6 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
     String chunkNumber = okapiParams.getHeaders().get(CHUNK_NUMBER);
 
     sendEventToKafka(okapiParams.getTenantId(), Json.encode(errorPayload), DI_ERROR.value(), KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null)
-      .onFailure(th -> LOGGER.error("Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}, chunkNumber: {}", errorPayload.getJobExecutionId(), targetRecord.getId(), chunkNumber, th));
+      .onFailure(th -> LOGGER.warn("sendDiErrorForRecord:: Error publishing DI_ERROR event for jobExecutionId: {} , recordId: {}, chunkNumber: {}", errorPayload.getJobExecutionId(), targetRecord.getId(), chunkNumber, th));
   }
 }

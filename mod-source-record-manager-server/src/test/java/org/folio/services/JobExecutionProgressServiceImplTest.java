@@ -1,6 +1,5 @@
 package org.folio.services;
 
-import org.folio.dao.JobMonitoringDaoImpl;
 import org.folio.okapi.common.GenericCompositeFuture;
 
 import io.vertx.core.CompositeFuture;
@@ -18,7 +17,6 @@ import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.JobMonitoring;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.junit.Before;
@@ -55,12 +53,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
-  @Spy
-  @InjectMocks
-  JobMonitoringDaoImpl jobMonitoringDao;
-  @Spy
-  @InjectMocks
-  JobMonitoringServiceImpl jobMonitoringService;
   @InjectMocks
   private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl();
 
@@ -95,15 +87,7 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertTrue(ar.succeeded());
       JobExecutionProgress progress = ar.result();
       context.assertEquals(expectedTotalRecords, progress.getTotal());
-      jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isPresent());
-        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
-        context.assertNotNull(jobMonitoring.getId());
-        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
-        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
-        context.assertFalse(jobMonitoring.getNotificationSent());
-        async.complete();
-      });
+      async.complete();
     });
   }
 
@@ -159,15 +143,31 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       context.assertEquals(expectedTotalRecords, progress.getTotal());
       context.assertEquals(expectedSucceededRecords, progress.getCurrentlySucceeded());
       context.assertEquals(expectedFailedRecords, progress.getCurrentlyFailed());
-      jobMonitoringService.getByJobExecutionId(progress.getJobExecutionId(), params.getTenantId()).onSuccess(optionalJobMonitoring -> {
-        context.assertTrue(optionalJobMonitoring.isPresent());
-        JobMonitoring jobMonitoring = optionalJobMonitoring.get();
-        context.assertNotNull(jobMonitoring.getId());
-        context.assertEquals(progress.getJobExecutionId(), jobMonitoring.getJobExecutionId());
-        context.assertNotNull(jobMonitoring.getLastEventTimestamp());
-        context.assertFalse(jobMonitoring.getNotificationSent());
-        async.complete();
-      });
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldUpdateCounts(TestContext context) {
+    Async async = context.async();
+    int expectedTotalRecords = 42;
+    int expectedSucceededRecords = 40;
+    int expectedFailedRecords = 2;
+
+    Future<JobExecutionProgress> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+      .compose(initJobExecutionsRsDto -> jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
+      .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID))
+      .compose(progress ->
+        jobExecutionProgressService.updateCompletionCounts(progress.getJobExecutionId(), expectedSucceededRecords,
+          expectedFailedRecords, TENANT_ID));
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.succeeded());
+      JobExecutionProgress progress = ar.result();
+      context.assertEquals(expectedTotalRecords, progress.getTotal());
+      context.assertEquals(expectedSucceededRecords, progress.getCurrentlySucceeded());
+      context.assertEquals(expectedFailedRecords, progress.getCurrentlyFailed());
+      async.complete();
     });
   }
 
@@ -179,6 +179,19 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     Future<JobExecutionProgress> future = jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progressToUpdate ->
       progressToUpdate.withCurrentlySucceeded(succeededRecords), TENANT_ID);
+
+    future.onComplete(ar -> {
+      context.assertTrue(ar.failed());
+      async.complete();
+    });
+  }
+
+  @Test
+  public void shouldReturnFailedFutureOnUpdateCountsWhenProgressDoesNotExist(TestContext context) {
+    Async async = context.async();
+    String jobExecutionId = UUID.randomUUID().toString();
+
+    Future<JobExecutionProgress> future = jobExecutionProgressService.updateCompletionCounts(jobExecutionId, 7, 0, TENANT_ID);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.failed());

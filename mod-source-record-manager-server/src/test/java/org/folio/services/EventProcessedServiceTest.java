@@ -62,6 +62,18 @@ public class EventProcessedServiceTest {
   }
 
   @Test
+  public void shouldReturnFailedFutureWithDuplicateExceptionForSaveAndUpdateCounter() {
+    when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
+      .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", UNIQUE_CONSTRAINT_VIOLATION_CODE, "ConstrainViolation")));
+
+    Future<RowSet<Row>> future = eventProcessedService.collectData(HANDLER_ID, EVENT_ID, TENANT_ID);
+
+    verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof DuplicateEventException);
+  }
+
+  @Test
   public void shouldReturnFailedFutureWhenDbFails() {
     when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
       .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", "ERROR_CODE", "DB is unavailable")));
@@ -73,4 +85,16 @@ public class EventProcessedServiceTest {
     assertTrue(future.cause() instanceof PgException);
 
   }
+
+  @Test
+  public void shouldReturnFailedFutureWhenDbFailsForSaveAndUpdateCounter() {
+    when(eventProcessedDao.save(HANDLER_ID, EVENT_ID, TENANT_ID))
+      .thenReturn(Future.failedFuture(new PgException("DB error", "ERROR", "ERROR_CODE", "DB is unavailable")));
+
+    Future<RowSet<Row>> future = eventProcessedService.collectData(HANDLER_ID, EVENT_ID, TENANT_ID);
+    verify(eventProcessedDao).save(HANDLER_ID, EVENT_ID, TENANT_ID);
+    assertTrue(future.failed());
+    assertTrue(future.cause() instanceof PgException);
+  }
+
 }

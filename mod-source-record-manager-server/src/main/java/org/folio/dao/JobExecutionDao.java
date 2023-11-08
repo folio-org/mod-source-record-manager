@@ -1,10 +1,18 @@
 package org.folio.dao;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import org.folio.dao.util.JobExecutionMutator;
 import org.folio.dao.util.SortField;
+import org.folio.rest.jaxrs.model.DeleteJobExecutionsResp;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfo;
+import org.folio.rest.jaxrs.model.JobExecutionUserInfoCollection;
+import org.folio.rest.jaxrs.model.JobProfileInfo;
+import org.folio.rest.jaxrs.model.JobProfileInfoCollection;
+import org.folio.rest.jaxrs.model.Progress;
+import org.folio.rest.persist.SQLConnection;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,6 +71,17 @@ public interface JobExecutionDao {
   Future<Optional<JobExecution>> getJobExecutionById(String id, String tenantId);
 
   /**
+   * Updates {@link JobExecution} progress by jobExecutionId from the specified {@code progress}
+   * within transaction of the specified {@code connection}
+   *
+   * @param connection  transaction connection
+   * @param progress    jobExecution progress to update
+   * @param tenantId    tenant id
+   * @return future of Void
+   */
+  Future<Void> updateJobExecutionProgress(AsyncResult<SQLConnection> connection, Progress progress, String tenantId);
+
+  /**
    * Updates {@link JobExecution} in the db with row blocking
    *
    * @param jobExecutionId JobExecution id
@@ -71,4 +90,38 @@ public interface JobExecutionDao {
    */
   Future<JobExecution> updateBlocking(String jobExecutionId, JobExecutionMutator mutator, String tenantId);
 
+  /**
+   *
+   * @param ids JobExecution Logs to be deleted using Ids
+   * @param tenantId tenant id
+   * @return future of boolean depending upon success and failure
+   */
+  Future<DeleteJobExecutionsResp> softDeleteJobExecutionsByIds(List<String> ids, String tenantId);
+
+  /**
+   * Searches for {@link JobProfileInfo}
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return future with {@link org.folio.rest.jaxrs.model.JobProfileInfoCollection}
+   */
+  Future<JobProfileInfoCollection> getRelatedJobProfiles(int offset, int limit, String tenantId);
+
+  /**
+   * Searches for unique {@link JobExecutionUserInfo}
+   *
+   * @param offset   starting index in a list of results
+   * @param limit    maximum number of results to return
+   * @return collection of JobExecutionUserInfoCollection dtos with userIds, firstNames, lastNames
+   */
+  Future<JobExecutionUserInfoCollection> getRelatedUsersInfo(int offset, int limit, String tenantId);
+
+  /**
+   * Permanently deletes Job Executions from related tables depending upon difference in number of days
+   *
+   * @param diffNumberOfDays difference in Number of Days from the day record marked for deletion
+   * @param tenantId         tenant id
+   * @return future with true if deletion was successful
+   */
+  Future<Boolean> hardDeleteJobExecutions(long diffNumberOfDays, String tenantId);
 }

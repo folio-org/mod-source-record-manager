@@ -19,8 +19,7 @@ public class JsonRecordParser implements RecordParser {
     try {
       result.setParsedRecord(new JsonObject(rawRecord));
     } catch (Exception e) {
-      LOGGER.error("Error mapping parsed record to json", e);
-      result.setHasError(true);
+      LOGGER.warn("parseRecord:: Error mapping parsed record to json", e);
       result.setErrors(new JsonObject()
         .put("message", e.getMessage())
         .put("error", rawRecord));

@@ -515,6 +515,52 @@ Rule:
 - If there is no "z" in record sub-fields then target field does not appear at all.
 - If there is "z" among record sub-fields then target field gets filled by all the `["z","q","c"].`
 
+#### Exclusive sub-fields
+Sometimes the existence of a MARC subfield will dictate whether or not a target field is presented in Inventory. We use `exclusiveSubfield` to define the exclusive subfield needed to NOT trigger the appearance of a target field. In this example, the presence of an 100 subfield "t" in a MARC record is needed in order for the target field, “personalName” to not appear in the Inventory record, even if other subfields are present.
+```json
+MARC Record:
+{
+  "200":{
+    "subfields":[
+      {
+        "a":"9780190494889"
+      },
+      {
+        "b":"hardcover ;"
+      },
+      {
+        "t":"alkaline paper"
+      }
+    ],
+    "ind1":" ",
+    "ind2":" "
+  }
+}
+```
+```json
+Rule:
+"100": [
+    {
+      "entity": [
+        {
+          "target": "personalName",
+          "subfield": ["a","b"],
+          "exclusiveSubfield": ["t"],
+          "rules": []
+        },
+        {
+          "target": "personalNameTitle",
+          "subfield": ["t"],
+          "rules": []
+      } 
+      ]
+    }
+  ]
+```
+
+- If there is "t" among record sub-fields then target "personalName" field does not appear at all.
+- If there is no "t" in record sub-fields then target field gets filled by all the `["a","b"].`
+
 
 #### Field replacement rules
 There are "fieldReplacement" properties. They need for changing field number for specific fields, based on field replacement rules.
@@ -618,6 +664,140 @@ Indicator value of record field "ind2" is "1" but it also matched because the ru
 the rule will be proceeded.
 
 This mechanism executes in Processor, in data-import-processing-core, while parsing these rules.
+
+####  Alternative mapping with specific subfield and target
+If there is a need to use an alternative target and subfield if the result of the running function is empty, there can be used "alternativeMapping" rule:
+which process a record field:
+
+```json
+Alternative rules:
+"alternativeMapping": {
+"target": "contributors.contributorTypeText",
+"subfield": [
+"e"
+],
+"ignoreSubsequentSubfields": true
+},
+"applyRulesOnConcatenatedData": true
+},
+```
+##### Note: 
+For the function "set_contributor_type_id_by_code_or_name" there should be set additional parameters: "contributorCodeSubfield" and "contributorNameSubfield" for searching from subfield "4" as code for Contributors and from subfield "e" as name for Contributors.
+Also, there was added a brand new function called "trim_punctuation". It will provide the same functionality as the "trim"+"trim_period" functions. 
+Moreover, it provides **additional mechanism for the punctuations**:
+If ending punctuation of the last mapped subfield of the field is a period or comma, then it will be removed, **EXCEPT**
+1.If the last mapped text ends with a single letter and then a period (e.g. Brown, Sterling K.), then ending period will not removed.
+2.If the last mapped text ends with a period, followed by a comma, (e.g. Brown, Sterling K,.), then the comma will be removed, but the period will leave.
+3.If the last mapped text ends with a hyphen (e.g. Kaluuya, Daniel, 1989-), then the hyphen will not removed.
+
+```json
+  Rule:
+"710": [
+{
+"entity": [
+{
+"target": "contributors.authorityId",
+"description": "Authority ID that controlling the contributor",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+"9"
+]
+},
+{
+"target": "contributors.contributorNameTypeId",
+"description": "Type for Corporate Name",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+],
+"rules": [
+{
+"conditions": [
+{
+"type": "set_contributor_name_type_id",
+"parameter": {
+"name": "Corporate name"
+}
+}
+]
+}
+]
+},
+{
+"rules": [
+{
+"conditions": [
+{
+"type": "set_contributor_type_id_by_code_or_name",
+"parameter": {
+"contributorCodeSubfield": "4",
+"contributorNameSubfield": "e"
+}
+}
+]
+}
+],
+"target": "contributors.contributorTypeId",
+"subfield": [
+"4",
+"e"
+],
+"description": "Type of contributor",
+"alternativeMapping": {
+"target": "contributors.contributorTypeText",
+"subfield": [
+"e"
+],
+"ignoreSubsequentSubfields": true
+},
+"applyRulesOnConcatenatedData": true
+},
+{
+"target": "contributors.primary",
+"description": "Primary contributor",
+"applyRulesOnConcatenatedData": true,
+"subfield": [
+],
+"rules": [
+{
+"conditions": [],
+"value": "false"
+}
+]
+},
+{
+"target": "contributors.name",
+"description": "Corporate Name",
+"subfield": [
+"a",
+"b",
+"c",
+"d",
+"f",
+"g",
+"k",
+"l",
+"n",
+"p",
+"t",
+"u"
+],
+"applyRulesOnConcatenatedData": true,
+"rules": [
+{
+"conditions": [
+{
+"type": "trim_punctuation",
+}
+]
+}
+]
+}
+]
+}
+],
+```
+##### **NOTE**: Regarding ending punctuation - if the mapped text ends with (".", ",", ";") then it will be(the last symbol) removed for the matching with Contributor Type.
+
 #
 ### REST API
 When the source-record-manager starts up, it performs initialization for default mapping rules for given tenant.

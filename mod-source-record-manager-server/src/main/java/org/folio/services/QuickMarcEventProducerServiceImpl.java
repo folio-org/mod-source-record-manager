@@ -57,18 +57,19 @@ public class QuickMarcEventProducerServiceImpl implements QuickMarcEventProducer
       if (producer != null) {
         producer.write(record)
           .onSuccess(unused -> {
-            LOGGER.info("Event with type {} was sent to kafka", eventType);
+            LOGGER.info("sendEventInternal:: Event with type {} was sent to kafka", eventType);
             promise.complete(true);
           })
           .onFailure(throwable -> {
             var cause = throwable.getCause();
-            LOGGER.error("Error while send event {}: {}", eventType, cause);
+            LOGGER.warn("sendEventInternal:: Error while send event {}: {}", eventType, cause);
             promise.fail(cause);
           });
       } else {
         promise.fail("No producer found for event: " + eventType);
       }
     } catch (Exception e) {
+      LOGGER.warn("sendEventInternal:: error while sending event", e);
       promise.fail(e);
     }
     return promise.future();

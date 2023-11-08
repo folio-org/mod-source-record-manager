@@ -1,22 +1,33 @@
 package org.folio.services.mappers.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
-import org.apache.commons.lang.StringUtils;
-
-import org.folio.AuthorityNoteType;
-import org.folio.Authoritynotetypes;
-import org.folio.okapi.common.GenericCompositeFuture;
-
+import com.google.common.base.Objects;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.AlternativeTitleType;
 import org.folio.Alternativetitletypes;
+import org.folio.AuthorityNoteType;
+import org.folio.AuthoritySourceFile;
+import org.folio.Authoritynotetypes;
+import org.folio.Authoritysourcefiles;
 import org.folio.CallNumberType;
 import org.folio.Callnumbertypes;
 import org.folio.ClassificationType;
@@ -51,6 +62,7 @@ import org.folio.ItemDamageStatus;
 import org.folio.ItemNoteType;
 import org.folio.Itemdamagedstatuses;
 import org.folio.Itemnotetypes;
+import org.folio.LinkingRuleDto;
 import org.folio.Loantype;
 import org.folio.Loantypes;
 import org.folio.Location;
@@ -66,19 +78,12 @@ import org.folio.Statisticalcodes;
 import org.folio.Statisticalcodetypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.processing.mapping.defaultmapper.processor.parameters.MappingParameters;
 import org.folio.rest.jaxrs.model.MarcFieldProtectionSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * Provider for mapping parameters, uses in-memory cache to store parameters there
@@ -86,10 +91,13 @@ import java.util.function.Function;
 @Component
 public class MappingParametersProvider {
 
+  private static final Logger LOGGER = LogManager.getLogger();
+
   @Value("${srm.mapping.parameters.settings.limit:1000}")
   private int settingsLimit;
 
   private static final String TENANT_CONFIGURATION_ZONE_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
+  private static final String LINKING_RULES_URL = "/linking-rules/instance-authority";
 
   private static final String ELECTRONIC_ACCESS_PARAM = "electronicAccessRelationships";
   private static final String IDENTIFIER_TYPES_RESPONSE_PARAM = "identifierTypes";
@@ -117,6 +125,7 @@ public class MappingParametersProvider {
   private static final String ITEM_NOTE_TYPES_RESPONSE_PARAM = "itemNoteTypes";
   private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
   private static final String AUTHORITY_NOTE_TYPES_RESPONSE_PARAM = "authorityNoteTypes";
+  private static final String AUTHORITY_SOURCE_FILES_RESPONSE_PARAM = "authoritySourceFiles";
 
   private static final String CONFIGS_VALUE_RESPONSE = "configs";
   private static final String VALUE_RESPONSE = "value";
@@ -136,7 +145,7 @@ public class MappingParametersProvider {
    * @return mapping params for the given key
    */
   public Future<MappingParameters> get(String key, OkapiConnectionParams okapiParams) {
-    return this.internalCache.get(key, mappingParameters -> initializeParameters(mappingParameters, okapiParams));
+    return this.internalCache.get(new MappingParameterKey(key, okapiParams));
   }
 
   /**
@@ -147,6 +156,7 @@ public class MappingParametersProvider {
    * @return initialized mapping params
    */
   private Future<MappingParameters> initializeParameters(MappingParameters mappingParams, OkapiConnectionParams okapiParams) {
+    LOGGER.debug("initializeParameters:: initializing mapping parameters...");
     Future<List<IdentifierType>> identifierTypesFuture = getIdentifierTypes(okapiParams);
     Future<List<ClassificationType>> classificationTypesFuture = getClassificationTypes(okapiParams);
     Future<List<InstanceType>> instanceTypesFuture = getInstanceTypes(okapiParams);
@@ -172,15 +182,18 @@ public class MappingParametersProvider {
     Future<List<Loantype>> loanTypesFuture = getLoanTypes(okapiParams);
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
     Future<List<AuthorityNoteType>> authorityNoteTypesFuture = getAuthorityNoteTypes(okapiParams);
+    Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
+    Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
 
 
     return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture))
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture,
+        linkingRulesFuture))
       .map(ar ->
         mappingParams
           .withInitializedState(true)
@@ -210,9 +223,11 @@ public class MappingParametersProvider {
           .withLoanTypes(loanTypesFuture.result())
           .withItemNoteTypes(itemNoteTypesFuture.result())
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
+          .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
-      );
+          .withLinkingRules(linkingRulesFuture.result())
+      ).onFailure(e -> LOGGER.error("Something happened while initializing mapping parameters", e));
   }
 
   /**
@@ -692,6 +707,26 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
+  private Future<List<AuthoritySourceFile>> getAuthoritySourceFiles(OkapiConnectionParams params) {
+    var promise = Promise.<List<AuthoritySourceFile>>promise();
+    var authoritySourceFilesUrl = "/authority-source-files?limit=" + settingsLimit;
+
+    RestUtil.doRequest(params, authoritySourceFilesUrl, HttpMethod.GET, null).onComplete(ar -> {
+      if (!RestUtil.validateAsyncResult(ar, promise)) {
+        return;
+      }
+
+      var response = ar.result().getJson();
+      if (response != null && response.containsKey(AUTHORITY_SOURCE_FILES_RESPONSE_PARAM)) {
+        var authoritySourceFiles = response.mapTo(Authoritysourcefiles.class).getAuthoritySourceFiles();
+        promise.complete(authoritySourceFiles);
+      } else {
+        promise.complete(Collections.emptyList());
+      }
+    });
+    return promise.future();
+  }
+
   /**
    * Requests for Issuance modes from application Settings (mod-inventory-storage)
    * *
@@ -739,6 +774,37 @@ public class MappingParametersProvider {
     return promise.future();
   }
 
+  /**
+   * Requests for linking rules from mod-entities-links.
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return linking rules
+   */
+  private Future<List<LinkingRuleDto>> getLinkingRules(OkapiConnectionParams params) {
+    Promise<List<LinkingRuleDto>> promise = Promise.promise();
+    RestUtil.doRequest(params, LINKING_RULES_URL, HttpMethod.GET, null).onComplete(ar -> {
+      if (RestUtil.validateAsyncResult(ar, promise)) {
+        var result = ar.result();
+        String response = result.getBody();
+        if (StringUtils.isNotBlank(response)) {
+          List<LinkingRuleDto> linkingRules = new LinkedList<>();
+          try {
+            linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
+          } catch (JsonProcessingException e) {
+            LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
+            promise.complete(Collections.emptyList());
+          }
+          promise.complete(linkingRules);
+        } else {
+          LOGGER.warn("Retrieve linking rules fail: {}", result.getCode());
+          promise.complete(Collections.emptyList());
+        }
+      }
+    });
+    return promise.future();
+  }
+
   private boolean ifConfigResponseIsValid(JsonObject response) {
     return response != null && response.containsKey(CONFIGS_VALUE_RESPONSE)
       && response.getJsonArray(CONFIGS_VALUE_RESPONSE) != null
@@ -747,43 +813,87 @@ public class MappingParametersProvider {
   }
 
   /**
+   * This class is used as a composite key that holds the intended key and okapi connection parameters that will be used
+   * to load missing parameters from the cache. Equality for this class is determined by only comparing the intended key
+   * . This means that two MappingParameterKey objects with the same key but different okapiParams will the equal.
+   */
+  public static class MappingParameterKey {
+    private String key;
+    private OkapiConnectionParams okapiConnectionParams;
+
+    public MappingParameterKey(String key, OkapiConnectionParams okapiParams) {
+      this.key = key;
+      this.okapiConnectionParams = okapiParams;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public OkapiConnectionParams getOkapiConnectionParams() {
+      return okapiConnectionParams;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      MappingParameterKey that = (MappingParameterKey) o;
+      return Objects.equal(key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(key);
+    }
+  }
+
+  /**
    * In-memory cache to store mapping params
    */
   private class InternalCache {
-    private AsyncLoadingCache<String, MappingParameters> cache;
+    private AsyncLoadingCache<MappingParameterKey, MappingParameters> cache;
 
     public InternalCache(Vertx vertx) {
-      this.cache = Caffeine.newBuilder()
-        /*
-            In order to do not break down Vert.x threading model
-            we need to delegate cache internal activities to the event-loop thread.
-        */
-        .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
-        .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
-        .buildAsync(key -> new MappingParameters().withInitializedState(false));
+      this.cache =
+          Caffeine.newBuilder()
+              /*
+                  In order to do not break down Vert.x threading model
+                  we need to delegate cache internal activities to the event-loop thread.
+              */
+              .executor(serviceExecutor -> vertx.runOnContext(ar -> serviceExecutor.run()))
+              .expireAfterAccess(CACHE_EXPIRATION_TIME_IN_SECONDS, TimeUnit.SECONDS)
+              .buildAsync(
+                  (key, executor) -> {
+                    CompletableFuture<MappingParameters> future = new CompletableFuture<>();
+                    executor.execute(
+                        () ->
+                            initializeParameters(
+                                    new MappingParameters().withInitializedState(false),
+                                    key.getOkapiConnectionParams())
+                                .onComplete(ar -> future.complete(ar.result())));
+                    return future;
+                  });
     }
 
     /**
      * Provides mapping parameters by the given key.
      *
-     * @param key        key with which the specified MappingParameters are associated
-     * @param initAction action to initialize mapping params
+     * @param key key with which the specified MappingParameters are associated
      * @return mapping params for the given key
      */
-    public Future<MappingParameters> get(String key, Function<MappingParameters, Future<MappingParameters>> initAction) {
+    public Future<MappingParameters> get(MappingParameterKey key) {
       Promise<MappingParameters> promise = Promise.promise();
-      this.cache.get(key).whenComplete((mappingParameters, exception) -> {
-        if (exception != null) {
-          promise.fail(exception);
-        } else {
-          if (mappingParameters.isInitialized()) {
-            promise.complete(mappingParameters);
-          } else {
-            // Complete future to continue with mapping even if request for MappingParameters is failed
-            initAction.apply(mappingParameters).onComplete(ar -> promise.complete(mappingParameters));
-          }
-        }
-      });
+      this.cache
+          .get(key)
+          .whenComplete(
+              (mappingParameters, exception) -> {
+                if (exception != null) {
+                  promise.fail(exception);
+                } else {
+                  promise.complete(mappingParameters);
+                }
+              });
       return promise.future();
     }
   }

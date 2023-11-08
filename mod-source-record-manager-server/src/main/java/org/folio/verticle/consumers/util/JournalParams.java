@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 
 import org.folio.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
 public class JournalParams {
@@ -52,6 +53,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_HOLDINGS_RECORD_UPDATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+          JournalRecord.EntityType.MARC_HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_SRS_MARC_BIB_RECORD_MODIFIED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
@@ -76,6 +85,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_SRS_MARC_HOLDINGS_RECORD_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+          JournalRecord.EntityType.MARC_HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_SRS_MARC_BIB_RECORD_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
@@ -89,6 +106,14 @@ public class JournalParams {
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
           JournalRecord.EntityType.MARC_AUTHORITY,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_SRS_MARC_HOLDINGS_RECORD_NOT_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.NON_MATCH,
+          JournalRecord.EntityType.MARC_HOLDINGS,
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
@@ -148,6 +173,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_HOLDING_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+          JournalRecord.EntityType.HOLDINGS,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_HOLDING_NOT_MATCHED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
@@ -192,6 +225,14 @@ public class JournalParams {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
         return Optional.of(new JournalParams(JournalRecord.ActionType.UPDATE,
+          JournalRecord.EntityType.ITEM,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_INVENTORY_ITEM_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
           JournalRecord.EntityType.ITEM,
           JournalRecord.ActionStatus.COMPLETED));
       }
@@ -242,6 +283,25 @@ public class JournalParams {
         return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
           JournalRecord.EntityType.MARC_AUTHORITY,
           JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_ORDER_CREATED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.CREATE,
+          JournalRecord.EntityType.PO_LINE,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
+    DI_ORDER_CREATED_READY_FOR_POST_PROCESSING {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return eventPayload.getEventsChain().stream().reduce((first, second) -> second)
+          .filter(lastEventType -> lastEventType.equals(DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_HOLDING_CREATED.value())
+            || lastEventType.equals(DataImportEventTypes.DI_INVENTORY_ITEM_CREATED.value()))
+          .map(NAMES::get)
+          .flatMap(journalParamsEnumItem -> journalParamsEnumItem.getJournalParams(eventPayload));
       }
     },
     DI_COMPLETED {

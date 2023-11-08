@@ -1,10 +1,12 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import org.folio.rest.jaxrs.model.JobExecutionLogDto;
+import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
 import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+
+import java.util.Optional;
 
 /**
  * JournalRecord Service interface.
@@ -19,15 +21,6 @@ public interface JournalRecordService {
    * @return future with true if succeeded
    */
   Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
-
-  /**
-   * Returns JobExecutionLogDto with import results for job execution with specified id
-   *
-   * @param jobExecutionId jobExecution id
-   * @param tenantId       tenant id
-   * @return future with JobExecutionLogDto entity
-   */
-  Future<JobExecutionLogDto> getJobExecutionLogDto(String jobExecutionId, String tenantId);
 
   /**
    * Searches for JournalRecords by jobExecutionId and sorts them using specified sort criteria and direction
@@ -46,12 +39,14 @@ public interface JournalRecordService {
    * @param jobExecutionId job execution id
    * @param sortBy         sorting criteria
    * @param order          sorting direction
+   * @param errorsOnly     filtering by error field
+   * @param errorsOnly     filtering by entity type
    * @param limit          limit
    * @param offset         offset
    * @param tenantId       tenantId
    * @return future with JobLogEntryDto collection
    */
-  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, int limit, int offset, String tenantId);
+  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
 
   /**
    * Searches for RecordProcessingLogDto entity by jobExecutionId and recordId
@@ -61,4 +56,23 @@ public interface JournalRecordService {
    * @return future with RecordProcessingLogDto
    */
   Future<RecordProcessingLogDto> getRecordProcessingLogDto(String jobExecutionId, String recordId, String tenantId);
+
+  /**
+   * Returns JobExecutionSummaryDto for job execution by {@code jobExecutionId}
+   *
+   * @param jobExecutionId job execution id
+   * @param tenantId       tenantId
+   * @return future with {@link Optional} of JobExecutionSummaryDto
+   */
+  Future<Optional<JobExecutionSummaryDto>> getJobExecutionSummaryDto(String jobExecutionId, String tenantId);
+
+  /**
+   * Updates  JournalRecords error-field with current error-message by the same orderId and jobExecutionId
+   * @param jobExecutionId jobExecutionId
+   * @param orderId orderId
+   * @param error error
+   * @param tenantId tenantId
+   * @return Future with JournalRecords updated number
+   */
+  Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId);
 }
