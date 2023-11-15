@@ -1,3 +1,6 @@
+## 2023-11-15 v3.7.4
+* [MODSOURMAN-1088](https://issues.folio.org/browse/MODSOURMAN-1088) Inventory Single item imports and updates no longer supercede long-running data import jobs
+
 ## 2023-11-08 v3.7.3
 * [MODSOURMAN-1066](https://issues.folio.org/browse/MODSOURMAN-1066) Data import with parsing error gets stuck
 * [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
