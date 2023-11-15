@@ -17,7 +17,7 @@
     <aspectj.version>1.9.19</aspectj.version>
     <lombok.version>1.18.30</lombok.version>
     <testcontainers.version>1.16.0</testcontainers.version>
-    <kafkaclients.version>3.3.2</kafkaclients.version>
+    <kafkaclients.version>3.6.0</kafkaclients.version>
     <kafkajunit.version>3.3.0</kafkajunit.version>
   </properties>
 
