@@ -9,7 +9,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
@@ -30,11 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
@@ -127,7 +124,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalMarcBibRecordUpdatedAction(TestContext context) throws IOException {
+  public void testJournalMarcBibRecordUpdatedAction(TestContext context) {
     Async async = context.async();
 
     // given
@@ -155,7 +152,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws IOException {
+  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) {
     Async async = context.async();
 
     // given
@@ -183,7 +180,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalCompletedAction(TestContext context) throws IOException, ExecutionException, InterruptedException {
+  public void testJournalCompletedAction(TestContext context) {
     Async async = context.async();
 
     // given
@@ -222,7 +219,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalErrorAction(TestContext context) throws IOException, ExecutionException, InterruptedException {
+  public void testJournalErrorAction(TestContext context) {
     Async async = context.async();
 
     // given
@@ -244,7 +241,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
         .withId(UUID.randomUUID().toString())
         .withContentType(ACTION_PROFILE)
         .withContent(JsonObject.mapFrom(new ActionProfile().withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))))
-      .withEventsChain(List.of(DI_SRS_MARC_BIB_RECORD_CREATED.value(), DI_INVENTORY_HOLDING_CREATED.value()));
+      .withEventsChain(List.of(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), DI_INVENTORY_HOLDING_CREATED.value()));
 
     // when
     KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(eventPayload);
@@ -260,7 +257,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   @Test
-  public void testJournalRecordMappingError(TestContext context) throws IOException, ExecutionException, InterruptedException {
+  public void testJournalRecordMappingError(TestContext context) {
     Async async = context.async();
 
     // given
