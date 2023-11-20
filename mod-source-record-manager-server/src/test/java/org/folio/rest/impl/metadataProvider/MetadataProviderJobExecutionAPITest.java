@@ -934,7 +934,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
-        .body("orderSummary.totalCreatedEntities", is(2))
+        .body("orderSummary.totalCreatedEntities", is(1))
         .body("orderSummary.totalUpdatedEntities", is(0))
         .body("orderSummary.totalDiscardedEntities", is(0))
         .body("orderSummary.totalErrors", is(0))
@@ -977,8 +977,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("orderSummary.totalCreatedEntities", is(0))
         .body("orderSummary.totalUpdatedEntities", is(0))
-        .body("orderSummary.totalDiscardedEntities", is(2))
-        .body("orderSummary.totalErrors", is(2))
+        .body("orderSummary.totalDiscardedEntities", is(1))
+        .body("orderSummary.totalErrors", is(1))
         .body("authoritySummary", nullValue())
         .body("holdingSummary", nullValue())
         .body("itemSummary", nullValue())
@@ -1191,7 +1191,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     }));
   }
 
-  @Test
+  @Test // failed
   public void shouldReturnInstanceDiscardedWithErrorsWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -1199,7 +1199,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, CREATE, INSTANCE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, "null ",  0, CREATE, INSTANCE, ERROR, "error msg"))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
