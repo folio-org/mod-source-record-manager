@@ -16,7 +16,7 @@ BEGIN
   RETURN QUERY
     SELECT
       journal_records.job_execution_id,
-      COUNT(DISTINCT(source_id)) FILTER (WHERE action_status = 'ERROR' AND journal_records.title != 'INVOICE') AS total_errors,
+      COUNT(*) FILTER (WHERE action_status = 'ERROR' AND journal_records.title != 'INVOICE') AS total_errors,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_source_records,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH') OR action_status = 'ERROR')) AS total_discarded_source_records,
@@ -47,14 +47,14 @@ BEGIN
       COUNT(*) FILTER (WHERE entity_type = 'PO_LINE' AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH') OR action_status = 'ERROR')) AS total_discarded_orders,
       COUNT(*) FILTER (WHERE entity_type = 'PO_LINE' AND action_status = 'ERROR') AS total_orders_errors,
 
-      COUNT(*) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'COMPLETED') AS total_created_invoices,
+      COUNT(*) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'COMPLETED'  AND journal_records.title != 'INVOICE') AS total_created_invoices,
       0 AS total_updated_invoices,
-      COUNT(*) FILTER (WHERE entity_type = 'INVOICE' AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH') OR action_status = 'ERROR')) AS total_discarded_invoices,
-      COUNT(*) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'ERROR') AS total_invoices_errors
+      COUNT(*) FILTER (WHERE journal_records.title != 'INVOICE' AND WHERE entity_type = 'INVOICE' AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH' AND journal_records.title != 'INVOICE') OR action_status = 'ERROR')) AS total_discarded_invoices,
+      COUNT(*) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'ERROR'  AND journal_records.title != 'INVOICE') AS total_invoices_errors
     FROM journal_records
 	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as id
         FROM journal_records
-        WHERE journal_records.job_execution_id = job_id AND journal_records.title != 'INVOICE'
+        WHERE journal_records.job_execution_id = job_id
 			  GROUP BY id, entity_id, entity_type, action_status) AS actions
       ON actions.id = journal_records.id
       INNER JOIN (SELECT (array_agg(action_type ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as action_type_max, source_id as source_id_max, entity_type as entity_type_max
