@@ -1353,6 +1353,125 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithItemsHoldingsWithoutDiscarded(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String itemId = UUID.randomUUID().toString();
+    String itemHrid = "it001";
+
+    String permanentLocation = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, ITEM, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceId, null, permanentLocation))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(1))
+        .body("relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("relatedHoldingsInfo[0].permanentLocationId", is(permanentLocation))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo.size()", is(1))
+        .body("relatedItemInfo[0].id", is(itemId))
+        .body("relatedItemInfo[0].hrid", is(itemHrid))
+        .body("relatedItemInfo[0].holdingsId", is(holdingsId))
+        .body("relatedItemInfo[0].error", emptyOrNullString())
+        .body("relatedInvoiceInfo.idList", empty())
+        .body("relatedInvoiceInfo.hridList", empty())
+        .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithDiscardedItemsHoldings(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, ITEM, COMPLETED, null, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(0))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(1))
+        .body("relatedHoldingsInfo[0].id", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].hrid", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].permanentLocationId", emptyOrNullString())
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo.size()", is(1))
+        .body("relatedItemInfo[0].id", emptyOrNullString())
+        .body("relatedItemInfo[0].hrid",emptyOrNullString())
+        .body("relatedItemInfo[0].holdingsId",emptyOrNullString())
+        .body("relatedItemInfo[0].error", emptyOrNullString())
+        .body("relatedInvoiceInfo.idList", empty())
+        .body("relatedInvoiceInfo.hridList", empty())
+        .body("relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsUpdate(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
