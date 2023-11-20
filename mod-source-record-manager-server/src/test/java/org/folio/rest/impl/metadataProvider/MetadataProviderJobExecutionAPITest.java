@@ -1191,7 +1191,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     }));
   }
 
-  @Test // failed
+  @Test
   public void shouldReturnInstanceDiscardedWithErrorsWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -1199,7 +1199,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, "null ",  0, CREATE, INSTANCE, ERROR, "error msg"))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,  0, CREATE, INSTANCE, ERROR, "error msg"))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
