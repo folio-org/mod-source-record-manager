@@ -1,3 +1,6 @@
+## 2023-12-xx v3.7.6
+* [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
+
 ## 2023-11-24 v3.7.5
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
 
