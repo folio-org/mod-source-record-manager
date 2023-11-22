@@ -1,3 +1,6 @@
+## 2023-11-xx v3.7.5
+* [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
+
 ## 2023-11-15 v3.7.4
 * [MODSOURMAN-1088](https://issues.folio.org/browse/MODSOURMAN-1088) Inventory Single item imports and updates no longer supercede long-running data import jobs
 
