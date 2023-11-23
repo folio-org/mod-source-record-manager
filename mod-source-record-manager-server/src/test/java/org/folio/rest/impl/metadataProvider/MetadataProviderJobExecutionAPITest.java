@@ -499,6 +499,23 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnFilteredCollectionByCaseInsensitiveFileNameOnGet() {
+    constructAndPostInitJobExecutionRqDto(5);
+
+    // We do not expect to get JobExecution with subordinationType=PARENT_MULTIPLE
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .queryParam("fileName", "*ImPoRtbib5*")
+      .get(GET_JOB_EXECUTIONS_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutions.size()", is(1))
+      .body("totalRecords", is(1))
+      .body("jobExecutions[0].fileName", is("importBib5.bib"));
+  }
+
+  @Test
   public void shouldReturnFilteredCollectionByHrIdOnGet() {
     Integer expectedHrid = constructAndPostInitJobExecutionRqDto(5).getJobExecutions().stream()
       .filter(job -> !job.getSubordinationType().equals(PARENT_MULTIPLE))
@@ -917,7 +934,7 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
-        .body("orderSummary.totalCreatedEntities", is(2))
+        .body("orderSummary.totalCreatedEntities", is(1))
         .body("orderSummary.totalUpdatedEntities", is(0))
         .body("orderSummary.totalDiscardedEntities", is(0))
         .body("orderSummary.totalErrors", is(0))
@@ -960,8 +977,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("orderSummary.totalCreatedEntities", is(0))
         .body("orderSummary.totalUpdatedEntities", is(0))
-        .body("orderSummary.totalDiscardedEntities", is(2))
-        .body("orderSummary.totalErrors", is(2))
+        .body("orderSummary.totalDiscardedEntities", is(1))
+        .body("orderSummary.totalErrors", is(1))
         .body("authoritySummary", nullValue())
         .body("holdingSummary", nullValue())
         .body("itemSummary", nullValue())

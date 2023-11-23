@@ -22,7 +22,8 @@ import static org.folio.dao.util.JobExecutionDBConstants.UI_STATUS_FIELD;
 import static org.folio.dao.util.JobExecutionDBConstants.USER_ID_FIELD;
 
 public class JobExecutionFilter {
-
+  public static final String LIKE = "LIKE";
+  public static final String ILIKE = "ILIKE";
   private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   private List<JobExecution.Status> statusAny;
   private List<String> profileIdNotAny;
@@ -120,14 +121,14 @@ public class JobExecutionFilter {
       addCondition(conditionBuilder, buildInCondition(UI_STATUS_FIELD, uiStatuses));
     }
     if (isNotEmpty(hrIdPattern) && isNotEmpty(fileNamePattern)) {
-      conditionBuilder.append(String.format(" AND (%s OR %s)", buildLikeCondition(HRID_FIELD, hrIdPattern),
-        buildLikeCondition(FILE_NAME_FIELD, fileNamePattern)));
+      conditionBuilder.append(String.format(" AND (%s OR %s)", buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern),
+        buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern)));
     } else {
       if (isNotEmpty(hrIdPattern)) {
-        addCondition(conditionBuilder, buildLikeCondition(HRID_FIELD, hrIdPattern));
+        addCondition(conditionBuilder, buildCaseSensitiveLikeCondition(HRID_FIELD, hrIdPattern));
       }
       if (isNotEmpty(fileNamePattern)) {
-        addCondition(conditionBuilder, buildLikeCondition(FILE_NAME_FIELD, fileNamePattern));
+        addCondition(conditionBuilder, buildCaseInsensitiveLikeCondition(FILE_NAME_FIELD, fileNamePattern));
       }
     }
     if (isNotEmpty(fileNameNotAny)) {
@@ -194,9 +195,18 @@ public class JobExecutionFilter {
     return String.format("%s <= '%s'", columnName, value);
   }
 
-  private String buildLikeCondition(String columnName, String pattern) {
+  private String buildCaseSensitiveLikeCondition(String columnName, String pattern) {
+    return buildLikeCondition(columnName, pattern, true);
+  }
+
+  private String buildCaseInsensitiveLikeCondition(String columnName, String pattern) {
+    return buildLikeCondition(columnName, pattern, false);
+  }
+
+  private String buildLikeCondition(String columnName, String pattern, boolean isCaseSensitive) {
     String preparedLikePattern = pattern.replace("*", "%");
-    return String.format("%s::text LIKE '%s'", columnName, preparedLikePattern);
+    String likeOperator = isCaseSensitive ? LIKE : ILIKE;
+    return String.format("%s::text %s '%s'", columnName, likeOperator, preparedLikePattern);
   }
 
 }
