@@ -1,4 +1,4 @@
-## 2023-11-xx v3.7.5
+## 2023-11-24 v3.7.5
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
 
 ## 2023-11-15 v3.7.4
