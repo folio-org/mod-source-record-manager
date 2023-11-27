@@ -1,7 +1,6 @@
 package org.folio.services.util;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -14,7 +13,6 @@ import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.kafka.SimpleKafkaProducerManager;
 import org.folio.kafka.services.KafkaProducerRecordBuilder;
-import org.folio.processing.events.utils.PomReaderUtil;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.EventMetadata;
 import org.folio.rest.jaxrs.model.RecordCollection;
@@ -51,8 +49,6 @@ public final class EventHandlingUtil {
 
     KafkaProducerRecord<String, String> record = createProducerRecord(event, key, topicName, kafkaHeaders);
 
-    Promise<Boolean> promise = Promise.promise();
-
     String chunkId = extractHeader(kafkaHeaders, "chunkId");
     String recordId = extractHeader(kafkaHeaders, "recordId");
 
@@ -60,20 +56,11 @@ public final class EventHandlingUtil {
     LOGGER.debug("sendEventToKafka:: Starting to send event to Kafka for eventType: {} and recordId: {} and chunkId: {}", eventType, recordId, chunkId);
 
     KafkaProducer<String, String> producer = createProducer(eventType, kafkaConfig);
-    producer.send(record)
-      .<Void>mapEmpty()
-      .eventually(x -> producer.close())
-      .onSuccess(res -> {
-        logSendingSucceeded(eventType, chunkId, recordId);
-        promise.complete(true);
-      })
-      .onFailure(err -> {
-        Throwable cause = err.getCause();
-        LOGGER.warn("{} write error for event {}:", producerName, eventType, cause);
-        handleKafkaPublishingErrors(promise, eventPayload, cause);
-      });
-
-    return promise.future();
+    return producer.send(record)
+        .eventually(x -> producer.close())
+        .map(true)
+        .onSuccess(x -> logSendingSucceeded(eventType, chunkId, recordId))
+        .recover(err -> handleKafkaPublishingErrors(eventPayload, producerName, eventType, err));
   }
 
   private static void logSendingSucceeded(String eventType, String chunkId, String recordId) {
@@ -120,19 +107,27 @@ public final class EventHandlingUtil {
   }
 
   public static String constructModuleName() {
-    return PomReaderUtil.INSTANCE.constructModuleVersionAndVersion(ModuleName.getModuleName(),
-      ModuleName.getModuleVersion());
+    // PomReaderUtil.INSTANCE fails in unit tests: "IOException: Can't read module name - Model is empty!"
+    return ModuleName.getModuleName().replace("_", "-") + "-" + ModuleName.getModuleVersion();
   }
 
   public static KafkaProducer<String, String> createProducer(String eventType, KafkaConfig kafkaConfig) {
     return new SimpleKafkaProducerManager(Vertx.currentContext().owner(), kafkaConfig).createShared(eventType);
   }
 
-  private static void handleKafkaPublishingErrors(Promise<Boolean> promise, String eventPayload, Throwable cause) {
-    if (new JsonObject(eventPayload).containsKey(RECORDS)) {
-      RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
-      promise.fail(new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords()));
+  static <T> Future<T> handleKafkaPublishingErrors(
+      String eventPayload, String producerName, String eventType, Throwable cause) {
+
+    var err = wrapKafkaException(eventPayload, cause);
+    LOGGER.warn("{} write error for event {}:", producerName, eventType, err);
+    return Future.failedFuture(err);
+  }
+
+  private static Throwable wrapKafkaException(String eventPayload, Throwable cause) {
+    if (! new JsonObject(eventPayload).containsKey(RECORDS)) {
+      return cause;
     }
-    promise.fail(cause);
+    RecordCollection recordCollection = Json.decodeValue(eventPayload, RecordCollection.class);
+    return new RecordsPublishingException(cause.getMessage(), recordCollection.getRecords());
   }
 }
