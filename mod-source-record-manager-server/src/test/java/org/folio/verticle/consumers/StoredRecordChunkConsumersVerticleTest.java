@@ -41,7 +41,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
@@ -126,7 +126,7 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    List<String> successValues = observeValuesAndFilterByLeader("00116nam  22000731a 4700", DI_SRS_MARC_BIB_RECORD_CREATED, 3);
+    List<String> successValues = observeValuesAndFilterByLeader("00116nam  22000731a 4700", DI_INCOMING_MARC_BIB_RECORD_PARSED, 3);
     assertEquals(3, successValues.size());
 
     List<String> diErrorValues = observeValuesAndFilterByLeader("13113c7m a2200553Ii 4800", DI_ERROR, 7);
@@ -146,10 +146,10 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_SRS_MARC_BIB_RECORD_CREATED, 1);
+    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_INCOMING_MARC_BIB_RECORD_PARSED, 1);
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), eventPayload.getEventType());
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
     assertEquals(TENANT_ID, eventPayload.getTenant());
     assertNotNull(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value()));
     assertNotNull(eventPayload.getContext().get(JOB_PROFILE_SNAPSHOT_ID));
@@ -169,10 +169,10 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_SRS_MARC_BIB_RECORD_CREATED, 1);
+    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_INCOMING_MARC_BIB_RECORD_PARSED, 1);
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertEquals(DI_SRS_MARC_BIB_RECORD_CREATED.value(), eventPayload.getEventType());
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
   }
 
   @Test
