@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.util.EventHandlingUtil;
+import org.folio.services.util.RecordConversionUtil;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.DiErrorPayloadBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,24 +42,24 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   public static final String RECORD_ID_HEADER = "recordId";
   public static final String USER_ID_HEADER = "userId";
   private static final AtomicInteger indexer = new AtomicInteger();
-
   public static final String ERROR_KEY = "ERROR";
+
+  @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
+  private int maxDistributionNum;
 
   private JobExecutionService jobExecutionService;
   private DataImportPayloadContextBuilder payloadContextBuilder;
   private KafkaConfig kafkaConfig;
-
-  @Value("${srm.kafka.CreatedRecordsKafkaHandler.maxDistributionNum:100}")
-  private int maxDistributionNum;
-  @Autowired
   private List<DiErrorPayloadBuilder> errorPayloadBuilders;
 
   public RecordsPublishingServiceImpl(@Autowired JobExecutionService jobExecutionService,
                                       @Autowired DataImportPayloadContextBuilder payloadContextBuilder,
-                                      @Autowired KafkaConfig kafkaConfig) {
+                                      @Autowired KafkaConfig kafkaConfig,
+                                      @Autowired List<DiErrorPayloadBuilder> errorPayloadBuilders) {
     this.jobExecutionService = jobExecutionService;
     this.payloadContextBuilder = payloadContextBuilder;
     this.kafkaConfig = kafkaConfig;
+    this.errorPayloadBuilders = errorPayloadBuilders;
   }
 
   @Override
@@ -82,15 +83,17 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     for (Record record : createdRecords) {
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
-        if (isParsedContentExists(record)) {
+        if (record.getRecordType() != null && isParsedContentExists(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
             eventType, KafkaHeaderUtils.kafkaHeadersFromMultiMap(params.getHeaders()), kafkaConfig, key));
-        }
-        else {
-          futures.add(sendDiErrorEvent(new RawChunkRecordsParsingException(record.getErrorRecord().getDescription()),
+        } else {
+          String cause = record.getErrorRecord() == null
+            ? format("Cannot send event for individual record with recordType: %s", record.getRecordType())
+            : record.getErrorRecord().getDescription();
+          futures.add(sendDiErrorEvent(new RawChunkRecordsParsingException(cause),
             params, jobExecution.getId(), params.getTenantId(), record));
         }
       } catch (Exception e) {
@@ -151,11 +154,8 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       .withToken(params.getToken());
   }
 
-  public Future<Boolean> sendDiErrorEvent(Throwable throwable,
-                               OkapiConnectionParams okapiParams,
-                               String jobExecutionId,
-                               String tenantId,
-                               Record currentRecord) {
+  public Future<Boolean> sendDiErrorEvent(Throwable throwable, OkapiConnectionParams okapiParams, String jobExecutionId,
+                                          String tenantId, Record currentRecord) {
       okapiParams.getHeaders().set(RECORD_ID_HEADER, currentRecord.getId());
       for (DiErrorPayloadBuilder payloadBuilder: errorPayloadBuilders) {
         if (payloadBuilder.isEligible(currentRecord.getRecordType())) {
@@ -166,6 +166,25 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
         }
       }
       LOGGER.warn("sendDiErrorEvent:: Appropriate DI_ERROR payload builder not found, DI_ERROR without records info will be send");
-      return Future.failedFuture(throwable);
+      sendDiError(throwable, jobExecutionId, okapiParams, currentRecord);
+      return Future.succeededFuture(true);
+  }
+
+  private void sendDiError(Throwable throwable, String jobExecutionId, OkapiConnectionParams okapiParams, Record record) {
+    HashMap<String, String> context = new HashMap<>();
+    context.put(ERROR_KEY, throwable.getMessage());
+    if (record != null && record.getRecordType() != null) {
+      context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+    }
+
+    DataImportEventPayload payload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(jobExecutionId)
+      .withOkapiUrl(okapiParams.getOkapiUrl())
+      .withTenant(okapiParams.getTenantId())
+      .withToken(okapiParams.getToken())
+      .withContext(context);
+    EventHandlingUtil.sendEventToKafka(okapiParams.getTenantId(), Json.encode(payload), DI_ERROR.value(),
+      KafkaHeaderUtils.kafkaHeadersFromMultiMap(okapiParams.getHeaders()), kafkaConfig, null);
   }
 }
