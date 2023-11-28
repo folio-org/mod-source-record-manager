@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static java.util.Collections.emptyList;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.ERROR;
@@ -146,9 +147,6 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   @Spy
   @InjectMocks
   private IncomingRecordDaoImpl incomingRecordDao;
-
-  @Spy
-  RecordsPublishingService recordsPublishingService;
   private ChunkProcessingService chunkProcessingService;
   private RecordProcessedEventHandlingServiceImpl recordProcessedEventHandlingService;
   private OkapiConnectionParams params;
@@ -191,11 +189,14 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     mappingParametersProvider = when(mock(MappingParametersProvider.class).get(anyString(), any(OkapiConnectionParams.class))).thenReturn(Future.succeededFuture(new MappingParameters())).getMock();
     MappingMetadataService mappingMetadataService = new MappingMetadataServiceImpl(mappingParametersProvider, mappingRuleService, mappingRulesSnapshotDao, mappingParamsSnapshotDao);
     JobProfileSnapshotValidationServiceImpl jobProfileSnapshotValidationService = new JobProfileSnapshotValidationServiceImpl();
+    RecordsPublishingService recordsPublishingService = new RecordsPublishingServiceImpl(jobExecutionService,
+      new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
     ChangeEngineService changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig, fieldModificationService,
       incomingRecordService, journalRecordService);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
+    ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);
     chunkProcessingService = new EventDrivenChunkProcessingServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, changeEngineService, jobExecutionProgressService);
     recordProcessedEventHandlingService = new RecordProcessedEventHandlingServiceImpl(jobExecutionProgressService, jobExecutionService);
     HashMap<String, String> headers = new HashMap<>();

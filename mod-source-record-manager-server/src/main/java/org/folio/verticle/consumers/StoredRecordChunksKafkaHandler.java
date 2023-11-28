@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotFoundException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,10 +44,10 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_EDIFACT_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
@@ -70,10 +69,10 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   public static final String CREATE_ACTION = "CREATE";
 
   private static final Map<RecordType, DataImportEventTypes> RECORD_TYPE_TO_EVENT_TYPE = Map.of(
-    MARC_BIB, DI_SRS_MARC_BIB_RECORD_CREATED,
+    MARC_BIB, DI_INCOMING_MARC_BIB_RECORD_PARSED,
     MARC_AUTHORITY, DI_SRS_MARC_AUTHORITY_RECORD_CREATED,
     MARC_HOLDING, DI_SRS_MARC_HOLDING_RECORD_CREATED,
-    EDIFACT, DI_EDIFACT_RECORD_CREATED
+    EDIFACT, DI_INCOMING_EDIFACT_RECORD_PARSED
   );
 
   private RecordsPublishingService recordsPublishingService;
@@ -124,7 +123,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
                 // we only know record type by inspecting the records, assuming records are homogeneous type and defaulting to previous static value
                 DataImportEventTypes eventType = !storedRecords.isEmpty() && RECORD_TYPE_TO_EVENT_TYPE.containsKey(storedRecords.get(0).getRecordType())
                   ? RECORD_TYPE_TO_EVENT_TYPE.get(storedRecords.get(0).getRecordType())
-                  : DI_SRS_MARC_BIB_RECORD_CREATED;
+                  : DI_INCOMING_MARC_BIB_RECORD_PARSED;
 
                 LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                 saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
