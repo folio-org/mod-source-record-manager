@@ -18,7 +18,7 @@
     <lombok.version>1.18.30</lombok.version>
     <testcontainers.version>1.16.0</testcontainers.version>
     <kafkaclients.version>3.6.0</kafkaclients.version>
-    <kafkajunit.version>3.3.0</kafkajunit.version>
+    <kafkajunit.version>3.5.1</kafkajunit.version>
   </properties>
 
   <dependencies>
@@ -99,6 +99,33 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+      <version>${kafkaclients.version}</version>
+      <classifier>test</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.13</artifactId>
+      <version>${kafkaclients.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.13</artifactId>
+      <version>${kafkaclients.version}</version>
+      <classifier>test</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>  <!-- remove this dependency when using kafka-junit >= 3.6.0 -->
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-tools</artifactId>
+      <version>${kafkaclients.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
