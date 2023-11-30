@@ -80,12 +80,55 @@ BEGIN
     	    FROM temp_result WHERE entity_type = 'PO_LINE') AS po_lines
     	ON po_lines.source_id = marc.source_id
     	FULL JOIN
-    	    (SELECT action_type, entity_id, entity_hrid, error, instance_id, permanent_location_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
-    	    FROM temp_result WHERE entity_type = 'HOLDINGS') AS holdings
+    	    (SELECT tmp.action_type, tmp.entity_type, tmp.entity_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
+              	     tmp.permanent_location_id, tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
+          			 FROM temp_result tmp
+          			 INNER JOIN
+          			 (SELECT
+          			CASE
+          				WHEN EXISTS (SELECT condition_result.entity_id FROM temp_result condition_result
+          				WHERE (condition_result.action_type='CREATED' AND condition_result.entity_type='HOLDINGS')
+                            		OR
+                     				(condition_result.action_type='DISCARDED' AND condition_result.error != '' AND condition_result.entity_type='HOLDINGS'))
+                     			THEN
+                           		(SELECT deep_nested.id
+                       			FROM temp_result deep_nested
+                       			WHERE
+                       			(deep_nested.action_type='CREATED' AND deep_nested.id = nested_result.id)
+                            		OR
+                     				(deep_nested.action_type='DISCARDED' AND deep_nested.error != '' AND deep_nested.id = nested_result.id))
+          					ELSE
+          						nested_result.id
+          					END
+          			FROM temp_result nested_result) AS joining_table
+              	      ON tmp.id = joining_table.id
+          			 WHERE  tmp.entity_type='HOLDINGS')
+              	   AS holdings
     	ON instances.entity_id = holdings.instance_id
     	FULL JOIN
-    	    (SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
-    	    FROM temp_result WHERE entity_type = 'ITEM') AS items
+    	 (SELECT tmp.action_type, tmp.entity_id, tmp.holdings_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
+    	 tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
+                			 FROM temp_result tmp
+                			 INNER JOIN
+                			 (SELECT
+                			CASE
+                				WHEN EXISTS (SELECT condition_result.entity_id FROM temp_result condition_result
+                				WHERE (condition_result.action_type IN ('CREATED','UPDATED') AND condition_result.entity_type='ITEM')
+                                  		OR
+                           				(condition_result.action_type='DISCARDED' AND condition_result.error != '' AND condition_result.entity_type='ITEM'))
+                           			THEN
+                                 		(SELECT deep_nested.id
+                             			FROM temp_result deep_nested
+                             			WHERE
+                             			(deep_nested.action_type IN ('CREATED','UPDATED') AND deep_nested.id = nested_result.id)
+                                  		OR
+                           				(deep_nested.action_type='DISCARDED' AND deep_nested.error != '' AND deep_nested.id = nested_result.id))
+                					ELSE
+                						nested_result.id
+                					END
+                			FROM temp_result nested_result) AS joining_table
+                    	      ON tmp.id = joining_table.id
+                			 WHERE  tmp.entity_type='ITEM') AS items
     	ON holdings.entity_id = items.holdings_id
     	ORDER BY holdings.entity_hrid)
       UNION
