@@ -3,6 +3,7 @@
 * [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
 * [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
+* [MODSOURMAN-1091](https://issues.folio.org/browse/MODSOURMAN-1091) The '1' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 
 
 ## 2023-10-13 v3.7.0
