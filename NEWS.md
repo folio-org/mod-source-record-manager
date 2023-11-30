@@ -1,3 +1,6 @@
+## 2023-12-05 v3.7.7
+* [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
+
 ## 2023-12-05 v3.7.6
 * [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
 * [MODSOURMAN-1089](https://issues.folio.org/browse/MODSOURMAN-1089) Bump Kafka, Spring, Snappy fixing vulnerabilities
