@@ -1201,6 +1201,7 @@
             "t",
             "u"
           ],
+          "requiredSubfield": ["a"],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
@@ -1304,6 +1305,7 @@
             "t",
             "u"
           ],
+          "requiredSubfield": ["a"],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
@@ -1407,6 +1409,7 @@
             "t",
             "u"
           ],
+          "requiredSubfield": ["a"],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
