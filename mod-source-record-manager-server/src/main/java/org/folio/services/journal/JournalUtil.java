@@ -26,6 +26,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -52,6 +53,7 @@ public class JournalUtil {
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
+  private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
 
   private JournalUtil() {
 
@@ -164,7 +166,22 @@ public class JournalUtil {
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
-          return Lists.newArrayList(journalRecord);
+          if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value())){
+            var journalRecordWithMarcBib = getJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
+            return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
+          }
+            if(eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)) {
+              if (DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE)) == DI_INVENTORY_INSTANCE_CREATED
+                && entityType.equals(INSTANCE)) {
+                var journalRecordWithMarcBib = getJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
+                return Lists.newArrayList( journalRecord, journalRecordWithMarcBib);
+              }
+              else {
+                return Lists.newArrayList(journalRecord);
+              }
+            } else {
+            return Lists.newArrayList(journalRecord);
+          }
         }
         if ((entityType == HOLDINGS || entityType == ITEM || eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null)
           && DI_ERROR != DataImportEventTypes.fromValue(eventPayload.getEventType())) {
@@ -188,6 +205,26 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  private static JournalRecord getJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record record,
+                                                               DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext) {
+    String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
+    String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(ID_KEY);
+    String tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
+
+    return new JournalRecord()
+      .withJobExecutionId(record.getSnapshotId())
+      .withSourceId(record.getId())
+      .withEntityId(marcBibEntityId)
+      .withSourceRecordOrder(record.getOrder())
+      .withEntityType(MARC_BIBLIOGRAPHIC)
+      .withActionType(actionType)
+      .withActionDate(new Date())
+      .withActionStatus(actionStatus)
+      // tenantId field is filled in only for the case when record/entity has been changed on central tenant
+      // by data import initiated on a member tenant
+      .withTenantId(tenantId);
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,

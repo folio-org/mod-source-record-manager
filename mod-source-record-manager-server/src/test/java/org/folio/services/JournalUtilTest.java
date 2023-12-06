@@ -161,6 +161,47 @@ public class JournalUtilTest {
   }
 
   @Test
+  public void shouldBuildTwoJournalRecordWithInstanceCreatedEvent() throws JournalRecordMapperException {
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = UUID.randomUUID().toString();
+
+    JsonObject instanceJson = new JsonObject()
+      .put("id", instanceId)
+      .put("hrid", instanceHrid);
+
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(INSTANCE.value(), instanceJson.encode());
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_INVENTORY_INSTANCE_CREATED")
+      .withContext(context);
+
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(2, journalRecord.size());
+    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
+    Assert.assertEquals(instanceHrid, journalRecord.get(0).getEntityHrId());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+  }
+
+  @Test
   public void shouldBuildJournalRecordForAuthority() throws JournalRecordMapperException {
     String authorityId = UUID.randomUUID().toString();
 
