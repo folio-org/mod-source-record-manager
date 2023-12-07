@@ -43,6 +43,8 @@ import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 public class JournalUtilTest {
 
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
+  private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
+
 
   @Test
   public void shouldBuildJournalRecordsByRecordsWithoutError() {
@@ -180,9 +182,10 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_CREATED");
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType("DI_INVENTORY_INSTANCE_CREATED")
+      .withEventType("DI_COMPLETED")
       .withContext(context);
 
     List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,

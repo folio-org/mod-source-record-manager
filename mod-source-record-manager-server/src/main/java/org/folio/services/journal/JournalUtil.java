@@ -166,22 +166,14 @@ public class JournalUtil {
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
-          if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value())){
-            var journalRecordWithMarcBib = getJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
-            return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
+          if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value()) ||
+            (eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)
+              && DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE)) == DI_INVENTORY_INSTANCE_CREATED
+              && entityType.equals(INSTANCE))) {
+            var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
+            return Lists.newArrayList( journalRecord, journalRecordWithMarcBib);
           }
-            if(eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)) {
-              if (DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE)) == DI_INVENTORY_INSTANCE_CREATED
-                && entityType.equals(INSTANCE)) {
-                var journalRecordWithMarcBib = getJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
-                return Lists.newArrayList( journalRecord, journalRecordWithMarcBib);
-              }
-              else {
-                return Lists.newArrayList(journalRecord);
-              }
-            } else {
-            return Lists.newArrayList(journalRecord);
-          }
+          return Lists.newArrayList(journalRecord);
         }
         if ((entityType == HOLDINGS || entityType == ITEM || eventPayloadContext.get(MULTIPLE_ERRORS_KEY) != null)
           && DI_ERROR != DataImportEventTypes.fromValue(eventPayload.getEventType())) {
@@ -207,17 +199,17 @@ public class JournalUtil {
     }
   }
 
-  private static JournalRecord getJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record record,
+  private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
                                                                DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext) {
     String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
     String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(ID_KEY);
     String tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
 
     return new JournalRecord()
-      .withJobExecutionId(record.getSnapshotId())
-      .withSourceId(record.getId())
+      .withJobExecutionId(currentRecord.getSnapshotId())
+      .withSourceId(currentRecord.getId())
       .withEntityId(marcBibEntityId)
-      .withSourceRecordOrder(record.getOrder())
+      .withSourceRecordOrder(currentRecord.getOrder())
       .withEntityType(MARC_BIBLIOGRAPHIC)
       .withActionType(actionType)
       .withActionDate(new Date())
