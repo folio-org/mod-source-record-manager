@@ -1,4 +1,5 @@
 ## 2023-xx-xx v3.8.0-SNAPSHOT
+* [MODSOURMAN-1085](https://issues.folio.org/browse/MODSOURMAN-1085) MARC record with a 100 tag without a $a is being discarded on import.
 * [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
 * [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error

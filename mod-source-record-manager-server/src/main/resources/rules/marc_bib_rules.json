@@ -1114,6 +1114,37 @@
     {
       "entity": [
         {
+          "target": "contributors.name",
+          "description": "Personal Name",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "f",
+            "g",
+            "j",
+            "k",
+            "l",
+            "n",
+            "p",
+            "q",
+            "t",
+            "u"
+          ],
+          "requiredSubfield": ["a"],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_punctuation"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "target": "contributors.authorityId",
           "description": "Authority ID that controlling the contributor",
           "applyRulesOnConcatenatedData": true,
@@ -1181,10 +1212,16 @@
               "value": "true"
             }
           ]
-        },
+        }
+      ]
+    }
+  ],
+  "110": [
+    {
+      "entity": [
         {
           "target": "contributors.name",
-          "description": "Personal Name",
+          "description": "Corporate Name",
           "subfield": [
             "a",
             "b",
@@ -1192,15 +1229,14 @@
             "d",
             "f",
             "g",
-            "j",
             "k",
             "l",
             "n",
             "p",
-            "q",
             "t",
             "u"
           ],
+          "requiredSubfield": ["a"],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
@@ -1211,13 +1247,7 @@
               ]
             }
           ]
-        }
-      ]
-    }
-  ],
-  "110": [
-    {
-      "entity": [
+        },
         {
           "target": "contributors.authorityId",
           "description": "Authority ID that controlling the contributor",
@@ -1286,10 +1316,16 @@
               "value": "true"
             }
           ]
-        },
+        }
+      ]
+    }
+  ],
+  "111": [
+    {
+      "entity": [
         {
           "target": "contributors.name",
-          "description": "Corporate Name",
+          "description": "Meeting Name",
           "subfield": [
             "a",
             "b",
@@ -1304,6 +1340,7 @@
             "t",
             "u"
           ],
+          "requiredSubfield": ["a"],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
@@ -1314,13 +1351,7 @@
               ]
             }
           ]
-        }
-      ]
-    }
-  ],
-  "111": [
-    {
-      "entity": [
+        },
         {
           "target": "contributors.authorityId",
           "description": "Authority ID that controlling the contributor",
@@ -1387,34 +1418,6 @@
             {
               "conditions": [],
               "value": "true"
-            }
-          ]
-        },
-        {
-          "target": "contributors.name",
-          "description": "Meeting Name",
-          "subfield": [
-            "a",
-            "b",
-            "c",
-            "d",
-            "f",
-            "g",
-            "k",
-            "l",
-            "n",
-            "p",
-            "t",
-            "u"
-          ],
-          "applyRulesOnConcatenatedData": true,
-          "rules": [
-            {
-              "conditions": [
-                {
-                  "type": "trim_punctuation"
-                }
-              ]
             }
           ]
         }
