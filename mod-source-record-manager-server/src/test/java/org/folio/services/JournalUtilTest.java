@@ -45,7 +45,6 @@ public class JournalUtilTest {
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
 
-
   @Test
   public void shouldBuildJournalRecordsByRecordsWithoutError() {
     String recordId = UUID.randomUUID().toString();
