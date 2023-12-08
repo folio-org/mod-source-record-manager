@@ -3,6 +3,7 @@
 * [MODSOURMAN-1020](https://issues.folio.org/browse/MODSOURMAN-1020) Add table to save incoming records for DI logs
 * [MODSOURMAN-1021](https://issues.folio.org/browse/MODSOURMAN-1021) Provide endpoint for getting parsed content for DI log
 * [MODSOURMAN-1022](https://issues.folio.org/browse/MODSOURMAN-1022) Remove step of initial saving of incoming records to SRS
+* [MODSOURMAN-1070](https://issues.folio.org/browse/MODSOURMAN-1070) Fill in Journal Records for created MARC when INSTANCE_CREATED event received
 * [MODSOURMAN-1030](https://issues.folio.org/browse/MODSOURMAN-1030) The number of updated records is not correct displayed in the 'SRS Marc' column in the 'Log summary' table
 * [MODSOURMAN-976](https://issues.folio.org/browse/MODSOURMAN-976) Incorrect error counts
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
