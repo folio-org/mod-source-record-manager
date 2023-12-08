@@ -43,6 +43,7 @@ import static org.folio.services.journal.JournalUtil.ERROR_KEY;
 public class JournalUtilTest {
 
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
+  private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
 
   @Test
   public void shouldBuildJournalRecordsByRecordsWithoutError() {
@@ -149,6 +150,48 @@ public class JournalUtilTest {
       CREATE, INSTANCE, COMPLETED);
 
     Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
+    Assert.assertEquals(instanceHrid, journalRecord.get(0).getEntityHrId());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+  }
+
+  @Test
+  public void shouldBuildTwoJournalRecordWithInstanceCreatedEvent() throws JournalRecordMapperException {
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = UUID.randomUUID().toString();
+
+    JsonObject instanceJson = new JsonObject()
+      .put("id", instanceId)
+      .put("hrid", instanceHrid);
+
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(INSTANCE.value(), instanceJson.encode());
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_CREATED");
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_COMPLETED")
+      .withContext(context);
+
+    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(2, journalRecord.size());
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
     Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
