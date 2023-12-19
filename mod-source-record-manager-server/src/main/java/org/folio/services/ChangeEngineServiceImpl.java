@@ -4,7 +4,6 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
@@ -24,7 +23,15 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
+import com.google.common.collect.Lists;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.kafka.client.producer.KafkaHeader;
+import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,15 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
-
-import com.google.common.collect.Lists;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.producer.KafkaHeader;
-import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang.StringUtils;
@@ -53,12 +51,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
-import org.folio.services.afterprocessing.FieldModificationService;
-import org.folio.services.validation.JobProfileSnapshotValidationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
@@ -78,6 +70,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.JobProfileInfo.DataType;
+import org.folio.rest.jaxrs.model.MatchProfile;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecord;
@@ -87,10 +80,15 @@ import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.afterprocessing.HrIdFieldService;
 import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.RecordConversionUtil;
+import org.folio.services.validation.JobProfileSnapshotValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ChangeEngineServiceImpl implements ChangeEngineService {
@@ -167,7 +165,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
-        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution) || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords)) {
+        if (isMarcAuthorityMatchProfile(jobExecution)) {
           hrIdFieldService.move001valueTo035Field(parsedRecords);
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
@@ -318,6 +316,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean isCreateMarcHoldingsActionExists(JobExecution jobExecution) {
     return containsCreateActionProfileWithMarcHoldings(
       jobExecution.getJobProfileSnapshotWrapper());
+  }
+
+  private boolean isMarcAuthorityMatchProfile(JobExecution jobExecution) {
+    return containsMatchProfile(jobExecution.getJobProfileSnapshotWrapper());
+  }
+
+  private boolean containsMatchProfile(ProfileSnapshotWrapper profileSnapshot) {
+    var childWrappers = profileSnapshot.getChildSnapshotWrappers();
+    for (ProfileSnapshotWrapper childWrapper : childWrappers) {
+      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.MATCH_PROFILE
+        && marcAuthorityMatchProfileMatches(childWrapper)) {
+        return true;
+      } else if (containsMatchProfile(childWrapper)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean marcAuthorityMatchProfileMatches(ProfileSnapshotWrapper matchProfileWrapper) {
+    MatchProfile matchProfile = new JsonObject((Map) matchProfileWrapper.getContent()).mapTo(MatchProfile.class);
+    return matchProfile.getExistingRecordType() == EntityType.MARC_AUTHORITY && matchProfile.getIncomingRecordType() == EntityType.MARC_AUTHORITY;
   }
 
   private boolean containsMarcActionProfile(ProfileSnapshotWrapper profileSnapshot,
