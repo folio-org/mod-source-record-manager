@@ -178,8 +178,6 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
-      .thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
