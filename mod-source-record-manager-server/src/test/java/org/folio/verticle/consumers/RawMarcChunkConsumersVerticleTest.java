@@ -91,20 +91,6 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
         .withContentType(ACTION_PROFILE)
         .withContent(updateInstanceActionProfile)));
 
-  private MatchProfile matchProfileMarcAuthorityToMarcAuthority =
-    new MatchProfile()
-      .withIncomingRecordType(EntityType.MARC_AUTHORITY)
-      .withExistingRecordType(EntityType.MARC_AUTHORITY);
-
-  private ProfileSnapshotWrapper matchAuthorityJobProfileSnapshot = new ProfileSnapshotWrapper()
-    .withId(UUID.randomUUID().toString())
-    .withContentType(JOB_PROFILE)
-    .withContent(jobProfile)
-    .withChildSnapshotWrappers(List.of(
-      new ProfileSnapshotWrapper()
-        .withContentType(MATCH_PROFILE)
-        .withContent(matchProfileMarcAuthorityToMarcAuthority)));
-
   private MatchProfile matchProfileMarcBibToInstance =
     new MatchProfile().withMatchDetails(List.of(new MatchDetail()
       .withIncomingRecordType(EntityType.MARC_BIBLIOGRAPHIC)
@@ -332,7 +318,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   public void shouldSendEventDiMarcForUpdateReceivedWhenProfileSnapshotContainsUpdateInstanceActionProfile() throws InterruptedException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.created().withBody(Json.encode(matchAuthorityJobProfileSnapshot))));
+      .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
       RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
@@ -378,7 +364,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   public void shouldSendEventDiErrorWhenParsingFailedForUpdateScenarios() throws InterruptedException {
     // given
     WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-            .willReturn(WireMock.created().withBody(Json.encode(matchAuthorityJobProfileSnapshot))));
+            .willReturn(WireMock.created().withBody(Json.encode(updateInstanceJobProfileSnapshot))));
 
     SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
             RecordsMetadata.ContentType.MARC_RAW, INVALID_RECORD);
