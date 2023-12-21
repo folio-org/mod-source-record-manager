@@ -404,7 +404,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verifyNoInteractions(recordsPublishingService);
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
   }
 
   @Test
@@ -427,7 +427,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verifyNoInteractions(recordsPublishingService);
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
   }
 
   @Test

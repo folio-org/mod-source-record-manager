@@ -165,7 +165,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
 
-        if (isMarcAuthorityMatchProfile(jobExecution)) {
+        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)
+          || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords) || isMarcAuthorityMatchProfile(jobExecution)) {
           hrIdFieldService.move001valueTo035Field(parsedRecords);
           updateRecords(parsedRecords, jobExecution, params)
             .onSuccess(ar -> promise.complete(parsedRecords))
