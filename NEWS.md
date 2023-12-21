@@ -5,7 +5,7 @@
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
 * [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
 * [MODSOURMAN-1091](https://issues.folio.org/browse/MODSOURMAN-1091) The '1' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
-
+* [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
