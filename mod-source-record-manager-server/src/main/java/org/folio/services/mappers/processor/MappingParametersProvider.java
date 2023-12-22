@@ -227,7 +227,7 @@ public class MappingParametersProvider {
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
-      ).onFailure(e -> LOGGER.error("Something happened while initializing mapping parameters", e));
+      ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
   }
 
   /**
@@ -240,14 +240,19 @@ public class MappingParametersProvider {
     Promise<List<IdentifierType>> promise = Promise.promise();
     String identifierTypesUrl = "/identifier-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, identifierTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
-          List<IdentifierType> identifierTypeList = response.mapTo(Identifiertypes.class).getIdentifierTypes();
-          promise.complete(identifierTypeList);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(IDENTIFIER_TYPES_RESPONSE_PARAM)) {
+            List<IdentifierType> identifierTypeList = response.mapTo(Identifiertypes.class).getIdentifierTypes();
+            promise.complete(identifierTypeList);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load identifierTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -263,14 +268,19 @@ public class MappingParametersProvider {
     Promise<List<ClassificationType>> promise = Promise.promise();
     String classificationTypesUrl = "/classification-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, classificationTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
-          List<ClassificationType> classificationTypeList = response.mapTo(Classificationtypes.class).getClassificationTypes();
-          promise.complete(classificationTypeList);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(CLASSIFICATION_TYPES_RESPONSE_PARAM)) {
+            List<ClassificationType> classificationTypeList = response.mapTo(Classificationtypes.class).getClassificationTypes();
+            promise.complete(classificationTypeList);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load classificationTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -286,14 +296,19 @@ public class MappingParametersProvider {
     Promise<List<InstanceType>> promise = Promise.promise();
     String instanceTypesUrl = "/instance-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
-          List<InstanceType> instanceTypeList = response.mapTo(Instancetypes.class).getInstanceTypes();
-          promise.complete(instanceTypeList);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_TYPES_RESPONSE_PARAM)) {
+            List<InstanceType> instanceTypeList = response.mapTo(Instancetypes.class).getInstanceTypes();
+            promise.complete(instanceTypeList);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load instanceTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -309,14 +324,19 @@ public class MappingParametersProvider {
     Promise<List<ElectronicAccessRelationship>> promise = Promise.promise();
     String electronicAccessUrl = "/electronic-access-relationships?limit=" + settingsLimit;
     RestUtil.doRequest(params, electronicAccessUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
-          List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(Electronicaccessrelationships.class).getElectronicAccessRelationships();
-          promise.complete(electronicAccessRelationshipList);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(ELECTRONIC_ACCESS_PARAM)) {
+            List<ElectronicAccessRelationship> electronicAccessRelationshipList = response.mapTo(Electronicaccessrelationships.class).getElectronicAccessRelationships();
+            promise.complete(electronicAccessRelationshipList);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load electronicAccessRelationships", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -332,14 +352,19 @@ public class MappingParametersProvider {
     Promise<List<InstanceFormat>> promise = Promise.promise();
     String instanceFormatsUrl = "/instance-formats?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceFormatsUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
-          List<InstanceFormat> instanceFormatList = response.mapTo(Instanceformats.class).getInstanceFormats();
-          promise.complete(instanceFormatList);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_FORMATS_RESPONSE_PARAM)) {
+            List<InstanceFormat> instanceFormatList = response.mapTo(Instanceformats.class).getInstanceFormats();
+            promise.complete(instanceFormatList);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load instanceFormats", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -355,14 +380,19 @@ public class MappingParametersProvider {
     Promise<List<ContributorType>> promise = Promise.promise();
     String contributorTypesUrl = "/contributor-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, contributorTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
-          List<ContributorType> contributorTypes = response.mapTo(Contributortypes.class).getContributorTypes();
-          promise.complete(contributorTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(CONTRIBUTOR_TYPES_RESPONSE_PARAM)) {
+            List<ContributorType> contributorTypes = response.mapTo(Contributortypes.class).getContributorTypes();
+            promise.complete(contributorTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load contributorTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -378,14 +408,19 @@ public class MappingParametersProvider {
     Promise<List<ContributorNameType>> promise = Promise.promise();
     String contributorNameTypesUrl = "/contributor-name-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, contributorNameTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
-          List<ContributorNameType> contributorNameTypes = response.mapTo(Contributornametypes.class).getContributorNameTypes();
-          promise.complete(contributorNameTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(CONTRIBUTOR_NAME_TYPES_RESPONSE_PARAM)) {
+            List<ContributorNameType> contributorNameTypes = response.mapTo(Contributornametypes.class).getContributorNameTypes();
+            promise.complete(contributorNameTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load contributorNameTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -402,14 +437,19 @@ public class MappingParametersProvider {
     Promise<List<InstanceNoteType>> promise = Promise.promise();
     String instanceNoteTypesUrl = "/instance-note-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
-          List<InstanceNoteType> contributorNameTypes = response.mapTo(Instancenotetypes.class).getInstanceNoteTypes();
-          promise.complete(contributorNameTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_NOTE_TYPES_RESPONSE_PARAM)) {
+            List<InstanceNoteType> contributorNameTypes = response.mapTo(Instancenotetypes.class).getInstanceNoteTypes();
+            promise.complete(contributorNameTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load instanceNoteTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -419,14 +459,19 @@ public class MappingParametersProvider {
     Promise<List<AlternativeTitleType>> promise = Promise.promise();
     String instanceAlternativeTitleTypesUrl = "/alternative-title-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceAlternativeTitleTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
-          List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(Alternativetitletypes.class).getAlternativeTitleTypes();
-          promise.complete(alternativeTitleTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_ALTERNATIVE_TITLE_TYPES_RESPONSE_PARAM)) {
+            List<AlternativeTitleType> alternativeTitleTypes = response.mapTo(Alternativetitletypes.class).getAlternativeTitleTypes();
+            promise.complete(alternativeTitleTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load alternativeTitleTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -436,14 +481,19 @@ public class MappingParametersProvider {
     Promise<List<NatureOfContentTerm>> promise = Promise.promise();
     String natureOfContentTermsUrl = "/nature-of-content-terms?limit=" + settingsLimit;
     RestUtil.doRequest(params, natureOfContentTermsUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM)) {
-          List<NatureOfContentTerm> natureOfContentTerms = response.mapTo(Natureofcontentterms.class).getNatureOfContentTerms();
-          promise.complete(natureOfContentTerms);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(NATURE_OF_CONTENT_TERMS_RESPONSE_PARAM)) {
+            List<NatureOfContentTerm> natureOfContentTerms = response.mapTo(Natureofcontentterms.class).getNatureOfContentTerms();
+            promise.complete(natureOfContentTerms);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load natureOfContentTerms", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -453,14 +503,19 @@ public class MappingParametersProvider {
     Promise<List<InstanceStatus>> promise = Promise.promise();
     String instanceStatusesUrl = "/instance-statuses?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceStatusesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_STATUSES_RESPONSE_PARAM)) {
-          List<InstanceStatus> instanceStatuses = response.mapTo(Instancestatuses.class).getInstanceStatuses();
-          promise.complete(instanceStatuses);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_STATUSES_RESPONSE_PARAM)) {
+            List<InstanceStatus> instanceStatuses = response.mapTo(Instancestatuses.class).getInstanceStatuses();
+            promise.complete(instanceStatuses);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load instanceStatuses", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -468,16 +523,21 @@ public class MappingParametersProvider {
 
   private Future<List<InstanceRelationshipType>> getInstanceRelationshipTypes(OkapiConnectionParams params) {
     Promise<List<InstanceRelationshipType>> promise = Promise.promise();
-    String instanceRelationshipTypesUrl =  "/instance-relationship-types?limit=" + settingsLimit;
+    String instanceRelationshipTypesUrl = "/instance-relationship-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, instanceRelationshipTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM)) {
-          List<InstanceRelationshipType> instanceRelationshipTypes = response.mapTo(Instancerelationshiptypes.class).getInstanceRelationshipTypes();
-          promise.complete(instanceRelationshipTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(INSTANCE_RELATIONSHIP_TYPES_RESPONSE_PARAM)) {
+            List<InstanceRelationshipType> instanceRelationshipTypes = response.mapTo(Instancerelationshiptypes.class).getInstanceRelationshipTypes();
+            promise.complete(instanceRelationshipTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load instanceRelationshipTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -487,14 +547,19 @@ public class MappingParametersProvider {
     Promise<List<HoldingsType>> promise = Promise.promise();
     String holdingsTypesUrl = "/holdings-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, holdingsTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(HOLDINGS_TYPES_RESPONSE_PARAM)) {
-          List<HoldingsType> holdingsTypes = response.mapTo(Holdingstypes.class).getHoldingsTypes();
-          promise.complete(holdingsTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(HOLDINGS_TYPES_RESPONSE_PARAM)) {
+            List<HoldingsType> holdingsTypes = response.mapTo(Holdingstypes.class).getHoldingsTypes();
+            promise.complete(holdingsTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load holdingsTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -504,14 +569,19 @@ public class MappingParametersProvider {
     Promise<List<HoldingsNoteType>> promise = Promise.promise();
     String holdingsNoteTypesUrl = "/holdings-note-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, holdingsNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(HOLDINGS_NOTE_TYPES_RESPONSE_PARAM)) {
-          List<HoldingsNoteType> holdingsNoteTypes = response.mapTo(Holdingsnotetypes.class).getHoldingsNoteTypes();
-          promise.complete(holdingsNoteTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(HOLDINGS_NOTE_TYPES_RESPONSE_PARAM)) {
+            List<HoldingsNoteType> holdingsNoteTypes = response.mapTo(Holdingsnotetypes.class).getHoldingsNoteTypes();
+            promise.complete(holdingsNoteTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load holdingsNoteTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -521,14 +591,19 @@ public class MappingParametersProvider {
     Promise<List<IllPolicy>> promise = Promise.promise();
     String illPoliciesUrl = "/ill-policies?limit=" + settingsLimit;
     RestUtil.doRequest(params, illPoliciesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(ILL_POLICIES_RESPONSE_PARAM)) {
-          List<IllPolicy> holdingsNoteTypes = response.mapTo(Illpolicies.class).getIllPolicies();
-          promise.complete(holdingsNoteTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(ILL_POLICIES_RESPONSE_PARAM)) {
+            List<IllPolicy> holdingsNoteTypes = response.mapTo(Illpolicies.class).getIllPolicies();
+            promise.complete(holdingsNoteTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load illPolicies", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -538,14 +613,19 @@ public class MappingParametersProvider {
     Promise<List<CallNumberType>> promise = Promise.promise();
     String callNumberTypesUrl = "/call-number-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, callNumberTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(CALL_NUMBER_TYPES_RESPONSE_PARAM)) {
-          List<CallNumberType> callNumberTypes = response.mapTo(Callnumbertypes.class).getCallNumberTypes();
-          promise.complete(callNumberTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(CALL_NUMBER_TYPES_RESPONSE_PARAM)) {
+            List<CallNumberType> callNumberTypes = response.mapTo(Callnumbertypes.class).getCallNumberTypes();
+            promise.complete(callNumberTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load callNumberTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -555,14 +635,19 @@ public class MappingParametersProvider {
     Promise<List<StatisticalCode>> promise = Promise.promise();
     String statisticalCodesUrl = "/statistical-codes?limit=" + settingsLimit;
     RestUtil.doRequest(params, statisticalCodesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(STATISTICAL_CODES_RESPONSE_PARAM)) {
-          List<StatisticalCode> statisticalCodes = response.mapTo(Statisticalcodes.class).getStatisticalCodes();
-          promise.complete(statisticalCodes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(STATISTICAL_CODES_RESPONSE_PARAM)) {
+            List<StatisticalCode> statisticalCodes = response.mapTo(Statisticalcodes.class).getStatisticalCodes();
+            promise.complete(statisticalCodes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load statisticalCodes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -572,14 +657,19 @@ public class MappingParametersProvider {
     Promise<List<StatisticalCodeType>> promise = Promise.promise();
     String statisticalCodeTypesUrl = "/statistical-code-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, statisticalCodeTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(STATISTICAL_CODE_TYPES_RESPONSE_PARAM)) {
-          List<StatisticalCodeType> statisticalCodeTypes = response.mapTo(Statisticalcodetypes.class).getStatisticalCodeTypes();
-          promise.complete(statisticalCodeTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(STATISTICAL_CODE_TYPES_RESPONSE_PARAM)) {
+            List<StatisticalCodeType> statisticalCodeTypes = response.mapTo(Statisticalcodetypes.class).getStatisticalCodeTypes();
+            promise.complete(statisticalCodeTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load statisticalCodeTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -589,14 +679,19 @@ public class MappingParametersProvider {
     Promise<List<Location>> promise = Promise.promise();
     String locationsUrl = "/locations?limit=" + settingsLimit;
     RestUtil.doRequest(params, locationsUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(LOCATIONS_RESPONSE_PARAM)) {
-          List<Location> locations = response.mapTo(Locations.class).getLocations();
-          promise.complete(locations);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(LOCATIONS_RESPONSE_PARAM)) {
+            List<Location> locations = response.mapTo(Locations.class).getLocations();
+            promise.complete(locations);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load locations", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -606,14 +701,19 @@ public class MappingParametersProvider {
     Promise<List<Mtype>> promise = Promise.promise();
     String materialTypesUrl = "/material-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, materialTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(MATERIALS_TYPES_RESPONSE_PARAM)) {
-          List<Mtype> materialTypes = response.mapTo(Materialtypes.class).getMtypes();
-          promise.complete(materialTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(MATERIALS_TYPES_RESPONSE_PARAM)) {
+            List<Mtype> materialTypes = response.mapTo(Materialtypes.class).getMtypes();
+            promise.complete(materialTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load materialTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -623,14 +723,19 @@ public class MappingParametersProvider {
     Promise<List<ItemDamageStatus>> promise = Promise.promise();
     String itemDamagedStatusesUrl = "/item-damaged-statuses?limit=" + settingsLimit;
     RestUtil.doRequest(params, itemDamagedStatusesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(ITEM_DAMAGED_STATUSES_RESPONSE_PARAM)) {
-          List<ItemDamageStatus> itemDamageStatuses = response.mapTo(Itemdamagedstatuses.class).getItemDamageStatuses();
-          promise.complete(itemDamageStatuses);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(ITEM_DAMAGED_STATUSES_RESPONSE_PARAM)) {
+            List<ItemDamageStatus> itemDamageStatuses = response.mapTo(Itemdamagedstatuses.class).getItemDamageStatuses();
+            promise.complete(itemDamageStatuses);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load itemDamagedStatuses", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -640,14 +745,19 @@ public class MappingParametersProvider {
     Promise<List<Loantype>> promise = Promise.promise();
     String loanTypesUrl = "/loan-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, loanTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(LOAN_TYPES_RESPONSE_PARAM)) {
-          List<Loantype> loantypes = response.mapTo(Loantypes.class).getLoantypes();
-          promise.complete(loantypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(LOAN_TYPES_RESPONSE_PARAM)) {
+            List<Loantype> loantypes = response.mapTo(Loantypes.class).getLoantypes();
+            promise.complete(loantypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load loanTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -657,14 +767,19 @@ public class MappingParametersProvider {
     Promise<List<ItemNoteType>> promise = Promise.promise();
     String itemNoteTypesUrl = "/item-note-types?limit=" + settingsLimit;
     RestUtil.doRequest(params, itemNoteTypesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(ITEM_NOTE_TYPES_RESPONSE_PARAM)) {
-          List<ItemNoteType> itemNoteTypes = response.mapTo(Itemnotetypes.class).getItemNoteTypes();
-          promise.complete(itemNoteTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(ITEM_NOTE_TYPES_RESPONSE_PARAM)) {
+            List<ItemNoteType> itemNoteTypes = response.mapTo(Itemnotetypes.class).getItemNoteTypes();
+            promise.complete(itemNoteTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load itemNoteTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -674,14 +789,19 @@ public class MappingParametersProvider {
     Promise<List<MarcFieldProtectionSetting>> promise = Promise.promise();
     String fieldProtectionSettingsUrl = "/field-protection-settings/marc?limit=" + settingsLimit;
     RestUtil.doRequest(params, fieldProtectionSettingsUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM)) {
-          List<MarcFieldProtectionSetting> itemNoteTypes = response.mapTo(MarcFieldProtectionSettingsCollection.class).getMarcFieldProtectionSettings();
-          promise.complete(itemNoteTypes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM)) {
+            List<MarcFieldProtectionSetting> itemNoteTypes = response.mapTo(MarcFieldProtectionSettingsCollection.class).getMarcFieldProtectionSettings();
+            promise.complete(itemNoteTypes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load marcFieldProtectionSettings", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -696,12 +816,17 @@ public class MappingParametersProvider {
         return;
       }
 
-      var response = ar.result().getJson();
-      if (response != null && response.containsKey(AUTHORITY_NOTE_TYPES_RESPONSE_PARAM)) {
-        var authorityNoteTypes = response.mapTo(Authoritynotetypes.class).getAuthorityNoteTypes();
-        promise.complete(authorityNoteTypes);
-      } else {
-        promise.complete(Collections.emptyList());
+      try {
+        var response = ar.result().getJson();
+        if (response != null && response.containsKey(AUTHORITY_NOTE_TYPES_RESPONSE_PARAM)) {
+          var authorityNoteTypes = response.mapTo(Authoritynotetypes.class).getAuthorityNoteTypes();
+          promise.complete(authorityNoteTypes);
+        } else {
+          promise.complete(Collections.emptyList());
+        }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load authorityNoteTypes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -716,12 +841,17 @@ public class MappingParametersProvider {
         return;
       }
 
-      var response = ar.result().getJson();
-      if (response != null && response.containsKey(AUTHORITY_SOURCE_FILES_RESPONSE_PARAM)) {
-        var authoritySourceFiles = response.mapTo(Authoritysourcefiles.class).getAuthoritySourceFiles();
-        promise.complete(authoritySourceFiles);
-      } else {
-        promise.complete(Collections.emptyList());
+      try {
+        var response = ar.result().getJson();
+        if (response != null && response.containsKey(AUTHORITY_SOURCE_FILES_RESPONSE_PARAM)) {
+          var authoritySourceFiles = response.mapTo(Authoritysourcefiles.class).getAuthoritySourceFiles();
+          promise.complete(authoritySourceFiles);
+        } else {
+          promise.complete(Collections.emptyList());
+        }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load authoritySourceFiles", e);
+        promise.fail(e);
       }
     });
     return promise.future();
@@ -738,14 +868,19 @@ public class MappingParametersProvider {
     Promise<List<IssuanceMode>> promise = Promise.promise();
     String issuanceModesUrl = "/modes-of-issuance?limit=" + settingsLimit;
     RestUtil.doRequest(params, issuanceModesUrl, HttpMethod.GET, null).onComplete(ar -> {
-      if (RestUtil.validateAsyncResult(ar, promise)) {
-        JsonObject response = ar.result().getJson();
-        if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
-          List<IssuanceMode> issuanceModes = response.mapTo(Issuancemodes.class).getIssuanceModes();
-          promise.complete(issuanceModes);
-        } else {
-          promise.complete(Collections.emptyList());
+      try {
+        if (RestUtil.validateAsyncResult(ar, promise)) {
+          JsonObject response = ar.result().getJson();
+          if (response != null && response.containsKey(ISSUANCE_MODES_RESPONSE_PARAM)) {
+            List<IssuanceMode> issuanceModes = response.mapTo(Issuancemodes.class).getIssuanceModes();
+            promise.complete(issuanceModes);
+          } else {
+            promise.complete(Collections.emptyList());
+          }
         }
+      } catch (IllegalArgumentException e) {
+        LOGGER.warn("Failed to load issuanceModes", e);
+        promise.fail(e);
       }
     });
     return promise.future();
