@@ -24,6 +24,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -114,7 +116,8 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY) {
+        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY ||
+          (entityType == MARC_BIBLIOGRAPHIC && isMarcBibUpdateEventReceived(eventPayload))) {
           JsonObject entityJson = new JsonObject(entityAsString);
           journalRecord.setEntityId(entityJson.getString(ID_KEY));
           if (entityType == INSTANCE || entityType == PO_LINE) {
@@ -147,6 +150,14 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  private static boolean isMarcBibUpdateEventReceived(DataImportEventPayload eventPayload) {
+    return (DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
+    || DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType()))
+      ||
+      (!eventPayload.getEventsChain().isEmpty() &&
+        DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventsChain().stream().reduce((first, second) -> second).get()));
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,

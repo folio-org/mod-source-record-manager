@@ -17,7 +17,7 @@ BEGIN
     SELECT
       journal_records.job_execution_id,
       COUNT(DISTINCT(source_id)) FILTER (WHERE action_status = 'ERROR') AS total_errors,
-      COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_type = 'CREATE' AND action_status = 'COMPLETED') AS total_created_source_records,
+      COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_type in ('CREATE','MODIFY') AND action_status = 'COMPLETED') AS total_created_source_records,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_type = 'UPDATE' AND action_status = 'COMPLETED') AS total_updated_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH') OR action_status = 'ERROR')) AS total_discarded_source_records,
       COUNT(*) FILTER (WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND action_status = 'ERROR') AS total_source_records_errors,
@@ -55,7 +55,7 @@ BEGIN
 	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as id
         FROM journal_records
         WHERE journal_records.job_execution_id = job_id
-			  GROUP BY id, entity_id, entity_type, action_status) AS actions
+			  GROUP BY entity_id, entity_type, action_status) AS actions
       ON actions.id = journal_records.id
       INNER JOIN (SELECT (array_agg(action_type ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as action_type_max, source_id as source_id_max, entity_type as entity_type_max
         FROM journal_records

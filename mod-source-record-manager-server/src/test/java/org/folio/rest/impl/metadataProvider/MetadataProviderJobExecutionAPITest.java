@@ -45,6 +45,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
@@ -1031,8 +1032,10 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .onFailure(context::fail);
 
@@ -1043,8 +1046,8 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
         .then()
         .statusCode(HttpStatus.SC_OK)
-        .body("sourceRecordSummary.totalCreatedEntities", is(0))
-        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalCreatedEntities", is(1))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
         .body("sourceRecordSummary.totalDiscardedEntities", is(0))
         .body("sourceRecordSummary.totalErrors", is(0))
         .body("totalErrors", is(0));
@@ -1057,16 +1060,18 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   public void shouldReturnEightUpdatedSourceRecordSummaryWhenRecordWasUpdated(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    List<String> marcBibEntityIds = IntStream.range(0,8).mapToObj(i->UUID.randomUUID().toString()).toList();
+    List<String> marcBibSourceIds = IntStream.range(0,8).mapToObj(i->UUID.randomUUID().toString()).toList();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 1, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 2, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 3, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 4, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 5, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 6, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), UUID.randomUUID().toString(), null, null, null, 7, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(0), marcBibEntityIds.get(0), null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(1), marcBibEntityIds.get(1), null, null, 1, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(2), marcBibEntityIds.get(2), null, null, 2, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(3), marcBibEntityIds.get(3), null, null, 3, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(4), marcBibEntityIds.get(4), null, null, 4, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(5), marcBibEntityIds.get(5), null, null, 5, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(6), marcBibEntityIds.get(6), null, null, 6, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), marcBibSourceIds.get(7), marcBibEntityIds.get(7), null, null, 7, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
