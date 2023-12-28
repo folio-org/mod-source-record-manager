@@ -1,5 +1,20 @@
 package org.folio.rest.impl;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
+import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
+import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
+import static org.folio.services.util.EventHandlingUtil.constructModuleName;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.admin.NotFoundException;
@@ -26,10 +41,20 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.MappingProfile;
+import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
@@ -57,30 +82,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
-import static org.folio.dataimport.util.RestUtil.OKAPI_TENANT_HEADER;
-import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
-import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
 /**
  * Abstract test for the REST API testing needs.
@@ -132,7 +133,7 @@ public abstract class AbstractRestTest {
   protected static final String AUTHORITY_NOTE_TYPES_URL = "/authority-note-types?limit=1000";
   protected static final String AUTHORITY_SOURCE_FILES_URL = "/authority-source-files?limit=1000";
   protected static final String FIELD_PROTECTION_SETTINGS_URL = "/field-protection-settings/marc?limit=1000";
-  protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);;
+  protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL = "/configurations/entries?query=" + URLEncoder.encode("(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
 
 
   protected static final String FILES_PATH = "src/test/resources/org/folio/rest/files.sample";
@@ -320,6 +321,21 @@ public abstract class AbstractRestTest {
         .withProfileId(updateActionProfile.getId())
         .withContentType(ACTION_PROFILE)
         .withContent(updateActionProfile)));
+
+  private MatchProfile matchProfileMarcAuthorityToMarcAuthority =
+    new MatchProfile()
+      .withIncomingRecordType(EntityType.MARC_AUTHORITY)
+      .withExistingRecordType(EntityType.MARC_AUTHORITY);
+
+  protected ProfileSnapshotWrapper matchProfileSnapshotWrapperResponse = new ProfileSnapshotWrapper()
+    .withId(UUID.randomUUID().toString())
+    .withProfileId(updateJobProfile.getId())
+    .withContentType(JOB_PROFILE)
+    .withContent(updateJobProfile)
+    .withChildSnapshotWrappers(Collections.singletonList(
+      new ProfileSnapshotWrapper()
+        .withContentType(MATCH_PROFILE)
+        .withContent(matchProfileMarcAuthorityToMarcAuthority)));
 
   @Rule
   public WireMockRule snapshotMockServer = new WireMockRule(
