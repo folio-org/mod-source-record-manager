@@ -153,11 +153,14 @@ public class JournalUtil {
   }
 
   private static boolean isMarcBibUpdateEventReceived(DataImportEventPayload eventPayload) {
-    return (DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
-    || DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType()))
-      ||
-      (!eventPayload.getEventsChain().isEmpty() &&
-        DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventsChain().stream().reduce((first, second) -> second).get()));
+    if(DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
+      || DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+      return true;
+    }
+    else {
+      Optional<String> optionalTheLastEvent = eventPayload.getEventsChain().stream().reduce((first, second) -> second);
+        return optionalTheLastEvent.isPresent() && DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(optionalTheLastEvent.get());
+    }
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
