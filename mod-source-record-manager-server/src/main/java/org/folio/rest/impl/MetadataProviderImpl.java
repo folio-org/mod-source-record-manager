@@ -114,7 +114,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         LOGGER.debug("getMetadataProviderJobLogEntriesByJobExecutionId:: jobExecutionId {}, sortBy {}, errorsOnly {}, entityType {}",
           jobExecutionId, sortBy, errorsOnly, entityType.name());
-        journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
+        journalRecordService.getRecordProcessingLogDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
           .map(GetMetadataProviderJobLogEntriesByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)

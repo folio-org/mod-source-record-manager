@@ -4,9 +4,9 @@ import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +55,7 @@ public interface JournalRecordDao {
   Future<Boolean> deleteByJobExecutionId(String jobExecutionId, String tenantId);
 
   /**
-   * Searches for JobLogEntryDto entities by jobExecutionId and sorts them using specified sort criteria and direction
+   * Searches for RecordProcessingLogDtoCollection by jobExecutionId and sorts them using specified sort criteria and direction
    *
    * @param jobExecutionId job execution id
    * @param sortBy         sorting criteria
@@ -67,7 +67,7 @@ public interface JournalRecordDao {
    * @param tenantId       tenantId
    * @return future with JobLogEntryDto collection
    */
-  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
+  Future<RecordProcessingLogDtoCollection> getRecordProcessingLogDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
 
   /**
    * Searches for RecordProcessingLogDto entities by jobExecutionId and recordId

@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Record processing log DTO schema",
+  "javaType": "org.folio.rest.jaxrs.model.RecordProcessingLogDto",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "jobExecutionId": {
+      "description": "UUID",
+      "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+    },
+    "incomingRecordId ": {
+      "description": "Incoming record identifier, UUID",
+      "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+    },
+    "sourceRecordId": {
+      "description": "SRS record identifier, UUID",
+      "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+    },
+    "sourceRecordOrder": {
+      "description": "Order of a record in imported file",
+      "type": "string"
+    },
+    "sourceRecordTitle": {
+      "description": "Title from record",
+      "type": "string"
+    },
+    "sourceRecordActionStatus": {
+      "description": "Status of action performed above a record",
+      "$ref": "../raml-storage/schemas/dto/actionStatus.json"
+    },
+    "sourceRecordType": {
+      "description": "Type of entity",
+      "type": "string",
+      "$ref": "../raml-storage/schemas/dto/recordType.json"
+    },
+    "error": {
+      "description": "Error message",
+      "type": "string"
+    },
+    "sourceRecordTenantId": {
+      "description": "Id of tenant in which action was performed over record",
+      "type": "string"
+    },
+    "relatedInstanceInfo": {
+      "description": "Information about instance associated with source record",
+      "$ref": "../raml-storage/schemas/dto/processedEntityInfo.json"
+    },
+    "relatedHoldingsInfo": {
+      "description": "Information about holdings associated with source record",
+      "type": "array",
+      "items": {
+        "$ref": "../raml-storage/schemas/dto/processedHoldingsInfo.json"
+      }
+    },
+    "relatedItemInfo": {
+      "description": "Information about item associated with source record",
+      "type": "array",
+      "items": {
+        "$ref": "../raml-storage/schemas/dto/processedItemInfo.json"
+      }
+    },
+    "relatedAuthorityInfo": {
+      "description": "Information about authority associated with source record",
+      "$ref": "../raml-storage/schemas/dto/processedEntityInfo.json"
+    },
+    "relatedPoLineInfo": {
+      "description": "Information about poLine associated with source record",
+      "properties": {
+        "actionStatus": {
+          "description": "Status of action performed above folio entity, value MULTIPLE if multiple entities of the same type were affected",
+          "$ref": "../raml-storage/schemas/dto/actionStatus.json"
+        },
+        "idList": {
+          "description": "Id of entities which were affected during data import process",
+          "type": "array",
+          "items": {
+            "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+          }
+        },
+        "hridList": {
+          "description": "Human readable id of entities which were affected during data import process",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "error": {
+          "description": "Error message",
+          "type": "string"
+        },
+        "orderId": {
+          "description": "Order identifier, UUID",
+          "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+        }
+      }
+    },
+    "relatedInvoiceInfo": {
+      "description": "Information about invoice associated with source record",
+      "$ref": "../raml-storage/schemas/dto/processedEntityInfo.json"
+    },
+    "relatedInvoiceLineInfo": {
+      "description": "Information about invoice line associated with source record",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionStatus": {
+          "description": "Status of action performed with invoice line",
+          "$ref": "../raml-storage/schemas/dto/actionStatus.json"
+        },
+        "id": {
+          "description": "Invoice line identifier, UUID",
+          "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
+        },
+        "fullInvoiceLineNumber": {
+          "description": "Consists of vendor invoice number and invoice line sequence number",
+          "type": "string"
+        },
+        "error": {
+          "description": "Error message",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "jobExecutionId",
+    "sourceRecordOrder"
+  ]
+}
