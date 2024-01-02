@@ -39,9 +39,9 @@ import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobLogEntryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -579,7 +579,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
+      List<RecordProcessingLogDto> recordProcessingLogDtos = RestAssured.given()
         .spec(spec)
         .queryParam("sortBy", "source_record_order")
         .queryParam("order", "desc")
@@ -589,10 +589,10 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .statusCode(HttpStatus.SC_OK)
         .body("entries", hasSize(3))
         .body("totalRecords", is(3))
-        .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
+        .extract().body().as(RecordProcessingLogDtoCollection.class).getEntries();
 
-      context.assertTrue(Integer.parseInt(jobLogEntries.get(0).getSourceRecordOrder()) > Integer.parseInt(jobLogEntries.get(1).getSourceRecordOrder()));
-      context.assertTrue(Integer.parseInt(jobLogEntries.get(1).getSourceRecordOrder()) > Integer.parseInt(jobLogEntries.get(2).getSourceRecordOrder()));
+      context.assertTrue(Integer.parseInt(recordProcessingLogDtos.get(0).getSourceRecordOrder()) > Integer.parseInt(recordProcessingLogDtos.get(1).getSourceRecordOrder()));
+      context.assertTrue(Integer.parseInt(recordProcessingLogDtos.get(1).getSourceRecordOrder()) > Integer.parseInt(recordProcessingLogDtos.get(2).getSourceRecordOrder()));
       async.complete();
     }));
   }
@@ -1079,7 +1079,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
+      List<RecordProcessingLogDto> recordProcessingLogDtos = RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -1093,10 +1093,10 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].sourceRecordOrder", is(invoiceLineId + "-1"))
         .body("entries[2].sourceRecordTitle", is(invoiceLineDescription + "3"))
         .body("entries[2].sourceRecordOrder", is(invoiceLineId + "-3"))
-        .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
+        .extract().body().as(RecordProcessingLogDtoCollection.class).getEntries();
 
-      Assert.assertEquals("Exception", jobLogEntries.get(2).getError());
-      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(2).getInvoiceActionStatus());
+      Assert.assertEquals("Exception", recordProcessingLogDtos.get(2).getError());
+      Assert.assertEquals(ActionStatus.DISCARDED, recordProcessingLogDtos.get(2).getRelatedInvoiceInfo().getActionStatus());
 
       async.complete();
     }));
@@ -1166,7 +1166,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      List<JobLogEntryDto> jobLogEntries = RestAssured.given()
+      List<RecordProcessingLogDto> jobLogEntries = RestAssured.given()
         .spec(spec)
         .when()
         .param("errorsOnly", true)
@@ -1177,10 +1177,10 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
-        .extract().body().as(JobLogEntryDtoCollection.class).getEntries();
+        .extract().body().as(RecordProcessingLogDtoCollection.class).getEntries();
 
       Assert.assertEquals("Exception", jobLogEntries.get(0).getError());
-      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(0).getInvoiceActionStatus());
+      Assert.assertEquals(ActionStatus.DISCARDED, jobLogEntries.get(0).getRelatedInvoiceInfo().getActionStatus());
 
       async.complete();
     }));
