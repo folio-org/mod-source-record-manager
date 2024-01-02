@@ -24,7 +24,7 @@ DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint);
 DROP FUNCTION IF EXISTS get_job_log_entries(uuid,text,text,bigint,bigint,boolean,text);
 
 -- Script to create function to get data import job log entries (jobLogEntry).
-CREATE OR REPLACE FUNCTION diku_mod_source_record_manager.get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean, entityType text)
+CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField text, sortingDir text, limitVal bigint, offsetVal bigint, errorsOnly boolean, entityType text)
     RETURNS TABLE(job_execution_id uuid, incoming_record_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                   source_record_action_status text, source_entity_error text, source_record_tenant_id text,instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text,
                   instance_entity_tenant_id text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text,
