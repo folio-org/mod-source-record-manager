@@ -153,13 +153,12 @@ public class JournalUtil {
   }
 
   private static boolean isMarcBibUpdateEventReceived(DataImportEventPayload eventPayload) {
-    if(DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
+    if (DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
       || DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
       return true;
-    }
-    else {
+    } else {
       Optional<String> optionalTheLastEvent = eventPayload.getEventsChain().stream().reduce((first, second) -> second);
-        return optionalTheLastEvent.isPresent() && DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(optionalTheLastEvent.get());
+      return optionalTheLastEvent.isPresent() && DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(optionalTheLastEvent.get());
     }
   }
 
