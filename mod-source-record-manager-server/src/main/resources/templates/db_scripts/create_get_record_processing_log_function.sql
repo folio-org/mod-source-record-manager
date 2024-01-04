@@ -8,7 +8,7 @@ BEGIN
         WITH temp_result AS (SELECT id, journal_records.job_execution_id, journal_records.source_id, journal_records.entity_type, journal_records.entity_id, journal_records.entity_hrid,
     					 CASE WHEN error_max != ''  OR action_type = 'NON_MATCH'
                     		THEN 'DISCARDED'
-                    WHEN action_type in ('CREATE','MODIFY')
+                    WHEN action_type = 'CREATE'
                     		THEN 'CREATED'
                     WHEN action_type = 'UPDATE'
                     		THEN 'UPDATED'
