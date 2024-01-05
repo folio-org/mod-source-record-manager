@@ -55,7 +55,7 @@ BEGIN
 	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as id
         FROM journal_records
         WHERE journal_records.job_execution_id = job_id
-			  GROUP BY id, entity_id, entity_type, action_status) AS actions
+			  GROUP BY entity_id, entity_type, action_status) AS actions
       ON actions.id = journal_records.id
       INNER JOIN (SELECT (array_agg(action_type ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as action_type_max, source_id as source_id_max, entity_type as entity_type_max
         FROM journal_records
