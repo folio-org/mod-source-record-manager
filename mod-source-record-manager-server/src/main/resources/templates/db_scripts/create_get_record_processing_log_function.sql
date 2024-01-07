@@ -10,7 +10,7 @@ BEGIN
                     		THEN 'DISCARDED'
                     WHEN action_type = 'CREATE'
                     		THEN 'CREATED'
-                    WHEN action_type IN ('UPDATE', 'MODIFY')
+                    WHEN action_type = 'UPDATE'
                     		THEN 'UPDATED'
                END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
