@@ -1,10 +1,45 @@
 package org.folio.services;
 
+import static org.folio.rest.jaxrs.model.ActionProfile.Action.CREATE;
+import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.AUTHORITY;
+import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
+import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.folio.MatchProfile;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
@@ -38,37 +73,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
-import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChangeEngineServiceImplTest {
@@ -204,7 +208,7 @@ public class ChangeEngineServiceImplTest {
         .withContentType(ACTION_PROFILE)
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withAction(ActionProfile.Action.DELETE)
-          .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY))).getMap())
+          .withFolioRecord(MARC_AUTHORITY))).getMap())
       ))
     );
 
@@ -221,6 +225,37 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_AUTHORITY));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
+  }
+
+  @Test
+  public void shouldReturnMarcAuthorityRecordWhenNotMatch() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_AUTHORITY_REC_VALID);
+
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+          .withContentType(MATCH_PROFILE)
+          .withContent(new JsonObject(Json.encode(new MatchProfile()
+            .withExistingRecordType(EntityType.MARC_AUTHORITY)
+            .withIncomingRecordType(EntityType.MARC_AUTHORITY)))
+            .getMap())
+          .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+            .withContentType(ACTION_PROFILE)
+            .withReactTo(NON_MATCH)
+            .withContent(new JsonObject(Json.encode(new ActionProfile()
+              .withAction(CREATE)
+              .withFolioRecord(AUTHORITY)))
+              .getMap())))))
+    );
+    mockServicesForParseRawRecordsChunkForJobExecution();
+
+    try (var mockedStatic = Mockito.mockStatic(EventHandlingUtil.class)) {
+      mockedStatic.when(() -> EventHandlingUtil.sendEventToKafka(any(), any(), any(), kafkaHeadersCaptor.capture(), any(), any()))
+        .thenReturn(Future.succeededFuture(true));
+      service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
+    }
+
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
   }
 
   @Test
@@ -522,7 +557,7 @@ public class ChangeEngineServiceImplTest {
           .withContentType(ACTION_PROFILE)
           .withContent(new JsonObject(Json.encode(new ActionProfile()
             .withAction(ActionProfile.Action.DELETE)
-            .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY)
+            .withFolioRecord(MARC_AUTHORITY)
             .withRemove9Subfields(true))).getMap())
         ))
       ))
@@ -555,7 +590,7 @@ public class ChangeEngineServiceImplTest {
         .withContentType(ACTION_PROFILE)
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withAction(ActionProfile.Action.DELETE)
-          .withFolioRecord(ActionProfile.FolioRecord.MARC_AUTHORITY)
+          .withFolioRecord(MARC_AUTHORITY)
           .withRemove9Subfields(false))).getMap())
       ))
     );
@@ -595,7 +630,7 @@ public class ChangeEngineServiceImplTest {
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withId(UUID.randomUUID().toString())
           .withName("Create Instance")
-          .withAction(ActionProfile.Action.CREATE)
+          .withAction(CREATE)
           .withFolioRecord(ActionProfile.FolioRecord.INSTANCE))).getMap())
       ));
   }
@@ -611,7 +646,7 @@ public class ChangeEngineServiceImplTest {
           .withContent(new JsonObject(Json.encode(new ActionProfile()
             .withId(UUID.randomUUID().toString())
             .withName("Create Instance")
-            .withAction(ActionProfile.Action.CREATE)
+            .withAction(CREATE)
             .withFolioRecord(ActionProfile.FolioRecord.INSTANCE))).getMap())
         , new ProfileSnapshotWrapper()
           .withProfileId(UUID.randomUUID().toString())
@@ -619,7 +654,7 @@ public class ChangeEngineServiceImplTest {
           .withContent(new JsonObject(Json.encode(new ActionProfile()
             .withId(UUID.randomUUID().toString())
             .withName("Create MARC-Holdings ")
-            .withAction(ActionProfile.Action.CREATE)
+            .withAction(CREATE)
             .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))).getMap())
           .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
             .withProfileId(UUID.randomUUID().toString())
@@ -643,7 +678,7 @@ public class ChangeEngineServiceImplTest {
         .withContent(new JsonObject(Json.encode(new ActionProfile()
           .withId(UUID.randomUUID().toString())
           .withName("Create MARC-Holdings ")
-          .withAction(ActionProfile.Action.CREATE)
+          .withAction(CREATE)
           .withFolioRecord(ActionProfile.FolioRecord.HOLDINGS))).getMap())
         .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
           .withProfileId(UUID.randomUUID().toString())
