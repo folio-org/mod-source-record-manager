@@ -77,6 +77,7 @@ import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ACTION_STATU
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_ENTITY_ID;
+import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_JOURNAL_RECORD_ID;
 import static org.folio.dao.util.JournalRecordsColumns.INVOICE_LINE_NUMBER;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ACTION_STATUS;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
@@ -360,7 +361,9 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
         INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
       .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row))
-      .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID));
+      .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
+      .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
+        ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString());
 
     ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(row, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, JournalRecordsColumns.HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
     ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(row, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, HOLDINGS_ENTITY_ID, ITEM_ENTITY_ERROR);

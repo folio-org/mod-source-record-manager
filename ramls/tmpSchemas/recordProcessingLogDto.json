@@ -121,6 +121,10 @@
           "type": "string"
         }
       }
+    },
+    "invoiceLineJournalRecordId": {
+      "description": "UUID of journalRecord which keeps data of particular invoice line processing",
+      "$ref": "../raml-storage/raml-util/schemas/uuid.schema"
     }
   },
   "required": [
