@@ -281,6 +281,11 @@
       "run": "after",
       "snippetPath": "create_incoming_records_table.sql",
       "fromModuleVersion": "mod-source-record-manager-3.8.0"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_job_log_entries_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.8.0"
     }
   ]
 }
