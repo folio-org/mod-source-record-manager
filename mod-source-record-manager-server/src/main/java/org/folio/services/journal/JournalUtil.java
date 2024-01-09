@@ -26,6 +26,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -53,6 +54,7 @@ public class JournalUtil {
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
+  private static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
 
   private JournalUtil() {
 
@@ -120,7 +122,6 @@ public class JournalUtil {
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext)
         .withEntityType(entityType);
 
-
       if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
         && (entityType == HOLDINGS || entityType == ITEM)) {
         List<JournalRecord> resultedJournalRecords = new ArrayList<>();
@@ -149,9 +150,7 @@ public class JournalUtil {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
           }
           if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value()) ||
-            (eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)
-              && DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE)) == DI_INVENTORY_INSTANCE_CREATED
-              && entityType.equals(INSTANCE))) {
+            isCreateOrUpdateInstanceEventReceived(eventPayloadContext)) {
             var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
             return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
           }
@@ -181,18 +180,32 @@ public class JournalUtil {
     }
   }
 
+  private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {
+    var currentEventType = DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE));
+    return eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)
+      && ((DI_INVENTORY_INSTANCE_CREATED == currentEventType) || (DI_INVENTORY_INSTANCE_UPDATED == currentEventType));
+  }
+
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
                                                                  DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext) {
     String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
     String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(ID_KEY);
 
-      return buildCommonJournalRecord(actionStatus, actionType, currentRecord, eventPayload, eventPayloadContext)
+    var actionTypeForMarcBib = actionType;
+    if (eventPayloadContext.containsKey(MARC_BIB_RECORD_CREATED)) {
+      String actionTypeFromContext = eventPayloadContext.get(MARC_BIB_RECORD_CREATED);
+
+      if (actionTypeFromContext.equals(Boolean.TRUE.toString())) actionTypeForMarcBib = JournalRecord.ActionType.CREATE;
+      else actionTypeForMarcBib = JournalRecord.ActionType.UPDATE;
+    }
+
+    return buildCommonJournalRecord(actionStatus, actionTypeForMarcBib, currentRecord, eventPayload, eventPayloadContext)
       .withEntityId(marcBibEntityId)
       .withEntityType(MARC_BIBLIOGRAPHIC);
   }
 
   private static JournalRecord buildCommonJournalRecord(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
-                                                        DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext){
+                                                        DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext) {
     String tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
 
     var currentJournalRecord = new JournalRecord()
