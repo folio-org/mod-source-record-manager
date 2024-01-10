@@ -1415,19 +1415,19 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("entries[0].relatedItemInfo[0].actionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedItemInfo[0].id", oneOf(itemId))
         .body("entries[0].relatedItemInfo[0].hrid", oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[0].permanentLocationId",  oneOf(holdingsId))
+        .body("entries[0].relatedItemInfo[0].holdingsId",  oneOf(holdingsId))
         .body("entries[0].relatedItemInfo[1].actionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedItemInfo[1].id", oneOf(itemId))
         .body("entries[0].relatedItemInfo[1].hrid",  oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[1].permanentLocationId", oneOf(holdingsId))
+        .body("entries[0].relatedItemInfo[1].holdingsId", oneOf(holdingsId))
         .body("entries[0].relatedItemInfo[2].actionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedItemInfo[2].id",oneOf(itemId))
         .body("entries[0].relatedItemInfo[2].hrid", oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[2].permanentLocationId", oneOf(holdingsId))
+        .body("entries[0].relatedItemInfo[2].holdingsId", oneOf(holdingsId))
         .body("entries[0].relatedItemInfo[3].actionStatus", is(ActionStatus.DISCARDED.value()))
         .body("entries[0].relatedItemInfo[3].id",emptyOrNullString())
         .body("entries[0].relatedItemInfo[3].hrid", emptyOrNullString())
-        .body("entries[0].relatedItemInfo[3].permanentLocationId", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[3].holdingsId", emptyOrNullString())
         .body("entries[0].relatedItemInfo[3].error", is(errorMsg));
       async.complete();
     }));
