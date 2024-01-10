@@ -110,12 +110,12 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        null AS source_entity_error,
        null AS source_record_tenant_id,
        instance_info.action_type AS instance_action_status,
-       instance_info.instance_entity_id AS instance_entity_id,
+       coalesce(instance_info.instance_entity_id, holdings_info.instance_id, items_info.instance_id)  AS instance_entity_id,
        instance_info.instance_entity_hrid AS instance_entity_hrid,
        instance_info.instance_entity_error AS instance_entity_error,
        instance_info.instance_entity_tenant_id AS instance_entity_tenant_id,
        holdings_info.action_type AS holdings_action_status,
-       holdings_info.holdings_entity_id AS holdings_entity_id,
+       coalesce(holdings_info.holdings_entity_id, items_info.instance_id)  AS holdings_entity_id,
        holdings_info.holdings_entity_hrid AS holdings_entity_hrid,
        holdings_info.holdings_permanent_location_id AS holdings_permanent_location_id,
        holdings_info.holdings_entity_error AS holdings_entity_error,
@@ -192,7 +192,8 @@ FROM (
          holdings.entity_id AS holdings_entity_id,
          holdings.entity_hrid AS holdings_entity_hrid,
          holdings.permanent_location_id AS holdings_permanent_location_id,
-         holdings.error AS holdings_entity_error
+         holdings.error AS holdings_entity_error,
+         holdings.instance_id AS instance_id
   FROM holdings
 ) AS holdings_info ON holdings_info.source_id = records_actions.source_id
 
@@ -203,7 +204,8 @@ FROM (
          items.entity_id AS items_entity_id,
          items.entity_hrid AS items_entity_hrid,
          items.error AS items_entity_error,
-         items.holdings_id AS item_holdings_id
+         items.holdings_id AS item_holdings_id,
+         items.instance_id AS instance_id
   FROM items
 ) AS items_info ON items_info.source_id = records_actions.source_id
 
@@ -352,7 +354,6 @@ FROM (
 
 ORDER BY %5$I %6$s
 LIMIT %7$s OFFSET %8$s;
-
 ',
                               jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
 END;
