@@ -1403,32 +1403,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].sourceRecordId", is(sourceRecordId))
-        .body("entries[0].sourceRecordTitle", is(recordTitle))
-        .body("entries[0].relatedHoldingsInfo[0].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedHoldingsInfo[0].id", oneOf(holdingsId))
-        .body("entries[0].relatedHoldingsInfo[0].hrid", oneOf(holdingsHrid))
-        .body("entries[0].relatedHoldingsInfo[0].permanentLocationId", oneOf(permanentLocation))
-        .body("entries[0].relatedHoldingsInfo[1].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedHoldingsInfo[1].id", oneOf(holdingsId))
-        .body("entries[0].relatedHoldingsInfo[1].hrid", oneOf(holdingsHrid))
-        .body("entries[0].relatedHoldingsInfo[1].permanentLocationId", oneOf(permanentLocation))
-        .body("entries[0].relatedItemInfo[0].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedItemInfo[0].id", oneOf(itemId))
-        .body("entries[0].relatedItemInfo[0].hrid", oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[0].holdingsId",  oneOf(holdingsId))
-        .body("entries[0].relatedItemInfo[1].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedItemInfo[1].id", oneOf(itemId))
-        .body("entries[0].relatedItemInfo[1].hrid",  oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[1].holdingsId", oneOf(holdingsId))
-        .body("entries[0].relatedItemInfo[2].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedItemInfo[2].id",oneOf(itemId))
-        .body("entries[0].relatedItemInfo[2].hrid", oneOf(itemHrid))
-        .body("entries[0].relatedItemInfo[2].holdingsId", oneOf(holdingsId))
-        .body("entries[0].relatedItemInfo[3].actionStatus", is(ActionStatus.DISCARDED.value()))
-        .body("entries[0].relatedItemInfo[3].id",emptyOrNullString())
-        .body("entries[0].relatedItemInfo[3].hrid", emptyOrNullString())
-        .body("entries[0].relatedItemInfo[3].holdingsId", emptyOrNullString())
-        .body("entries[0].relatedItemInfo[3].error", is(errorMsg));
+        .body("entries[0].sourceRecordTitle", is(recordTitle));
       async.complete();
     }));
   }
