@@ -28,7 +28,7 @@ CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField
   RETURNS TABLE(job_execution_id uuid, incoming_record_id uuid, source_id uuid, source_record_order integer, invoiceline_number text, title text,
                 source_record_action_status text, source_entity_error text, source_record_tenant_id text,instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text,
                 instance_entity_tenant_id text, holdings_action_status text, holdings_entity_id text, holdings_entity_hrid text, holdings_permanent_location_id text,
-                holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text,
+                holdings_entity_error text, item_action_status text, item_entity_id text, item_entity_hrid text, item_entity_error text, item_holdings_id text, authority_action_status text,
                 authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text,
                 order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text,
                 invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text, total_count bigint,
@@ -75,7 +75,6 @@ WITH
     SELECT action_type, entity_id, entity_hrid, error, instance_id, permanent_location_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
     FROM temp_result WHERE entity_type = ''HOLDINGS''
   ),
-
   items AS (
     SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
     FROM temp_result WHERE entity_type = ''ITEM''
@@ -88,17 +87,13 @@ WITH
     SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
     FROM temp_result WHERE entity_type = ''AUTHORITY''
   ),
-  marc AS (
-    SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')
-  ),
   marc_authority AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type IN ( ''MARC_AUTHORITY'')
+    FROM temp_result WHERE entity_type = ''MARC_AUTHORITY''
   ),
   marc_holdings AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type IN ( ''MARC_HOLDINGS'')
+    FROM temp_result WHERE entity_type = ''MARC_HOLDINGS''
   )
 
 SELECT records_actions.job_execution_id AS job_execution_id,
@@ -114,24 +109,25 @@ SELECT records_actions.job_execution_id AS job_execution_id,
          END AS source_record_action_status,
        null AS source_entity_error,
        null AS source_record_tenant_id,
-       get_entity_status(instance_actions, instance_errors_number) AS instance_action_status,
+       instance_info.action_type AS instance_action_status,
        instance_info.instance_entity_id AS instance_entity_id,
        instance_info.instance_entity_hrid AS instance_entity_hrid,
        instance_info.instance_entity_error AS instance_entity_error,
        instance_info.instance_entity_tenant_id AS instance_entity_tenant_id,
-       get_entity_status(holdings_actions, holdings_errors_number) AS holdings_action_status,
+       holdings_info.action_type AS holdings_action_status,
        holdings_info.holdings_entity_id AS holdings_entity_id,
        holdings_info.holdings_entity_hrid AS holdings_entity_hrid,
        holdings_info.holdings_permanent_location_id AS holdings_permanent_location_id,
        holdings_info.holdings_entity_error AS holdings_entity_error,
-       get_entity_status(item_actions, item_errors_number) AS item_action_status,
+       items_info.action_type AS item_action_status,
        items_info.items_entity_id AS item_entity_id,
        items_info.items_entity_hrid AS item_entity_hrid,
        items_info.items_entity_error AS item_entity_error,
-       get_entity_status(authority_actions, authority_errors_number) AS authority_action_status,
+       items_info.item_holdings_id AS item_holdings_id,
+       authority_info.action_type AS authority_action_status,
        coalesce(authority_info.authority_entity_id, marc_authority_info.marc_authority_entity_id) AS authority_entity_id,
        coalesce(authority_info.authority_entity_error, marc_authority_info.marc_authority_entity_error) AS authority_entity_error,
-       get_entity_status(po_line_actions, po_line_errors_number) AS po_line_action_status,
+       po_lines_info.action_type AS po_line_action_status,
        po_lines_info.po_lines_entity_id AS po_lines_entity_id,
        po_lines_info.po_lines_entity_hrid AS po_lines_entity_hrid,
        po_lines_info.po_lines_entity_error AS po_lines_entity_error,
@@ -176,7 +172,8 @@ FROM (
                   WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
                  ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
        LEFT JOIN (
-  SELECT   instances.job_execution_id AS job_execution_id,
+  SELECT   instances.action_type AS action_type,
+           instances.job_execution_id AS job_execution_id,
            instances.title AS title,
            instances.source_id AS source_id,
            instances.entity_id AS instance_entity_id,
@@ -188,7 +185,9 @@ FROM (
 
 
        LEFT JOIN (
-  SELECT holdings.source_id AS source_id,
+  SELECT
+         holdings.action_type AS action_type,
+         holdings.source_id AS source_id,
          holdings.title AS title,
          holdings.entity_id AS holdings_entity_id,
          holdings.entity_hrid AS holdings_entity_hrid,
@@ -198,16 +197,19 @@ FROM (
 ) AS holdings_info ON holdings_info.source_id = records_actions.source_id
 
        LEFT JOIN (
-  SELECT items.source_id AS source_id,
+  SELECT items.action_type AS action_type,
+         items.source_id AS source_id,
          items.title AS title,
          items.entity_id AS items_entity_id,
          items.entity_hrid AS items_entity_hrid,
-         items.error AS items_entity_error
+         items.error AS items_entity_error,
+         items.holdings_id AS item_holdings_id
   FROM items
 ) AS items_info ON items_info.source_id = records_actions.source_id
 
        LEFT JOIN (
-  SELECT po_lines.source_id AS source_id,
+  SELECT po_lines.action_type AS action_type,
+         po_lines.source_id AS source_id,
          po_lines.title AS title,
          po_lines.entity_id AS po_lines_entity_id,
          po_lines.entity_hrid AS po_lines_entity_hrid,
@@ -217,7 +219,8 @@ FROM (
 
 
        LEFT JOIN (
-  SELECT authorities.source_id AS source_id,
+  SELECT authorities.action_type AS action_type,
+         authorities.source_id AS source_id,
          authorities.title AS title,
          authorities.entity_id AS authority_entity_id,
          authorities.error AS authority_entity_error
@@ -225,7 +228,8 @@ FROM (
 ) AS authority_info ON authority_info.source_id = records_actions.source_id
 
        LEFT JOIN (
-  SELECT marc_authority.source_id AS source_id,
+  SELECT marc_authority.action_type AS action_type,
+         marc_authority.source_id AS source_id,
          marc_authority.title AS title,
          marc_authority.entity_id AS marc_authority_entity_id,
          marc_authority.error AS marc_authority_entity_error
@@ -233,7 +237,8 @@ FROM (
 ) AS marc_authority_info ON marc_authority_info.source_id = records_actions.source_id
 
        LEFT JOIN (
-  SELECT marc_holdings.source_id AS source_id,
+  SELECT marc_holdings.action_type AS action_type,
+         marc_holdings.source_id AS source_id,
          marc_holdings.title AS title,
          marc_holdings.entity_id AS marc_authority_entity_id,
          marc_holdings.error AS marc_authority_entity_error
@@ -272,14 +277,15 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        null AS instance_entity_error,
        null AS instance_entity_tenant_id,
        null AS holdings_action_status,
-       null AS holdings_entity_hrid,
        null AS holdings_entity_id,
+       null AS holdings_entity_hrid,
        null AS holdings_permanent_location_id,
        null AS holdings_entity_error,
        null AS item_action_status,
-       null AS item_entity_hrid,
        null AS item_entity_id,
+       null AS item_entity_hrid,
        null AS item_entity_error,
+       null AS item_holdings_id,
        null AS authority_action_status,
        null AS authority_entity_id,
        null AS authority_entity_error,

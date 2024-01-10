@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -138,6 +139,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   public static final String SOURCE_ENTITY_ERROR = "source_entity_error";
   public static final String INCOMING_RECORD_ID = "incoming_record_id";
   public static final String HOLDINGS_ENTITY_HRID = "holdings_entity_hrid";
+  public static final String ITEM_HOLDINGS_ID = "item_holdings_id";
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
@@ -318,15 +320,15 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private RecordProcessingLogDtoCollection mapRowSetToRecordProcessingLogDtoCollection(RowSet<Row> rowSet) {
-    var recordProcessingLogDto = new RecordProcessingLogDtoCollection()
-      .withTotalRecords(0);
+    var recordProcessingLogDto = new RecordProcessingLogDtoCollection().withTotalRecords(0);
 
     rowSet.forEach(row ->
       recordProcessingLogDto
         .withTotalRecords(row.getInteger(TOTAL_COUNT))
         .getEntries().add(mapJobLogEntryRow(row))
     );
-    return recordProcessingLogDto;
+
+    return processMultipleHoldingsAndItemsIfNeeded(recordProcessingLogDto);
   }
 
   private RecordProcessingLogDto mapJobLogEntryRow(Row row) {
@@ -366,7 +368,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString());
 
     ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(row, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, JournalRecordsColumns.HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
-    ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(row, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, HOLDINGS_ENTITY_ID, ITEM_ENTITY_ERROR);
+    ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(row, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_HOLDINGS_ID, ITEM_ENTITY_ERROR);
     if (Objects.nonNull(processedHoldings.getActionStatus()) || processedItem.getActionStatus() == UPDATED) {
       processedHoldingsInfo.add(processedHoldings);
     }
@@ -542,5 +544,57 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withTotalUpdatedEntities(totalUpdated)
       .withTotalDiscardedEntities(totalDiscarded)
       .withTotalErrors(totalErrors);
+  }
+
+  private static RecordProcessingLogDtoCollection processMultipleHoldingsAndItemsIfNeeded(RecordProcessingLogDtoCollection recordProcessingLogDto) {
+    List<RecordProcessingLogDto> entries = recordProcessingLogDto.getEntries();
+    boolean needToMerge = ifNeedToMerge(entries);
+
+    if (needToMerge) {
+      Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoBySourceRecordId =
+        entries.stream()
+          .collect(Collectors.groupingBy(
+            RecordProcessingLogDto::getSourceRecordId,
+            Collectors.mapping(RecordProcessingLogDto::getRelatedHoldingsInfo,
+              Collectors.flatMapping(List::stream, Collectors.toList())
+            )));
+
+      Map<String, List<ProcessedItemInfo>> relatedItemInfoBySourceId =
+        entries.stream()
+          .collect(Collectors.groupingBy(
+            RecordProcessingLogDto::getSourceRecordId,
+            Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
+              Collectors.flatMapping(List::stream, Collectors.toList())
+            )));
+
+      List<RecordProcessingLogDto> mergedEntries = new ArrayList<>();
+      for (String sourceRecordId : relatedHoldingsInfoBySourceRecordId.keySet()) {
+        List<ProcessedHoldingsInfo> relatedHoldingsInfos = relatedHoldingsInfoBySourceRecordId.get(sourceRecordId);
+        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
+
+        RecordProcessingLogDto firstRecordWithCurrentSourceId = entries.stream().filter(record ->
+          record.getSourceRecordId().equals(sourceRecordId)).findFirst().get();
+        RecordProcessingLogDto newRecord = firstRecordWithCurrentSourceId
+          .withRelatedHoldingsInfo(relatedHoldingsInfos.stream().distinct().toList())
+          .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
+        mergedEntries.add(newRecord);
+      }
+      return recordProcessingLogDto.withEntries(mergedEntries);
+    } else {
+      return recordProcessingLogDto;
+    }
+  }
+
+  private static boolean ifNeedToMerge(List<RecordProcessingLogDto> entries) {
+    Map<String, Long> sourceRecordIdCounts = entries.stream()
+      .filter(e -> e.getRelatedHoldingsInfo() != null && !e.getRelatedHoldingsInfo().isEmpty())
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+
+    Map<String, Long> sourceItemRecordIdCounts = entries.stream()
+      .filter(e -> e.getRelatedItemInfo() != null && !e.getRelatedItemInfo().isEmpty())
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+
+    return sourceRecordIdCounts.values().stream().anyMatch(count -> count > 1) ||
+      sourceItemRecordIdCounts.values().stream().anyMatch(count -> count > 1);
   }
 }
