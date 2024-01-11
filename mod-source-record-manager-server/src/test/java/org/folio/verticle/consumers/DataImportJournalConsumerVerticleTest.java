@@ -265,7 +265,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     // given
     String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
     Event event = new Event().withEventPayload(null).withEventType(DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value()).withId(UUID.randomUUID().toString());
-    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecordAsByteArray(topic, event);
 
     // when
     Future<String> future = dataImportJournalKafkaHandler.handle(new KafkaConsumerRecordImpl<>(consumerRecord));

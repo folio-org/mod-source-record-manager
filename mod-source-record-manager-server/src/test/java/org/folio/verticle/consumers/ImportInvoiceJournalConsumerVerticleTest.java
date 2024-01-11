@@ -174,7 +174,7 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
   private KafkaConsumerRecord<String, byte[]> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withEventPayload(Json.encode(record));
-    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecordAsByteArray(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 }
