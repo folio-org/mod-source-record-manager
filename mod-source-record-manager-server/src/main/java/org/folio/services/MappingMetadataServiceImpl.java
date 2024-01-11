@@ -29,8 +29,8 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
   private final MappingRuleService mappingRuleService;
   private final MappingRulesSnapshotDao mappingRulesSnapshotDao;
   private final MappingParamsSnapshotDao mappingParamsSnapshotDao;
-  private final Cache<String, MappingParameters> mappingParamsCache;
-  private final Cache<String, JsonObject> mappingRulesCache;
+  private final Cache<String, String> mappingParamsCache;
+  private final Cache<String, String> mappingRulesCache;
   private final Executor cacheExecutor = serviceExecutor -> {
     Context context = Vertx.currentContext();
     if (context != null) {
@@ -63,20 +63,20 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
 
   @Override
   public Future<MappingMetadataDto> getMappingMetadataDto(String jobExecutionId, OkapiConnectionParams okapiParams) {
-    MappingParameters cachedMappingParams = mappingParamsCache.getIfPresent(jobExecutionId);
-    JsonObject cacheMappingRules = mappingRulesCache.getIfPresent(jobExecutionId);
+    String cachedMappingParams = mappingParamsCache.getIfPresent(jobExecutionId);
+    String cacheMappingRules = mappingRulesCache.getIfPresent(jobExecutionId);
     if (cacheMappingRules == null || cachedMappingParams == null) {
       return CompositeFuture.all(retrieveMappingParameters(jobExecutionId, okapiParams),
           retrieveMappingRules(jobExecutionId, okapiParams.getTenantId()))
         .compose(res -> Future.succeededFuture(new MappingMetadataDto()
           .withJobExecutionId(jobExecutionId)
-          .withMappingParams(Json.encode(res.resultAt(0)))
-          .withMappingRules(((JsonObject) res.resultAt(1)).encode())));
+          .withMappingParams(res.resultAt(0))
+          .withMappingRules(res.resultAt(1))));
     }
     return Future.succeededFuture(new MappingMetadataDto()
       .withJobExecutionId(jobExecutionId)
-      .withMappingParams(Json.encode(cachedMappingParams))
-      .withMappingRules((cacheMappingRules.encode())));
+      .withMappingParams(cachedMappingParams)
+      .withMappingRules(cacheMappingRules));
   }
 
   @Override
@@ -96,7 +96,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         .map(mappingParameters))
       .onSuccess(mappingParameters -> {
         if (mappingParameters != null) {
-          mappingParamsCache.put(jobExecutionId, mappingParameters);
+          mappingParamsCache.put(jobExecutionId, Json.encode(mappingParameters));
         }
       });
   }
@@ -110,7 +110,7 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
         .map(rules))
       .onSuccess(mappingRules -> {
         if (mappingRules != null) {
-          mappingRulesCache.put(jobExecutionId, mappingRules);
+          mappingRulesCache.put(jobExecutionId, mappingRules.encode());
         }
       });
   }

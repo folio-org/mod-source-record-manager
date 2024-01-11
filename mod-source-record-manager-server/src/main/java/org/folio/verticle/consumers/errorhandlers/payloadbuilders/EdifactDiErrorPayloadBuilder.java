@@ -1,6 +1,5 @@
 package org.folio.verticle.consumers.errorhandlers.payloadbuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
@@ -133,7 +132,7 @@ public class EdifactDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
   @SneakyThrows
   public DataImportEventPayload mapPayloadWithPopulatingInvoiceDetails(DataImportEventPayload dataImportEventPayload) {
     String edifactRecordAsString = dataImportEventPayload.getContext().get(EDIFACT_INVOICE.value());
-    Record edifactRecord = new ObjectMapper().readValue(edifactRecordAsString, Record.class);
+    Record edifactRecord = Json.decodeValue(edifactRecordAsString, Record.class);
     if(Objects.nonNull(edifactRecord.getParsedRecord())) {
       DataImportEventPayload mappedPayload = MappingManager.map(dataImportEventPayload, new MappingContext());
       mappedPayload.setEventType(DI_ERROR.value());

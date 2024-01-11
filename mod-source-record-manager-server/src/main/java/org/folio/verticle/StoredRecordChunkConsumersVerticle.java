@@ -21,15 +21,15 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticle {
+public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticle<String, byte[]> {
 
   @Autowired
   @Qualifier("StoredRecordChunksKafkaHandler")
-  private AsyncRecordHandler<String, String> storedRecordChunksKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> storedRecordChunksKafkaHandler;
 
   @Autowired
   @Qualifier("StoredRecordChunksErrorHandler")
-  private ProcessRecordErrorHandler<String, String> errorHandler;
+  private ProcessRecordErrorHandler<String, byte[]> errorHandler;
 
   @Override
   public List<String> getEvents() {
@@ -37,12 +37,17 @@ public class StoredRecordChunkConsumersVerticle extends AbstractConsumersVerticl
   }
 
   @Override
-  public AsyncRecordHandler<String, String> getHandler() {
+  public AsyncRecordHandler<String, byte[]> getHandler() {
     return this.storedRecordChunksKafkaHandler;
   }
 
   @Override
-  public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+  public ProcessRecordErrorHandler<String, byte[]> getErrorHandler() {
     return this.errorHandler;
+  }
+
+  @Override
+  public String getDeserializerClass() {
+    return "org.apache.kafka.common.serialization.ByteArrayDeserializer";
   }
 }

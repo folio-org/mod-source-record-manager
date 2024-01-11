@@ -48,11 +48,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticle {
+public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticle<String, byte[]> {
 
   @Autowired
   @Qualifier("DataImportJournalKafkaHandler")
-  private AsyncRecordHandler<String, String> dataImportJournalKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> dataImportJournalKafkaHandler;
 
   @Override
   public List<String> getEvents() {
@@ -91,7 +91,12 @@ public class DataImportJournalConsumersVerticle extends AbstractConsumersVerticl
   }
 
   @Override
-  public AsyncRecordHandler<String, String> getHandler() {
+  public AsyncRecordHandler<String, byte[]> getHandler() {
     return this.dataImportJournalKafkaHandler;
+  }
+
+  @Override
+  public String getDeserializerClass() {
+    return "org.apache.kafka.common.serialization.ByteArrayDeserializer";
   }
 }

@@ -2,6 +2,7 @@ package org.folio.verticle.consumers.errorhandlers;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,7 +35,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 
 @Component
 @Qualifier("RawMarcChunksErrorHandler")
-public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<String, String> {
+public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<String, byte[]> {
   private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String ERROR_KEY = "ERROR";
@@ -52,9 +54,15 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
   private ParsedRecordsDiErrorProvider parsedRecordsErrorProvider;
 
   @Override
-  public void handle(Throwable throwable, KafkaConsumerRecord<String, String> record) {
-    Event event = Json.decodeValue(record.value(), Event.class);
-    List<KafkaHeader> kafkaHeaders = record.headers();
+  public void handle(Throwable throwable, KafkaConsumerRecord<String, byte[]> record) {
+      Event event = null;
+      try {
+          event = DatabindCodec.mapper().readValue(record.value(), Event.class);
+      } catch (IOException e) {
+        LOGGER.error("Something happened while deserializing kafka record", e);
+        return;
+      }
+      List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
     String chunkId = okapiParams.getHeaders().get(CHUNK_ID_HEADER);

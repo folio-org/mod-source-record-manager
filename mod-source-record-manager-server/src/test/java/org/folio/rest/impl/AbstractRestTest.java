@@ -637,8 +637,8 @@ public abstract class AbstractRestTest {
     throw new NotFoundException(String.format("Couldn't find bean %s", clazz.getName()));
   }
 
-  protected ConsumerRecord<String, String> buildConsumerRecord(String topic, Event event) {
-    ConsumerRecord<java.lang.String, java.lang.String> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
+  protected <V> ConsumerRecord<String, V> buildConsumerRecord(String topic, Event event) {
+    ConsumerRecord<java.lang.String, V> consumerRecord = new ConsumerRecord("folio", 0, 0, topic, Json.encode(event));
     consumerRecord.headers().add(new RecordHeader(OkapiConnectionParams.OKAPI_TENANT_HEADER, TENANT_ID.getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_URL_HEADER, ("http://localhost:" + snapshotMockServer.port()).getBytes(StandardCharsets.UTF_8)));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TOKEN_HEADER, (TOKEN).getBytes(StandardCharsets.UTF_8)));

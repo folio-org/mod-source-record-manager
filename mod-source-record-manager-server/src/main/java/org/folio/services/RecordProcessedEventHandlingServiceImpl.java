@@ -18,6 +18,7 @@ import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.progress.JobExecutionProgressService;
+import org.folio.util.DataImportEventPayloadWithoutCurrentNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
     Promise<Boolean> promise = Promise.promise();
     DataImportEventPayload dataImportEventPayload;
     try {
-      dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayload.class);
+      dataImportEventPayload = Json.decodeValue(eventContent, DataImportEventPayloadWithoutCurrentNode.class);
     } catch (DecodeException e) {
       LOGGER.warn("handle:: Failed to read eventContent {}", eventContent, e);
       promise.fail(e);

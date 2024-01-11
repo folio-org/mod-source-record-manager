@@ -32,6 +32,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,7 +65,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   @Mock
   private RecordsPublishingService recordsPublishingService;
   @Mock
-  private KafkaConsumerRecord<String, String> kafkaRecord;
+  private KafkaConsumerRecord<String, byte[]> kafkaRecord;
   @Mock
   private JournalService journalService;
   @Mock
@@ -77,7 +78,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
   private Vertx vertx = Vertx.vertx();
-  private AsyncRecordHandler<String, String> storedRecordChunksKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> storedRecordChunksKafkaHandler;
 
   @BeforeClass
   public static void setUpClass() throws IOException {
@@ -102,7 +103,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(recordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID))
       .thenReturn(Future.failedFuture(new DuplicateEventException("Constraint Violation Occurs")));
@@ -147,7 +148,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(savedRecordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
 
@@ -170,7 +171,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(savedRecordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.EDIFACT))).thenReturn(Future.failedFuture(new Exception()));
@@ -217,7 +218,7 @@ public class StoredRecordChunksKafkaHandlerTest {
       .withId(UUID.randomUUID().toString())
       .withEventPayload(Json.encode(savedRecordsBatch));
 
-    when(kafkaRecord.value()).thenReturn(Json.encode(event));
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));

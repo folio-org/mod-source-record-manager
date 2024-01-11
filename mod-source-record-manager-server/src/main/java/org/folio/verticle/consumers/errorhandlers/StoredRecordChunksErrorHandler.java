@@ -2,6 +2,7 @@ package org.folio.verticle.consumers.errorhandlers;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,7 +31,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Component
 @Qualifier("StoredRecordChunksErrorHandler")
-public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler<String, String> {
+public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler<String, byte[]> {
   private static final Logger LOGGER = LogManager.getLogger();
 
   public static final String ERROR_KEY = "ERROR";
@@ -47,7 +49,7 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
   }
 
   @Override
-  public void handle(Throwable throwable, KafkaConsumerRecord<String, String> kafkaConsumerRecord) {
+  public void handle(Throwable throwable, KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord) {
     List<KafkaHeader> kafkaHeaders = kafkaConsumerRecord.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String jobExecutionId = okapiParams.getHeaders().get(JOB_EXECUTION_ID_HEADER);
@@ -65,8 +67,14 @@ public class StoredRecordChunksErrorHandler implements ProcessRecordErrorHandler
 
     } else {
       // process for all other cases that will include all records
-      Event event = Json.decodeValue(kafkaConsumerRecord.value(), Event.class);
-      RecordsBatchResponse recordCollection = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
+        Event event = null;
+        try {
+            event = DatabindCodec.mapper().readValue(kafkaConsumerRecord.value(), Event.class);
+        } catch (IOException e) {
+          LOGGER.error("Could not deserialize kafka record", e);
+          return;
+        }
+        RecordsBatchResponse recordCollection = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
       for (Record targetRecord: recordCollection.getRecords()) {
         sendDiErrorForRecord(jobExecutionId, targetRecord, okapiParams, throwable.getMessage());
       }

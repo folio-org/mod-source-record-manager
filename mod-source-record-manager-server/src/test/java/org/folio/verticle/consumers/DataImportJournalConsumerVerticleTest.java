@@ -9,7 +9,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
@@ -114,7 +113,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken("token");
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -142,7 +141,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken(TOKEN);
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -170,7 +169,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken(TOKEN);
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -207,7 +206,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventsChain(List.of(DI_INVENTORY_HOLDING_CREATED.value(), DI_INVENTORY_ITEM_CREATED.value()));
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(completedEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(completedEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -247,7 +246,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventsChain(List.of(DI_SRS_MARC_BIB_RECORD_CREATED.value(), DI_INVENTORY_HOLDING_CREATED.value()));
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(eventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(eventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -266,7 +265,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     // given
     String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
     Event event = new Event().withEventPayload(null).withEventType(DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value()).withId(UUID.randomUUID().toString());
-    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecord(topic, event);
 
     // when
     Future<String> future = dataImportJournalKafkaHandler.handle(new KafkaConsumerRecordImpl<>(consumerRecord));
@@ -278,10 +277,10 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       });
   }
 
-  private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) {
+  private KafkaConsumerRecord<String, byte[]> buildKafkaConsumerRecord(DataImportEventPayload record) {
     String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withEventPayload(Json.encode(record));
-    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 }

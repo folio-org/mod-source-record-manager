@@ -157,7 +157,7 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventsChain(List.of(DI_INVOICE_CREATED.value()));
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -171,10 +171,10 @@ public class ImportInvoiceJournalConsumerVerticleTest extends AbstractRestTest {
     async.complete();
   }
 
-  private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
+  private KafkaConsumerRecord<String, byte[]> buildKafkaConsumerRecord(DataImportEventPayload record) throws IOException {
     String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withEventPayload(Json.encode(record));
-    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecord(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 }

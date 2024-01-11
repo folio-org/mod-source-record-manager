@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.folio.services.util.EventHandlingUtil.constructModuleName;
 
-public abstract class AbstractConsumersVerticle extends AbstractVerticle {
+public abstract class AbstractConsumersVerticle<K, V> extends AbstractVerticle {
   private static final GlobalLoadSensor globalLoadSensor = new GlobalLoadSensor();
 
   @Autowired
@@ -41,17 +41,19 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) {
     List<Future<Void>> futures = new ArrayList<>();
+    KafkaConfig kafkaConfigWithDeserializer = kafkaConfig.toBuilder()
+      .consumerValueDeserializerClass(getDeserializerClass())
+      .build();
 
     getEvents().forEach(event -> {
       SubscriptionDefinition subscriptionDefinition = KafkaTopicNameHelper
-        .createSubscriptionDefinition(kafkaConfig.getEnvId(),
+        .createSubscriptionDefinition(kafkaConfigWithDeserializer.getEnvId(),
           KafkaTopicNameHelper.getDefaultNameSpace(),
           event);
-
-      KafkaConsumerWrapper<String, String> consumerWrapper = KafkaConsumerWrapper.<String, String>builder()
+      KafkaConsumerWrapper<K, V> consumerWrapper = KafkaConsumerWrapper.<K, V>builder()
         .context(context)
         .vertx(vertx)
-        .kafkaConfig(kafkaConfig)
+        .kafkaConfig(kafkaConfigWithDeserializer)
         .loadLimit(loadLimit)
         .globalLoadSensor(globalLoadSensor)
         .addToGlobalLoad(shouldAddToGlobalLoad())
@@ -79,7 +81,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
 
   public abstract List<String> getEvents();
 
-  public abstract AsyncRecordHandler<String, String> getHandler();
+  public abstract AsyncRecordHandler<K, V> getHandler();
 
   /**
    * Include messages from this consumer to mutate global load counts
@@ -95,7 +97,7 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    *
    * @return error handler
    */
-  public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+  public ProcessRecordErrorHandler<K, V> getErrorHandler() {
     return null;
   }
 
@@ -107,5 +109,12 @@ public abstract class AbstractConsumersVerticle extends AbstractVerticle {
    */
   public BackPressureGauge<Integer, Integer, Integer> getBackPressureGauge() {
     return (g, l, t) -> (l > 0 && l > t) || (g > globalLoadLimit);
+  }
+
+  /**
+   * Set a custom deserializer class for this kafka consumer
+   */
+  public String getDeserializerClass() {
+    return null;
   }
 }

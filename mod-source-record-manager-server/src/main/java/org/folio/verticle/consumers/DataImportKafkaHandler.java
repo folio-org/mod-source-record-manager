@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
@@ -26,7 +27,7 @@ import java.util.List;
 
 @Component
 @Qualifier("DataImportKafkaHandler")
-public class DataImportKafkaHandler implements AsyncRecordHandler<String, String> {
+public class DataImportKafkaHandler implements AsyncRecordHandler<String, byte[]> {
   private static final Logger LOGGER = LogManager.getLogger();
   static final String RECORD_ID_HEADER = "recordId";
   public static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
@@ -48,13 +49,13 @@ public class DataImportKafkaHandler implements AsyncRecordHandler<String, String
   }
 
   @Override
-  public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+  public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     try {
       Promise<String> result = Promise.promise();
       List<KafkaHeader> kafkaHeaders = record.headers();
       OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-      Event event = Json.decodeValue(record.value(), Event.class);
+      Event event = DatabindCodec.mapper().readValue(record.value(), Event.class);
       String jobExecutionId = extractJobExecutionId(kafkaHeaders);
       LOGGER.info("handle:: Event was received with recordId: '{}' event type: '{}' with jobExecutionId: '{}'", recordId, event.getEventType(), jobExecutionId);
 

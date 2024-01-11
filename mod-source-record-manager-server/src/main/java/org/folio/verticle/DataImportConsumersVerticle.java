@@ -21,11 +21,11 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class DataImportConsumersVerticle extends AbstractConsumersVerticle {
+public class DataImportConsumersVerticle extends AbstractConsumersVerticle<String, byte[]> {
 
   @Autowired
   @Qualifier("DataImportKafkaHandler")
-  private AsyncRecordHandler<String, String> dataImportKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> dataImportKafkaHandler;
 
   @Override
   public List<String> getEvents() {
@@ -33,8 +33,13 @@ public class DataImportConsumersVerticle extends AbstractConsumersVerticle {
   }
 
   @Override
-  public AsyncRecordHandler<String, String> getHandler() {
+  public AsyncRecordHandler<String, byte[]> getHandler() {
     return this.dataImportKafkaHandler;
+  }
+
+  @Override
+  public String getDeserializerClass() {
+    return "org.apache.kafka.common.serialization.ByteArrayDeserializer";
   }
 
 }

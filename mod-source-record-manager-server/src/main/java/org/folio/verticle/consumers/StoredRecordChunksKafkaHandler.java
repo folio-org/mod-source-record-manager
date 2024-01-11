@@ -1,12 +1,12 @@
 package org.folio.verticle.consumers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.FailedFuture;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotFoundException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,7 +59,7 @@ import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
 
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")
-public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String, byte[]> {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String INSTANCE_TITLE_FIELD_PATH = "title";
   public static final String STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID = "4d39ced7-9b67-4bdc-b232-343dbb5b8cef";
@@ -98,7 +97,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   @Override
-  public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+  public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String chunkId = okapiConnectionParams.getHeaders().get("chunkId");
@@ -113,9 +112,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
             return Future.succeededFuture(chunkId);
           }
 
-          Event event = Json.decodeValue(record.value(), Event.class);
-
           try {
+            Event event = DatabindCodec.mapper().readValue(record.value(), Event.class);
             return eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
               .compose(res -> {
                 RecordsBatchResponse recordsBatchResponse = Json.decodeValue(event.getEventPayload(), RecordsBatchResponse.class);
@@ -156,7 +154,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
   private Future<DataImportEventTypes> setOrderEventTypeIfNeeded(JobExecution jobExecution, DataImportEventTypes dataImportEventTypes) {
     if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-      ProfileSnapshotWrapper profileSnapshotWrapper = new ObjectMapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
+      ProfileSnapshotWrapper profileSnapshotWrapper = DatabindCodec.mapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
       List<ProfileSnapshotWrapper> actionProfiles = profileSnapshotWrapper
         .getChildSnapshotWrappers()
         .stream()
@@ -173,7 +171,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
   private static boolean checkIfOrderCreateActionProfileExists(List<ProfileSnapshotWrapper> actionProfiles) {
     for (ProfileSnapshotWrapper actionProfile : actionProfiles) {
-      LinkedHashMap<String, String> content = new ObjectMapper().convertValue(actionProfile.getContent(), LinkedHashMap.class);
+      LinkedHashMap<String, String> content = DatabindCodec.mapper().convertValue(actionProfile.getContent(), LinkedHashMap.class);
       if (content.get(FOLIO_RECORD).equals(ORDER_TYPE) && content.get(ACTION_FIELD).equals(CREATE_ACTION)) {
         return true;
       }

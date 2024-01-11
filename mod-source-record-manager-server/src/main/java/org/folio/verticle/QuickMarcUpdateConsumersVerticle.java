@@ -19,7 +19,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle {
+public class QuickMarcUpdateConsumersVerticle extends AbstractConsumersVerticle<String, String> {
 
   @Autowired
   private QuickMarcUpdateKafkaHandler quickMarcUpdateKafkaHandler;

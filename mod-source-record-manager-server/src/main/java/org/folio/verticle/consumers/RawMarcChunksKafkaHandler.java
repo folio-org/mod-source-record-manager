@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.FailedFuture;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +33,7 @@ import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
 
 @Component
 @Qualifier("RawMarcChunksKafkaHandler")
-public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, String> {
+public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byte[]> {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -53,7 +54,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
   }
 
   @Override
-  public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+  public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     List<KafkaHeader> kafkaHeaders = record.headers();
     OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
     String chunkId = okapiParams.getHeaders().get("chunkId");
@@ -66,9 +67,10 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
             LOGGER.info("handle:: do not handle because jobExecution with id: {} was cancelled", jobExecutionId);
             return Future.succeededFuture(record.key());
           }
-          Event event = Json.decodeValue(record.value(), Event.class);
-          LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
+
           try {
+            Event event = DatabindCodec.mapper().readValue(record.value(), Event.class);
+            LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
             RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
             if (!rawRecordsDto.getRecordsMetadata().getLast()) {
               flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());

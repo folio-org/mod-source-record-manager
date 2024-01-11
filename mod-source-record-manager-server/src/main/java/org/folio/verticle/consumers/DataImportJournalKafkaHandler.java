@@ -1,11 +1,9 @@
 package org.folio.verticle.consumers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import org.apache.logging.log4j.LogManager;
@@ -15,10 +13,10 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
-import org.folio.rest.jaxrs.model.Event;
 import org.folio.services.EventProcessedService;
 import org.folio.services.journal.JournalService;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
+import org.folio.util.JournalEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -29,7 +27,7 @@ import static org.folio.services.RecordsPublishingServiceImpl.RECORD_ID_HEADER;
 
 @Component
 @Qualifier("DataImportJournalKafkaHandler")
-public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String, String> {
+public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String, byte[]> {
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID = "ca0c6c56-e74e-4921-b4c9-7b2de53c43ec";
 
@@ -49,13 +47,13 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
   }
 
   @Override
-  public Future<String> handle(KafkaConsumerRecord<String, String> record) {
+  public Future<String> handle(KafkaConsumerRecord<String, byte[]> record) {
     try {
       Promise<String> result = Promise.promise();
       List<KafkaHeader> kafkaHeaders = record.headers();
       OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
       String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-      Event event = Json.decodeValue(record.value(), Event.class);
+      JournalEvent event = DatabindCodec.mapper().readValue(record.value(), JournalEvent.class);
       LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
 
       eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
@@ -69,9 +67,9 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     }
   }
 
-  private void processJournalEvent(Promise<String> result, KafkaConsumerRecord<String, String> record, Event event, String tenantId) {
+  private void processJournalEvent(Promise<String> result, KafkaConsumerRecord<String, byte[]> record, JournalEvent event, String tenantId) {
     try {
-      DataImportEventPayload eventPayload = new ObjectMapper().readValue(event.getEventPayload(), DataImportEventPayload.class);
+      DataImportEventPayload eventPayload = event.getEventPayload();
       eventTypeHandlerSelector.getHandler(eventPayload).handle(journalService, eventPayload, tenantId);
       result.complete(record.key());
     } catch (Exception e) {
@@ -80,7 +78,7 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
     }
   }
 
-  private void processDeduplicationFailure(Promise<String> result, KafkaConsumerRecord<String, String> record, Event event, Throwable e) {
+  private void processDeduplicationFailure(Promise<String> result, KafkaConsumerRecord<String, byte[]> record, JournalEvent event, Throwable e) {
     if (e instanceof DuplicateEventException) { // duplicate coming, ignore it
       LOGGER.info(e.getMessage());
       result.complete(record.key());

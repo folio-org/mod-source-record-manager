@@ -2,8 +2,9 @@ package org.folio.services.journal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,7 +90,7 @@ public class InvoiceUtil {
   private static Map<String, Object> buildInvoiceRecord(DataImportEventPayload eventPayload) throws JournalRecordMapperException {
     try {
       String edifactRecordAsString = eventPayload.getContext().get(EDIFACT_INVOICE.value());
-      Record edifactRecord = new ObjectMapper().readValue(edifactRecordAsString, Record.class);
+      Record edifactRecord = Json.decodeValue(edifactRecordAsString, Record.class);
 
       String recordAsString = eventPayload.getContext().get(INVOICE.value());
       JsonObject invoiceJson = new JsonObject(recordAsString);
@@ -166,7 +167,7 @@ public class InvoiceUtil {
   private static List<JournalRecord> buildErrorJournalRecord(DataImportEventPayload eventPayload) throws JournalRecordMapperException {
     try {
       String edifactRecordAsString = eventPayload.getContext().get(EDIFACT_INVOICE.value());
-      Record edifactRecord = new ObjectMapper().readValue(edifactRecordAsString, Record.class);
+      Record edifactRecord = Json.decodeValue(edifactRecordAsString, Record.class);
 
       Integer invoiceOrder = edifactRecord.getOrder() != null ? edifactRecord.getOrder() : 0;
 
@@ -211,7 +212,7 @@ public class InvoiceUtil {
 
     String errorInvoiceLines = eventPayload.getContext().get(INVOICE_LINES_ERRORS_KEY);
     if (isNotEmpty(errorInvoiceLines)) {
-      return new ObjectMapper().readValue(errorInvoiceLines, new TypeReference<>() {
+      return DatabindCodec.mapper().readValue(errorInvoiceLines, new TypeReference<>() {
       });
     }
     return new HashMap<>();
