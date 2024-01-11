@@ -149,7 +149,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
          WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
          WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
          END AS source_record_action_status,
-       null AS source_entity_error,
+       records_actions.source_entity_error AS source_entity_error,
        records_actions.source_record_tenant_id AS source_record_tenant_id,
        instance_info.action_type AS instance_action_status,
        coalesce(instance_info.instance_entity_id, holdings_info.instance_id, items_info.instance_id)  AS instance_entity_id,
@@ -203,7 +203,8 @@ FROM (
               count(journal_records.source_id) FILTER (WHERE entity_type = ''PO_LINE'' AND journal_records.error != '''') AS po_line_errors_number,
               count(journal_records.source_id) OVER () AS total_count,
               (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
-              (array_agg(journal_records.tenant_id)  FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_tenant_id
+              (array_agg(journal_records.tenant_id)  FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_tenant_id,
+              (array_agg(journal_records.error)  FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_entity_error
        FROM journal_records
        WHERE journal_records.job_execution_id = ''%1$s'' and
            entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''AUTHORITY'', ''PO_LINE'')
