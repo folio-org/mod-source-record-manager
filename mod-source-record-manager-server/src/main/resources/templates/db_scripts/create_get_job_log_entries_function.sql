@@ -72,12 +72,54 @@ WITH
     FROM temp_result WHERE entity_type = ''INSTANCE''
   ),
   holdings AS (
-    SELECT action_type, entity_id, entity_hrid, error, instance_id, permanent_location_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
-    FROM temp_result WHERE entity_type = ''HOLDINGS''
+    SELECT tmp.action_type, tmp.entity_type, tmp.entity_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
+            tmp.permanent_location_id, tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
+     FROM temp_result tmp
+            INNER JOIN
+          (SELECT
+             CASE
+               WHEN EXISTS (SELECT condition_result.entity_id FROM temp_result condition_result
+                            WHERE (condition_result.action_type=''CREATED'' AND condition_result.entity_type=''HOLDINGS'')
+                               OR
+                              (condition_result.action_type=''DISCARDED'' AND condition_result.error != '''' AND condition_result.entity_type=''HOLDINGS''))
+                 THEN
+                 (SELECT deep_nested.id
+                  FROM temp_result deep_nested
+                  WHERE
+                    (deep_nested.action_type=''CREATED'' AND deep_nested.id = nested_result.id)
+                     OR
+                    (deep_nested.action_type=''DISCARDED'' AND deep_nested.error != '''' AND deep_nested.id = nested_result.id))
+               ELSE
+                 nested_result.id
+               END
+           FROM temp_result nested_result) AS joining_table
+          ON tmp.id = joining_table.id
+     WHERE  tmp.entity_type=''HOLDINGS''
   ),
   items AS (
-    SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id, temp_result.job_execution_id, temp_result.source_id, temp_result.title, temp_result.source_record_order
-    FROM temp_result WHERE entity_type = ''ITEM''
+    SELECT tmp.action_type, tmp.entity_id, tmp.holdings_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
+            tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
+     FROM temp_result tmp
+            INNER JOIN
+          (SELECT
+             CASE
+               WHEN EXISTS (SELECT condition_result.entity_id FROM temp_result condition_result
+                            WHERE (condition_result.action_type IN (''CREATED'',''UPDATED'') AND condition_result.entity_type=''ITEM'')
+                               OR
+                              (condition_result.action_type=''DISCARDED'' AND condition_result.error != '''' AND condition_result.entity_type=''ITEM''))
+                 THEN
+                 (SELECT deep_nested.id
+                  FROM temp_result deep_nested
+                  WHERE
+                    (deep_nested.action_type IN (''CREATED'',''UPDATED'') AND deep_nested.id = nested_result.id)
+                     OR
+                    (deep_nested.action_type=''DISCARDED'' AND deep_nested.error != '''' AND deep_nested.id = nested_result.id))
+               ELSE
+                 nested_result.id
+               END
+           FROM temp_result nested_result) AS joining_table
+          ON tmp.id = joining_table.id
+     WHERE  tmp.entity_type=''ITEM''
   ),
   po_lines AS (
     SELECT action_type,entity_id,entity_hrid,temp_result.source_id,error,order_id,temp_result.job_execution_id,temp_result.title,temp_result.source_record_order
@@ -108,14 +150,14 @@ SELECT records_actions.job_execution_id AS job_execution_id,
          WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
          END AS source_record_action_status,
        null AS source_entity_error,
-       null AS source_record_tenant_id,
+       records_actions.source_record_tenant_id AS source_record_tenant_id,
        instance_info.action_type AS instance_action_status,
        coalesce(instance_info.instance_entity_id, holdings_info.instance_id, items_info.instance_id)  AS instance_entity_id,
        instance_info.instance_entity_hrid AS instance_entity_hrid,
        instance_info.instance_entity_error AS instance_entity_error,
        instance_info.instance_entity_tenant_id AS instance_entity_tenant_id,
        holdings_info.action_type AS holdings_action_status,
-       coalesce(holdings_info.holdings_entity_id, items_info.instance_id)  AS holdings_entity_id,
+       coalesce(holdings_info.holdings_entity_id, items_info.item_holdings_id)  AS holdings_entity_id,
        holdings_info.holdings_entity_hrid AS holdings_entity_hrid,
        holdings_info.holdings_permanent_location_id AS holdings_permanent_location_id,
        holdings_info.holdings_entity_error AS holdings_entity_error,
@@ -160,7 +202,8 @@ FROM (
               array_agg(action_type ORDER BY array_position(array[''CREATE'', ''MODIFY'', ''UPDATE'', ''NON_MATCH''], action_type)) FILTER (WHERE entity_type = ''PO_LINE'') AS po_line_actions,
               count(journal_records.source_id) FILTER (WHERE entity_type = ''PO_LINE'' AND journal_records.error != '''') AS po_line_errors_number,
               count(journal_records.source_id) OVER () AS total_count,
-              (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type
+              (array_agg(journal_records.entity_type) FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_entity_type,
+              (array_agg(journal_records.tenant_id)  FILTER (WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'')))[1] AS source_record_tenant_id
        FROM journal_records
        WHERE journal_records.job_execution_id = ''%1$s'' and
            entity_type in (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'', ''INSTANCE'', ''HOLDINGS'', ''ITEM'', ''AUTHORITY'', ''PO_LINE'')
@@ -186,14 +229,14 @@ FROM (
 
        LEFT JOIN (
   SELECT
-         holdings.action_type AS action_type,
-         holdings.source_id AS source_id,
-         holdings.title AS title,
-         holdings.entity_id AS holdings_entity_id,
-         holdings.entity_hrid AS holdings_entity_hrid,
-         holdings.permanent_location_id AS holdings_permanent_location_id,
-         holdings.error AS holdings_entity_error,
-         holdings.instance_id AS instance_id
+    holdings.action_type AS action_type,
+    holdings.source_id AS source_id,
+    holdings.title AS title,
+    holdings.entity_id AS holdings_entity_id,
+    holdings.entity_hrid AS holdings_entity_hrid,
+    holdings.permanent_location_id AS holdings_permanent_location_id,
+    holdings.error AS holdings_entity_error,
+    holdings.instance_id AS instance_id
   FROM holdings
 ) AS holdings_info ON holdings_info.source_id = records_actions.source_id
 
@@ -273,7 +316,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
          WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
          END AS source_record_action_status,
        records_actions.source_record_error[1] as source_entity_error,
-       null AS source_record_tenant_id,
+       records_actions.source_record_tenant_id AS source_record_tenant_id,
        null AS instance_action_status,
        null AS instance_entity_id,
        null AS instance_entity_hrid,
@@ -320,6 +363,7 @@ FROM (
               count(journal_records.source_id) FILTER (WHERE entity_type = ''INVOICE'' AND journal_records.error != '''') AS invoice_errors_number,
               array_agg(error) FILTER (WHERE entity_type = ''EDIFACT'') AS source_record_error,
               count(journal_records.source_id) OVER () AS total_count,
+              journal_records.tenant_id AS source_record_tenant_id,
               id AS invoiceLineJournalRecordId,
               (array_agg(entity_type) FILTER (WHERE entity_type IN (''EDIFACT'')))[1] AS source_record_entity_type
        FROM journal_records

@@ -443,6 +443,60 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnInstanceIdWhenHoldingsCreatedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution instanceCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    JobExecution holdingsCreationJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    String instanceCreationSourceRecordId = UUID.randomUUID().toString();
+    String holdingsCreationSourceRecordId = UUID.randomUUID().toString();
+
+    String recordTitle = "test title";
+
+    JournalRecord holdingsCreatedJournalRecord = new JournalRecord()
+      .withJobExecutionId(holdingsCreationJobExecution.getId())
+      .withSourceId(holdingsCreationSourceRecordId)
+      .withTitle(null)
+      .withSourceRecordOrder(0)
+      .withEntityType(HOLDINGS)
+      .withActionType(CREATE)
+      .withActionStatus(COMPLETED)
+      .withError(null)
+      .withActionDate(new Date())
+      .withEntityId("holdingsEntityID")
+      .withEntityHrId("ho00000000001")
+      .withInstanceId("instanceEntityID");
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, "instanceMarcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, "instanceEntityID", "in00000000001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> journalRecordDao.save(holdingsCreatedJournalRecord, TENANT_ID).map(holdingsCreatedJournalRecord))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + holdingsCreationJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(holdingsCreationJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(holdingsCreationSourceRecordId))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is("instanceEntityID"))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].id", is("holdingsEntityID"))
+        .body("entries[0].relatedHoldingsInfo[0].hrid", is("ho00000000001"))
+        .body("entries[0].relatedHoldingsInfo[0].error", emptyOrNullString());
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnPoLineWithOrderIdWhenMarcCreate(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -469,6 +523,40 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedPoLineInfo", notNullValue())
         .body("relatedPoLineInfo.orderId", is(orderId))
         .body("relatedPoLineInfo.error", is("Test error"));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnPoLineWithOrderIdWhenMarcCreateRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String orderId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, "Test error", orderId))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("entries[0].relatedPoLineInfo", notNullValue())
+        .body("entries[0].relatedPoLineInfo.orderId", is(orderId))
+        .body("entries[0].relatedPoLineInfo.error", is("Test error"));
 
       async.complete();
     }));
@@ -502,6 +590,41 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInstanceInfo.idList.size()", is(1))
         .body("relatedInstanceInfo.hridList.size()", is(1))
         .body("relatedInstanceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnOneInstanceIdWhenMarcBibUpdatedAndInstanceUpdatedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution marcBibAndInstanceUpdateJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+
+    String marcBibAndInstanceUpdateSourceRecordId = UUID.randomUUID().toString();
+
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "marcBibEntityID", null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + marcBibAndInstanceUpdateJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(marcBibAndInstanceUpdateJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(marcBibAndInstanceUpdateSourceRecordId))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList.size()", is(1))
+        .body("entries[0].relatedInstanceInfo.hridList.size()", is(1))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString());
 
       async.complete();
     }));
@@ -726,6 +849,37 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnMarcBibUpdatedByJobAndRecordIdsRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnEmptyMarcBibErrorAndInstanceDiscardedWhenInstanceCreationFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -760,6 +914,42 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnEmptyMarcBibErrorAndInstanceDiscardedWhenInstanceCreationFailedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String entityId = UUID.randomUUID().toString();
+    String entityHrid = "001";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, null,  0, CREATE, INSTANCE, ERROR, "error msg", null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(entityId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(entityHrid))
+        .body("entries[0].relatedInstanceInfo.error", is("error msg"));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnNotEmptyMarcBibErrorWhenMarcBibFailed(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -782,6 +972,37 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("sourceRecordTitle", is(recordTitle))
         .body("sourceRecordOrder", is("0"))
         .body("error", is("MarcBib error msg"));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnNotEmptyMarcBibErrorWhenMarcBibFailedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, ERROR, "MarcBib error msg", null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error",is("MarcBib error msg"));
 
       async.complete();
     }));
@@ -847,6 +1068,67 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithoutErrorsRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String itemId = UUID.randomUUID().toString();
+    String itemHrid = "it001";
+
+    String poLineId = UUID.randomUUID().toString();
+    String poLineHrid = "po001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, null,  0, CREATE, ITEM, COMPLETED, null, null,instanceId,holdingsId,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, poLineId, poLineHrid, null,  0, CREATE, PO_LINE, COMPLETED, null, null,instanceId,null,null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("entries[0].relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].id", is(itemId))
+        .body("entries[0].relatedItemInfo[0].hrid", is(itemHrid))
+        .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedPoLineInfo.idList[0]", is(poLineId))
+        .body("entries[0].relatedPoLineInfo.hridList[0]", is(poLineHrid))
+        .body("entries[0].relatedPoLineInfo.error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList", empty())
+        .body("entries[0].relatedInvoiceInfo.hridList", empty())
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnDiscardedForHoldingsIfNoHoldingsCreated(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -881,6 +1163,49 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedHoldingsInfo[0].id", emptyOrNullString())
         .body("relatedHoldingsInfo[0].hrid", emptyOrNullString())
         .body("relatedHoldingsInfo[0].error", is(testError));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForHoldingsIfNoHoldingsCreatedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, HOLDINGS, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].id", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].hrid", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].error", is(testError));
 
       async.complete();
     }));
@@ -928,6 +1253,54 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedItemInfo[0].id", emptyOrNullString())
         .body("relatedItemInfo[0].hrid", emptyOrNullString())
         .body("relatedItemInfo[0].error", is(testError));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForItemsIfNoItemsCreatedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String testError = "testError";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, ITEM, ERROR, testError, null, null,null,null));
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("entries[0].relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].id", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].hrid", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].error", is(testError));
       async.complete();
     }));
   }
@@ -985,6 +1358,79 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnDataForInvoiceLinesRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceId = "aa67ab97-ec97-4145-beb8-0572dd60dd87";
+    String invoiceHrid = "228D126";
+    String invoiceVendorNumber = "0704159";
+    String invoiceLineId1 = UUID.randomUUID().toString();
+    String invoiceLineId2 = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId2, invoiceVendorNumber + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(2))
+        .body("totalRecords", is(2))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle",is(invoiceLineDescription + "1"))
+        .body("entries[0].sourceRecordOrder", is("0704159-1"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList.size", empty())
+        .body("entries[0].relatedInstanceInfo.hridList.size",  empty())
+        .body("entries[0].relatedInstanceInfo.error",nullValue())
+        .body("entries[0].relatedHoldingsInfo.size", empty())
+        .body("entries[0].relatedItemInfo.size", empty())
+        .body("entries[0].relatedPoLineInfo.idList.size", empty())
+        .body("entries[0].relatedPoLineInfo.hridList.size", empty())
+        .body("entries[0].relatedPoLineInfo.error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList[0]", is(invoiceId))
+        .body("entries[0].relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceLineInfo.id", is(invoiceLineId1))
+        .body("entries[0].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-1"))
+        .body("entries[0].relatedInvoiceLineInfo.error", emptyOrNullString())
+        .body("entries[0].invoiceLineJournalRecordId", notNullValue())
+
+        .body("entries[1].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[1].sourceRecordId", is(sourceRecordId))
+        .body("entries[1].sourceRecordTitle",is(invoiceLineDescription + "2"))
+        .body("entries[1].sourceRecordOrder", is("0704159-2"))
+        .body("entries[1].error", emptyOrNullString())
+        .body("entries[1].relatedInstanceInfo.idList.size", empty())
+        .body("entries[1].relatedInstanceInfo.hridList.size",  empty())
+        .body("entries[1].relatedInstanceInfo.error",nullValue())
+        .body("entries[1].relatedHoldingsInfo.size", empty())
+        .body("entries[1].relatedItemInfo.size", empty())
+        .body("entries[1].relatedPoLineInfo.idList.size", empty())
+        .body("entries[1].relatedPoLineInfo.hridList.size", empty())
+        .body("entries[1].relatedPoLineInfo.error", emptyOrNullString())
+        .body("entries[1].relatedInvoiceInfo.idList[0]", is(invoiceId))
+        .body("entries[1].relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
+        .body("entries[1].relatedInvoiceInfo.error", emptyOrNullString())
+        .body("entries[1].relatedInvoiceLineInfo.id", is(invoiceLineId2))
+        .body("entries[1].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-2"))
+        .body("entries[1].relatedInvoiceLineInfo.error", emptyOrNullString())
+        .body("entries[1].invoiceLineJournalRecordId", notNullValue());
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnInvoiceLineInfoWithError(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -1022,6 +1468,63 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInvoiceLineInfo.id", nullValue())
         .body("relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-2"))
         .body("relatedInvoiceLineInfo.error", is(errorMsg));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInvoiceLineInfoWithErrorRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String invoiceId = UUID.randomUUID().toString();
+    String invoiceHrid = "228D126";
+    String invoiceVendorNumber = "0704159";
+    String invoiceLineId1 = UUID.randomUUID().toString();
+    String invoiceLineDescription = "Some description";
+    String errorMsg = "error-msg";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null,0, CREATE, EDIFACT, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, invoiceVendorNumber + "-2", invoiceLineDescription + "2", 2, CREATE, INVOICE, ERROR, errorMsg, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() )
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(2))
+        .body("totalRecords", is(2))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle",is(invoiceLineDescription + "1"))
+        .body("entries[0].sourceRecordOrder", is(invoiceVendorNumber + "-1"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList[0]", is(invoiceId))
+        .body("entries[0].relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceLineInfo.id", is(invoiceLineId1))
+        .body("entries[0].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-1"))
+        .body("entries[0].relatedInvoiceLineInfo.error", emptyOrNullString())
+        .body("entries[0].invoiceLineJournalRecordId", notNullValue())
+
+        .body("entries[1].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[1].sourceRecordId", is(sourceRecordId))
+        .body("entries[1].sourceRecordTitle",is(invoiceLineDescription + "2"))
+        .body("entries[1].sourceRecordOrder", is(invoiceVendorNumber + "-2"))
+        .body("entries[1].error", emptyOrNullString())
+        .body("entries[1].relatedInvoiceInfo.idList[0]",is(invoiceId))
+        .body("entries[1].relatedInvoiceInfo.hridList[0]", is(invoiceHrid))
+        .body("entries[1].relatedInvoiceInfo.error", emptyOrNullString())
+        .body("entries[1].relatedInvoiceLineInfo.id", emptyOrNullString())
+        .body("entries[1].relatedInvoiceLineInfo.fullInvoiceLineNumber", is(invoiceVendorNumber + "-2"))
+        .body("entries[1].relatedInvoiceLineInfo.error", is(errorMsg))
+        .body("entries[1].invoiceLineJournalRecordId", notNullValue());
       async.complete();
     }));
   }
@@ -1474,6 +1977,73 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithItemsHoldingsWithoutDiscardedRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String itemId = UUID.randomUUID().toString();
+    String itemHrid = "it001";
+
+    String permanentLocation = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, ITEM, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceId, null, permanentLocation))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo.size()", is(1))
+        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("entries[0].relatedHoldingsInfo[0].permanentLocationId", is(permanentLocation))
+        .body("entries[0].relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedItemInfo.size()", is(1))
+        .body("entries[0].relatedItemInfo[0].id", is(itemId))
+        .body("entries[0].relatedItemInfo[0].hrid", is(itemHrid))
+        .body("entries[0].relatedItemInfo[0].holdingsId", is(holdingsId))
+        .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList", empty())
+        .body("entries[0].relatedInvoiceInfo.hridList", empty())
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString());
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnMarcBibAndAllEntitiesWithDiscardedItemsHoldings(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -1523,6 +2093,61 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithDiscardedItemsHoldingsRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, ITEM, COMPLETED, null, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo.size()", is(1))
+        .body("entries[0].relatedHoldingsInfo[0].id", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].hrid", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].permanentLocationId", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedItemInfo.size()", is(1))
+        .body("entries[0].relatedItemInfo[0].id", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].hrid",emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].holdingsId",emptyOrNullString())
+        .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList", empty())
+        .body("entries[0].relatedInvoiceInfo.hridList", empty())
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString());
       async.complete();
     }));
   }
@@ -1580,6 +2205,59 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnMarcBibAndAllEntitiesWithMultipleItemsUpdateRecordProcessingLogDTOCollection(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+    String[] holdingsId = {"9f6b706f-eb88-4d36-92a7-50b03020e881", "e733fc11-c457-4ed7-9ef0-9ea669236a9a"};
+    String[] itemId = generateRandomUUIDs(2);
+    String[] itemHrid = {"it001", "it002"};
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId[0], null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[1], itemHrid[1], null, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId[1], null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].error", emptyOrNullString())
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("entries[0].relatedInstanceInfo.error", emptyOrNullString())
+        .body("entries[0].relatedHoldingsInfo.size()", is(2))
+        .body("entries[0].relatedHoldingsInfo[0].id", in(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[1].id", in(holdingsId))
+        .body("entries[0].relatedItemInfo[0].id", in(itemId))
+        .body("entries[0].relatedItemInfo[0].hrid", in(itemHrid))
+        .body("entries[0].relatedItemInfo[0].error", emptyOrNullString())
+        .body("entries[0].relatedItemInfo[1].id", in(itemId))
+        .body("entries[0].relatedItemInfo[1].hrid", in(itemHrid))
+        .body("entries[0].relatedItemInfo[1].error", emptyOrNullString())
+        .body("entries[0].relatedInvoiceInfo.idList", empty())
+        .body("entries[0].relatedInvoiceInfo.hridList", empty())
+        .body("entries[0].relatedInvoiceInfo.error", emptyOrNullString());
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnCentralTenantIdForMarcRecordAndInstanceIfItIsSavedInJournalRecord(TestContext context) {
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
@@ -1606,6 +2284,38 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       .body("relatedInstanceInfo.idList[0]", is(instanceId))
       .body("relatedInstanceInfo.tenantId", is(expectedCentralTenantId))
       .body("error", emptyOrNullString())));
+  }
+
+  @Test
+  public void shouldReturnCentralTenantIdForMarcRecordAndInstanceIfItIsSavedInJournalRecordRecordProcessingLogDTOCollection(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String instanceId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String expectedCentralTenantId = "mobius";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null, expectedCentralTenantId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null, expectedCentralTenantId));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[0].sourceRecordTenantId", is(expectedCentralTenantId))
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("entries[0].relatedInstanceInfo.tenantId", is(expectedCentralTenantId))
+        .body("entries[0].error", emptyOrNullString())));
   }
 
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
