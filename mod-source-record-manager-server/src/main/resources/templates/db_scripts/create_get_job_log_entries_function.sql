@@ -131,7 +131,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        po_lines_info.po_lines_entity_id AS po_lines_entity_id,
        po_lines_info.po_lines_entity_hrid AS po_lines_entity_hrid,
        po_lines_info.po_lines_entity_error AS po_lines_entity_error,
-       null AS order_entity_id,
+       po_lines_info.po_lines_order_id AS order_entity_id,
        null AS invoice_action_status,
        null::text[] AS invoice_entity_id,
        null::text[] AS invoice_entity_hrid,
@@ -215,7 +215,8 @@ FROM (
          po_lines.title AS title,
          po_lines.entity_id AS po_lines_entity_id,
          po_lines.entity_hrid AS po_lines_entity_hrid,
-         po_lines.error AS po_lines_entity_error
+         po_lines.error AS po_lines_entity_error,
+         po_lines.order_id AS po_lines_order_id
   FROM po_lines
 ) AS po_lines_info ON po_lines_info.source_id = records_actions.source_id
 
@@ -271,7 +272,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
          WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
          WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
          END AS source_record_action_status,
-       error as source_entity_error,
+       records_actions.source_record_error[1] as source_entity_error,
        null AS source_record_tenant_id,
        null AS instance_action_status,
        null AS instance_entity_id,
@@ -317,6 +318,7 @@ FROM (
               cast(0 as integer) AS marc_errors_number,
               array_agg(action_type) FILTER (WHERE entity_type = ''INVOICE'') AS invoice_actions,
               count(journal_records.source_id) FILTER (WHERE entity_type = ''INVOICE'' AND journal_records.error != '''') AS invoice_errors_number,
+              array_agg(error) FILTER (WHERE entity_type = ''EDIFACT'') AS source_record_error,
               count(journal_records.source_id) OVER () AS total_count,
               id AS invoiceLineJournalRecordId,
               (array_agg(entity_type) FILTER (WHERE entity_type IN (''EDIFACT'')))[1] AS source_record_entity_type
@@ -329,9 +331,9 @@ FROM (
 
        LEFT JOIN LATERAL (
   SELECT journal_records.source_id,
-         max(id) FILTER (WHERE entity_type = ''INVOICE'' AND title = ''INVOICE'') AS invoice_entity_id,
+         max(entity_id) FILTER (WHERE entity_type = ''INVOICE'' AND title = ''INVOICE'') AS invoice_entity_id,
          max(entity_hrid) FILTER (WHERE entity_type = ''INVOICE'' AND title = ''INVOICE'') AS invoice_entity_hrid,
-         max(error) FILTER (WHERE entity_type = ''INVOICE'' AND error <> '''') AS invoice_entity_error
+         max(error) FILTER (WHERE entity_type = ''INVOICE'' AND title = ''INVOICE'') AS invoice_entity_error
   FROM journal_records
   WHERE  journal_records.job_execution_id = ''%1$s'' AND (entity_type = ''INVOICE'' OR title = ''INVOICE'')
   GROUP BY journal_records.source_id
