@@ -106,6 +106,10 @@ public final class AdditionalFieldsUtil {
     return parsedRecordContentCache.stats();
   }
 
+  static void clearCache() {
+    parsedRecordContentCache.invalidateAll();
+  }
+
   /**
    * Adds field if it does not exist and a subfield with a value to that field
    *

@@ -1,15 +1,20 @@
 package org.folio.services.afterprocessing;
 
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
+import org.folio.okapi.common.MetricsUtil;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -37,6 +42,24 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 public class AdditionalFieldsUtilTest {
 
   private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
+
+  @BeforeClass
+  public static void beforeClass() {
+    System.setProperty("vertx.metrics.options.enabled", "true");
+    System.setProperty("jmxMetricsOptions", "{\"domain\":\"org.folio\"}");
+    MetricsUtil.init(new VertxOptions());
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    System.clearProperty("vertx.metrics.options.enabled");
+    System.clearProperty("jmxMetricsOptions");
+  }
+
+  @After
+  public void after() {
+    AdditionalFieldsUtil.clearCache();
+  }
 
   @Test
   public void shouldAddInstanceIdSubfield() throws IOException {
