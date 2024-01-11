@@ -70,8 +70,8 @@ public class MappingMetadataServiceImpl implements MappingMetadataService {
           retrieveMappingRules(jobExecutionId, okapiParams.getTenantId()))
         .compose(res -> Future.succeededFuture(new MappingMetadataDto()
           .withJobExecutionId(jobExecutionId)
-          .withMappingParams(res.resultAt(0))
-          .withMappingRules(res.resultAt(1))));
+          .withMappingParams(Json.encode(res.resultAt(0)))
+          .withMappingRules(((JsonObject) res.resultAt(1)).encode())));
     }
     return Future.succeededFuture(new MappingMetadataDto()
       .withJobExecutionId(jobExecutionId)
