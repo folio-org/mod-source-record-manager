@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
@@ -75,10 +76,10 @@ public class DataImportKafkaHandlerMockTest {
       .withId("c9d09a5e-73ba-11ec-90d6-0242ac120003")
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
-    ConsumerRecord<String, String> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event));
+    ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
-    KafkaConsumerRecordImpl<String, String> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
+    KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
     // when
     Future<String> future = dataImportKafkaHandler.handle(kafkaRecord);
@@ -106,10 +107,10 @@ public class DataImportKafkaHandlerMockTest {
       .withEventType(DI_ERROR.value())
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
-    ConsumerRecord<String, String> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event));
+    ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
-    KafkaConsumerRecordImpl<String, String> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
+    KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
     Future<String> future = dataImportKafkaHandler.handle(kafkaRecord);
 
@@ -136,10 +137,10 @@ public class DataImportKafkaHandlerMockTest {
       .withEventType(DI_ERROR.value())
       .withEventPayload(Json.encode(dataImportEventPayload));
     String topic = KafkaTopicNameHelper.formatTopicName(KAFKA_ENV, getDefaultNameSpace(), TENANT_ID, event.getEventType());
-    ConsumerRecord<String, String> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event));
+    ConsumerRecord<String, byte[]> consumerRecord = new ConsumerRecord<>(topic, 0, 0, "1", Json.encode(event).getBytes(StandardCharsets.UTF_8));
     consumerRecord.headers().add(new RecordHeader(OKAPI_TENANT_HEADER, TENANT_ID.getBytes()));
     consumerRecord.headers().add(new RecordHeader("recordId", UUID.randomUUID().toString().getBytes()));
-    KafkaConsumerRecordImpl<String, String> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
+    KafkaConsumerRecordImpl<String, byte[]> kafkaRecord = new KafkaConsumerRecordImpl<>(consumerRecord);
 
     Future<String> future = dataImportKafkaHandler.handle(kafkaRecord);
 

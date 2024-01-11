@@ -49,7 +49,7 @@ public class RawMarcChunksKafkaHandlerTest {
   @Mock
   private RecordsPublishingService recordsPublishingService;
   @Mock
-  private KafkaConsumerRecord<String, String> kafkaRecord;
+  private KafkaConsumerRecord<String, byte[]> kafkaRecord;
   @Mock
   private JournalService journalService;
   @Mock
@@ -66,7 +66,7 @@ public class RawMarcChunksKafkaHandlerTest {
   private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
   private Vertx vertx = Vertx.vertx();
-  private AsyncRecordHandler<String, String> rawMarcChunksKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
   @BeforeClass
   public static void setUpClass() throws IOException {
     mappingRules = new JsonObject(TestUtil.readFileFromPath(MAPPING_RULES_PATH));
