@@ -80,22 +80,6 @@ public class CaffeineStatsCounter implements StatsCounter {
     return (value >= 0) ? value : Long.MAX_VALUE;
   }
 
-  /**
-   * Increments all counters by the values in {@code other}.
-   *
-   * @param other the counter to increment from
-   */
-  public void incrementBy(StatsCounter other) {
-    CacheStats otherStats = other.snapshot();
-    hitCount.increment(otherStats.hitCount());
-    missCount.increment(otherStats.missCount());
-    loadSuccessCount.increment(otherStats.loadSuccessCount());
-    loadFailureCount.increment(otherStats.loadFailureCount());
-    totalLoadTime.increment(otherStats.totalLoadTime());
-    evictionCount.increment(otherStats.evictionCount());
-    evictionWeight.increment(otherStats.evictionWeight());
-  }
-
   @Override
   public String toString() {
     return snapshot().toString();
