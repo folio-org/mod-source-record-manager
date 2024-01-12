@@ -72,8 +72,8 @@ public final class AdditionalFieldsUtil {
       };
 
     Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder()
-      .maximumSize(2000)
-      .expireAfterWrite(Duration.ofMinutes(5))
+      .maximumSize(1000)
+      .expireAfterWrite(Duration.ofMinutes(3))
       .executor(
         serviceExecutor -> {
           // Due to the static nature and the API of this AdditionalFieldsUtil class, it is difficult to
