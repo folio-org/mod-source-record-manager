@@ -66,7 +66,7 @@ public class JournalUtilTest {
     assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
     assertThat(journalRecords.get(0).getActionDate()).isNotNull();
     assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
-    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getEntityType()).isNull();
     assertThat(journalRecords.get(0).getError()).isNull();
   }
 
@@ -93,7 +93,7 @@ public class JournalUtilTest {
     assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
     assertThat(journalRecords.get(0).getActionDate()).isNotNull();
     assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(ERROR);
-    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
+    assertThat(journalRecords.get(0).getEntityType()).isNull();
     assertThat(journalRecords.get(0).getError()).isEqualTo(errorRecord.getDescription());
   }
 

@@ -13,7 +13,6 @@ import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,11 +77,6 @@ public class JournalUtil {
         .withActionType(JournalRecord.ActionType.PARSE)
         .withActionDate(new Date())
         .withActionStatus(record.getErrorRecord() == null ? JournalRecord.ActionStatus.COMPLETED : JournalRecord.ActionStatus.ERROR);
-      if (record.getRecordType() != null) {
-        Arrays.stream(JournalRecord.EntityType.values())
-          .filter(v -> v.value().startsWith(record.getRecordType().value()))
-          .findFirst().ifPresent(journalRecord::setEntityType);
-      }
       if (record.getErrorRecord() != null) {
         journalRecord.setError(record.getErrorRecord().getDescription());
       }
