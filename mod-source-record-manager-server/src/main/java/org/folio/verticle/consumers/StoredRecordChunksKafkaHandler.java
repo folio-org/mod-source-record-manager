@@ -143,7 +143,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
                   });
               });
           } catch (Exception e) {
-            LOGGER.warn("handle:: Can't process kafka record: ", e);
+            LOGGER.warn("handle:: Can't process kafka record, jobExecutionId: {}", jobExecutionId, e);
             return new FailedFuture<String>(e);
           }
         })

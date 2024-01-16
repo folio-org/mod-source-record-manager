@@ -69,7 +69,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
           Event event = Json.decodeValue(record.value(), Event.class);
           LOGGER.debug("handle:: Starting to handle of raw mark chunks from Kafka for event type: {}", event.getEventType());
           try {
-            RawRecordsDto rawRecordsDto = new JsonObject(event.getEventPayload()).mapTo(RawRecordsDto.class);
+            RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
             if (!rawRecordsDto.getRecordsMetadata().getLast()) {
               flowControlService.trackChunkReceivedEvent(okapiParams.getTenantId(), rawRecordsDto.getInitialRecords().size());
             }
@@ -99,7 +99,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, Str
                   }
                 });
           } catch (Exception e) {
-            LOGGER.warn("handle:: Can't process kafka record: ", e);
+            LOGGER.warn("handle:: Can't process kafka record, jobExecutionId: {}", jobExecutionId, e);
             return new FailedFuture<String>(e);
           }
         })

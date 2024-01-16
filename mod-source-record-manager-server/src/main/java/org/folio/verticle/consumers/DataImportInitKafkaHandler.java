@@ -2,6 +2,7 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
@@ -39,14 +40,19 @@ public class DataImportInitKafkaHandler implements AsyncRecordHandler<String, St
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
-    List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
-    Event event = Json.decodeValue(record.value(), Event.class);
-    DataImportInitConfig initConfig = Json.decodeValue(event.getEventPayload(), DataImportInitConfig.class);
+    try {
+      List<KafkaHeader> kafkaHeaders = record.headers();
+      OkapiConnectionParams okapiParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+      Event event = Json.decodeValue(record.value(), Event.class);
+      DataImportInitConfig initConfig = Json.decodeValue(event.getEventPayload(), DataImportInitConfig.class);
 
-    return jobExecutionProgressService.initializeJobExecutionProgress(initConfig.getJobExecutionId(), initConfig.getTotalRecords(), okapiParams.getTenantId())
-      .compose(p -> checkAndUpdateToInProgressState(initConfig.getJobExecutionId(), okapiParams))
-      .compose(p -> Future.succeededFuture(record.key()));
+      return jobExecutionProgressService.initializeJobExecutionProgress(initConfig.getJobExecutionId(), initConfig.getTotalRecords(), okapiParams.getTenantId())
+        .compose(p -> checkAndUpdateToInProgressState(initConfig.getJobExecutionId(), okapiParams))
+        .compose(p -> Future.succeededFuture(record.key()));
+    } catch (Exception e) {
+      LOGGER.warn("handle:: Error during processing event for import job progress initialization", e);
+      return Future.failedFuture(e);
+    }
   }
 
   private Future<JobExecution> checkAndUpdateToInProgressState(String jobExecutionId, OkapiConnectionParams params) {

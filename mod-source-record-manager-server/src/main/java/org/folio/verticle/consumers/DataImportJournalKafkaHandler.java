@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
@@ -49,18 +50,23 @@ public class DataImportJournalKafkaHandler implements AsyncRecordHandler<String,
 
   @Override
   public Future<String> handle(KafkaConsumerRecord<String, String> record) {
-    Promise<String> result = Promise.promise();
-    List<KafkaHeader> kafkaHeaders = record.headers();
-    OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
-    String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-    Event event = new JsonObject(record.value()).mapTo(Event.class);
-    LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
+    try {
+      Promise<String> result = Promise.promise();
+      List<KafkaHeader> kafkaHeaders = record.headers();
+      OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(KafkaHeaderUtils.kafkaHeadersToMap(kafkaHeaders), vertx);
+      String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
+      Event event = Json.decodeValue(record.value(), Event.class);
+      LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
 
-    eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
-      .onSuccess(res -> processJournalEvent(result, record, event, okapiConnectionParams.getTenantId()))
-      .onFailure(e -> processDeduplicationFailure(result, record, event, e));
+      eventProcessedService.collectData(DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID, event.getId(), okapiConnectionParams.getTenantId())
+        .onSuccess(res -> processJournalEvent(result, record, event, okapiConnectionParams.getTenantId()))
+        .onFailure(e -> processDeduplicationFailure(result, record, event, e));
 
-    return result.future();
+      return result.future();
+    } catch (Exception e) {
+      LOGGER.warn("handle:: Error during processing event for data-import journal", e);
+      return Future.failedFuture(e);
+    }
   }
 
   private void processJournalEvent(Promise<String> result, KafkaConsumerRecord<String, String> record, Event event, String tenantId) {

@@ -10,6 +10,7 @@
 * [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
 * [MODSOURMAN-1091](https://issues.folio.org/browse/MODSOURMAN-1091) The '1' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
 * [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch
+* [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table.
 * [MODSOURMAN-1063](https://issues.folio.org/browse/MODSOURMAN-1063) Update RecordProcessingLogDto to contain incoming record id
 
 ## 2023-10-13 v3.7.0

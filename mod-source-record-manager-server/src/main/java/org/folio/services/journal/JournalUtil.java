@@ -27,7 +27,11 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
@@ -148,7 +152,8 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY) {
+        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY ||
+          (entityType == MARC_BIBLIOGRAPHIC && isMarcBibUpdateEventReceived(eventPayload))) {
           JsonObject entityJson = new JsonObject(entityAsString);
           journalRecord.setEntityId(entityJson.getString(ID_KEY));
           if (entityType == INSTANCE || entityType == PO_LINE) {
@@ -188,6 +193,16 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  private static boolean isMarcBibUpdateEventReceived(DataImportEventPayload eventPayload) {
+    if (DI_LOG_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())
+      || DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
+      return true;
+    }
+    return eventPayload.getEventsChain().stream()
+      .reduce((first, second) -> second)
+      .map(mp -> DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(mp)).orElse(false);
   }
 
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
