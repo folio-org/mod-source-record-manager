@@ -572,8 +572,12 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
         List<ProcessedHoldingsInfo> relatedHoldingsInfos = relatedHoldingsInfoBySourceRecordId.get(sourceRecordId);
         List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
 
-        RecordProcessingLogDto firstRecordWithCurrentSourceId = entries.stream().filter(record ->
-          record.getSourceRecordId().equals(sourceRecordId)).findFirst().get();
+        Optional<RecordProcessingLogDto> optionalRecord = entries.stream()
+          .filter(record -> record.getSourceRecordId().equals(sourceRecordId)).findFirst();
+        RecordProcessingLogDto firstRecordWithCurrentSourceId = new RecordProcessingLogDto();
+        if (optionalRecord.isPresent()) {
+          firstRecordWithCurrentSourceId = optionalRecord.get();
+        }
         RecordProcessingLogDto newRecord = firstRecordWithCurrentSourceId
           .withRelatedHoldingsInfo(relatedHoldingsInfos.stream().distinct().toList())
           .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
