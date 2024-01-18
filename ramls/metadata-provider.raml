@@ -17,9 +17,8 @@ types:
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
-  jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
-  jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
-  recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
+  recordProcessingLogDto: !include tmpSchemas/recordProcessingLogDto.json
+  recordProcessingLogDtoCollection: !include tmpSchemas/recordProcessingLogDtoCollection.json
   jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
   jobProfileInfoCollection: !include raml-storage/schemas/common/profileInfoCollection.json
   jobExecutionUserInfoCollection: !include raml-storage/schemas/dto/jobExecutionUserInfoCollection.json
@@ -177,7 +176,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              type: jobLogEntryDtoCollection
+              type: recordProcessingLogDtoCollection
         400:
           description: "Bad request"
           body:

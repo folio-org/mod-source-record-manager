@@ -6,14 +6,12 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.dao.util.JournalRecordsColumns;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.jaxrs.model.EntityProcessingSummary;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionStatus;
 import org.folio.rest.jaxrs.model.JournalRecord.ActionType;
@@ -22,6 +20,7 @@ import org.folio.rest.jaxrs.model.ProcessedEntityInfo;
 import org.folio.rest.jaxrs.model.ProcessedHoldingsInfo;
 import org.folio.rest.jaxrs.model.ProcessedItemInfo;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 import org.folio.rest.jaxrs.model.RelatedInvoiceLineInfo;
 import org.folio.rest.jaxrs.model.RelatedPoLineInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +45,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
@@ -85,6 +86,11 @@ import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_HRID;
 import static org.folio.dao.util.JournalRecordsColumns.ITEM_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.JOB_EXECUTION_ID;
+import static org.folio.dao.util.JournalRecordsColumns.ORDER_ID;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ACTION_STATUS;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ERROR;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_HRID;
+import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ENTITY_ERROR;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_ID;
 import static org.folio.dao.util.JournalRecordsColumns.SOURCE_RECORD_ACTION_STATUS;
@@ -122,13 +128,7 @@ import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_INVOICES;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ITEMS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_ORDERS;
 import static org.folio.dao.util.JournalRecordsColumns.TOTAL_UPDATED_SOURCE_RECORDS;
-import static org.folio.dao.util.JournalRecordsColumns.ORDER_ID;
-import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ACTION_STATUS;
-import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ID;
-import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_HRID;
-import static org.folio.dao.util.JournalRecordsColumns.PO_LINE_ENTITY_ERROR;
 import static org.folio.rest.jaxrs.model.ActionStatus.UPDATED;
-import static org.folio.rest.jaxrs.model.JobLogEntryDto.SourceRecordType.MARC_HOLDINGS;
 import static org.folio.rest.persist.PostgresClient.convertToPsqlStandard;
 
 @Repository
@@ -137,6 +137,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String SOURCE_RECORD_ENTITY_TYPE = "source_record_entity_type";
   public static final String ORDER_ENTITY_ID = "order_entity_id";
+  public static final String INCOMING_RECORD_ID = "incoming_record_id";
+  public static final String ITEM_HOLDINGS_ID = "item_holdings_id";
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",
     "instance_action_status", "holdings_action_status", "item_action_status", "order_action_status", "invoice_action_status", "error");
@@ -176,7 +178,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {
-      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(Collectors.toList());
+      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(toList());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
       LOGGER.trace("saveBatch:: JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
       pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
@@ -239,7 +241,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   @Override
-  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
+  public Future<RecordProcessingLogDtoCollection> getRecordProcessingLogDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
     LOGGER.trace("getJobLogEntryDtoCollection:: Trying to get JobLogEntryDtoCollection entity by jobExecutionId = {}", jobExecutionId);
     if (!jobLogEntrySortableFields.contains(sortBy)) {
       return Future.failedFuture(new BadRequestException(format("The specified field for sorting job log entries is invalid: '%s'", sortBy)));
@@ -248,7 +250,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     String query = format(GET_JOB_LOG_ENTRIES_BY_JOB_EXECUTION_ID_QUERY, jobExecutionId, sortBy, order, limit, offset, errorsOnly, entityType);
     LOGGER.trace("JournalRecordDaoImpl::getJobLogEntryDtoCollection query = {};", query);
     pgClientFactory.createInstance(tenantId).select(query, promise);
-    return promise.future().map(this::mapRowSetToJobLogDtoCollection);
+    return promise.future().map(this::mapRowSetToRecordProcessingLogDtoCollection);
   }
 
   @Override
@@ -316,48 +318,75 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return format(ORDER_BY_PATTERN, sortBy, order);
   }
 
-  private JobLogEntryDtoCollection mapRowSetToJobLogDtoCollection(RowSet<Row> rowSet) {
-    var jobLogEntryDtoCollection = new JobLogEntryDtoCollection()
-      .withTotalRecords(0);
+  private RecordProcessingLogDtoCollection mapRowSetToRecordProcessingLogDtoCollection(RowSet<Row> rowSet) {
+    var recordProcessingLogDto = new RecordProcessingLogDtoCollection().withTotalRecords(0);
 
     rowSet.forEach(row ->
-      jobLogEntryDtoCollection
+      recordProcessingLogDto
         .withTotalRecords(row.getInteger(TOTAL_COUNT))
         .getEntries().add(mapJobLogEntryRow(row))
     );
-    return jobLogEntryDtoCollection;
+
+    return processMultipleHoldingsAndItemsIfNeeded(recordProcessingLogDto);
   }
 
-  private JobLogEntryDto mapJobLogEntryRow(Row row) {
-    final var entityType = mapToEntityType(row.getString(SOURCE_RECORD_ENTITY_TYPE));
-    final var entityHrid = row.getArrayOfStrings(HOLDINGS_ENTITY_HRID);
+  private RecordProcessingLogDto mapJobLogEntryRow(Row row) {
+    RecordProcessingLogDto recordProcessingLogSummary = new RecordProcessingLogDto();
+
+    List<ProcessedHoldingsInfo> processedHoldingsInfo = new LinkedList<>();
+    List<ProcessedItemInfo> processedItemInfo = new LinkedList<>();
+
+    final var entityType = mapToRecordProcessingEntityType(row.getString(SOURCE_RECORD_ENTITY_TYPE));
+    final var holdingsEntityHrid = row.getString(HOLDINGS_ENTITY_HRID);
     final var holdingsActionStatus = mapNameToEntityActionStatus(row.getString(HOLDINGS_ACTION_STATUS));
-    return new JobLogEntryDto()
+    recordProcessingLogSummary
+      .withSourceRecordType(entityType)
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
+      .withIncomingRecordId(row.getValue(INCOMING_RECORD_ID).toString())
       .withSourceRecordId(row.getValue(SOURCE_ID).toString())
       .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
         ? row.getInteger(SOURCE_RECORD_ORDER).toString()
         : row.getString(INVOICE_LINE_NUMBER))
-      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, entityHrid, holdingsActionStatus))
-      .withSourceRecordType(entityType)
-      .withHoldingsRecordHridList(ArrayUtils.isEmpty(entityHrid) ? Collections.emptyList() : Arrays.asList(entityHrid))
+      .withSourceRecordTitle(getJobLogEntryTitle(row.getString(TITLE), entityType, holdingsEntityHrid, holdingsActionStatus))
       .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-      .withInstanceActionStatus(mapNameToEntityActionStatus(row.getString(INSTANCE_ACTION_STATUS)))
-      .withHoldingsActionStatus(holdingsActionStatus)
-      .withItemActionStatus(mapNameToEntityActionStatus(row.getString(ITEM_ACTION_STATUS)))
-      .withAuthorityActionStatus(mapNameToEntityActionStatus(row.getString(AUTHORITY_ACTION_STATUS)))
-      .withPoLineActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
-      .withInvoiceActionStatus(mapNameToEntityActionStatus(row.getString(INVOICE_ACTION_STATUS)))
+      .withError(row.getString(SOURCE_ENTITY_ERROR))
+      .withRelatedInstanceInfo(constructInstanceProcessingInfo(row))
+      .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
+        AUTHORITY_ACTION_STATUS, AUTHORITY_ENTITY_ID, null, AUTHORITY_ENTITY_ERROR))
+      .withRelatedPoLineInfo(new RelatedPoLineInfo()
+        .withActionStatus(mapNameToEntityActionStatus(row.getString(PO_LINE_ACTION_STATUS)))
+        .withIdList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_ID))
+        .withHridList(constructSingletonListFromColumn(row, PO_LINE_ENTITY_HRID))
+        .withError(row.getString(PO_LINE_ENTITY_ERROR))
+        .withOrderId(row.getString(ORDER_ENTITY_ID)))
+      .withRelatedInvoiceInfo(constructProcessedEntityInfoBasedOnEntityType(row,
+        INVOICE_ACTION_STATUS, INVOICE_ENTITY_ID, INVOICE_ENTITY_HRID, INVOICE_ENTITY_ERROR))
+      .withRelatedInvoiceLineInfo(constructInvoiceLineInfo(row))
+      .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
       .withInvoiceLineJournalRecordId(Objects.isNull(row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID))
-        ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString())
-      .withError(row.getString(ERROR));
+        ? null : row.getValue(INVOICE_LINE_JOURNAL_RECORD_ID).toString());
+
+    ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(row, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, JournalRecordsColumns.HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
+    ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(row, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, ITEM_HOLDINGS_ID, ITEM_ENTITY_ERROR);
+    if (Objects.nonNull(processedHoldings.getActionStatus()) || processedItem.getActionStatus() == UPDATED) {
+      processedHoldingsInfo.add(processedHoldings);
+    }
+    if (Objects.nonNull(processedItem.getActionStatus())) {
+      processedItemInfo.add(processedItem);
+    }
+
+    recordProcessingLogSummary.
+      withRelatedItemInfo(processedItemInfo.stream().distinct().toList())
+      .withRelatedHoldingsInfo(processedHoldingsInfo.stream().distinct().toList());
+
+    return recordProcessingLogSummary;
   }
 
-  private String getJobLogEntryTitle(String title, JobLogEntryDto.SourceRecordType entityType, String[] entityHrid,
+  private String getJobLogEntryTitle(String title, RecordProcessingLogDto.SourceRecordType entityType, String entityHrid,
                                      org.folio.rest.jaxrs.model.ActionStatus holdingsActionStatus) {
-    return MARC_HOLDINGS.equals(entityType)
+    return RecordProcessingLogDto.SourceRecordType.MARC_HOLDINGS.equals(entityType)
       && isActionStatusUpdatedOrCreated(holdingsActionStatus)
-      ? "Holdings " + entityHrid[0]
+      ? "Holdings " + entityHrid
       : title;
   }
 
@@ -378,10 +407,10 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       recordProcessingLogSummary
         .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
         .withSourceRecordId(row.getValue(SOURCE_ID).toString())
-        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
+        .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER).toString())
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))
-        .withError(row.getString(SOURCE_ENTITY_ERROR))
+        .withError(row.getString(JournalRecordsColumns.SOURCE_ENTITY_ERROR))
         .withSourceRecordTenantId(row.getString(SOURCE_RECORD_TENANT_ID))
         .withRelatedInstanceInfo(constructInstanceProcessingInfo(row))
         .withRelatedAuthorityInfo(constructProcessedEntityWithSingleIdInfoBasedOnEntityType(row,
@@ -398,7 +427,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     }
 
     resultSet.forEach(r -> {
-      ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(r, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
+      ProcessedHoldingsInfo processedHoldings = constructProcessedHoldingsInfoBasedOnEntityType(r, HOLDINGS_ACTION_STATUS, HOLDINGS_ENTITY_ID, JournalRecordsColumns.HOLDINGS_ENTITY_HRID, HOLDINGS_PERMANENT_LOCATION_ID, HOLDINGS_ENTITY_ERROR);
       ProcessedItemInfo processedItem = constructProcessedItemInfoBasedOnEntityType(r, ITEM_ACTION_STATUS, ITEM_ENTITY_ID, ITEM_ENTITY_HRID, HOLDINGS_ENTITY_ID, ITEM_ENTITY_ERROR);
       if (Objects.nonNull(processedHoldings.getActionStatus()) || processedItem.getActionStatus() == UPDATED) {
         processedHoldingsInfo.add(processedHoldings);
@@ -474,8 +503,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     return name == null ? null : org.folio.rest.jaxrs.model.ActionStatus.fromValue(name);
   }
 
-  private JobLogEntryDto.SourceRecordType mapToEntityType(String entityType) {
-    return entityType == null ? null : JobLogEntryDto.SourceRecordType.fromValue(entityType);
+  private RecordProcessingLogDto.SourceRecordType mapToRecordProcessingEntityType(String entityType) {
+    return entityType == null ? null : RecordProcessingLogDto.SourceRecordType.fromValue(entityType);
   }
 
   private JobExecutionSummaryDto mapRowToJobExecutionSummaryDto(Row row) {
@@ -514,5 +543,55 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withTotalUpdatedEntities(totalUpdated)
       .withTotalDiscardedEntities(totalDiscarded)
       .withTotalErrors(totalErrors);
+  }
+
+  private static RecordProcessingLogDtoCollection processMultipleHoldingsAndItemsIfNeeded(RecordProcessingLogDtoCollection recordProcessingLogDto) {
+    List<RecordProcessingLogDto> entries = recordProcessingLogDto.getEntries();
+    if (!ifNeedToMerge(entries)) {
+      return recordProcessingLogDto;
+    }
+    Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoBySourceRecordId =
+      entries.stream()
+        .collect(Collectors.groupingBy(
+          RecordProcessingLogDto::getSourceRecordId,
+          Collectors.mapping(RecordProcessingLogDto::getRelatedHoldingsInfo,
+            Collectors.flatMapping(List::stream, toList())
+          )));
+
+    Map<String, List<ProcessedItemInfo>> relatedItemInfoBySourceId =
+      entries.stream()
+        .collect(Collectors.groupingBy(
+          RecordProcessingLogDto::getSourceRecordId,
+          Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
+            Collectors.flatMapping(List::stream, toList())
+          )));
+
+    List<RecordProcessingLogDto> mergedEntries = relatedHoldingsInfoBySourceRecordId.entrySet()
+      .stream().map(e -> {
+        String sourceRecordId = e.getKey();
+        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
+
+        RecordProcessingLogDto firstRecordWithCurrentSourceId = entries.stream()
+          .filter(record -> record.getSourceRecordId().equals(sourceRecordId))
+          .findFirst().orElseGet(RecordProcessingLogDto::new);
+
+        return firstRecordWithCurrentSourceId
+          .withRelatedHoldingsInfo(e.getValue().stream().distinct().toList())
+          .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
+      }).collect(toList());
+    return recordProcessingLogDto.withEntries(mergedEntries);
+  }
+
+  private static boolean ifNeedToMerge(List<RecordProcessingLogDto> entries) {
+    Map<String, Long> sourceRecordIdCounts = entries.stream()
+      .filter(e -> e.getRelatedHoldingsInfo() != null && !e.getRelatedHoldingsInfo().isEmpty())
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+
+    Map<String, Long> sourceItemRecordIdCounts = entries.stream()
+      .filter(e -> e.getRelatedItemInfo() != null && !e.getRelatedItemInfo().isEmpty())
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+
+    return sourceRecordIdCounts.values().stream().anyMatch(count -> count > 1) ||
+      sourceItemRecordIdCounts.values().stream().anyMatch(count -> count > 1);
   }
 }
