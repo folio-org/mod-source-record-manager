@@ -136,9 +136,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   private static final Logger LOGGER = LogManager.getLogger();
   public static final String SOURCE_RECORD_ENTITY_TYPE = "source_record_entity_type";
   public static final String ORDER_ENTITY_ID = "order_entity_id";
-  public static final String SOURCE_ENTITY_ERROR = "source_entity_error";
   public static final String INCOMING_RECORD_ID = "incoming_record_id";
-  public static final String HOLDINGS_ENTITY_HRID = "holdings_entity_hrid";
   public static final String ITEM_HOLDINGS_ID = "item_holdings_id";
   private final Set<String> sortableFields = Set.of("source_record_order", "action_type", "error");
   private final Set<String> jobLogEntrySortableFields = Set.of("source_record_order", "title", "source_record_action_status",

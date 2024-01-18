@@ -3,7 +3,6 @@ package org.folio.rest.impl.metadataProvider;
 import io.restassured.RestAssured;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -1160,15 +1159,12 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
     String sourceRecordId1 = UUID.randomUUID().toString();
     String sourceRecordId2 = UUID.randomUUID().toString();
-    String sourceRecordId3 = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      /* .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, "in00000000002", null, 1, CREATE, INSTANCE, COMPLETED, null, null))*/
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, "in00000000001", null, 0, CREATE, INSTANCE, ERROR, "Error description 1", null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, null, null, 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, "in00000000003", null, 3, CREATE, INSTANCE, ERROR, "Error description 2", null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, "in00000000001", null, 0, CREATE, INSTANCE, ERROR, "Error description 1", null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, "in00000000003", null, 3, CREATE, INSTANCE, ERROR, "Error description 2", null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
