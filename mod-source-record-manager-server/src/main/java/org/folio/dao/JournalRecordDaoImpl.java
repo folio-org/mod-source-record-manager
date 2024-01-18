@@ -45,6 +45,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.dao.util.JournalRecordsColumns.ACTION_DATE;
@@ -177,7 +178,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     LOGGER.info("saveBatch:: Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {
-      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(Collectors.toList());
+      List<Tuple> tupleList = journalRecords.stream().map(this::prepareInsertQueryParameters).collect(toList());
       String query = format(INSERT_SQL, convertToPsqlStandard(tenantId), JOURNAL_RECORDS_TABLE);
       LOGGER.trace("saveBatch:: JournalRecordDaoImpl::saveBatch query = {}; tuples = {}", query, tupleList);
       pgClientFactory.createInstance(tenantId).execute(query, tupleList, promise);
@@ -546,45 +547,39 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
 
   private static RecordProcessingLogDtoCollection processMultipleHoldingsAndItemsIfNeeded(RecordProcessingLogDtoCollection recordProcessingLogDto) {
     List<RecordProcessingLogDto> entries = recordProcessingLogDto.getEntries();
-    boolean needToMerge = ifNeedToMerge(entries);
-
-    if (needToMerge) {
-      Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoBySourceRecordId =
-        entries.stream()
-          .collect(Collectors.groupingBy(
-            RecordProcessingLogDto::getSourceRecordId,
-            Collectors.mapping(RecordProcessingLogDto::getRelatedHoldingsInfo,
-              Collectors.flatMapping(List::stream, Collectors.toList())
-            )));
-
-      Map<String, List<ProcessedItemInfo>> relatedItemInfoBySourceId =
-        entries.stream()
-          .collect(Collectors.groupingBy(
-            RecordProcessingLogDto::getSourceRecordId,
-            Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
-              Collectors.flatMapping(List::stream, Collectors.toList())
-            )));
-
-      List<RecordProcessingLogDto> mergedEntries = new ArrayList<>();
-      for (String sourceRecordId : relatedHoldingsInfoBySourceRecordId.keySet()) {
-        List<ProcessedHoldingsInfo> relatedHoldingsInfos = relatedHoldingsInfoBySourceRecordId.get(sourceRecordId);
-        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
-
-        Optional<RecordProcessingLogDto> optionalRecord = entries.stream()
-          .filter(record -> record.getSourceRecordId().equals(sourceRecordId)).findFirst();
-        RecordProcessingLogDto firstRecordWithCurrentSourceId = new RecordProcessingLogDto();
-        if (optionalRecord.isPresent()) {
-          firstRecordWithCurrentSourceId = optionalRecord.get();
-        }
-        RecordProcessingLogDto newRecord = firstRecordWithCurrentSourceId
-          .withRelatedHoldingsInfo(relatedHoldingsInfos.stream().distinct().toList())
-          .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
-        mergedEntries.add(newRecord);
-      }
-      return recordProcessingLogDto.withEntries(mergedEntries);
-    } else {
+    if (!ifNeedToMerge(entries)) {
       return recordProcessingLogDto;
     }
+    Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoBySourceRecordId =
+      entries.stream()
+        .collect(Collectors.groupingBy(
+          RecordProcessingLogDto::getSourceRecordId,
+          Collectors.mapping(RecordProcessingLogDto::getRelatedHoldingsInfo,
+            Collectors.flatMapping(List::stream, toList())
+          )));
+
+    Map<String, List<ProcessedItemInfo>> relatedItemInfoBySourceId =
+      entries.stream()
+        .collect(Collectors.groupingBy(
+          RecordProcessingLogDto::getSourceRecordId,
+          Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
+            Collectors.flatMapping(List::stream, toList())
+          )));
+
+    List<RecordProcessingLogDto> mergedEntries = relatedHoldingsInfoBySourceRecordId.entrySet()
+      .stream().map(e -> {
+        String sourceRecordId = e.getKey();
+        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
+
+        RecordProcessingLogDto firstRecordWithCurrentSourceId = entries.stream()
+          .filter(record -> record.getSourceRecordId().equals(sourceRecordId))
+          .findFirst().orElseGet(RecordProcessingLogDto::new);
+
+        return firstRecordWithCurrentSourceId
+          .withRelatedHoldingsInfo(e.getValue().stream().distinct().toList())
+          .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
+      }).collect(toList());
+    return recordProcessingLogDto.withEntries(mergedEntries);
   }
 
   private static boolean ifNeedToMerge(List<RecordProcessingLogDto> entries) {
