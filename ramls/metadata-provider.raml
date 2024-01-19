@@ -17,12 +17,12 @@ types:
   errors: !include raml-storage/raml-util/schemas/errors.schema
   jobExecutionSourceChunk: !include raml-storage/schemas/mod-source-record-manager/jobExecutionSourceChunk.json
   journalRecordCollection: !include raml-storage/schemas/mod-source-record-manager/journalRecordCollection.json
-  jobLogEntryDto: !include raml-storage/schemas/dto/jobLogEntryDto.json
-  jobLogEntryDtoCollection: !include raml-storage/schemas/dto/jobLogEntryDtoCollection.json
   recordProcessingLogDto: !include raml-storage/schemas/dto/recordProcessingLogDto.json
+  recordProcessingLogDtoCollection: !include raml-storage/schemas/dto/recordProcessingLogDtoCollection.json
   jobExecutionSummaryDto: !include raml-storage/schemas/dto/jobExecutionSummaryDto.json
   jobProfileInfoCollection: !include raml-storage/schemas/common/profileInfoCollection.json
   jobExecutionUserInfoCollection: !include raml-storage/schemas/dto/jobExecutionUserInfoCollection.json
+  incomingRecord: !include raml-storage/schemas/mod-source-record-manager/incomingRecord.json
 
 traits:
   validate: !include raml-storage/raml-util/traits/validation.raml
@@ -176,7 +176,7 @@ resourceTypes:
         200:
           body:
             application/json:
-              type: jobLogEntryDtoCollection
+              type: recordProcessingLogDtoCollection
         400:
           description: "Bad request"
           body:
@@ -242,4 +242,17 @@ resourceTypes:
           body:
             text/plain:
               example: "Internal server error"
+  /incomingRecords/{recordId}:
+    get:
+      description: get incoming record by id
+      responses:
+        200:
+          body:
+            application/json:
+              type: incomingRecord
+        404:
+          description: "Not found"
+          body:
+            text/plain:
+              example: "Not found"
 
