@@ -12,6 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
@@ -29,6 +31,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1784,21 +1790,17 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
 
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+    String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-
-    RecordCollection processedRecords = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(3, processedRecords.getRecords().size());
-
-    assertEquals(4, processedRecords.getRecords().get(0).getOrder().intValue());
-    assertEquals(5, processedRecords.getRecords().get(1).getOrder().intValue());
-    assertEquals(6, processedRecords.getRecords().get(2).getOrder().intValue());
+    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertNotNull(eventPayload.getContext());
+    JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+    assertNotEquals(0, record.getInteger("order").intValue());
   }
 
   @Test
@@ -2164,34 +2166,33 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+    String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(5), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
-    Assert.assertEquals(
-      "{\"error\":\"A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
-      recordCollection.getRecords().get(0).getErrorRecord().getDescription());
+    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
+    assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+
+    assertNotNull(eventPayload.getContext());
+    JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+    assertNull(record.getString("matchedId"));
+    assertFalse(record.getJsonObject("errorRecord").isEmpty());
+    assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
+      new JsonObject(eventPayload.getContext().get("ERROR")).getString("error"));
   }
 
   @Test
-  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(
-    TestContext testContext) throws InterruptedException {
+  public void shouldHaveErrorRecordIsNullIf999ffsFieldExistsAndCreateInstanceActionProfileWithNonMatch(TestContext testContext) throws InterruptedException {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(
-      WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_INSTANCE_JOB_PROFILE_ID + "?withRelations=false&")
-        .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
-          .withName("Default - Create instance and SRS MARC Bib")))));
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_INSTANCE_JOB_PROFILE_ID + "?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_INSTANCE_JOB_PROFILE_ID)
+        .withName("Default - Create instance and SRS MARC Bib")))));
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2223,15 +2224,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
+    String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
     List<String> observedValues = kafkaCluster.observeValues(
-      ObserveKeyValues.on(topicToObserve, 1).observeFor(30, TimeUnit.SECONDS).build());
+      ObserveKeyValues.on(topicToObserve, 57).observeFor(30, TimeUnit.SECONDS).build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNull(recordCollection.getRecords().get(0).getErrorRecord());
+    Event obtainedEvent = Json.decodeValue(observedValues.get(56), Event.class);
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+    assertNull(record.getString("matchedId"));
+    assertNull(record.getJsonObject("errorRecord"));
   }
 
   @Test
@@ -2243,10 +2245,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.get(
-        "/data-import-profiles/jobProfiles/" + DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID + "?withRelations=false&")
-      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID)
-        .withName("Default - Create SRS MARC Authority")))));
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID + "?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_AUTHORITY_JOB_PROFILE_ID).withName("Default - Create SRS MARC Authority")))));
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2279,18 +2279,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(3), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
-    Assert.assertEquals(
-      "{\"error\":\"A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    assertNull(recordCollection.getRecords().get(0).getMatchedId());
+    assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    assertEquals("{\"error\":\"A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
       recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
 
@@ -2328,17 +2326,15 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .statusCode(HttpStatus.SC_NO_CONTENT);
     async.complete();
 
-    String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
+    String topicToObserve = formatToKafkaTopicName(DI_ERROR.value());
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 1)
+      .observeFor(30, TimeUnit.SECONDS).build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
-    assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
-    MatcherAssert.assertThat(recordCollection.getRecords().get(0).getErrorRecord().getDescription(),
-      containsString("Error during analyze leader line for determining record type"));
+    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
+    assertEquals(DI_ERROR.value(), obtainedEvent.getEventType());
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    MatcherAssert.assertThat(new JsonObject(eventPayload.getContext().get("ERROR")).getString("message"),
+      containsString("Error during analyze leader line for determining record type for record with id"));
   }
 
   @Test
@@ -2350,10 +2346,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
-    WireMock.stubFor(WireMock.get(
-        "/data-import-profiles/jobProfiles/" + DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID + "?withRelations=false&")
-      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID)
-        .withName("Default - Create Holdings and SRS MARC Holdings")))));
+    WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID + "?withRelations=false&")
+      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(DEFAULT_MARC_HOLDINGS_JOB_PROFILE_ID).withName("Default - Create Holdings and SRS MARC Holdings")))));
 
     WireMock.stubFor(post(RECORDS_SERVICE_URL)
       .willReturn(created().withTransformers(RequestToResponseTransformer.NAME)));
@@ -2386,18 +2380,16 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_RAW_RECORDS_CHUNK_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 7)
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 2)
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(7), Event.class);
+    Event obtainedEvent = Json.decodeValue(observedValues.get(1), Event.class);
     assertEquals(DI_RAW_RECORDS_CHUNK_PARSED.value(), obtainedEvent.getEventType());
-    RecordCollection recordCollection = Json
-      .decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    Assert.assertNull(recordCollection.getRecords().get(0).getMatchedId());
-    Assert.assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
-    Assert.assertEquals(
-      "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
+    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
+    assertNull(recordCollection.getRecords().get(0).getMatchedId());
+    assertNotNull(recordCollection.getRecords().get(0).getErrorRecord());
+    assertEquals("{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}",
       recordCollection.getRecords().get(0).getErrorRecord().getDescription());
   }
 

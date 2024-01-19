@@ -11,7 +11,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_READY_FOR_POST_PROCESSING;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -300,7 +300,7 @@ public class MarcImportEventsHandlerTest {
     payloadContext.put("HOLDINGS","[{\"instanceId\":\"946c4945-b711-4e67-bfb9-83fa30be6332\",\"hrid\":\"ho001\",\"id\":\"946c4945-b711-4e67-bfb9-83fa37be6312\"},{\"instanceId\":\"946c4945-b711-4e67-bfb9-83fa30be6331\",\"hrid\":\"ho002\",\"id\":\"946c4945-b111-4e67-bfb9-83fa30be6312\"}]");
     payloadContext.put("NOT_MATCHED_NUMBER","3");
     return new DataImportEventPayload()
-      .withEventsChain(List.of(DI_SRS_MARC_BIB_RECORD_CREATED.value()))
+      .withEventsChain(List.of(DI_INCOMING_MARC_BIB_RECORD_PARSED.value()))
       .withEventType(DI_INVENTORY_HOLDING_MATCHED.value())
       .withContext(payloadContext);
   }
@@ -315,7 +315,7 @@ public class MarcImportEventsHandlerTest {
     payloadContext.put("ITEM","[{\"holdingsRecordId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\",\"hrid\":\"it001\",\"id\":\"946c4945-b711-4e67-bfb9-83fa30be4312\"},{\"holdingsRecordId\":\"946c4945-b711-4e67-bfb9-83fa30be633b\",\"hrid\":\"it002\",\"id\":\"946c4945-b711-4e67-bfb9-83fa30be6312\"}]");
     payloadContext.put("NOT_MATCHED_NUMBER","5");
     return new DataImportEventPayload()
-      .withEventsChain(List.of(DI_SRS_MARC_BIB_RECORD_CREATED.value()))
+      .withEventsChain(List.of(DI_INCOMING_MARC_BIB_RECORD_PARSED.value()))
       .withEventType(DI_INVENTORY_ITEM_MATCHED.value())
       .withContext(payloadContext);
   }
