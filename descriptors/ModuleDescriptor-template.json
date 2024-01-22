@@ -501,6 +501,15 @@
           "permissionsRequired": [
             "metadata-provider.jobexecutions.get"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/metadata-provider/incomingRecords/{recordId}",
+          "permissionsRequired": [
+            "metadata-provider.incomingrecords.get"
+          ]
         }
       ]
     },
@@ -637,7 +646,7 @@
     },
     {
       "id": "authority-source-files",
-      "version": "2.1"
+      "version": "2.2"
     }
   ],
   "permissionSets": [
@@ -650,6 +659,11 @@
       "permissionName": "metadata-provider.logs.get",
       "displayName": "Metadata Provider - get jobExecution logs",
       "description": "Get JobExecutionLogDto"
+    },
+    {
+      "permissionName": "metadata-provider.incomingrecords.get",
+      "displayName": "Metadata Provider - get incoming record",
+      "description": "Get IncomingRecord"
     },
     {
       "permissionName": "change-manager.jobexecutions.post",
@@ -718,6 +732,7 @@
       "subPermissions": [
         "metadata-provider.jobexecutions.get",
         "metadata-provider.logs.get",
+        "metadata-provider.incomingrecords.get",
         "change-manager.jobexecutions.post",
         "change-manager.jobexecutions.put",
         "change-manager.jobexecutions.get",

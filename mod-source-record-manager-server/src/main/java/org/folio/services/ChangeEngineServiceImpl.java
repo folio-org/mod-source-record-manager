@@ -6,6 +6,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
@@ -51,6 +53,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.marc.MarcRecordAnalyzer;
@@ -63,6 +66,7 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.ActionProfile.Action;
 import org.folio.rest.jaxrs.model.ActionProfile.FolioRecord;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
+import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.ExternalIdsHolder;
@@ -121,6 +125,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final JobProfileSnapshotValidationService jobProfileSnapshotValidationService;
   private final KafkaConfig kafkaConfig;
   private final FieldModificationService fieldModificationService;
+  private final IncomingRecordService incomingRecordService;
+  private final JournalRecordService journalRecordService;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -136,7 +142,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired MappingMetadataService mappingMetadataService,
                                  @Autowired JobProfileSnapshotValidationService jobProfileSnapshotValidationService,
                                  @Autowired KafkaConfig kafkaConfig,
-                                 @Autowired FieldModificationService fieldModificationService) {
+                                 @Autowired FieldModificationService fieldModificationService,
+                                 @Autowired IncomingRecordService incomingRecordService,
+                                 @Autowired JournalRecordService journalRecordService) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
@@ -146,6 +154,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.jobProfileSnapshotValidationService = jobProfileSnapshotValidationService;
     this.kafkaConfig = kafkaConfig;
     this.fieldModificationService = fieldModificationService;
+    this.incomingRecordService = incomingRecordService;
+    this.journalRecordService = journalRecordService;
   }
 
   @Override
@@ -157,55 +167,111 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         params.getTenantId(), acceptInstanceId, params);
 
     futureParsedRecords
-      .compose(parsedRecords -> isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
-        ? Future.succeededFuture(parsedRecords)
-        : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords)))
+      .compose(parsedRecords -> {
+        saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
+
+        return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
+          ? Future.succeededFuture(parsedRecords)
+          : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords));
+      })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
-
-        if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)
-          || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords) || isMarcAuthorityMatchProfile(jobExecution)) {
-          hrIdFieldService.move001valueTo035Field(parsedRecords);
-          updateRecords(parsedRecords, jobExecution, params)
-            .onSuccess(ar -> promise.complete(parsedRecords))
-            .onFailure(promise::fail);
-        } else if (deleteMarcActionExists(jobExecution)) {
-          deleteRecords(parsedRecords, jobExecution, params)
-            .onSuccess(ar -> promise.complete(parsedRecords))
-            .onFailure(promise::fail);
-        } else {
-          saveRecords(params, jobExecution, parsedRecords)
-            .onComplete(postAr -> {
-              if (postAr.failed()) {
-                StatusDto statusDto = new StatusDto()
-                  .withStatus(StatusDto.Status.ERROR)
-                  .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
-                jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
-                  .onComplete(r -> {
-                    if (r.failed()) {
-                      LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution and snapshot status", r.cause());
-                    }
-                  });
-                jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
-                  .compose(optional -> optional
-                    .map(sourceChunk -> jobExecutionSourceChunkDao
-                      .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
-                    .orElseThrow(() -> new NotFoundException(String.format(
-                      "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found",
-                      sourceChunkId))))
-                  .onComplete(ar -> promise.fail(postAr.cause()));
-              } else {
-                promise.complete(parsedRecords);
-              }
-            });
-        }
+        processRecords(parsedRecords, jobExecution, params, sourceChunkId, promise);
       }).onFailure(th -> {
         LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records: {}", th.getMessage());
         promise.fail(th);
       });
     return promise.future();
+  }
+
+  private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
+                              String sourceChunkId, Promise<List<Record>> promise) {
+    switch (getAction(parsedRecords, jobExecution)) {
+      case UPDATE_RECORD -> {
+        hrIdFieldService.move001valueTo035Field(parsedRecords);
+        updateRecords(parsedRecords, jobExecution, params)
+          .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      }
+      case DELETE_RECORD -> deleteRecords(parsedRecords, jobExecution, params)
+        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR)
+        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      case SEND_MARC_BIB -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_RECORD_PARSED)
+        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      case SEND_EDIFACT -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_EDIFACT_RECORD_PARSED)
+        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      default -> saveRecords(jobExecution, sourceChunkId, params, parsedRecords, promise);
+    }
+  }
+
+  private ActionType getAction(List<Record> parsedRecords, JobExecution jobExecution) {
+    if (updateMarcActionExists(jobExecution) || updateInstanceActionExists(jobExecution)
+      || isCreateOrUpdateItemOrHoldingsActionExists(jobExecution, parsedRecords) || isMarcAuthorityMatchProfile(jobExecution)) {
+      return ActionType.UPDATE_RECORD;
+    }
+    if (deleteMarcActionExists(jobExecution)) {
+      return ActionType.DELETE_RECORD;
+    }
+    if (parsedRecords.isEmpty()) {
+      return ActionType.SAVE_RECORD;
+    }
+    RecordType recordType = parsedRecords.get(0).getRecordType();
+    if (recordType == RecordType.MARC_BIB) {
+      return ActionType.SEND_MARC_BIB;
+    }
+    if (recordType == RecordType.EDIFACT) {
+      return ActionType.SEND_EDIFACT;
+    }
+    if (recordType == null) {
+      return ActionType.SEND_ERROR;
+    }
+    return ActionType.SAVE_RECORD;
+  }
+
+  private enum ActionType {
+    UPDATE_RECORD, DELETE_RECORD, SEND_ERROR, SEND_MARC_BIB, SEND_EDIFACT, SAVE_RECORD
+  }
+
+  private void saveRecords(JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params, List<Record> parsedRecords, Promise<List<Record>> promise) {
+    saveRecords(params, jobExecution, parsedRecords)
+      .onComplete(postAr -> {
+        if (postAr.failed()) {
+          StatusDto statusDto = new StatusDto()
+            .withStatus(StatusDto.Status.ERROR)
+            .withErrorStatus(StatusDto.ErrorStatus.RECORD_UPDATE_ERROR);
+          jobExecutionService.updateJobExecutionStatus(jobExecution.getId(), statusDto, params)
+            .onComplete(r -> {
+              if (r.failed()) {
+                LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error during update jobExecution with id '{}' and snapshot status",
+                  jobExecution.getId(), r.cause());
+              }
+            });
+          jobExecutionSourceChunkDao.getById(sourceChunkId, params.getTenantId())
+            .compose(optional -> optional
+              .map(sourceChunk -> jobExecutionSourceChunkDao
+                .update(sourceChunk.withState(JobExecutionSourceChunk.State.ERROR), params.getTenantId()))
+              .orElseThrow(() -> new NotFoundException(String.format(
+                "Couldn't update failed jobExecutionSourceChunk status to ERROR, jobExecutionSourceChunk with id %s was not found, jobExecutionId: %s",
+                sourceChunkId, jobExecution.getId()))))
+            .onComplete(ar -> promise.fail(postAr.cause()));
+        } else {
+          promise.complete(parsedRecords);
+        }
+      });
+  }
+
+  private Future<Boolean> sendEvents(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params, DataImportEventTypes eventType) {
+    LOGGER.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}", eventType.value(), jobExecution.getId());
+    return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, eventType.value());
+  }
+
+  private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
+    if (!parsedRecords.isEmpty()) {
+      incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
+      journalRecordService.saveBatch(JournalUtil.buildJournalRecordsByRecords(parsedRecords), tenantId);
+    }
   }
 
   /**
@@ -741,6 +807,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (CollectionUtils.isEmpty(parsedRecords)) {
       return Future.succeededFuture();
     }
+    LOGGER.info("saveRecords:: Saving records in SRS, amount: {}, jobExecutionId: {}", parsedRecords.size(), jobExecution.getId());
     RecordCollection recordCollection = new RecordCollection()
       .withRecords(parsedRecords)
       .withTotalRecords(parsedRecords.size());

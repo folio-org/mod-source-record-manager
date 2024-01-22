@@ -22,7 +22,6 @@ import org.folio.rest.jaxrs.model.ActionProfile;
 import org.folio.rest.jaxrs.model.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.EntityType;
-import org.folio.rest.jaxrs.model.ErrorRecord;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
@@ -34,7 +33,6 @@ import org.folio.rest.jaxrs.model.MappingProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RecordCollection;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler;
 import org.junit.Before;
@@ -67,7 +65,7 @@ import static org.junit.Assert.*;
 public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   private static final String RAW_RECORD_WITH_999_ff_field = "00948nam a2200241 a 4500001000800000003000400008005001700012008004100029035002100070035002000091040002300111041001300134100002300147245007900170260005800249300002400307440007100331650003600402650005500438650006900493655006500562999007900627\u001E1007048\u001EICU\u001E19950912000000.0\u001E891218s1983    wyu      d    00010 eng d\u001E  \u001Fa(ICU)BID12424550\u001E  \u001Fa(OCoLC)16105467\u001E  \u001FaPAU\u001FcPAU\u001Fdm/c\u001FdICU\u001E0 \u001Faeng\u001Faarp\u001E1 \u001FaSalzmann, Zdeněk\u001E10\u001FaDictionary of contemporary Arapaho usage /\u001Fccompiled by Zdeněk Salzmann.\u001E0 \u001FaWind River, Wyoming :\u001FbWind River Reservation,\u001Fc1983.\u001E  \u001Fav, 231 p. ;\u001Fc28 cm.\u001E 0\u001FaArapaho language and culture instructional materials series\u001Fvno. 4\u001E 0\u001FaArapaho language\u001FxDictionaries.\u001E 0\u001FaIndians of North America\u001FxLanguages\u001FxDictionaries.\u001E 7\u001FaArapaho language.\u001F2fast\u001F0http://id.worldcat.org/fast/fst00812722\u001E 7\u001FaDictionaries.\u001F2fast\u001F0http://id.worldcat.org/fast/fst01423826\u001Eff\u001Fie27a5374-0857-462e-ac84-fb4795229c7a\u001Fse27a5374-0857-462e-ac84-fb4795229c7a\u001E\u001D";
-
+  private static final String CORRECT_RAW_RECORD = "01240cas a2200397   450000100070000000500170000700800410002401000170006502200140008203500260009603500220012203500110014403500190015504000440017405000150021808200110023322200420024424500430028626000470032926500380037630000150041431000220042932100250045136200230047657000290049965000330052865000450056165500420060670000450064885300180069386300230071190200160073490500210075094800370077195000340080836683220141106221425.0750907c19509999enkqr p       0   a0eng d  a   58020553   a0022-0469  a(CStRLIN)NYCX1604275S  a(NIC)notisABP6388  a366832  a(OCoLC)1604275  dCtYdMBTIdCtYdMBTIdNICdCStRLINdNIC0 aBR140b.J6  a270.0504aThe Journal of ecclesiastical history04aThe Journal of ecclesiastical history.  aLondon,bCambridge University Press [etc.]  a32 East 57th St., New York, 10022  av.b25 cm.  aQuarterly,b1970-  aSemiannual,b1950-690 av. 1-   Apr. 1950-  aEditor:   C. W. Dugmore. 0aChurch historyxPeriodicals. 7aChurch history2fast0(OCoLC)fst00860740 7aPeriodicals2fast0(OCoLC)fst014116411 aDugmore, C. W.q(Clifford William),eed.0381av.i(year)4081a1-49i1950-1998  apfndbLintz  a19890510120000.02 a20141106bmdbatcheltsxaddfast  lOLINaBR140b.J86h01/01/01 N01542ccm a2200361   ";
   private static final String INVALID_RECORD = "00557nam a22002053i 4500001001200000005001700012008004100029020001800070040002100088041000800109100001900117245004400136250001200180264001800192336002600210337002800236338002700264700001900291999004100310\u001E00000010150\u001E20230724074007.2\u001E230724|2020||||||||||||       |||||und||\u001E  \u001Fa9788408232421\u001E\\\\\u001FaCC-ClU\u001Fbspa\u001Ferda\u001E\\\\\u001Faspa\u001E1 \u001FaChicot, Marcos\u001E00\u001FaEl asesinato de Platón / Chicot Marcos\u001E  \u001FaPrimera\u001E 1\u001FbPlaneta\u001Fc2020\u001E  \u001Fatext\u001Fbtxt\u001F2rdacontent\u001E  \u001Faunmediated\u001Fbn\u001F2rdamedia\u001E  \u001Favolume\u001Fbnc\u001F2rdacarrier\u001E1 \u001FaChicot, Marcos\u001Eff\u001Fi7e1ea9dd-f65d-4758-a738-fa1d61365267\u001E\u001D";
   private static final String RAW_EDIFACT_RECORD_PATH = "src/test/resources/records/edifact/565751us20210122.edi";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
@@ -162,11 +160,11 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
-    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
-    Record record = recordCollection.getRecords().get(0);
-    assertNull(record.getExternalIdsHolder());
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
+      new JsonObject(eventPayload.getContext().get("ERROR")).getString("error"));
+    assertNull(new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")).getString("externalIdsHolder"));
   }
 
   @Test
@@ -182,11 +180,10 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
-    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
-    Record record = recordCollection.getRecords().get(0);
-    assertEquals(EDIFACT, record.getRecordType());
+    Event obtainedEvent = checkEventWithTypeSent(DI_INCOMING_EDIFACT_RECORD_PARSED);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    JsonObject record = new JsonObject(eventPayload.getContext().get("EDIFACT_INVOICE"));
+    assertEquals(EDIFACT, Record.RecordType.valueOf(record.getString("recordType")));
   }
 
   @Test
@@ -212,11 +209,10 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    Event obtainedEvent = checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
-    RecordCollection recordCollection = Json.decodeValue(obtainedEvent.getEventPayload(), RecordCollection.class);
-    assertEquals(1, recordCollection.getRecords().size());
-    ErrorRecord errorRecord = recordCollection.getRecords().get(0).getErrorRecord();
-    assertTrue(errorRecord.getDescription().contains("org.marc4j.MarcException"));
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    JsonObject error = new JsonObject(eventPayload.getContext().get("ERROR"));
+    assertTrue(error.getString("errors").contains("org.marc4j.MarcException"));
   }
 
   @Test
@@ -281,7 +277,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldNotSendAnyEventsForDuplicates() throws InterruptedException {
     // given
-    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
     JobExecutionSourceChunkDao jobExecutionSourceChunkDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionSourceChunkDao.class);
     jobExecutionSourceChunkDao.save(new JobExecutionSourceChunk()
       .withId(chunk.getId())
@@ -301,7 +297,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldNotSendDIErrorWhenReceiveDuplicateEvent() throws InterruptedException {
     // given
-    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, RAW_RECORD_WITH_999_ff_field);
+    RawRecordsDto chunk = getChunk(RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
     SendKeyValues<String, String> request = prepareWithSpecifiedEventPayload(JobProfileInfo.DataType.MARC, Json.encode(chunk));
     String jobExecutionId = getJobExecutionId(request);
 
@@ -310,7 +306,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    checkEventWithTypeSent(DI_RAW_RECORDS_CHUNK_PARSED);
+    checkEventWithTypeSent(DI_INCOMING_MARC_BIB_RECORD_PARSED);
     checkEventWithTypeWasNotSend(jobExecutionId, DI_ERROR);
   }
 

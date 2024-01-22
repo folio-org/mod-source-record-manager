@@ -19,6 +19,7 @@ import org.folio.rest.jaxrs.model.JobExecutionDto.SubordinationType;
 import org.folio.rest.jaxrs.model.MetadataProviderJobLogEntriesJobExecutionIdGetEntityType;
 import org.folio.rest.jaxrs.resource.MetadataProvider;
 import org.folio.rest.tools.utils.TenantTool;
+import org.folio.services.IncomingRecordService;
 import org.folio.services.JobExecutionService;
 import org.folio.services.JournalRecordService;
 import org.folio.spring.SpringContextUtil;
@@ -51,6 +52,8 @@ public class MetadataProviderImpl implements MetadataProvider {
   private JobExecutionService jobExecutionService;
   @Autowired
   private JournalRecordService journalRecordService;
+  @Autowired
+  private IncomingRecordService incomingRecordService;
   private String tenantId;
 
   public MetadataProviderImpl(Vertx vertx, String tenantId) { //NOSONAR
@@ -111,7 +114,7 @@ public class MetadataProviderImpl implements MetadataProvider {
       try {
         LOGGER.debug("getMetadataProviderJobLogEntriesByJobExecutionId:: jobExecutionId {}, sortBy {}, errorsOnly {}, entityType {}",
           jobExecutionId, sortBy, errorsOnly, entityType.name());
-        journalRecordService.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
+        journalRecordService.getRecordProcessingLogDtoCollection(jobExecutionId, sortBy, order.name(), errorsOnly, entityType.name(), limit, offset, tenantId)
           .map(GetMetadataProviderJobLogEntriesByJobExecutionIdResponse::respond200WithApplicationJson)
           .map(Response.class::cast)
           .otherwise(ExceptionHelper::mapExceptionToResponse)
@@ -192,6 +195,26 @@ public class MetadataProviderImpl implements MetadataProvider {
           .onComplete(asyncResultHandler);
       } catch (Exception e) {
         LOGGER.warn("getMetadataProviderJobExecutionsUsers:: Failed to retrieve unique users info for JobExecutions", e);
+        asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
+      }
+    });
+  }
+
+  @Override
+  public void getMetadataProviderIncomingRecordsByRecordId(String recordId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    vertxContext.runOnContext(v -> {
+      try {
+        LOGGER.debug("getMetadataProviderIncomingRecordsByRecordId:: tenantId {}", tenantId);
+        incomingRecordService.getById(recordId, tenantId)
+          .map(incomingRecordOptional -> incomingRecordOptional
+            .map(GetMetadataProviderIncomingRecordsByRecordIdResponse::respond200WithApplicationJson)
+            .orElseGet(() -> GetMetadataProviderIncomingRecordsByRecordIdResponse
+              .respond404WithTextPlain(format("IncomingRecord by id: '%s' was not found", recordId))))
+          .map(Response.class::cast)
+          .otherwise(ExceptionHelper::mapExceptionToResponse)
+          .onComplete(asyncResultHandler);
+      } catch (Exception e) {
+        LOGGER.warn("getMetadataProviderIncomingRecordsByRecordId:: Failed to retrieve IncomingRecord by id", e);
         asyncResultHandler.handle(Future.succeededFuture(ExceptionHelper.mapExceptionToResponse(e)));
       }
     });

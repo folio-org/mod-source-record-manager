@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
+import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
@@ -24,6 +25,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_LOG_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
@@ -52,6 +54,7 @@ public class JournalUtil {
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
+  private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
 
   private JournalUtil() {
 
@@ -62,6 +65,40 @@ public class JournalUtil {
       .or(() -> Optional.ofNullable(context.get(MARC_AUTHORITY.value())))
       .or(() -> Optional.ofNullable(context.get(MARC_HOLDINGS.value())))
       .orElse(EMPTY);
+  }
+
+  public static List<JournalRecord> buildJournalRecordsByRecords(List<Record> records) {
+    return records.stream().map(record -> {
+      JournalRecord journalRecord = new JournalRecord()
+        .withId(UUID.randomUUID().toString())
+        .withJobExecutionId(record.getSnapshotId())
+        .withSourceId(record.getId())
+        .withSourceRecordOrder(record.getOrder())
+        .withActionType(JournalRecord.ActionType.PARSE)
+        .withActionDate(new Date())
+        .withActionStatus(record.getErrorRecord() == null ? JournalRecord.ActionStatus.COMPLETED : JournalRecord.ActionStatus.ERROR);
+      if (record.getErrorRecord() != null) {
+        journalRecord.setError(record.getErrorRecord().getDescription());
+      }
+      return journalRecord;
+    }).toList();
+  }
+
+  public static List<IncomingRecord> buildIncomingRecordsByRecords(List<Record> records) {
+    return records.stream().map(record -> {
+      IncomingRecord incomingRecord = new IncomingRecord()
+        .withId(record.getId())
+        .withJobExecutionId(record.getSnapshotId())
+        .withOrder(record.getOrder())
+        .withRawRecordContent(record.getRawRecord().getContent());
+      if (record.getRecordType() != null) {
+        incomingRecord.setRecordType(IncomingRecord.RecordType.fromValue(record.getRecordType().value()));
+      }
+      if (record.getParsedRecord() != null) {
+        incomingRecord.setParsedRecordContent(String.valueOf(record.getParsedRecord().getContent()));
+      }
+      return incomingRecord;
+    }).toList();
   }
 
   public static List<JournalRecord> buildJournalRecordsByEvent(DataImportEventPayload eventPayload, JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
@@ -82,17 +119,8 @@ public class JournalUtil {
       }
 
       String entityAsString = eventPayloadContext.get(entityType.value());
-      JournalRecord journalRecord = new JournalRecord()
-        .withJobExecutionId(record.getSnapshotId())
-        .withSourceId(record.getId())
-        .withSourceRecordOrder(record.getOrder())
-        .withEntityType(entityType)
-        .withActionType(actionType)
-        .withActionDate(new Date())
-        .withActionStatus(actionStatus)
-        // tenantId field is filled in only for the case when record/entity has been changed on central tenant
-        // by data import initiated on a member tenant
-        .withTenantId(eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY));
+      JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload)
+        .withEntityType(entityType);
 
       if (DI_ERROR == DataImportEventTypes.fromValue(eventPayload.getEventType())) {
         journalRecord.setError(eventPayloadContext.get(ERROR_KEY));
@@ -125,6 +153,13 @@ public class JournalUtil {
           }
           if (entityType == PO_LINE) {
             journalRecord.setOrderId(entityJson.getString("purchaseOrderId"));
+          }
+          if (eventPayload.getEventType().equals(DI_INVENTORY_INSTANCE_CREATED.value()) ||
+            (eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)
+              && DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE)) == DI_INVENTORY_INSTANCE_CREATED
+              && entityType.equals(INSTANCE))) {
+            var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext);
+            return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
           }
           return Lists.newArrayList(journalRecord);
         }
@@ -160,6 +195,32 @@ public class JournalUtil {
     return eventPayload.getEventsChain().stream()
       .reduce((first, second) -> second)
       .map(mp -> DI_SRS_MARC_BIB_RECORD_UPDATED == DataImportEventTypes.fromValue(mp)).orElse(false);
+  }
+
+  private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
+                                                                 DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext) {
+    String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
+    String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(ID_KEY);
+
+      return buildCommonJournalRecord(actionStatus, actionType, currentRecord, eventPayload)
+      .withEntityId(marcBibEntityId)
+      .withEntityType(MARC_BIBLIOGRAPHIC);
+  }
+
+  private static JournalRecord buildCommonJournalRecord(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
+                                                        DataImportEventPayload eventPayload){
+    String tenantId = eventPayload.getContext().get(CENTRAL_TENANT_ID_KEY);
+
+    return new JournalRecord()
+      .withJobExecutionId(currentRecord.getSnapshotId())
+      .withSourceId(currentRecord.getId())
+      .withSourceRecordOrder(currentRecord.getOrder())
+      .withActionType(actionType)
+      .withActionDate(new Date())
+      .withActionStatus(actionStatus)
+      // tenantId field is filled in only for the case when record/entity has been changed on central tenant
+      // by data import initiated on a member tenant
+      .withTenantId(tenantId);
   }
 
   private static List<JournalRecord> processHoldings(JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,

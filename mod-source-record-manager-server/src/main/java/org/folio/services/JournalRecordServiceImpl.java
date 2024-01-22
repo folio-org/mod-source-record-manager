@@ -1,15 +1,16 @@
 package org.folio.services;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import org.folio.dao.JournalRecordDao;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,8 +38,8 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   }
 
   @Override
-  public Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
-    return journalRecordDao.getJobLogEntryDtoCollection(jobExecutionId, sortBy, order, errorsOnly, entityType, limit, offset, tenantId);
+  public Future<RecordProcessingLogDtoCollection> getRecordProcessingLogDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId) {
+    return journalRecordDao.getRecordProcessingLogDtoCollection(jobExecutionId, sortBy, order, errorsOnly, entityType, limit, offset, tenantId);
   }
 
   @Override
@@ -54,5 +55,10 @@ public class JournalRecordServiceImpl implements JournalRecordService {
   @Override
   public Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId) {
     return journalRecordDao.updateErrorJournalRecordsByOrderIdAndJobExecution(jobExecutionId, orderId, error, tenantId);
+  }
+
+  @Override
+  public void saveBatch(List<JournalRecord> journalRecords, String tenantId) {
+    journalRecordDao.saveBatch(journalRecords, tenantId);
   }
 }

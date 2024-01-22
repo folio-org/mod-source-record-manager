@@ -2,10 +2,12 @@ package org.folio.services;
 
 import io.vertx.core.Future;
 import org.folio.rest.jaxrs.model.JobExecutionSummaryDto;
-import org.folio.rest.jaxrs.model.JobLogEntryDtoCollection;
+import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecordCollection;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
+import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,13 +42,13 @@ public interface JournalRecordService {
    * @param sortBy         sorting criteria
    * @param order          sorting direction
    * @param errorsOnly     filtering by error field
-   * @param errorsOnly     filtering by entity type
+   * @param entityType     filtering by entity type
    * @param limit          limit
    * @param offset         offset
    * @param tenantId       tenantId
    * @return future with JobLogEntryDto collection
    */
-  Future<JobLogEntryDtoCollection> getJobLogEntryDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
+  Future<RecordProcessingLogDtoCollection> getRecordProcessingLogDtoCollection(String jobExecutionId, String sortBy, String order, boolean errorsOnly, String entityType, int limit, int offset, String tenantId);
 
   /**
    * Searches for RecordProcessingLogDto entity by jobExecutionId and recordId
@@ -75,4 +77,12 @@ public interface JournalRecordService {
    * @return Future with JournalRecords updated number
    */
   Future<Integer> updateErrorJournalRecordsByOrderIdAndJobExecution(String jobExecutionId, String orderId, String error, String tenantId);
+
+  /**
+   * Saves set of {@link JournalRecord} entities
+   *
+   * @param journalRecords journal records to save
+   * @param tenantId       tenant id
+   */
+  void saveBatch(List<JournalRecord> journalRecords, String tenantId);
 }
