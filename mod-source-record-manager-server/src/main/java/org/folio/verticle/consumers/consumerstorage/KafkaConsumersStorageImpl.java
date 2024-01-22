@@ -16,20 +16,20 @@ import java.util.stream.Collectors;
 public class KafkaConsumersStorageImpl implements KafkaConsumersStorage {
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private final Map<String, List<KafkaConsumerWrapper<String, String>>> consumerWrappersMap = new ConcurrentHashMap<>();
+  private final Map<String, List<KafkaConsumerWrapper<?,?>>> consumerWrappersMap = new ConcurrentHashMap<>();
 
   @Override
-  public void addConsumer(String eventName, KafkaConsumerWrapper<String, String> consumer) {
+  public void addConsumer(String eventName, KafkaConsumerWrapper<?,?> consumer) {
     consumerWrappersMap.computeIfAbsent(eventName, k -> new ArrayList<>()).add(consumer);
   }
 
   @Override
-  public Collection<KafkaConsumerWrapper<String, String>> getConsumersByEvent(String eventName) {
+  public Collection<KafkaConsumerWrapper<?,?>> getConsumersByEvent(String eventName) {
     return consumerWrappersMap.get(eventName);
   }
 
   @Override
-  public Collection<KafkaConsumerWrapper<String, String>> getConsumersList() {
+  public Collection<KafkaConsumerWrapper<?,?>> getConsumersList() {
     return consumerWrappersMap.values()
       .stream()
       .flatMap(Collection::stream)

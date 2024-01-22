@@ -14,7 +14,7 @@ public interface KafkaConsumersStorage {
    * @param eventName the event name that is the key of consumer
    * @param consumer  consumer wrapper to add
    */
-  void addConsumer(String eventName, KafkaConsumerWrapper<String, String> consumer);
+  void addConsumer(String eventName, KafkaConsumerWrapper<?,?> consumer);
 
   /**
    * Gets consumer by event name.
@@ -22,12 +22,12 @@ public interface KafkaConsumersStorage {
    * @param eventName the event name
    * @return consumer wrappers by event name
    */
-  Collection<KafkaConsumerWrapper<String, String>> getConsumersByEvent(String eventName);
+  Collection<KafkaConsumerWrapper<?,?>> getConsumersByEvent(String eventName);
 
   /**
    * Gets all registered consumers.
    *
    * @return collection of all registered consumer wrappers
    */
-  Collection<KafkaConsumerWrapper<String, String>> getConsumersList();
+  Collection<KafkaConsumerWrapper<?,?>> getConsumersList();
 }

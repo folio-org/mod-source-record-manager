@@ -23,18 +23,18 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHU
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
+public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle<String, byte[]> {
 
   @Value("${di.flow.control.enable:true}")
   private boolean enableFlowControl;
 
   @Autowired
   @Qualifier("RawMarcChunksKafkaHandler")
-  private AsyncRecordHandler<String, String> rawMarcChunksKafkaHandler;
+  private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
 
   @Autowired
   @Qualifier("RawMarcChunksErrorHandler")
-  private ProcessRecordErrorHandler<String, String> errorHandler;
+  private ProcessRecordErrorHandler<String, byte[]> errorHandler;
 
   @Override
   public List<String> getEvents() {
@@ -42,12 +42,12 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
   }
 
   @Override
-  public AsyncRecordHandler<String, String> getHandler() {
+  public AsyncRecordHandler<String, byte[]> getHandler() {
     return this.rawMarcChunksKafkaHandler;
   }
 
   @Override
-  public ProcessRecordErrorHandler<String, String> getErrorHandler() {
+  public ProcessRecordErrorHandler<String, byte[]> getErrorHandler() {
     return this.errorHandler;
   }
 
@@ -74,6 +74,11 @@ public class RawMarcChunkConsumersVerticle extends AbstractConsumersVerticle {
     counts.
      */
     return false;
+  }
+
+  @Override
+  public String getDeserializerClass() {
+    return "org.apache.kafka.common.serialization.ByteArrayDeserializer";
   }
 
 }

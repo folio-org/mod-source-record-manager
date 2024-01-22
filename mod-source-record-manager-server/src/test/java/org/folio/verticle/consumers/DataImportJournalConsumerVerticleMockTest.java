@@ -162,7 +162,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     Mockito.verify(journalService).saveBatch(journalRecordCaptor.capture(), Mockito.anyString());
@@ -205,7 +205,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     Mockito.verify(journalService).saveBatch(journalRecordCaptor.capture(), Mockito.anyString());
@@ -242,7 +242,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
 
     Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     Mockito.verify(journalService).saveBatch(journalRecordCaptor.capture(), Mockito.anyString());
@@ -274,7 +274,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -303,7 +303,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Mockito.doNothing().when(journalService).saveBatch(ArgumentMatchers.any(JsonArray.class), ArgumentMatchers.any(String.class));
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -331,7 +331,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
       .withTenant(TENANT_ID);
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -353,7 +353,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
       .withTenant(TENANT_ID);
 
     // when
-    KafkaConsumerRecord<String, String> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
+    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
     Future<String> future = dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
 
     // then
@@ -362,10 +362,10 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     assertTrue(future.cause() instanceof PgException);
   }
 
-  private KafkaConsumerRecord<String, String> buildKafkaConsumerRecord(DataImportEventPayload record) {
+  private KafkaConsumerRecord<String, byte[]> buildKafkaConsumerRecord(DataImportEventPayload record) {
     String topic = KafkaTopicNameHelper.formatTopicName(ENV_KEY, getDefaultNameSpace(), TENANT_ID, record.getEventType());
     Event event = new Event().withId(UUID.randomUUID().toString()).withEventPayload(Json.encode(record));
-    ConsumerRecord<String, String> consumerRecord = buildConsumerRecord(topic, event);
+    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecordAsByteArray(topic, event);
     return new KafkaConsumerRecordImpl<>(consumerRecord);
   }
 }

@@ -18,7 +18,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INITIALIZATION_
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class DataImportInitConsumersVerticle extends AbstractConsumersVerticle {
+public class DataImportInitConsumersVerticle extends AbstractConsumersVerticle<String, String> {
 
   @Autowired
   private DataImportInitKafkaHandler initializationHandler;

@@ -2,7 +2,6 @@ package org.folio.services.mappers.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Objects;
@@ -21,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import io.vertx.core.json.jackson.DatabindCodec;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -489,7 +489,7 @@ public class MappingParametersProvider {
         if (StringUtils.isNotBlank(response)) {
           List<LinkingRuleDto> linkingRules = new LinkedList<>();
           try {
-            linkingRules = new ObjectMapper().readValue(response, new TypeReference<>(){});
+            linkingRules = DatabindCodec.mapper().readValue(response, new TypeReference<>(){});
           } catch (JsonProcessingException e) {
             LOGGER.warn("Unable to parse linking rules response: {}", e.getMessage());
             promise.complete(Collections.emptyList());

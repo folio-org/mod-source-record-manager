@@ -7,12 +7,13 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import java.util.function.Consumer;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.okapi.common.MetricsUtil;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.util.CaffeineStatsCounter;
 import org.marc4j.MarcJsonReader;
 import org.marc4j.MarcJsonWriter;
 import org.marc4j.MarcStreamWriter;
@@ -26,9 +27,12 @@ import org.marc4j.marc.VariableField;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -52,40 +56,44 @@ public final class AdditionalFieldsUtil {
     // In this case, this is a MARC4J Record
     parsedRecordContentCacheLoader =
       parsedRecordContent -> {
-        MarcJsonReader marcJsonReader =
-          new MarcJsonReader(
-            new ByteArrayInputStream(
-              parsedRecordContent.toString().getBytes(StandardCharsets.UTF_8)));
-        if (marcJsonReader.hasNext()) {
-          return marcJsonReader.next();
+        try {
+          MarcJsonReader marcJsonReader =
+            new MarcJsonReader(
+              new ByteArrayInputStream(
+                parsedRecordContent.toString().getBytes(StandardCharsets.UTF_8)));
+          if (marcJsonReader.hasNext()) {
+            return marcJsonReader.next();
+          }
+          return null;
+        } catch (Exception e) {
+          LOGGER.error("something happened while loading a cache value for parsedRecordContentCache", e);
+          return null;
         }
-        return null;
       };
 
-    parsedRecordContentCache =
-        Caffeine.newBuilder()
-            .maximumSize(2000)
-            // weak keys allows parsed content strings that are used as keys to be garbage
-            // collected, even it is still
-            // referenced by the cache.
-            .weakKeys()
-            .recordStats()
-            .executor(
-                serviceExecutor -> {
-                  // Due to the static nature and the API of this AdditionalFieldsUtil class, it is difficult to
-                  // pass a vertx instance or assume whether a call to any of its static methods here is by a Vertx
-                  // thread or a regular thread. The logic before is able to discern the type of thread and execute
-                  // cache operations using the appropriate threading model.
-                  Context context = Vertx.currentContext();
-                  if (context != null) {
-                    context.runOnContext(ar -> serviceExecutor.run());
-                  }
-                  else {
-                    // The common pool below is used because it is the  default executor for caffeine
-                    ForkJoinPool.commonPool().execute(serviceExecutor);
-                  }
-                })
-          .build(parsedRecordContentCacheLoader);
+    Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder()
+      .maximumSize(1000)
+      .expireAfterWrite(Duration.ofMinutes(3))
+      .executor(
+        serviceExecutor -> {
+          // Due to the static nature and the API of this AdditionalFieldsUtil class, it is difficult to
+          // pass a vertx instance or assume whether a call to any of its static methods here is by a Vertx
+          // thread or a regular thread. The logic before is able to discern the type of thread and execute
+          // cache operations using the appropriate threading model.
+          Context context = Vertx.currentContext();
+          if (context != null) {
+            context.runOnContext(ar -> serviceExecutor.run());
+          } else {
+            // The common pool below is used because it is the  default executor for caffeine
+            ForkJoinPool.commonPool().execute(serviceExecutor);
+          }
+        });
+    if (MetricsUtil.isEnabled()) {
+      cacheBuilder
+        .recordStats(() -> new CaffeineStatsCounter("parsedRecordContentCache", Collections.emptyList()));
+    }
+
+    parsedRecordContentCache = cacheBuilder.build(parsedRecordContentCacheLoader);
   }
 
   private AdditionalFieldsUtil() {
@@ -96,6 +104,10 @@ public final class AdditionalFieldsUtil {
    */
   static CacheStats getCacheStats() {
     return parsedRecordContentCache.stats();
+  }
+
+  static void clearCache() {
+    parsedRecordContentCache.invalidateAll();
   }
 
   /**

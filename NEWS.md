@@ -1,4 +1,5 @@
 ## 2023-xx-xx v3.8.0-SNAPSHOT
+* [MODSOURMAN-1113](https://issues.folio.org/browse/MODSOURMAN-1113) Reduce Memory Allocations Of Strings
 * [MODSOURMAN-1085](https://issues.folio.org/browse/MODSOURMAN-1085) MARC record with a 100 tag without a $a is being discarded on import.
 * [MODSOURMAN-1020](https://issues.folio.org/browse/MODSOURMAN-1020) Add table to save incoming records for DI logs
 * [MODSOURMAN-1021](https://issues.folio.org/browse/MODSOURMAN-1021) Provide endpoint for getting parsed content for DI log

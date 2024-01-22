@@ -1,7 +1,7 @@
 package org.folio.services.journal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -115,7 +115,7 @@ public class JournalUtil {
           .withSnapshotId(eventPayload.getJobExecutionId())
           .withOrder(0);
       } else {
-        record = new ObjectMapper().readValue(recordAsString, Record.class);
+        record = Json.decodeValue(recordAsString, Record.class);
       }
 
       String entityAsString = eventPayloadContext.get(entityType.value());
