@@ -4,6 +4,7 @@ import static org.folio.rest.jaxrs.model.ActionProfile.Action.CREATE;
 import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.AUTHORITY;
 import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
@@ -11,6 +12,10 @@ import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPP
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_RECORD;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_TYPE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -38,6 +43,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.folio.MatchProfile;
@@ -197,6 +203,30 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_HOLDING));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
+  }
+
+  @Test
+  public void shouldCreateOrderWhenActionCreateOrder() {
+    RawRecordsDto rawRecordsDto = getTestRawRecordsDto(MARC_BIB_REC_WITHOUT_FF);
+    JobExecution jobExecution = getTestJobExecution();
+    jobExecution.setJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+      .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper()
+        .withContentType(ACTION_PROFILE)
+        .withContent(Map.of(FOLIO_RECORD, ORDER_TYPE, ACTION_FIELD, CREATE_ACTION)))
+      ));
+
+    when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
+    when(jobExecutionSourceChunkDao.getById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
+    when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
+
+    Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
+
+    var actual = serviceFuture.result();
+    assertThat(actual, hasSize(1));
+    assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
+    assertThat(actual.get(0).getErrorRecord(), nullValue());
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_BIB_FOR_ORDER_CREATED.value()));
   }
 
   @Test

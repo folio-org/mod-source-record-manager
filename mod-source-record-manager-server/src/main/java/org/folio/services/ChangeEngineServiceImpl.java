@@ -8,6 +8,7 @@ import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
@@ -24,6 +25,10 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControl
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_RECORD;
+import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_TYPE;
 
 import com.google.common.collect.Lists;
 import io.vertx.core.CompositeFuture;
@@ -196,6 +201,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }
       case DELETE_RECORD -> deleteRecords(parsedRecords, jobExecution, params)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
+      case CREATE_ORDER -> sendEvents(parsedRecords, jobExecution, params, DI_MARC_BIB_FOR_ORDER_CREATED)
+        .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
       case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
       case SEND_MARC_BIB -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_RECORD_PARSED)
@@ -214,6 +221,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     if (deleteMarcActionExists(jobExecution)) {
       return ActionType.DELETE_RECORD;
     }
+    if (createOrderActionExists(jobExecution)) {
+      return ActionType.CREATE_ORDER;
+    }
     if (parsedRecords.isEmpty()) {
       return ActionType.SAVE_RECORD;
     }
@@ -231,7 +241,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private enum ActionType {
-    UPDATE_RECORD, DELETE_RECORD, SEND_ERROR, SEND_MARC_BIB, SEND_EDIFACT, SAVE_RECORD
+    UPDATE_RECORD, DELETE_RECORD, SEND_ERROR, SEND_MARC_BIB, SEND_EDIFACT, SAVE_RECORD, CREATE_ORDER
   }
 
   private void saveRecords(JobExecution jobExecution, String sourceChunkId, OkapiConnectionParams params, List<Record> parsedRecords, Promise<List<Record>> promise) {
@@ -272,6 +282,29 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
       journalRecordService.saveBatch(JournalUtil.buildJournalRecordsByRecords(parsedRecords), tenantId);
     }
+  }
+
+  private boolean createOrderActionExists(JobExecution jobExecution) {
+    if (jobExecution.getJobProfileSnapshotWrapper() != null) {
+      List<ProfileSnapshotWrapper> actionProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers()
+        .stream().filter(wrapper -> wrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE).toList();
+
+      if (!actionProfiles.isEmpty() && ifOrderCreateActionProfileExists(actionProfiles)) {
+        LOGGER.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean ifOrderCreateActionProfileExists(List<ProfileSnapshotWrapper> profiles) {
+    for (ProfileSnapshotWrapper profile : profiles) {
+      Map<String, String> content = DatabindCodec.mapper().convertValue(profile.getContent(), HashMap.class);
+      if (content.get(FOLIO_RECORD).equals(ORDER_TYPE) && content.get(ACTION_FIELD).equals(CREATE_ACTION)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
