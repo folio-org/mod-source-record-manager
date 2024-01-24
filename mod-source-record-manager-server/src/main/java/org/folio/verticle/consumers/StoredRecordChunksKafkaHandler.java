@@ -56,6 +56,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
 import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
+import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
 @Component
 @Qualifier("StoredRecordChunksKafkaHandler")
@@ -217,6 +218,9 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     for (Record record : storedRecords) {
 
       if (record.getErrorRecord() == null) {
+        String retrievedTitleFromRecord = ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes);
+        if (retrievedTitleFromRecord.isEmpty()) retrievedTitleFromRecord = NO_TITLE_MESSAGE;
+
         JournalRecord journalRecord = new JournalRecord()
           .withJobExecutionId(record.getSnapshotId())
           .withSourceRecordOrder(record.getOrder())
@@ -226,8 +230,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .withActionType(CREATE)
           .withActionStatus(COMPLETED)
           .withActionDate(new Date())
-          .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag)
-            ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null);
+          .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag) ?
+            retrievedTitleFromRecord : NO_TITLE_MESSAGE);
 
         journalRecords.add(JsonObject.mapFrom(journalRecord));
       }
