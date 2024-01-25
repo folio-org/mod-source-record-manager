@@ -43,7 +43,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
@@ -230,8 +229,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .withActionType(CREATE)
           .withActionStatus(COMPLETED)
           .withActionDate(new Date())
-          .withTitle(allNotNull(record.getParsedRecord(), titleFieldTag) ?
-            retrievedTitleFromRecord : NO_TITLE_MESSAGE);
+          .withTitle(retrievedTitleFromRecord);
 
         journalRecords.add(JsonObject.mapFrom(journalRecord));
       }
