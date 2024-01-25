@@ -16,10 +16,8 @@ import org.folio.kafka.AsyncRecordHandler;
 import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.JournalRecord.EntityType;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
 import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.Record.RecordType;
 import org.folio.rest.jaxrs.model.RecordsBatchResponse;
@@ -36,7 +34,6 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotFoundException;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,7 +41,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
@@ -126,13 +122,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
                 LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                 saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
-                return Future.succeededFuture(jobExecution)
-                  .compose(jobExecutionFuture -> {
-                    LOGGER.debug("handle:: JobExecution found by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
-                    return setOrderEventTypeIfNeeded(jobExecutionFuture, eventType);
-                  })
-                  .compose(eventTypes -> recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId,
-                    okapiConnectionParams, eventTypes.value()))
+                return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId, okapiConnectionParams, eventType.value())
                   .compose(b -> {
                     LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                     return Future.succeededFuture(chunkId);
@@ -150,33 +140,6 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           LOGGER.warn("handle:: Couldn't find JobExecution by id {}: chunkId:{} chunkNumber: {} ", jobExecutionId, chunkId, chunkNumber);
           return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s chunkId:%s chunkNumber: %s", jobExecutionId, chunkId, chunkNumber)));
         }));
-  }
-
-  private Future<DataImportEventTypes> setOrderEventTypeIfNeeded(JobExecution jobExecution, DataImportEventTypes dataImportEventTypes) {
-    if (jobExecution.getJobProfileSnapshotWrapper() != null) {
-      ProfileSnapshotWrapper profileSnapshotWrapper = DatabindCodec.mapper().convertValue(jobExecution.getJobProfileSnapshotWrapper(), ProfileSnapshotWrapper.class);
-      List<ProfileSnapshotWrapper> actionProfiles = profileSnapshotWrapper
-        .getChildSnapshotWrappers()
-        .stream()
-        .filter(e -> e.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE)
-        .collect(Collectors.toList());
-
-      if (!actionProfiles.isEmpty() && checkIfOrderCreateActionProfileExists(actionProfiles)) {
-        dataImportEventTypes = DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
-        LOGGER.debug("setOrderEventTypeIfNeeded:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
-      }
-    }
-    return Future.succeededFuture(dataImportEventTypes);
-  }
-
-  private static boolean checkIfOrderCreateActionProfileExists(List<ProfileSnapshotWrapper> actionProfiles) {
-    for (ProfileSnapshotWrapper actionProfile : actionProfiles) {
-      LinkedHashMap<String, String> content = DatabindCodec.mapper().convertValue(actionProfile.getContent(), LinkedHashMap.class);
-      if (content.get(FOLIO_RECORD).equals(ORDER_TYPE) && content.get(ACTION_FIELD).equals(CREATE_ACTION)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
@@ -209,7 +172,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .map(JsonObject.class::cast)
           .filter(fieldMappingRule -> fieldMappingRule.getString("target").equals(INSTANCE_TITLE_FIELD_PATH))
           .flatMap(fieldMappingRule -> fieldMappingRule.getJsonArray("subfield").stream())
-          .map(subfieldCode -> subfieldCode.toString())
+          .map(Object::toString)
           .collect(Collectors.toList());
       }
     }
@@ -238,17 +201,12 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   }
 
   private EntityType getEntityType(List<Record> storedRecords) {
-    switch (storedRecords.get(0).getRecordType()) {
-      case EDIFACT:
-        return EntityType.EDIFACT;
-      case MARC_AUTHORITY:
-        return EntityType.MARC_AUTHORITY;
-      case MARC_HOLDING:
-        return EntityType.MARC_HOLDINGS;
-      case MARC_BIB:
-      default:
-        return EntityType.MARC_BIBLIOGRAPHIC;
-    }
+    return switch (storedRecords.get(0).getRecordType()) {
+      case EDIFACT -> EntityType.EDIFACT;
+      case MARC_AUTHORITY -> EntityType.MARC_AUTHORITY;
+      case MARC_HOLDING -> EntityType.MARC_HOLDINGS;
+      default -> EntityType.MARC_BIBLIOGRAPHIC;
+    };
   }
 
   private Optional<String> getTitleFieldTagByInstanceFieldPath(JsonObject mappingRules) {
