@@ -343,7 +343,9 @@
             "instance-authority-links.instances.collection.get",
             "instance-authority-links.instances.collection.put",
             "instance-authority.linking-rules.collection.get",
-            "user-tenants.collection.get"
+            "user-tenants.collection.get",
+            "source-storage.records.post",
+            "source-storage.records.put"
           ],
           "permissionsDesired": [
             "invoices.acquisitions-units-assignments.assign",
@@ -457,7 +459,9 @@
             "orders.po-lines.collection.get",
             "instance-authority-links.instances.collection.get",
             "instance-authority-links.instances.collection.put",
-            "instance-authority.linking-rules.collection.get"
+            "instance-authority.linking-rules.collection.get",
+            "source-storage.records.post",
+            "source-storage.records.put"
           ]
         }
       ]
