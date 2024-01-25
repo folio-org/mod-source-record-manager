@@ -7,8 +7,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.folio.rest.RestVerticle.MODULE_SPECIFIC_ARGS;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
@@ -201,7 +201,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       }
       case DELETE_RECORD -> deleteRecords(parsedRecords, jobExecution, params)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case CREATE_ORDER -> sendEvents(parsedRecords, jobExecution, params, DI_MARC_BIB_FOR_ORDER_CREATED)
+      case CREATE_ORDER -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
       case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);

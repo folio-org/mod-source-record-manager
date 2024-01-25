@@ -3,8 +3,8 @@ package org.folio.services;
 import static org.folio.rest.jaxrs.model.ActionProfile.Action.CREATE;
 import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.AUTHORITY;
 import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORITY;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
@@ -226,7 +226,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
-    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_BIB_FOR_ORDER_CREATED.value()));
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value()));
   }
 
   @Test

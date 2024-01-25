@@ -44,9 +44,9 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_EDIFACT_RECORD_PARSED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_HOLDING_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
@@ -162,7 +162,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
         .collect(Collectors.toList());
 
       if (!actionProfiles.isEmpty() && checkIfOrderCreateActionProfileExists(actionProfiles)) {
-        dataImportEventTypes = DI_MARC_BIB_FOR_ORDER_CREATED;
+        dataImportEventTypes = DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
         LOGGER.debug("setOrderEventTypeIfNeeded:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
       }
     }
