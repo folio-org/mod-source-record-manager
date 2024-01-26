@@ -1,5 +1,6 @@
 ## 2023-01-19 v3.7.8
 * [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch
+* [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table.
 
 ## 2023-12-05 v3.7.7
 * [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match

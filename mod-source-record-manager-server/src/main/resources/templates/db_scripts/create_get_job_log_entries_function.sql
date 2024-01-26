@@ -50,7 +50,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, records_acti
        CASE
            WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
            WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
-           WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
+           WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
        END AS source_record_action_status,
        get_entity_status(instance_actions, instance_errors_number) AS instance_action_status,
        get_entity_status(holdings_actions, holdings_errors_number) AS holdings_action_status,
@@ -104,7 +104,7 @@ SELECT records_actions.job_execution_id, records_actions.source_id, source_recor
        CASE
            WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
            WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
-           WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
+           WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
        END AS source_record_action_status,
        null AS instance_action_status,
        null AS holdings_action_status,

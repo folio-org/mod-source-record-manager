@@ -52,11 +52,12 @@ BEGIN
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type = 'INVOICE' AND ((action_type = 'NON_MATCH' AND action_type_max = 'NON_MATCH') OR action_status = 'ERROR')) AS total_discarded_invoices,
       COUNT(DISTINCT(source_id)) FILTER (WHERE entity_type = 'INVOICE' AND action_status = 'ERROR') AS total_invoices_errors
     FROM journal_records
-	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as id
+	    INNER JOIN (SELECT entity_id as entity_id_max, entity_type as entity_type_max, action_status as action_status_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as id,
+	    source_id as temp_source_id
         FROM journal_records
         WHERE journal_records.job_execution_id = job_id
-			  GROUP BY id, entity_id, entity_type, action_status) AS actions
-      ON actions.id = journal_records.id
+			  GROUP BY source_id, entity_id, entity_type, action_status) AS actions
+      ON actions.id = journal_records.id AND actions.temp_source_id = journal_records.source_id
       INNER JOIN (SELECT (array_agg(action_type ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] as action_type_max, source_id as source_id_max, entity_type as entity_type_max
         FROM journal_records
         WHERE journal_records.job_execution_id = job_id

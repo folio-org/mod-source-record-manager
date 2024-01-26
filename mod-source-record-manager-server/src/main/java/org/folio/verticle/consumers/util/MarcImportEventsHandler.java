@@ -164,7 +164,12 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
 
               return titleExtractor.apply(parsedRecord, mappingRules);
             })
-            .map(title -> Future.succeededFuture(journalRecord.withTitle(title)))
+            .map(title -> {
+              if (title == null || title.isEmpty()) {
+                title = NO_TITLE_MESSAGE;
+              }
+              return Future.succeededFuture(journalRecord.withTitle(title));
+            })
             .orElseGet(() -> Future.succeededFuture(journalRecord)));
       }
     }
