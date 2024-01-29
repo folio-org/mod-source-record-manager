@@ -1,5 +1,9 @@
 package org.folio.rest.impl;
 
+import static org.folio.rest.tools.utils.TenantTool.tenantId;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import java.util.Map;
 
 import io.vertx.core.Context;
@@ -8,6 +12,9 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import javax.ws.rs.core.Response;
+import org.folio.kafka.services.KafkaAdminClientService;
+import org.folio.services.kafka.SRMKafkaTopicService;
 import org.folio.services.migration.CustomMigrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,9 +33,27 @@ public class ModTenantAPI extends TenantAPI {
   private MappingRuleService mappingRuleService;
   @Autowired
   private CustomMigrationService customMigrationService;
+  @Autowired
+  private SRMKafkaTopicService srmKafkaTopicService;
 
   public ModTenantAPI() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+  }
+
+  @Override
+  public void postTenant(TenantAttributes tenantAttributes, Map<String, String> headers,
+                         Handler<AsyncResult<Response>> handler, Context context) {
+    super.postTenant(tenantAttributes, headers, ar -> {
+      if (ar.succeeded()) {
+        Vertx vertx = context.owner();
+        var tenantId = tenantId(headers);
+        var kafkaAdminClientService = new KafkaAdminClientService(vertx);
+        kafkaAdminClientService.createKafkaTopics(srmKafkaTopicService.createTopicObjects(), tenantId);
+        handler.handle(Future.succeededFuture(ar.result()));
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    }, context);
   }
 
   @Override
