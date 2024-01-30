@@ -141,9 +141,9 @@ public class KafkaAdminClientServiceTest {
   }
 
   private final Set<String> allExpectedTopics = Set.of(
-    "folio.foo-tenant.srm.DI_COMPLETE",
-    "folio.foo-tenant.srm.DI_ERROR",
-    "folio.foo-tenant.srm.DI_PARSED_RECORDS_CHUNK_SAVED",
-    "folio.foo-tenant.srm.DI_RAW_RECORDS_CHUNK_PARSED"
+    "test-env.foo-tenant.srm.DI_COMPLETE",
+    "test-env.foo-tenant.srm.DI_ERROR",
+    "test-env.foo-tenant.srm.DI_PARSED_RECORDS_CHUNK_SAVED",
+    "test-env.foo-tenant.srm.DI_RAW_RECORDS_CHUNK_PARSED"
   );
 }
