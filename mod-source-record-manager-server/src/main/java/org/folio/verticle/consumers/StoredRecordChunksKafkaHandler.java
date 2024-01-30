@@ -218,8 +218,8 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     for (Record record : storedRecords) {
 
       if (record.getErrorRecord() == null) {
-        String retrievedTitleFromRecord = ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes);
-        if (retrievedTitleFromRecord.isEmpty()) retrievedTitleFromRecord = NO_TITLE_MESSAGE;
+        String retrievedTitleFromRecord = getTitleFromRecord(record, titleFieldTag, subfieldCodes);
+        if (retrievedTitleFromRecord != null && retrievedTitleFromRecord.isEmpty()) retrievedTitleFromRecord = NO_TITLE_MESSAGE;
 
         JournalRecord journalRecord = new JournalRecord()
           .withJobExecutionId(record.getSnapshotId())
@@ -236,6 +236,10 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
       }
     }
     return journalRecords;
+  }
+
+  private static String getTitleFromRecord(Record record, String titleFieldTag, List<String> subfieldCodes) {
+    return titleFieldTag != null ? ParsedRecordUtil.retrieveDataByField(record.getParsedRecord(), titleFieldTag, subfieldCodes) : null;
   }
 
   private EntityType getEntityType(List<Record> storedRecords) {
