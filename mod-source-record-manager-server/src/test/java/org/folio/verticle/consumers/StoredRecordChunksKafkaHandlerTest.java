@@ -140,7 +140,7 @@ public class StoredRecordChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldWriteSavedMarcBibRecordsInfoToImportJournalWhenTitleFieldTagIsNull() throws IOException {
+  public void shouldWriteSavedMarcAuthorityRecordsInfoToImportJournalWhenTitleFieldTagIsNull() throws IOException {
     // given
     Record record = Json.decodeValue(TestUtil.readFileFromPath(MARC_AUTHORITY_RECORD_PATH), Record.class);
     JsonObject mappingRulesCopy = mappingRules.copy();
