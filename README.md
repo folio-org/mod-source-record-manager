@@ -116,10 +116,14 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafkacache.cleanup.interval.ms_": 3600000
   * "_srm.kafkacache.expiration.time.hours_": 3
 
-There are another important properties - `number of partitions` for topics `DI_COMPLETE`, `DI_ERROR`, `DI_PARSED_RECORDS_CHUNK_SAVED`
+There are another important properties - `number of partitions` for topics `DI_COMPLETE`, `DI_ERROR`, `DI_SRS_MARC_BIB_RECORD_CREATED`, 
+`DI_SRS_MARC_AUTHORITY_RECORD_CREATED`, `DI_SRS_MARC_HOLDINGS_RECORD_CREATED`, `DI_MARC_FOR_UPDATE_RECEIVED`, 
+`DI_MARC_FOR_DELETE_RECEIVED`, `DI_EDIFACT_RECORD_CREATED`
 and `DI_RAW_RECORDS_CHUNK_PARSED`
 which are created during tenant initialization, the values of which can be customized with
-`DI_COMPLETE_PARTITIONS`, `DI_ERROR_PARTITIONS`, `DI_PARSED_RECORDS_CHUNK_SAVED_PARTITIONS`
+`DI_COMPLETE_PARTITIONS`, `DI_ERROR_PARTITIONS`, `DI_SRS_MARC_BIB_RECORD_CREATED_PARTITIONS`, 
+`DI_SRS_MARC_AUTHORITY_RECORD_CREATED_PARTITIONS`, `DI_SRS_MARC_HOLDINGS_RECORD_CREATED_PARTITIONS`,
+`DI_MARC_FOR_UPDATE_RECEIVED_PARTITIONS`, `DI_MARC_FOR_DELETE_RECEIVED_PARTITIONS`, `DI_EDIFACT_RECORD_CREATED_PARTITIONS`
 and `DI_RAW_RECORDS_CHUNK_PARSED_PARTITIONS` env variables respectively.
 Default value - `1`.
 
