@@ -49,6 +49,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoredRecordChunksKafkaHandlerTest {
@@ -136,6 +137,45 @@ public class StoredRecordChunksKafkaHandlerTest {
   @Test
   public void shouldWriteSavedEdifactRecordsInfoToImportJournal() throws IOException {
     writeSavedRecordsInfoToImportJournal(EDIFACT_RECORD_PATH, EntityType.EDIFACT);
+  }
+
+  @Test
+  public void shouldWriteSavedMarcBibRecordsInfoToImportJournalWhenTitleFieldTagIsNull() throws IOException {
+    // given
+    Record record = Json.decodeValue(TestUtil.readFileFromPath(MARC_AUTHORITY_RECORD_PATH), Record.class);
+    JsonObject mappingRulesCopy = mappingRules.copy();
+    mappingRulesCopy.remove("245");
+
+    RecordsBatchResponse savedRecordsBatch = new RecordsBatchResponse()
+      .withRecords(List.of(record))
+      .withTotalRecords(1);
+
+    Event event = new Event()
+      .withId(UUID.randomUUID().toString())
+      .withEventPayload(Json.encode(savedRecordsBatch));
+
+    when(kafkaRecord.value()).thenReturn(Json.encode(event).getBytes(StandardCharsets.UTF_8));
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID), KafkaHeader.header("jobExecutionId", UUID.randomUUID().toString())));
+    when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
+    when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.MARC_AUTHORITY))).thenReturn(Future.succeededFuture(Optional.of(mappingRulesCopy)));
+    when(recordsPublishingService
+      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString()))
+      .thenReturn(Future.succeededFuture(true));
+
+    // when
+    Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    assertTrue(future.succeeded());
+    verify(journalService, times(1)).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
+
+    assertEquals(1, journalRecordsCaptor.getValue().size());
+    JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
+    assertEquals(record.getId(), journalRecord.getSourceId());
+    assertEquals(EntityType.MARC_AUTHORITY, journalRecord.getEntityType());
+    assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
+    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
+    assertNull(journalRecord.getTitle());
   }
 
   @Test
