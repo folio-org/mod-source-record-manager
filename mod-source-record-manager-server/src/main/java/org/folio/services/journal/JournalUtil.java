@@ -54,7 +54,7 @@ public class JournalUtil {
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
-  private static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
+  public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
 
   private JournalUtil() {
 
@@ -181,9 +181,11 @@ public class JournalUtil {
   }
 
   private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {
-    var currentEventType = DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE));
-    return eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)
-      && ((DI_INVENTORY_INSTANCE_CREATED == currentEventType) || (DI_INVENTORY_INSTANCE_UPDATED == currentEventType));
+    if (eventPayloadContext.containsKey(CURRENT_EVENT_TYPE)) {
+      var currentEventType = DataImportEventTypes.fromValue(eventPayloadContext.get(CURRENT_EVENT_TYPE));
+      return ((DI_INVENTORY_INSTANCE_CREATED == currentEventType) || (DI_INVENTORY_INSTANCE_UPDATED == currentEventType));
+    }
+    return false;
   }
 
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
