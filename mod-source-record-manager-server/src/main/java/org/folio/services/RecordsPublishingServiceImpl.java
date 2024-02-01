@@ -146,7 +146,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().isEmpty() ? new ProfileSnapshotWrapper() : profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
