@@ -6,6 +6,7 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.dao.util.JournalRecordsColumns;
@@ -292,13 +293,15 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private JournalRecord mapRowToJournalRecord(Row row) {
+    String entityType = row.getString(ENTITY_TYPE);
+    EntityType resultedEntityType = StringUtils.isNotBlank(entityType) ? EntityType.valueOf(entityType) : null;
     return new JournalRecord()
       .withId(row.getValue(ID).toString())
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withSourceId(row.getValue(SOURCE_ID).toString())
       .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER))
       .withTitle(row.getString(TITLE))
-      .withEntityType(EntityType.valueOf(row.getString(ENTITY_TYPE)))
+      .withEntityType(resultedEntityType)
       .withEntityId(row.getString(ENTITY_ID))
       .withInstanceId(row.getString(INSTANCE_ID))
       .withHoldingsId(row.getString(HOLDINGS_ID))
