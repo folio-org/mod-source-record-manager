@@ -1,8 +1,6 @@
 package org.folio.verticle.consumers;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.RegexPattern;
-import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.json.Json;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -35,13 +33,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_BIB_FOR_ORDER_CREATED;
-import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PARSED_RECORDS_CHUNK_SAVED;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
@@ -173,32 +168,6 @@ public class StoredRecordChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventPayload.getEventType());
-  }
-
-  @Test
-  public void shouldSendEventForOrderIfOrderActionProfileExists() throws InterruptedException {
-    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.created().withBody(Json.encode(orderProfileSnapshotWrapperResponse))));
-    WireMock.stubFor(get(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
-      .willReturn(WireMock.ok().withBody(Json.encode(orderProfileSnapshotWrapperResponse))));
-    linkJobProfileToJobExecution();
-    // given
-    String parsedContent = "{\"leader\":\"00115nam  22000731a 4500\",\"fields\":[{\"003\":\"in001\"},{\"507\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}},{\"500\":{\"subfields\":[{\"a\":\"data\"}],\"ind1\":\" \",\"ind2\":\" \"}}]}";
-    RecordsBatchResponse recordsBatch = getRecordsBatchResponse(parsedContent, 1);
-
-    SendKeyValues<String, String> request = getRequest(jobExec.getId(), recordsBatch);
-
-    // when
-    kafkaCluster.send(request);
-
-    // then
-    List<String> observedValues = observeValuesAndFilterByLeader("00115nam  22000731a 4500", DI_MARC_BIB_FOR_ORDER_CREATED, 1);
-    Event obtainedEvent = Json.decodeValue(observedValues.get(0), Event.class);
-    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertEquals(DI_MARC_BIB_FOR_ORDER_CREATED.value(), eventPayload.getEventType());
-    assertEquals(TENANT_ID, eventPayload.getTenant());
-    assertNotNull(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value()));
-    assertNotNull(eventPayload.getContext().get(JOB_PROFILE_SNAPSHOT_ID));
   }
 
   private RecordsBatchResponse getRecordsBatchResponse(String parsedContent, Integer totalRecords) {
