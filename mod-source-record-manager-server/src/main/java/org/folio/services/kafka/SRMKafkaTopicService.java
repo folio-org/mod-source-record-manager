@@ -16,9 +16,6 @@ public class SRMKafkaTopicService {
   @Value("${di_error.partitions}")
   private Integer diErrorNumPartitions;
 
-  @Value("${di_srs_marc_bib_record_created.partitions}")
-  private Integer diSrsMarcBibRecordCreatedNumPartitions;
-
   @Value("${di_srs_marc_authority_record_created.partitions}")
   private Integer diSrsMarcAuthorityRecordCreatedNumPartitions;
 
@@ -28,30 +25,31 @@ public class SRMKafkaTopicService {
   @Value("${di_raw_records_chunk_parsed.partitions}")
   private Integer diRawRecordsChunkParsedNumPartitions;
 
-  @Value("${di_edifact_record_created.partitions}")
-  private Integer diEdifactRecordCreatedNumPartitions;
-
   @Value("${di_marc_for_update_received.partitions}")
   private Integer diMarcForUpdateReceivedNumPartitions;
 
   @Value("${di_marc_for_delete_received.partitions}")
   private Integer diMarcForDeleteReceivedNumPartitions;
 
+  @Value("${di_marc_for_order_created.partitions}")
+  private Integer diMarcOrderCreatedNumPartitions;
+
   public KafkaTopic[] createTopicObjects() {
     var diCompleteTopic = new SRMKafkaTopic("DI_COMPLETE", diCompleteNumPartitions);
     var diError = new SRMKafkaTopic("DI_ERROR", diErrorNumPartitions);
-    var diSrsMarcBibRecordCreated = new SRMKafkaTopic("DI_SRS_MARC_BIB_RECORD_CREATED", diSrsMarcBibRecordCreatedNumPartitions);
     var diSrsMarcAuthorityCreated = new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", diSrsMarcAuthorityRecordCreatedNumPartitions);
     var diSrsMarcHoldingsCreated = new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
       diSrsMarcHoldingsRecordCreatedNumPartitions);
     var diRawRecordsChunkParsed = new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", diRawRecordsChunkParsedNumPartitions);
-    var diEdifactRecordCreated = new SRMKafkaTopic("DI_EDIFACT_RECORD_CREATED", diEdifactRecordCreatedNumPartitions);
     var diMarcForUpdateReceived = new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED",
       diMarcForUpdateReceivedNumPartitions);
     var diMarcForDeleteReceived = new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED",
       diMarcForDeleteReceivedNumPartitions);
-    return new SRMKafkaTopic[] {diCompleteTopic, diError, diSrsMarcBibRecordCreated, diSrsMarcAuthorityCreated,
-                                diSrsMarcHoldingsCreated, diRawRecordsChunkParsed, diEdifactRecordCreated,
-                                diMarcForUpdateReceived, diMarcForDeleteReceived};
+
+    var diMarcBibOrderCreated = new SRMKafkaTopic("DI_MARC_BIB_FOR_ORDER_CREATED", diMarcOrderCreatedNumPartitions);
+
+    return new SRMKafkaTopic[] {diCompleteTopic, diError, diSrsMarcAuthorityCreated,
+                                diSrsMarcHoldingsCreated, diRawRecordsChunkParsed,
+                                diMarcForUpdateReceived, diMarcForDeleteReceived, diMarcBibOrderCreated};
   }
 }

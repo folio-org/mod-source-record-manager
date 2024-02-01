@@ -52,13 +52,12 @@ public class KafkaAdminClientServiceTest {
     KafkaTopic[] topicObjects = {
       new SRMKafkaTopic("DI_COMPLETE", 10),
       new SRMKafkaTopic("DI_ERROR", 10),
-      new SRMKafkaTopic("DI_SRS_MARC_BIB_RECORD_CREATED", 10),
       new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", 10),
       new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED", 10),
       new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", 10),
-      new SRMKafkaTopic("DI_EDIFACT_RECORD_CREATED", 10),
       new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED", 10),
-      new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", 10)
+      new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", 10),
+      new SRMKafkaTopic("DI_MARC_BIB_FOR_ORDER_CREATED", 10)
     };
 
 
@@ -148,12 +147,11 @@ public class KafkaAdminClientServiceTest {
   private final Set<String> allExpectedTopics = Set.of(
     "test-env.foo-tenant.srm.DI_COMPLETE",
     "test-env.foo-tenant.srm.DI_ERROR",
-    "test-env.foo-tenant.srm.DI_SRS_MARC_BIB_RECORD_CREATED",
     "test-env.foo-tenant.srm.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
     "test-env.foo-tenant.srm.DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
     "test-env.foo-tenant.srm.DI_RAW_RECORDS_CHUNK_PARSED",
-    "test-env.foo-tenant.srm.DI_EDIFACT_RECORD_CREATED",
     "test-env.foo-tenant.srm.DI_MARC_FOR_UPDATE_RECEIVED",
-    "test-env.foo-tenant.srm.DI_MARC_FOR_DELETE_RECEIVED"
+    "test-env.foo-tenant.srm.DI_MARC_FOR_DELETE_RECEIVED",
+    "test-env.foo-tenant.srm.DI_MARC_BIB_FOR_ORDER_CREATED"
   );
 }
