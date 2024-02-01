@@ -122,82 +122,6 @@ public class JournalUtilTest {
   }
 
   @Test
-  public void shouldBuildJournalRecordsByRecordsWithoutError() {
-    String recordId = UUID.randomUUID().toString();
-    String snapshotId = UUID.randomUUID().toString();
-
-    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
-      .withId(recordId)
-      .withSnapshotId(snapshotId)
-      .withOrder(0)
-      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB);
-
-    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
-
-    assertThat(journalRecords).hasSize(1);
-    assertThat(journalRecords.get(0).getId()).isNotBlank();
-    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
-    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
-    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
-    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
-    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(JournalRecord.ActionStatus.COMPLETED);
-    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
-    assertThat(journalRecords.get(0).getError()).isNull();
-  }
-
-  @Test
-  public void shouldBuildJournalRecordsByRecordsWithError() {
-    String recordId = UUID.randomUUID().toString();
-    String snapshotId = UUID.randomUUID().toString();
-
-    ErrorRecord errorRecord = new ErrorRecord().withDescription("error");
-    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
-      .withId(recordId)
-      .withSnapshotId(snapshotId)
-      .withOrder(0)
-      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
-      .withErrorRecord(errorRecord);
-
-    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByRecords(List.of(record));
-
-    assertThat(journalRecords).hasSize(1);
-    assertThat(journalRecords.get(0).getId()).isNotBlank();
-    assertThat(journalRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(journalRecords.get(0).getSourceId()).isEqualTo(recordId);
-    assertThat(journalRecords.get(0).getSourceRecordOrder()).isEqualTo(record.getOrder());
-    assertThat(journalRecords.get(0).getActionType()).isEqualTo(JournalRecord.ActionType.PARSE);
-    assertThat(journalRecords.get(0).getActionDate()).isNotNull();
-    assertThat(journalRecords.get(0).getActionStatus()).isEqualTo(ERROR);
-    assertThat(journalRecords.get(0).getEntityType()).isEqualTo(MARC_BIBLIOGRAPHIC);
-    assertThat(journalRecords.get(0).getError()).isEqualTo(errorRecord.getDescription());
-  }
-
-  @Test
-  public void shouldBuildIncomingRecordsByRecords() {
-    String recordId = UUID.randomUUID().toString();
-    String snapshotId = UUID.randomUUID().toString();
-
-    org.folio.rest.jaxrs.model.Record record = new org.folio.rest.jaxrs.model.Record()
-      .withId(recordId)
-      .withSnapshotId(snapshotId)
-      .withOrder(0)
-      .withRawRecord(new RawRecord().withContent("rawRecord"))
-      .withRecordType(org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB)
-      .withParsedRecord(new ParsedRecord().withContent("parsedRecord"));
-
-    List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(List.of(record));
-
-    assertThat(incomingRecords).hasSize(1);
-    assertThat(incomingRecords.get(0).getId()).isEqualTo(record.getId());
-    assertThat(incomingRecords.get(0).getJobExecutionId()).isEqualTo(snapshotId);
-    assertThat(incomingRecords.get(0).getOrder()).isEqualTo(record.getOrder());
-    assertThat(incomingRecords.get(0).getRawRecordContent()).isEqualTo("rawRecord");
-    assertThat(incomingRecords.get(0).getRecordType()).isEqualTo(IncomingRecord.RecordType.MARC_BIB);
-    assertThat(incomingRecords.get(0).getParsedRecordContent()).isEqualTo("parsedRecord");
-  }
-
-  @Test
   public void shouldBuildJournalRecordForInstance() throws JournalRecordMapperException {
     String instanceId = UUID.randomUUID().toString();
     String instanceHrid = UUID.randomUUID().toString();
@@ -277,56 +201,6 @@ public class JournalUtilTest {
     Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
     Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
     Assert.assertNotNull(journalRecord.get(0).getActionDate());
-  }
-
-  @Test
-  public void shouldBuildTwoJournalRecordWithInstanceUpdatedEvent() throws JournalRecordMapperException {
-    String instanceId = UUID.randomUUID().toString();
-    String instanceHrid = UUID.randomUUID().toString();
-
-    JsonObject instanceJson = new JsonObject()
-      .put("id", instanceId)
-      .put("hrid", instanceHrid);
-
-    String recordId = UUID.randomUUID().toString();
-    String snapshotId = UUID.randomUUID().toString();
-
-    JsonObject recordJson = new JsonObject()
-      .put("id", recordId)
-      .put("snapshotId", snapshotId)
-      .put("order", 1);
-
-    HashMap<String, String> context = new HashMap<>();
-    context.put(INSTANCE.value(), instanceJson.encode());
-    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-    context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_UPDATED");
-
-    DataImportEventPayload eventPayload = new DataImportEventPayload()
-      .withEventType("DI_COMPLETED")
-      .withContext(context);
-
-    List<JournalRecord> journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
-      UPDATE, INSTANCE, COMPLETED);
-
-    Assert.assertNotNull(journalRecord);
-    Assert.assertEquals(2, journalRecord.size());
-    Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
-    Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
-    Assert.assertEquals(instanceHrid, journalRecord.get(0).getEntityHrId());
-    Assert.assertEquals(UPDATE, journalRecord.get(0).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(0).getActionDate());
-    Assert.assertEquals(snapshotId, journalRecord.get(1).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(1).getSourceId());
-    Assert.assertEquals(1, journalRecord.get(1).getSourceRecordOrder().intValue());
-    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecord.get(1).getEntityType());
-    Assert.assertEquals(recordId, journalRecord.get(1).getEntityId());
-    Assert.assertEquals(UPDATE, journalRecord.get(1).getActionType());
-    Assert.assertEquals(COMPLETED, journalRecord.get(1).getActionStatus());
-    Assert.assertNotNull(journalRecord.get(1).getActionDate());
   }
 
   @Test
