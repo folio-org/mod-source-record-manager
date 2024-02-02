@@ -57,7 +57,7 @@ public class KafkaAdminClientServiceTest {
       new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", 10),
       new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED", 10),
       new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", 10),
-      new SRMKafkaTopic("DI_MARC_BIB_FOR_ORDER_CREATED", 10)
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", 10)
     };
 
 
@@ -152,6 +152,6 @@ public class KafkaAdminClientServiceTest {
     "test-env.foo-tenant.srm.DI_RAW_RECORDS_CHUNK_PARSED",
     "test-env.foo-tenant.srm.DI_MARC_FOR_UPDATE_RECEIVED",
     "test-env.foo-tenant.srm.DI_MARC_FOR_DELETE_RECEIVED",
-    "test-env.foo-tenant.srm.DI_MARC_BIB_FOR_ORDER_CREATED"
+    "test-env.foo-tenant.srm.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED"
   );
 }

@@ -31,8 +31,8 @@ public class SRMKafkaTopicService {
   @Value("${di_marc_for_delete_received.partitions}")
   private Integer diMarcForDeleteReceivedNumPartitions;
 
-  @Value("${di_marc_for_order_created.partitions}")
-  private Integer diMarcOrderCreatedNumPartitions;
+  @Value("${di_marc_for_order_parsed.partitions}")
+  private Integer diMarcOrderParsedNumPartitions;
 
   public KafkaTopic[] createTopicObjects() {
     var diCompleteTopic = new SRMKafkaTopic("DI_COMPLETE", diCompleteNumPartitions);
@@ -46,10 +46,11 @@ public class SRMKafkaTopicService {
     var diMarcForDeleteReceived = new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED",
       diMarcForDeleteReceivedNumPartitions);
 
-    var diMarcBibOrderCreated = new SRMKafkaTopic("DI_MARC_BIB_FOR_ORDER_CREATED", diMarcOrderCreatedNumPartitions);
+    var diIncomingMarcBibForOrderParsed = new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
+      diMarcOrderParsedNumPartitions);
 
     return new SRMKafkaTopic[] {diCompleteTopic, diError, diSrsMarcAuthorityCreated,
                                 diSrsMarcHoldingsCreated, diRawRecordsChunkParsed,
-                                diMarcForUpdateReceived, diMarcForDeleteReceived, diMarcBibOrderCreated};
+                                diMarcForUpdateReceived, diMarcForDeleteReceived, diIncomingMarcBibForOrderParsed};
   }
 }
