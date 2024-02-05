@@ -116,6 +116,17 @@ After setup, it is good to check logs in all related modules for errors. Data im
   * "_srm.kafkacache.cleanup.interval.ms_": 3600000
   * "_srm.kafkacache.expiration.time.hours_": 3
 
+There are another important properties - `number of partitions` for topics `DI_COMPLETE`, `DI_ERROR`, `DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED`, 
+`DI_SRS_MARC_AUTHORITY_RECORD_CREATED`, `DI_SRS_MARC_HOLDINGS_RECORD_CREATED`, `DI_MARC_FOR_UPDATE_RECEIVED`, 
+`DI_MARC_FOR_DELETE_RECEIVED`
+and `DI_RAW_RECORDS_CHUNK_PARSED`
+which are created during tenant initialization, the values of which can be customized with
+`DI_COMPLETE_PARTITIONS`, `DI_ERROR_PARTITIONS`, `DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED_PARTITIONS`, 
+`DI_SRS_MARC_AUTHORITY_RECORD_CREATED_PARTITIONS`, `DI_SRS_MARC_HOLDINGS_RECORD_CREATED_PARTITIONS`,
+`DI_MARC_FOR_UPDATE_RECEIVED_PARTITIONS`, `DI_MARC_FOR_DELETE_RECEIVED_PARTITIONS`
+and `DI_RAW_RECORDS_CHUNK_PARSED_PARTITIONS` env variables respectively.
+Default value - `1`.
+
 #### Note:
 From v 3.1.3 there is a new property which defines limit for retrieving data to fill mapping parameters for the data-import mechanism: **"srm.mapping.parameters.settings.limit:1000"**
 
