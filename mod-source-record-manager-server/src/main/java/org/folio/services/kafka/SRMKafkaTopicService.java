@@ -35,22 +35,18 @@ public class SRMKafkaTopicService {
   private Integer diMarcOrderParsedNumPartitions;
 
   public KafkaTopic[] createTopicObjects() {
-    var diCompleteTopic = new SRMKafkaTopic("DI_COMPLETE", diCompleteNumPartitions);
-    var diError = new SRMKafkaTopic("DI_ERROR", diErrorNumPartitions);
-    var diSrsMarcAuthorityCreated = new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", diSrsMarcAuthorityRecordCreatedNumPartitions);
-    var diSrsMarcHoldingsCreated = new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
-      diSrsMarcHoldingsRecordCreatedNumPartitions);
-    var diRawRecordsChunkParsed = new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", diRawRecordsChunkParsedNumPartitions);
-    var diMarcForUpdateReceived = new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED",
-      diMarcForUpdateReceivedNumPartitions);
-    var diMarcForDeleteReceived = new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED",
-      diMarcForDeleteReceivedNumPartitions);
-
-    var diIncomingMarcBibForOrderParsed = new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
-      diMarcOrderParsedNumPartitions);
-
-    return new SRMKafkaTopic[] {diCompleteTopic, diError, diSrsMarcAuthorityCreated,
-                                diSrsMarcHoldingsCreated, diRawRecordsChunkParsed,
-                                diMarcForUpdateReceived, diMarcForDeleteReceived, diIncomingMarcBibForOrderParsed};
+    return new SRMKafkaTopic[] {
+      new SRMKafkaTopic("DI_COMPLETE", diCompleteNumPartitions),
+      new SRMKafkaTopic("DI_ERROR", diErrorNumPartitions),
+      new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", diSrsMarcAuthorityRecordCreatedNumPartitions),
+      new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
+        diSrsMarcHoldingsRecordCreatedNumPartitions),
+      new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", diRawRecordsChunkParsedNumPartitions),
+      new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED",
+        diMarcForUpdateReceivedNumPartitions),
+      new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED",
+      diMarcForDeleteReceivedNumPartitions),
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
+      diMarcOrderParsedNumPartitions)};
   }
 }
