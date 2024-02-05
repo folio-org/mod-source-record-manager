@@ -3,7 +3,6 @@ package org.folio.services.kafka.support;
 import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
 import static org.folio.kafka.services.KafkaEnvironmentProperties.environment;
 
-import org.folio.kafka.KafkaConfig;
 import org.folio.kafka.services.KafkaTopic;
 
 public class SRMKafkaTopic implements KafkaTopic {
