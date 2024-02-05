@@ -144,13 +144,13 @@ public class KafkaAdminClientServiceTest {
   }
 
   private final Set<String> allExpectedTopics = Set.of(
-    "folio.foo-tenant.DI_COMPLETE",
-    "folio.foo-tenant.DI_ERROR",
-    "folio.foo-tenant.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
-    "folio.foo-tenant.DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
-    "folio.foo-tenant.DI_RAW_RECORDS_CHUNK_PARSED",
-    "folio.foo-tenant.DI_MARC_FOR_UPDATE_RECEIVED",
-    "folio.foo-tenant.DI_MARC_FOR_DELETE_RECEIVED",
-    "folio.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED"
+    "test-env.foo-tenant.DI_COMPLETE",
+    "test-env.foo-tenant.DI_ERROR",
+    "test-env.foo-tenant.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
+    "test-env.foo-tenant.DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
+    "test-env.foo-tenant.DI_RAW_RECORDS_CHUNK_PARSED",
+    "test-env.foo-tenant.DI_MARC_FOR_UPDATE_RECEIVED",
+    "test-env.foo-tenant.DI_MARC_FOR_DELETE_RECEIVED",
+    "test-env.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED"
   );
 }
