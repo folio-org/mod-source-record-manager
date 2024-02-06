@@ -147,7 +147,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        CASE
          WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
          WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
-         WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
+         WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
          END AS source_record_action_status,
        records_actions.source_entity_error AS source_entity_error,
        records_actions.source_record_tenant_id AS source_record_tenant_id,
@@ -314,7 +314,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        CASE
          WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
          WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
-         WHEN marc_actions[array_length(marc_actions, 1)] IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
+         WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
          END AS source_record_action_status,
        records_actions.source_record_error[1] as source_entity_error,
        records_actions.source_record_tenant_id AS source_record_tenant_id,
