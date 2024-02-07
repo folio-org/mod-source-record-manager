@@ -1,6 +1,7 @@
 package org.folio.services.kafka.support;
 
 import static org.folio.kafka.KafkaTopicNameHelper.formatTopicName;
+import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.kafka.services.KafkaEnvironmentProperties.environment;
 
 import org.folio.kafka.services.KafkaTopic;
@@ -32,6 +33,6 @@ public class SRMKafkaTopic implements KafkaTopic {
 
   @Override
   public String fullTopicName(String tenant) {
-    return formatTopicName(environment(), tenant, topicName());
+    return formatTopicName(environment(), getDefaultNameSpace(), tenant, topicName());
   }
 }
