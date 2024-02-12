@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @PropertySource(value = "kafka.properties")
 public class SRMKafkaTopicService {
 
-  @Value("${di_complete.partitions}")
-  private Integer diCompleteNumPartitions;
+  @Value("${di_completed.partitions}")
+  private Integer diCompletedNumPartitions;
 
   @Value("${di_error.partitions}")
   private Integer diErrorNumPartitions;
@@ -34,19 +34,24 @@ public class SRMKafkaTopicService {
   @Value("${di_marc_for_order_parsed.partitions}")
   private Integer diMarcOrderParsedNumPartitions;
 
+  @Value("${di_marc_bib_record_parsed.partitions}")
+  private Integer diMarcBibRecordParsedNumPartitions;
+
+  @Value("${di_edifact_parsed.partitions}")
+  private Integer diEdifactRecordParsedNumPartitions;
+
   public KafkaTopic[] createTopicObjects() {
     return new SRMKafkaTopic[] {
-      new SRMKafkaTopic("DI_COMPLETE", diCompleteNumPartitions),
+      new SRMKafkaTopic("DI_COMPLETED", diCompletedNumPartitions),
       new SRMKafkaTopic("DI_ERROR", diErrorNumPartitions),
       new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", diSrsMarcAuthorityRecordCreatedNumPartitions),
-      new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
-        diSrsMarcHoldingsRecordCreatedNumPartitions),
+      new SRMKafkaTopic("DI_SRS_MARC_HOLDING_RECORD_CREATED", diSrsMarcHoldingsRecordCreatedNumPartitions),
       new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", diRawRecordsChunkParsedNumPartitions),
-      new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED",
-        diMarcForUpdateReceivedNumPartitions),
-      new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED",
-      diMarcForDeleteReceivedNumPartitions),
-      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
-      diMarcOrderParsedNumPartitions)};
+      new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED", diMarcForUpdateReceivedNumPartitions),
+      new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", diMarcForDeleteReceivedNumPartitions),
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", diMarcOrderParsedNumPartitions),
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_RECORD_PARSED", diMarcBibRecordParsedNumPartitions),
+      new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", diEdifactRecordParsedNumPartitions)
+    };
   }
 }
