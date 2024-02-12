@@ -50,14 +50,16 @@ public class KafkaAdminClientServiceTest {
     mockClient = mock(KafkaAdminClient.class);
     srmKafkaTopicService = mock(SRMKafkaTopicService.class);
     KafkaTopic[] topicObjects = {
-      new SRMKafkaTopic("DI_COMPLETE", 10),
+      new SRMKafkaTopic("DI_COMPLETED", 10),
       new SRMKafkaTopic("DI_ERROR", 10),
       new SRMKafkaTopic("DI_SRS_MARC_AUTHORITY_RECORD_CREATED", 10),
-      new SRMKafkaTopic("DI_SRS_MARC_HOLDINGS_RECORD_CREATED", 10),
+      new SRMKafkaTopic("DI_SRS_MARC_HOLDING_RECORD_CREATED", 10),
       new SRMKafkaTopic("DI_RAW_RECORDS_CHUNK_PARSED", 10),
       new SRMKafkaTopic("DI_MARC_FOR_UPDATE_RECEIVED", 10),
       new SRMKafkaTopic("DI_MARC_FOR_DELETE_RECEIVED", 10),
-      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", 10)
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED", 10),
+      new SRMKafkaTopic("DI_INCOMING_MARC_BIB_RECORD_PARSED", 10),
+      new SRMKafkaTopic("DI_INCOMING_EDIFACT_RECORD_PARSED", 10)
     };
 
     when(srmKafkaTopicService.createTopicObjects()).thenReturn(topicObjects);
@@ -144,13 +146,15 @@ public class KafkaAdminClientServiceTest {
   }
 
   private final Set<String> allExpectedTopics = Set.of(
-    "test-env.Default.foo-tenant.DI_COMPLETE",
+    "test-env.Default.foo-tenant.DI_COMPLETED",
     "test-env.Default.foo-tenant.DI_ERROR",
     "test-env.Default.foo-tenant.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
-    "test-env.Default.foo-tenant.DI_SRS_MARC_HOLDINGS_RECORD_CREATED",
+    "test-env.Default.foo-tenant.DI_SRS_MARC_HOLDING_RECORD_CREATED",
     "test-env.Default.foo-tenant.DI_RAW_RECORDS_CHUNK_PARSED",
     "test-env.Default.foo-tenant.DI_MARC_FOR_UPDATE_RECEIVED",
     "test-env.Default.foo-tenant.DI_MARC_FOR_DELETE_RECEIVED",
-    "test-env.Default.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED"
+    "test-env.Default.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
+    "test-env.Default.foo-tenant.DI_INCOMING_MARC_BIB_RECORD_PARSED",
+    "test-env.Default.foo-tenant.DI_INCOMING_EDIFACT_RECORD_PARSED"
   );
 }
