@@ -172,8 +172,8 @@ public final class AdditionalFieldsUtil {
 
   private static String reorderMarcRecordFields(String source, String parsedContentString) {
     try {
-      JsonNode parsedContent = objectMapper.readTree(parsedContentString);
-      ArrayNode fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
+      var parsedContent = objectMapper.readTree(parsedContentString);
+      var fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
 
       Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
       fieldsArrayNode.forEach(node -> {
@@ -183,7 +183,7 @@ public final class AdditionalFieldsUtil {
 
       List<String> sourceFields = getSourceFields(source);
 
-      ArrayNode rearrangedArray = objectMapper.createArrayNode();
+      var rearrangedArray = objectMapper.createArrayNode();
       for (String tag : sourceFields) {
         Queue<JsonNode> nodes = jsonNodesByTag.get(tag);
         if (nodes != null && !nodes.isEmpty()) {
@@ -211,10 +211,10 @@ public final class AdditionalFieldsUtil {
   private static List<String> getSourceFields(String source) {
     List<String> sourceFields = new ArrayList<>();
     try {
-      JsonNode sourceJson = objectMapper.readTree(source);
-      JsonNode fieldsNode = sourceJson.get("fields");
+      var sourceJson = objectMapper.readTree(source);
+      var fieldsNode = sourceJson.get("fields");
       for (JsonNode fieldNode : fieldsNode) {
-        String tag = fieldNode.fieldNames().next();
+        var tag = fieldNode.fieldNames().next();
         sourceFields.add(tag);
       }
     } catch (Exception e) {
