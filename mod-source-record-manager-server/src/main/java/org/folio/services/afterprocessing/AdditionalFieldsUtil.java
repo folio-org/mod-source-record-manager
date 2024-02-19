@@ -1,5 +1,8 @@
 package org.folio.services.afterprocessing;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -28,9 +31,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -50,6 +58,7 @@ public final class AdditionalFieldsUtil {
 
   private final static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
   private final static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   static {
     // this function is executed when creating a new item to be saved in the cache.
@@ -148,8 +157,9 @@ public final class AdditionalFieldsUtil {
 
           String parsedContentString = new JsonObject(os.toString()).encode();
           // save parsed content string to cache then set it on the record
-          parsedRecordContentCache.put(parsedContentString, marcRecord);
-          record.setParsedRecord(record.getParsedRecord().withContent(parsedContentString));
+          var content = reorderMarcRecordFields(record.getParsedRecord().getContent().toString(), parsedContentString);
+          parsedRecordContentCache.put(content, marcRecord);
+          record.setParsedRecord(record.getParsedRecord().withContent(content));
           result = true;
         }
       }
@@ -157,6 +167,60 @@ public final class AdditionalFieldsUtil {
       LOGGER.warn("addFieldToMarcRecord:: Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
     }
     return result;
+  }
+
+
+  private static String reorderMarcRecordFields(String source, String parsedContentString) {
+    try {
+      JsonNode parsedContent = objectMapper.readTree(parsedContentString);
+      ArrayNode fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
+
+      Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
+      fieldsArrayNode.forEach(node -> {
+        String tag = node.fieldNames().next();
+        jsonNodesByTag.computeIfAbsent(tag, k -> new LinkedList<>()).add(node);
+      });
+
+      List<String> sourceFields = getSourceFields(source);
+
+      ArrayNode rearrangedArray = objectMapper.createArrayNode();
+      for (String tag : sourceFields) {
+        Queue<JsonNode> nodes = jsonNodesByTag.get(tag);
+        if (nodes != null && !nodes.isEmpty()) {
+          rearrangedArray.add(nodes.poll());
+        }
+      }
+
+      fieldsArrayNode.forEach(node -> {
+        String tag = node.fieldNames().next();
+        if (!sourceFields.contains(tag)) {
+          rearrangedArray.add(node);
+        }
+      });
+
+      fieldsArrayNode.removeAll();
+      fieldsArrayNode.addAll(rearrangedArray);
+
+      return parsedContent.toString();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  private static List<String> getSourceFields(String source) {
+    List<String> sourceFields = new ArrayList<>();
+    try {
+      JsonNode sourceJson = objectMapper.readTree(source);
+      JsonNode fieldsNode = sourceJson.get("fields");
+      for (JsonNode fieldNode : fieldsNode) {
+        String tag = fieldNode.fieldNames().next();
+        sourceFields.add(tag);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return sourceFields;
   }
 
   /**
