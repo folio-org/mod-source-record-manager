@@ -1,4 +1,5 @@
 ## 2023-xx-xx v3.8.0-SNAPSHOT
+* [MODDATAIMP-1003](https://folio-org.atlassian.net/browse/MODDATAIMP-1003)
 * [MODSOURMAN-1123](https://issues.folio.org/browse/MODSOURMAN-1123) Create Kafka topics instead of relying on auto create in mod-srm
 * [MODSOURMAN-1113](https://issues.folio.org/browse/MODSOURMAN-1113) Reduce Memory Allocations Of Strings
 * [MODSOURMAN-1085](https://issues.folio.org/browse/MODSOURMAN-1085) MARC record with a 100 tag without a $a is being discarded on import.
