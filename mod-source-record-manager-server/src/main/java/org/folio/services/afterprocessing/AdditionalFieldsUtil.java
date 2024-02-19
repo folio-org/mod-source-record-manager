@@ -169,19 +169,14 @@ public final class AdditionalFieldsUtil {
     return result;
   }
 
-
-  private static String reorderMarcRecordFields(String source, String parsedContentString) {
+  private String reorderMarcRecordFields(String sourceContent, String targetContent) {
     try {
-      var parsedContent = objectMapper.readTree(parsedContentString);
+      var parsedContent = objectMapper.readTree(targetContent);
       var fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
 
-      Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
-      fieldsArrayNode.forEach(node -> {
-        String tag = node.fieldNames().next();
-        jsonNodesByTag.computeIfAbsent(tag, k -> new LinkedList<>()).add(node);
-      });
+      Map<String, Queue<JsonNode>> jsonNodesByTag = groupNodesByTag(fieldsArrayNode);
 
-      List<String> sourceFields = getSourceFields(source);
+      List<String> sourceFields = getSourceFields(sourceContent);
 
       var rearrangedArray = objectMapper.createArrayNode();
       for (String tag : sourceFields) {
@@ -208,7 +203,7 @@ public final class AdditionalFieldsUtil {
     }
   }
 
-  private static List<String> getSourceFields(String source) {
+  private List<String> getSourceFields(String source) {
     List<String> sourceFields = new ArrayList<>();
     try {
       var sourceJson = objectMapper.readTree(source);
@@ -221,6 +216,15 @@ public final class AdditionalFieldsUtil {
       e.printStackTrace();
     }
     return sourceFields;
+  }
+
+  private Map<String, Queue<JsonNode>> groupNodesByTag(ArrayNode fieldsArrayNode) {
+    Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
+    fieldsArrayNode.forEach(node -> {
+      String tag = node.fieldNames().next();
+      jsonNodesByTag.computeIfAbsent(tag, k -> new LinkedList<>()).add(node);
+    });
+    return jsonNodesByTag;
   }
 
   /**
