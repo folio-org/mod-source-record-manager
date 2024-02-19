@@ -169,7 +169,7 @@ public final class AdditionalFieldsUtil {
     return result;
   }
 
-  private String reorderMarcRecordFields(String sourceContent, String targetContent) {
+  private static String reorderMarcRecordFields(String sourceContent, String targetContent) {
     try {
       var parsedContent = objectMapper.readTree(targetContent);
       var fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
@@ -203,7 +203,7 @@ public final class AdditionalFieldsUtil {
     }
   }
 
-  private List<String> getSourceFields(String source) {
+  private static List<String> getSourceFields(String source) {
     List<String> sourceFields = new ArrayList<>();
     try {
       var sourceJson = objectMapper.readTree(source);
@@ -218,7 +218,7 @@ public final class AdditionalFieldsUtil {
     return sourceFields;
   }
 
-  private Map<String, Queue<JsonNode>> groupNodesByTag(ArrayNode fieldsArrayNode) {
+  private static Map<String, Queue<JsonNode>> groupNodesByTag(ArrayNode fieldsArrayNode) {
     Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
     fieldsArrayNode.forEach(node -> {
       String tag = node.fieldNames().next();
