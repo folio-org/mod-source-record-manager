@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.folio.TestUtil.recordsHaveSameOrder;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.INDICATOR;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
@@ -38,11 +39,13 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeFiel
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(BlockJUnit4ClassRunner.class)
 public class AdditionalFieldsUtilTest {
 
   private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
+  private static final String REORDERED_PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/reorderedParsedRecord.json";
 
   @BeforeClass
   public static void beforeClass() {
@@ -104,6 +107,39 @@ public class AdditionalFieldsUtilTest {
       }
     }
     Assert.assertEquals(2, totalFieldsCount);
+  }
+
+  @Test
+  public void shouldReorderParsedRecordContentAfterAddingField() throws IOException {
+    // given
+    String instanceId = UUID.randomUUID().toString();
+    String parsedRecordContent = TestUtil.readFileFromPath(REORDERED_PARSED_RECORD_PATH);
+    ParsedRecord parsedRecord = new ParsedRecord();
+    String leader = new JsonObject(parsedRecordContent).getString("leader");
+    parsedRecord.setContent(parsedRecordContent);
+    Record record = new Record().withId(UUID.randomUUID().toString()).withParsedRecord(parsedRecord);
+    var baseRecord = record.getParsedRecord().getContent().toString();
+    // when
+    boolean added = addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, instanceId);
+    // then
+    assertTrue(recordsHaveSameOrder(baseRecord, record.getParsedRecord().getContent().toString()));
+    assertTrue(added);
+    JsonObject content = new JsonObject(record.getParsedRecord().getContent().toString());
+    JsonArray fields = content.getJsonArray("fields");
+    String newLeader = content.getString("leader");
+    Assert.assertNotEquals(leader, newLeader);
+    Assert.assertFalse(fields.isEmpty());
+    boolean existsNewField = false;
+    for (int i = 0; i < fields.size(); i++) {
+      JsonObject targetField = fields.getJsonObject(i);
+      if (targetField.containsKey(TAG_999)) {
+        existsNewField = true;
+        String currentTag = fields.getJsonObject(i-1).stream().map(Map.Entry::getKey).findFirst().get();
+        String nextTag = fields.getJsonObject(i).stream().map(Map.Entry::getKey).findFirst().get();
+        Assert.assertThat(currentTag, lessThanOrEqualTo(nextTag));
+      }
+    }
+    assertTrue(existsNewField);
   }
 
   @Test
