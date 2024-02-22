@@ -202,7 +202,7 @@ public class JournalUtil {
     }
 
     return buildCommonJournalRecord(actionStatus, actionTypeForMarcBib, currentRecord, eventPayload, eventPayloadContext)
-      .withEntityId(marcBibEntityId)
+      .withEntityId(actionTypeForMarcBib == JournalRecord.ActionType.CREATE?marcBibEntityId:null)
       .withEntityType(MARC_BIBLIOGRAPHIC);
   }
 

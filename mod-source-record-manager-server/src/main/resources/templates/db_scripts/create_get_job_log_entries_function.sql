@@ -55,7 +55,7 @@ WITH
            CASE
              WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
              WHEN action_type = ''CREATE'' THEN ''CREATED''
-             WHEN action_type IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
+             WHEN action_type = ''UPDATE'' THEN ''UPDATED''
              END AS action_type,
            action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
     FROM journal_records
