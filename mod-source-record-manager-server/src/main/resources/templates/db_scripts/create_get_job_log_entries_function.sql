@@ -106,14 +106,14 @@ WITH
                WHEN EXISTS (SELECT condition_result.entity_id FROM temp_result condition_result
                             WHERE (condition_result.action_type IN (''CREATED'',''UPDATED'') AND condition_result.entity_type=''ITEM'')
                                OR
-                              (condition_result.action_type=''DISCARDED'' AND condition_result.error != '''' AND condition_result.entity_type=''ITEM''))
+                              (condition_result.action_type=''DISCARDED'' AND condition_result.entity_type=''ITEM''))
                  THEN
                  (SELECT deep_nested.id
                   FROM temp_result deep_nested
                   WHERE
                     (deep_nested.action_type IN (''CREATED'',''UPDATED'') AND deep_nested.id = nested_result.id)
                      OR
-                    (deep_nested.action_type=''DISCARDED'' AND deep_nested.error != '''' AND deep_nested.id = nested_result.id))
+                    (deep_nested.action_type=''DISCARDED'' AND deep_nested.id = nested_result.id))
                ELSE
                  nested_result.id
                END
