@@ -35,7 +35,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +43,6 @@ import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1742,21 +1740,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) throws InterruptedException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1773,6 +1771,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1783,7 +1782,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto)
@@ -1791,33 +1792,20 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
+
     List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-      .observeFor(30, TimeUnit.SECONDS)
+      .observeFor(2000, TimeUnit.SECONDS)
       .build());
 
-    await().until(() -> HasParsedEvent(observedValues));
-  }
-
-  private static boolean HasParsedEvent(List<String> observedEvents) {
-    if (observedEvents == null) {
-      return false;
-    }
-    for (var event : observedEvents) {
-      try {
-        Event obtainedEvent = Json.decodeValue(event, Event.class);
-        assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
-        var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-        assertNotNull(eventPayload.getContext());
-        JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
-        assertNotEquals(0, record.getInteger("order").intValue());
-        return true;
-      } catch (DecodeException | AssertionError error) {
-        System.out.println(error.getMessage());
-      }
-    }
-    return false;
+    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
+    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
+    var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertNotNull(eventPayload.getContext());
+    JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+    assertNotEquals(0, record.getInteger("order").intValue());
   }
 
   @Test
