@@ -35,6 +35,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +44,7 @@ import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.restassured.RestAssured;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1795,12 +1797,27 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .observeFor(30, TimeUnit.SECONDS)
       .build());
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
-    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
-    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertNotNull(eventPayload.getContext());
-    JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
-    assertNotEquals(0, record.getInteger("order").intValue());
+    await().until(() -> HasParsedEvent(observedValues));
+  }
+
+  private static boolean HasParsedEvent(List<String> observedEvents) {
+    if (observedEvents == null) {
+      return false;
+    }
+    for (var event : observedEvents) {
+      try {
+        Event obtainedEvent = Json.decodeValue(event, Event.class);
+        assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
+        var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+        assertNotNull(eventPayload.getContext());
+        JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
+        assertNotEquals(0, record.getInteger("order").intValue());
+        return true;
+      } catch (DecodeException | AssertionError error) {
+        System.out.println(error.getMessage());
+      }
+    }
+    return false;
   }
 
   @Test
