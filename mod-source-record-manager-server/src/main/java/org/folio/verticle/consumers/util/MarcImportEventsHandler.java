@@ -175,12 +175,14 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     } else if (entityType == PO_LINE) {
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
-        var title = Optional.of(Json.decodeValue(recordAsString, RelatedPoLineInfo.class)
+        var title = Json.decodeValue(recordAsString, RelatedPoLineInfo.class)
           .getAdditionalProperties()
-          .get(PO_LINE_TITLE))
-          .map(Object::toString)
-          .orElse(NO_TITLE_MESSAGE);
-        journalRecord.withTitle(title);
+          .get(PO_LINE_TITLE);
+        if (title == null || StringUtils.isEmpty(String.valueOf(title))) {
+          journalRecord.withTitle(NO_TITLE_MESSAGE);
+        } else {
+          journalRecord.withTitle(title.toString());
+        }
       }
     }
     return Future.succeededFuture(journalRecord);

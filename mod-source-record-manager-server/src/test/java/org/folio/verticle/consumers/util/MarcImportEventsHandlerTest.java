@@ -2,6 +2,7 @@ package org.folio.verticle.consumers.util;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_COMPLETED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
@@ -12,6 +13,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_R
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
+import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -225,7 +227,7 @@ public class MarcImportEventsHandlerTest {
 
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
-    assertNull(actualJournalRecord.getTitle());
+    assertEquals(actualJournalRecord.getTitle(), NO_TITLE_MESSAGE);
   }
 
   @Test
@@ -283,6 +285,27 @@ public class MarcImportEventsHandlerTest {
     marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
 
     var payload = constructUpdateInstancePayload(marcRecord);
+    handler.handle(journalService, payload, TEST_TENANT);
+
+    verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
+    var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
+
+    assertEquals(title, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testSaveOrderWithTitle() throws JournalRecordMapperException {
+    String title = "The Journal of ecclesiastical history.";
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructOrderPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
 
     verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
@@ -379,6 +402,21 @@ public class MarcImportEventsHandlerTest {
       .withEventsChain(List.of(DI_ORDER_CREATED.value()))
       .withEventType(DI_ERROR.value())
       .withContext(payloadContext);
+  }
+
+  private DataImportEventPayload constructOrderPayload(org.marc4j.marc.Record marcRecord) {
+    var record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withParsedRecord(new ParsedRecord().withContent(marcRecordToJsonContent(marcRecord)))
+      .withSnapshotId(UUID.randomUUID().toString());
+    HashMap<String, String> payloadContext = new HashMap<>();
+    payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+    payloadContext.put("PO_LINE", "{\"purchaseOrderId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\", \"titleOrPackage\":\"The Journal of ecclesiastical history.\"}");
+    return new DataImportEventPayload()
+      .withEventsChain(List.of(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value(), DI_ORDER_CREATED.value()))
+      .withEventType(DI_COMPLETED.value())
+      .withContext(payloadContext)
+      .withJobExecutionId(UUID.randomUUID().toString());
   }
 
   private DataImportEventPayload constructCreateErrorPOLinePayloadWithOrderId(org.marc4j.marc.Record marcRecord) {
