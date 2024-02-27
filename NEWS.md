@@ -16,6 +16,7 @@
 * [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table.
 * [MODSOURMAN-1063](https://issues.folio.org/browse/MODSOURMAN-1063) Update RecordProcessingLogDto to contain incoming record id
 * [MODSOURMAN-1122](https://issues.folio.org/browse/MODSOURMAN-1122) Add additional check for the childSnapshotWrappers
+* [MODSOURMAN-1133](https://folio-org.atlassian.net/browse/MODSOURMAN-1133) Adjust SQL condition to include DISCARDED items
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
