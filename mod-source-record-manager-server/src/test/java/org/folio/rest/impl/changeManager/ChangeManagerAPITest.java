@@ -35,6 +35,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1799,6 +1800,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertNotNull(eventPayload.getContext());
+    await().untilAsserted(() -> assertNotNull(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")));
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNotEquals(0, record.getInteger("order").intValue());
   }
