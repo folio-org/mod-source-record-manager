@@ -175,11 +175,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     } else if (entityType == PO_LINE) {
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
-        var title = new JsonObject(recordAsString).getMap().get(PO_LINE_TITLE);
-        if (title == null || StringUtils.isEmpty(String.valueOf(title))) {
+        var title = new JsonObject(recordAsString).getString(PO_LINE_TITLE);
+        if (title == null || StringUtils.isEmpty(title)) {
           journalRecord.withTitle(NO_TITLE_MESSAGE);
         } else {
-          journalRecord.withTitle(title.toString());
+          journalRecord.withTitle(title);
         }
       }
     }
