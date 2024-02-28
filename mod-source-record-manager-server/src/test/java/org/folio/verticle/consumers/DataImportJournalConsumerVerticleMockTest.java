@@ -124,6 +124,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   private final JsonObject recordJson = new JsonObject()
     .put("id", UUID.randomUUID().toString())
     .put("snapshotId", jobExecutionUUID)
+    .put("matchedId", UUID.randomUUID().toString())
     .put("order", 1);
 
   private Record record;
@@ -284,7 +285,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonArray.getJsonObject(0).getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonArray.getJsonObject(0).getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(0).getString(ACTION_STATUS_KEY));
-    Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonArray.getJsonObject(0).getString(SOURCE_RECORD_ID_KEY));
+    Assert.assertEquals("Source Record id:", recordJson.getString("matchedId"), jsonArray.getJsonObject(0).getString(SOURCE_RECORD_ID_KEY));
     Assert.assertNotNull(jsonArray.getJsonObject(0).getString("error"));
   }
 

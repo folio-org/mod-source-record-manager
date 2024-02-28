@@ -133,10 +133,12 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -152,7 +154,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -173,10 +175,12 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -194,7 +198,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(2, journalRecord.size());
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -213,10 +217,12 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -232,7 +238,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(AUTHORITY, journalRecord.get(0).getEntityType());
     Assert.assertEquals(authorityId, journalRecord.get(0).getEntityId());
@@ -520,10 +526,12 @@ public class JournalUtilTest {
   public void shouldBuildJournalRecordForInstanceEvenIfEntityIsNotExists() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -538,7 +546,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
@@ -552,10 +560,12 @@ public class JournalUtilTest {
     String snapshotId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String purchaseOrderId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     JsonObject orderJson = new JsonObject()
@@ -576,7 +586,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(entityId, journalRecord.get(0).getEntityId());
     Assert.assertEquals(purchaseOrderId, journalRecord.get(0).getOrderId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
@@ -920,6 +930,7 @@ public class JournalUtilTest {
     String holdingsId = UUID.randomUUID().toString();
     String firstErrorUUID = UUID.randomUUID().toString();
     String secondErrorUUID = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject itemJson = new JsonObject()
       .put("id", itemId)
@@ -936,6 +947,7 @@ public class JournalUtilTest {
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     JsonArray multipleItems = new JsonArray();
@@ -970,7 +982,7 @@ public class JournalUtilTest {
     Assert.assertEquals(1, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
@@ -987,6 +999,7 @@ public class JournalUtilTest {
     Record record = new Record()
       .withId(UUID.randomUUID().toString())
       .withSnapshotId(UUID.randomUUID().toString())
+      .withMatchedId(UUID.randomUUID().toString())
       .withOrder(1);
 
     HashMap<String, String> context = new HashMap<>() {{
@@ -1002,7 +1015,7 @@ public class JournalUtilTest {
       UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
 
     Assert.assertEquals(1, journalRecords.size());
-    Assert.assertEquals(record.getId(), journalRecords.get(0).getSourceId());
+    Assert.assertEquals(record.getMatchedId(), journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(expectedCentralTenantId, journalRecords.get(0).getTenantId());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
@@ -1057,10 +1070,12 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -1079,7 +1094,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(2, journalRecord.size());
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -1103,10 +1118,12 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String matchedId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
       .put("snapshotId", snapshotId)
+      .put("matchedId", matchedId)
       .put("order", 1);
 
     HashMap<String, String> context = new HashMap<>();
@@ -1126,7 +1143,7 @@ public class JournalUtilTest {
     Assert.assertEquals(2, journalRecord.size());
 
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(matchedId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
