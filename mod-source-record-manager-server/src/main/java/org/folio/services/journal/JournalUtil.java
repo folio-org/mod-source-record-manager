@@ -202,7 +202,7 @@ public class JournalUtil {
     }
 
     return buildCommonJournalRecord(actionStatus, actionTypeForMarcBib, currentRecord, eventPayload, eventPayloadContext)
-      .withEntityId(actionTypeForMarcBib == JournalRecord.ActionType.CREATE?marcBibEntityId:null)
+      .withEntityId(actionTypeForMarcBib == JournalRecord.ActionType.CREATE ? marcBibEntityId : null)
       .withEntityType(MARC_BIBLIOGRAPHIC);
   }
 
@@ -212,7 +212,7 @@ public class JournalUtil {
 
     var currentJournalRecord = new JournalRecord()
       .withJobExecutionId(currentRecord.getSnapshotId())
-      .withSourceId(currentRecord.getId())
+      .withSourceId(currentRecord.getMatchedId())
       .withSourceRecordOrder(currentRecord.getOrder())
       .withActionType(actionType)
       .withActionDate(new Date())
