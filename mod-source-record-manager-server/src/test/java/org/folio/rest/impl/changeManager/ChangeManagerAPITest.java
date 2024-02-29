@@ -1799,7 +1799,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
 
     List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-      .observeFor(2000, TimeUnit.SECONDS)
+      .observeFor(30, TimeUnit.SECONDS)
       .build());
 
     Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
