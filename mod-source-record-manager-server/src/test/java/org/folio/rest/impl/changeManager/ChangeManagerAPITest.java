@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
@@ -1796,16 +1797,28 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
+    final AtomicReference<DataImportEventPayload> eventPayloadRef = new AtomicReference<>();
 
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-      .observeFor(2000, TimeUnit.SECONDS)
-      .build());
+    await().forever().pollInterval(1, TimeUnit.SECONDS).until(() -> {
+      List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
+        .build());
+      return observedValues.stream()
+        .anyMatch(value -> {
+          Event event = Json.decodeValue(value, Event.class);
+          if (event != null && event.getEventPayload() != null) {
+            DataImportEventPayload payload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
+            if (payload != null && payload.getContext() != null && payload.getContext().containsKey("MARC_BIBLIOGRAPHIC")) {
+              eventPayloadRef.set(payload);
+              return true;
+            }
+          }
+          return false;
+        });
+    });
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
-    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
-    var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertNotNull(eventPayload.getContext());
-    await().untilAsserted(() -> assertNotNull(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")));
+    DataImportEventPayload eventPayload = eventPayloadRef.get();
+    assertNotNull(eventPayload);
+
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNotEquals(0, record.getInteger("order").intValue());
   }
