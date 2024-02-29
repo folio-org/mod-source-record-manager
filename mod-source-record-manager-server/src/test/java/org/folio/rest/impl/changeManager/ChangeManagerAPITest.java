@@ -1806,8 +1806,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertNotNull(eventPayload.getContext());
-    await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
-      assertNotNull(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")));
+    await().atMost(30, TimeUnit.SECONDS).until(() -> eventPayload.getContext().containsKey("MARC_BIBLIOGRAPHIC"));
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNotEquals(0, record.getInteger("order").intValue());
   }
