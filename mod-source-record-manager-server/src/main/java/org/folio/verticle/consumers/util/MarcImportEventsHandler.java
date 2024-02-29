@@ -125,11 +125,10 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   private List<Future> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
     List<Future<JournalRecord>> futureRecords = new ArrayList<>();
     for (JournalRecord journalRecord : journalRecords) {
+      futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
       if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
         processJournalRecordForOrder(journalService, tenantId, journalRecord);
         futureRecords.add(Future.succeededFuture());
-      } else {
-        futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
       }
     }
     return Lists.newArrayList(futureRecords);
@@ -172,8 +171,17 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             })
             .orElseGet(() -> Future.succeededFuture(journalRecord)));
       }
+    } else if (entityType == PO_LINE) {
+      String recordAsString = eventPayload.getContext().get(entityType.value());
+      if (StringUtils.isNotBlank(recordAsString)) {
+        var title = new JsonObject(recordAsString).getString(PO_LINE_TITLE);
+        if (title == null || title.isEmpty()) {
+          journalRecord.withTitle(NO_TITLE_MESSAGE);
+        } else {
+          journalRecord.withTitle(title);
+        }
+      }
     }
-
     return Future.succeededFuture(journalRecord);
   }
 }
