@@ -11,7 +11,6 @@ import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.rest.jaxrs.model.RelatedPoLineInfo;
 import org.folio.services.JournalRecordService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
@@ -175,13 +174,11 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     } else if (entityType == PO_LINE) {
       String recordAsString = eventPayload.getContext().get(entityType.value());
       if (StringUtils.isNotBlank(recordAsString)) {
-        var title = Json.decodeValue(recordAsString, RelatedPoLineInfo.class)
-          .getAdditionalProperties()
-          .get(PO_LINE_TITLE);
-        if (title == null || StringUtils.isEmpty(String.valueOf(title))) {
+        var title = new JsonObject(recordAsString).getString(PO_LINE_TITLE);
+        if (title == null || title.isEmpty()) {
           journalRecord.withTitle(NO_TITLE_MESSAGE);
         } else {
-          journalRecord.withTitle(title.toString());
+          journalRecord.withTitle(title);
         }
       }
     }
