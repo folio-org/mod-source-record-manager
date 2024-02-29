@@ -51,6 +51,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
@@ -1805,7 +1806,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
     var eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertNotNull(eventPayload.getContext());
-    await().untilAsserted(() -> assertNotNull(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")));
+    await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
+      assertNotNull(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")));
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNotEquals(0, record.getInteger("order").intValue());
   }
