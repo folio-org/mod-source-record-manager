@@ -35,6 +35,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import net.mguenther.kafka.junit.ObserveKeyValues;
 import org.apache.http.HttpStatus;
@@ -1740,21 +1742,21 @@ public class ChangeManagerAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
+  public void shouldFillInRecordOrderIfAtLeastOneMarcBibRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_RAW_RECORD_3);
+  public void shouldFillInRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_RAW_RECORD_3);
   }
 
   @Test
-  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder() throws InterruptedException {
-    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(CORRECT_MARC_HOLDINGS_RAW_RECORD);
+  public void shouldFillRecordOrderIfAtLeastOneMarcAuthorityRecordHasNoOrder(TestContext testContext) throws InterruptedException {
+    fillInRecordOrderIfAtLeastOneRecordHasNoOrder(testContext, CORRECT_MARC_HOLDINGS_RAW_RECORD);
   }
 
-  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(String rawRecord) throws InterruptedException {
+  private void fillInRecordOrderIfAtLeastOneRecordHasNoOrder(TestContext testContext, String rawRecord) throws InterruptedException {
     RawRecordsDto rawRecordsDto = new RawRecordsDto()
       .withId(UUID.randomUUID().toString())
       .withRecordsMetadata(new RecordsMetadata()
@@ -1771,6 +1773,7 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     assertThat(createdJobExecutions.size(), is(1));
     JobExecution jobExec = createdJobExecutions.get(0);
 
+    Async async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(new JobProfileInfo()
@@ -1781,7 +1784,9 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .put(JOB_EXECUTION_PATH + jobExec.getId() + JOB_PROFILE_PATH)
       .then()
       .statusCode(HttpStatus.SC_OK);
+    async.complete();
 
+    async = testContext.async();
     RestAssured.given()
       .spec(spec)
       .body(rawRecordsDto)
@@ -1789,16 +1794,31 @@ public class ChangeManagerAPITest extends AbstractRestTest {
       .post(JOB_EXECUTION_PATH + jobExec.getId() + RECORDS_PATH)
       .then()
       .statusCode(HttpStatus.SC_NO_CONTENT);
+    async.complete();
 
     String topicToObserve = formatToKafkaTopicName(DI_INCOMING_MARC_BIB_RECORD_PARSED.value());
-    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
-      .observeFor(30, TimeUnit.SECONDS)
-      .build());
+    final AtomicReference<DataImportEventPayload> eventPayloadRef = new AtomicReference<>();
 
-    Event obtainedEvent = Json.decodeValue(observedValues.get(2), Event.class);
-    assertEquals(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), obtainedEvent.getEventType());
-    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    assertNotNull(eventPayload.getContext());
+    await().forever().pollInterval(1, TimeUnit.SECONDS).until(() -> {
+      List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(topicToObserve, 3)
+        .build());
+      return observedValues.stream()
+        .anyMatch(value -> {
+          Event event = Json.decodeValue(value, Event.class);
+          if (event != null && event.getEventPayload() != null) {
+            DataImportEventPayload payload = Json.decodeValue(event.getEventPayload(), DataImportEventPayload.class);
+            if (payload != null && payload.getContext() != null && payload.getContext().containsKey("MARC_BIBLIOGRAPHIC")) {
+              eventPayloadRef.set(payload);
+              return true;
+            }
+          }
+          return false;
+        });
+    });
+
+    DataImportEventPayload eventPayload = eventPayloadRef.get();
+    assertNotNull(eventPayload);
+
     JsonObject record = new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC"));
     assertNotEquals(0, record.getInteger("order").intValue());
   }
