@@ -1,5 +1,7 @@
 ## 2023-xx-xx v3.8.0-SNAPSHOT
-* [MODDATAIMP-1003](https://folio-org.atlassian.net/browse/MODDATAIMP-1003)
+* [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
+* [MODSOURMAN-1139](https://folio-org.atlassian.net/browse/MODSOURMAN-1139) Fix Kafka test failures in ChangeManagerAPITest
+* [MODDATAIMP-1003](https://folio-org.atlassian.net/browse/MODDATAIMP-1003) Provide "orders-storage.titles.item.get" module permission
 * [MODSOURMAN-1123](https://issues.folio.org/browse/MODSOURMAN-1123) Create Kafka topics instead of relying on auto create in mod-srm
 * [MODSOURMAN-1113](https://issues.folio.org/browse/MODSOURMAN-1113) Reduce Memory Allocations Of Strings
 * [MODSOURMAN-1085](https://issues.folio.org/browse/MODSOURMAN-1085) MARC record with a 100 tag without a $a is being discarded on import.
@@ -16,6 +18,7 @@
 * [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table.
 * [MODSOURMAN-1063](https://issues.folio.org/browse/MODSOURMAN-1063) Update RecordProcessingLogDto to contain incoming record id
 * [MODSOURMAN-1122](https://issues.folio.org/browse/MODSOURMAN-1122) Add additional check for the childSnapshotWrappers
+* [MODSOURMAN-1140](https://folio-org.atlassian.net/browse/MODSOURMAN-1140) Invalidate cache before saving new parsed content in cache
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
