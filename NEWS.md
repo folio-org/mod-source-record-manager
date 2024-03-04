@@ -19,7 +19,7 @@
 * [MODSOURMAN-1063](https://issues.folio.org/browse/MODSOURMAN-1063) Update RecordProcessingLogDto to contain incoming record id
 * [MODSOURMAN-1122](https://issues.folio.org/browse/MODSOURMAN-1122) Add additional check for the childSnapshotWrappers
 * [MODSOURMAN-1140](https://folio-org.atlassian.net/browse/MODSOURMAN-1140) Invalidate cache before saving new parsed content in cache
-* [MODSOURMAN-1133](https://folio-org.atlassian.net/browse/MODSOURMAN-1133) Adjust SQL condition to include DISCARDED items
+* [MODSOURMAN-1133](https://folio-org.atlassian.net/browse/MODSOURMAN-1133) Adjust SQL condition to include DISCARDED holding and items
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
