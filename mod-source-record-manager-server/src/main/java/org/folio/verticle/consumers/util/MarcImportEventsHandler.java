@@ -51,6 +51,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     );
   public static final String PO_LINE_KEY = "PO_LINE";
   public static final String PO_LINE_TITLE = "titleOrPackage";
+  public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
 
   private final MappingRuleCache mappingRuleCache;
 
@@ -112,6 +113,8 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
+      setSourceIdIfNeeded(eventPayload, journalRecords);
+
       CompositeFuture.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
         .onComplete(e ->
         {
@@ -119,6 +122,13 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           journalRecords.forEach(journalRecord -> jsonObjects.add(JsonObject.mapFrom(journalRecord)));
           journalService.saveBatch(new JsonArray(jsonObjects), tenantId);
         });
+    }
+  }
+
+  private static void setSourceIdIfNeeded(DataImportEventPayload eventPayload, List<JournalRecord> journalRecords) {
+    String incomingRecordId = eventPayload.getContext().get(INCOMING_RECORD_ID);
+    if (incomingRecordId != null) {
+      journalRecords.forEach(journalRecord -> journalRecord.setSourceId(incomingRecordId));
     }
   }
 
