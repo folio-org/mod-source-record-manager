@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.services.journal.JournalUtil.INCOMING_RECORD_ID;
 
 @Component
 @Qualifier("RawMarcChunksErrorHandler")
@@ -124,6 +125,7 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     context.put(ERROR_KEY, throwable.getMessage());
     if (record != null && record.getRecordType() != null) {
       context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+      context.put(INCOMING_RECORD_ID, record.getId());
     }
 
     DataImportEventPayload payload = new DataImportEventPayload()
