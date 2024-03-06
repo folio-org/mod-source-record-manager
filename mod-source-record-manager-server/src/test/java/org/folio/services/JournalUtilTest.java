@@ -45,6 +45,7 @@ public class JournalUtilTest {
 
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
+  public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
 
   @Test
   public void shouldBuildJournalRecordsByRecordsWithoutError() {
@@ -133,6 +134,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -142,6 +144,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
@@ -152,7 +155,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -173,6 +176,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -183,6 +187,7 @@ public class JournalUtilTest {
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_CREATED");
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -194,7 +199,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(2, journalRecord.size());
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -213,6 +218,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -222,6 +228,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(AUTHORITY.value(), authorityJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -232,7 +239,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(AUTHORITY, journalRecord.get(0).getEntityType());
     Assert.assertEquals(authorityId, journalRecord.get(0).getEntityId());
@@ -268,6 +275,7 @@ public class JournalUtilTest {
   public void shouldBuildJournalRecordWhenNoEntityPresent() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -277,6 +285,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put("NOT_MATCHED_NUMBER", "1");
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_HOLDING_NOT_MATCHED")
@@ -287,7 +296,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(HOLDINGS, journalRecord.get(0).getEntityType());
     Assert.assertEquals(NON_MATCH, journalRecord.get(0).getActionType());
@@ -307,6 +316,7 @@ public class JournalUtilTest {
       .put("instanceId", instanceId);
 
     String recordId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
@@ -317,6 +327,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(HOLDINGS.value(), holdingsJson.encode());
     context.put(MARC_HOLDINGS.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_HOLDING_CREATED")
@@ -325,7 +336,7 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       CREATE, HOLDINGS, COMPLETED);
 
-    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords);
+    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords, incomingRecordId);
   }
 
   @Test
@@ -341,6 +352,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -353,6 +365,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(HOLDINGS.value(), String.valueOf(multipleHoldings.encode()));
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_HOLDING_CREATED")
@@ -361,14 +374,14 @@ public class JournalUtilTest {
     List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
       CREATE, HOLDINGS, COMPLETED);
 
-    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords);
+    assertForHoldings(instanceId, holdingsId, holdingsHrid, recordId, snapshotId, journalRecords, incomingRecordId);
   }
 
   private static void assertForHoldings(String instanceId, String holdingsId, String holdingsHrid, String recordId,
-                                        String snapshotId, List<JournalRecord> journalRecords) {
+                                        String snapshotId, List<JournalRecord> journalRecords, String incomingRecordId) {
     Assert.assertNotNull(journalRecords);
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(HOLDINGS, journalRecords.get(0).getEntityType());
     Assert.assertEquals(holdingsId, journalRecords.get(0).getEntityId());
@@ -398,6 +411,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -411,6 +425,7 @@ public class JournalUtilTest {
     context.put(ITEM.value(), String.valueOf(multipleItems));
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -421,7 +436,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecords);
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
@@ -453,6 +468,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -469,6 +485,7 @@ public class JournalUtilTest {
     context.put(ITEM.value(), String.valueOf(multipleItems));
     context.put(HOLDINGS.value(), String.valueOf(multipleHoldings));
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -479,7 +496,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecords);
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
@@ -520,6 +537,7 @@ public class JournalUtilTest {
   public void shouldBuildJournalRecordForInstanceEvenIfEntityIsNotExists() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -528,6 +546,7 @@ public class JournalUtilTest {
 
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_INSTANCE_CREATED")
@@ -538,7 +557,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
@@ -550,6 +569,7 @@ public class JournalUtilTest {
   public void shouldBuildJournalRecordForOrderCreated() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String purchaseOrderId = UUID.randomUUID().toString();
 
@@ -565,6 +585,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put(PO_LINE.value(), orderJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -576,7 +597,7 @@ public class JournalUtilTest {
 
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(entityId, journalRecord.get(0).getEntityId());
     Assert.assertEquals(purchaseOrderId, journalRecord.get(0).getOrderId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
@@ -610,6 +631,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -623,6 +645,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(HOLDINGS.value(), String.valueOf(multipleHoldings.encode()));
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_HOLDING_CREATED")
@@ -635,7 +658,7 @@ public class JournalUtilTest {
     Assert.assertEquals(2, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(HOLDINGS, journalRecords.get(0).getEntityType());
     Assert.assertEquals(firstHoldingsId, journalRecords.get(0).getEntityId());
@@ -647,7 +670,7 @@ public class JournalUtilTest {
     Assert.assertEquals(firstPermanentLocationId, journalRecords.get(0).getPermanentLocationId());
 
     Assert.assertEquals(snapshotId, journalRecords.get(1).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(1).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(1).getSourceId());
     Assert.assertEquals(1, journalRecords.get(1).getSourceRecordOrder().intValue());
     Assert.assertEquals(HOLDINGS, journalRecords.get(1).getEntityType());
     Assert.assertEquals(secondHoldingsId, journalRecords.get(1).getEntityId());
@@ -687,6 +710,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -701,6 +725,7 @@ public class JournalUtilTest {
     context.put(ITEM.value(), String.valueOf(multipleItems));
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -713,7 +738,7 @@ public class JournalUtilTest {
     Assert.assertEquals(2, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(firstItemId, journalRecords.get(0).getEntityId());
@@ -725,7 +750,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecords.get(0).getActionDate());
 
     Assert.assertEquals(snapshotId, journalRecords.get(1).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(1).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(1).getSourceId());
     Assert.assertEquals(1, journalRecords.get(1).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(1).getEntityType());
     Assert.assertEquals(secondItemId, journalRecords.get(1).getEntityId());
@@ -764,6 +789,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -781,6 +807,7 @@ public class JournalUtilTest {
     context.put(ITEM.value(), String.valueOf(multipleItems));
     context.put(HOLDINGS.value(), String.valueOf(multipleHoldings));
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -793,7 +820,7 @@ public class JournalUtilTest {
     Assert.assertEquals(2, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(firstItemId, journalRecords.get(0).getEntityId());
@@ -805,7 +832,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecords.get(0).getActionDate());
 
     Assert.assertEquals(snapshotId, journalRecords.get(1).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(1).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(1).getSourceId());
     Assert.assertEquals(1, journalRecords.get(1).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(1).getEntityType());
     Assert.assertEquals(secondItemId, journalRecords.get(1).getEntityId());
@@ -838,6 +865,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -866,6 +894,7 @@ public class JournalUtilTest {
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put("ERRORS", String.valueOf(multipleErrors));
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_INVENTORY_ITEM_CREATED")
@@ -878,7 +907,7 @@ public class JournalUtilTest {
     Assert.assertEquals(3, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(itemId, journalRecords.get(0).getEntityId());
@@ -890,7 +919,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecords.get(0).getActionDate());
 
     Assert.assertEquals(snapshotId, journalRecords.get(1).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(1).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(1).getSourceId());
     Assert.assertEquals(1, journalRecords.get(1).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(1).getEntityType());
     Assert.assertEquals(firstErrorUUID, journalRecords.get(1).getEntityId());
@@ -900,7 +929,7 @@ public class JournalUtilTest {
     Assert.assertEquals(holdingsId, journalRecords.get(1).getHoldingsId());
 
     Assert.assertEquals(snapshotId, journalRecords.get(2).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(2).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(2).getSourceId());
     Assert.assertEquals(1, journalRecords.get(2).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(2).getEntityType());
     Assert.assertEquals(secondErrorUUID, journalRecords.get(2).getEntityId());
@@ -932,6 +961,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -958,6 +988,7 @@ public class JournalUtilTest {
     context.put(INSTANCE.value(), instanceJson.encode());
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put("ERROR", String.valueOf(multipleErrors));
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_ERROR")
@@ -970,7 +1001,7 @@ public class JournalUtilTest {
     Assert.assertEquals(1, journalRecords.size());
 
     Assert.assertEquals(snapshotId, journalRecords.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecords.get(0).getEntityType());
     Assert.assertEquals(CREATE, journalRecords.get(0).getActionType());
@@ -983,6 +1014,7 @@ public class JournalUtilTest {
   @Test
   public void shouldBuildJournalRecordWithCentralTenantIdFromPayload() throws JournalRecordMapperException {
     String expectedCentralTenantId = "mobius";
+    String incomingRecordId = UUID.randomUUID().toString();
 
     Record record = new Record()
       .withId(UUID.randomUUID().toString())
@@ -992,6 +1024,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>() {{
       put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
       put(CENTRAL_TENANT_ID_KEY, expectedCentralTenantId);
+      put(INCOMING_RECORD_ID, incomingRecordId);
     }};
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
@@ -1002,7 +1035,7 @@ public class JournalUtilTest {
       UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
 
     Assert.assertEquals(1, journalRecords.size());
-    Assert.assertEquals(record.getId(), journalRecords.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(expectedCentralTenantId, journalRecords.get(0).getTenantId());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
@@ -1014,6 +1047,7 @@ public class JournalUtilTest {
   public void shouldBuildJournalRecordForNonMatchWithErrorAndMatchedNumberNotAvailable() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
     String expectedErrorMessage = "matching error message";
 
     JsonObject recordJson = new JsonObject()
@@ -1024,6 +1058,7 @@ public class JournalUtilTest {
     HashMap<String, String> context = new HashMap<>();
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put(ERROR_KEY, expectedErrorMessage);
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_ERROR")
@@ -1037,7 +1072,7 @@ public class JournalUtilTest {
 
     JournalRecord journalRecord = journalRecords.get(0);
     Assert.assertEquals(snapshotId, journalRecord.getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.getSourceId());
     Assert.assertEquals(1, journalRecord.getSourceRecordOrder().intValue());
     Assert.assertEquals(ITEM, journalRecord.getEntityType());
     Assert.assertEquals(NON_MATCH, journalRecord.getActionType());
@@ -1057,6 +1092,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -1068,6 +1104,7 @@ public class JournalUtilTest {
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put(MARC_BIB_RECORD_CREATED, Boolean.TRUE.toString());
     context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_UPDATED");
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -1079,7 +1116,7 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecord);
     Assert.assertEquals(2, journalRecord.size());
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
@@ -1103,6 +1140,7 @@ public class JournalUtilTest {
 
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
 
     JsonObject recordJson = new JsonObject()
       .put("id", recordId)
@@ -1114,6 +1152,7 @@ public class JournalUtilTest {
     context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
     context.put(MARC_BIB_RECORD_CREATED, Boolean.FALSE.toString());
     context.put(CURRENT_EVENT_TYPE, "DI_INVENTORY_INSTANCE_UPDATED");
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
 
     DataImportEventPayload eventPayload = new DataImportEventPayload()
       .withEventType("DI_COMPLETED")
@@ -1126,7 +1165,7 @@ public class JournalUtilTest {
     Assert.assertEquals(2, journalRecord.size());
 
     Assert.assertEquals(snapshotId, journalRecord.get(0).getJobExecutionId());
-    Assert.assertEquals(recordId, journalRecord.get(0).getSourceId());
+    Assert.assertEquals(incomingRecordId, journalRecord.get(0).getSourceId());
     Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
     Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
     Assert.assertEquals(instanceId, journalRecord.get(0).getEntityId());
