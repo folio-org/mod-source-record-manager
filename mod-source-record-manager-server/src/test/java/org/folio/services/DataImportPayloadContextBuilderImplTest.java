@@ -73,8 +73,10 @@ public class DataImportPayloadContextBuilderImplTest {
   @Test
   public void shouldBuildContextForMarcAuthorityRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"authority\"}");
+    String recordId = UUID.randomUUID().toString();
     record.setRecordType(RecordType.MARC_AUTHORITY);
     record.setParsedRecord(parsedRecord);
+    record.setId(recordId);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.AUTHORITY);
 
@@ -82,15 +84,18 @@ public class DataImportPayloadContextBuilderImplTest {
 
     assertEquals(Map.of(
         MARC_AUTHORITY.value(), Json.encode(record),
-        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId(),
+        "INCOMING_RECORD_ID", recordId),
       context);
   }
 
   @Test
   public void shouldBuildContextForMarcBibRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"bibliographic\"}");
+    String recordId = UUID.randomUUID().toString();
     record.setRecordType(Record.RecordType.MARC_BIB);
     record.setParsedRecord(parsedRecord);
+    record.setId(recordId);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.BIB);
 
@@ -98,15 +103,18 @@ public class DataImportPayloadContextBuilderImplTest {
 
     assertEquals(Map.of(
         MARC_BIBLIOGRAPHIC.value(), Json.encode(record),
-        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId(),
+        "INCOMING_RECORD_ID", recordId),
         context);
   }
 
   @Test
   public void shouldBuildContextForMarcHoldingRecord() {
     ParsedRecord parsedRecord = parsedRecord("{\"leader\":\"holding\"}");
+    String recordId = UUID.randomUUID().toString();
     record.setRecordType(RecordType.MARC_HOLDING);
     record.setParsedRecord(parsedRecord);
+    record.setId(recordId);
 
     when(marcRecordAnalyzer.process(toJson(parsedRecord))).thenReturn(MarcRecordType.HOLDING);
 
@@ -114,19 +122,23 @@ public class DataImportPayloadContextBuilderImplTest {
 
     assertEquals(Map.of(
         MARC_HOLDINGS.value(), Json.encode(record),
-        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId(),
+        "INCOMING_RECORD_ID", recordId),
         context);
   }
 
   @Test
   public void shouldBuildContextForEdifactInvoice() {
+    String recordId = UUID.randomUUID().toString();
     record.setRecordType(Record.RecordType.EDIFACT);
+    record.setId(recordId);
 
     HashMap<String, String> context = builder.buildFrom(record, profileSnapshotWrapper.getId());
 
     assertEquals(Map.of(
         EDIFACT_INVOICE.value(), Json.encode(record),
-        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId()),
+        "JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapper.getId(),
+        "INCOMING_RECORD_ID", recordId),
         context);
   }
 
