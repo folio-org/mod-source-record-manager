@@ -79,12 +79,12 @@ WITH
      (SELECT CASE
                  WHEN EXISTS (SELECT condition_result.entity_id
                               FROM temp_result condition_result
-                              WHERE (condition_result.action_type IN (''CREATED'', ''DISCARDED'') AND
+                              WHERE (condition_result.action_type IN (''CREATED'', ''UPDATED'', ''DISCARDED'') AND
                                      condition_result.entity_type = ''HOLDINGS''))
                      THEN
                      (SELECT deep_nested.id
                       FROM temp_result deep_nested
-                      WHERE (deep_nested.id = nested_result.id AND (deep_nested.action_type = ''CREATED'' OR
+                      WHERE (deep_nested.id = nested_result.id AND (deep_nested.action_type IN (''CREATED'', ''UPDATED'') OR
                                                                     (deep_nested.action_type = ''DISCARDED'' AND deep_nested.error != '''')))
                          OR (deep_nested.action_type = ''DISCARDED'' AND
                              deep_nested.id = nested_result.id AND
