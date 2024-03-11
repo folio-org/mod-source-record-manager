@@ -131,6 +131,7 @@ public class MarcImportEventsHandlerTest {
   @Test
   public void testSaveItemWithTitle() throws JournalRecordMapperException {
     String title = "The Journal of ecclesiastical history.";
+    String incomingRecordId = UUID.randomUUID().toString();
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
       Map.of("245", List.of(
         Map.of("target", "title",
@@ -141,12 +142,14 @@ public class MarcImportEventsHandlerTest {
     marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
 
     var payload = constructUpdateItemPayload(marcRecord);
+    payload.getContext().put("INCOMING_RECORD_ID", incomingRecordId);
     handler.handle(journalService, payload, TEST_TENANT);
 
     verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
+    assertEquals(incomingRecordId, actualJournalRecord.getSourceId());
   }
 
   @Test

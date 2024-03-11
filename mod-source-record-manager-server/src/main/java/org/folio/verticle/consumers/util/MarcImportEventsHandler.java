@@ -49,9 +49,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       MARC_BIBLIOGRAPHIC, marcBibTitleExtractor(),
       MARC_AUTHORITY, marcAuthorityTitleExtractor()
     );
-  public static final String PO_LINE_KEY = "PO_LINE";
   public static final String PO_LINE_TITLE = "titleOrPackage";
-
   private final MappingRuleCache mappingRuleCache;
 
   private JournalRecordService journalRecordService;
