@@ -258,9 +258,11 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
   @Test
   public void shouldProcessErrorEventAsSourceRecordErrorWhenEventChainHasNoEvents() {
     // given
+    String incomingRecordId = UUID.randomUUID().toString();
     HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
       put(ERROR_KEY, "java.lang.IllegalStateException: Unsupported Marc record type");
+      put("INCOMING_RECORD_ID", incomingRecordId);
     }};
 
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
@@ -284,7 +286,7 @@ public class DataImportJournalConsumerVerticleMockTest extends AbstractRestTest 
     Assert.assertEquals("Entity Type:", EntityType.MARC_BIBLIOGRAPHIC.value(), jsonArray.getJsonObject(0).getString(ENTITY_TYPE_KEY));
     Assert.assertEquals("Action Type:", ActionType.CREATE.value(), jsonArray.getJsonObject(0).getString(ACTION_TYPE_KEY));
     Assert.assertEquals("Action Status:", ActionStatus.ERROR.value(), jsonArray.getJsonObject(0).getString(ACTION_STATUS_KEY));
-    Assert.assertEquals("Source Record id:", recordJson.getString("id"), jsonArray.getJsonObject(0).getString(SOURCE_RECORD_ID_KEY));
+    Assert.assertEquals("Source Record id:", incomingRecordId, jsonArray.getJsonObject(0).getString(SOURCE_RECORD_ID_KEY));
     Assert.assertNotNull(jsonArray.getJsonObject(0).getString("error"));
   }
 
