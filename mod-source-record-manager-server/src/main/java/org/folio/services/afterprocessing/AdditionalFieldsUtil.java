@@ -3,6 +3,7 @@ package org.folio.services.afterprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -183,23 +184,18 @@ public final class AdditionalFieldsUtil {
       for (String tag : sourceFields) {
         Queue<JsonNode> nodes = jsonNodesByTag.get(tag);
         if (nodes != null && !nodes.isEmpty()) {
-          rearrangedArray.add(nodes.poll());
+          rearrangedArray.addAll(nodes);
+          jsonNodesByTag.remove(tag);
         }
       }
 
-      fieldsArrayNode.forEach(node -> {
-        String tag = node.fieldNames().next();
-        if (!sourceFields.contains(tag)) {
-          rearrangedArray.add(node);
-        }
-      });
+      jsonNodesByTag.values().forEach(rearrangedArray::addAll);
 
-      fieldsArrayNode.removeAll();
-      fieldsArrayNode.addAll(rearrangedArray);
+      ((ObjectNode)parsedContent).set("fields", rearrangedArray);
 
       return parsedContent.toString();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("An error occurred while reordering Marc record fields: {}", e.getMessage(), e);
       return null;
     }
   }
@@ -210,11 +206,11 @@ public final class AdditionalFieldsUtil {
       var sourceJson = objectMapper.readTree(source);
       var fieldsNode = sourceJson.get("fields");
       for (JsonNode fieldNode : fieldsNode) {
-        var tag = fieldNode.fieldNames().next();
+        String tag = fieldNode.fieldNames().next();
         sourceFields.add(tag);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("An error occurred while parsing source JSON: {}", e.getMessage(), e);
     }
     return sourceFields;
   }
