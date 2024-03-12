@@ -52,6 +52,7 @@ class DataImportPayloadContextBuilderImpl implements DataImportPayloadContextBui
 
     context.put(entityType.value(), Json.encode(initialRecord));
     context.put("JOB_PROFILE_SNAPSHOT_ID", profileSnapshotWrapperId);
+    context.put("INCOMING_RECORD_ID", initialRecord.getId());
     return context;
   }
 
