@@ -346,7 +346,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
       .withSourceRecordType(entityType)
       .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
       .withIncomingRecordId(row.getValue(INCOMING_RECORD_ID).toString())
-      .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+      .withSourceRecordId(row.getValue(SOURCE_ID) != null ? row.getValue(SOURCE_ID).toString() : null)
       .withSourceRecordOrder(isEmpty(row.getString(INVOICE_ACTION_STATUS))
         ? row.getInteger(SOURCE_RECORD_ORDER).toString()
         : row.getString(INVOICE_LINE_NUMBER))
@@ -553,32 +553,32 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     if (!ifNeedToMerge(entries)) {
       return recordProcessingLogDto;
     }
-    Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoBySourceRecordId =
+    Map<String, List<ProcessedHoldingsInfo>> relatedHoldingsInfoByIncomingRecordId =
       entries.stream()
         .collect(Collectors.groupingBy(
-          RecordProcessingLogDto::getSourceRecordId,
+          RecordProcessingLogDto::getIncomingRecordId,
           Collectors.mapping(RecordProcessingLogDto::getRelatedHoldingsInfo,
             Collectors.flatMapping(List::stream, toList())
           )));
 
-    Map<String, List<ProcessedItemInfo>> relatedItemInfoBySourceId =
+    Map<String, List<ProcessedItemInfo>> relatedItemInfoByIncomingRecordId =
       entries.stream()
         .collect(Collectors.groupingBy(
-          RecordProcessingLogDto::getSourceRecordId,
+          RecordProcessingLogDto::getIncomingRecordId,
           Collectors.mapping(RecordProcessingLogDto::getRelatedItemInfo,
             Collectors.flatMapping(List::stream, toList())
           )));
 
-    List<RecordProcessingLogDto> mergedEntries = relatedHoldingsInfoBySourceRecordId.entrySet()
+    List<RecordProcessingLogDto> mergedEntries = relatedHoldingsInfoByIncomingRecordId.entrySet()
       .stream().map(e -> {
-        String sourceRecordId = e.getKey();
-        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoBySourceId.get(sourceRecordId);
+        String incomingRecordId = e.getKey();
+        List<ProcessedItemInfo> relatedItemInfos = relatedItemInfoByIncomingRecordId.get(incomingRecordId);
 
-        RecordProcessingLogDto firstRecordWithCurrentSourceId = entries.stream()
-          .filter(record -> record.getSourceRecordId().equals(sourceRecordId))
+        RecordProcessingLogDto firstRecordWithCurrentIncomingRecordId = entries.stream()
+          .filter(record -> record.getIncomingRecordId().equals(incomingRecordId))
           .findFirst().orElseGet(RecordProcessingLogDto::new);
 
-        return firstRecordWithCurrentSourceId
+        return firstRecordWithCurrentIncomingRecordId
           .withRelatedHoldingsInfo(e.getValue().stream().distinct().toList())
           .withRelatedItemInfo(relatedItemInfos.stream().distinct().toList());
       }).collect(toList());
@@ -586,15 +586,15 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   private static boolean ifNeedToMerge(List<RecordProcessingLogDto> entries) {
-    Map<String, Long> sourceRecordIdCounts = entries.stream()
+    Map<String, Long> holdingsIncomingRecordIdCounts = entries.stream()
       .filter(e -> e.getRelatedHoldingsInfo() != null && !e.getRelatedHoldingsInfo().isEmpty())
-      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getIncomingRecordId, Collectors.counting()));
 
-    Map<String, Long> sourceItemRecordIdCounts = entries.stream()
+    Map<String, Long> itemIncomingRecordIdCounts = entries.stream()
       .filter(e -> e.getRelatedItemInfo() != null && !e.getRelatedItemInfo().isEmpty())
-      .collect(Collectors.groupingBy(RecordProcessingLogDto::getSourceRecordId, Collectors.counting()));
+      .collect(Collectors.groupingBy(RecordProcessingLogDto::getIncomingRecordId, Collectors.counting()));
 
-    return sourceRecordIdCounts.values().stream().anyMatch(count -> count > 1) ||
-      sourceItemRecordIdCounts.values().stream().anyMatch(count -> count > 1);
+    return holdingsIncomingRecordIdCounts.values().stream().anyMatch(count -> count > 1) ||
+      itemIncomingRecordIdCounts.values().stream().anyMatch(count -> count > 1);
   }
 }
