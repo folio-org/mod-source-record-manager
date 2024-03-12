@@ -3,48 +3,34 @@ package org.folio.rest.impl.metadataProvider;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INVOICE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
-import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.oneOf;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-import com.google.common.collect.Lists;
 import org.apache.http.HttpStatus;
 import org.folio.dao.JournalRecordDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.ActionStatus;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
-import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +39,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import io.restassured.RestAssured;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -679,6 +664,63 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .body("relatedInvoiceInfo.hridList", empty())
         .body("relatedInvoiceInfo.error", emptyOrNullString());
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnItemsHoldingsWithUpdatedAction(TestContext context) {
+    var async = context.async();
+    var createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    var sourceRecordId = UUID.randomUUID().toString();
+    var recordTitle = "test title";
+
+    var instanceId = UUID.randomUUID().toString();
+    var holdingsId = UUID.randomUUID().toString();
+    var itemId = UUID.randomUUID().toString();
+
+    var instanceHrid = "i001";
+    var holdingsHrid = "h001";
+    var itemHrid = "it001";
+
+    var actionStatus = "UPDATED";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId, itemHrid, recordTitle, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle, 0, UPDATE, HOLDINGS, COMPLETED, null, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("sourceRecordId", is(sourceRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is("0"))
+        .body("error", emptyOrNullString())
+        .body("relatedInstanceInfo.idList[0]", is(instanceId))
+        .body("relatedInstanceInfo.hridList[0]", is(instanceHrid))
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(1))
+        .body("relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrid))
+        .body("relatedHoldingsInfo[0].actionStatus", is(actionStatus))
+        .body("relatedHoldingsInfo[0].error", emptyOrNullString())
+        .body("relatedItemInfo.size()", is(1))
+        .body("relatedItemInfo[0].id", is(itemId))
+        .body("relatedItemInfo[0].hrid", is(itemHrid))
+        .body("relatedItemInfo[0].holdingsId", is(holdingsId))
+        .body("relatedHoldingsInfo[0].actionStatus", is(actionStatus))
+        .body("relatedItemInfo[0].error", emptyOrNullString());
       async.complete();
     }));
   }
