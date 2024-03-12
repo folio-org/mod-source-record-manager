@@ -106,7 +106,6 @@ public class JournalUtil {
                                                                JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
-      String incomingRecordId = eventPayloadContext.get(INCOMING_RECORD_ID);
 
       String recordAsString = extractRecord(eventPayloadContext);
       Record record;
@@ -119,6 +118,7 @@ public class JournalUtil {
       } else {
         record = Json.decodeValue(recordAsString, Record.class);
       }
+      String incomingRecordId = eventPayloadContext.get(INCOMING_RECORD_ID) != null ? eventPayloadContext.get(INCOMING_RECORD_ID) : record.getId();
 
       String entityAsString = eventPayloadContext.get(entityType.value());
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
