@@ -12,7 +12,9 @@ BEGIN
                     		THEN 'CREATED'
                     WHEN action_type = 'UPDATE'
                     		THEN 'UPDATED'
-               END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
+                    WHEN action_type = 'PARSE'
+                      then 'PARSED'
+                 END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
     		INNER JOIN
     		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max
@@ -66,7 +68,7 @@ BEGIN
             null AS invoice_line_entity_error
       FROM
     	    (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
-    	    FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE')) AS marc
+    	    FROM temp_result WHERE action_type = 'PARSED') AS marc
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order, temp_result.tenant_id
     	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances

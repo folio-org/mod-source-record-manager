@@ -392,15 +392,15 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithMatch(jobExecution.getJobProfileSnapshotWrapper());
+    return containsCreateInstanceActionWithoutMarcBib(jobExecution.getJobProfileSnapshotWrapper());
   }
 
-  private boolean containsCreateInstanceActionWithMatch(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
         return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
-      } else if (containsCreateInstanceActionWithMatch(childWrapper)) {
+      } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
         return true;
       }
     }

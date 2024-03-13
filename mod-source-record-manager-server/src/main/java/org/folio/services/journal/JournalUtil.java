@@ -176,6 +176,11 @@ public class JournalUtil {
         } else {
           return Lists.newArrayList(journalRecord);
         }
+      } else {
+        if (eventPayload.getEventType().equals(DI_ERROR.value()) && eventPayloadContext.containsKey(MARC_BIBLIOGRAPHIC.value())) {
+          var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId);
+          return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
+        }
       }
       return Lists.newArrayList(journalRecord);
     } catch (Exception e) {

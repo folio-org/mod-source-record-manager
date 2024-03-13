@@ -534,6 +534,37 @@ public class JournalUtilTest {
   }
 
   @Test
+  public void shouldBuildMarcBibJournalRecordOnError() throws JournalRecordMapperException {
+    var testError = "Something Happened";
+    var testJobExecutionId = UUID.randomUUID().toString();
+    var recordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("snapshotId", testJobExecutionId)
+      .put("order", 1);
+
+    var context = new HashMap<String, String>();
+    context.put(ERROR_KEY, testError);
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+
+    var eventPayload = new DataImportEventPayload()
+      .withEventType(DI_ERROR.value())
+      .withJobExecutionId(testJobExecutionId)
+      .withContext(context);
+
+    var journalRecord = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      CREATE, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecord);
+    Assert.assertEquals(1, journalRecord.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(testError, journalRecord.get(0).getError());
+    Assert.assertEquals(testJobExecutionId, journalRecord.get(0).getJobExecutionId());
+    Assert.assertEquals(INSTANCE, journalRecord.get(0).getEntityType());
+    Assert.assertEquals(CREATE, journalRecord.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecord.get(0).getActionStatus());
+    Assert.assertNotNull(journalRecord.get(0).getActionDate());
+  }
+
+  @Test
   public void shouldBuildJournalRecordForInstanceEvenIfEntityIsNotExists() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
