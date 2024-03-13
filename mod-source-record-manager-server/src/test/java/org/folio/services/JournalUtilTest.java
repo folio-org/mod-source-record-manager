@@ -1044,6 +1044,38 @@ public class JournalUtilTest {
   }
 
   @Test
+  public void shouldBuildJournalRecordForMarcBibliographicUpdate() throws JournalRecordMapperException {
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withSnapshotId(UUID.randomUUID().toString())
+      .withOrder(1);
+
+    HashMap<String, String> context = new HashMap<>() {{
+      put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+      put(INCOMING_RECORD_ID, incomingRecordId);
+    }};
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED);
+
+    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(record.getId(), journalRecords.get(0).getEntityId());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
+  }
+
+
+  @Test
   public void shouldBuildJournalRecordForNonMatchWithErrorAndMatchedNumberNotAvailable() throws JournalRecordMapperException {
     String recordId = UUID.randomUUID().toString();
     String snapshotId = UUID.randomUUID().toString();
