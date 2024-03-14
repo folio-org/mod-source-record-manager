@@ -66,9 +66,11 @@ BEGIN
             null AS invoice_line_entity_id,
             null AS invoice_line_entity_hrid,
             null AS invoice_line_entity_error
-      FROM
-    	    (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
-    	    FROM temp_result WHERE action_type = 'PARSED') AS marc
+      FROM (SELECT temp_result.source_id FROM temp_result WHERE action_type = 'PARSED') as parsed
+      LEFT JOIN
+          (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
+          FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE')) AS marc
+      ON marc.source_id = parsed.source_id
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order, temp_result.tenant_id
     	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances

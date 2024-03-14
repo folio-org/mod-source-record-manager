@@ -6,6 +6,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.PARSE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -125,6 +126,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String orderId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null,  0, CREATE, PO_LINE, COMPLETED, "Test error", orderId))
       .onFailure(context::fail);
@@ -158,6 +160,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "marcBibEntityID", null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
@@ -199,6 +202,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
@@ -230,6 +234,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, null,  0, CREATE, INSTANCE, ERROR, "error msg", null))
       .onFailure(context::fail);
@@ -262,6 +267,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, ERROR, "MarcBib error msg", null))
       .onFailure(context::fail);
 
@@ -302,6 +308,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String poLineHrid = "po001";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, null,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
@@ -354,6 +361,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String testError = "testError";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle,  0, CREATE, HOLDINGS, ERROR, testError, null, null,null,null));
@@ -397,6 +405,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String testError = "testError";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle,  0, CREATE, HOLDINGS, COMPLETED, null, null,instanceId,null,null))
@@ -542,6 +551,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String errorMsg = "test error";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null,  0, CREATE, INSTANCE, COMPLETED, null, null))
 
@@ -622,6 +632,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String permanentLocation = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
 
@@ -686,6 +697,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     var actionStatus = "UPDATED";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
 
@@ -736,6 +748,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String instanceHrid = "i001";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
 
@@ -792,6 +805,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String[] itemHrid = {"it001", "it002"};
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null, 0, CREATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, itemId[0], itemHrid[0], null, 0, UPDATE, ITEM, COMPLETED, null, null, instanceId, holdingsId[0], null))
@@ -840,6 +854,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String expectedCentralTenantId = "mobius";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null, expectedCentralTenantId))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null, expectedCentralTenantId));
 
