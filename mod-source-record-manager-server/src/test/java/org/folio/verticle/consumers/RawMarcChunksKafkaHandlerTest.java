@@ -2,7 +2,6 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
@@ -11,24 +10,22 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.AsyncRecordHandler;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.services.ChunkProcessingService;
-import org.folio.services.EventProcessedService;
 import org.folio.services.JobExecutionService;
-import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.flowcontrol.RawRecordsFlowControlService;
-import org.folio.services.journal.JournalService;
+import org.folio.verticle.consumers.util.JobExecutionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.junit.Assert.assertTrue;
@@ -51,19 +48,11 @@ public class RawMarcChunksKafkaHandlerTest {
   @Mock
   private KafkaConsumerRecord<String, byte[]> kafkaRecord;
   @Mock
-  private JournalService journalService;
-  @Mock
-  private EventProcessedService eventProcessedService;
-  @Mock
   private ChunkProcessingService eventDrivenChunkProcessingService;
   @Mock
   private RawRecordsFlowControlService flowControlService;
   @Mock
-  private MappingRuleCache mappingRuleCache;
-  @Mock
   private JobExecutionService jobExecutionService;
-  @Captor
-  private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
   private Vertx vertx = Vertx.vertx();
   private AsyncRecordHandler<String, byte[]> rawMarcChunksKafkaHandler;
@@ -75,8 +64,11 @@ public class RawMarcChunksKafkaHandlerTest {
   @Before
   public void setUp() {
     rawMarcChunksKafkaHandler = new RawMarcChunksKafkaHandler(eventDrivenChunkProcessingService, flowControlService, jobExecutionService, vertx);
-//    when(jobExecutionService.getJobExecutionById(anyString(), anyString()))
-//      .thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
+  }
+
+  @After
+  public void invalidateCache() {
+    JobExecutionUtils.clearCache();
   }
 
   @Test
@@ -84,6 +76,20 @@ public class RawMarcChunksKafkaHandlerTest {
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
     when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withStatus(JobExecution.Status.CANCELLED))));
 
+    // when
+    Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
+
+    // then
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    assertTrue(future.succeeded());
+  }
+
+  @Test
+  public void shouldNotHandleEventWhenJobExecutionChunk() {
+    var jobExecId = UUID.randomUUID().toString();
+    when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
+    when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withId(jobExecId).withStatus(JobExecution.Status.PARSING_IN_PROGRESS))));
+    JobExecutionUtils.cache.put(jobExecId, JobExecution.Status.ERROR);
     // when
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 

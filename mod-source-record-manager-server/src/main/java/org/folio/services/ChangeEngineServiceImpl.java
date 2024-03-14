@@ -39,6 +39,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang.StringUtils;
@@ -95,6 +97,7 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.RecordConversionUtil;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
+import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -177,7 +180,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
         return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
           ? Future.succeededFuture(parsedRecords)
-          : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords));
+          : Future.failedFuture(new InvalidJobProfileForFileException(
+            prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords))
+        );
       })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -858,6 +863,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
+    JobExecutionUtils.cache.put(jobExecution.getId(), JobExecution.Status.ERROR);
     return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
   }
 }
