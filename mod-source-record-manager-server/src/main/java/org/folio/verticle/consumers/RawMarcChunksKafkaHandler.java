@@ -17,7 +17,7 @@ import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.ChunkProcessingService;
-import org.folio.services.InvalidJobProfileForFileException;
+import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.JobExecutionService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
