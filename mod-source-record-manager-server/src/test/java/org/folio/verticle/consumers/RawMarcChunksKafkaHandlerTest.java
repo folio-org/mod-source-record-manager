@@ -85,10 +85,11 @@ public class RawMarcChunksKafkaHandlerTest {
   }
 
   @Test
-  public void shouldNotHandleEventWhenJobExecutionChunk() {
+  public void shouldNotHandleEventWhenIncorrectJobProfileIsPickedForUploadedFile() {
     var jobExecId = UUID.randomUUID().toString();
     when(kafkaRecord.headers()).thenReturn(List.of(KafkaHeader.header(OKAPI_HEADER_TENANT.toLowerCase(), TENANT_ID)));
     when(jobExecutionService.getJobExecutionById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecution().withId(jobExecId).withStatus(JobExecution.Status.PARSING_IN_PROGRESS))));
+    // when error status is cached due to incorrect job profile is selected for uploaded file
     JobExecutionUtils.cache.put(jobExecId, JobExecution.Status.ERROR);
     // when
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
