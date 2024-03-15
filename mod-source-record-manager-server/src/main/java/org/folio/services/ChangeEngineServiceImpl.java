@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -397,19 +398,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithMatch(jobExecution.getJobProfileSnapshotWrapper());
+    return containsCreateInstanceActionWithoutMarcBib(jobExecution.getJobProfileSnapshotWrapper());
   }
 
-  private boolean containsCreateInstanceActionWithMatch(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        return childWrapper.getReactTo() != NON_MATCH;
-      } else if (containsCreateInstanceActionWithMatch(childWrapper)) {
+        return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
+      } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
         return true;
       }
     }
     return false;
+  }
+
+  private boolean containsMarcBibToInstanceMappingProfile(ProfileSnapshotWrapper actionWrapper) {
+   return actionWrapper.getChildSnapshotWrappers()
+      .stream()
+      .map(mappingWrapper -> Optional.ofNullable(mappingWrapper.getContent()))
+      .filter(Optional::isPresent)
+      .map(content -> DatabindCodec.mapper().convertValue(content.get(), MappingProfile.class))
+      .anyMatch(mappingProfile -> mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC);
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
