@@ -79,12 +79,12 @@ WITH
      (SELECT CASE
                  WHEN EXISTS (SELECT condition_result.entity_id
                               FROM temp_result condition_result
-                              WHERE (condition_result.action_type IN (''CREATED'', ''DISCARDED'') AND
+                              WHERE (condition_result.action_type IN (''CREATED'', ''UPDATED'', ''DISCARDED'') AND
                                      condition_result.entity_type = ''HOLDINGS''))
                      THEN
                      (SELECT deep_nested.id
                       FROM temp_result deep_nested
-                      WHERE (deep_nested.id = nested_result.id AND (deep_nested.action_type = ''CREATED'' OR
+                      WHERE (deep_nested.id = nested_result.id AND (deep_nested.action_type IN (''CREATED'', ''UPDATED'') OR
                                                                     (deep_nested.action_type = ''DISCARDED'' AND deep_nested.error != '''')))
                          OR (deep_nested.action_type = ''DISCARDED'' AND
                              deep_nested.id = nested_result.id AND
@@ -145,11 +145,15 @@ WHERE tmp.entity_type = ''ITEM''
   marc_holdings AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
     FROM temp_result WHERE entity_type = ''MARC_HOLDINGS''
+  ),
+  marc_bibliographic AS (
+    SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
+    FROM temp_result WHERE entity_type = ''MARC_BIBLIOGRAPHIC''
   )
 
 SELECT records_actions.job_execution_id AS job_execution_id,
-       records_actions.source_id AS source_id,
        records_actions.source_id AS incoming_record_id,
+       coalesce(marc_bibliographic_entity_id::uuid, marc_authority_entity_id::uuid, marc_holdings_entity_id::uuid) AS source_id,
        records_actions.source_record_order AS source_record_order,
        '''' as invoiceline_number,
        coalesce(rec_titles.title, marc_holdings_info.title) AS title,
@@ -293,11 +297,20 @@ FROM (
 ) AS marc_authority_info ON marc_authority_info.source_id = records_actions.source_id
 
        LEFT JOIN (
+  SELECT marc_bibliographic.action_type AS action_type,
+         marc_bibliographic.source_id AS source_id,
+         marc_bibliographic.title AS title,
+         marc_bibliographic.entity_id AS marc_bibliographic_entity_id,
+         marc_bibliographic.error AS marc_bibliographic_entity_error
+  FROM  marc_bibliographic WHERE entity_id IS NOT NULL
+) AS marc_bibliographic_info ON marc_bibliographic_info.source_id = records_actions.source_id
+
+       LEFT JOIN (
   SELECT marc_holdings.action_type AS action_type,
          marc_holdings.source_id AS source_id,
          marc_holdings.title AS title,
-         marc_holdings.entity_id AS marc_authority_entity_id,
-         marc_holdings.error AS marc_authority_entity_error
+         marc_holdings.entity_id AS marc_holdings_entity_id,
+         marc_holdings.error AS marc_holdings_entity_error
   FROM  marc_holdings
 ) AS marc_holdings_info ON marc_holdings_info.source_id = records_actions.source_id
 
@@ -315,8 +328,8 @@ FROM (
 UNION
 
 SELECT records_actions.job_execution_id AS job_execution_id,
-       records_actions.source_id AS source_id,
        records_actions.source_id AS incoming_record_id,
+       records_actions.source_id AS source_id,
        source_record_order AS source_record_order,
        entity_hrid as invoiceline_number,
        invoice_line_info.title AS title,

@@ -27,6 +27,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
@@ -106,7 +107,6 @@ public class JournalUtil {
                                                                JournalRecord.ActionStatus actionStatus) throws JournalRecordMapperException {
     try {
       HashMap<String, String> eventPayloadContext = eventPayload.getContext();
-      String incomingRecordId = eventPayloadContext.get(INCOMING_RECORD_ID);
 
       String recordAsString = extractRecord(eventPayloadContext);
       Record record;
@@ -119,6 +119,7 @@ public class JournalUtil {
       } else {
         record = Json.decodeValue(recordAsString, Record.class);
       }
+      String incomingRecordId = eventPayloadContext.get(INCOMING_RECORD_ID) != null ? eventPayloadContext.get(INCOMING_RECORD_ID) : record.getId();
 
       String entityAsString = eventPayloadContext.get(entityType.value());
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
@@ -142,7 +143,8 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY) {
+        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY ||
+          (entityType == MARC_BIBLIOGRAPHIC && actionType == UPDATE)) {
           JsonObject entityJson = new JsonObject(entityAsString);
           journalRecord.setEntityId(entityJson.getString(ID_KEY));
           if (entityType == INSTANCE || entityType == PO_LINE) {
@@ -174,6 +176,11 @@ public class JournalUtil {
         } else {
           return Lists.newArrayList(journalRecord);
         }
+      } else {
+        if (eventPayload.getEventType().equals(DI_ERROR.value()) && eventPayloadContext.containsKey(MARC_BIBLIOGRAPHIC.value())) {
+          var journalRecordWithMarcBib = buildJournalRecordWithMarcBibType(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId);
+          return Lists.newArrayList(journalRecord, journalRecordWithMarcBib);
+        }
       }
       return Lists.newArrayList(journalRecord);
     } catch (Exception e) {
@@ -200,7 +207,7 @@ public class JournalUtil {
       String actionTypeFromContext = eventPayloadContext.get(MARC_BIB_RECORD_CREATED);
 
       if (actionTypeFromContext.equals(Boolean.TRUE.toString())) actionTypeForMarcBib = JournalRecord.ActionType.CREATE;
-      else actionTypeForMarcBib = JournalRecord.ActionType.UPDATE;
+      else actionTypeForMarcBib = UPDATE;
     }
 
     return buildCommonJournalRecord(actionStatus, actionTypeForMarcBib, currentRecord, eventPayload, eventPayloadContext, incomingRecordId)

@@ -61,6 +61,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
     prepareChunk(incomingChunk);
     return mapJobExecution(incomingChunk, jobExecution, false, params);
   }
+
   private Future<Boolean> mapJobExecution(RawRecordsDto incomingChunk, JobExecution jobExecution, boolean acceptInstanceId, OkapiConnectionParams params) {
     if (isNotSupportedJobProfileExists(jobExecution)) {
       throw new UnsupportedProfileException("Unsupported type of Job Profile.");
@@ -111,10 +112,10 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   private ProfileSnapshotWrapper getChildSnapshotWrapperByType(ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                                       ProfileSnapshotWrapper.ContentType contentType) {
+                                                               ProfileSnapshotWrapper.ContentType contentType) {
     if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
       List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
-      for(ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
+      for (ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
         if (snapshotWrapper.getContentType() == contentType) {
           return snapshotWrapper;
         }

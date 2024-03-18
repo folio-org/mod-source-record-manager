@@ -1,6 +1,7 @@
 package org.folio.rest.impl.metadataProvider;
 
 import io.restassured.RestAssured;
+import io.restassured.response.ValidatableResponse;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -37,6 +38,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.PARSE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -94,9 +96,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "in00000000001", null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -110,7 +113,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries", hasSize(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
@@ -155,7 +159,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries", hasSize(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedHoldingsInfo[0].actionStatus", is(ActionStatus.CREATED.value()))
@@ -174,9 +178,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -190,7 +195,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries", hasSize(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
@@ -204,10 +210,11 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -220,7 +227,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries", hasSize(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
 
@@ -269,9 +277,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, INSTANCE, ERROR, "error msg", null))
       .onFailure(context::fail);
 
@@ -285,7 +294,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
         .body("entries[0].relatedInstanceInfo.error", not(emptyOrNullString()));
@@ -300,10 +310,11 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "instanceEntityID", "in00000000001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
       .onFailure(context::fail);
@@ -318,7 +329,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(2))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].relatedInstanceInfo.actionStatus", is(ActionStatus.CREATED.value()));
 
@@ -332,9 +344,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null, 0, CREATE, PO_LINE, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -348,7 +361,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].relatedPoLineInfo.actionStatus", is(ActionStatus.CREATED.value()));
 
@@ -362,9 +376,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String authorityEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "authorityEntityID", null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, authorityEntityId, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -377,7 +392,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(authorityEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordType", is(MARC_AUTHORITY.value()))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].relatedAuthorityInfo.error", is(notNullValue()))
@@ -425,11 +441,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + holdingsCreationJobExecution.getId())
         .then()
         .statusCode(HttpStatus.SC_OK)
-
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(holdingsCreationJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(holdingsCreationSourceRecordId))
+        .body("entries[0].incomingRecordId", is(holdingsCreationSourceRecordId))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
         .body("entries[0].relatedInstanceInfo.idList[0]", is("instanceEntityID"))
@@ -448,9 +463,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String orderId = UUID.randomUUID().toString();
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "marcEntityID", null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, "poLineEntityID", null, null, 0, CREATE, PO_LINE, COMPLETED, "Test error", orderId))
       .onFailure(context::fail);
 
@@ -464,7 +480,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedPoLineInfo", notNullValue())
@@ -483,11 +500,12 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String marcBibAndInstanceUpdateSourceRecordId = UUID.randomUUID().toString();
 
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "instanceEntityID", "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, "marcBibEntityID", null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(marcBibAndInstanceUpdateJobExecution.getId(), marcBibAndInstanceUpdateSourceRecordId, marcBibEntityId, null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -500,7 +518,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(marcBibAndInstanceUpdateJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(marcBibAndInstanceUpdateSourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(marcBibAndInstanceUpdateSourceRecordId))
         .body("entries[0].error", emptyOrNullString())
         .body("entries[0].relatedInstanceInfo.idList.size()", is(1))
         .body("entries[0].relatedInstanceInfo.hridList.size()", is(1))
@@ -532,7 +551,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].relatedHoldingsInfo[0].actionStatus", is(ActionStatus.CREATED.value()));
       async.complete();
@@ -559,7 +578,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is("Holdings ho00000000001"))
         .body("entries[0].relatedHoldingsInfo[0].hrid", is("ho00000000001"))
         .body("entries[0].sourceRecordType", is(MARC_HOLDINGS.value()));
@@ -624,13 +643,16 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String sourceRecordId2 = UUID.randomUUID().toString();
     String sourceRecordId3 = UUID.randomUUID().toString();
     String recordTitle1 = "title1";
+    String marcBibEntityId1 = UUID.randomUUID().toString();
+    String marcBibEntityId2 = UUID.randomUUID().toString();
+    String marcBibEntityId3 = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, recordTitle1, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcBibEntityId1, null, recordTitle1, 1, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, "in00000000001", null, 1, CREATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, "title0", 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, marcBibEntityId2, null, "title0", 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, CREATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, null, "title3", 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, marcBibEntityId3, null, "title3", 3, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId3, null, null, null, 3, CREATE, INSTANCE, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -648,7 +670,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(3))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId1))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId1))
         .body("entries[0].sourceRecordTitle", is(recordTitle1))
         .body("entries[0].sourceRecordOrder", is("1"))
         .body("entries[0].relatedHoldingsInfo.hrid", is(empty()))
@@ -673,7 +696,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
-      RestAssured.given()
+      ValidatableResponse r = RestAssured.given()
         .spec(spec)
         .when()
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
@@ -681,7 +704,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .statusCode(HttpStatus.SC_OK)
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(entityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
         .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.CREATED.value()));
@@ -695,9 +719,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -711,7 +736,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()));
@@ -727,10 +753,11 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String sourceRecordId = UUID.randomUUID().toString();
     String entityId = UUID.randomUUID().toString();
     String entityHrid = "001";
+    String marcBibEntityId = UUID.randomUUID().toString();
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, entityHrid, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, entityHrid, null, 0, CREATE, INSTANCE, ERROR, "error msg", null))
       .onFailure(context::fail);
 
@@ -744,7 +771,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -762,9 +790,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, ERROR, "MarcBib error msg", null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, ERROR, "MarcBib error msg", null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -774,11 +803,11 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
         .then()
         .statusCode(HttpStatus.SC_OK)
-
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", is("MarcBib error msg"));
@@ -824,7 +853,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -876,7 +905,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -922,7 +951,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -952,6 +981,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String invoiceLineDescription = "Some description";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, CREATE, EDIFACT, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceId, invoiceHrid, "INVOICE", 0, CREATE, INVOICE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, invoiceLineId1, invoiceVendorNumber + "-1", invoiceLineDescription + "1", 1, CREATE, INVOICE, COMPLETED, null, null))
@@ -1360,7 +1390,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle));
       async.complete();
     }));
@@ -1408,7 +1438,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -1464,7 +1494,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -1518,7 +1548,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].error", emptyOrNullString())
@@ -1548,9 +1578,10 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String instanceId = UUID.randomUUID().toString();
     String recordTitle = "test title";
     String expectedCentralTenantId = "mobius";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null, expectedCentralTenantId))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null, expectedCentralTenantId))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, "in00000000001", null, 0, UPDATE, INSTANCE, COMPLETED, null, null, expectedCentralTenantId));
 
     future.onComplete(context.asyncAssertSuccess(v ->
@@ -1564,7 +1595,8 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordId", is(marcBibEntityId))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordOrder", is("0"))
         .body("entries[0].sourceRecordTenantId", is(expectedCentralTenantId))

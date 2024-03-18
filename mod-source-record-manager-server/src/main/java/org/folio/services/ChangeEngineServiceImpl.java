@@ -39,18 +39,21 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.impl.KafkaHeaderImpl;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,6 +61,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -95,6 +99,7 @@ import org.folio.services.parsers.ParsedResult;
 import org.folio.services.parsers.RecordParserBuilder;
 import org.folio.services.util.RecordConversionUtil;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
+import org.folio.verticle.consumers.util.JobExecutionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -177,7 +182,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
         return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
           ? Future.succeededFuture(parsedRecords)
-          : Future.failedFuture(prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords));
+          : Future.failedFuture(new InvalidJobProfileForFileException(
+            prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords))
+        );
       })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -391,19 +398,28 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private boolean isCreateInstanceActionExists(JobExecution jobExecution) {
-    return containsCreateInstanceActionWithMatch(jobExecution.getJobProfileSnapshotWrapper());
+    return containsCreateInstanceActionWithoutMarcBib(jobExecution.getJobProfileSnapshotWrapper());
   }
 
-  private boolean containsCreateInstanceActionWithMatch(ProfileSnapshotWrapper profileSnapshot) {
+  private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
       if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
-        return childWrapper.getReactTo() != NON_MATCH;
-      } else if (containsCreateInstanceActionWithMatch(childWrapper)) {
+        return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
+      } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
         return true;
       }
     }
     return false;
+  }
+
+  private boolean containsMarcBibToInstanceMappingProfile(ProfileSnapshotWrapper actionWrapper) {
+   return actionWrapper.getChildSnapshotWrappers()
+      .stream()
+      .map(mappingWrapper -> Optional.ofNullable(mappingWrapper.getContent()))
+      .filter(Optional::isPresent)
+      .map(content -> DatabindCodec.mapper().convertValue(content.get(), MappingProfile.class))
+      .anyMatch(mappingProfile -> mappingProfile.getIncomingRecordType() == EntityType.MARC_BIBLIOGRAPHIC);
   }
 
   private boolean isCreateAuthorityActionExists(JobExecution jobExecution) {
@@ -858,6 +874,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private String prepareWrongJobProfileErrorMessage(JobExecution jobExecution, List<Record> records) {
+    JobExecutionUtils.cache.put(jobExecution.getId(), JobExecution.Status.ERROR);
     return String.format(WRONG_JOB_PROFILE_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName(), records.get(0).getRecordType());
   }
 }

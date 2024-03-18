@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.FailedFuture;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
@@ -16,7 +15,9 @@ import org.folio.kafka.KafkaHeaderUtils;
 import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.ChunkProcessingService;
+import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.JobExecutionService;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
@@ -43,7 +44,7 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
   private final Vertx vertx;
 
   public RawMarcChunksKafkaHandler(@Autowired @Qualifier("eventDrivenChunkProcessingService")
-                                     ChunkProcessingService eventDrivenChunkProcessingService,
+                                   ChunkProcessingService eventDrivenChunkProcessingService,
                                    @Autowired RawRecordsFlowControlService flowControlService,
                                    @Autowired JobExecutionService jobExecutionService,
                                    @Autowired Vertx vertx) {
@@ -94,6 +95,13 @@ public class RawMarcChunksKafkaHandler implements AsyncRecordHandler<String, byt
                     return Future.failedFuture(th);
                   } else if (th instanceof RecordsPublishingException) {
                     LOGGER.warn("handle:: RawRecordsDto entries publishing to Kafka has failed for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
+                    return Future.failedFuture(th);
+                  } else if (th instanceof InvalidJobProfileForFileException) {
+                    jobExecutionService.updateJobExecutionStatus(jobExecutionId, new StatusDto()
+                        .withStatus(StatusDto.Status.ERROR)
+                        .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR),
+                      okapiParams);
+                    LOGGER.warn("handle:: Invalid job profile selected for uploaded file for chunkId: {} chunkNumber: {} - {} for jobExecutionId: {} chunkNUmber - {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, chunkNumber);
                     return Future.failedFuture(th);
                   } else {
                     LOGGER.warn("handle:: RawRecordsDto processing has failed with errors chunkId: {} chunkNumber: {} - {} for jobExecutionId: {}", chunkId, chunkNumber, rawRecordsDto.getRecordsMetadata(), jobExecutionId, th);
