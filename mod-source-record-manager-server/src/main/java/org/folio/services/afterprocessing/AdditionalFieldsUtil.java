@@ -60,6 +60,7 @@ public final class AdditionalFieldsUtil {
   private final static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
   private final static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
   private static final ObjectMapper objectMapper = new ObjectMapper();
+  public static final String FIELDS = "fields";
 
   static {
     // this function is executed when creating a new item to be saved in the cache.
@@ -174,7 +175,7 @@ public final class AdditionalFieldsUtil {
   private static String reorderMarcRecordFields(String sourceContent, String targetContent) {
     try {
       var parsedContent = objectMapper.readTree(targetContent);
-      var fieldsArrayNode = (ArrayNode) parsedContent.path("fields");
+      var fieldsArrayNode = (ArrayNode) parsedContent.path(FIELDS);
 
       Map<String, Queue<JsonNode>> jsonNodesByTag = groupNodesByTag(fieldsArrayNode);
 
@@ -191,7 +192,7 @@ public final class AdditionalFieldsUtil {
 
       jsonNodesByTag.values().forEach(rearrangedArray::addAll);
 
-      ((ObjectNode)parsedContent).set("fields", rearrangedArray);
+      ((ObjectNode)parsedContent).set(FIELDS, rearrangedArray);
 
       return parsedContent.toString();
     } catch (Exception e) {
@@ -204,7 +205,7 @@ public final class AdditionalFieldsUtil {
     List<String> sourceFields = new ArrayList<>();
     try {
       var sourceJson = objectMapper.readTree(source);
-      var fieldsNode = sourceJson.get("fields");
+      var fieldsNode = sourceJson.get(FIELDS);
       for (JsonNode fieldNode : fieldsNode) {
         String tag = fieldNode.fieldNames().next();
         sourceFields.add(tag);
