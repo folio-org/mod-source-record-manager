@@ -1,5 +1,9 @@
 package org.folio.services.afterprocessing;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -28,9 +32,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -50,6 +59,8 @@ public final class AdditionalFieldsUtil {
 
   private final static CacheLoader<Object, org.marc4j.marc.Record> parsedRecordContentCacheLoader;
   private final static LoadingCache<Object, org.marc4j.marc.Record> parsedRecordContentCache;
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+  public static final String FIELDS = "fields";
 
   static {
     // this function is executed when creating a new item to be saved in the cache.
@@ -149,8 +160,9 @@ public final class AdditionalFieldsUtil {
           String parsedContentString = new JsonObject(os.toString()).encode();
           parsedRecordContentCache.invalidate(record.getParsedRecord().getContent());
           // save parsed content string to cache then set it on the record
-          parsedRecordContentCache.put(parsedContentString, marcRecord);
-          record.setParsedRecord(record.getParsedRecord().withContent(parsedContentString));
+          var content = reorderMarcRecordFields(record.getParsedRecord().getContent().toString(), parsedContentString);
+          parsedRecordContentCache.put(content, marcRecord);
+          record.setParsedRecord(record.getParsedRecord().withContent(content));
           result = true;
         }
       }
@@ -158,6 +170,59 @@ public final class AdditionalFieldsUtil {
       LOGGER.warn("addFieldToMarcRecord:: Failed to add additional subfield {} for field {} to record {}", subfield, field, record.getId(), e);
     }
     return result;
+  }
+
+  private static String reorderMarcRecordFields(String sourceContent, String targetContent) {
+    try {
+      var parsedContent = objectMapper.readTree(targetContent);
+      var fieldsArrayNode = (ArrayNode) parsedContent.path(FIELDS);
+
+      Map<String, Queue<JsonNode>> jsonNodesByTag = groupNodesByTag(fieldsArrayNode);
+
+      List<String> sourceFields = getSourceFields(sourceContent);
+
+      var rearrangedArray = objectMapper.createArrayNode();
+      for (String tag : sourceFields) {
+        Queue<JsonNode> nodes = jsonNodesByTag.get(tag);
+        if (nodes != null && !nodes.isEmpty()) {
+          rearrangedArray.addAll(nodes);
+          jsonNodesByTag.remove(tag);
+        }
+      }
+
+      jsonNodesByTag.values().forEach(rearrangedArray::addAll);
+
+      ((ObjectNode)parsedContent).set(FIELDS, rearrangedArray);
+
+      return parsedContent.toString();
+    } catch (Exception e) {
+      LOGGER.error("An error occurred while reordering Marc record fields: {}", e.getMessage(), e);
+      return targetContent;
+    }
+  }
+
+  private static List<String> getSourceFields(String source) {
+    List<String> sourceFields = new ArrayList<>();
+    try {
+      var sourceJson = objectMapper.readTree(source);
+      var fieldsNode = sourceJson.get(FIELDS);
+      for (JsonNode fieldNode : fieldsNode) {
+        String tag = fieldNode.fieldNames().next();
+        sourceFields.add(tag);
+      }
+    } catch (Exception e) {
+      LOGGER.error("An error occurred while parsing source JSON: {}", e.getMessage(), e);
+    }
+    return sourceFields;
+  }
+
+  private static Map<String, Queue<JsonNode>> groupNodesByTag(ArrayNode fieldsArrayNode) {
+    Map<String, Queue<JsonNode>> jsonNodesByTag = new HashMap<>();
+    fieldsArrayNode.forEach(node -> {
+      String tag = node.fieldNames().next();
+      jsonNodesByTag.computeIfAbsent(tag, k -> new LinkedList<>()).add(node);
+    });
+    return jsonNodesByTag;
   }
 
   /**
