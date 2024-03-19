@@ -5,6 +5,7 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for publishing events with records
@@ -20,6 +21,6 @@ public interface RecordsPublishingService {
    * @param eventType      event type
    * @return true if successful
    */
-  Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType);
+  Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType, Map<String, String> context);
 
 }

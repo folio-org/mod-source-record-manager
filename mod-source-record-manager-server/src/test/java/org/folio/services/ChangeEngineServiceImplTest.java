@@ -194,7 +194,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -218,7 +218,7 @@ public class ChangeEngineServiceImplTest {
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
     when(jobExecutionSourceChunkDao.getById(any(), any())).thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
 
@@ -226,7 +226,7 @@ public class ChangeEngineServiceImplTest {
     assertThat(actual, hasSize(1));
     assertThat(actual.get(0).getRecordType(), equalTo(Record.RecordType.MARC_BIB));
     assertThat(actual.get(0).getErrorRecord(), nullValue());
-    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value()));
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value()), any());
   }
 
   @Test
@@ -246,7 +246,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -285,7 +285,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()), any());
   }
 
   @Test
@@ -368,7 +368,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture());
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -395,7 +395,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture());
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -420,7 +420,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture());
 
     Future<List<Record>> serviceFuture =
@@ -443,7 +443,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture());
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -476,7 +476,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()), any());
   }
 
   @Test
@@ -499,7 +499,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()));
+    verify(recordsPublishingService).sendEventsWithRecords(any(), eq(jobExecution.getId()), any(), eq(DI_MARC_FOR_UPDATE_RECEIVED.value()), any());
   }
 
   @Test
@@ -525,7 +525,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any(), any());
   }
 
   @Test
@@ -548,7 +548,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService, times(1)).sendEventsWithRecords(any(), any(), any(), eq(DI_INCOMING_MARC_BIB_RECORD_PARSED.value()));
+    verify(recordsPublishingService, times(1)).sendEventsWithRecords(any(), any(), any(), eq(DI_INCOMING_MARC_BIB_RECORD_PARSED.value()), any());
   }
 
   @Test
@@ -572,7 +572,7 @@ public class ChangeEngineServiceImplTest {
       service.parseRawRecordsChunkForJobExecution(rawRecordsDto, jobExecution, "1", false, okapiConnectionParams).result();
     }
 
-    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(any(), any(), any(), any(), any());
   }
 
   @Test
@@ -597,7 +597,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture(true));
     doAnswer(invocationOnMock -> Future.succeededFuture(invocationOnMock.getArgument(1)))
       .when(fieldModificationService).remove9Subfields(any(), any(), any());
@@ -629,7 +629,7 @@ public class ChangeEngineServiceImplTest {
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any()))
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     Future<List<Record>> serviceFuture = executeWithKafkaMock(rawRecordsDto, jobExecution, Future.succeededFuture(true));
@@ -643,7 +643,7 @@ public class ChangeEngineServiceImplTest {
 
   private void mockServicesForParseRawRecordsChunkForJobExecution() {
     when(marcRecordAnalyzer.process(any())).thenReturn(MarcRecordType.BIB);
-    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
+    when(recordsPublishingService.sendEventsWithRecords(any(), any(), any(), any(), any())).thenReturn(Future.succeededFuture(true));
     when(jobExecutionSourceChunkDao.getById(any(), any()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecutionSourceChunk())));
     when(jobExecutionSourceChunkDao.update(any(), any())).thenReturn(Future.succeededFuture(new JobExecutionSourceChunk()));

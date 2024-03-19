@@ -29,6 +29,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -63,18 +64,18 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   }
 
   @Override
-  public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType) {
+  public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType, Map<String, String> context) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobExecutionOptional -> {
         if (jobExecutionOptional.isPresent()) {
-          return sendRecords(records, jobExecutionOptional.get(), params, eventType);
+          return sendRecords(records, jobExecutionOptional.get(), params, eventType, context);
         } else {
           return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)));
         }
       });
   }
 
-  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType) {
+  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType, Map<String, String> context) {
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     List<Record> failedRecords = new ArrayList<>();
@@ -85,6 +86,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       try {
         if (record.getRecordType() != null && isParsedContentExists(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
+          payload.getContext().putAll(context);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
