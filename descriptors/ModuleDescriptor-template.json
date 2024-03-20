@@ -253,9 +253,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
           "permissionsRequired": [
-            "change-manager.records.post",
-            "finance.funds.item.get",
-            "finance.transactions.batch"
+            "change-manager.records.post"
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
@@ -323,8 +321,10 @@
             "finance.exchange-rate.item.get",
             "finance.expense-classes.collection.get",
             "finance.funds.budget.item.get",
+            "finance.funds.item.get",
             "finance.fiscal-years.item.get",
             "finance.ledgers.collection.get",
+            "finance.transactions.batch",
             "finance.transactions.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
