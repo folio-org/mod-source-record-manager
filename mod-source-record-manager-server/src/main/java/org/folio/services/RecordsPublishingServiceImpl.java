@@ -29,6 +29,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -86,7 +87,8 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       try {
         if (record.getRecordType() != null && isParsedContentExists(record)) {
           DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
-          payload.getContext().putAll(context);
+          Optional.ofNullable(context)
+            .ifPresent(payload.getContext()::putAll);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
