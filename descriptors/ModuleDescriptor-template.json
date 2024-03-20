@@ -253,7 +253,9 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}/records",
           "permissionsRequired": [
-            "change-manager.records.post"
+            "change-manager.records.post",
+            "finance.funds.item.get",
+            "finance.transactions.batch"
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
