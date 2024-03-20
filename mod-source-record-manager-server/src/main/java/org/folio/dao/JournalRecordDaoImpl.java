@@ -409,7 +409,8 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     if (resultSet.size() > 0) {
       recordProcessingLogSummary
         .withJobExecutionId(row.getValue(JOB_EXECUTION_ID).toString())
-        .withSourceRecordId(row.getValue(SOURCE_ID).toString())
+        .withIncomingRecordId(row.getValue(INCOMING_RECORD_ID).toString())
+        .withSourceRecordId(row.getValue(SOURCE_ID) != null ? row.getValue(SOURCE_ID).toString() : null)
         .withSourceRecordOrder(row.getInteger(SOURCE_RECORD_ORDER).toString())
         .withSourceRecordTitle(row.getString(TITLE))
         .withSourceRecordActionStatus(mapNameToEntityActionStatus(row.getString(SOURCE_RECORD_ACTION_STATUS)))

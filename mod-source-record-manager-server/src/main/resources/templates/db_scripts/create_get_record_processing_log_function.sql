@@ -1,7 +1,7 @@
 DROP FUNCTION IF EXISTS get_record_processing_log(uuid, uuid);
 
 CREATE OR REPLACE FUNCTION get_record_processing_log(jobExecutionId uuid, recordId uuid)
-    RETURNS TABLE(job_execution_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, source_record_tenant_id text, instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text, instance_entity_tenant_id text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text, holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text, authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
+    RETURNS TABLE(job_execution_id uuid, incoming_record_id uuid, source_id uuid, source_record_order integer, title text, source_record_action_status text, source_entity_error text, source_record_tenant_id text, instance_action_status text, instance_entity_id text, instance_entity_hrid text, instance_entity_error text, instance_entity_tenant_id text, holdings_action_status text, holdings_entity_hrid text, holdings_entity_id text, holdings_permanent_location_id text, holdings_entity_error text, item_action_status text, item_entity_hrid text, item_entity_id text, item_entity_error text, authority_action_status text, authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text, order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text, invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text)
 AS $$
 BEGIN
     RETURN QUERY
@@ -24,7 +24,8 @@ BEGIN
     		ON journal_records.id = action_type_by_source.id_max)
         (SELECT
     	      COALESCE(marc.job_execution_id,instances.job_execution_id,holdings.job_execution_id,items.job_execution_id) AS job_execution_id,
-    	      COALESCE(marc.source_id,instances.source_id,holdings.source_id,items.source_id) AS source_id,
+    	      marc.source_id as incoming_record_id,
+    	      marc_bibliographic_entity_id::uuid AS source_id,
     	      COALESCE(marc.source_record_order,instances.source_record_order,holdings.source_record_order,items.source_record_order) AS source_record_order,
     	      COALESCE(marc.title,instances.title,holdings.title,items.title) AS title,
     	      marc.action_type AS source_record_action_status,
@@ -67,7 +68,7 @@ BEGIN
             null AS invoice_line_entity_hrid,
             null AS invoice_line_entity_error
       FROM (SELECT temp_result.source_id FROM temp_result WHERE action_type = 'PARSED') as parsed
-      LEFT JOIN
+      FULL JOIN
           (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
           FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE')) AS marc
       ON marc.source_id = parsed.source_id
@@ -134,10 +135,15 @@ BEGIN
                     	      ON tmp.id = joining_table.id
                 			 WHERE  tmp.entity_type='ITEM') AS items
     	ON holdings.entity_id = items.holdings_id
-    	ORDER BY holdings.entity_hrid)
+    	LEFT JOIN
+         (SELECT entity_id AS marc_bibliographic_entity_id, temp_result.source_id AS marc_source_id
+                 	FROM temp_result WHERE entity_type = 'MARC_BIBLIOGRAPHIC' AND entity_id IS NOT NULL) AS marc_bibliographic
+                 	ON marc.source_id = marc_bibliographic.marc_source_id
+      ORDER BY holdings.entity_hrid)
       UNION
         	SELECT invoice_line_info.job_execution_id,
-                invoice_line_info.source_id,
+        	      records_actions.source_id as incoming_record_id,
+                records_actions.source_id as source_id,
                 records_actions.source_record_order,
                 invoice_line_info.title,
                 CASE WHEN edifact_errors_number != 0 THEN 'DISCARDED'
