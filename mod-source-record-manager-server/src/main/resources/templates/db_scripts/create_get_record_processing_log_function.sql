@@ -138,7 +138,7 @@ BEGIN
       LEFT JOIN (
           SELECT entity_id AS marc_entity_id, temp_result.source_id AS marc_source_id
           FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND entity_id IS NOT NULL
-      ) AS marc_bibliographic ON marc.source_id = marc_bibliographic.marc_source_id
+      ) AS marc_identifiers ON marc.source_id = marc_identifiers.marc_source_id
       ORDER BY holdings.entity_hrid)
       UNION
         	SELECT invoice_line_info.job_execution_id,
