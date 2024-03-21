@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-source-record-storage-client</artifactId>
-      <version>5.7.0</version>
+      <version>5.8.0</version>
       <type>jar</type>
     </dependency>
     <dependency>
