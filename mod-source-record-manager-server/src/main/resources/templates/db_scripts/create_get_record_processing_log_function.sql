@@ -25,7 +25,7 @@ BEGIN
         (SELECT
     	      COALESCE(marc.job_execution_id,instances.job_execution_id,holdings.job_execution_id,items.job_execution_id) AS job_execution_id,
     	      marc.source_id as incoming_record_id,
-    	      marc_bibliographic_entity_id::uuid AS source_id,
+            marc_entity_id::uuid AS source_id,
     	      COALESCE(marc.source_record_order,instances.source_record_order,holdings.source_record_order,items.source_record_order) AS source_record_order,
     	      COALESCE(marc.title,instances.title,holdings.title,items.title) AS title,
     	      marc.action_type AS source_record_action_status,
@@ -135,10 +135,10 @@ BEGIN
                     	      ON tmp.id = joining_table.id
                 			 WHERE  tmp.entity_type='ITEM') AS items
     	ON holdings.entity_id = items.holdings_id
-    	LEFT JOIN
-         (SELECT entity_id AS marc_bibliographic_entity_id, temp_result.source_id AS marc_source_id
-                 	FROM temp_result WHERE entity_type = 'MARC_BIBLIOGRAPHIC' AND entity_id IS NOT NULL) AS marc_bibliographic
-                 	ON marc.source_id = marc_bibliographic.marc_source_id
+      LEFT JOIN (
+          SELECT entity_id AS marc_entity_id, temp_result.source_id AS marc_source_id
+          FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY') AND entity_id IS NOT NULL
+      ) AS marc_bibliographic ON marc.source_id = marc_bibliographic.marc_source_id
       ORDER BY holdings.entity_hrid)
       UNION
         	SELECT invoice_line_info.job_execution_id,
