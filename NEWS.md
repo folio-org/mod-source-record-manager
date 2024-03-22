@@ -23,6 +23,7 @@
 * [MODDATAIMP-1001](https://folio-org.atlassian.net/browse/MODDATAIMP-1001) Remove 999 validation for instance creation
 * [MODSOURMAN-956](https://folio-org.atlassian.net/browse/MODSOURMAN-956) Stop processing the job with incorrect profile
 * [MODSOURMAN-1153](https://folio-org.atlassian.net/browse/MODSOURMAN-1153) Add the "acceptInstanceId" flag into the dataImportEventPayload context
+* [MODSOURMAN-1150](https://folio-org.atlassian.net/browse/MODSOURMAN-1150) Add incomingRecordId field at record processing log
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
