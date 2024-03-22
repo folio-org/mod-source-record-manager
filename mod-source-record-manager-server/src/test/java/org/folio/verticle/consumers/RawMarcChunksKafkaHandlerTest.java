@@ -80,7 +80,7 @@ public class RawMarcChunksKafkaHandlerTest {
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
     assertTrue(future.succeeded());
   }
 
@@ -95,7 +95,7 @@ public class RawMarcChunksKafkaHandlerTest {
     Future<String> future = rawMarcChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
     assertTrue(future.succeeded());
   }
 }

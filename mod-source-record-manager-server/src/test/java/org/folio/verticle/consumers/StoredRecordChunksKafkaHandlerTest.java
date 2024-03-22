@@ -114,7 +114,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
     assertTrue(future.failed());
     assertTrue(future.cause() instanceof DuplicateEventException);
   }
@@ -159,7 +159,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, EntityType.MARC_AUTHORITY))).thenReturn(Future.succeededFuture(Optional.of(mappingRulesCopy)));
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString()))
+      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -263,7 +263,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     when(eventProcessedService.collectData(STORED_RECORD_CHUNKS_KAFKA_HANDLER_UUID, event.getId(), TENANT_ID)).thenReturn(Future.succeededFuture());
     when(mappingRuleCache.get(new MappingRuleCacheKey(TENANT_ID, entityType))).thenReturn(Future.succeededFuture(Optional.of(mappingRules)));
     when(recordsPublishingService
-      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString()))
+      .sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any()))
       .thenReturn(Future.succeededFuture(true));
 
     // when
@@ -291,7 +291,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     Future<String> future = storedRecordChunksKafkaHandler.handle(kafkaRecord);
 
     // then
-    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString());
+    verify(recordsPublishingService, never()).sendEventsWithRecords(anyList(), anyString(), any(OkapiConnectionParams.class), anyString(), any());
     assertTrue(future.succeeded());
   }
 

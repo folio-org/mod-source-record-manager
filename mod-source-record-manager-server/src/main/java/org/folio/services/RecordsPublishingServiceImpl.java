@@ -29,6 +29,8 @@ import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -63,18 +65,18 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   }
 
   @Override
-  public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType) {
+  public Future<Boolean> sendEventsWithRecords(List<Record> records, String jobExecutionId, OkapiConnectionParams params, String eventType, Map<String, String> context) {
     return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
       .compose(jobExecutionOptional -> {
         if (jobExecutionOptional.isPresent()) {
-          return sendRecords(records, jobExecutionOptional.get(), params, eventType);
+          return sendRecords(records, jobExecutionOptional.get(), params, eventType, context);
         } else {
           return Future.failedFuture(new NotFoundException(format("Couldn't find JobExecution with id %s", jobExecutionId)));
         }
       });
   }
 
-  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType) {
+  private Future<Boolean> sendRecords(List<Record> createdRecords, JobExecution jobExecution, OkapiConnectionParams params, String eventType, Map<String, String> context) {
     Promise<Boolean> promise = Promise.promise();
     List<Future<Boolean>> futures = new ArrayList<>();
     List<Record> failedRecords = new ArrayList<>();
@@ -84,7 +86,7 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
       String key = String.valueOf(indexer.incrementAndGet() % maxDistributionNum);
       try {
         if (record.getRecordType() != null && isParsedContentExists(record)) {
-          DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType);
+          DataImportEventPayload payload = prepareEventPayload(record, profileSnapshotWrapper, params, eventType, context);
           params.getHeaders().set(RECORD_ID_HEADER, record.getId());
           params.getHeaders().set(USER_ID_HEADER, jobExecution.getUserId());
           futures.add(sendEventToKafka(params.getTenantId(), Json.encode(payload),
@@ -141,8 +143,10 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
    * @return dataImportEventPayload
    */
   private DataImportEventPayload prepareEventPayload(Record record, ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                     OkapiConnectionParams params, String eventType) {
+                                                     OkapiConnectionParams params, String eventType, Map<String, String> contextParams) {
     HashMap<String, String> context = payloadContextBuilder.buildFrom(record, profileSnapshotWrapper.getId());
+    Optional.ofNullable(contextParams)
+      .ifPresent(context::putAll);
 
     return new DataImportEventPayload()
       .withEventType(eventType)

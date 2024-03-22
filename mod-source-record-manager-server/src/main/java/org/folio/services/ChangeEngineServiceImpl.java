@@ -125,6 +125,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
+  private static final String ACCEPT_INSTANCE_ID_KEY = "acceptInstanceId";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
   private final JobExecutionService jobExecutionService;
@@ -190,7 +191,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
-        processRecords(parsedRecords, jobExecution, params, sourceChunkId, promise);
+        processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
         LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records: {}", th.getMessage());
         promise.fail(th);
@@ -199,7 +200,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   }
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
-                              String sourceChunkId, Promise<List<Record>> promise) {
+                              String sourceChunkId, boolean acceptInstanceId, Promise<List<Record>> promise) {
     switch (getAction(parsedRecords, jobExecution)) {
       case UPDATE_RECORD -> {
         hrIdFieldService.move001valueTo035Field(parsedRecords);
@@ -212,7 +213,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
       case SEND_ERROR -> sendEvents(parsedRecords, jobExecution, params, DI_ERROR)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
-      case SEND_MARC_BIB -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_MARC_BIB_RECORD_PARSED)
+      case SEND_MARC_BIB -> sendEventWithContext(parsedRecords, jobExecution, params, Map.of(ACCEPT_INSTANCE_ID_KEY, Boolean.toString(acceptInstanceId)))
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
       case SEND_EDIFACT -> sendEvents(parsedRecords, jobExecution, params, DI_INCOMING_EDIFACT_RECORD_PARSED)
         .onSuccess(ar -> promise.complete(parsedRecords)).onFailure(promise::fail);
@@ -281,7 +282,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private Future<Boolean> sendEvents(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params, DataImportEventTypes eventType) {
     LOGGER.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}", eventType.value(), jobExecution.getId());
-    return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, eventType.value());
+    return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, eventType.value(), null);
+  }
+
+  private Future<Boolean> sendEventWithContext(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params, Map<String, String> eventContext) {
+    LOGGER.info("sendEvents:: Sending events with type: {}, jobExecutionId: {}, event context: {}", DI_INCOMING_MARC_BIB_RECORD_PARSED, jobExecution.getId(), eventContext);
+    return recordsPublishingService.sendEventsWithRecords(records, jobExecution.getId(), params, DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), eventContext);
   }
 
   private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
@@ -334,13 +340,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<Boolean> updateRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.info("updateRecords:: Records have not been saved in record-storage, because job contains action for Marc or Instance update");
     return recordsPublishingService
-      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value());
+      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_UPDATE_RECEIVED.value(), null);
   }
 
   private Future<Boolean> deleteRecords(List<Record> records, JobExecution jobExecution, OkapiConnectionParams params) {
     LOGGER.info("deleteRecords:: Records have not been saved in record-storage, because job contains action for Marc delete");
     return recordsPublishingService
-      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value());
+      .sendEventsWithRecords(records, jobExecution.getId(), params, DI_MARC_FOR_DELETE_RECEIVED.value(), null);
   }
 
   private Future<Boolean> ensureMappingMetaDataSnapshot(String jobExecutionId, List<Record> recordsList,
