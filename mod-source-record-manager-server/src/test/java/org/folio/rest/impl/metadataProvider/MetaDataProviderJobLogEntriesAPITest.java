@@ -80,6 +80,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     String holdingsEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, UUID.randomUUID().toString(), null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, instanceEntityId, "in00000000001", recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(instanceCreationJobExecution.getId(), instanceCreationSourceRecordId, holdingsEntityId, "ho00000000001", recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
