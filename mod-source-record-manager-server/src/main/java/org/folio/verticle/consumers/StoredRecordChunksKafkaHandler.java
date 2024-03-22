@@ -122,7 +122,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
                 LOGGER.debug("handle:: RecordsBatchResponse has been received, starting processing chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                 saveCreatedRecordsInfoToDataImportLog(storedRecords, okapiConnectionParams.getTenantId());
-                return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId, okapiConnectionParams, eventType.value())
+                return recordsPublishingService.sendEventsWithRecords(storedRecords, jobExecutionId, okapiConnectionParams, eventType.value(), null)
                   .compose(b -> {
                     LOGGER.debug("handle:: RecordsBatchResponse processing has been completed chunkId: {} chunkNumber: {} jobExecutionId: {}", chunkId, chunkNumber, jobExecutionId);
                     return Future.succeededFuture(chunkId);
