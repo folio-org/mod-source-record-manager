@@ -1,4 +1,4 @@
-## 2023-xx-xx v3.8.0-SNAPSHOT
+## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
 * [MODSOURMAN-1139](https://folio-org.atlassian.net/browse/MODSOURMAN-1139) Fix Kafka test failures in ChangeManagerAPITest
 * [MODDATAIMP-1003](https://folio-org.atlassian.net/browse/MODDATAIMP-1003) Provide "orders-storage.titles.item.get" module permission
@@ -14,8 +14,8 @@
 * [MODSOURMAN-1093](https://issues.folio.org/browse/MODSOURMAN-1093) EventHandlingUtil hangs forever on error
 * [MODSOURMAN-1043](https://issues.folio.org/browse/MODSOURMAN-1043) Improper behavior in multiples for holdings when update action on match and create on non-match
 * [MODSOURMAN-1091](https://issues.folio.org/browse/MODSOURMAN-1091) The '1' number of Instance is displayed in cell in the row with the 'Updated' row header at the individual import job's log
-* [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch
-* [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table.
+* [MODSOURMAN-1108](https://issues.folio.org/browse/MODSOURMAN-1108) MARC authority record is not created when use Job profile with match profile and action only on no-match branch (MODSOURMAN-1110)
+* [MODSOURMAN-1106](https://issues.folio.org/browse/MODSOURMAN-1106) The status of Instance is '-' in the Import log after uploading file. The numbers of updated SRS and Instance are not displayed in the Summary table. (MODSOURMAN-1114)
 * [MODSOURMAN-1063](https://issues.folio.org/browse/MODSOURMAN-1063) Update RecordProcessingLogDto to contain incoming record id
 * [MODSOURMAN-1122](https://issues.folio.org/browse/MODSOURMAN-1122) Add additional check for the childSnapshotWrappers
 * [MODSOURMAN-1140](https://folio-org.atlassian.net/browse/MODSOURMAN-1140) Invalidate cache before saving new parsed content in cache
@@ -24,6 +24,21 @@
 * [MODSOURMAN-956](https://folio-org.atlassian.net/browse/MODSOURMAN-956) Stop processing the job with incorrect profile
 * [MODSOURMAN-1153](https://folio-org.atlassian.net/browse/MODSOURMAN-1153) Add the "acceptInstanceId" flag into the dataImportEventPayload context
 * [MODSOURMAN-1150](https://folio-org.atlassian.net/browse/MODSOURMAN-1150) Add incomingRecordId field at record processing log
+* [MODSOURMAN-1137](https://folio-org.atlassian.net/browse/MODSOURMAN-1137) Keep order of MARC fields while Creating/Deriving/Editing MARC records
+* [MODSOURMAN-1143](https://folio-org.atlassian.net/browse/MODSOURMAN-1143) Upgrade mod-source-record-manager to RMB 35.2.0 and Vertx 4.5.4
+* [MODSOURMAN-1141](https://folio-org.atlassian.net/browse/MODSOURMAN-1141) Change get_job_log_entries sql function to retrieve sourceRecordId from existing bib
+* [MODSOURMAN-1146](https://folio-org.atlassian.net/browse/MODSOURMAN-1146) Marc authority records with errors are not displayed in the result table in logs
+* [MODINV-968](https://folio-org.atlassian.net/browse/MODINV-968) Fix get_job_entries to return UPDATED holdings
+* [MODSOURMAN-1084](https://folio-org.atlassian.net/browse/MODSOURMAN-1084) Fill in Journal Records for updated MARC when INSTANCE_UPDATED event received
+* [FAT-9178](https://folio-org.atlassian.net/browse/FAT-9178) Return job log entries for purchase order lines
+* [MODSOURMAN-1125](https://folio-org.atlassian.net/browse/MODSOURMAN-1125) Fix error during authority creation
+* [MODDATAIMP-957](https://folio-org.atlassian.net/browse/MODDATAIMP-957) Adjust order creation flow to remove step of initial saving of incoming records to SRS
+* [MODDATAIMP-983](https://folio-org.atlassian.net/browse/MODDATAIMP-983) Add permissions for creating/updating MARC Bib by DI
+* [MODSOURMAN-1109](https://folio-org.atlassian.net/browse/MODSOURMAN-1109) Fixed handling of response deserialization error
+* [MODSOURMAN-1115](https://folio-org.atlassian.net/browse/MODSOURMAN-1115) Accommodate for authority-source-files api changes
+* [MODSOURMAN-1116](https://folio-org.atlassian.net/browse/MODSOURMAN-1116) Accommodate for authority-source-files api optimistic locking changes
+* Links in the documentation have been actualized
+* [MODSOURMAN-996](https://folio-org.atlassian.net/browse/MODSOURMAN-996) View all logs: Search by fileName is case-sensitive
 
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
