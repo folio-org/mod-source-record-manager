@@ -293,7 +293,7 @@ FROM (
          marc_authority.title AS title,
          marc_authority.entity_id AS marc_authority_entity_id,
          marc_authority.error AS marc_authority_entity_error
-  FROM  marc_authority
+  FROM  marc_authority WHERE entity_id IS NOT NULL
 ) AS marc_authority_info ON marc_authority_info.source_id = records_actions.source_id
 
        LEFT JOIN (
