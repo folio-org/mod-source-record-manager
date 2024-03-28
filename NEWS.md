@@ -1,3 +1,6 @@
+## 2024-xx-xx v3.9.0
+* [MODDATAIMP-1029](https://folio-org.atlassian.net/browse/MODDATAIMP-1029) The authority record loaded via data-import using Default - Create SRS MARC Authority job profile is duplicated on the job-summary page
+
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
 * [MODSOURMAN-1139](https://folio-org.atlassian.net/browse/MODSOURMAN-1139) Fix Kafka test failures in ChangeManagerAPITest
