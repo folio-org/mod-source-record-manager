@@ -42,7 +42,7 @@
 * [MODSOURMAN-1116](https://folio-org.atlassian.net/browse/MODSOURMAN-1116) Accommodate for authority-source-files api optimistic locking changes
 * Links in the documentation have been actualized
 * [MODSOURMAN-996](https://folio-org.atlassian.net/browse/MODSOURMAN-996) View all logs: Search by fileName is case-sensitive
-
+* [MODSOURMAN-1158](https://folio-org.atlassian.net/browse/MODSOURMAN-1158) Use matchedId as entityId for marcBib records
 ## 2023-10-13 v3.7.0
 * [MODSOURMAN-1045](https://issues.folio.org/browse/MODSOURMAN-1045) Allow create action with non-matches for instance without match profile
 * [MODSOURMAN-1003](https://issues.folio.org/browse/MODSOURMAN-1003) Allow create action with non-matches for instance
