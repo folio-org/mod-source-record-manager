@@ -70,6 +70,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private static final String RAW_EDIFACT_RECORD_PATH = "src/test/resources/records/edifact/565751us20210122.edi";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
+  private static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
   private static final String GROUP_ID = "test-consumers";
   private static String rawEdifactContent;
@@ -354,6 +355,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID));
   }
 
   @Test
