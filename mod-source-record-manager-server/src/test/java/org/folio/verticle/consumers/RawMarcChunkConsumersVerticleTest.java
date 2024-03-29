@@ -166,6 +166,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
       new JsonObject(eventPayload.getContext().get("ERROR")).getString("error"));
     assertNull(new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")).getString("externalIdsHolder"));
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID));
   }
 
   @Test
