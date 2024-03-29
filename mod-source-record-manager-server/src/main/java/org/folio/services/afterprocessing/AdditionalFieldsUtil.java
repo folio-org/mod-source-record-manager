@@ -244,7 +244,7 @@ public final class AdditionalFieldsUtil {
       var fieldsNode = sourceJson.get(FIELDS);
 
       for (JsonNode fieldNode : fieldsNode) {
-        var tag = fieldNode.fieldNames().next();
+        var tag = getTagFromNode(fieldNode);
         if (tag.equals(TAG_001)) {
           sourceFields.add(0, tag);
           has001 = true;
