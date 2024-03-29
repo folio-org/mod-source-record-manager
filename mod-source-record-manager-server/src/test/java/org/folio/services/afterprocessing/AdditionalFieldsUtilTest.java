@@ -4,8 +4,12 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
 import org.folio.okapi.common.MetricsUtil;
@@ -19,6 +23,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
+import org.marc4j.MarcException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -39,13 +44,18 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeFiel
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(BlockJUnit4ClassRunner.class)
 public class AdditionalFieldsUtilTest {
 
   private static final String PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/parsedRecord.json";
   private static final String REORDERED_PARSED_RECORD_PATH = "src/test/resources/org/folio/services/afterprocessing/reorderedParsedRecord.json";
+  private static final String REORDERING_RESULT_RECORD = "src/test/resources/org/folio/services/parsedRecords/reorderingResultRecord.json";
+  private static final String PARSED_RECORD = "src/test/resources/org/folio/services/parsedRecords/parsedRecord.json";
+  private static final String REORDERED_PARSED_RECORD = "src/test/resources/org/folio/services/parsedRecords/reorderedParsedRecord.json";
 
   @BeforeClass
   public static void beforeClass() {
@@ -96,17 +106,17 @@ public class AdditionalFieldsUtilTest {
           JsonObject targetSubfield = subfields.getJsonObject(j);
           if (targetSubfield.containsKey("i")) {
             String actualInstanceId = (String) targetSubfield.getValue("i");
-            Assert.assertEquals(instanceId, actualInstanceId);
+            assertEquals(instanceId, actualInstanceId);
           }
           if (targetSubfield.containsKey("s")) {
             String actualSourceRecordId = (String) targetSubfield.getValue("s");
-            Assert.assertEquals(recordId, actualSourceRecordId);
+            assertEquals(recordId, actualSourceRecordId);
           }
         }
         totalFieldsCount++;
       }
     }
-    Assert.assertEquals(2, totalFieldsCount);
+    assertEquals(2, totalFieldsCount);
   }
 
   @Test
@@ -187,7 +197,7 @@ public class AdditionalFieldsUtilTest {
     Assert.assertFalse(added);
     Assert.assertNotNull(record.getParsedRecord());
     Assert.assertNotNull(record.getParsedRecord().getContent());
-    Assert.assertEquals(content, record.getParsedRecord().getContent());
+    assertEquals(content, record.getParsedRecord().getContent());
   }
 
   @Test
@@ -203,7 +213,7 @@ public class AdditionalFieldsUtilTest {
     Assert.assertFalse(added);
     Assert.assertNotNull(record.getParsedRecord());
     Assert.assertNotNull(record.getParsedRecord().getContent());
-    Assert.assertEquals(content, record.getParsedRecord().getContent());
+    assertEquals(content, record.getParsedRecord().getContent());
   }
 
   @Test
@@ -349,7 +359,7 @@ public class AdditionalFieldsUtilTest {
     boolean added = addDataFieldToMarcRecord(record, TAG_999, INDICATOR, INDICATOR, SUBFIELD_I, instanceId);
     // then
     Assert.assertTrue(added);
-    Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
+    assertEquals(expectedParsedContent, parsedRecord.getContent());
   }
 
   @Test
@@ -378,7 +388,7 @@ public class AdditionalFieldsUtilTest {
     });
     // then
     Assert.assertTrue(added);
-    Assert.assertEquals(expectedParsedContent, parsedRecord.getContent());
+    assertEquals(expectedParsedContent, parsedRecord.getContent());
   }
 
   @Ignore("Test doesn't pass when AdditionalFieldsUtil is initialized without metrics enabled." +
@@ -398,9 +408,9 @@ public class AdditionalFieldsUtilTest {
     Assert.assertFalse(
         isFieldExist(new Record().withId(UUID.randomUUID().toString()), "035", 'a', instanceId));
     CacheStats cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(0, cacheStats.hitCount());
-    Assert.assertEquals(0, cacheStats.missCount());
-    Assert.assertEquals(0, cacheStats.loadCount());
+    assertEquals(0, cacheStats.hitCount());
+    assertEquals(0, cacheStats.missCount());
+    assertEquals(0, cacheStats.loadCount());
     // record with empty parsed content
     Assert.assertFalse(
         isFieldExist(
@@ -411,10 +421,10 @@ public class AdditionalFieldsUtilTest {
             'a',
             instanceId));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(0, cacheStats.requestCount());
-    Assert.assertEquals(0, cacheStats.hitCount());
-    Assert.assertEquals(0, cacheStats.missCount());
-    Assert.assertEquals(0, cacheStats.loadCount());
+    assertEquals(0, cacheStats.requestCount());
+    assertEquals(0, cacheStats.hitCount());
+    assertEquals(0, cacheStats.missCount());
+    assertEquals(0, cacheStats.loadCount());
     // record with bad parsed content
     Assert.assertFalse(
       isFieldExist(
@@ -425,58 +435,78 @@ public class AdditionalFieldsUtilTest {
         'a',
         instanceId));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(1, cacheStats.requestCount());
-    Assert.assertEquals(0, cacheStats.hitCount());
-    Assert.assertEquals(1, cacheStats.missCount());
-    Assert.assertEquals(1, cacheStats.loadCount());
+    assertEquals(1, cacheStats.requestCount());
+    assertEquals(0, cacheStats.hitCount());
+    assertEquals(1, cacheStats.missCount());
+    assertEquals(1, cacheStats.loadCount());
     // does field exists?
     Assert.assertFalse(isFieldExist(record, "035", 'a', instanceId));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(2, cacheStats.requestCount());
-    Assert.assertEquals(0, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(2, cacheStats.requestCount());
+    assertEquals(0, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // update field
     addDataFieldToMarcRecord(record, "035", ' ', ' ', 'a', instanceId);
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(3, cacheStats.requestCount());
-    Assert.assertEquals(1, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(3, cacheStats.requestCount());
+    assertEquals(1, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // verify that field exists
     Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(4, cacheStats.requestCount());
-    Assert.assertEquals(2, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(4, cacheStats.requestCount());
+    assertEquals(2, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // verify that field exists again
     Assert.assertTrue(isFieldExist(record, "035", 'a', instanceId));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(5, cacheStats.requestCount());
-    Assert.assertEquals(3, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(5, cacheStats.requestCount());
+    assertEquals(3, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // get the field
-    Assert.assertEquals(instanceId, getValue(record, "035",  'a'));
+    assertEquals(instanceId, getValue(record, "035",  'a'));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(6, cacheStats.requestCount());
-    Assert.assertEquals(4, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(6, cacheStats.requestCount());
+    assertEquals(4, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // get the control field
-    Assert.assertEquals(null, getControlFieldValue(record, "035"));
+    assertEquals(null, getControlFieldValue(record, "035"));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(7, cacheStats.requestCount());
-    Assert.assertEquals(5, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(7, cacheStats.requestCount());
+    assertEquals(5, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
     // remove the field
     Assert.assertTrue(removeField(record, "035"));
     cacheStats = getCacheStats().minus(initialCacheStats);
-    Assert.assertEquals(8, cacheStats.requestCount());
-    Assert.assertEquals(6, cacheStats.hitCount());
-    Assert.assertEquals(2, cacheStats.missCount());
-    Assert.assertEquals(2, cacheStats.loadCount());
+    assertEquals(8, cacheStats.requestCount());
+    assertEquals(6, cacheStats.hitCount());
+    assertEquals(2, cacheStats.missCount());
+    assertEquals(2, cacheStats.loadCount());
+  }
+
+  @Test
+  public void shouldReorderMarcRecordFields() throws IOException, MarcException {
+    var reorderedRecordContent = readFileFromPath(PARSED_RECORD);
+    var sourceRecordContent = readFileFromPath(REORDERED_PARSED_RECORD);
+    var reorderingResultRecord = readFileFromPath(REORDERING_RESULT_RECORD);
+
+    var resultContent = AdditionalFieldsUtil.reorderMarcRecordFields(sourceRecordContent, reorderedRecordContent);
+
+    assertNotNull(resultContent);
+    assertEquals(formatContent(resultContent), formatContent(reorderingResultRecord));
+  }
+
+  private static String readFileFromPath(String path) throws IOException {
+    return new String(FileUtils.readFileToByteArray(new File(path)));
+  }
+
+  private String formatContent(String content) {
+    return content.replaceAll("\\s", "");
   }
 }
