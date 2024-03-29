@@ -1081,6 +1081,7 @@ public class JournalUtilTest {
     Record record = new Record()
       .withId(UUID.randomUUID().toString())
       .withSnapshotId(UUID.randomUUID().toString())
+      .withMatchedId(UUID.randomUUID().toString())
       .withOrder(1);
 
     HashMap<String, String> context = new HashMap<>() {{
@@ -1098,7 +1099,7 @@ public class JournalUtilTest {
     Assert.assertEquals(1, journalRecords.size());
     Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
     Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
-    Assert.assertEquals(record.getId(), journalRecords.get(0).getEntityId());
+    Assert.assertEquals(record.getMatchedId(), journalRecords.get(0).getEntityId());
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
     Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
     Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());

@@ -51,6 +51,7 @@ public class JournalUtil {
   public static final String HOLDINGS_RECORD_ID_KEY = "holdingsRecordId";
   public static final String INSTANCE_ID_KEY = "instanceId";
   public static final String HRID_KEY = "hrid";
+  public static final String MATCHED_ID_KEY = "matchedId";
   private static final String NOT_MATCHED_NUMBER = "NOT_MATCHED_NUMBER";
   public static final String PERMANENT_LOCATION_ID_KEY = "permanentLocationId";
   private static final String CENTRAL_TENANT_ID_KEY = "CENTRAL_TENANT_ID";
@@ -143,8 +144,12 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY ||
-          (entityType == MARC_BIBLIOGRAPHIC && actionType == UPDATE)) {
+        if (entityType == MARC_BIBLIOGRAPHIC) {
+          var entityId = new JsonObject(eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value())).getString(MATCHED_ID_KEY);
+          journalRecord.setEntityId(entityId);
+          return Lists.newArrayList(journalRecord);
+        }
+        if (entityType == INSTANCE || entityType == PO_LINE || entityType == AUTHORITY) {
           JsonObject entityJson = new JsonObject(entityAsString);
           journalRecord.setEntityId(entityJson.getString(ID_KEY));
           if (entityType == INSTANCE || entityType == PO_LINE) {
@@ -200,7 +205,7 @@ public class JournalUtil {
   private static JournalRecord buildJournalRecordWithMarcBibType(JournalRecord.ActionStatus actionStatus, JournalRecord.ActionType actionType, Record currentRecord,
                                                                  DataImportEventPayload eventPayload, HashMap<String, String> eventPayloadContext, String incomingRecordId) {
     String marcBibEntityAsString = eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value());
-    String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(ID_KEY);
+    String marcBibEntityId = new JsonObject(marcBibEntityAsString).getString(MATCHED_ID_KEY);
 
     var actionTypeForMarcBib = actionType;
     if (eventPayloadContext.containsKey(MARC_BIB_RECORD_CREATED)) {
