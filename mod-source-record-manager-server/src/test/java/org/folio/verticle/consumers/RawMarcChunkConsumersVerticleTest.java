@@ -461,12 +461,10 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
 
   private void checkDiErrorEventsSent(String jobExecutionId, String errorMessage) throws InterruptedException {
     String observeTopic = formatToKafkaTopicName(DI_ERROR.value());
-    List<String> observedValues = kafkaCluster.readValues(ReadKeyValues.from(observeTopic).build());
-    if (CollectionUtils.isEmpty(observedValues)) {
-      observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
-        .observeFor(60, TimeUnit.SECONDS)
-        .build());
-    }
+    List<String> observedValues = kafkaCluster.observeValues(ObserveKeyValues.on(observeTopic, 1)
+      .with(GROUP_ID_CONFIG, GROUP_ID)
+      .observeFor(60, TimeUnit.SECONDS)
+      .build());
 
     List<DataImportEventPayload> testedEventsPayLoads = filterObservedValues(jobExecutionId, observedValues);
 
