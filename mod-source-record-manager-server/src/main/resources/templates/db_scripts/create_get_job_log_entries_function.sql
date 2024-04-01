@@ -311,7 +311,7 @@ FROM (
          marc_holdings.title AS title,
          marc_holdings.entity_id AS marc_holdings_entity_id,
          marc_holdings.error AS marc_holdings_entity_error
-  FROM  marc_holdings
+  FROM  marc_holdings WHERE entity_id IS NOT NULL
 ) AS marc_holdings_info ON marc_holdings_info.source_id = records_actions.source_id
 
        LEFT JOIN (SELECT journal_records.source_id,
