@@ -53,7 +53,7 @@ WITH
   temp_result AS (
     SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
            CASE
-             WHEN error_max != '''' OR action_type = ''NON_MATCH'' THEN ''DISCARDED''
+             WHEN error_max != '''' OR action_type = ''NON_MATCH'' OR action_type = ''MATCH'' THEN ''DISCARDED''
              WHEN action_type = ''CREATE'' THEN ''CREATED''
              WHEN action_type IN (''UPDATE'', ''MODIFY'') THEN ''UPDATED''
              END AS action_type,
@@ -61,7 +61,7 @@ WITH
     FROM journal_records
            INNER JOIN (
       SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
-             (array_agg(id ORDER BY array_position(array[''CREATE'', ''UPDATE'', ''MODIFY'', ''NON_MATCH''], action_type)))[1] AS id_max
+             (array_agg(id ORDER BY array_position(array[''CREATE'', ''UPDATE'', ''MODIFY'', ''NON_MATCH'', ''MATCH''], action_type)))[1] AS id_max
       FROM journal_records
       WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'')
       GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
@@ -158,7 +158,7 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        '''' as invoiceline_number,
        coalesce(rec_titles.title, marc_holdings_info.title) AS title,
        CASE
-         WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
+         WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' OR marc_actions[array_length(marc_actions, 1)] = ''MATCH'' THEN ''DISCARDED''
          WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
          WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
          END AS source_record_action_status,

@@ -27,6 +27,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -126,19 +128,28 @@ public class JournalUtil {
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
         .withEntityType(entityType);
 
-      if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
-        && (entityType == HOLDINGS || entityType == ITEM)) {
+      if ((entityType == MARC_BIBLIOGRAPHIC || entityType == INSTANCE) && (actionType == MATCH || actionType == NON_MATCH)) {
+        JournalRecord instanceJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
+          .withEntityType(entityType == INSTANCE ? MARC_BIBLIOGRAPHIC : INSTANCE);
+        return Lists.newArrayList(journalRecord, instanceJournalRecord);
+      }
+
+      if (entityType == MARC_AUTHORITY && (actionType == MATCH || actionType == NON_MATCH)) {
+        JournalRecord instanceJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
+          .withEntityType(AUTHORITY);
+        return Lists.newArrayList(journalRecord, instanceJournalRecord);
+      }
+
+      if (actionType == JournalRecord.ActionType.NON_MATCH && (entityType == HOLDINGS || entityType == ITEM)) {
         List<JournalRecord> resultedJournalRecords = new ArrayList<>();
 
         String notMatchedNumberField = eventPayloadContext.get(NOT_MATCHED_NUMBER);
         boolean isNotMatchedNumberPresent = isNotBlank(notMatchedNumberField);
 
-        if (isNotMatchedNumberPresent || actionType == JournalRecord.ActionType.NON_MATCH) {
-          int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
-          for (int i = 0; i < notMatchedNumber; i++) {
-            resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus, journalRecord.getError(), incomingRecordId)
-              .withEntityType(entityType));
-          }
+        int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
+        for (int i = 0; i < notMatchedNumber; i++) {
+          resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus, journalRecord.getError(), incomingRecordId)
+            .withEntityType(entityType));
         }
         return resultedJournalRecords;
       }

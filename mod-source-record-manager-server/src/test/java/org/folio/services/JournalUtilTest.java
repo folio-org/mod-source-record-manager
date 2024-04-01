@@ -28,12 +28,14 @@ import static org.folio.DataImportEventTypes.DI_SRS_MARC_BIB_RECORD_UPDATED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
+import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
@@ -1145,6 +1147,268 @@ public class JournalUtilTest {
     Assert.assertNotNull(journalRecord.getActionDate());
   }
 
+  @Test
+  public void shouldBuildJournalRecordForNonMatchMarcBibliographic() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+
+    JournalRecord journalRecordInstance= journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForMatchMarcBibliographic() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      MATCH, MARC_BIBLIOGRAPHIC, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+
+    JournalRecord journalRecordInstance= journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForNonMatchInstance() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      NON_MATCH, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordInstance= journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForMatchInstance() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      MATCH, INSTANCE, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordInstance= journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+  }
+  @Test
+  public void shouldBuildJournalRecordForNonMatchMarcAuthority() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      NON_MATCH, MARC_AUTHORITY, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_AUTHORITY, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+
+    JournalRecord journalRecordInstance= journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(AUTHORITY, journalRecordInstance.getEntityType());
+    Assert.assertEquals(NON_MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForMatchMarcAuthority() throws JournalRecordMapperException {
+    String recordId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    JsonObject recordJson = new JsonObject()
+      .put("id", recordId)
+      .put("snapshotId", snapshotId)
+      .put("order", 1);
+
+    HashMap<String, String> context = new HashMap<>();
+    context.put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    context.put(INCOMING_RECORD_ID, incomingRecordId);
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType("DI_ERROR")
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      MATCH, MARC_AUTHORITY, COMPLETED);
+
+    Assert.assertNotNull(journalRecords);
+    Assert.assertEquals(2, journalRecords.size());
+
+    JournalRecord journalRecordMarcBib = journalRecords.get(0);
+    Assert.assertEquals(snapshotId, journalRecordMarcBib.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordMarcBib.getSourceId());
+    Assert.assertEquals(1, journalRecordMarcBib.getSourceRecordOrder().intValue());
+    Assert.assertEquals(MARC_AUTHORITY, journalRecordMarcBib.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordMarcBib.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
+    Assert.assertNotNull(journalRecordMarcBib.getActionDate());
+
+    JournalRecord journalRecordInstance= journalRecords.get(1);
+    Assert.assertEquals(snapshotId, journalRecordInstance.getJobExecutionId());
+    Assert.assertEquals(incomingRecordId, journalRecordInstance.getSourceId());
+    Assert.assertEquals(1, journalRecordInstance.getSourceRecordOrder().intValue());
+    Assert.assertEquals(AUTHORITY, journalRecordInstance.getEntityType());
+    Assert.assertEquals(MATCH, journalRecordInstance.getActionType());
+    Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
+    Assert.assertNotNull(journalRecordInstance.getActionDate());
+  }
   @Test
   public void shouldReturnUpdatedInstanceAndCreatedMarcBibJournalRecordInMarcBibStatusTrue() throws JournalRecordMapperException {
     String instanceId = UUID.randomUUID().toString();
