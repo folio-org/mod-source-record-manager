@@ -1,3 +1,6 @@
+## 2024-04-xx v3.8.2
+* [MODSOURMAN-1152](https://folio-org.atlassian.net/browse/MODSOURMAN-1152) The error message is not displayed in the di log summary
+
 ## 2024-04-05 v3.8.1
 * [MODSOURMAN-1158](https://folio-org.atlassian.net/browse/MODSOURMAN-1158) Use matchedID as entityID for MARC bib records to prevent duplicates in the Job log
 * [MODSOURMAN-1159](https://folio-org.atlassian.net/browse/MODSOURMAN-1159) Prevent duplicates on the Job summary page for Authority records

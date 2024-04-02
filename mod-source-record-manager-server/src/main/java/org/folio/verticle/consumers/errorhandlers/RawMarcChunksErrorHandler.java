@@ -18,6 +18,7 @@ import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.Record;
+import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.exceptions.RawChunkRecordsParsingException;
 import org.folio.services.exceptions.RecordsPublishingException;
 import org.folio.services.util.EventHandlingUtil;
@@ -80,6 +81,8 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     } else if (throwable instanceof DuplicateEventException) {
       RawRecordsDto rawRecordsDto = Json.decodeValue(event.getEventPayload(), RawRecordsDto.class);
       LOGGER.info("handle:: Duplicate event received, skipping parsing for jobExecutionId: {} , tenantId: {}, chunkId:{}, totalRecords: {}, cause: {}", jobExecutionId, tenantId, chunkId, rawRecordsDto.getInitialRecords().size(), throwable.getMessage());
+    } else if (throwable instanceof InvalidJobProfileForFileException exception) {
+      handleIncompatibleJobProfileError(exception, jobExecutionId, okapiParams);
     } else if (throwable instanceof RawChunkRecordsParsingException) {
       RawChunkRecordsParsingException exception = (RawChunkRecordsParsingException) throwable;
       parsedRecordsErrorProvider.getParsedRecordsFromInitialRecords(okapiParams, jobExecutionId, exception.getRawRecordsDto())
@@ -96,6 +99,17 @@ public class RawMarcChunksErrorHandler implements ProcessRecordErrorHandler<Stri
     }
     else {
       sendDiErrorEvent(throwable, okapiParams, jobExecutionId, tenantId, null);
+    }
+  }
+
+  private void handleIncompatibleJobProfileError(InvalidJobProfileForFileException exception, String jobExecutionId,
+                                                 OkapiConnectionParams okapiParams) {
+    // sends di_error event only for one record from incoming chunk to provide only one entry in the import log
+    List<Record> records = exception.getRecords();
+    if (!records.isEmpty()) {
+      sendDiError(exception, jobExecutionId, okapiParams, records.get(0));
+    } else {
+      sendDiError(exception, jobExecutionId, okapiParams, null);
     }
   }
 
