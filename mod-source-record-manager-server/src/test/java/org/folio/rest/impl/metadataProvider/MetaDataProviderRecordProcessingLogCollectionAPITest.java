@@ -1605,6 +1605,43 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].error", emptyOrNullString())));
   }
 
+  @Test
+  public void shouldReturnMarcHoldingsRecordsAndKeepTheOrderSequence(TestContext context) {
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String recordTitle = "No Content";
+    String errMessage = "{\"error\":\"A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field\"}";
+    String recordOneSourceRecordId = UUID.randomUUID().toString();
+    String recordTwoSourceRecordId = UUID.randomUUID().toString();
+    String recordThreeSourceRecordId = UUID.randomUUID().toString();
+
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, null, null, null, 1, PARSE, null, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, null, null, recordTitle, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), recordTwoSourceRecordId, UUID.randomUUID().toString(), "ho00000000002", recordTitle, 1, CREATE, HOLDINGS, COMPLETED, null, null, UUID.randomUUID().toString(), null, UUID.randomUUID().toString()))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, UUID.randomUUID().toString(), null, null, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
+
+      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null, 0, PARSE, null, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null,0, CREATE, MARC_HOLDINGS, ERROR, errMessage, null))
+
+      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null, 2, PARSE, null, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null,2, CREATE, MARC_HOLDINGS, ERROR, errMessage, null));
+
+    future.onComplete(context.asyncAssertSuccess(v ->
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .and().log().all()
+        .body("entries.size()", is(3))
+        .body("totalRecords", is(3))
+        .body("entries[0].sourceRecordOrder", is("0"))
+        .body("entries[1].sourceRecordOrder", is("1"))
+        .body("entries[2].sourceRecordOrder", is("2"))));
+  }
+
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
                                                     String entityHrid, String title, int recordOrder,
                                                     JournalRecord.ActionType actionType, JournalRecord.EntityType entityType,
