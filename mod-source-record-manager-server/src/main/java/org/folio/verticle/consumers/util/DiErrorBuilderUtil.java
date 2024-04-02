@@ -24,7 +24,7 @@ import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE
  */
 public final class DiErrorBuilderUtil {
 
-  public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
+  public static final String INCOMING_RECORD_ID_KEY = "INCOMING_RECORD_ID";
 
   private DiErrorBuilderUtil() {
 
@@ -38,7 +38,7 @@ public final class DiErrorBuilderUtil {
     HashMap<String, String> context = new HashMap<>();
     context.put(RawMarcChunksErrorHandler.ERROR_KEY, throwable.getMessage());
     context.put(RecordConversionUtil.getEntityType(currentRecord).value(), Json.encode(currentRecord));
-    context.put(INCOMING_RECORD_ID, currentRecord.getId());
+    context.put(INCOMING_RECORD_ID_KEY, currentRecord.getId());
 
     return new DataImportEventPayload()
       .withEventType(DI_ERROR.value())

@@ -9,9 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.ObserveKeyValues;
-import net.mguenther.kafka.junit.ReadKeyValues;
 import net.mguenther.kafka.junit.SendKeyValues;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpStatus;
 import org.folio.MatchDetail;
 import org.folio.MatchProfile;
@@ -70,7 +68,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private static final String RAW_EDIFACT_RECORD_PATH = "src/test/resources/records/edifact/565751us20210122.edi";
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
-  private static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
+  private static final String INCOMING_RECORD_ID_KEY = "INCOMING_RECORD_ID";
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
   private static final String GROUP_ID = "test-consumers";
   private static String rawEdifactContent;
@@ -166,7 +164,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
       new JsonObject(eventPayload.getContext().get("ERROR")).getString("error"));
     assertNull(new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")).getString("externalIdsHolder"));
-    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID));
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
 
   @Test
@@ -356,7 +354,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
-    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID));
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
 
   @Test
