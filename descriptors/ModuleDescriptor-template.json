@@ -314,6 +314,7 @@
             "orders.po-lines.collection.get",
             "source-storage.records.get",
             "source-storage.snapshots.get",
+            "source-storage.snapshots.post",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
             "users.collection.get",
