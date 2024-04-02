@@ -61,6 +61,13 @@ public class JournalUtil {
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
 
+  private static final HashMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY = new HashMap<>(){{
+    put(INSTANCE, MARC_BIBLIOGRAPHIC);
+    put(MARC_BIBLIOGRAPHIC, INSTANCE);
+    put(AUTHORITY, MARC_AUTHORITY);
+    put(MARC_AUTHORITY, AUTHORITY);
+  }};
+
   private JournalUtil() {
 
   }
@@ -128,16 +135,13 @@ public class JournalUtil {
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
         .withEntityType(entityType);
 
-      if ((entityType == MARC_BIBLIOGRAPHIC || entityType == INSTANCE) && (actionType == MATCH || actionType == NON_MATCH)) {
-        JournalRecord instanceJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
-          .withEntityType(entityType == INSTANCE ? MARC_BIBLIOGRAPHIC : INSTANCE);
-        return Lists.newArrayList(journalRecord, instanceJournalRecord);
-      }
-
-      if (entityType == MARC_AUTHORITY && (actionType == MATCH || actionType == NON_MATCH)) {
-        JournalRecord instanceJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
-          .withEntityType(AUTHORITY);
-        return Lists.newArrayList(journalRecord, instanceJournalRecord);
+      if (ENTITY_TO_RELATED_ENTITY.containsKey(entityType) && (actionType == MATCH || actionType == NON_MATCH)) {
+        JournalRecord relatedEntityJournalRecord = getRelatedEntityJournalRecord(eventPayload, entityType, actionType, actionStatus, record, incomingRecordId);
+        if (!isEmpty(entityAsString)) {
+          var entityId = new JsonObject(entityAsString).getString(getEntityIdFromJson(entityType));
+          journalRecord.setEntityId(entityId);
+        }
+        return Lists.newArrayList(journalRecord, relatedEntityJournalRecord);
       }
 
       if (actionType == JournalRecord.ActionType.NON_MATCH && (entityType == HOLDINGS || entityType == ITEM)) {
@@ -203,6 +207,29 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  private static JournalRecord getRelatedEntityJournalRecord(DataImportEventPayload eventPayload, JournalRecord.EntityType entityType,
+                                                             JournalRecord.ActionType actionType, JournalRecord.ActionStatus actionStatus, Record record,
+                                                             String incomingRecordId) {
+    HashMap<String, String> eventPayloadContext = eventPayload.getContext();
+    JournalRecord.EntityType relatedEntityType = ENTITY_TO_RELATED_ENTITY.get(entityType);
+
+    JournalRecord relatedEntityJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
+      .withEntityType(relatedEntityType);
+
+    if (eventPayloadContext.containsKey(relatedEntityType.value())) {
+      String relatedEntityId = new JsonObject(eventPayloadContext.get(relatedEntityType.value()))
+        .getString(getEntityIdFromJson(relatedEntityType));
+
+      relatedEntityJournalRecord.setEntityId(relatedEntityId);
+    }
+
+    return relatedEntityJournalRecord;
+  }
+
+  private static String getEntityIdFromJson(JournalRecord.EntityType entityType) {
+    return entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY ? MATCHED_ID_KEY : ID_KEY;
   }
 
   private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {
