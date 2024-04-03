@@ -184,7 +184,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
           ? Future.succeededFuture(parsedRecords)
           : Future.failedFuture(new InvalidJobProfileForFileException(
-            prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords))
+            parsedRecords, prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords))
         );
       })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
