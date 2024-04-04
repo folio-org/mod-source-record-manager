@@ -368,6 +368,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String recordTitle = "test title";
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, AUTHORITY, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -383,7 +384,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
         .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
-        .body("entries[0].sourceRecordActionStatus", is(emptyOrNullString()))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
         .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
 
       async.complete();
