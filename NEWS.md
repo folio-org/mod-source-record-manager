@@ -1,3 +1,7 @@
+## 2024-04-05 v3.8.1
+* [MODSOURMAN-1158](https://folio-org.atlassian.net/browse/MODSOURMAN-1158) Use matchedID as entityID for MARC bib records to prevent duplicates in the Job log
+* [MODSOURMAN-1159](https://folio-org.atlassian.net/browse/MODSOURMAN-1159) Prevent duplicates on the Job summary page for Authority records
+
 ## 2024-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
 * [MODSOURMAN-1139](https://folio-org.atlassian.net/browse/MODSOURMAN-1139) Fix Kafka test failures in ChangeManagerAPITest
