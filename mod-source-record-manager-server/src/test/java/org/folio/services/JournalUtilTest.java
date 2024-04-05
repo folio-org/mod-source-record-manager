@@ -1232,7 +1232,7 @@ public class JournalUtilTest {
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
     Assert.assertEquals(MATCH, journalRecordMarcBib.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
-    Assert.assertEquals(matchedId, journalRecordMarcBib.getEntityId());
+    Assert.assertNull(journalRecordMarcBib.getEntityId());
     Assert.assertNotNull(journalRecordMarcBib.getActionDate());
 
     JournalRecord journalRecordInstance= journalRecords.get(1);
@@ -1242,7 +1242,7 @@ public class JournalUtilTest {
     Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
     Assert.assertEquals(MATCH, journalRecordInstance.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
-    Assert.assertEquals(instanceId, journalRecordInstance.getEntityId());
+    Assert.assertNull(journalRecordInstance.getEntityId());
     Assert.assertNotNull(journalRecordInstance.getActionDate());
   }
 
@@ -1331,7 +1331,7 @@ public class JournalUtilTest {
     Assert.assertEquals(INSTANCE, journalRecordInstance.getEntityType());
     Assert.assertEquals(MATCH, journalRecordInstance.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordInstance.getActionStatus());
-    Assert.assertEquals(instanceId, journalRecordInstance.getEntityId());
+    Assert.assertNull(journalRecordInstance.getEntityId());
     Assert.assertNotNull(journalRecordInstance.getActionDate());
 
     JournalRecord journalRecordMarcBib = journalRecords.get(1);
@@ -1341,7 +1341,7 @@ public class JournalUtilTest {
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecordMarcBib.getEntityType());
     Assert.assertEquals(MATCH, journalRecordMarcBib.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordMarcBib.getActionStatus());
-    Assert.assertEquals(matchedId, journalRecordMarcBib.getEntityId());
+    Assert.assertNull(journalRecordMarcBib.getEntityId());
     Assert.assertNotNull(journalRecordMarcBib.getActionDate());
   }
   @Test
@@ -1429,7 +1429,7 @@ public class JournalUtilTest {
     Assert.assertEquals(MARC_AUTHORITY, journalRecordMarcAuthority.getEntityType());
     Assert.assertEquals(MATCH, journalRecordMarcAuthority.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordMarcAuthority.getActionStatus());
-    Assert.assertEquals(matchedId, journalRecordMarcAuthority.getEntityId());
+    Assert.assertNull(journalRecordMarcAuthority.getEntityId());
     Assert.assertNotNull(journalRecordMarcAuthority.getActionDate());
 
     JournalRecord journalRecordAuthority= journalRecords.get(1);
@@ -1439,7 +1439,7 @@ public class JournalUtilTest {
     Assert.assertEquals(AUTHORITY, journalRecordAuthority.getEntityType());
     Assert.assertEquals(MATCH, journalRecordAuthority.getActionType());
     Assert.assertEquals(COMPLETED, journalRecordAuthority.getActionStatus());
-    Assert.assertEquals(authorityId, journalRecordAuthority.getEntityId());
+    Assert.assertNull(journalRecordAuthority.getEntityId());
     Assert.assertNotNull(journalRecordAuthority.getActionDate());
   }
   @Test

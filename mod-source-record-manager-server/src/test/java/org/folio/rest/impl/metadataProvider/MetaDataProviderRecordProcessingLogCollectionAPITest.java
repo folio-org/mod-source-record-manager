@@ -401,7 +401,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, "in00000000001", null, 0, NON_MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, NON_MATCH, INSTANCE, COMPLETED, null, null))
       .onSuccess(v -> async.complete())
       .onFailure(context::fail);
 
@@ -535,7 +535,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String authorityEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, authorityEntityId, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, "errorMsg", null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -548,7 +548,6 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries.size()", is(1))
         .body("totalRecords", is(1))
         .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
-        .body("entries[0].sourceRecordId", is(authorityEntityId))
         .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordType", is(MARC_AUTHORITY.value()))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
@@ -1683,7 +1682,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceEntityId, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsEntityId, holdingsHrId, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
       .onFailure(context::fail);
 
@@ -1725,7 +1724,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String itemHrId = "itemHrid";
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsEntityId, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, itemEntityId, itemHrId, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null))
       .onFailure(context::fail);
 

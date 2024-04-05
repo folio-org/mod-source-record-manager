@@ -136,11 +136,9 @@ public class JournalUtil {
         .withEntityType(entityType);
 
       if (ENTITY_TO_RELATED_ENTITY.containsKey(entityType) && (actionType == MATCH || actionType == NON_MATCH)) {
-        JournalRecord relatedEntityJournalRecord = getRelatedEntityJournalRecord(eventPayload, entityType, actionType, actionStatus, record, incomingRecordId);
-        if (!isEmpty(entityAsString)) {
-          var entityId = new JsonObject(entityAsString).getString(getEntityIdFromJson(entityType));
-          journalRecord.setEntityId(entityId);
-        }
+        JournalRecord relatedEntityJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
+          .withEntityType(ENTITY_TO_RELATED_ENTITY.get(entityType));
+
         return Lists.newArrayList(journalRecord, relatedEntityJournalRecord);
       }
 
@@ -207,29 +205,6 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
-  }
-
-  private static JournalRecord getRelatedEntityJournalRecord(DataImportEventPayload eventPayload, JournalRecord.EntityType entityType,
-                                                             JournalRecord.ActionType actionType, JournalRecord.ActionStatus actionStatus, Record record,
-                                                             String incomingRecordId) {
-    HashMap<String, String> eventPayloadContext = eventPayload.getContext();
-    JournalRecord.EntityType relatedEntityType = ENTITY_TO_RELATED_ENTITY.get(entityType);
-
-    JournalRecord relatedEntityJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
-      .withEntityType(relatedEntityType);
-
-    if (eventPayloadContext.containsKey(relatedEntityType.value())) {
-      String relatedEntityId = new JsonObject(eventPayloadContext.get(relatedEntityType.value()))
-        .getString(getEntityIdFromJson(relatedEntityType));
-
-      relatedEntityJournalRecord.setEntityId(relatedEntityId);
-    }
-
-    return relatedEntityJournalRecord;
-  }
-
-  private static String getEntityIdFromJson(JournalRecord.EntityType entityType) {
-    return entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY ? MATCHED_ID_KEY : ID_KEY;
   }
 
   private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {
