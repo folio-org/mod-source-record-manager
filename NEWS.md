@@ -2,6 +2,7 @@
 * [MODDATAIMP-1029](https://folio-org.atlassian.net/browse/MODDATAIMP-1029) The authority record loaded via data-import using Default - Create SRS MARC Authority job profile is duplicated on the job-summary page
 * [MODSOURMAN-1152](https://folio-org.atlassian.net/browse/MODSOURMAN-1152) The error message is not displayed in the di log summary
 * [MODSOURMAN-1151](https://folio-org.atlassian.net/browse/MODSOURMAN-1151) Records are not displayed under their original numbers and are constantly changing by places
+* [MODSOURMAN-1120](https://folio-org.atlassian.net/browse/MODSOURMAN-1120) Update default mapping to include mapping for Cancelled LCCN
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
