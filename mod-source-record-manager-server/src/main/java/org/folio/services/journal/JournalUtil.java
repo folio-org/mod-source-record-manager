@@ -149,10 +149,12 @@ public class JournalUtil {
         String notMatchedNumberField = eventPayloadContext.get(NOT_MATCHED_NUMBER);
         boolean isNotMatchedNumberPresent = isNotBlank(notMatchedNumberField);
 
-        int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
-        for (int i = 0; i < notMatchedNumber; i++) {
-          resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus, journalRecord.getError(), incomingRecordId)
-            .withEntityType(entityType));
+        if (isNotMatchedNumberPresent || actionType == JournalRecord.ActionType.NON_MATCH) {
+          int notMatchedNumber = isNotMatchedNumberPresent ? Integer.parseInt(notMatchedNumberField) : 1;
+          for (int i = 0; i < notMatchedNumber; i++) {
+            resultedJournalRecords.add(constructBlankJournalRecord(record, entityType, actionStatus, journalRecord.getError(), incomingRecordId)
+              .withEntityType(entityType));
+          }
         }
         return resultedJournalRecords;
       }
