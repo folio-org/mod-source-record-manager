@@ -62,9 +62,9 @@ public class JournalUtil {
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
 
-  private final EnumMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY;
+  private static final EnumMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY;
 
-  {
+  static {
     ENTITY_TO_RELATED_ENTITY = new EnumMap<>(JournalRecord.EntityType.class);
     ENTITY_TO_RELATED_ENTITY.put(INSTANCE, MARC_BIBLIOGRAPHIC);
     ENTITY_TO_RELATED_ENTITY.put(MARC_BIBLIOGRAPHIC, INSTANCE);
