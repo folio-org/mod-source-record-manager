@@ -142,7 +142,8 @@ public class JournalUtil {
         return Lists.newArrayList(journalRecord, relatedEntityJournalRecord);
       }
 
-      if (actionType == JournalRecord.ActionType.NON_MATCH && (entityType == HOLDINGS || entityType == ITEM)) {
+      if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
+        && (entityType == HOLDINGS || entityType == ITEM)) {
         List<JournalRecord> resultedJournalRecords = new ArrayList<>();
 
         String notMatchedNumberField = eventPayloadContext.get(NOT_MATCHED_NUMBER);
