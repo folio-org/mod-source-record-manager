@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.Record;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,12 +62,15 @@ public class JournalUtil {
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
 
-  private static final HashMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY = new HashMap<>(){{
-    put(INSTANCE, MARC_BIBLIOGRAPHIC);
-    put(MARC_BIBLIOGRAPHIC, INSTANCE);
-    put(AUTHORITY, MARC_AUTHORITY);
-    put(MARC_AUTHORITY, AUTHORITY);
-  }};
+  private final EnumMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY;
+
+  {
+    ENTITY_TO_RELATED_ENTITY = new EnumMap<>(JournalRecord.EntityType.class);
+    ENTITY_TO_RELATED_ENTITY.put(INSTANCE, MARC_BIBLIOGRAPHIC);
+    ENTITY_TO_RELATED_ENTITY.put(MARC_BIBLIOGRAPHIC, INSTANCE);
+    ENTITY_TO_RELATED_ENTITY.put(AUTHORITY, MARC_AUTHORITY);
+    ENTITY_TO_RELATED_ENTITY.put(MARC_AUTHORITY, AUTHORITY);
+  }
 
   private JournalUtil() {
 
