@@ -247,6 +247,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
     Future<JournalRecord> future = Future.succeededFuture()
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, AUTHORITY, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcAuthorityEntityId, null, recordTitle, 0, CREATE, MARC_AUTHORITY, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, authorityEntityId, null, recordTitle, 0, CREATE, AUTHORITY, COMPLETED, null, null))
       .onFailure(context::fail);
