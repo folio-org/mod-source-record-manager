@@ -163,7 +163,14 @@ WHERE tmp.entity_type = ''ITEM''
   ),
   marc_authority AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type = ''MARC_AUTHORITY''
+    FROM temp_result WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NULL AND NOT EXISTS
+        (SELECT 1
+         FROM temp_result as tr2
+         WHERE tr2.entity_type = ''MARC_AUTHORITY'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   marc_holdings AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
