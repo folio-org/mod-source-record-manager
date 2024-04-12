@@ -1,5 +1,7 @@
-## 2024-04-xx v3.8.2
+## 2024-04-12 v3.8.2
 * [MODSOURMAN-1152](https://folio-org.atlassian.net/browse/MODSOURMAN-1152) The error message is not displayed in the di log summary
+* [MODSOURMAN-1151](https://folio-org.atlassian.net/browse/MODSOURMAN-1151) Fix order of records in the DI log
+* [MODSOURMAN-1137](https://folio-org.atlassian.net/browse/MODSOURMAN-1137) 00X fields reset position when Creating/Deriving/Editing MARC records
 
 ## 2024-04-05 v3.8.1
 * [MODSOURMAN-1158](https://folio-org.atlassian.net/browse/MODSOURMAN-1158) Use matchedID as entityID for MARC bib records to prevent duplicates in the Job log
