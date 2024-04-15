@@ -300,7 +300,7 @@
     {
       "run": "after",
       "snippetPath": "create_get_job_execution_summary_function.sql",
-      "fromModuleVersion": "mod-source-record-manager-3.8.2"
+      "fromModuleVersion": "mod-source-record-manager-3.8.3"
     }
   ]
 }
