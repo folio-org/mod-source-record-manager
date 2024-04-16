@@ -157,6 +157,14 @@ public class JournalParams {
           JournalRecord.ActionStatus.COMPLETED));
       }
     },
+    DI_INVENTORY_INSTANCE_MATCHED {
+      @Override
+      public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
+        return Optional.of(new JournalParams(JournalRecord.ActionType.MATCH,
+          JournalRecord.EntityType.INSTANCE,
+          JournalRecord.ActionStatus.COMPLETED));
+      }
+    },
     DI_INVENTORY_HOLDING_CREATED {
       @Override
       public Optional<JournalParams> getJournalParams(DataImportEventPayload eventPayload) {
