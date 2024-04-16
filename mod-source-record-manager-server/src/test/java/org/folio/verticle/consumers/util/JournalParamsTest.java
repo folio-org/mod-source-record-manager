@@ -9,6 +9,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDI
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_HOLDING_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_AUTHORITY_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
+import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_NOT_MATCHED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_ITEM_CREATED;
@@ -255,6 +256,11 @@ public class JournalParamsTest {
   @Test
   public void shouldPopulateEntityTypeInstanceWhenEventTypeIsDiInventoryInstanceNonMatched() {
     populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_INSTANCE_NOT_MATCHED, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.NON_MATCH);
+  }
+
+  @Test
+  public void shouldPopulateEntityTypeInstanceWhenEventTypeIsDiInventoryInstanceMatched() {
+    populateEntityTypeAndActionTypeByEventType(DI_INVENTORY_INSTANCE_MATCHED, JournalRecord.EntityType.INSTANCE, JournalRecord.ActionType.MATCH);
   }
 
   @Test

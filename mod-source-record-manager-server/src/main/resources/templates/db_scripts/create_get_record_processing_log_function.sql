@@ -6,7 +6,7 @@ AS $$
 BEGIN
     RETURN QUERY
         WITH temp_result AS (SELECT id, journal_records.job_execution_id, journal_records.source_id, journal_records.entity_type, journal_records.entity_id, journal_records.entity_hrid,
-    					 CASE WHEN error_max != ''  OR action_type = 'NON_MATCH'
+    					 CASE WHEN error_max != '' OR action_type = 'NON_MATCH'
                     		THEN 'DISCARDED'
                     WHEN action_type = 'CREATE'
                     		THEN 'CREATED'
@@ -19,12 +19,22 @@ BEGIN
     		INNER JOIN
     		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max
             	FROM journal_records
-    			WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE')
-            	GROUP BY entity_type,entity_id,action_status) AS action_type_by_source
-    		ON journal_records.id = action_type_by_source.id_max)
+    			WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE') AND action_type != 'MATCH'
+            	GROUP BY entity_type,entity_id,action_status) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
+    		UNION ALL
+        SELECT id, journal_records.job_execution_id, journal_records.source_id, journal_records.entity_type, journal_records.entity_id, journal_records.entity_hrid,
+    					 CASE WHEN error_max != '' OR action_type = 'MATCH' THEN 'DISCARDED'
+                 END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
+    		FROM journal_records
+    		INNER JOIN
+    		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['NON_MATCH', 'MATCH'], action_type)))[1] AS id_max
+            	FROM journal_records
+    			WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE') AND action_type = 'MATCH'
+    			AND NOT EXISTS (SELECT 1 FROM journal_records WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND action_type NOT IN ('MATCH', 'PARSE'))
+            	GROUP BY entity_type,entity_id,action_status) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max)
         (SELECT
     	      COALESCE(marc.job_execution_id,instances.job_execution_id,holdings.job_execution_id,items.job_execution_id) AS job_execution_id,
-    	      marc.source_id as incoming_record_id,
+    	      COALESCE(marc.source_id, instances.source_id, holdings.source_id, items.source_id, authority.source_id) as incoming_record_id,
             marc_entity_id::uuid AS source_id,
     	      COALESCE(marc.source_record_order,instances.source_record_order,holdings.source_record_order,items.source_record_order) AS source_record_order,
     	      COALESCE(marc.title,instances.title,holdings.title,items.title) AS title,
@@ -70,11 +80,25 @@ BEGIN
       FROM (SELECT temp_result.source_id FROM temp_result WHERE action_type = 'PARSED') as parsed
       LEFT JOIN
           (SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
-          FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE')) AS marc
+          FROM temp_result WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE') AND entity_id IS NOT NULL
+          UNION ALL
+          SELECT temp_result.job_execution_id, entity_id, temp_result.title, temp_result.source_record_order, action_type, error, temp_result.source_id, temp_result.tenant_id
+          FROM temp_result
+          WHERE entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE') AND entity_id IS NULL AND NOT EXISTS
+              (SELECT 1
+               FROM temp_result as tr2
+               WHERE tr2.entity_type IN ('MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY', 'PO_LINE') AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)) AS marc
       ON marc.source_id = parsed.source_id
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order, temp_result.tenant_id
-    	    FROM temp_result WHERE entity_type = 'INSTANCE') AS instances
+    	    FROM temp_result WHERE entity_type = 'INSTANCE' AND entity_id IS NOT NULL
+    	    UNION ALL
+          SELECT action_type, entity_id, temp_result.source_id, entity_hrid, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order, temp_result.tenant_id
+          FROM temp_result
+          WHERE entity_type = 'INSTANCE' AND entity_id IS NULL AND NOT EXISTS
+              (SELECT 1
+               FROM temp_result as tr2
+                WHERE tr2.entity_type = 'INSTANCE' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)) AS instances
     	ON marc.source_id = instances.source_id
     	LEFT JOIN
     	    (SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
