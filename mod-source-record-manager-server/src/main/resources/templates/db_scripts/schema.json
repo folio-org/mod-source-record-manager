@@ -301,6 +301,11 @@
       "run": "after",
       "snippetPath": "create_get_job_execution_summary_function.sql",
       "fromModuleVersion": "mod-source-record-manager-3.8.3"
+    },
+    {
+      "run": "after",
+      "snippetPath": "create_get_record_processing_log_function.sql",
+      "fromModuleVersion": "mod-source-record-manager-3.8.3"
     }
   ]
 }
