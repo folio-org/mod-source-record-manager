@@ -164,8 +164,8 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == MARC_BIBLIOGRAPHIC) {
-          var entityId = new JsonObject(eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value())).getString(MATCHED_ID_KEY);
+        if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY || entityType == MARC_HOLDINGS) {
+          var entityId = new JsonObject(entityAsString).getString(MATCHED_ID_KEY);
           journalRecord.setEntityId(entityId);
           return Lists.newArrayList(journalRecord);
         }
