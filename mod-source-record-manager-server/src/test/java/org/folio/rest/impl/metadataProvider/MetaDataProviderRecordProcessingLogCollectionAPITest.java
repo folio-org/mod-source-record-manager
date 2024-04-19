@@ -273,6 +273,54 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   }
 
   @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndErrorAndOtherAuthorityUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String errorMessage = "error message";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcAuthorityId, null, recordTitle, 1, UPDATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, authorityId, null, recordTitle, 1, UPDATE, AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries", hasSize(2))
+        .body("totalRecords", is(2))
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].sourceRecordId", emptyOrNullString())
+        .body("entries[0].incomingRecordId", is(sourceRecordId2))
+        .body("entries[0].error", is(errorMessage))
+        .body("entries[0].sourceRecordTitle", is(recordTitle))
+        .body("entries[0].sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("entries[0].relatedAuthorityInfo.error", is(errorMessage))
+        .body("entries[1].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[1].sourceRecordId", is(marcAuthorityId))
+        .body("entries[1].incomingRecordId", is(sourceRecordId1))
+        .body("entries[1].sourceRecordTitle", is(recordTitle))
+        .body("entries[1].sourceRecordActionStatus", is(ActionStatus.UPDATED.value()))
+        .body("entries[1].relatedAuthorityInfo.actionStatus", is(ActionStatus.UPDATED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);

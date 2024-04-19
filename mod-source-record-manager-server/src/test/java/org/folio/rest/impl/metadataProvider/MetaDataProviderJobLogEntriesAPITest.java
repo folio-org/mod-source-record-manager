@@ -1090,6 +1090,45 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndErrorAndOtherAuthorityUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String errorMessage = "error message";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcAuthorityId, null, recordTitle, 1, UPDATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, authorityId, null, recordTitle, 1, UPDATE, AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId2)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(sourceRecordId2))
+        .body("error", is(errorMessage))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedAuthorityInfo.error", is(errorMessage));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnDiscardedForHoldingsIfHoldingsMatchedAndNoOtherAction(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
