@@ -1108,6 +1108,70 @@ public class JournalUtilTest {
     Assert.assertEquals(MARC_BIBLIOGRAPHIC, journalRecords.get(0).getEntityType());
   }
 
+  @Test
+  public void shouldBuildJournalRecordForMarcAuthorityUpdate() throws JournalRecordMapperException {
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withSnapshotId(UUID.randomUUID().toString())
+      .withMatchedId(UUID.randomUUID().toString())
+      .withOrder(1);
+
+    HashMap<String, String> context = new HashMap<>() {{
+      put(MARC_AUTHORITY.value(), Json.encode(record));
+      put(INCOMING_RECORD_ID, incomingRecordId);
+    }};
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      UPDATE, MARC_AUTHORITY, COMPLETED);
+
+    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(record.getMatchedId(), journalRecords.get(0).getEntityId());
+    Assert.assertEquals(MARC_AUTHORITY, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+    Assert.assertEquals(MARC_AUTHORITY, journalRecords.get(0).getEntityType());
+  }
+
+  @Test
+  public void shouldBuildJournalRecordForMarcHoldingsUpdate() throws JournalRecordMapperException {
+    String incomingRecordId = UUID.randomUUID().toString();
+
+    Record record = new Record()
+      .withId(UUID.randomUUID().toString())
+      .withSnapshotId(UUID.randomUUID().toString())
+      .withMatchedId(UUID.randomUUID().toString())
+      .withOrder(1);
+
+    HashMap<String, String> context = new HashMap<>() {{
+      put(MARC_HOLDINGS.value(), Json.encode(record));
+      put(INCOMING_RECORD_ID, incomingRecordId);
+    }};
+
+    DataImportEventPayload eventPayload = new DataImportEventPayload()
+      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withContext(context);
+
+    List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+      UPDATE, MARC_HOLDINGS, COMPLETED);
+
+    Assert.assertEquals(1, journalRecords.size());
+    Assert.assertEquals(incomingRecordId, journalRecords.get(0).getSourceId());
+    Assert.assertEquals(1, journalRecords.get(0).getSourceRecordOrder().intValue());
+    Assert.assertEquals(record.getMatchedId(), journalRecords.get(0).getEntityId());
+    Assert.assertEquals(MARC_HOLDINGS, journalRecords.get(0).getEntityType());
+    Assert.assertEquals(UPDATE, journalRecords.get(0).getActionType());
+    Assert.assertEquals(COMPLETED, journalRecords.get(0).getActionStatus());
+    Assert.assertEquals(MARC_HOLDINGS, journalRecords.get(0).getEntityType());
+  }
+
 
   @Test
   public void shouldBuildJournalRecordForNonMatchWithErrorAndMatchedNumberNotAvailable() throws JournalRecordMapperException {
