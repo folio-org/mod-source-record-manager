@@ -1090,7 +1090,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndErrorAndOtherAuthorityUpdated(TestContext context) {
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId1 = UUID.randomUUID().toString();
