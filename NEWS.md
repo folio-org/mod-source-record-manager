@@ -1,3 +1,10 @@
+## 2024-04-22 v3.8.3
+* [MODSOURMAN-1162](https://folio-org.atlassian.net/browse/MODSOURMAN-1162) (ECS) The 'source-storage.snapshots.post' permission is absent
+* [MODSOURMAN-1168](https://folio-org.atlassian.net/browse/MODSOURMAN-1168) Adjust job execution summary table to count MATCH action
+* [MODSOURMAN-1170](https://folio-org.atlassian.net/browse/MODSOURMAN-1170) The error message that includes the text "Failed to decode" is not displayed in the SRS JSON tab
+* [MODSOURMAN-1171](https://folio-org.atlassian.net/browse/MODSOURMAN-1171) "SRS MARC" tab doesn't contain error message in the "MARC authority" record import log
+* [MODSOURMAN-1177](https://folio-org.atlassian.net/browse/MODSOURMAN-1177) "SRS MARC" tab is empty in the log of Update MARC authority job
+
 ## 2024-04-12 v3.8.2
 * [MODSOURMAN-1152](https://folio-org.atlassian.net/browse/MODSOURMAN-1152) The error message is not displayed in the di log summary
 * [MODSOURMAN-1151](https://folio-org.atlassian.net/browse/MODSOURMAN-1151) Fix order of records in the DI log
