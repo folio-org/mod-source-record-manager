@@ -60,8 +60,10 @@ import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.PARSE;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.EDIFACT;
@@ -74,6 +76,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.PO_LINE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -81,6 +84,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
@@ -1230,6 +1234,241 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
         .body("instanceSummary.totalErrors", is(1))
         .body("totalErrors", is(1));
 
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("instanceSummary.totalCreatedEntities", is(0))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(1))
+        .body("instanceSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForHoldingsIfHoldingsMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("holdingSummary.totalCreatedEntities", is(0))
+        .body("holdingSummary.totalUpdatedEntities", is(0))
+        .body("holdingSummary.totalDiscardedEntities", is(1))
+        .body("holdingSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForItemIfItemMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, ITEM, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("itemSummary.totalCreatedEntities", is(0))
+        .body("itemSummary.totalUpdatedEntities", is(0))
+        .body("itemSummary.totalDiscardedEntities", is(1))
+        .body("itemSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, AUTHORITY, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("authoritySummary.totalCreatedEntities", is(0))
+        .body("authoritySummary.totalUpdatedEntities", is(0))
+        .body("authoritySummary.totalDiscardedEntities", is(1))
+        .body("authoritySummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldNotReturnDiscardedForMarcBibAndInstanceIfHoldingsCreatedOnMatchByInstance(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String holdingsEntityId = UUID.randomUUID().toString();
+    String holdingsHrId = "holdingsHrid";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsEntityId, holdingsHrId, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", emptyOrNullString())
+        .body("sourceRecordSummary.totalUpdatedEntities", emptyOrNullString())
+        .body("sourceRecordSummary.totalDiscardedEntities", emptyOrNullString())
+        .body("sourceRecordSummary.totalErrors", emptyOrNullString())
+        .body("instanceSummary.totalCreatedEntities", emptyOrNullString())
+        .body("instanceSummary.totalUpdatedEntities", emptyOrNullString())
+        .body("instanceSummary.totalDiscardedEntities", emptyOrNullString())
+        .body("instanceSummary.totalErrors", emptyOrNullString())
+        .body("holdingSummary.totalCreatedEntities", is(1))
+        .body("holdingSummary.totalUpdatedEntities", is(0))
+        .body("holdingSummary.totalDiscardedEntities", is(0))
+        .body("holdingSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String errorMessage = "error message";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcAuthorityId, null, recordTitle, 1, UPDATE, MARC_AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, authorityId, null, recordTitle, 1, UPDATE, AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, AUTHORITY, ERROR, errorMessage))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(1))
+        .body("authoritySummary.totalCreatedEntities", is(0))
+        .body("authoritySummary.totalUpdatedEntities", is(1))
+        .body("authoritySummary.totalDiscardedEntities", is(1))
+        .body("authoritySummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldNotReturnDiscardedForHoldingsIfItemCreatedOnMatchByHoldings(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String itemEntityId = UUID.randomUUID().toString();
+    String itemHrId = "itemHrid";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, itemEntityId, itemHrId, recordTitle, 0, CREATE, ITEM, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("holdingSummary.totalCreatedEntities", emptyOrNullString())
+        .body("holdingSummary.totalUpdatedEntities", emptyOrNullString())
+        .body("holdingSummary.totalDiscardedEntities", emptyOrNullString())
+        .body("holdingSummary.totalErrors", emptyOrNullString())
+        .body("itemSummary.totalCreatedEntities", is(1))
+        .body("itemSummary.totalUpdatedEntities", is(0))
+        .body("itemSummary.totalDiscardedEntities", is(0))
+        .body("itemSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
       async.complete();
     }));
   }

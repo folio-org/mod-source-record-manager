@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.Record;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVENTORY_INSTANCE_UPDATED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.AUTHORITY;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
@@ -58,6 +61,16 @@ public class JournalUtil {
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
+
+  private static final EnumMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY;
+
+  static {
+    ENTITY_TO_RELATED_ENTITY = new EnumMap<>(JournalRecord.EntityType.class);
+    ENTITY_TO_RELATED_ENTITY.put(INSTANCE, MARC_BIBLIOGRAPHIC);
+    ENTITY_TO_RELATED_ENTITY.put(MARC_BIBLIOGRAPHIC, INSTANCE);
+    ENTITY_TO_RELATED_ENTITY.put(AUTHORITY, MARC_AUTHORITY);
+    ENTITY_TO_RELATED_ENTITY.put(MARC_AUTHORITY, AUTHORITY);
+  }
 
   private JournalUtil() {
 
@@ -126,6 +139,13 @@ public class JournalUtil {
       JournalRecord journalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
         .withEntityType(entityType);
 
+      if (ENTITY_TO_RELATED_ENTITY.containsKey(entityType) && (actionType == MATCH || actionType == NON_MATCH)) {
+        JournalRecord relatedEntityJournalRecord = buildCommonJournalRecord(actionStatus, actionType, record, eventPayload, eventPayloadContext, incomingRecordId)
+          .withEntityType(ENTITY_TO_RELATED_ENTITY.get(entityType));
+
+        return Lists.newArrayList(journalRecord, relatedEntityJournalRecord);
+      }
+
       if ((actionType == JournalRecord.ActionType.MATCH || actionType == JournalRecord.ActionType.NON_MATCH)
         && (entityType == HOLDINGS || entityType == ITEM)) {
         List<JournalRecord> resultedJournalRecords = new ArrayList<>();
@@ -144,8 +164,8 @@ public class JournalUtil {
       }
 
       if (!isEmpty(entityAsString)) {
-        if (entityType == MARC_BIBLIOGRAPHIC) {
-          var entityId = new JsonObject(eventPayloadContext.get(MARC_BIBLIOGRAPHIC.value())).getString(MATCHED_ID_KEY);
+        if (entityType == MARC_BIBLIOGRAPHIC || entityType == MARC_AUTHORITY || entityType == MARC_HOLDINGS) {
+          var entityId = new JsonObject(entityAsString).getString(MATCHED_ID_KEY);
           journalRecord.setEntityId(entityId);
           return Lists.newArrayList(journalRecord);
         }

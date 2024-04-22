@@ -181,11 +181,12 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .compose(parsedRecords -> {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
 
-        return isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), parsedRecords)
-          ? Future.succeededFuture(parsedRecords)
-          : Future.failedFuture(new InvalidJobProfileForFileException(
-            parsedRecords, prepareWrongJobProfileErrorMessage(jobExecution, parsedRecords))
-        );
+        return filterParsedRecords(jobExecution, params, parsedRecords)
+          .compose(filteredParsedRecords ->
+            isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), filteredParsedRecords)
+              ? Future.succeededFuture(filteredParsedRecords)
+              : Future.failedFuture(new InvalidJobProfileForFileException(filteredParsedRecords,
+              prepareWrongJobProfileErrorMessage(jobExecution, filteredParsedRecords))));
       })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -197,6 +198,14 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         promise.fail(th);
       });
     return promise.future();
+  }
+
+  private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, OkapiConnectionParams params, List<Record> parsedRecords) {
+    Promise<List<Record>> promiseFilteredRecords = Promise.promise();
+
+    List<Future> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
+    filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
+    return promiseFilteredRecords.future();
   }
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
@@ -538,15 +547,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                 "Couldn't update jobExecutionSourceChunk progress, jobExecutionSourceChunk with id %s was not found",
                 sourceChunkId))));
         }
-      }).collect(Collectors.toList());
+      }).toList();
 
-    Promise<List<Record>> promise = Promise.promise();
-
-    List<Future> listFuture = executeInBatches(records, batch -> verifyMarcHoldings004Field(batch, okapiParams));
-    filterMarcHoldingsBy004Field(records, listFuture, okapiParams, jobExecution, promise);
-
-    return promise.future()
-      .compose(folioRecords -> this.postProcessRecords(jobExecution, folioRecords, okapiParams));
+    return this.postProcessRecords(jobExecution, records, okapiParams);
   }
 
   public List<Record> getParsedRecordsFromInitialRecords(List<InitialRecord> rawRecords,

@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -302,6 +303,10 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(0));
+    verify(journalRecordService)
+      .saveBatch(argThat(incomingRecords -> incomingRecords.size() == 1 && incomingRecords.get(0).getJobExecutionId().equals(jobExecution.getId())), any());
+    verify(incomingRecordService)
+      .saveBatch(argThat(parseJournalRecord -> parseJournalRecord.size() == 1 && parseJournalRecord.get(0).getJobExecutionId().equals(jobExecution.getId())), any());
   }
 
   @Test

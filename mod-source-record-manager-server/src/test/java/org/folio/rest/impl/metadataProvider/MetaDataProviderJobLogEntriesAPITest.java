@@ -3,6 +3,7 @@ package org.folio.rest.impl.metadataProvider;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.UPDATE;
@@ -997,6 +998,379 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
       async.complete();
     }));
   }
+
+  @Test
+  public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnLogIfErrorDuringParse(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String errorMessage = "error message";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, CREATE, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("error", is(errorMessage))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForMarcBibAndInstanceIfMarcBibNotMatched(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, NON_MATCH, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String errorMessage = "error message";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcAuthorityId, null, recordTitle, 1, UPDATE, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, authorityId, null, recordTitle, 1, UPDATE, AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, AUTHORITY, ERROR, errorMessage, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId2)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(sourceRecordId2))
+        .body("error", is(errorMessage))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedAuthorityInfo.error", is(errorMessage));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForHoldingsIfHoldingsMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(emptyOrNullString()))
+        .body("relatedHoldingsInfo.size()", is(1))
+        .body("relatedHoldingsInfo[0].actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForItemIfItemMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, ITEM, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(emptyOrNullString()))
+        .body("relatedItemInfo.size()", is(1))
+        .body("relatedItemInfo[0].actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedAndNoOtherAction(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, AUTHORITY, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedAuthorityInfo.actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnInstanceCreatedIfInstanceNonMatchAndCreated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String instanceId = UUID.randomUUID().toString();
+    String marcBibId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, NON_MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, null, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
+        .body("sourceRecordId", is(marcBibId))
+        .body("relatedInstanceInfo.actionStatus", is(ActionStatus.CREATED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldReturnHoldingsDiscardedIfInstanceUpdatedAndHoldingsNotMatched(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String instanceId = UUID.randomUUID().toString();
+    String marcBibId = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, marcBibId, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, instanceId, null, recordTitle, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordActionStatus", is(ActionStatus.UPDATED.value()))
+        .body("sourceRecordId", is(marcBibId))
+        .body("relatedInstanceInfo.actionStatus", is(ActionStatus.UPDATED.value()))
+        .body("relatedHoldingsInfo[0].actionStatus", is(ActionStatus.DISCARDED.value()));
+
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldNotReturnDiscardedForMarcBibAndInstanceIfHoldingsCreatedOnMatchByInstance(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    String holdingsEntityId = UUID.randomUUID().toString();
+    String holdingsHrId = "holdingsHrid";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, holdingsEntityId, holdingsHrId, recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is("0"))
+        .body("error", emptyOrNullString())
+        .body("sourceRecordActionStatus", emptyOrNullString())
+        .body("relatedInstanceInfo.actionStatus", emptyOrNullString())
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(1))
+        .body("relatedHoldingsInfo[0].id", is(holdingsEntityId))
+        .body("relatedHoldingsInfo[0].hrid", is(holdingsHrId))
+        .body("relatedHoldingsInfo[0].actionStatus", is(ActionStatus.CREATED.value()));
+      async.complete();
+    }));
+  }
+
+  @Test
+  public void shouldNotReturnDiscardedForHoldingsIfItemCreatedOnMatchByHoldings(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String itemEntityId = UUID.randomUUID().toString();
+    String itemHrId = "itemHrid";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, 0, MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, itemEntityId, itemHrId, recordTitle, 0, CREATE, ITEM, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is("0"))
+        .body("error", emptyOrNullString())
+        .body("sourceRecordActionStatus", emptyOrNullString())
+        .body("relatedInstanceInfo.actionStatus", emptyOrNullString())
+        .body("relatedInstanceInfo.error", emptyOrNullString())
+        .body("relatedHoldingsInfo.size()", is(0))
+        .body("relatedItemInfo.size()", is(1))
+        .body("relatedItemInfo[0].id", is(itemEntityId))
+        .body("relatedItemInfo[0].hrid", is(itemHrId))
+        .body("relatedItemInfo[0].actionStatus", is(ActionStatus.CREATED.value()));
+      async.complete();
+    }));
+  }
+
 
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
                                                     String entityHrid, String title, int recordOrder,

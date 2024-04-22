@@ -63,13 +63,39 @@ WITH
       SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
              (array_agg(id ORDER BY array_position(array[''CREATE'', ''UPDATE'', ''MODIFY'', ''NON_MATCH''], action_type)))[1] AS id_max
       FROM journal_records
-      WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'')
+      WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type != ''MATCH''
       GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
     ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
+    UNION ALL
+    SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
+           CASE
+             WHEN error_max != '''' OR action_type = ''MATCH'' THEN ''DISCARDED''
+             END AS action_type,
+           action_status, action_date, source_record_order, error, title, tenant_id, instance_id, holdings_id, order_id, permanent_location_id
+     FROM journal_records
+            INNER JOIN (
+      SELECT entity_type as entity_type_max, entity_id as entity_id_max, action_status as action_status_max, max(error) AS error_max,
+                   (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
+            FROM journal_records
+            WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
+            AND NOT EXISTS (SELECT 1 FROM journal_records jr
+                            WHERE jr.job_execution_id = ''%1$s''
+                            AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+                            AND jr.source_id = journal_records.source_id)
+            GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
+     ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
   ),
   instances AS (
     SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id, title, source_record_order, tenant_id
-    FROM temp_result WHERE entity_type = ''INSTANCE''
+    FROM temp_result
+    WHERE entity_type = ''INSTANCE'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_id, source_id, entity_hrid, error, job_execution_id, title, source_record_order, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''INSTANCE'' AND entity_id IS NULL AND NOT EXISTS
+        (SELECT 1
+         FROM temp_result as tr2
+         WHERE tr2.entity_type = ''INSTANCE'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   holdings AS (
     SELECT tmp.action_type, tmp.entity_type, tmp.entity_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
@@ -136,11 +162,25 @@ WHERE tmp.entity_type = ''ITEM''
   ),
   authorities AS (
     SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
-    FROM temp_result WHERE entity_type = ''AUTHORITY''
+    FROM temp_result WHERE entity_type = ''AUTHORITY'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT action_type, entity_id, temp_result.source_id, error, temp_result.job_execution_id, temp_result.title, temp_result.source_record_order
+    FROM temp_result
+    WHERE entity_type = ''AUTHORITY'' AND entity_id IS NULL AND NOT EXISTS
+        (SELECT 1
+         FROM temp_result as tr2
+         WHERE tr2.entity_type = ''AUTHORITY'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   marc_authority AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type = ''MARC_AUTHORITY''
+    FROM temp_result WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_AUTHORITY'' AND entity_id IS NULL AND NOT EXISTS
+        (SELECT 1
+         FROM temp_result as tr2
+         WHERE tr2.entity_type = ''MARC_AUTHORITY'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   marc_holdings AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
@@ -148,20 +188,27 @@ WHERE tmp.entity_type = ''ITEM''
   ),
   marc_bibliographic AS (
     SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
-    FROM temp_result WHERE entity_type = ''MARC_BIBLIOGRAPHIC''
+    FROM temp_result WHERE entity_type = ''MARC_BIBLIOGRAPHIC'' AND entity_id IS NOT NULL
+    UNION ALL
+    SELECT temp_result.job_execution_id, entity_id, title, source_record_order, action_type, error, source_id, tenant_id
+    FROM temp_result
+    WHERE entity_type = ''MARC_BIBLIOGRAPHIC'' AND entity_id IS NULL AND NOT EXISTS
+        (SELECT 1
+         FROM temp_result as tr2
+         WHERE tr2.entity_type = ''MARC_BIBLIOGRAPHIC'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
+  ),
+  marc_identifiers AS (
+    SELECT entity_id AS marc_entity_id, temp_result.source_id AS marc_source_id
+    FROM temp_result WHERE entity_type IN (''MARC_BIBLIOGRAPHIC'', ''MARC_HOLDINGS'', ''MARC_AUTHORITY'') AND entity_id IS NOT NULL
   )
 
 SELECT records_actions.job_execution_id AS job_execution_id,
        records_actions.source_id AS incoming_record_id,
-       coalesce(marc_bibliographic_entity_id::uuid, marc_authority_entity_id::uuid, marc_holdings_entity_id::uuid) AS source_id,
+       marc_identifiers.entity_id::uuid AS source_id,
        records_actions.source_record_order AS source_record_order,
        '''' as invoiceline_number,
        coalesce(rec_titles.title, marc_holdings_info.title) AS title,
-       CASE
-         WHEN marc_errors_number != 0 OR marc_actions[array_length(marc_actions, 1)] = ''NON_MATCH'' THEN ''DISCARDED''
-         WHEN marc_actions[array_length(marc_actions, 1)] = ''CREATE'' THEN ''CREATED''
-         WHEN marc_actions[array_length(marc_actions, 1)] = ''UPDATE'' THEN ''UPDATED''
-         END AS source_record_action_status,
+       coalesce(marc_bibliographic_info.action_type, marc_authority_info.action_type, marc_holdings_info.action_type) AS source_record_action_status,
        records_actions.source_entity_error AS source_entity_error,
        records_actions.source_record_tenant_id AS source_record_tenant_id,
        instance_info.action_type AS instance_action_status,
@@ -293,7 +340,7 @@ FROM (
          marc_authority.title AS title,
          marc_authority.entity_id AS marc_authority_entity_id,
          marc_authority.error AS marc_authority_entity_error
-  FROM  marc_authority WHERE entity_id IS NOT NULL
+  FROM  marc_authority
 ) AS marc_authority_info ON marc_authority_info.source_id = records_actions.source_id
 
        LEFT JOIN (
@@ -302,7 +349,7 @@ FROM (
          marc_bibliographic.title AS title,
          marc_bibliographic.entity_id AS marc_bibliographic_entity_id,
          marc_bibliographic.error AS marc_bibliographic_entity_error
-  FROM  marc_bibliographic WHERE entity_id IS NOT NULL
+  FROM  marc_bibliographic
 ) AS marc_bibliographic_info ON marc_bibliographic_info.source_id = records_actions.source_id
 
        LEFT JOIN (
@@ -311,8 +358,14 @@ FROM (
          marc_holdings.title AS title,
          marc_holdings.entity_id AS marc_holdings_entity_id,
          marc_holdings.error AS marc_holdings_entity_error
-  FROM  marc_holdings WHERE entity_id IS NOT NULL
+  FROM  marc_holdings
 ) AS marc_holdings_info ON marc_holdings_info.source_id = records_actions.source_id
+
+      LEFT JOIN (
+  SELECT marc_identifiers.marc_entity_id as entity_id,
+         marc_identifiers.marc_source_id as source_id
+  FROM marc_identifiers
+) AS marc_identifiers ON marc_identifiers.source_id = records_actions.source_id
 
        LEFT JOIN (SELECT journal_records.source_id,
                          CASE
