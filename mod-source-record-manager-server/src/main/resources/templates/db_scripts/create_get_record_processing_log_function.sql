@@ -6,14 +6,14 @@ AS $$
 BEGIN
     RETURN QUERY
         WITH temp_result AS (SELECT id, journal_records.job_execution_id, journal_records.source_id, journal_records.entity_type, journal_records.entity_id, journal_records.entity_hrid,
-    					 CASE WHEN error_max != '' OR action_type = 'NON_MATCH'
+    					 CASE WHEN action_type = 'PARSE'
+                        THEN 'PARSED'
+    					      WHEN error_max != '' OR action_type = 'NON_MATCH'
                     		THEN 'DISCARDED'
                     WHEN action_type = 'CREATE'
                     		THEN 'CREATED'
                     WHEN action_type = 'UPDATE'
                     		THEN 'UPDATED'
-                    WHEN action_type = 'PARSE'
-                      then 'PARSED'
                  END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
     		INNER JOIN

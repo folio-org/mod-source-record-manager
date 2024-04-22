@@ -78,7 +78,10 @@ WITH
                    (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
             FROM journal_records
             WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
-            AND NOT EXISTS (SELECT 1 FROM journal_records WHERE job_execution_id = ''%1$s'' AND action_type NOT IN (''MATCH'', ''PARSE''))
+            AND NOT EXISTS (SELECT 1 FROM journal_records jr
+                            WHERE jr.job_execution_id = ''%1$s''
+                            AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+                            AND jr.source_id = journal_records.source_id)
             GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
      ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
   ),
