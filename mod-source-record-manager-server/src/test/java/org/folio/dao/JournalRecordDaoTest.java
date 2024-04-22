@@ -47,21 +47,21 @@ public class JournalRecordDaoTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnSortedInstanceListByErrorMessage(TestContext testContext) {
-    shouldReturnSortedJournalRecordListByErrorMessage(testContext, JournalRecord.EntityType.INSTANCE);
+  public void shouldReturnSortedInstanceListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.INSTANCE);
   }
 
   @Test
-  public void shouldReturnSortedAuthorityListByErrorMessage(TestContext testContext) {
-    shouldReturnSortedJournalRecordListByErrorMessage(testContext, JournalRecord.EntityType.MARC_AUTHORITY);
+  public void shouldReturnSortedAuthorityListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.MARC_AUTHORITY);
   }
 
   @Test
-  public void shouldReturnSortedOrderListByErrorMessage(TestContext testContext) {
-    shouldReturnSortedJournalRecordListByErrorMessage(testContext, JournalRecord.EntityType.ORDER);
+  public void shouldReturnSortedOrderListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.ORDER);
   }
 
-  private void shouldReturnSortedJournalRecordListByErrorMessage(TestContext testContext,
+  private void shouldReturnSortedJournalRecordListByActionType(TestContext testContext,
                                                                  JournalRecord.EntityType entityType) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
