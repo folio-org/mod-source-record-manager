@@ -62,7 +62,10 @@ BEGIN
         	    source_id as temp_source_id
         FROM journal_records
         WHERE journal_records.job_execution_id = job_id AND action_type = 'MATCH'
-        AND NOT EXISTS (SELECT 1 FROM journal_records WHERE journal_records.job_execution_id = job_id AND action_type NOT IN ('MATCH', 'PARSE'))
+        AND NOT EXISTS (SELECT 1 FROM journal_records jr
+                        WHERE jr.job_execution_id = job_id
+                        AND jr.action_type NOT IN ('MATCH', 'PARSE')
+                        AND jr.source_id = journal_records.source_id)
         GROUP BY source_id, entity_id, entity_type, action_status) AS actions
       ON actions.id = journal_records.id AND actions.temp_source_id = journal_records.source_id
       INNER JOIN (SELECT (array_agg(action_type ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH', 'MATCH'], action_type)))[1] as action_type_max, source_id as source_id_max, entity_type as entity_type_max
