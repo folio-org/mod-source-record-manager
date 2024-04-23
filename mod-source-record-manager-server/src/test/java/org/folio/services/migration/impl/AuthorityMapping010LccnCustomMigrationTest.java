@@ -1,7 +1,6 @@
 package org.folio.services.migration.impl;
 
 import static org.folio.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.Record.RecordType.MARC_HOLDING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
