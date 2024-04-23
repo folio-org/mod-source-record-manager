@@ -3,7 +3,6 @@ package org.folio.services;
 import static io.vertx.core.Future.succeededFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -123,6 +122,27 @@ public class MappingRuleServiceTest {
     future.onComplete(ar -> {
       context.verify(v -> {
         Assert.assertFalse(ar.succeeded());
+      });
+      async.complete();
+    });
+  }
+
+  @Test
+  public void testForceUpdateDefaultAuthorityRules(TestContext context) {
+    when(mappingRuleDao.get(eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(Optional.of(new JsonObject())));
+    when(mappingRuleDao.update(any(), eq(Record.RecordType.MARC_AUTHORITY), any()))
+      .thenReturn(succeededFuture(new JsonObject()));
+    doNothing().when(mappingRuleCache).put(any(), any());
+
+    Async async = context.async();
+    var future = ruleService.update(new JsonObject().encode(), Record.RecordType.MARC_AUTHORITY, TEST_TENANT, true);
+
+    verify(mappingRuleDao, times(1)).update(any(), eq(Record.RecordType.MARC_AUTHORITY), any());
+
+    future.onComplete(ar -> {
+      context.verify(v -> {
+        Assert.assertFalse(ar.failed());
       });
       async.complete();
     });

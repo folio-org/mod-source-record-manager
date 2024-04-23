@@ -79,8 +79,12 @@ public class MappingRuleServiceImpl implements MappingRuleService {
 
   @Override
   public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId) {
+    return update(rules, recordType, tenantId, false);
+  }
+
+  public Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId, boolean forceUpdate) {
     Promise<JsonObject> promise = Promise.promise();
-    rejectUnsupportedType(recordType, promise);
+    rejectUnsupportedType(recordType, promise, forceUpdate);
     return promise.future().compose(v -> updateRules(rules, recordType, tenantId));
   }
 
@@ -138,9 +142,9 @@ public class MappingRuleServiceImpl implements MappingRuleService {
     return optionalRules;
   }
 
-  private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise) {
+  private void rejectUnsupportedType(Record.RecordType recordType, Promise<JsonObject> promise, boolean forceUpdate) {
     LOGGER.debug("rejectUnsupportedType:: recordType {}", recordType);
-    if (recordType == Record.RecordType.MARC_AUTHORITY) {
+    if (recordType == Record.RecordType.MARC_AUTHORITY && !forceUpdate) {
       String errorMessage = "Can't edit MARC Authority default mapping rules";
       LOGGER.warn(errorMessage);
       promise.fail(new BadRequestException(errorMessage));
