@@ -125,6 +125,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
+  public static final String JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE = "The '%s' job profile snapshot does not have any linked action or matching profiles";
   private static final String ACCEPT_INSTANCE_ID_KEY = "acceptInstanceId";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -182,11 +183,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
 
         return filterParsedRecords(jobExecution, params, parsedRecords)
-          .compose(filteredParsedRecords ->
-            isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), filteredParsedRecords)
-              ? Future.succeededFuture(filteredParsedRecords)
-              : Future.failedFuture(new InvalidJobProfileForFileException(filteredParsedRecords,
-              prepareWrongJobProfileErrorMessage(jobExecution, filteredParsedRecords))));
+          .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords));
       })
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
@@ -194,7 +191,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
-        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records: {}", th.getMessage());
+        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, cause: {}, jobExecutionId: {}",
+          th.getMessage(), jobExecution.getId());
         promise.fail(th);
       });
     return promise.future();
@@ -206,6 +204,19 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     List<Future> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
     filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
     return promiseFilteredRecords.future();
+  }
+
+  private Future<Void> validateJobProfile(JobExecution jobExecution, List<Record> records) {
+    ProfileSnapshotWrapper jobProfileSnapshot = jobExecution.getJobProfileSnapshotWrapper();
+    if (CollectionUtils.isEmpty(jobProfileSnapshot.getChildSnapshotWrappers())) {
+      return Future.failedFuture(new InvalidJobProfileForFileException(
+        records, String.format(JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName())));
+    }
+
+    return isJobProfileCompatibleWithRecordsType(jobProfileSnapshot, records)
+      ? Future.succeededFuture()
+      : Future.failedFuture(new InvalidJobProfileForFileException(records,
+      prepareWrongJobProfileErrorMessage(jobExecution, records)));
   }
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,

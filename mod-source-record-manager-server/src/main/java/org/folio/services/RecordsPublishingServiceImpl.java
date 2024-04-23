@@ -148,15 +148,9 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
     Optional.ofNullable(contextParams)
       .ifPresent(context::putAll);
 
-    List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
-    if (childSnapshotWrappers == null || childSnapshotWrappers.isEmpty()) {
-      throw new IllegalArgumentException(
-        "There are no child profile snapshot wrappers profileSnapshotId=" + profileSnapshotWrapper.getId());
-    }
-
     return new DataImportEventPayload()
       .withEventType(eventType)
-      .withCurrentNode(childSnapshotWrappers.get(0))
+      .withCurrentNode(profileSnapshotWrapper.getChildSnapshotWrappers().get(0))
       .withJobExecutionId(record.getSnapshotId())
       .withContext(context)
       .withOkapiUrl(params.getOkapiUrl())
