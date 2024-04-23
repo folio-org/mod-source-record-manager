@@ -25,7 +25,6 @@ import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
 import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.JobProfile;
 import org.folio.rest.jaxrs.model.JobProfileInfo;
 import org.folio.rest.jaxrs.model.MappingProfile;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
@@ -69,6 +68,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   private static final String JOB_PROFILE_PATH = "/jobProfile";
   private static final String JOB_EXECUTION_ID_HEADER = "jobExecutionId";
   private static final String INCOMING_RECORD_ID_KEY = "INCOMING_RECORD_ID";
+  private static final String ERROR_KEY = "ERROR";
   private static final String JOB_PROFILE_ID = UUID.randomUUID().toString();
   private static final String GROUP_ID = "test-consumers";
   private static String rawEdifactContent;
@@ -143,7 +143,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Before
   public void setUp() {
     WireMock.stubFor(WireMock.get("/data-import-profiles/jobProfiles/" + JOB_PROFILE_ID + "?withRelations=false&")
-      .willReturn(WireMock.ok().withBody(Json.encode(new JobProfile().withId(JOB_PROFILE_ID).withName("Create instance")))));
+      .willReturn(WireMock.ok().withBody(Json.encode(jobProfile.withId(JOB_PROFILE_ID)))));
     WireMock.stubFor(WireMock.post("/source-storage/batch/verified-records")
       .willReturn(WireMock.ok().withBody(Json.encode(new JsonObject("{\"invalidMarcBibIds\" : [ \"111111\", \"222222\" ]}")))));
     WireMock.stubFor(WireMock.get("/linking-rules/instance-authority")
@@ -162,7 +162,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
-      new JsonObject(eventPayload.getContext().get("ERROR")).getString("error"));
+      new JsonObject(eventPayload.getContext().get(ERROR_KEY)).getString("error"));
     assertNull(new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")).getString("externalIdsHolder"));
     assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
@@ -211,7 +211,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    JsonObject error = new JsonObject(eventPayload.getContext().get("ERROR"));
+    JsonObject error = new JsonObject(eventPayload.getContext().get(ERROR_KEY));
     assertTrue(error.getString("errors").contains("org.marc4j.MarcException"));
   }
 
@@ -373,6 +373,32 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+  }
+
+  @Test
+  public void shouldSendDIErrorWhenJobProfileSnapshotHasNoChildWrappers() throws InterruptedException {
+    // given
+    String expectedError = String.format("The '%s' job profile snapshot does not have any linked action or matching profiles", jobProfile.getName());
+    ProfileSnapshotWrapper jobProfileWithoutChildWrappers = new ProfileSnapshotWrapper()
+      .withId(UUID.randomUUID().toString())
+      .withContentType(JOB_PROFILE)
+      .withContent(jobProfile)
+      .withChildSnapshotWrappers(List.of());
+
+    WireMock.stubFor(post(new UrlPathPattern(new RegexPattern(PROFILE_SNAPSHOT_URL + "/.*"), true))
+      .willReturn(WireMock.created().withBody(Json.encode(jobProfileWithoutChildWrappers))));
+
+    SendKeyValues<String, String> request = prepareWithSpecifiedRecord(JobProfileInfo.DataType.MARC,
+      RecordsMetadata.ContentType.MARC_RAW, CORRECT_RAW_RECORD);
+
+    // when
+    kafkaCluster.send(request);
+
+    // then
+    Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
+    DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
+    assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+    assertEquals(expectedError, eventPayload.getContext().get(ERROR_KEY));
   }
 
   private SendKeyValues<String, String> prepareWithSpecifiedRecord(JobProfileInfo.DataType dataType,
