@@ -393,7 +393,8 @@ public class ChangeEngineServiceImplTest {
     JobExecution jobExecution = new JobExecution()
       .withId(UUID.randomUUID().toString())
       .withUserId(UUID.randomUUID().toString())
-      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper())
+      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper()
+        .withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper())))
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.EDIFACT));
 
@@ -760,7 +761,7 @@ public class ChangeEngineServiceImplTest {
     return new JobExecution()
       .withId(UUID.randomUUID().toString())
       .withUserId(UUID.randomUUID().toString())
-      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper())
+      .withJobProfileSnapshotWrapper(new ProfileSnapshotWrapper().withChildSnapshotWrappers(List.of(new ProfileSnapshotWrapper())))
       .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString())
         .withName("test").withDataType(JobProfileInfo.DataType.MARC));
   }
