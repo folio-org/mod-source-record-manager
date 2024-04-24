@@ -49,41 +49,41 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
     if (tag010Rules == null) {
       return rules;
     }
-    for (int i = 0; i < tag010Rules.size(); i++) {
-      var entities = tag010Rules.getJsonObject(i).getJsonArray("entity");
-      if (entities != null) {
-        JsonObject copyIdentifierTypeIdTarget = null;
-        JsonObject copyValueTarget = null;
-        for (int j = 0; j < entities.size(); j++) {
-          var rule = entities.getJsonObject(j);
-          if ("identifiers.identifierTypeId".equals(rule.getString("target"))) {
-            if (rule.getJsonArray(SUBFIELD).size() > 1) {
-              copyIdentifierTypeIdTarget = rule.copy();
-
-              rule.put(SUBFIELD, JsonArray.of("a"));
-
-              String replacement =
-                rule.getString(DESCRIPTION).replace(LCCN_STR_VALUE, CANCELLED_STR_VALUE + LCCN_STR_VALUE);
-              copyIdentifierTypeIdTarget.put(DESCRIPTION, replacement);
-              updateRuleCopy(copyIdentifierTypeIdTarget);
-            }
-          }
-          if ("identifiers.value".equals(rule.getString("target"))) {
-            if (rule.getJsonArray(SUBFIELD).size() > 1) {
-              copyValueTarget = rule.copy();
-
-              rule.put(SUBFIELD, JsonArray.of("a"));
-
-              String description = rule.getString(DESCRIPTION);
-              copyValueTarget.put(DESCRIPTION, CANCELLED_STR_VALUE + description);
-              copyValueTarget.put(SUBFIELD, JsonArray.of("z"));
-            }
-          }
-        }
-        entities.add(copyIdentifierTypeIdTarget);
-        entities.add(copyValueTarget);
-      }
-    }
+//    for (int i = 0; i < tag010Rules.size(); i++) {
+//      var entities = tag010Rules.getJsonObject(i).getJsonArray("entity");
+//      if (entities != null) {
+//        JsonObject copyIdentifierTypeIdTarget = null;
+//        JsonObject copyValueTarget = null;
+//        for (int j = 0; j < entities.size(); j++) {
+//          var rule = entities.getJsonObject(j);
+//          if ("identifiers.identifierTypeId".equals(rule.getString("target"))) {
+//            if (rule.getJsonArray(SUBFIELD).size() > 1) {
+//              copyIdentifierTypeIdTarget = rule.copy();
+//
+//              rule.put(SUBFIELD, JsonArray.of("a"));
+//
+//              String replacement =
+//                rule.getString(DESCRIPTION).replace(LCCN_STR_VALUE, CANCELLED_STR_VALUE + LCCN_STR_VALUE);
+//              copyIdentifierTypeIdTarget.put(DESCRIPTION, replacement);
+//              updateRuleCopy(copyIdentifierTypeIdTarget);
+//            }
+//          }
+//          if ("identifiers.value".equals(rule.getString("target"))) {
+//            if (rule.getJsonArray(SUBFIELD).size() > 1) {
+//              copyValueTarget = rule.copy();
+//
+//              rule.put(SUBFIELD, JsonArray.of("a"));
+//
+//              String description = rule.getString(DESCRIPTION);
+//              copyValueTarget.put(DESCRIPTION, CANCELLED_STR_VALUE + description);
+//              copyValueTarget.put(SUBFIELD, JsonArray.of("z"));
+//            }
+//          }
+//        }
+//        entities.add(copyIdentifierTypeIdTarget);
+//        entities.add(copyValueTarget);
+//      }
+//    }
     return rules;
   }
 
