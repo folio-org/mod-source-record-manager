@@ -16,6 +16,11 @@ public class FieldMappingHelper {
   private static final String CANCELLED = "Cancelled ";
   private static final String LCCN = "LCCN";
 
+
+  private FieldMappingHelper() {
+    throw new IllegalStateException("Utility class");
+  }
+
   public static JsonArray get010FieldEntityJsonArray() {
     return new JsonArray(List.of(
       getEntityJsonObject(IDENTIFIER_TYPE_ID, DESCRIPTION_TYPE_ID + LCCN, SUBFIELD_A),
