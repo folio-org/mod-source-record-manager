@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
+  private static final String FEATURE_VERSION = "3.9.0";
+  private static final String DESCRIPTION = "Authority mapping rules: update rule for LCCN";
 
   @Autowired
   private MappingRuleService mappingRuleService;
@@ -31,12 +33,12 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
 
   @Override
   public String getFeatureVersion() {
-    return "3.9.0";
+    return FEATURE_VERSION;
   }
 
   @Override
   public String getDescription() {
-    return "Authority mapping rules: update rule for LCCN";
+    return DESCRIPTION;
   }
 
   private JsonObject updateRules(JsonObject rules) {
