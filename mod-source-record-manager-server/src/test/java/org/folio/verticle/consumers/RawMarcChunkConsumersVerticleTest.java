@@ -51,6 +51,7 @@ import static java.util.Collections.singletonList;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
+import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.*;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
@@ -163,7 +164,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals("A new Instance was not created because the incoming record already contained a 999ff$s or 999ff$i field",
       new JsonObject(eventPayload.getContext().get(ERROR_KEY)).getString("error"));
-    assertNull(new JsonObject(eventPayload.getContext().get("MARC_BIBLIOGRAPHIC")).getString("externalIdsHolder"));
+    assertNull(new JsonObject(eventPayload.getContext().get(EntityType.MARC_BIBLIOGRAPHIC.value())).getString("externalIdsHolder"));
     assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
 
@@ -182,7 +183,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     // then
     Event obtainedEvent = checkEventWithTypeSent(DI_INCOMING_EDIFACT_RECORD_PARSED);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
-    JsonObject record = new JsonObject(eventPayload.getContext().get("EDIFACT_INVOICE"));
+    JsonObject record = new JsonObject(eventPayload.getContext().get(EDIFACT_INVOICE.value()));
     assertEquals(EDIFACT, Record.RecordType.valueOf(record.getString("recordType")));
   }
 
@@ -378,7 +379,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
   @Test
   public void shouldSendDIErrorWhenJobProfileSnapshotHasNoChildWrappers() throws InterruptedException {
     // given
-    String expectedError = String.format("The '%s' job profile snapshot does not have any linked action or matching profiles", jobProfile.getName());
+    String expectedError = String.format("The '%s' job profile does not have any linked action or matching profiles", jobProfile.getName());
     ProfileSnapshotWrapper jobProfileWithoutChildWrappers = new ProfileSnapshotWrapper()
       .withId(UUID.randomUUID().toString())
       .withContentType(JOB_PROFILE)

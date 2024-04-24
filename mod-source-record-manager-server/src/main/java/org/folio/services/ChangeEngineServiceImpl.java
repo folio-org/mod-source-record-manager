@@ -125,7 +125,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
-  public static final String JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE = "The '%s' job profile snapshot does not have any linked action or matching profiles";
+  private static final String JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE = "The '%s' job profile does not have any linked action or matching profiles";
   private static final String ACCEPT_INSTANCE_ID_KEY = "acceptInstanceId";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -181,10 +181,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     futureParsedRecords
       .compose(parsedRecords -> {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
-
-        return filterParsedRecords(jobExecution, params, parsedRecords)
-          .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords));
+        return filterParsedRecords(jobExecution, params, parsedRecords);
       })
+      .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords))
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
