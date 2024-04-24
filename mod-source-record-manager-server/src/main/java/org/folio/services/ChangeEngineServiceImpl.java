@@ -31,7 +31,6 @@ import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_TYPE;
 
 import com.google.common.collect.Lists;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -200,7 +199,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, OkapiConnectionParams params, List<Record> parsedRecords) {
     Promise<List<Record>> promiseFilteredRecords = Promise.promise();
 
-    List<Future> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
+    List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
     filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
     return promiseFilteredRecords.future();
   }
@@ -629,7 +628,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return result;
   }
 
-  private List<Future> executeInBatches(List<Record> recordList,
+  private List<Future<List<String>>> executeInBatches(List<Record> recordList,
                                         Function<List<String>, Future<List<String>>> batchOperation) {
     // filter list on MARC_HOLDINGS
     var marcHoldingsIdsToVerify = recordList.stream()
@@ -639,16 +638,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .collect(Collectors.toList());
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
-    List<Future> futureList = new ArrayList<>();
+    List<Future<List<String>>> futureList = new ArrayList<>();
     for (List<String> batch : batches) {
       futureList.add(batchOperation.apply(batch));
     }
     return futureList;
   }
 
-  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future> batchList, OkapiConnectionParams okapiParams,
+  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future<List<String>>> batchList, OkapiConnectionParams okapiParams,
                                             JobExecution jobExecution, Promise<List<Record>> promise) {
-    CompositeFuture.all(batchList)
+    Future.all(batchList)
       .onComplete(as -> {
         if (IterableUtils.matchesAll(records, record -> record.getRecordType() == MARC_HOLDING)) {
           var invalidMarcBibIds = batchList
