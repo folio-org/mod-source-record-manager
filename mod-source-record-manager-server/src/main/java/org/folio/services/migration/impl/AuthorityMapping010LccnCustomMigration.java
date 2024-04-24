@@ -57,22 +57,27 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
         for (int j = 0; j < entities.size(); j++) {
           var rule = entities.getJsonObject(j);
           if ("identifiers.identifierTypeId".equals(rule.getString("target"))) {
-            copyIdentifierTypeIdTarget = rule.copy();
+            if (rule.getJsonArray(SUBFIELD).size() > 1) {
+              copyIdentifierTypeIdTarget = rule.copy();
 
-            rule.put(SUBFIELD, JsonArray.of("a"));
+              rule.put(SUBFIELD, JsonArray.of("a"));
 
-            String replacement = rule.getString(DESCRIPTION).replace(LCCN_STR_VALUE, CANCELLED_STR_VALUE + LCCN_STR_VALUE);
-            copyIdentifierTypeIdTarget.put(DESCRIPTION, replacement);
-            updateRuleCopy(copyIdentifierTypeIdTarget);
+              String replacement =
+                rule.getString(DESCRIPTION).replace(LCCN_STR_VALUE, CANCELLED_STR_VALUE + LCCN_STR_VALUE);
+              copyIdentifierTypeIdTarget.put(DESCRIPTION, replacement);
+              updateRuleCopy(copyIdentifierTypeIdTarget);
+            }
           }
           if ("identifiers.value".equals(rule.getString("target"))) {
-            copyValueTarget = rule.copy();
+            if (rule.getJsonArray(SUBFIELD).size() > 1) {
+              copyValueTarget = rule.copy();
 
-            rule.put(SUBFIELD, JsonArray.of("a"));
+              rule.put(SUBFIELD, JsonArray.of("a"));
 
-            String description = rule.getString(DESCRIPTION);
-            copyValueTarget.put(DESCRIPTION, CANCELLED_STR_VALUE + description);
-            copyValueTarget.put(SUBFIELD, JsonArray.of("z"));
+              String description = rule.getString(DESCRIPTION);
+              copyValueTarget.put(DESCRIPTION, CANCELLED_STR_VALUE + description);
+              copyValueTarget.put(SUBFIELD, JsonArray.of("z"));
+            }
           }
         }
         entities.add(copyIdentifierTypeIdTarget);
