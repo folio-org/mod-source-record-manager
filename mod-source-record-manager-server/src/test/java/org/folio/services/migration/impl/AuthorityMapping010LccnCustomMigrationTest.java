@@ -52,10 +52,10 @@ public class AuthorityMapping010LccnCustomMigrationTest {
       Optional.of(new JsonObject(existedRules))
     ));
 
-    when(mappingRuleService.update(any(), eq(MARC_AUTHORITY), any())).thenReturn(Future.succeededFuture());
+    when(mappingRuleService.internalUpdate(any(), eq(MARC_AUTHORITY), any())).thenReturn(Future.succeededFuture());
 
     migration.migrate(TENANT_ID).onComplete(ar -> {
-      verify(mappingRuleService).update(rulesCaptor.capture(), eq(MARC_AUTHORITY), eq(TENANT_ID));
+      verify(mappingRuleService).internalUpdate(rulesCaptor.capture(), eq(MARC_AUTHORITY), eq(TENANT_ID));
       Assert.assertTrue(ar.succeeded());
       Assert.assertEquals(expectedRules, rulesCaptor.getValue());
     });
@@ -67,6 +67,7 @@ public class AuthorityMapping010LccnCustomMigrationTest {
 
     migration.migrate(TENANT_ID).onComplete(ar -> {
       verify(mappingRuleService, never()).update(any(), any(), any());
+      verify(mappingRuleService, never()).internalUpdate(any(), any(), any());
       Assert.assertTrue(ar.succeeded());
     });
   }

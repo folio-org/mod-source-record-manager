@@ -27,7 +27,7 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
       .compose(rules -> {
         if (rules.isPresent()) {
           var newRules = updateRules(rules.get());
-          return mappingRuleService.update(newRules.encode(), MARC_AUTHORITY, tenantId);
+          return mappingRuleService.internalUpdate(newRules.encode(), MARC_AUTHORITY, tenantId);
         } else {
           return Future.succeededFuture();
         }

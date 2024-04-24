@@ -128,7 +128,7 @@ public class MappingRuleServiceTest {
   }
 
   @Test
-  public void testForceUpdateDefaultAuthorityRules(TestContext context) {
+  public void testInternalUpdateDefaultAuthorityRules(TestContext context) {
     when(mappingRuleDao.get(eq(Record.RecordType.MARC_AUTHORITY), any()))
       .thenReturn(succeededFuture(Optional.of(new JsonObject())));
     when(mappingRuleDao.update(any(), eq(Record.RecordType.MARC_AUTHORITY), any()))
@@ -136,7 +136,7 @@ public class MappingRuleServiceTest {
     doNothing().when(mappingRuleCache).put(any(), any());
 
     Async async = context.async();
-    var future = ruleService.update(new JsonObject().encode(), Record.RecordType.MARC_AUTHORITY, TEST_TENANT, true);
+    var future = ruleService.internalUpdate(new JsonObject().encode(), Record.RecordType.MARC_AUTHORITY, TEST_TENANT);
 
     verify(mappingRuleDao, times(1)).update(any(), eq(Record.RecordType.MARC_AUTHORITY), any());
 
