@@ -31,7 +31,6 @@ import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.FOLIO_
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_TYPE;
 
 import com.google.common.collect.Lists;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -125,6 +124,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private static final String HOLDINGS_CREATION_999_ERROR_MESSAGE = "A new MARC-Holding was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String AUTHORITY_CREATION_999_ERROR_MESSAGE = "A new MARC-Authority was not created because the incoming record already contained a 999ff$s or 999ff$i field";
   private static final String WRONG_JOB_PROFILE_ERROR_MESSAGE = "Chosen job profile '%s' does not support '%s' record type";
+  private static final String JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE = "The '%s' job profile does not have any linked action or matching profiles";
   private static final String ACCEPT_INSTANCE_ID_KEY = "acceptInstanceId";
 
   private final JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
@@ -180,21 +180,17 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     futureParsedRecords
       .compose(parsedRecords -> {
         saveIncomingAndJournalRecords(parsedRecords, params.getTenantId());
-
-        return filterParsedRecords(jobExecution, params, parsedRecords)
-          .compose(filteredParsedRecords ->
-            isJobProfileCompatibleWithRecordsType(jobExecution.getJobProfileSnapshotWrapper(), filteredParsedRecords)
-              ? Future.succeededFuture(filteredParsedRecords)
-              : Future.failedFuture(new InvalidJobProfileForFileException(filteredParsedRecords,
-              prepareWrongJobProfileErrorMessage(jobExecution, filteredParsedRecords))));
+        return filterParsedRecords(jobExecution, params, parsedRecords);
       })
+      .compose(filteredParsedRecords -> validateJobProfile(jobExecution, filteredParsedRecords).map(filteredParsedRecords))
       .compose(parsedRecords -> ensureMappingMetaDataSnapshot(jobExecution.getId(), parsedRecords, params)
         .map(parsedRecords))
       .onSuccess(parsedRecords -> {
         fillParsedRecordsWithAdditionalFields(parsedRecords);
         processRecords(parsedRecords, jobExecution, params, sourceChunkId, acceptInstanceId, promise);
       }).onFailure(th -> {
-        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records: {}", th.getMessage());
+        LOGGER.warn("parseRawRecordsChunkForJobExecution:: Error parsing records, cause: {}, jobExecutionId: {}",
+          th.getMessage(), jobExecution.getId());
         promise.fail(th);
       });
     return promise.future();
@@ -203,9 +199,22 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private Future<List<Record>> filterParsedRecords(JobExecution jobExecution, OkapiConnectionParams params, List<Record> parsedRecords) {
     Promise<List<Record>> promiseFilteredRecords = Promise.promise();
 
-    List<Future> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
+    List<Future<List<String>>> listFuture = executeInBatches(parsedRecords, batch -> verifyMarcHoldings004Field(batch, params));
     filterMarcHoldingsBy004Field(parsedRecords, listFuture, params, jobExecution, promiseFilteredRecords);
     return promiseFilteredRecords.future();
+  }
+
+  private Future<Void> validateJobProfile(JobExecution jobExecution, List<Record> records) {
+    ProfileSnapshotWrapper jobProfileSnapshot = jobExecution.getJobProfileSnapshotWrapper();
+    if (CollectionUtils.isEmpty(jobProfileSnapshot.getChildSnapshotWrappers())) {
+      return Future.failedFuture(new InvalidJobProfileForFileException(
+        records, String.format(JOB_PROFILE_HAS_NO_CHILD_PROFILES_ERROR_MESSAGE, jobExecution.getJobProfileInfo().getName())));
+    }
+
+    return isJobProfileCompatibleWithRecordsType(jobProfileSnapshot, records)
+      ? Future.succeededFuture()
+      : Future.failedFuture(new InvalidJobProfileForFileException(records,
+      prepareWrongJobProfileErrorMessage(jobExecution, records)));
   }
 
   private void processRecords(List<Record> parsedRecords, JobExecution jobExecution, OkapiConnectionParams params,
@@ -619,7 +628,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     return result;
   }
 
-  private List<Future> executeInBatches(List<Record> recordList,
+  private List<Future<List<String>>> executeInBatches(List<Record> recordList,
                                         Function<List<String>, Future<List<String>>> batchOperation) {
     // filter list on MARC_HOLDINGS
     var marcHoldingsIdsToVerify = recordList.stream()
@@ -629,16 +638,16 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       .collect(Collectors.toList());
     // split on batches and create list of Futures
     List<List<String>> batches = Lists.partition(marcHoldingsIdsToVerify, batchSize);
-    List<Future> futureList = new ArrayList<>();
+    List<Future<List<String>>> futureList = new ArrayList<>();
     for (List<String> batch : batches) {
       futureList.add(batchOperation.apply(batch));
     }
     return futureList;
   }
 
-  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future> batchList, OkapiConnectionParams okapiParams,
+  private void filterMarcHoldingsBy004Field(List<Record> records, List<Future<List<String>>> batchList, OkapiConnectionParams okapiParams,
                                             JobExecution jobExecution, Promise<List<Record>> promise) {
-    CompositeFuture.all(batchList)
+    Future.all(batchList)
       .onComplete(as -> {
         if (IterableUtils.matchesAll(records, record -> record.getRecordType() == MARC_HOLDING)) {
           var invalidMarcBibIds = batchList
