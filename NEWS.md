@@ -1,3 +1,7 @@
+## 2024-04-xx v3.8.4
+* [MODSOURMAN-1134](https://issues.folio.org/browse/MODSOURMAN-1134) Any statuses and quantity are not displayed after importing file for updating record
+* [MODSOURMAN-1173](https://issues.folio.org/browse/MODSOURMAN-1173) Handle Situation When Job Profile Has No Child Profiles
+
 ## 2024-04-22 v3.8.3
 * [MODSOURMAN-1162](https://folio-org.atlassian.net/browse/MODSOURMAN-1162) (ECS) The 'source-storage.snapshots.post' permission is absent
 * [MODSOURMAN-1168](https://folio-org.atlassian.net/browse/MODSOURMAN-1168) Adjust job execution summary table to count MATCH action
