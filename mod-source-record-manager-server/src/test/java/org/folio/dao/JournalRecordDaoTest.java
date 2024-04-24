@@ -1,10 +1,23 @@
 package org.folio.dao;
 
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
+import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
@@ -17,20 +30,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.ERROR;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.CREATE;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.DELETE;
-import static org.folio.rest.jaxrs.model.JournalRecord.ActionType.MODIFY;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
 
 @RunWith(VertxUnitRunner.class)
 public class JournalRecordDaoTest extends AbstractRestTest {
@@ -48,7 +47,22 @@ public class JournalRecordDaoTest extends AbstractRestTest {
   }
 
   @Test
-  public void shouldReturnSortedJournalRecordListByActionType(TestContext testContext) {
+  public void shouldReturnSortedInstanceListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.INSTANCE);
+  }
+
+  @Test
+  public void shouldReturnSortedAuthorityListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.MARC_AUTHORITY);
+  }
+
+  @Test
+  public void shouldReturnSortedOrderListByActionType(TestContext testContext) {
+    shouldReturnSortedJournalRecordListByActionType(testContext, JournalRecord.EntityType.ORDER);
+  }
+
+  private void shouldReturnSortedJournalRecordListByActionType(TestContext testContext,
+                                                                 JournalRecord.EntityType entityType) {
     InitJobExecutionsRsDto response = constructAndPostInitJobExecutionRqDto(1);
     List<JobExecution> createdJobExecutions = response.getJobExecutions();
     Assert.assertThat(createdJobExecutions.size(), is(1));
@@ -62,27 +76,30 @@ public class JournalRecordDaoTest extends AbstractRestTest {
       .withEntityId(UUID.randomUUID().toString())
       .withActionType(CREATE)
       .withActionDate(new Date())
-      .withActionStatus(COMPLETED);
+      .withActionStatus(ERROR)
+      .withError("Record creation error");
 
     JournalRecord journalRecord2 = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
       .withSourceRecordOrder(0)
       .withSourceId(UUID.randomUUID().toString())
-      .withEntityType(JournalRecord.EntityType.INSTANCE)
+      .withEntityType(entityType)
       .withEntityId(UUID.randomUUID().toString())
       .withActionType(MODIFY)
       .withActionDate(new Date())
-      .withActionStatus(COMPLETED);
+      .withActionStatus(ERROR)
+      .withError(entityType.value() + " was not updated");
 
     JournalRecord journalRecord3 = new JournalRecord()
       .withJobExecutionId(jobExec.getId())
       .withSourceRecordOrder(0)
       .withSourceId(UUID.randomUUID().toString())
-      .withEntityType(JournalRecord.EntityType.INSTANCE)
+      .withEntityType(entityType)
       .withEntityId(UUID.randomUUID().toString())
       .withActionType(DELETE)
       .withActionDate(new Date())
-      .withActionStatus(COMPLETED);
+      .withActionStatus(ERROR)
+      .withError("No action taken");
 
     Async async = testContext.async();
     Future<List<JournalRecord>> getFuture = journalRecordDao.save(journalRecord1, TENANT_ID)

@@ -55,6 +55,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.FILE_UPLOADED;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.COMPOSITE_CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
@@ -84,7 +85,6 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
@@ -2309,5 +2309,39 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
           .body("jobExecutionId", is(jobExecutionId));
         async.complete();
       });
+  }
+
+  @Test
+  public void shouldNotReturnUsersForCompositeParentJobExecutionsIfChildrenMarkedAsDeleted() {
+
+    List<JobExecution> jobExecutions = constructAndPostCompositeInitJobExecutionRqDto("test-name", 1);
+//    Update status for job executions
+    jobExecutions.forEach(jobExecution -> {
+      jobExecution.setStatus(COMMITTED);
+      putJobExecution(jobExecution);
+    });
+
+    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+      .filter(job -> job.getSubordinationType().equals(COMPOSITE_CHILD))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks child job executions as deleted which contain nonExpectedUserId
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo.size()", is(0))
+      .body("totalRecords", is(0));
   }
 }
