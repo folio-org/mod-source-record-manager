@@ -5,6 +5,7 @@
 * [MODSOURMAN-1151](https://folio-org.atlassian.net/browse/MODSOURMAN-1151) Records are not displayed under their original numbers and are constantly changing by places
 * [MODSOURMAN-1120](https://folio-org.atlassian.net/browse/MODSOURMAN-1120) Update default mapping to include mapping for Cancelled LCCN
 * [MODSOURMAN-1176](https://folio-org.atlassian.net/browse/MODSOURMAN-1176) The 'User' filter is not updated after logs deletion
+* [MODSOURMAN-1173](https://issues.folio.org/browse/MODSOURMAN-1173) Handle Situation When Job Profile Has No Child Profiles
 * [MODSOURMAN-1127](https://folio-org.atlassian.net/browse/MODSOURMAN-1127) Change mapping for 010 sub-fields to separate LCCN and Cancelled LCCN
 
 ## 2023-03-22 v3.8.0
