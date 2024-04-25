@@ -2,9 +2,6 @@ package org.folio.services.migration.helper;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class FieldMappingHelper {
   private static final String SUBFIELD_A = "a";
