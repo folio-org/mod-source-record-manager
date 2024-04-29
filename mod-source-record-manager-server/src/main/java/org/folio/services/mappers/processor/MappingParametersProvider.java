@@ -14,10 +14,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -509,14 +507,7 @@ public class MappingParametersProvider {
   private <T> Future<List<T>> loadData(OkapiConnectionParams params, String requestUrl, String dataCollectionField,
                                        Function<JsonObject, List<T>> dataExtractor) {
     Promise<List<T>> promise = Promise.promise();
-    Map<String, String> increasedOkapiHeaders = new HashMap<>();
-    increasedOkapiHeaders.put("x-okapi-url", params.getOkapiUrl());
-    increasedOkapiHeaders.put("x-okapi-tenant", params.getTenantId());
-    increasedOkapiHeaders.put("x-okapi-token", params.getToken());
-
-
-    OkapiConnectionParams increasedParams = new OkapiConnectionParams(increasedOkapiHeaders, null, 30000);
-    RestUtil.doRequest(increasedParams, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
+    RestUtil.doRequest(params, requestUrl, HttpMethod.GET, null).onComplete(responseAr -> {
       try {
         if (RestUtil.validateAsyncResult(responseAr, promise)) {
           JsonObject response = responseAr.result().getJson();
