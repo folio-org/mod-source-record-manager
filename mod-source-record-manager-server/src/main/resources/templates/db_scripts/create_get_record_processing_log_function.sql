@@ -17,7 +17,7 @@ BEGIN
                  END AS action_type, journal_records.action_status, journal_records.action_date, journal_records.source_record_order, journal_records.error, journal_records.title, journal_records.tenant_id, journal_records.instance_id, journal_records.holdings_id, journal_records.order_id, journal_records.permanent_location_id
     		FROM journal_records
     		INNER JOIN
-    		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'MODIFY', 'NON_MATCH'], action_type)))[1] AS id_max
+    		(SELECT entity_type as entity_type_max, entity_id as entity_id_max,action_status as action_status_max, max(error) AS error_max,(array_agg(id ORDER BY array_position(array['CREATE', 'UPDATE', 'NON_MATCH'], action_type)))[1] AS id_max
             	FROM journal_records
     			WHERE journal_records.job_execution_id = jobExecutionId AND journal_records.source_id = recordId AND journal_records.entity_type NOT IN ('EDIFACT', 'INVOICE') AND action_type != 'MATCH'
             	GROUP BY entity_type,entity_id,action_status) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
