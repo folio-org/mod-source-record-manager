@@ -32,7 +32,7 @@ CREATE OR REPLACE FUNCTION get_job_log_entries(jobExecutionId uuid, sortingField
                 authority_entity_id text, authority_entity_error text, po_line_action_status text, po_line_entity_id text, po_line_entity_hrid text, po_line_entity_error text,
                 order_entity_id text, invoice_action_status text, invoice_entity_id text[], invoice_entity_hrid text[], invoice_entity_error text, invoice_line_action_status text,
                 invoice_line_entity_id text, invoice_line_entity_hrid text, invoice_line_entity_error text, total_count bigint,
-                invoice_line_journal_record_id uuid, source_record_entity_type text, source_record_order_array integer[])
+                invoice_line_journal_record_id uuid, source_record_entity_type text, source_record_order_array integer[], order_action_status text, error text)
 AS $$
 
 DECLARE
@@ -78,7 +78,10 @@ WITH
                    (array_agg(id ORDER BY array_position(array[''MATCH''], action_type)))[1] AS id_max
             FROM journal_records
             WHERE job_execution_id = ''%1$s'' AND entity_type NOT IN (''EDIFACT'', ''INVOICE'') AND action_type = ''MATCH''
-            AND NOT EXISTS (SELECT 1 FROM journal_records WHERE job_execution_id = ''%1$s'' AND action_type NOT IN (''MATCH'', ''PARSE''))
+            AND NOT EXISTS (SELECT 1 FROM journal_records jr
+                            WHERE jr.job_execution_id = ''%1$s''
+                            AND jr.action_type NOT IN (''MATCH'', ''PARSE'')
+                            AND jr.source_id = journal_records.source_id)
             GROUP BY entity_type, entity_id, action_status, source_id, source_record_order
      ) AS action_type_by_source ON journal_records.id = action_type_by_source.id_max
   ),
@@ -242,7 +245,9 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        records_actions.total_count,
        null::UUID AS invoice_line_journal_record_id,
        records_actions.source_record_entity_type,
-       ARRAY[records_actions.source_record_order] AS source_record_order_array
+       ARRAY[records_actions.source_record_order] AS source_record_order_array,
+       po_lines_info.action_type AS order_action_status,
+       rec_errors.error AS error
 
 FROM (
        SELECT journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id,
@@ -268,10 +273,11 @@ FROM (
        GROUP BY journal_records.source_id, journal_records.source_record_order, journal_records.job_execution_id
        HAVING count(journal_records.source_id) FILTER (WHERE (%3$L = ''ALL'' or entity_type = ANY(%4$L)) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
-       LEFT JOIN (SELECT journal_records.source_id, journal_records.title
-                  FROM journal_records
-                  WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
-                 ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+       LEFT JOIN (
+  SELECT journal_records.source_id, journal_records.title
+  FROM journal_records WHERE journal_records.job_execution_id = ''%1$s''
+) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+
        LEFT JOIN (
   SELECT   instances.action_type AS action_type,
            instances.job_execution_id AS job_execution_id,
@@ -283,7 +289,6 @@ FROM (
            instances.tenant_id AS instance_entity_tenant_id
   FROM   instances
 ) AS instance_info ON instance_info.source_id = records_actions.source_id
-
 
        LEFT JOIN (
   SELECT
@@ -321,7 +326,6 @@ FROM (
   FROM po_lines
 ) AS po_lines_info ON po_lines_info.source_id = records_actions.source_id
 
-
        LEFT JOIN (
   SELECT authorities.action_type AS action_type,
          authorities.source_id AS source_id,
@@ -358,7 +362,7 @@ FROM (
   FROM  marc_holdings
 ) AS marc_holdings_info ON marc_holdings_info.source_id = records_actions.source_id
 
-      LEFT JOIN (
+       LEFT JOIN (
   SELECT marc_identifiers.marc_entity_id as entity_id,
          marc_identifiers.marc_source_id as source_id
   FROM marc_identifiers
@@ -370,9 +374,7 @@ FROM (
                            ELSE ''['' || array_to_string(array_agg(journal_records.error), '', '') || '']''
                            END AS error
                   FROM journal_records
-                  WHERE journal_records.job_execution_id = ''%1$s'' AND journal_records.error != '''' GROUP BY journal_records.source_id) AS rec_errors
-                 ON rec_errors.source_id = records_actions.source_id
-
+                  WHERE journal_records.job_execution_id = ''%1$s'' AND journal_records.error != '''' GROUP BY journal_records.source_id) AS rec_errors ON rec_errors.source_id = records_actions.source_id
 
 
 UNION
@@ -427,7 +429,9 @@ SELECT records_actions.job_execution_id AS job_execution_id,
        CASE
          WHEN get_entity_status(invoice_actions, invoice_errors_number) IS NOT null THEN string_to_array(entity_hrid, ''-'')::int[]
          ELSE ARRAY[source_record_order]
-         END AS source_record_order_array
+         END AS source_record_order_array,
+       null AS order_action_status,
+       null AS error
 FROM (
        SELECT journal_records.source_id, journal_records.job_execution_id, source_record_order, entity_hrid, title, error,
               array[]::varchar[] AS marc_actions,
@@ -455,7 +459,6 @@ FROM (
   WHERE  journal_records.job_execution_id = ''%1$s'' AND (entity_type = ''INVOICE'' OR title = ''INVOICE'')
   GROUP BY journal_records.source_id
   ) AS invoice_fields ON records_actions.source_id = invoice_fields.source_id
-
 
        LEFT JOIN LATERAL (
   SELECT journal_records.source_id,

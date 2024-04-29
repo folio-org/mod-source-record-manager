@@ -55,6 +55,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 import static org.folio.rest.jaxrs.model.JobExecution.Status.FILE_UPLOADED;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.CHILD;
+import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.COMPOSITE_CHILD;
 import static org.folio.rest.jaxrs.model.JobExecution.SubordinationType.PARENT_MULTIPLE;
 import static org.folio.rest.jaxrs.model.JobProfileInfo.DataType.MARC;
 import static org.folio.rest.jaxrs.model.JournalRecord.ActionStatus.COMPLETED;
@@ -84,7 +85,6 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
@@ -1398,6 +1398,46 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnDiscardedForAuthorityIfAuthorityMatchedWithErrorAndOtherAuthorityUpdated(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId1 = UUID.randomUUID().toString();
+    String sourceRecordId2 = UUID.randomUUID().toString();
+    String authorityId = UUID.randomUUID().toString();
+    String marcAuthorityId = UUID.randomUUID().toString();
+    String errorMessage = "error message";
+    String recordTitle = "test title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, null, null, null, 1, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, marcAuthorityId, null, recordTitle, 1, UPDATE, MARC_AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId1, authorityId, null, recordTitle, 1, UPDATE, AUTHORITY, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, MARC_AUTHORITY, ERROR, errorMessage))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId2, null, null, recordTitle, 0, MATCH, AUTHORITY, ERROR, errorMessage))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(1))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(1))
+        .body("authoritySummary.totalCreatedEntities", is(0))
+        .body("authoritySummary.totalUpdatedEntities", is(1))
+        .body("authoritySummary.totalDiscardedEntities", is(1))
+        .body("authoritySummary.totalErrors", is(1))
+        .body("totalErrors", is(1));
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldNotReturnDiscardedForHoldingsIfItemCreatedOnMatchByHoldings(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
@@ -2269,5 +2309,39 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
           .body("jobExecutionId", is(jobExecutionId));
         async.complete();
       });
+  }
+
+  @Test
+  public void shouldNotReturnUsersForCompositeParentJobExecutionsIfChildrenMarkedAsDeleted() {
+
+    List<JobExecution> jobExecutions = constructAndPostCompositeInitJobExecutionRqDto("test-name", 1);
+//    Update status for job executions
+    jobExecutions.forEach(jobExecution -> {
+      jobExecution.setStatus(COMMITTED);
+      putJobExecution(jobExecution);
+    });
+
+    List<String> jobIdsToMarkAsDeleted = jobExecutions.stream()
+      .filter(job -> job.getSubordinationType().equals(COMPOSITE_CHILD))
+      .map(JobExecution::getId)
+      .collect(Collectors.toList());
+
+    // Marks child job executions as deleted which contain nonExpectedUserId
+    RestAssured.given()
+      .spec(spec)
+      .body(new DeleteJobExecutionsReq().withIds(jobIdsToMarkAsDeleted))
+      .delete(JOB_EXECUTION_PATH)
+      .then()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionDetails*.isDeleted", everyItem(is(true)));
+
+    RestAssured.given()
+      .spec(spec)
+      .when()
+      .get(GET_UNIQUE_USERS_INFO)
+      .then().log().all()
+      .statusCode(HttpStatus.SC_OK)
+      .body("jobExecutionUsersInfo.size()", is(0))
+      .body("totalRecords", is(0));
   }
 }
