@@ -1,0 +1,30 @@
+{
+  "leader": "01012cz  a2200241n  4500",
+  "fields": [
+    {
+      "010": {
+        "subfields": [
+          {
+            "a": "LCCNsub\\"
+          },
+          {
+            "z": "     cancelledLCCNsub     "
+          }
+        ],
+        "ind1": " ",
+        "ind2": " "
+      }
+    },
+    {
+      "999": {
+        "ind1": "f",
+        "ind2": "f",
+        "subfields": [
+          {
+            "i": "b90cb1bc-601f-45d7-b99e-b11efd281dcd"
+          }
+        ]
+      }
+    }
+  ]
+}

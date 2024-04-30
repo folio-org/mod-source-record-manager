@@ -41,6 +41,16 @@ public interface MappingRuleService {
   Future<JsonObject> update(String rules, Record.RecordType recordType, String tenantId);
 
   /**
+   * Force updates rules from internal call
+   *
+   * @param rules    rules
+   * @param tenantId tenant
+   * @param recordType type of rules (MARC_BIB or MARK_HOLDING or MARC_AUTHORITY)
+   * @return rules in JsonObject
+   */
+  Future<JsonObject> internalUpdate(String rules, Record.RecordType recordType, String tenantId);
+
+  /**
    * Updates existing rules with default rules
    *
    * @param tenantId   tenant

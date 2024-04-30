@@ -53,8 +53,7 @@
           "target": "identifiers.identifierTypeId",
           "description": "Identifier Type for LCCN",
           "subfield": [
-            "a",
-            "z"
+            "a"
           ],
           "rules": [
             {
@@ -73,7 +72,41 @@
           "target": "identifiers.value",
           "description": "Library of Congress Control Number",
           "subfield": [
-            "a",
+            "a"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.identifierTypeId",
+          "description": "Identifier Type for Cancelled LCCN",
+          "subfield": [
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_identifier_type_id_by_name",
+                  "parameter": {
+                    "name": "Cancelled LCCN"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target": "identifiers.value",
+          "description": "Cancelled Library of Congress Control Number",
+          "subfield": [
             "z"
           ],
           "rules": [

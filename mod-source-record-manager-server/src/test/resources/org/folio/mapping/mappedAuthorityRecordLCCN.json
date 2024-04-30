@@ -1,0 +1,34 @@
+{
+  "id": "b90cb1bc-601f-45d7-b99e-b11efd281dcd",
+  "sftPersonalName": [],
+  "saftPersonalName": [],
+  "sftPersonalNameTitle": [],
+  "saftPersonalNameTitle": [],
+  "sftCorporateName": [],
+  "saftCorporateName": [],
+  "sftCorporateNameTitle": [],
+  "saftCorporateNameTitle": [],
+  "sftMeetingName": [],
+  "saftMeetingName": [],
+  "sftMeetingNameTitle": [],
+  "saftMeetingNameTitle": [],
+  "sftUniformTitle": [],
+  "saftUniformTitle": [],
+  "sftTopicalTerm": [],
+  "saftTopicalTerm": [],
+  "sftGeographicName": [],
+  "saftGeographicName": [],
+  "sftGenreTerm": [],
+  "saftGenreTerm": [],
+  "identifiers": [
+    {
+      "value": "LCCNsub\\",
+      "identifierTypeId": "LCCN_identifierTypeId"
+    },
+    {
+      "value": "cancelledLCCNsub",
+      "identifierTypeId": "CancelledLCCN_identifierTypeId"
+    }
+  ],
+  "notes": []
+}
