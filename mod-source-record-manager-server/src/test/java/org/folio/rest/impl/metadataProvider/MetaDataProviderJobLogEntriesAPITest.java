@@ -1371,6 +1371,44 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
     }));
   }
 
+  @Test
+  public void shouldReturnDiscardedSourceMarcAndInstanceIfSourceMarcModifiedAndNonMatched(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String incomingRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+    int sourceRecordOrder = 0;
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, null, sourceRecordOrder, PARSE, null, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, sourceRecordOrder, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, sourceRecordOrder, NON_MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), incomingRecordId, null, null, recordTitle, sourceRecordOrder, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + incomingRecordId)
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .log().all()
+        .body("jobExecutionId", is(createdJobExecution.getId()))
+        .body("incomingRecordId", is(incomingRecordId))
+        .body("sourceRecordTitle", is(recordTitle))
+        .body("sourceRecordOrder", is(String.valueOf(sourceRecordOrder)))
+        .body("error", emptyOrNullString())
+        .body("sourceRecordActionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedInstanceInfo.actionStatus", is(ActionStatus.DISCARDED.value()))
+        .body("relatedInstanceInfo.error", emptyOrNullString());
+      async.complete();
+    }));
+  }
+
 
   private Future<JournalRecord> createJournalRecord(String jobExecutionId, String sourceId, String entityId,
                                                     String entityHrid, String title, int recordOrder,

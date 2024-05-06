@@ -91,7 +91,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   }
 
   @Test
-  public void shouldReturnMarcBibUpdatedWhenMarcBibWasUpdated(TestContext context) {
+  public void shouldReturnMarcBibUpdatedWhenMarcBibWasCreatedAndUpdated(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
@@ -99,8 +99,9 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String marcBibEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, "in00000000001", null, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -553,10 +554,11 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String instanceEntityId = UUID.randomUUID().toString();
 
     Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED,null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
       .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceEntityId, null, null, 0, UPDATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceEntityId, "in00000000001", null, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceEntityId, null, recordTitle, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceEntityId, "in00000000001", recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {

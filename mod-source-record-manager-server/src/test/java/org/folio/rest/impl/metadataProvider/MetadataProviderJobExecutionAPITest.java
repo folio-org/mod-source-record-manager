@@ -1953,6 +1953,42 @@ public class MetadataProviderJobExecutionAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnDiscardedMarcBibAndInstance(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String title = "title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, title, 0, MODIFY, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, title, 0, NON_MATCH, INSTANCE, COMPLETED, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, title, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_SUMMARY_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .log().all()
+        .statusCode(HttpStatus.SC_OK)
+        .body("sourceRecordSummary.totalCreatedEntities", is(0))
+        .body("sourceRecordSummary.totalUpdatedEntities", is(0))
+        .body("sourceRecordSummary.totalDiscardedEntities", is(1))
+        .body("sourceRecordSummary.totalErrors", is(0))
+        .body("instanceSummary.totalCreatedEntities", is(0))
+        .body("instanceSummary.totalUpdatedEntities", is(0))
+        .body("instanceSummary.totalDiscardedEntities", is(1))
+        .body("instanceSummary.totalErrors", is(0))
+        .body("totalErrors", is(0));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnNotFoundWhenHasNoJobExecution() {
     RestAssured.given()
       .spec(spec)
