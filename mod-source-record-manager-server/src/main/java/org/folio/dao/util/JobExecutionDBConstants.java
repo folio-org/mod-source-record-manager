@@ -66,7 +66,7 @@ public final class JobExecutionDBConstants {
 
   public static final String GET_JOBS_NOT_PARENT_SQL =
     "WITH cte AS (SELECT count(*) AS total_count FROM %s " +
-    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s) " +
+    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND job_profile_id IS NOT NULL AND job_profile_name IS NOT NULL AND %s) " +
     "SELECT j.*, cte.*, p.total_records_count total, " +
     "p.succeeded_records_count + p.error_records_count currently_processed, " +
     "(select jsonb_agg(x) composite_data " +
@@ -83,7 +83,7 @@ public final class JobExecutionDBConstants {
     "FROM %s j " +
     "LEFT JOIN %s p ON  j.id = p.job_execution_id " +
     "LEFT JOIN cte ON true " +
-    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND %s " +
+    "WHERE subordination_type <> 'PARENT_MULTIPLE' AND job_profile_id IS NOT NULL AND job_profile_name IS NOT NULL AND %s " +
     "%s " +
     "LIMIT $1 OFFSET $2";
 
