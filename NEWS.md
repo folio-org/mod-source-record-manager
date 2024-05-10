@@ -8,6 +8,7 @@
 * [MODSOURMAN-1173](https://issues.folio.org/browse/MODSOURMAN-1173) Handle Situation When Job Profile Has No Child Profiles
 * [MODSOURMAN-1127](https://folio-org.atlassian.net/browse/MODSOURMAN-1127) Change mapping for 010 sub-fields to separate LCCN and Cancelled LCCN
 * [MODSOURMAN-1145](https://issues.folio.org/browse/MODSOURMAN-1145) Modify action before match breaks non match logs
+* [MODSOURMAN-1188](https://issues.folio.org/browse/MODSOURMAN-1188) Change MARC mappings of 010 $z from "Cancelled" LCCN to "Canceled LCCN"
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors

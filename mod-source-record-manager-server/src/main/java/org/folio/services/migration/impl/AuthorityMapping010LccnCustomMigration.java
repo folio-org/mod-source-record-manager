@@ -19,7 +19,7 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
   private static final String DESCRIPTION_TYPE_ID = "Identifier Type for ";
   private static final String IDENTIFIER_VALUE = "identifiers.value";
   private static final String DESCRIPTION_VALUE = "Library of Congress Control Number";
-  private static final String CANCELLED = "Cancelled ";
+  private static final String CANCELED = "Canceled ";
   private static final String LCCN = "LCCN";
 
   private final MappingRuleService mappingRuleService;
@@ -74,8 +74,8 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
     return JsonArray.of(
       getEntityJsonObject(IDENTIFIER_TYPE_ID, DESCRIPTION_TYPE_ID + LCCN, SUBFIELD_A),
       getEntityJsonObject(IDENTIFIER_VALUE, DESCRIPTION_VALUE, SUBFIELD_A),
-      getEntityJsonObject(IDENTIFIER_TYPE_ID, DESCRIPTION_TYPE_ID + CANCELLED + LCCN, SUBFIELD_Z),
-      getEntityJsonObject(IDENTIFIER_VALUE, CANCELLED + DESCRIPTION_VALUE, SUBFIELD_Z)
+      getEntityJsonObject(IDENTIFIER_TYPE_ID, DESCRIPTION_TYPE_ID + CANCELED + LCCN, SUBFIELD_Z),
+      getEntityJsonObject(IDENTIFIER_VALUE, CANCELED + DESCRIPTION_VALUE, SUBFIELD_Z)
     );
   }
 
@@ -89,7 +89,7 @@ public class AuthorityMapping010LccnCustomMigration implements CustomMigration {
   }
 
   private JsonArray getRules(boolean isSubfieldA, boolean isTypeIdRules) {
-    String prefix = isSubfieldA ? "" : CANCELLED;
+    String prefix = isSubfieldA ? "" : CANCELED;
     return JsonArray.of(JsonObject.of("conditions", isTypeIdRules ? getTypeIdConditions(prefix) : getValueConditions()));
   }
 

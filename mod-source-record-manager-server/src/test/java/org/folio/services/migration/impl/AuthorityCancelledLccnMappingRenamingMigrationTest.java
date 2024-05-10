@@ -21,22 +21,27 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AuthorityMapping010LccnCustomMigrationTest {
+public class AuthorityCancelledLccnMappingRenamingMigrationTest {
 
   private static final String TENANT_ID = "test";
 
   private @Mock MappingRuleService mappingRuleService;
-  private @InjectMocks AuthorityMapping010LccnCustomMigration migration;
+  private @InjectMocks AuthorityCancelledLccnMappingRenamingMigration migration;
   private @Captor ArgumentCaptor<String> rulesCaptor;
 
   @Test
-  public void shouldUpdateLccnAndCancelledLccnAuthorityRules() {
+  public void shouldRenameCancelledLCCN() {
     var existedRules = "{\"010\":[{\"entity\":[{" +
       "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for LCCN\"," +
-      "\"subfield\":[\"a\",\"z\"],\"rules\":[{\"conditions\":[{\"type\":" +
-      "\"set_identifier_type_id_by_name\",\"parameter\":{\"name\":\"LCCN\"}}]}]},{" +
+      "\"subfield\":[\"a\"],\"rules\":[{\"conditions\":[{\"type\":\"set_identifier_type_id_by_name\"," +
+      "\"parameter\":{\"name\":\"LCCN\"}}]}]},{" +
       "\"target\":\"identifiers.value\",\"description\":\"Library of Congress Control Number\"," +
-      "\"subfield\":[\"a\",\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]}]}]}";
+      "\"subfield\":[\"a\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]},{" +
+      "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for Cancelled LCCN\"," +
+      "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"set_identifier_type_id_by_name\"," +
+      "\"parameter\":{\"name\":\"Cancelled LCCN\"}}]}]},{" +
+      "\"target\":\"identifiers.value\",\"description\":\"Cancelled Library of Congress Control Number\"," +
+      "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]}]}]}";
     var expectedRules = "{\"010\":[{\"entity\":[{" +
       "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for LCCN\"," +
       "\"subfield\":[\"a\"],\"rules\":[{\"conditions\":[{\"type\":\"set_identifier_type_id_by_name\"," +
@@ -46,7 +51,7 @@ public class AuthorityMapping010LccnCustomMigrationTest {
       "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for Canceled LCCN\"," +
       "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"set_identifier_type_id_by_name\"," +
       "\"parameter\":{\"name\":\"Canceled LCCN\"}}]}]},{" +
-      "\"target\":\"identifiers.value\",\"description\":\"Canceled Library of Congress Control Number\"," +
+      "\"target\":\"identifiers.value\",\"description\":\"Cancelled Library of Congress Control Number\"," +
       "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]}]}]}";
     when(mappingRuleService.get(eq(MARC_AUTHORITY), any())).thenReturn(Future.succeededFuture(
       Optional.of(new JsonObject(existedRules))
@@ -67,7 +72,6 @@ public class AuthorityMapping010LccnCustomMigrationTest {
 
     migration.migrate(TENANT_ID).onComplete(ar -> {
       verify(mappingRuleService, never()).update(any(), any(), any());
-      verify(mappingRuleService, never()).internalUpdate(any(), any(), any());
       Assert.assertTrue(ar.succeeded());
     });
   }
