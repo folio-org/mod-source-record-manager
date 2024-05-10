@@ -7,12 +7,9 @@ import org.folio.services.migration.CustomMigration;
 
 public abstract class CancelledLccnMappingRenamingMigration implements CustomMigration {
 
-  private static final String FEATURE_VERSION = "3.9.0";
-  private static final String DESCRIPTION = "Authority mapping rules: rename Cancelled LCCN to Canceled LCCN";
-
   private final MappingRuleService mappingRuleService;
 
-  public CancelledLccnMappingRenamingMigration(MappingRuleService mappingRuleService) {
+  protected CancelledLccnMappingRenamingMigration(MappingRuleService mappingRuleService) {
     this.mappingRuleService = mappingRuleService;
   }
 
