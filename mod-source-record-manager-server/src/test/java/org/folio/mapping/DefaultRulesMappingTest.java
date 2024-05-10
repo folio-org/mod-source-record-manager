@@ -63,7 +63,7 @@ public class DefaultRulesMappingTest {
     JsonObject expectedMappedAuthority = readJson(RECORDS_PATH + "mappedAuthorityRecordLCCN.json");
     JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_authority_rules.json");
     var identifierType1 = new IdentifierType().withName("LCCN").withId("LCCN_identifierTypeId");
-    var identifierType2 = new IdentifierType().withName("Cancelled LCCN").withId("CancelledLCCN_identifierTypeId");
+    var identifierType2 = new IdentifierType().withName("Canceled LCCN").withId("CancelledLCCN_identifierTypeId");
     var mappingParameters = new MappingParameters().withIdentifierTypes(List.of(identifierType1, identifierType2));
 
     var actualAuthority = mapper.mapRecord(parsedRecord, mappingParameters, mappingRules);
