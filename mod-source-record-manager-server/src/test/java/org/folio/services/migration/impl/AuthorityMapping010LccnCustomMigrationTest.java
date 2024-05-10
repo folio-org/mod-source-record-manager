@@ -43,10 +43,10 @@ public class AuthorityMapping010LccnCustomMigrationTest {
       "\"parameter\":{\"name\":\"LCCN\"}}]}]},{" +
       "\"target\":\"identifiers.value\",\"description\":\"Library of Congress Control Number\"," +
       "\"subfield\":[\"a\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]},{" +
-      "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for Cancelled LCCN\"," +
+      "\"target\":\"identifiers.identifierTypeId\",\"description\":\"Identifier Type for Canceled LCCN\"," +
       "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"set_identifier_type_id_by_name\"," +
-      "\"parameter\":{\"name\":\"Cancelled LCCN\"}}]}]},{" +
-      "\"target\":\"identifiers.value\",\"description\":\"Cancelled Library of Congress Control Number\"," +
+      "\"parameter\":{\"name\":\"Canceled LCCN\"}}]}]},{" +
+      "\"target\":\"identifiers.value\",\"description\":\"Canceled Library of Congress Control Number\"," +
       "\"subfield\":[\"z\"],\"rules\":[{\"conditions\":[{\"type\":\"trim\"}]}]}]}]}";
     when(mappingRuleService.get(eq(MARC_AUTHORITY), any())).thenReturn(Future.succeededFuture(
       Optional.of(new JsonObject(existedRules))

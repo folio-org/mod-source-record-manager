@@ -105,7 +105,7 @@
         },
         {
           "target": "identifiers.value",
-          "description": "Cancelled Library of Congress Control Number",
+          "description": "Canceled Library of Congress Control Number",
           "subfield": [
             "z"
           ],
