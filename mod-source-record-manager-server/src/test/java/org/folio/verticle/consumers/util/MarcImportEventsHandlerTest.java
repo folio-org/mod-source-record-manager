@@ -15,6 +15,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHOR
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -205,7 +206,7 @@ public class MarcImportEventsHandlerTest {
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
     verify(journalRecordService, times(0)).updateErrorJournalRecordsByOrderIdAndJobExecution(anyString(), anyString(), anyString(), anyString());
 
-    assertNull(actualJournalRecord.getTitle());
+    assertNotNull(actualJournalRecord.getTitle());
   }
 
   @Test
@@ -230,7 +231,7 @@ public class MarcImportEventsHandlerTest {
 
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
-    assertEquals(actualJournalRecord.getTitle(), NO_TITLE_MESSAGE);
+    assertEquals(title, actualJournalRecord.getTitle());
   }
 
   @Test
