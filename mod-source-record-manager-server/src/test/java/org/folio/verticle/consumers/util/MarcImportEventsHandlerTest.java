@@ -297,16 +297,19 @@ public class MarcImportEventsHandlerTest {
   }
 
   @Test
-  public void testSaveOrderWithTitle() throws JournalRecordMapperException {
-    String title = "The Journal of ecclesiastical history.";
+  public void testSaveOrderJournalRecordWithTitleFromMarcRecordAccordingToInstanceMappingRules() throws JournalRecordMapperException {
+    String subfieldATitleValue = "The Journal";
+    String subfieldBTitleValue = "of ecclesiastical history.";
+    String expectedTitle = "The Journal of ecclesiastical history.";
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
       Map.of("245", List.of(
         Map.of("target", "title",
-          "subfield", List.of("a"))
+          "subfield", List.of("a", "b"))
       ))
     ))));
     var marcRecord = marcFactory.newRecord();
-    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", subfieldATitleValue));
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "b", subfieldBTitleValue));
 
     var payload = constructOrderPayload(marcRecord);
     handler.handle(journalService, payload, TEST_TENANT);
@@ -314,7 +317,7 @@ public class MarcImportEventsHandlerTest {
     verify(journalService).saveBatch(journalRecordCaptor.capture(), eq(TEST_TENANT));
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
-    assertEquals(title, actualJournalRecord.getTitle());
+    assertEquals(expectedTitle, actualJournalRecord.getTitle());
   }
 
   private DataImportEventPayload constructMatchHoldingsPayload(org.marc4j.marc.Record marcRecord) {
@@ -414,7 +417,7 @@ public class MarcImportEventsHandlerTest {
       .withSnapshotId(UUID.randomUUID().toString());
     HashMap<String, String> payloadContext = new HashMap<>();
     payloadContext.put(JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
-    payloadContext.put("PO_LINE", "{\"purchaseOrderId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\", \"titleOrPackage\":\"The Journal of ecclesiastical history.\"}");
+    payloadContext.put("PO_LINE", "{\"purchaseOrderId\":\"946c4945-b711-4e67-bfb9-83fa30be633c\", \"titleOrPackage\":\"The Journal\"}");
     return new DataImportEventPayload()
       .withEventsChain(List.of(DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED.value(), DI_ORDER_CREATED.value()))
       .withEventType(DI_COMPLETED.value())
