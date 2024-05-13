@@ -1,7 +1,6 @@
 package org.folio.verticle.consumers.util;
 
 import com.google.common.collect.Lists;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -109,7 +108,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
       List<JournalRecord> journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
         journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
 
-      CompositeFuture.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
+      Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
         .onComplete(e ->
         {
           List<JsonObject> jsonObjects = new ArrayList<>();
@@ -119,7 +118,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     }
   }
 
-  private List<Future> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
+  private List<Future<JournalRecord>> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
     List<Future<JournalRecord>> futureRecords = new ArrayList<>();
     for (JournalRecord journalRecord : journalRecords) {
       futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
