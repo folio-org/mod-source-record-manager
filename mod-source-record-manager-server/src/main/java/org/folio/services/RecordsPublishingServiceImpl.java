@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
+import static org.folio.services.journal.JournalUtil.INCOMING_RECORD_ID;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 
 @Service("recordsPublishingService")
@@ -177,8 +178,11 @@ import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
   private void sendDiError(Throwable throwable, String jobExecutionId, OkapiConnectionParams okapiParams, Record record) {
     HashMap<String, String> context = new HashMap<>();
     context.put(ERROR_KEY, throwable.getMessage());
-    if (record != null && record.getRecordType() != null) {
-      context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+    if (record != null) {
+      context.put(INCOMING_RECORD_ID, record.getId());
+      if (record.getRecordType() != null) {
+        context.put(RecordConversionUtil.getEntityType(record).value(), Json.encode(record));
+      }
     }
 
     DataImportEventPayload payload = new DataImportEventPayload()
