@@ -13,10 +13,8 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ORDER_CREATED_R
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_PENDING_ORDER_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHORITY_RECORD_CREATED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
-import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -302,12 +300,12 @@ public class MarcImportEventsHandlerTest {
     String subfieldATitleValue = "The Journal";
     String subfieldBTitleValue = "of ecclesiastical history.";
     String expectedTitle = "The Journal of ecclesiastical history.";
-    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
-      Map.of("245", List.of(
-        Map.of("target", "title",
-          "subfield", List.of("a", "b"))
-      ))
-    ))));
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject()
+      .put("245", JsonArray.of(new JsonObject()
+        .put("target", "title")
+        .put("subfield", JsonArray.of("a", "b")))))
+    ));
+
     var marcRecord = marcFactory.newRecord();
     marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", subfieldATitleValue));
     marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "b", subfieldBTitleValue));
