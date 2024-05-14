@@ -86,7 +86,7 @@
         },
         {
           "target": "identifiers.identifierTypeId",
-          "description": "Identifier Type for Cancelled LCCN",
+          "description": "Identifier Type for Canceled LCCN",
           "subfield": [
             "z"
           ],
@@ -96,7 +96,7 @@
                 {
                   "type": "set_identifier_type_id_by_name",
                   "parameter": {
-                    "name": "Cancelled LCCN"
+                    "name": "Canceled LCCN"
                   }
                 }
               ]
@@ -105,7 +105,7 @@
         },
         {
           "target": "identifiers.value",
-          "description": "Cancelled Library of Congress Control Number",
+          "description": "Canceled Library of Congress Control Number",
           "subfield": [
             "z"
           ],
