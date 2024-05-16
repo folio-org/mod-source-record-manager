@@ -38,17 +38,7 @@ AS $$
 DECLARE
   v_sortingField text DEFAULT sortingfield;
   v_entityAttribute text[] DEFAULT ARRAY[upper(entityType)];
-BEGIN
-  -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
-  IF sortingField = 'source_record_order' THEN
-    v_sortingField := 'source_record_order_array';
-  END IF;
-
-  IF entityType = 'MARC' THEN
-    v_entityAttribute := ARRAY['MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY'];
-  END IF;
-
-  RETURN QUERY EXECUTE format('
+  topSQL TEXT := '
 WITH
   temp_result AS (
     SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
@@ -274,7 +264,7 @@ FROM (
        HAVING count(journal_records.source_id) FILTER (WHERE (%3$L = ''ALL'' or entity_type = ANY(%4$L)) AND (NOT %2$L or journal_records.error <> '''')) > 0
      ) AS records_actions
        LEFT JOIN (
-  SELECT journal_records.source_id, journal_records.title
+  SELECT DISTINCT journal_records.source_id, journal_records.title
   FROM journal_records WHERE journal_records.job_execution_id = ''%1$s''
 ) AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
 
@@ -376,9 +366,10 @@ FROM (
                   FROM journal_records
                   WHERE journal_records.job_execution_id = ''%1$s'' AND journal_records.error != '''' GROUP BY journal_records.source_id) AS rec_errors ON rec_errors.source_id = records_actions.source_id
 
+ORDER BY %5$I %6$s
+LIMIT %7$s OFFSET %8$s;';
 
-UNION
-
+bottomSQL TEXT := '
 SELECT records_actions.job_execution_id AS job_execution_id,
        records_actions.source_id AS incoming_record_id,
        records_actions.source_id AS source_id,
@@ -475,8 +466,23 @@ FROM (
   ) AS invoice_line_info ON  records_actions.source_id = invoice_line_info.source_id AND records_actions.entity_hrid = invoice_line_info.invoice_line_entity_hrid
 
 ORDER BY %5$I %6$s
-LIMIT %7$s OFFSET %8$s;
-',
-                              jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
+LIMIT %7$s OFFSET %8$s;';
+row_count INTEGER;
+BEGIN
+  -- Using the source_record_order column in the array type provides support for sorting invoices and marc records.
+  IF sortingField = 'source_record_order' THEN
+    v_sortingField := 'source_record_order_array';
+  END IF;
+
+  IF entityType = 'MARC' THEN
+    v_entityAttribute := ARRAY['MARC_BIBLIOGRAPHIC', 'MARC_HOLDINGS', 'MARC_AUTHORITY'];
+  END IF;
+
+    RETURN QUERY EXECUTE format(bottomSQL, jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
+    GET DIAGNOSTICS row_count =ROW_COUNT;
+
+    IF row_count = 0 THEN
+      RETURN QUERY EXECUTE format(topSQL, jobExecutionId, errorsOnly, entityType, v_entityAttribute, v_sortingField, sortingDir, limitVal, offsetVal);
+    END IF;
 END;
 $$ LANGUAGE plpgsql;

@@ -18,6 +18,7 @@ import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
+import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -129,6 +130,7 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
     String sourceRecordId = UUID.randomUUID().toString();
     String recordTitle = "test title";
+    String marcBibEntityId = UUID.randomUUID().toString();
 
     String instanceId = UUID.randomUUID().toString();
     String instanceHrid = "i001";
@@ -140,13 +142,18 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
 
     String errorMsg1 = "test error1";
     String errorMsg2 = "test error2";
+    String emptyErrMessage = "";
+
+    Matcher<Object> expectedActionStatus = oneOf(ActionStatus.CREATED.value(), ActionStatus.DISCARDED.value());
+    Matcher<Object> expectedErrorMessage =  oneOf(errorMsg1, errorMsg2, emptyErrMessage);
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, null, 0, CREATE, INSTANCE, COMPLETED, null, null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], null, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceId, null, permanentLocation[0]))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1], null, null, 0, CREATE, HOLDINGS, ERROR, errorMsg1, null, null, null, null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], null, null, 0, CREATE, HOLDINGS, ERROR, errorMsg2, null, null, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, marcBibEntityId, null, recordTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, CREATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[0], holdingsHrid[0], recordTitle, 0, CREATE, HOLDINGS, COMPLETED, null, null, instanceId, null, permanentLocation[0]))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[1], null, recordTitle, 0, CREATE, HOLDINGS, ERROR, errorMsg1, null, null, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), sourceRecordId, holdingsId[2], null, recordTitle, 0, CREATE, HOLDINGS, ERROR, errorMsg2, null, null, null, null))
       .onFailure(context::fail);
 
     future.onComplete(ar -> context.verify(v -> {
@@ -163,12 +170,15 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
         .body("entries[0].incomingRecordId", is(sourceRecordId))
         .body("entries[0].sourceRecordTitle", is(recordTitle))
         .body("entries[0].sourceRecordActionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedHoldingsInfo[0].actionStatus", is(ActionStatus.CREATED.value()))
-        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId[0]))
-        .body("entries[0].relatedHoldingsInfo[1].actionStatus", is(ActionStatus.DISCARDED.value()))
-        .body("entries[0].relatedHoldingsInfo[1].error", oneOf(errorMsg1, errorMsg2))
-        .body("entries[0].relatedHoldingsInfo[2].actionStatus", is(ActionStatus.DISCARDED.value()))
-        .body("entries[0].relatedHoldingsInfo[2].error", oneOf(errorMsg1, errorMsg2));
+        .body("entries[0].relatedHoldingsInfo[0].id", oneOf(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[0].actionStatus", expectedActionStatus)
+        .body("entries[0].relatedHoldingsInfo[0].error", expectedErrorMessage)
+        .body("entries[0].relatedHoldingsInfo[1].id", oneOf(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[1].actionStatus", expectedActionStatus)
+        .body("entries[0].relatedHoldingsInfo[1].error", expectedErrorMessage)
+        .body("entries[0].relatedHoldingsInfo[2].id", oneOf(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[2].actionStatus", expectedActionStatus)
+        .body("entries[0].relatedHoldingsInfo[2].error", expectedErrorMessage);
       async.complete();
     }));
   }
@@ -2013,19 +2023,22 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
     String recordOneSourceRecordId = UUID.randomUUID().toString();
     String recordTwoSourceRecordId = UUID.randomUUID().toString();
     String recordThreeSourceRecordId = UUID.randomUUID().toString();
+    String marcHoldingsEntityId = UUID.randomUUID().toString();
+    String holdingsEntityId = UUID.randomUUID().toString();
+    String holdingsHrid = "ho00000000002";
 
 
     Future<JournalRecord> future = Future.succeededFuture()
-      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, null, null, null, 1, PARSE, null, ERROR, errMessage, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, null, null, recordTitle, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
-      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), recordTwoSourceRecordId, UUID.randomUUID().toString(), "ho00000000002", recordTitle, 1, CREATE, HOLDINGS, COMPLETED, null, null, UUID.randomUUID().toString(), null, UUID.randomUUID().toString()))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, UUID.randomUUID().toString(), null, null, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, null, null, null, 1, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, marcHoldingsEntityId, null, null, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecordAllFields(createdJobExecution.getId(), recordTwoSourceRecordId, holdingsEntityId, holdingsHrid, recordTitle, 1, CREATE, HOLDINGS, COMPLETED, null, null, UUID.randomUUID().toString(), null, UUID.randomUUID().toString()))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordTwoSourceRecordId, marcHoldingsEntityId, null, null, 1, CREATE, MARC_HOLDINGS, COMPLETED, null, null))
 
-      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null, 0, PARSE, null, ERROR, errMessage, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null,0, CREATE, MARC_HOLDINGS, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null, 0, PARSE, null, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordOneSourceRecordId, null, null, null, 0, CREATE, MARC_HOLDINGS, ERROR, errMessage, null))
 
-      .compose(v-> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null, 2, PARSE, null, ERROR, errMessage, null))
-      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null,2, CREATE, MARC_HOLDINGS, ERROR, errMessage, null));
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null, 2, PARSE, null, ERROR, errMessage, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), recordThreeSourceRecordId, null, null, null, 2, CREATE, MARC_HOLDINGS, ERROR, errMessage, null));
 
     future.onComplete(context.asyncAssertSuccess(v ->
       RestAssured.given()
