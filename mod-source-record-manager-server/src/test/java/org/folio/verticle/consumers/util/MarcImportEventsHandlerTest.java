@@ -77,7 +77,7 @@ public class MarcImportEventsHandlerTest {
   private AutoCloseable mocks;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() {
     mocks = MockitoAnnotations.openMocks(this);
     handler = new MarcImportEventsHandler(mappingRuleCache, journalRecordService);
   }
