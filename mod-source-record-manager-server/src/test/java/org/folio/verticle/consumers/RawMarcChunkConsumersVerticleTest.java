@@ -374,6 +374,7 @@ public class RawMarcChunkConsumersVerticleTest extends AbstractRestTest {
     Event obtainedEvent = checkEventWithTypeSent(DI_ERROR);
     DataImportEventPayload eventPayload = Json.decodeValue(obtainedEvent.getEventPayload(), DataImportEventPayload.class);
     assertEquals(DI_ERROR.value(), eventPayload.getEventType());
+    assertNotNull(eventPayload.getContext().get(INCOMING_RECORD_ID_KEY));
   }
 
   @Test

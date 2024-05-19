@@ -50,7 +50,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     );
   private final MappingRuleCache mappingRuleCache;
 
-  private JournalRecordService journalRecordService;
+  private final JournalRecordService journalRecordService;
 
   @Autowired
   public MarcImportEventsHandler(MappingRuleCache mappingRuleCache, JournalRecordService journalRecordService) {
