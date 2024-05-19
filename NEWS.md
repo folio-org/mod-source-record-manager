@@ -10,6 +10,7 @@
 * [MODSOURMAN-1145](https://issues.folio.org/browse/MODSOURMAN-1145) Modify action before match breaks non match logs
 * [MODSOURMAN-1188](https://issues.folio.org/browse/MODSOURMAN-1188) Change MARC mappings of 010 $z from "Cancelled" LCCN to "Canceled LCCN"
 * [MODSOURMAN-1181](https://issues.folio.org/browse/MODSOURMAN-1181) Modify the get_job_log_entries function to increase performance.
+* [MODSOURMAN-1185](https://folio-org.atlassian.net/browse/MODSOURMAN-1185) Logs are duplicated on the import logs page for order import
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors
