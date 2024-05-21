@@ -1,14 +1,34 @@
 package org.folio.services.afterprocessing;
 
+import static org.folio.TestUtil.recordsHaveSameOrder;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.INDICATOR;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addControlledFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyDataFieldsForMarcRecord;
+import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.TestUtil;
@@ -24,29 +44,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.marc4j.MarcException;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.folio.TestUtil.recordsHaveSameOrder;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.INDICATOR;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_I;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.SUBFIELD_S;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.TAG_999;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addControlledFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addDataFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldToMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.isFieldExist;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.modifyDataFieldsForMarcRecord;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.removeField;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getCacheStats;
-import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(BlockJUnit4ClassRunner.class)
 public class AdditionalFieldsUtilTest {
@@ -492,14 +489,14 @@ public class AdditionalFieldsUtilTest {
 
   @Test
   public void shouldReorderMarcRecordFields() throws IOException, MarcException {
-    var reorderedRecordContent = readFileFromPath(PARSED_RECORD);
-    var sourceRecordContent = readFileFromPath(REORDERED_PARSED_RECORD);
-    var reorderingResultRecord = readFileFromPath(REORDERING_RESULT_RECORD);
+    var systemReorderedRecordContent = readFileFromPath(PARSED_RECORD);
+    var userOrderRecordContent = readFileFromPath(REORDERED_PARSED_RECORD);
+    var expectedOrderRecord = readFileFromPath(REORDERING_RESULT_RECORD);
 
-    var resultContent = AdditionalFieldsUtil.reorderMarcRecordFields(sourceRecordContent, reorderedRecordContent);
+    var actualOrderRecord = AdditionalFieldsUtil.reorderMarcRecordFields(userOrderRecordContent, systemReorderedRecordContent);
 
-    assertNotNull(resultContent);
-    assertEquals(formatContent(resultContent), formatContent(reorderingResultRecord));
+    assertNotNull(actualOrderRecord);
+    assertEquals(formatContent(expectedOrderRecord), formatContent(actualOrderRecord));
   }
 
   private static String readFileFromPath(String path) throws IOException {
