@@ -1,3 +1,6 @@
+## 2024-05-24 v3.8.5
+* [MODSOURMAN-1191](https://issues.folio.org/browse/MODSOURMAN-1134) Don't group fields with same tags together
+
 ## 2024-04-25 v3.8.4
 * [MODSOURMAN-1134](https://issues.folio.org/browse/MODSOURMAN-1134) Any statuses and quantity are not displayed after importing file for updating record
 * [MODSOURMAN-1173](https://issues.folio.org/browse/MODSOURMAN-1173) Handle Situation When Job Profile Has No Child Profiles
