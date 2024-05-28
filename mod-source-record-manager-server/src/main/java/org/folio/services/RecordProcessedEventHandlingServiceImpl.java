@@ -11,23 +11,11 @@ import org.folio.DataImportEventPayload;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionDto;
-import org.folio.rest.jaxrs.model.JobExecutionDtoCollection;
-import org.folio.rest.jaxrs.model.JobExecutionProgress;
-import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.JobExecution.SubordinationType;
 import org.folio.services.progress.JobExecutionProgressService;
 import org.folio.util.DataImportEventPayloadWithoutCurrentNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.Date;
-
-import static java.lang.String.format;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.CANCELLED;
-import static org.folio.rest.jaxrs.model.JobExecution.Status.COMMITTED;
 
 @Service
 public class RecordProcessedEventHandlingServiceImpl implements EventHandlingService {
@@ -37,8 +25,8 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
   public static final String ERRORS_KEY = "ERRORS";
   private static final String EMPTY_ARRAY = "[]";
 
-  private JobExecutionProgressService jobExecutionProgressService;
-  private JobExecutionService jobExecutionService;
+  private final JobExecutionProgressService jobExecutionProgressService;
+  private final JobExecutionService jobExecutionService;
 
   public RecordProcessedEventHandlingServiceImpl(@Autowired JobExecutionProgressService jobExecutionProgressService,
                                                  @Autowired JobExecutionService jobExecutionService) {
@@ -78,8 +66,7 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
         return Future.succeededFuture(false);
       }
 
-      jobExecutionProgressService.updateCompletionCounts(jobExecutionId, successCount, errorCount, params.getTenantId())
-        .compose(updatedProgress -> updateJobExecutionIfAllRecordsProcessed(jobExecutionId, updatedProgress, params))
+      jobExecutionProgressService.updateCompletionCounts(jobExecutionId, successCount, errorCount, params)
         .onComplete(ar -> {
           if (ar.failed()) {
             LOGGER.warn("handle:: Failed to handle {} event", eventType, ar.cause());
@@ -103,67 +90,5 @@ public class RecordProcessedEventHandlingServiceImpl implements EventHandlingSer
       .withErrorStatus(StatusDto.ErrorStatus.FILE_PROCESSING_ERROR), params);
   }
 
-  private Future<Boolean> updateJobExecutionIfAllRecordsProcessed(String jobExecutionId, JobExecutionProgress progress, OkapiConnectionParams params) {
-    if (progress.getTotal().equals(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())) {
-      return jobExecutionService.getJobExecutionById(jobExecutionId, params.getTenantId())
-        .compose(jobExecutionOptional -> jobExecutionOptional
-          .map(jobExecution -> {
-            JobExecution.Status statusToUpdate;
-            if (jobExecution.getStatus() == CANCELLED && jobExecution.getUiStatus() == JobExecution.UiStatus.CANCELLED) {
-              statusToUpdate = CANCELLED;
-            } else if (progress.getCurrentlyFailed() == 0) {
-              statusToUpdate = COMMITTED;
-            } else {
-              statusToUpdate = JobExecution.Status.ERROR;
-            }
-            jobExecution.withStatus(statusToUpdate)
-              .withUiStatus(JobExecution.UiStatus.fromValue(Status.valueOf(statusToUpdate.name()).getUiStatus()))
-              .withCompletedDate(new Date())
-              .withProgress(new Progress()
-                .withJobExecutionId(jobExecutionId)
-                .withCurrent(progress.getCurrentlySucceeded() + progress.getCurrentlyFailed())
-                .withTotal(progress.getTotal()));
 
-            return jobExecutionService.updateJobExecutionWithSnapshotStatus(jobExecution, params)
-              .compose(updatedExecution -> {
-                if (updatedExecution.getSubordinationType().equals(SubordinationType.COMPOSITE_CHILD)) {
-
-                  return jobExecutionService.getJobExecutionById(updatedExecution.getParentJobId(), params.getTenantId())
-                    .map(v -> v.orElseThrow(() -> new IllegalStateException("Could not find parent job execution")))
-                    .compose(parentExecution ->
-                      jobExecutionService.getJobExecutionCollectionByParentId(parentExecution.getId(), 0, Integer.MAX_VALUE, params.getTenantId())
-                        .map(JobExecutionDtoCollection::getJobExecutions)
-                        .map(children ->
-                          children.stream()
-                            .filter(child -> child.getSubordinationType().equals(JobExecutionDto.SubordinationType.COMPOSITE_CHILD))
-                            .allMatch(child ->
-                              Arrays.asList(
-                                JobExecutionDto.UiStatus.RUNNING_COMPLETE,
-                                JobExecutionDto.UiStatus.CANCELLED,
-                                JobExecutionDto.UiStatus.ERROR,
-                                JobExecutionDto.UiStatus.DISCARDED
-                              ).contains(child.getUiStatus())
-                            )
-                        )
-                        .compose(allChildrenCompleted -> {
-                          if (Boolean.TRUE.equals(allChildrenCompleted)) {
-                            LOGGER.info("All children for job {} have completed!", parentExecution.getId());
-                            parentExecution.withStatus(JobExecution.Status.COMMITTED)
-                              .withUiStatus(JobExecution.UiStatus.RUNNING_COMPLETE)
-                              .withCompletedDate(new Date());
-                            return jobExecutionService.updateJobExecutionWithSnapshotStatus(parentExecution, params);
-                          }
-                          return Future.succeededFuture(parentExecution);
-                        })
-                    );
-                } else {
-                  return Future.succeededFuture(updatedExecution);
-                }
-              })
-              .map(true);
-          })
-          .orElse(Future.failedFuture(format("Couldn't find JobExecution for update status and progress with id '%s'", jobExecutionId))));
-    }
-    return Future.succeededFuture(false);
-  }
 }

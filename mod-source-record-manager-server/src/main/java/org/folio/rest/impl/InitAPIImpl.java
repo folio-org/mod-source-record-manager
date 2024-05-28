@@ -15,10 +15,13 @@ import org.folio.config.ApplicationConfig;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
+import org.folio.services.progress.BatchableJobExecutionProgressCodec;
+import org.folio.services.progress.OptionalCodec;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
 import org.folio.verticle.DataImportJournalConsumersVerticle;
+import org.folio.verticle.JobExecutionProgressVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
@@ -51,6 +54,9 @@ public class InitAPIImpl implements InitAPI {
   @Value("${srm.kafka.DataImportJournalConsumersVerticle.instancesNumber:1}")
   private int dataImportJournalConsumerInstancesNumber;
 
+  @Value("${srm.kafka.JobExecutionProgressVerticle.instancesNumber:1}")
+  private int jobExecutionProgressInstancesNumber;
+
   @Value("${srm.kafka.QuickMarcUpdateConsumersVerticle.instancesNumber:1}")
   private int quickMarcUpdateConsumerInstancesNumber;
 
@@ -67,6 +73,10 @@ public class InitAPIImpl implements InitAPI {
     try {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
+
+      vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
+      vertx.eventBus().registerCodec(new OptionalCodec());
+
       initJournalService(vertx);
       deployConsumersVerticles(vertx)
         .onSuccess(car -> {
@@ -99,6 +109,7 @@ public class InitAPIImpl implements InitAPI {
     Promise<String> deployStoredMarcChunkConsumer = Promise.promise();
     Promise<String> deployDataImportConsumer = Promise.promise();
     Promise<String> deployDataImportJournalConsumer = Promise.promise();
+    Promise<String> deployJobExecutionProgressConsumer = Promise.promise();
     Promise<String> deployQuickMarcUpdateConsumer = Promise.promise();
     Promise<String> deployPeriodicDeleteJobExecution = Promise.promise();
 
@@ -126,6 +137,11 @@ public class InitAPIImpl implements InitAPI {
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
+
+    vertx.deployVerticle(getVerticleName(verticleFactory, JobExecutionProgressVerticle.class),
+      new DeploymentOptions()
+        .setWorker(true)
+        .setInstances(jobExecutionProgressInstancesNumber), deployJobExecutionProgressConsumer);
 
     vertx.deployVerticle(getVerticleName(verticleFactory,  QuickMarcUpdateConsumersVerticle.class),
       new DeploymentOptions()

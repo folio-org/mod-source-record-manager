@@ -1,10 +1,13 @@
 package org.folio.services.progress;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageProducer;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionProgressDao;
 import org.folio.dao.util.DbUtil;
 import org.folio.dao.util.PostgresClientFactory;
+import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 import org.folio.rest.jaxrs.model.Progress;
 import org.folio.rest.persist.PostgresClient;
@@ -15,6 +18,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.function.UnaryOperator;
 
 import static java.lang.String.format;
+import static org.folio.services.progress.JobExecutionProgressUtil.getBatchJobProgressProducer;
 
 @Service
 public class JobExecutionProgressServiceImpl implements JobExecutionProgressService {
@@ -26,6 +30,12 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   private PostgresClientFactory pgClientFactory;
   @Autowired
   private JobExecutionDao jobExecutionDao;
+
+  private final MessageProducer<BatchableJobExecutionProgress> jobExecutionProgressMessageProducer;
+
+  public JobExecutionProgressServiceImpl(@Autowired Vertx vertx) {
+    this.jobExecutionProgressMessageProducer = getBatchJobProgressProducer(vertx);
+  }
 
   @Override
   public Future<JobExecutionProgress> getByJobExecutionId(String jobExecutionId, String tenantId) {
@@ -53,8 +63,11 @@ public class JobExecutionProgressServiceImpl implements JobExecutionProgressServ
   }
 
   @Override
-  public Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId) {
-    return jobExecutionProgressDao.updateCompletionCounts(jobExecutionId, successCountDelta, errorCountDelta, tenantId);
+  public Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, OkapiConnectionParams params) {
+    JobExecutionProgress jobExecutionProgress = new JobExecutionProgress().withJobExecutionId(jobExecutionId)
+        .withCurrentlySucceeded(successCountDelta)
+          .withCurrentlyFailed(errorCountDelta);
+    BatchableJobExecutionProgress batchableJobExecutionProgress = new BatchableJobExecutionProgress(params, jobExecutionProgress);
+    return jobExecutionProgressMessageProducer.write(batchableJobExecutionProgress);
   }
-
 }
