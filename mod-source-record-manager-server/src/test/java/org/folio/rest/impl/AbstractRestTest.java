@@ -60,18 +60,7 @@ import org.folio.TestUtil;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.client.TenantClient;
-import org.folio.rest.jaxrs.model.ActionProfile;
-import org.folio.rest.jaxrs.model.EntityType;
-import org.folio.rest.jaxrs.model.Event;
-import org.folio.rest.jaxrs.model.File;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
-import org.folio.rest.jaxrs.model.InitJobExecutionsRsDto;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobProfile;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.StatusDto;
-import org.folio.rest.jaxrs.model.TenantAttributes;
-import org.folio.rest.jaxrs.model.TenantJob;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.Envs;
@@ -271,7 +260,7 @@ public abstract class AbstractRestTest {
     .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
       .withProfileId(UUID.randomUUID().toString())
       .withContentType(ACTION_PROFILE)
-      .withReactTo(ProfileSnapshotWrapper.ReactTo.NON_MATCH)
+      .withReactTo(ReactToType.NON_MATCH)
       .withContent(actionProfile)
       .withChildSnapshotWrappers(Collections.singletonList(new ProfileSnapshotWrapper()
         .withProfileId(UUID.randomUUID().toString())

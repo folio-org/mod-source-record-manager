@@ -12,13 +12,7 @@ import org.folio.MatchProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
-import org.folio.rest.jaxrs.model.EntityType;
-import org.folio.rest.jaxrs.model.InitialRecord;
-import org.folio.rest.jaxrs.model.JobExecution;
-import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
-import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
-import org.folio.rest.jaxrs.model.RawRecordsDto;
-import org.folio.rest.jaxrs.model.StatusDto;
+import org.folio.rest.jaxrs.model.*;
 import org.folio.services.exceptions.UnsupportedProfileException;
 
 import javax.ws.rs.NotFoundException;
@@ -112,7 +106,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   private ProfileSnapshotWrapper getChildSnapshotWrapperByType(ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                               ProfileSnapshotWrapper.ContentType contentType) {
+                                                               ProfileType contentType) {
     if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
       List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
       for (ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
