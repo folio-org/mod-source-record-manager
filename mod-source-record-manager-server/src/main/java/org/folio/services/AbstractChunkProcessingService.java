@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.*;
+import static org.folio.rest.jaxrs.model.ProfileType.*;
 
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
