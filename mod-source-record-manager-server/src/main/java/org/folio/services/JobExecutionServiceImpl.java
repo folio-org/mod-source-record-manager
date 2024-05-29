@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
-import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;

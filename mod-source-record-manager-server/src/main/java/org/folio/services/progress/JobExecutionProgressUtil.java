@@ -8,6 +8,8 @@ public class JobExecutionProgressUtil {
 
   public static final String BATCH_JOB_PROGRESS_ADDRESS = "batchJobProgress";
 
+  private JobExecutionProgressUtil() {}
+
   /**
    * Creates a message producer that will enqueue {@link BatchableJobExecutionProgress} objects
    * to be processed asynchronously. Messages are only processed locally.
