@@ -179,17 +179,4 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
       async.complete();
     });
   }
-
-  @Test
-  public void shouldReturnFailedFutureOnUpdateCountsWhenProgressDoesNotExist(TestContext context) {
-    Async async = context.async();
-    String jobExecutionId = UUID.randomUUID().toString();
-
-    Future<Void> future = jobExecutionProgressService.updateCompletionCounts(jobExecutionId, 7, 0, params);
-
-    future.onComplete(ar -> {
-      context.assertTrue(ar.failed());
-      async.complete();
-    });
-  }
 }

@@ -425,7 +425,21 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpErrorEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpOtherEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
-      .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
+      .compose(notUsed -> {
+        Promise<Optional<JobExecution>> promise = Promise.promise();
+        vertx.setTimer(2000,
+          id -> {
+            jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID)
+              .onComplete(ar -> {
+                if (ar.succeeded()) {
+                  promise.complete(ar.result());
+                } else {
+                  promise.fail(ar.cause());
+                }
+              });
+          });
+        return promise.future();
+      });
 
     // then
     jobFuture.onComplete(ar -> {
@@ -495,7 +509,21 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // when
     Future<JobExecutionProgress> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
+      .compose(notUsed -> {
+        Promise<JobExecutionProgress> promise = Promise.promise();
+        vertx.setTimer(2000,
+          id -> {
+            jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID)
+              .onComplete(ar -> {
+                if (ar.succeeded()) {
+                  promise.complete(ar.result());
+                } else {
+                  promise.fail(ar.cause());
+                }
+              });
+          });
+        return promise.future();
+      });
 
     // then
     jobFuture.onComplete(ar -> {
