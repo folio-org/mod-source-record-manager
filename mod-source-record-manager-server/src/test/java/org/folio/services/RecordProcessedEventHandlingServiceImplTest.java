@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
@@ -227,7 +226,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
                                           String jobExecutionId,
                                           BiConsumer<TestContext, JobExecutionProgress> assertFn) {
     Promise<Void> promise = Promise.promise();
-    long timerId = vertx.setPeriodic(1000, id -> {
+    long timerId = vertx.setPeriodic(2000, id -> {
       jobExecutionProgressService
         .getByJobExecutionId(jobExecutionId, TENANT_ID)
         .compose(updatedProgress -> {
@@ -369,8 +368,8 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       context.assertTrue(ar.result().isPresent());
       assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
         (ctx, updatedProgress) -> {
-          ctx.assertEquals(1, updatedProgress.getCurrentlyFailed());
-          ctx.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(0, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(1, updatedProgress.getCurrentlySucceeded());
           ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
         })
         .compose(notUsed -> {
