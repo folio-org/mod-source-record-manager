@@ -6,6 +6,10 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.folio.dao.JobExecutionDao;
+import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
@@ -37,8 +41,16 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   public RunTestOnContext rule = new RunTestOnContext();
 
   @Spy
+  PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
+  @Spy
+  @InjectMocks
+  JobExecutionDaoImpl jobExecutionDao;
+  @Spy
   @InjectMocks
   JobExecutionServiceImpl jobExecutionService;
+  @InjectMocks
+  @Spy
+  private JobExecutionProgressDaoImpl jobExecutionProgressDao;
   @InjectMocks
   private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl(vertx);
 

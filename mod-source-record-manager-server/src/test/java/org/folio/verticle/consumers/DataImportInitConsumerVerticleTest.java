@@ -10,6 +10,9 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.folio.dao.JobExecutionDaoImpl;
+import org.folio.dao.JobExecutionProgressDaoImpl;
+import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
@@ -54,6 +57,16 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
+
+  @Spy
+  private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
+  @Spy
+  @InjectMocks
+  private JobExecutionDaoImpl jobExecutionDao;
+  @InjectMocks
+  @Spy
+  private JobExecutionProgressDaoImpl jobExecutionProgressDao;
+
 
   @Spy
   @InjectMocks

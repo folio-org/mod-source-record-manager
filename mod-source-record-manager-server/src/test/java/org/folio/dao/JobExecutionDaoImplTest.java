@@ -37,9 +37,6 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -89,7 +86,7 @@ public class JobExecutionDaoImplTest extends AbstractRestTest {
   @InjectMocks
   JobExecutionSourceChunkDaoImpl jobExecutionSourceChunkDao;
   @InjectMocks
-  JobExecutionService jobExecutionService = new JobExecutionServiceImpl();
+  JobExecutionService jobExecutionService = new JobExecutionServiceImpl(new JobExecutionDaoImpl());
   @InjectMocks
   private JobExecutionProgressDao jobExecutionProgressDao = new JobExecutionProgressDaoImpl();
 

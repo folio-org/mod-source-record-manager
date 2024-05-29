@@ -16,7 +16,6 @@ import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERRORS_KEY;
 import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -26,6 +25,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.folio.DataImportEventPayload;
@@ -222,30 +223,35 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
   /**
    * Asynchronous way to assert job execution progress
    */
-  private void assertJobExecutionProgress(Vertx vertx, Async async, TestContext context,
+  private Future<Void> assertJobExecutionProgress(Vertx vertx, Async async, TestContext context,
                                           String jobExecutionId,
-                                          Consumer<JobExecutionProgress> assertFn) {
+                                          BiConsumer<TestContext, JobExecutionProgress> assertFn) {
+    Promise<Void> promise = Promise.promise();
     long timerId = vertx.setPeriodic(1000, id -> {
       jobExecutionProgressService
         .getByJobExecutionId(jobExecutionId, TENANT_ID)
         .compose(updatedProgress -> {
-          assertFn.accept(updatedProgress);
+          assertFn.accept(context, updatedProgress);
           return Future.succeededFuture();
         }).onSuccess(notUsed -> {
           async.complete();
           vertx.cancelTimer(id);
+          promise.complete();
         })
         .onFailure(th -> {
           context.fail(th);
           vertx.cancelTimer(id);
+          promise.complete();
         });
     });
     vertx.setTimer(10000, id -> {
       vertx.cancelTimer(timerId);
       if (!async.isCompleted()) {
         context.fail("Could not assert updated progress");
+        promise.complete();
       }
     });
+    return promise.future();
   }
 
   @Test
@@ -274,10 +280,10 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
-        (updatedProgress) -> {
-          assertEquals(1, updatedProgress.getCurrentlySucceeded().intValue());
-          assertEquals(0, updatedProgress.getCurrentlyFailed().intValue());
-          assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(1, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(0, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
         });
     });
   }
@@ -306,21 +312,25 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // then
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress updatedProgress = ar.result();
-      context.assertEquals(1, updatedProgress.getCurrentlyFailed());
-      context.assertEquals(0, updatedProgress.getCurrentlySucceeded());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
-
-      Async async2 = context.async();
-      jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
-        .onComplete(jobAr -> {
-          context.assertTrue(jobAr.succeeded());
-          context.assertTrue(jobAr.result().isPresent());
-          JobExecution jobExecution = jobAr.result().get();
-          context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
-          async2.complete();
-        });
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(1, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        })
+        .compose(notUsed -> {
+          Async async2 = context.async();
+          return jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
+            .onComplete(jobAr -> {
+              context.assertTrue(jobAr.succeeded());
+              context.assertTrue(jobAr.result().isPresent());
+              JobExecution jobExecution = jobAr.result().get();
+              context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
+              async2.complete();
+            });
+        })
+        .onSuccess(notUsed -> async.complete())
+        .onFailure(th -> context.fail(th));
     });
   }
 
@@ -357,13 +367,23 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertTrue(ar.result().isPresent());
-      JobExecution jobExecution = ar.result().get();
-      context.assertEquals(COMMITTED, jobExecution.getStatus());
-      context.assertEquals(RUNNING_COMPLETE, jobExecution.getUiStatus());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
-      context.assertNotNull(jobExecution.getStartedDate());
-      context.assertNotNull(jobExecution.getCompletedDate());
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(1, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        })
+        .compose(notUsed -> {
+          JobExecution jobExecution = ar.result().get();
+          context.assertEquals(COMMITTED, jobExecution.getStatus());
+          context.assertEquals(RUNNING_COMPLETE, jobExecution.getUiStatus());
+          context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
+          context.assertNotNull(jobExecution.getStartedDate());
+          context.assertNotNull(jobExecution.getCompletedDate());
+          return Future.succeededFuture();
+        })
+        .onSuccess(notUsed -> async.complete())
+        .onFailure(th -> context.fail(th));
     });
   }
 

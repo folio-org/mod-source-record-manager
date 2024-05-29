@@ -89,10 +89,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
-  @Autowired
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
-  private JournalRecordService journalRecordService;
+
+  public JobExecutionServiceImpl(@Autowired JobExecutionDao jobExecutionDao) {
+    this.jobExecutionDao = jobExecutionDao;
+  }
 
   @Override
   public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
