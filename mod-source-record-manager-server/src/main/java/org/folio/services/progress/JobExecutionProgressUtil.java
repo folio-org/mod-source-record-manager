@@ -18,4 +18,12 @@ public class JobExecutionProgressUtil {
       .setLocalOnly(true));
   }
 
+  /**
+   * Register needed message codecs for job execution progress processing
+   */
+  public static void registerCodecs(Vertx vertx) {
+    vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
+    vertx.eventBus().registerCodec(new OptionalCodec());
+  }
+
 }

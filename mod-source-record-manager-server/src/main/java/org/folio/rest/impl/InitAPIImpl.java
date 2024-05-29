@@ -15,8 +15,6 @@ import org.folio.config.ApplicationConfig;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
-import org.folio.services.progress.BatchableJobExecutionProgressCodec;
-import org.folio.services.progress.OptionalCodec;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
@@ -33,6 +31,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.Arrays;
+
+import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
 
 public class InitAPIImpl implements InitAPI {
 
@@ -74,8 +74,7 @@ public class InitAPIImpl implements InitAPI {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
 
-      vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
-      vertx.eventBus().registerCodec(new OptionalCodec());
+      registerCodecs(vertx);
 
       initJournalService(vertx);
       deployConsumersVerticles(vertx)

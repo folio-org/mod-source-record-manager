@@ -15,6 +15,8 @@ import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERRORS_KEY;
+import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -37,6 +39,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
@@ -69,6 +73,7 @@ import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
+import org.folio.verticle.JobExecutionProgressVerticle;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
 import org.junit.Rule;
@@ -182,6 +187,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     MockitoAnnotations.openMocks(this);
 
+    registerCodecs(vertx);
+    vertx.deployVerticle(new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService));
+
     MappingRuleCache mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
@@ -211,6 +219,35 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
   }
 
+  /**
+   * Asynchronous way to assert job execution progress
+   */
+  private void assertJobExecutionProgress(Vertx vertx, Async async, TestContext context,
+                                          String jobExecutionId,
+                                          Consumer<JobExecutionProgress> assertFn) {
+    long timerId = vertx.setPeriodic(1000, id -> {
+      jobExecutionProgressService
+        .getByJobExecutionId(jobExecutionId, TENANT_ID)
+        .compose(updatedProgress -> {
+          assertFn.accept(updatedProgress);
+          return Future.succeededFuture();
+        }).onSuccess(notUsed -> {
+          async.complete();
+          vertx.cancelTimer(id);
+        })
+        .onFailure(th -> {
+          context.fail(th);
+          vertx.cancelTimer(id);
+        });
+    });
+    vertx.setTimer(10000, id -> {
+      vertx.cancelTimer(timerId);
+      if (!async.isCompleted()) {
+        context.fail("Could not assert updated progress");
+      }
+    });
+  }
+
   @Test
   public void shouldIncrementCurrentlySucceededAndUpdateProgressOnHandleEvent(TestContext context) {
     // given
@@ -236,11 +273,12 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // then
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress updatedProgress = ar.result();
-      context.assertEquals(1, updatedProgress.getCurrentlySucceeded());
-      context.assertEquals(0, updatedProgress.getCurrentlyFailed());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (updatedProgress) -> {
+          assertEquals(1, updatedProgress.getCurrentlySucceeded().intValue());
+          assertEquals(0, updatedProgress.getCurrentlyFailed().intValue());
+          assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        });
     });
   }
 
