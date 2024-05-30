@@ -6,11 +6,11 @@ import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORIT
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;

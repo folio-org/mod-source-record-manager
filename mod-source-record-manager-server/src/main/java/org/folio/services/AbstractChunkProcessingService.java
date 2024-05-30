@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.InitialRecord;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
 import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.ProfileType;
 import org.folio.rest.jaxrs.model.RawRecordsDto;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.exceptions.UnsupportedProfileException;
@@ -27,7 +28,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.*;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
@@ -112,7 +115,7 @@ public abstract class AbstractChunkProcessingService implements ChunkProcessingS
   }
 
   private ProfileSnapshotWrapper getChildSnapshotWrapperByType(ProfileSnapshotWrapper profileSnapshotWrapper,
-                                                               ProfileSnapshotWrapper.ContentType contentType) {
+                                                               ProfileType contentType) {
     if (!CollectionUtils.isEmpty(profileSnapshotWrapper.getChildSnapshotWrappers())) {
       List<ProfileSnapshotWrapper> childSnapshotWrappers = profileSnapshotWrapper.getChildSnapshotWrappers();
       for (ProfileSnapshotWrapper snapshotWrapper : childSnapshotWrappers) {
