@@ -12,7 +12,14 @@ import org.folio.MatchProfile;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.kafka.exception.DuplicateEventException;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.EntityType;
+import org.folio.rest.jaxrs.model.InitialRecord;
+import org.folio.rest.jaxrs.model.JobExecution;
+import org.folio.rest.jaxrs.model.JobExecutionSourceChunk;
+import org.folio.rest.jaxrs.model.ProfileSnapshotWrapper;
+import org.folio.rest.jaxrs.model.ProfileType;
+import org.folio.rest.jaxrs.model.RawRecordsDto;
+import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.exceptions.UnsupportedProfileException;
 
 import javax.ws.rs.NotFoundException;
@@ -21,7 +28,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.rest.jaxrs.model.ProfileType.*;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
 
 
 public abstract class AbstractChunkProcessingService implements ChunkProcessingService {
