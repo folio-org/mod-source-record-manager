@@ -18,7 +18,6 @@ import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.JobExecutionService;
 import org.folio.services.progress.BatchableJobExecutionProgress;
 import org.folio.services.progress.BatchableJobExecutionProgressCodec;
-import org.folio.services.progress.OptionalCodec;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +69,6 @@ public class JobExecutionProgressVerticleTest {
     MockitoAnnotations.openMocks(this);
     vertx = rule.vertx();
     vertx.eventBus().registerCodec(new BatchableJobExecutionProgressCodec());
-    vertx.eventBus().registerCodec(new OptionalCodec());
     JobExecutionProgressVerticle jobExecutionProgressVerticle =
       new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService);
     vertx.deployVerticle(jobExecutionProgressVerticle,
