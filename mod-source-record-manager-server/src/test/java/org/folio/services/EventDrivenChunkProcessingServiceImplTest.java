@@ -91,6 +91,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
 
+  @Spy
   private Vertx vertx = Vertx.vertx();
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);

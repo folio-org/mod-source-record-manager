@@ -15,6 +15,7 @@ import static org.folio.rest.jaxrs.model.JobExecution.UiStatus.RUNNING_COMPLETE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
 import static org.folio.services.RecordProcessedEventHandlingServiceImpl.ERRORS_KEY;
+import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -37,6 +39,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+
 import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
@@ -69,6 +73,7 @@ import org.folio.services.journal.JournalServiceImpl;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
+import org.folio.verticle.JobExecutionProgressVerticle;
 import org.folio.verticle.consumers.util.MarcImportEventsHandler;
 import org.junit.Before;
 import org.junit.Rule;
@@ -182,6 +187,9 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
 
     MockitoAnnotations.openMocks(this);
 
+    registerCodecs(vertx);
+    vertx.deployVerticle(new JobExecutionProgressVerticle(jobExecutionProgressDao, jobExecutionService));
+
     MappingRuleCache mappingRuleCache = new MappingRuleCache(mappingRuleDao, vertx);
     marcRecordAnalyzer = new MarcRecordAnalyzer();
     mappingRuleService = new MappingRuleServiceImpl(mappingRuleDao, mappingRuleCache);
@@ -211,6 +219,40 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .willReturn(ok().withBody(JsonObject.mapFrom(jobProfile).encode())));
   }
 
+  /**
+   * Asynchronous way to assert job execution progress
+   */
+  private Future<Void> assertJobExecutionProgress(Vertx vertx, Async async, TestContext context,
+                                          String jobExecutionId,
+                                          BiConsumer<TestContext, JobExecutionProgress> assertFn) {
+    Promise<Void> promise = Promise.promise();
+    long timerId = vertx.setPeriodic(2000, id -> {
+      jobExecutionProgressService
+        .getByJobExecutionId(jobExecutionId, TENANT_ID)
+        .compose(updatedProgress -> {
+          assertFn.accept(context, updatedProgress);
+          return Future.succeededFuture();
+        }).onSuccess(notUsed -> {
+          async.complete();
+          vertx.cancelTimer(id);
+          promise.complete();
+        })
+        .onFailure(th -> {
+          context.fail(th);
+          vertx.cancelTimer(id);
+          promise.complete();
+        });
+    });
+    vertx.setTimer(10000, id -> {
+      vertx.cancelTimer(timerId);
+      if (!async.isCompleted()) {
+        context.fail("Could not assert updated progress");
+        promise.complete();
+      }
+    });
+    return promise.future();
+  }
+
   @Test
   public void shouldIncrementCurrentlySucceededAndUpdateProgressOnHandleEvent(TestContext context) {
     // given
@@ -236,11 +278,12 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // then
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress updatedProgress = ar.result();
-      context.assertEquals(1, updatedProgress.getCurrentlySucceeded());
-      context.assertEquals(0, updatedProgress.getCurrentlyFailed());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(1, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(0, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        });
     });
   }
 
@@ -268,21 +311,25 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // then
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress updatedProgress = ar.result();
-      context.assertEquals(1, updatedProgress.getCurrentlyFailed());
-      context.assertEquals(0, updatedProgress.getCurrentlySucceeded());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
-
-      Async async2 = context.async();
-      jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
-        .onComplete(jobAr -> {
-          context.assertTrue(jobAr.succeeded());
-          context.assertTrue(jobAr.result().isPresent());
-          JobExecution jobExecution = jobAr.result().get();
-          context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
-          async2.complete();
-        });
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(1, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(0, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        })
+        .compose(notUsed -> {
+          Async async2 = context.async();
+          return jobFuture.compose(jobAr -> jobExecutionService.getJobExecutionById(dataImportEventPayload.getJobExecutionId(), TENANT_ID))
+            .onComplete(jobAr -> {
+              context.assertTrue(jobAr.succeeded());
+              context.assertTrue(jobAr.result().isPresent());
+              JobExecution jobExecution = jobAr.result().get();
+              context.assertEquals(PARSING_IN_PROGRESS, jobExecution.getStatus());
+              async2.complete();
+            });
+        })
+        .onSuccess(notUsed -> async.complete())
+        .onFailure(th -> context.fail(th));
     });
   }
 
@@ -319,13 +366,23 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     jobFuture.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
       context.assertTrue(ar.result().isPresent());
-      JobExecution jobExecution = ar.result().get();
-      context.assertEquals(COMMITTED, jobExecution.getStatus());
-      context.assertEquals(RUNNING_COMPLETE, jobExecution.getUiStatus());
-      context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
-      context.assertNotNull(jobExecution.getStartedDate());
-      context.assertNotNull(jobExecution.getCompletedDate());
-      async.complete();
+      assertJobExecutionProgress(vertx, async, context, dataImportEventPayload.getJobExecutionId(),
+        (ctx, updatedProgress) -> {
+          ctx.assertEquals(0, updatedProgress.getCurrentlyFailed());
+          ctx.assertEquals(1, updatedProgress.getCurrentlySucceeded());
+          ctx.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), updatedProgress.getTotal());
+        })
+        .compose(notUsed -> {
+          JobExecution jobExecution = ar.result().get();
+          context.assertEquals(COMMITTED, jobExecution.getStatus());
+          context.assertEquals(RUNNING_COMPLETE, jobExecution.getUiStatus());
+          context.assertEquals(rawRecordsDto.getRecordsMetadata().getTotal(), jobExecution.getProgress().getTotal());
+          context.assertNotNull(jobExecution.getStartedDate());
+          context.assertNotNull(jobExecution.getCompletedDate());
+          return Future.succeededFuture();
+        })
+        .onSuccess(notUsed -> async.complete())
+        .onFailure(th -> context.fail(th));
     });
   }
 
@@ -367,7 +424,21 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpErrorEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpOtherEventPayload), params))
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(datImpCompletedEventPayload), params))
-      .compose(ar -> jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID));
+      .compose(notUsed -> {
+        Promise<Optional<JobExecution>> promise = Promise.promise();
+        vertx.setTimer(2000,
+          id -> {
+            jobExecutionService.getJobExecutionById(datImpCompletedEventPayload.getJobExecutionId(), TENANT_ID)
+              .onComplete(ar -> {
+                if (ar.succeeded()) {
+                  promise.complete(ar.result());
+                } else {
+                  promise.fail(ar.cause());
+                }
+              });
+          });
+        return promise.future();
+      });
 
     // then
     jobFuture.onComplete(ar -> {
@@ -437,7 +508,21 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
     // when
     Future<JobExecutionProgress> jobFuture = future
       .compose(ar -> recordProcessedEventHandlingService.handle(Json.encode(dataImportEventPayload), params))
-      .compose(ar -> jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID));
+      .compose(notUsed -> {
+        Promise<JobExecutionProgress> promise = Promise.promise();
+        vertx.setTimer(2000,
+          id -> {
+            jobExecutionProgressService.getByJobExecutionId(dataImportEventPayload.getJobExecutionId(), TENANT_ID)
+              .onComplete(ar -> {
+                if (ar.succeeded()) {
+                  promise.complete(ar.result());
+                } else {
+                  promise.fail(ar.cause());
+                }
+              });
+          });
+        return promise.future();
+      });
 
     // then
     jobFuture.onComplete(ar -> {

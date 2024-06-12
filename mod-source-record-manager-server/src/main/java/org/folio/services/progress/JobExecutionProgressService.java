@@ -1,6 +1,7 @@
 package org.folio.services.progress;
 
 import io.vertx.core.Future;
+import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.JobExecution;
 import org.folio.rest.jaxrs.model.JobExecutionProgress;
 
@@ -46,13 +47,17 @@ public interface JobExecutionProgressService {
    * EXAMPLE:
    *  a success count of 5 and an error count of 0 means that the success count will be increased by 5 and the
    *  error count will remain unchanged in jobExecutionProgress entity.
-   *
-   *
+   *  </p>
+   * <p>
+   * NOTE: An implementation of this interface {@link JobExecutionProgressServiceImpl}, returns a
+   * succesful future when the updates has successfully been enqueued. Actual update of job execution can happen
+   * a bit later.
+   * </p>
    * @param jobExecutionId  jobExecution id
    * @param successCountDelta number of successful executions
    * @param errorCountDelta number of failed executions
-   * @param tenantId        tenant id
-   * @return future with updated jobExecutionProgress
+   * @param params        okapi connection parameters
+   * @return future that returns when the notification is successful
    */
-  Future<JobExecutionProgress> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, String tenantId);
+  Future<Void> updateCompletionCounts(String jobExecutionId, int successCountDelta, int errorCountDelta, OkapiConnectionParams params);
 }
