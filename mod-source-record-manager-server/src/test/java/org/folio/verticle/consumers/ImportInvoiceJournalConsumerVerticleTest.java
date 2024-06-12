@@ -41,7 +41,7 @@ import static org.folio.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
 import static org.folio.rest.jaxrs.model.EntityType.INVOICE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
 
 import static org.folio.services.journal.InvoiceUtil.FIELD_DESCRIPTION;
 import static org.folio.services.journal.InvoiceUtil.FIELD_FOLIO_INVOICE_NO;

@@ -32,7 +32,7 @@ import static org.folio.ActionProfile.FolioRecord.INVOICE;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INVOICE_CREATED;
 import static org.folio.rest.jaxrs.model.EntityType.EDIFACT_INVOICE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
 import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.services.journal.InvoiceUtil.INVOICE_LINES_KEY;
 

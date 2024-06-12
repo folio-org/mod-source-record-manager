@@ -12,8 +12,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_B
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -318,7 +319,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean createOrderActionExists(JobExecution jobExecution) {
     if (jobExecution.getJobProfileSnapshotWrapper() != null) {
       List<ProfileSnapshotWrapper> actionProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers()
-        .stream().filter(wrapper -> wrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE).toList();
+        .stream().filter(wrapper -> wrapper.getContentType() == ACTION_PROFILE).toList();
 
       if (!actionProfiles.isEmpty() && ifOrderCreateActionProfileExists(actionProfiles)) {
         LOGGER.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
@@ -427,7 +428,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
         return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
       } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
@@ -465,7 +466,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean containsMatchProfile(ProfileSnapshotWrapper profileSnapshot) {
     var childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.MATCH_PROFILE
+      if (childWrapper.getContentType() == MATCH_PROFILE
         && marcAuthorityMatchProfileMatches(childWrapper)) {
         return true;
       } else if (containsMatchProfile(childWrapper)) {
@@ -484,7 +485,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                             List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, entityTypes, action)) {
         return true;
       } else if (containsMarcActionProfile(childWrapper, entityTypes, action)) {
@@ -497,7 +498,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean containsCreateActionProfileWithMarcHoldings(ProfileSnapshotWrapper profileSnapshot) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.HOLDINGS), Action.CREATE)
         && isMarcHoldingsExists(childWrapper)) {
         return true;
