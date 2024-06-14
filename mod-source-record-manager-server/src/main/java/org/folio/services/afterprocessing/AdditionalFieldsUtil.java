@@ -46,6 +46,7 @@ import org.marc4j.marc.VariableField;
  */
 public final class AdditionalFieldsUtil {
 
+  public static final String TAG_00X_PREFIX = "00";
   public static final String TAG_999 = "999";
   public static final String TAG_001 = "001";
   public static final String TAG_005 = "005";
@@ -184,24 +185,30 @@ public final class AdditionalFieldsUtil {
       var fieldsArrayNode = (ArrayNode) parsedContent.path(FIELDS);
 
       var nodes = toNodeList(fieldsArrayNode);
+      var nodes00X = removeAndGetNodesByTagPrefix(nodes, TAG_00X_PREFIX);
       var sourceOrderTags = getSourceFields(sourceOrderContent);
       var reorderedFields = objectMapper.createArrayNode();
 
-      var node001 = removeAndGetNodeByTag(nodes, TAG_001);
+      var node001 = removeAndGetNodeByTag(nodes00X, TAG_001);
       if (node001 != null && !node001.isEmpty()) {
         reorderedFields.add(node001);
       }
 
-      var node005 = removeAndGetNodeByTag(nodes, TAG_005);
+      var node005 = removeAndGetNodeByTag(nodes00X, TAG_005);
       if (node005 != null && !node005.isEmpty()) {
         reorderedFields.add(node005);
       }
 
       for (String tag : sourceOrderTags) {
-        var node = removeAndGetNodeByTag(nodes, tag);
-        if (node != null && !node.isEmpty()) {
-          reorderedFields.add(node);
-        }
+        var nodeTag = tag;
+        //loop will add system generated fields that are absent in initial record, preserving their order, f.e. 035
+        do {
+          var node = tag.startsWith(TAG_00X_PREFIX) ? removeAndGetNodeByTag(nodes00X, tag) : nodes.remove(0);
+          if (node != null && !node.isEmpty()) {
+            nodeTag = getTagFromNode(node);
+            reorderedFields.add(node);
+          }
+        } while (!tag.equals(nodeTag) && !nodes.isEmpty());
       }
 
       reorderedFields.addAll(nodes);
@@ -230,6 +237,19 @@ public final class AdditionalFieldsUtil {
       }
     }
     return null;
+  }
+
+  private static List<JsonNode> removeAndGetNodesByTagPrefix(List<JsonNode> nodes, String prefix) {
+    var startsWithNodes = new LinkedList<JsonNode>();
+    for (int i = 0; i < nodes.size(); i++) {
+      var nodeTag = getTagFromNode(nodes.get(i));
+      if (nodeTag.startsWith(prefix)) {
+        startsWithNodes.add(nodes.get(i));
+      }
+    }
+
+    nodes.removeAll(startsWithNodes);
+    return startsWithNodes;
   }
 
   private static String getTagFromNode(JsonNode node) {
