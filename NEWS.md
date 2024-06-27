@@ -1,3 +1,6 @@
+## 2024-06-27 v3.8.6
+* [MODSOURMAN-1197](https://folio-org.atlassian.net/browse/MODSOURMAN-1197) Reorder only 00X fields while preserving system order for all other
+
 ## 2024-05-24 v3.8.5
 * [MODSOURMAN-1191](https://issues.folio.org/browse/MODSOURMAN-1134) Don't group fields with same tags together
 
