@@ -218,7 +218,11 @@
         "c",
         "d",
         "g",
-        "q"
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "applyRulesOnConcatenatedData": true,
@@ -259,7 +263,11 @@
         "c",
         "d",
         "g",
-        "n"
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -298,7 +306,11 @@
         "d",
         "n",
         "q",
-        "g"
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -408,7 +420,11 @@
         "c",
         "d",
         "g",
-        "q"
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -448,7 +464,11 @@
         "c",
         "d",
         "g",
-        "n"
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -488,7 +508,11 @@
         "d",
         "n",
         "q",
-        "g"
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -610,7 +634,11 @@
         "c",
         "d",
         "g",
-        "q"
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -650,7 +678,11 @@
         "c",
         "d",
         "g",
-        "n"
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []
@@ -690,7 +722,11 @@
         "d",
         "n",
         "q",
-        "g"
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
       ],
       "exclusiveSubfield": ["t"],
       "rules": []

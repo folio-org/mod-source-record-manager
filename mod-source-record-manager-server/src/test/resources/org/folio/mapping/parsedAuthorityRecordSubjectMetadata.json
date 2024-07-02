@@ -71,9 +71,6 @@
             "d": "NIC"
           },
           {
-            "t": "Eimermacher"
-          },
-          {
             "v": "Form"
           },
           {
@@ -98,9 +95,6 @@
           },
           {
             "b": ".J6"
-          },
-          {
-            "t": "Required Title"
           },
           {
             "v": "Form"
@@ -245,9 +239,6 @@
           },
           {
             "b": "1970-"
-          },
-          {
-            "t": "Required Title"
           },
           {
             "v": "Form"
@@ -463,9 +454,6 @@
           },
           {
             "x": "Periodicals."
-          },
-          {
-            "t": "Required Title"
           },
           {
             "v": "Form"
