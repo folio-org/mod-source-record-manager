@@ -2,34 +2,23 @@ package org.folio.services.migration.impl;
 
 import static org.folio.Record.RecordType.MARC_AUTHORITY;
 
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
+import org.folio.Record;
 import org.folio.services.MappingRuleService;
-import org.folio.services.migration.CustomMigration;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthorityMappingNameSubjectMetadataCustomMigration implements CustomMigration {
-
-  private final MappingRuleService mappingRuleService;
+public class AuthorityMappingNameSubjectMetadataCustomMigration extends BaseMigration {
 
   public AuthorityMappingNameSubjectMetadataCustomMigration(MappingRuleService mappingRuleService) {
-    this.mappingRuleService = mappingRuleService;
+    super(mappingRuleService);
   }
 
   @Override
-  public Future<Void> migrate(String tenantId) {
-    return mappingRuleService.get(MARC_AUTHORITY, tenantId)
-      .compose(rules -> {
-        if (rules.isPresent()) {
-          var newRules = updateRules(rules.get());
-          return mappingRuleService.internalUpdate(newRules.encode(), MARC_AUTHORITY, tenantId);
-        } else {
-          return Future.succeededFuture();
-        }
-      }).mapEmpty();
+  protected Record.RecordType getRecordType() {
+    return MARC_AUTHORITY;
   }
 
   @Override
@@ -42,10 +31,11 @@ public class AuthorityMappingNameSubjectMetadataCustomMigration implements Custo
     return "Authority mapping rules: update rules for name fields with subject metadata";
   }
 
-  private JsonObject updateRules(JsonObject rules) {
+  @Override
+  protected String updateRules(JsonObject rules) {
     List.of("100", "110", "111", "400", "410", "411", "500", "510", "511")
       .forEach(tag -> updateRulesForTag(tag, rules));
-    return rules;
+    return rules.encode();
   }
 
   private void updateRulesForTag(String tag, JsonObject rules) {
