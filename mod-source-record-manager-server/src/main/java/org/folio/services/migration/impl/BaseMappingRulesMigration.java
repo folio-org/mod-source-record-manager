@@ -6,11 +6,11 @@ import org.folio.Record;
 import org.folio.services.MappingRuleService;
 import org.folio.services.migration.CustomMigration;
 
-public abstract class BaseMigration implements CustomMigration {
+public abstract class BaseMappingRulesMigration implements CustomMigration {
 
   protected final MappingRuleService mappingRuleService;
 
-  protected BaseMigration(MappingRuleService mappingRuleService) {
+  protected BaseMappingRulesMigration(MappingRuleService mappingRuleService) {
     this.mappingRuleService = mappingRuleService;
   }
 

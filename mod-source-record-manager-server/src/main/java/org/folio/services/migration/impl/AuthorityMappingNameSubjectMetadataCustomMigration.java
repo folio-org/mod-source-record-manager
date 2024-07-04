@@ -10,7 +10,7 @@ import org.folio.services.MappingRuleService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthorityMappingNameSubjectMetadataCustomMigration extends BaseMigration {
+public class AuthorityMappingNameSubjectMetadataCustomMigration extends BaseMappingRulesMigration {
 
   public AuthorityMappingNameSubjectMetadataCustomMigration(MappingRuleService mappingRuleService) {
     super(mappingRuleService);
