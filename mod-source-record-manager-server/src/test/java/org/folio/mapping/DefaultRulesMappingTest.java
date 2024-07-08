@@ -70,6 +70,17 @@ public class DefaultRulesMappingTest {
     Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).encode());
   }
 
+  @Test
+  public void testMarcToAuthorityNameSubjectMetadata() throws IOException {
+    mapper = RecordMapperBuilder.buildMapper("MARC_AUTHORITY");
+    JsonObject parsedRecord = readJson(RECORDS_PATH + "parsedAuthorityRecordSubjectMetadata.json");
+    JsonObject expectedMappedAuthority = readJson(RECORDS_PATH + "mappedAuthorityRecordSubjectMetadata.json");
+    JsonObject mappingRules = readJson(DEFAULT_RULES_PATH + "marc_authority_rules.json");
+
+    var actualAuthority = mapper.mapRecord(parsedRecord, new MappingParameters(), mappingRules);
+    Assert.assertEquals(expectedMappedAuthority.encode(), JsonObject.mapFrom(actualAuthority).encode());
+  }
+
 
   private List<CallNumberType> getCallNumberTypeRefs(){
     return List.of(
