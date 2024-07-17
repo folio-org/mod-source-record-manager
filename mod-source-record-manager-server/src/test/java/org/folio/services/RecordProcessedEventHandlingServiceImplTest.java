@@ -201,7 +201,7 @@ public class RecordProcessedEventHandlingServiceImplTest extends AbstractRestTes
       new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
     ChangeEngineService changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, jobProfileSnapshotValidationService, kafkaConfig, fieldModificationService,
-      incomingRecordService, journalRecordService);
+      incomingRecordService, vertx);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);

@@ -2,9 +2,9 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.impl.future.FailedFuture;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
@@ -26,13 +26,17 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
+import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.util.ParsedRecordUtil;
+import org.folio.verticle.DataImportJournalBatchConsumerVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.NotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +54,7 @@ import static org.folio.rest.jaxrs.model.Record.RecordType.EDIFACT;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
+import static org.folio.services.journal.JournalUtil.getJournalMessageProducer;
 import static org.folio.verticle.consumers.util.JobExecutionUtils.isNeedToSkip;
 import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
@@ -77,6 +82,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
   private MappingRuleCache mappingRuleCache;
   private JobExecutionService jobExecutionService;
   private Vertx vertx;
+  private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
 
   public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
                                         @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
@@ -90,6 +96,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
     this.mappingRuleCache = mappingRuleCache;
     this.jobExecutionService = jobExecutionService;
     this.vertx = vertx;
+    this.journalRecordProducer = getJournalMessageProducer(vertx);
   }
 
   @Override
@@ -144,20 +151,21 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
   private void saveCreatedRecordsInfoToDataImportLog(List<Record> storedRecords, String tenantId) {
     MappingRuleCacheKey cacheKey = new MappingRuleCacheKey(tenantId, storedRecords.get(0).getRecordType());
+
     mappingRuleCache.get(cacheKey).onComplete(rulesAr -> {
       if (rulesAr.succeeded()) {
-        JsonArray journalRecords = buildJournalRecords(storedRecords, rulesAr.result());
-        journalService.saveBatch(journalRecords, tenantId);
+        Collection<BatchableJournalRecord> journalRecords = buildJournalRecords(storedRecords, rulesAr.result(), tenantId);
+        journalRecordProducer.write(journalRecords);
         return;
       }
-      JsonArray journalRecords = buildJournalRecords(storedRecords, Optional.empty());
-      journalService.saveBatch(journalRecords, tenantId);
+      Collection<BatchableJournalRecord> journalRecords = buildJournalRecords(storedRecords, Optional.empty(), tenantId);
+      journalRecordProducer.write(journalRecords);
     });
   }
 
-  private JsonArray buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional) {
+  private Collection<BatchableJournalRecord> buildJournalRecords(List<Record> storedRecords, Optional<JsonObject> mappingRulesOptional, String tenantId) {
     EntityType entityType = getEntityType(storedRecords);
-    JsonArray journalRecords = new JsonArray();
+    List<BatchableJournalRecord> journalRecords = new ArrayList<>();
 
     String titleFieldTag = null;
     List<String> subfieldCodes = null;
@@ -183,7 +191,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
         String retrievedTitleFromRecord = getTitleFromRecord(record, titleFieldTag, subfieldCodes);
         if (retrievedTitleFromRecord != null && retrievedTitleFromRecord.isEmpty()) retrievedTitleFromRecord = NO_TITLE_MESSAGE;
 
-        JournalRecord journalRecord = new JournalRecord()
+        BatchableJournalRecord journalRecord = new BatchableJournalRecord(new JournalRecord()
           .withJobExecutionId(record.getSnapshotId())
           .withSourceRecordOrder(record.getOrder())
           .withSourceId(record.getId())
@@ -192,9 +200,10 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .withActionType(CREATE)
           .withActionStatus(COMPLETED)
           .withActionDate(new Date())
-          .withTitle(retrievedTitleFromRecord);
+          .withTitle(retrievedTitleFromRecord)
+          .withTenantId(tenantId));
 
-        journalRecords.add(JsonObject.mapFrom(journalRecord));
+        journalRecords.add(journalRecord);
       }
     }
     return journalRecords;
