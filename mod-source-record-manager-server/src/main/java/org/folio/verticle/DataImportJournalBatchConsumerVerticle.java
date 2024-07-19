@@ -36,6 +36,7 @@ import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalUtil;
 import org.folio.util.DataImportEventPayloadWithoutCurrentNode;
 import org.folio.util.JournalEvent;
+import org.folio.util.SharedDataUtil;
 import org.folio.verticle.consumers.util.EventTypeHandlerSelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -194,6 +195,10 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     consumerProps.put(KafkaConfig.KAFKA_CONSUMER_AUTO_OFFSET_RESET_CONFIG, "latest");
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaTopicNameHelper.formatGroupName("DATA_IMPORT_JOURNAL_BATCH",
       constructModuleName() + "_" + getClass().getSimpleName()));
+    if(SharedDataUtil.getIsTesting(vertx.getDelegate())) {
+      // this will allow the consumer to retrieve messages faster during tests
+      consumerProps.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "1000");
+    }
 
     kafkaConsumer = KafkaConsumer.create(vertx, consumerProps);
 
@@ -233,19 +238,27 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       throw new IllegalStateException("KafkaConsumer not initialized");
     }
     return kafkaConsumer.toFlowable()
-      // Map each Kafka record to a Bundle object
       .map(record -> {
-        Map<String, String> map = kafkaHeadersToMap(record.headers());
-        OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
-        String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-        JournalEvent event = DatabindCodec.mapper().readValue(record.value(), JournalEvent.class);
+        try {
+          Map<String, String> map = kafkaHeadersToMap(record.headers());
+          OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
+          String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
+          JournalEvent event = DatabindCodec.mapper().readValue(record.value(), JournalEvent.class);
 
-        LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
-        // Create and return a Bundle object containing the record and event details
-        return new Bundle(record, event, okapiConnectionParams);
+          LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
+          // Successfully create and return a Bundle object containing the record and event details
+          return Optional.of(new Bundle(record, event, okapiConnectionParams));
+        } catch (Exception e) {
+          LOGGER.error("Error processing Kafka event with exception: {}", e.getMessage());
+          // Return empty Optional to skip this record and continue processing
+          return Optional.<Bundle>empty();
+        }
       })
+      .filter(Optional::isPresent)
+      .map(Optional::get)
       .flatMapSingle(bundle -> createJournalRecords(bundle)
         .map(records -> Pair.of(Optional.of(bundle), records))
+        .onErrorReturnItem(Pair.of(Optional.empty(), Collections.emptyList()))
       );
   }
 
@@ -281,21 +294,26 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Process each group of records
       .flatMapCompletable(groupedRecords -> groupedRecords.toList()
         .flatMapCompletable(pairs -> {
-            // Map and collect journal records, setting deterministic identifiers
-            Collection<JournalRecord> journalRecords = pairs
-              .stream()
-              .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
-              .map(this::setDeterministicIdentifer)
-              .collect(Collectors.toList());
-            // If no records or tenant ID is missing, complete without action
-            if (journalRecords.isEmpty() || groupedRecords.getKey().isEmpty()) return Completable.complete();
+            try {
+              // Map and collect journal records, setting deterministic identifiers
+              Collection<JournalRecord> journalRecords = pairs
+                .stream()
+                .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
+                .map(this::setDeterministicIdentifer)
+                .collect(Collectors.toList());
+              // If no records or tenant ID is missing, complete without action
+              if (journalRecords.isEmpty() || groupedRecords.getKey().isEmpty()) return Completable.complete();
 
-            LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey());
-            // Save the batch of journal records and handle the response
-            return AsyncResultCompletable.toCompletable(completionHandler -> batchJournalService.saveBatchWithResponse(
-              journalRecords,
-              groupedRecords.getKey().get(),
-              completionHandler));
+              LOGGER.info("saveJournalRecords:: Saving {} journal record(s) for tenantId={}", journalRecords.size(), groupedRecords.getKey().get());
+              // Save the batch of journal records and handle the response
+              return AsyncResultCompletable.toCompletable(completionHandler -> batchJournalService.saveBatchWithResponse(
+                journalRecords,
+                groupedRecords.getKey().get(),
+                completionHandler));
+            } catch (Exception e) {
+              LOGGER.error("Error processing grouped records for tenantId={}", groupedRecords.getKey().orElse("unknown"), e);
+              return Completable.complete();
+            }
           }
         )
       ).doFinally(() -> {
@@ -306,8 +324,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
           .map(Optional::get);
         commitKafkaEvents(bundleFlowable);
       })
-      .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable))
-      .onErrorComplete();
+      .doOnError(throwable -> LOGGER.error("Error occurred while processing journal events", throwable));
 
     // Connect the ConnectableFlowable to start emitting items
     flowable.connect();

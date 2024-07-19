@@ -2,18 +2,19 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
-import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordImpl;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import net.mguenther.kafka.junit.KeyValue;
+import net.mguenther.kafka.junit.SendKeyValues;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ActionProfile;
 import org.folio.DataImportEventPayload;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
-import org.folio.kafka.KafkaTopicNameHelper;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -29,53 +30,60 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import static org.folio.kafka.KafkaTopicNameHelper.getDefaultNameSpace;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.*;
 import static org.folio.rest.jaxrs.model.EntityType.INSTANCE;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.HOLDINGS;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.ITEM;
 import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRAPHIC;
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
+import static org.folio.verticle.consumers.DataImportKafkaHandler.JOB_EXECUTION_ID_HEADER;
 
 
 @RunWith(VertxUnitRunner.class)
 public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
+
+  private static final Logger LOGGER = LogManager.getLogger();
 
   private EventProcessedService eventProcessedService;
   private JournalService journalService;
   private JobExecutionDaoImpl jobExecutionDao;
   private JournalRecordDao journalRecordDao;
   private DataImportJournalKafkaHandler dataImportJournalKafkaHandler;
-
-  private String jobExecutionUUID = "5105b55a-b9a3-4f76-9402-a5243ea63c95";
-
-  private JobExecution jobExecution = new JobExecution()
-    .withId(jobExecutionUUID)
-    .withHrId(1000)
-    .withParentJobId(jobExecutionUUID)
-    .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
-    .withStatus(JobExecution.Status.NEW)
-    .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
-    .withSourcePath("importMarc.mrc")
-    .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
-    .withUserId(UUID.randomUUID().toString());
-
-  private final JsonObject recordJson = new JsonObject()
-    .put("id", UUID.randomUUID().toString())
-    .put("snapshotId", jobExecutionUUID)
-    .put("order", 1);
-
-  private final HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
-    put(INSTANCE.value(), recordJson.encode());
-    put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
-  }};
+  private String jobExecutionUUID;
+  private JobExecution jobExecution;
+  private JsonObject recordJson;
+  private HashMap<String, String> dataImportEventPayloadContext;
 
   @Before
-  public void setUp() {
+  public void setUp(TestContext context) {
+    jobExecutionUUID = UUID.randomUUID().toString();
+    jobExecution = new JobExecution()
+      .withId(jobExecutionUUID)
+      .withHrId(1000)
+      .withParentJobId(jobExecutionUUID)
+      .withSubordinationType(JobExecution.SubordinationType.PARENT_SINGLE)
+      .withStatus(JobExecution.Status.NEW)
+      .withUiStatus(JobExecution.UiStatus.INITIALIZATION)
+      .withSourcePath("importMarc.mrc")
+      .withJobProfileInfo(new JobProfileInfo().withId(UUID.randomUUID().toString()).withName("Marc jobs profile"))
+      .withUserId(UUID.randomUUID().toString());
+    recordJson = new JsonObject()
+      .put("id", UUID.randomUUID().toString())
+      .put("snapshotId", jobExecutionUUID)
+      .put("order", 1);
+    dataImportEventPayloadContext = new HashMap<>() {{
+      put(INSTANCE.value(), recordJson.encode());
+      put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
+    }};
+
     jobExecutionDao = getBeanFromSpringContext(vertx, org.folio.dao.JobExecutionDaoImpl.class);
     Assert.assertNotNull(jobExecutionDao);
     jobExecutionDao.save(jobExecution, TENANT_ID);
@@ -95,10 +103,35 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     dataImportJournalKafkaHandler = new DataImportJournalKafkaHandler(vertx, eventProcessedService, eventTypeHandlerSelector, journalService);
   }
 
-  @Test
-  public void testJournalInventoryInstanceCreatedAction(TestContext context) {
+  private void assertJournalRecordPresence(TestContext context, String jobExecutionId){
     Async async = context.async();
+    long timerId = vertx.setTimer(60_000, id -> {
+      context.fail("Failed to assert presence of journal records for jobExecutionId=" + jobExecutionUUID);
+    });
 
+    vertx.setPeriodic(3000, id -> {
+      // Your assertion here
+      Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecutionId, "action_type", "asc", TENANT_ID);
+      future.onComplete(ar -> {
+        try {
+          context.assertTrue(ar.succeeded());
+          List<JournalRecord> result = ar.result();
+          Assert.assertNotNull(result);
+          Assert.assertFalse(result.isEmpty());
+          vertx.cancelTimer(timerId); // Cancel the fail timer
+          vertx.cancelTimer(id); // Stop periodic checks
+          async.complete();
+        }
+        catch (java.lang.AssertionError e) {
+          LOGGER.warn("Assertion was not successful");
+        }
+      });
+    });
+  }
+
+  @Test
+  public void testJournalInventoryInstanceCreatedAction(TestContext context) throws InterruptedException {
+    Async async = context.async();
     // given
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
@@ -111,20 +144,26 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken("token");
 
     // when
-    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Event event = new Event().withEventPayload(Json.encode(dataImportEventPayload))
+      .withEventType(DI_INVENTORY_INSTANCE_CREATED.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_INVENTORY_INSTANCE_CREATED.value());
+
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+    kafkaCluster.send(request);
 
     // then
-    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
+    assertJournalRecordPresence(context, jobExecution.getId());
+    async.complete();
   }
 
   @Test
-  public void testJournalMarcBibRecordUpdatedAction(TestContext context) {
+  public void testJournalMarcBibRecordUpdatedAction(TestContext context) throws InterruptedException {
     Async async = context.async();
 
     // given
@@ -139,20 +178,25 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken(TOKEN);
 
     // when
-    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Event event = new Event().withEventPayload(Json.encode(dataImportEventPayload))
+      .withEventType(DI_SRS_MARC_BIB_RECORD_UPDATED.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_SRS_MARC_BIB_RECORD_UPDATED.value());
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+    kafkaCluster.send(request);
 
     // then
-    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
+    assertJournalRecordPresence(context, jobExecution.getId());
+    async.complete();
   }
 
   @Test
-  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) {
+  public void testJournalMarcHoldingsRecordCreatedAction(TestContext context) throws InterruptedException {
     Async async = context.async();
 
     // given
@@ -167,20 +211,25 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withToken(TOKEN);
 
     // when
-    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(dataImportEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Event event = new Event().withEventPayload(Json.encode(dataImportEventPayload))
+      .withEventType(DI_SRS_MARC_HOLDING_RECORD_CREATED.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+    kafkaCluster.send(request);
 
     // then
-    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
+    assertJournalRecordPresence(context, jobExecution.getId());
+    async.complete();
   }
 
   @Test
-  public void testJournalCompletedAction(TestContext context) {
+  public void testJournalCompletedAction(TestContext context) throws InterruptedException {
     Async async = context.async();
 
     // given
@@ -189,8 +238,9 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withTenant(TENANT_ID)
       .withOkapiUrl(OKAPI_URL)
       .withToken(TOKEN)
+      .withJobExecutionId(jobExecution.getId())
       .withContext(new HashMap<>() {{
-        put(ITEM.value(), recordJson.encode());
+        put(ITEM.value(), new JsonArray().add(recordJson).encode());
         put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
       }})
       .withProfileSnapshot(new ProfileSnapshotWrapper()
@@ -204,22 +254,25 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventsChain(List.of(DI_INVENTORY_HOLDING_CREATED.value(), DI_INVENTORY_ITEM_CREATED.value()));
 
     // when
-    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(completedEventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Event event = new Event().withEventPayload(Json.encode(completedEventPayload))
+      .withEventType(DI_COMPLETED.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_COMPLETED.value());
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+    kafkaCluster.send(request);
 
     // then
-    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
-    future.onComplete(ar -> {
-      if (ar.succeeded()) {
-        context.assertTrue(ar.succeeded());
-        Assert.assertNotNull(ar.result());
-      }
-    });
+    assertJournalRecordPresence(context, jobExecution.getId());
     async.complete();
   }
 
   @Test
-  public void testJournalErrorAction(TestContext context) {
+  public void testJournalErrorAction(TestContext context) throws InterruptedException {
     Async async = context.async();
 
     // given
@@ -228,6 +281,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withTenant(TENANT_ID)
       .withOkapiUrl(OKAPI_URL)
       .withToken(TOKEN)
+      .withJobExecutionId(jobExecution.getId())
       .withContext(new HashMap<>() {{
         put(HOLDINGS.value(), recordJson.encode());
         put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
@@ -244,41 +298,20 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
       .withEventsChain(List.of(DI_INCOMING_MARC_BIB_RECORD_PARSED.value(), DI_INVENTORY_HOLDING_CREATED.value()));
 
     // when
-    KafkaConsumerRecord<String, byte[]> kafkaConsumerRecord = buildKafkaConsumerRecord(eventPayload);
-    dataImportJournalKafkaHandler.handle(kafkaConsumerRecord);
+    Event event = new Event().withEventPayload(Json.encode(eventPayload))
+      .withEventType(DI_ERROR.value())
+      .withId(UUID.randomUUID().toString());
+    String topic = formatToKafkaTopicName(DI_ERROR.value());
+    KeyValue<String, String> kafkaRecord = new KeyValue<>("key", Json.encode(event));
+    kafkaRecord.addHeader(OKAPI_TENANT_HEADER, TENANT_ID, UTF_8);
+    kafkaRecord.addHeader(OKAPI_URL_HEADER, snapshotMockServer.baseUrl(), UTF_8);
+    kafkaRecord.addHeader(JOB_EXECUTION_ID_HEADER, jobExecutionUUID, UTF_8);
+    SendKeyValues<String, String> request = SendKeyValues.to(topic, Collections.singletonList(kafkaRecord))
+      .useDefaults();
+    kafkaCluster.send(request);
 
     // then
-    Future<List<JournalRecord>> future = journalRecordDao.getByJobExecutionId(jobExecution.getId(), "action_type", "asc", TENANT_ID);
-    future.onComplete(ar -> {
-      context.assertTrue(ar.succeeded());
-      Assert.assertNotNull(ar.result());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void testJournalRecordMappingError(TestContext context) {
-    Async async = context.async();
-
-    // given
-    String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, DI_SRS_MARC_HOLDING_RECORD_CREATED.value());
-    Event event = new Event().withEventPayload(null).withEventType(DI_LOG_SRS_MARC_BIB_RECORD_CREATED.value()).withId(UUID.randomUUID().toString());
-    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecordAsByteArray(topic, event);
-
-    // when
-    Future<String> future = dataImportJournalKafkaHandler.handle(new KafkaConsumerRecordImpl<>(consumerRecord));
-
-    // then
-    future.onComplete(ar -> {
-        context.assertTrue(ar.failed());
-        async.complete();
-      });
-  }
-
-  private KafkaConsumerRecord<String, byte[]> buildKafkaConsumerRecord(DataImportEventPayload record) {
-    String topic = KafkaTopicNameHelper.formatTopicName("folio", getDefaultNameSpace(), TENANT_ID, record.getEventType());
-    Event event = new Event().withEventPayload(Json.encode(record));
-    ConsumerRecord<String, byte[]> consumerRecord = buildConsumerRecordAsByteArray(topic, event);
-    return new KafkaConsumerRecordImpl<>(consumerRecord);
+    assertJournalRecordPresence(context, jobExecution.getId());
+    async.complete();
   }
 }

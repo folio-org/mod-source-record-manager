@@ -133,7 +133,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
             journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
               journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
           } catch (JournalRecordMapperException e) {
-            throw new RuntimeException(e);
+            return Future.failedFuture(e);
           }
           return Future.all(improveJournalRecordsIfNeeded(batchJournalService.getJournalService(), eventPayload, tenantId, journalRecords))
             .map(ar -> ar.result().<JournalRecord>list());
