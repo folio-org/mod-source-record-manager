@@ -65,6 +65,7 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.FieldModificationServiceImpl;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.journal.JournalUtil;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
@@ -92,7 +93,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   public RunTestOnContext rule = new RunTestOnContext();
 
   @Spy
-  private Vertx vertx = Vertx.vertx();
+  private Vertx vertx = JournalUtil.registerCodecs(Vertx.vertx());
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy

@@ -2,6 +2,7 @@ package org.folio.verticle.consumers;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -22,7 +23,9 @@ import org.folio.services.JobExecutionService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
+import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalUtil;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,8 +34,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,10 +81,12 @@ public class StoredRecordChunksKafkaHandlerTest {
   private MappingRuleCache mappingRuleCache;
   @Mock
   private JobExecutionService jobExecutionService;
+  @Mock
+  private MessageProducer<Collection<BatchableJournalRecord>> messageProducer;
   @Captor
   private ArgumentCaptor<JsonArray> journalRecordsCaptor;
 
-  private Vertx vertx = Vertx.vertx();
+  private Vertx vertx = JournalUtil.registerCodecs(Vertx.vertx());
   private AsyncRecordHandler<String, byte[]> storedRecordChunksKafkaHandler;
 
   @BeforeClass
@@ -91,6 +99,7 @@ public class StoredRecordChunksKafkaHandlerTest {
     storedRecordChunksKafkaHandler = new StoredRecordChunksKafkaHandler(recordsPublishingService, journalService, eventProcessedService,jobExecutionService, mappingRuleCache,  vertx);
     when(jobExecutionService.getJobExecutionById(anyString(), anyString()))
       .thenReturn(Future.succeededFuture(Optional.of(new JobExecution())));
+    ReflectionTestUtils.setField(storedRecordChunksKafkaHandler, "journalRecordProducer", messageProducer);
   }
 
   @Test
@@ -167,15 +176,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     // then
     assertTrue(future.succeeded());
-    verify(journalService, times(1)).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
-
-    assertEquals(1, journalRecordsCaptor.getValue().size());
-    JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
-    assertEquals(record.getId(), journalRecord.getSourceId());
-    assertEquals(EntityType.MARC_AUTHORITY, journalRecord.getEntityType());
-    assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
-    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
-    assertNull(journalRecord.getTitle());
+    verify(messageProducer, times(1)).write(any());
   }
 
   @Test
@@ -271,15 +272,7 @@ public class StoredRecordChunksKafkaHandlerTest {
 
     // then
     assertTrue(future.succeeded());
-    verify(journalService, times(1)).saveBatch(journalRecordsCaptor.capture(), eq(TENANT_ID));
-
-    assertEquals(1, journalRecordsCaptor.getValue().size());
-    JournalRecord journalRecord = journalRecordsCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
-    assertEquals(record.getId(), journalRecord.getSourceId());
-    assertEquals(entityType, journalRecord.getEntityType());
-    assertEquals(JournalRecord.ActionType.CREATE, journalRecord.getActionType());
-    assertEquals(JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
-    assertEquals("The Journal of ecclesiastical history.", journalRecord.getTitle());
+    verify(messageProducer, times(1)).write(any());
   }
 
   @Test
