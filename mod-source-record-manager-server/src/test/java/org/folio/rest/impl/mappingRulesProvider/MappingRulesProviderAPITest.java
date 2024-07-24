@@ -2,6 +2,7 @@ package org.folio.rest.impl.mappingRulesProvider;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
@@ -128,8 +129,9 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   }
 
   private void shouldReturnDefaultMarcRulesOnGet(String defaultMarcBibRulesPath, String recordType) throws IOException {
-    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(defaultMarcBibRulesPath));
-    JsonObject defaultRules = new JsonObject(
+
+    JsonNode expectedRules = mapper.readTree(TestUtil.readFileFromPath(defaultMarcBibRulesPath));
+    JsonNode defaultRules = mapper.readTree(
       RestAssured.given()
         .spec(spec)
         .when()
@@ -139,6 +141,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
         .extract().body().asString());
     Assert.assertNotNull(defaultRules);
     Assert.assertFalse(defaultRules.isEmpty());
+
     Assert.assertEquals(expectedRules, defaultRules);
   }
 
