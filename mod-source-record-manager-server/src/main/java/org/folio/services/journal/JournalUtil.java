@@ -235,8 +235,9 @@ public class JournalUtil {
   /**
    * Register needed message codecs for journal processing
    */
-  public static void registerCodecs(Vertx vertx) {
+  public static Vertx registerCodecs(Vertx vertx) {
     vertx.eventBus().registerCodec(new BatchableJournalRecordCodec());
+    return vertx;
   }
 
   private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {

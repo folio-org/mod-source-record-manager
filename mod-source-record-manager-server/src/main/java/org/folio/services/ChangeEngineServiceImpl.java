@@ -64,6 +64,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
@@ -315,7 +316,8 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
     if (!parsedRecords.isEmpty()) {
-      incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
+      List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(parsedRecords);
+      incomingRecordService.saveBatch(incomingRecords, tenantId);
       List<BatchableJournalRecord> batchableJournalRecords = JournalUtil.buildJournalRecordsByRecords(parsedRecords).stream()
         .map(r -> new BatchableJournalRecord(r.withTenantId(tenantId)))
         .collect(Collectors.toList());
