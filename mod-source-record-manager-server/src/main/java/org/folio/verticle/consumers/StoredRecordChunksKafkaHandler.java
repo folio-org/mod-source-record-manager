@@ -29,7 +29,6 @@ import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalService;
 import org.folio.services.util.ParsedRecordUtil;
-import org.folio.verticle.DataImportJournalBatchConsumerVerticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -78,21 +77,18 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
 
   private RecordsPublishingService recordsPublishingService;
   private EventProcessedService eventProcessedService;
-  private JournalService journalService;
   private MappingRuleCache mappingRuleCache;
   private JobExecutionService jobExecutionService;
   private Vertx vertx;
   private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
 
   public StoredRecordChunksKafkaHandler(@Autowired @Qualifier("recordsPublishingService") RecordsPublishingService recordsPublishingService,
-                                        @Autowired @Qualifier("journalServiceProxy") JournalService journalService,
                                         @Autowired @Qualifier("eventProcessedService") EventProcessedService eventProcessedService,
                                         @Autowired JobExecutionService jobExecutionService,
                                         @Autowired MappingRuleCache mappingRuleCache,
                                         @Autowired Vertx vertx) {
     this.recordsPublishingService = recordsPublishingService;
     this.eventProcessedService = eventProcessedService;
-    this.journalService = journalService;
     this.mappingRuleCache = mappingRuleCache;
     this.jobExecutionService = jobExecutionService;
     this.vertx = vertx;

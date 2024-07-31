@@ -320,7 +320,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
       incomingRecordService.saveBatch(incomingRecords, tenantId);
       List<BatchableJournalRecord> batchableJournalRecords = JournalUtil.buildJournalRecordsByRecords(parsedRecords).stream()
         .map(r -> new BatchableJournalRecord(r.withTenantId(tenantId)))
-        .collect(Collectors.toList());
+        .toList();
       journalRecordProducer.write(batchableJournalRecords);
     }
   }

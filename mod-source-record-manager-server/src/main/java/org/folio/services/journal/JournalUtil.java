@@ -16,7 +16,6 @@ import org.folio.rest.jaxrs.model.DataImportEventTypes;
 import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.progress.BatchableJobExecutionProgressCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;

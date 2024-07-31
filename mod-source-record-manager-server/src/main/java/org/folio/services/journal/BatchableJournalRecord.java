@@ -3,9 +3,7 @@ package org.folio.services.journal;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.JournalRecord;
 
-import java.io.Serializable;
-
-public class BatchableJournalRecord implements Serializable {
+public class BatchableJournalRecord {
   private final JournalRecord journalRecord;
 
   public BatchableJournalRecord(JournalRecord journalRecord) {

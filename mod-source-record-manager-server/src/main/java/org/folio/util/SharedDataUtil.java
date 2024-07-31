@@ -5,8 +5,10 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.SharedData;
 
 public class SharedDataUtil {
-  private static String DEFAULT_LOCAL_MAP_NAME = "sharedLocalMap";
-  private static String TEST_SHARED_LOCAL_MAP_KEY = "isTesting";
+  private static final String DEFAULT_LOCAL_MAP_NAME = "sharedLocalMap";
+  private static final String TEST_SHARED_LOCAL_MAP_KEY = "isTesting";
+
+  private SharedDataUtil() {}
 
   public static void setIsTesting(Vertx vertx) {
     final SharedData sd = vertx.sharedData();

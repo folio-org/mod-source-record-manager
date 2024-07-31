@@ -220,9 +220,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     // it should have been resolved here https://github.com/vert-x3/vertx-kafka-client/issues/156,
     // the code below is the equivalent if the method was exposed. when the issue is resolved, regular APIs can be
     // used.
-    io.reactivex.rxjava3.core.Completable ret = AsyncResultCompletable.toCompletable(completionHandler -> {
-      kafkaConsumer.getDelegate().subscribe(pattern, completionHandler);
-    });
+    io.reactivex.rxjava3.core.Completable ret = AsyncResultCompletable.toCompletable(completionHandler ->
+      kafkaConsumer.getDelegate().subscribe(pattern, completionHandler)
+    );
     ret = ret.cache();
     ret.subscribe(io.vertx.rxjava3.CompletableHelper.nullObserver());
     return ret;
@@ -238,16 +238,16 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       throw new IllegalStateException("KafkaConsumer not initialized");
     }
     return kafkaConsumer.toFlowable()
-      .map(record -> {
+      .map(consumerRecord -> {
         try {
-          Map<String, String> map = kafkaHeadersToMap(record.headers());
+          Map<String, String> map = kafkaHeadersToMap(consumerRecord.headers());
           OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(map, vertx.getDelegate());
           String recordId = okapiConnectionParams.getHeaders().get(RECORD_ID_HEADER);
-          JournalEvent event = DatabindCodec.mapper().readValue(record.value(), JournalEvent.class);
+          JournalEvent event = DatabindCodec.mapper().readValue(consumerRecord.value(), JournalEvent.class);
 
           LOGGER.debug("handle:: Event was received with recordId: {} event type: {}", recordId, event.getEventType());
           // Successfully create and return a Bundle object containing the record and event details
-          return Optional.of(new Bundle(record, event, okapiConnectionParams));
+          return Optional.of(new Bundle(consumerRecord, event, okapiConnectionParams));
         } catch (Exception e) {
           LOGGER.error("Error processing Kafka event with exception: {}", e.getMessage());
           // Return empty Optional to skip this record and continue processing
@@ -289,7 +289,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Group records by tenant ID
       .groupBy(pair -> {
         Optional<BatchableJournalRecord> first = pair.getRight().stream().findFirst();
-        return first.map(record -> record.getJournalRecord().getTenantId());
+        return first.map(journalRecord -> journalRecord.getJournalRecord().getTenantId());
       })
       // Process each group of records
       .flatMapCompletable(groupedRecords -> groupedRecords.toList()
@@ -336,7 +336,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     DataImportEventPayloadWithoutCurrentNode eventPayload = bundle.event().getEventPayload();
     String tenantId = bundle.okapiConnectionParams.getTenantId();
     return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload).transform(batchJournalService, eventPayload, tenantId),
-      col -> col.stream().map(BatchableJournalRecord::new).collect(Collectors.toList()));
+      col -> col.stream().map(BatchableJournalRecord::new).toList());
   }
 
   private void commitKafkaEvents(Flowable<Bundle> bundles) {
@@ -363,9 +363,9 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Commit the offsets
       .flatMapCompletable(offsets -> {
         LOGGER.info("Committing offsets: {}", offsets);
-        return AsyncResultCompletable.toCompletable(completionHandler -> {
-            kafkaConsumer.getDelegate().commit(offsets, completionHandler);
-          })
+        return AsyncResultCompletable.toCompletable(completionHandler ->
+            kafkaConsumer.getDelegate().commit(offsets, completionHandler)
+          )
           .doOnComplete(() -> LOGGER.info("Committed the following offsets: {}", offsets))
           .doOnError(throwable -> LOGGER.error("DataImportJournalBatchConsumer:: Error while commit offsets: {}", offsets, throwable))
           .onErrorComplete();
@@ -403,22 +403,22 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
                         OkapiConnectionParams okapiConnectionParams) {
   }
 
-  private JournalRecord setDeterministicIdentifer(JournalRecord record) {
+  private JournalRecord setDeterministicIdentifer(JournalRecord journalRecord) {
     String recordStr = DATA_IMPORT_JOURNAL_BATCH_KAFKA_HANDLER_UUID + // namespace
-      record.getJobExecutionId() +
-      record.getSourceId() +
-      record.getSourceRecordOrder() +
-      record.getEntityType() +
-      record.getEntityId() +
-      record.getActionType() +
-      record.getActionStatus() +
-      record.getTitle() +
-      record.getTenantId();
+      journalRecord.getJobExecutionId() +
+      journalRecord.getSourceId() +
+      journalRecord.getSourceRecordOrder() +
+      journalRecord.getEntityType() +
+      journalRecord.getEntityId() +
+      journalRecord.getActionType() +
+      journalRecord.getActionStatus() +
+      journalRecord.getTitle() +
+      journalRecord.getTenantId();
 
     // use UUIDv3 to derive deterministic UUIDs with the same input record
     UUID uuidv3 = UUID.nameUUIDFromBytes(recordStr.getBytes());
-    record.setId(uuidv3.toString());
-    return record;
+    journalRecord.setId(uuidv3.toString());
+    return journalRecord;
   }
 
 

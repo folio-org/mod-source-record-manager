@@ -7,7 +7,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValues;
 import org.apache.logging.log4j.LogManager;
@@ -17,7 +16,6 @@ import org.folio.DataImportEventPayload;
 import org.folio.TestUtil;
 import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JournalRecordDao;
-import org.folio.kafka.exception.DuplicateEventException;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.Event;
 import org.folio.rest.jaxrs.model.JobExecution;
@@ -33,8 +31,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -54,15 +50,7 @@ import static org.folio.rest.jaxrs.model.JournalRecord.EntityType.MARC_BIBLIOGRA
 import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.services.journal.JournalUtil.ERROR_KEY;
-import static org.folio.verticle.consumers.DataImportJournalKafkaHandler.DATA_IMPORT_JOURNAL_KAFKA_HANDLER_UUID;
 import static org.folio.verticle.consumers.DataImportKafkaHandler.JOB_EXECUTION_ID_HEADER;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(VertxUnitRunner.class)
