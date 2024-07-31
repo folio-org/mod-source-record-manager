@@ -27,7 +27,6 @@ import org.folio.services.MappingRuleCache;
 import org.folio.services.RecordsPublishingService;
 import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.services.journal.BatchableJournalRecord;
-import org.folio.services.journal.JournalService;
 import org.folio.services.util.ParsedRecordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

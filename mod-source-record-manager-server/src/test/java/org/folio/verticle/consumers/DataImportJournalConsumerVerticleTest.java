@@ -68,7 +68,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   private HashMap<String, String> dataImportEventPayloadContext;
 
   @Before
-  public void setUp(TestContext context) {
+  public void testSetUp() {
     jobExecutionUUID = UUID.randomUUID().toString();
     jobExecution = new JobExecution()
       .withId(jobExecutionUUID)
@@ -107,7 +107,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
   }
 
   private void assertJournalRecord(TestContext context, String jobExecutionId) {
-    assertJournalRecord(context, jobExecutionId, (records) -> true);
+    assertJournalRecord(context, jobExecutionId, records -> true);
   }
 
   @SuppressWarnings("java:S5779")
@@ -330,7 +330,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
 
     // given
     String incomingRecordId = UUID.randomUUID().toString();
-    HashMap<String, String> dataImportEventPayloadContext = new HashMap<>() {{
+    HashMap<String, String> dataImportEventContext = new HashMap<>() {{
       put(MARC_BIBLIOGRAPHIC.value(), recordJson.encode());
       put(ERROR_KEY, "java.lang.IllegalStateException: Unsupported Marc record type");
       put("INCOMING_RECORD_ID", incomingRecordId);
@@ -339,7 +339,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_ERROR.value())
       .withJobExecutionId(jobExecution.getId())
-      .withContext(dataImportEventPayloadContext)
+      .withContext(dataImportEventContext)
       .withOkapiUrl(OKAPI_URL)
       .withTenant(TENANT_ID)
       .withToken("token");
@@ -358,12 +358,12 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    assertJournalRecord(context, jobExecution.getId(), (journalRecords) -> journalRecords.stream().anyMatch(record -> {
-      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), record.getEntityType().value());
-      Assert.assertEquals("Action Type:", JournalRecord.ActionType.CREATE.value(), record.getActionType().value());
-      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.ERROR.value(), record.getActionStatus().value());
-      Assert.assertEquals("Source Record id:", incomingRecordId, record.getSourceId());
-      Assert.assertNotNull(record.getError());
+    assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
+      Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC.value(), journalRecord.getEntityType().value());
+      Assert.assertEquals("Action Type:", JournalRecord.ActionType.CREATE.value(), journalRecord.getActionType().value());
+      Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.ERROR.value(), journalRecord.getActionStatus().value());
+      Assert.assertEquals("Source Record id:", incomingRecordId, journalRecord.getSourceId());
+      Assert.assertNotNull(journalRecord.getError());
       return true;
     }));
     async.complete();
@@ -374,15 +374,15 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     Async async = context.async();
 
     // given
-    Record record = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
-    record.setSnapshotId(jobExecution.getId());
+    Record diRecord = Json.decodeValue(TestUtil.readFileFromPath(RECORD_PATH), Record.class);
+    diRecord.setSnapshotId(jobExecution.getId());
     DataImportEventPayload dataImportEventPayload = new DataImportEventPayload()
       .withEventType(DI_SRS_MARC_BIB_RECORD_MODIFIED.value())
       .withJobExecutionId(jobExecution.getId())
       .withOkapiUrl(OKAPI_URL)
       .withTenant(TENANT_ID)
       .withContext(new HashMap<>() {{
-        put(MARC_BIBLIOGRAPHIC.value(), Json.encode(record));
+        put(MARC_BIBLIOGRAPHIC.value(), Json.encode(diRecord));
       }});
 
     // when
@@ -399,7 +399,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     kafkaCluster.send(request);
 
     // then
-    assertJournalRecord(context, jobExecution.getId(), (journalRecords) -> journalRecords.stream().anyMatch(journalRecord -> {
+    assertJournalRecord(context, jobExecution.getId(), journalRecords -> journalRecords.stream().anyMatch(journalRecord -> {
       Assert.assertEquals("Entity Type:", JournalRecord.EntityType.MARC_BIBLIOGRAPHIC, journalRecord.getEntityType());
       Assert.assertEquals("Action Type:", JournalRecord.ActionType.MODIFY, journalRecord.getActionType());
       Assert.assertEquals("Action Status:", JournalRecord.ActionStatus.COMPLETED, journalRecord.getActionStatus());
@@ -443,7 +443,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
 
     vertx.setTimer(2000, timerId -> {
       // then
-      assertJournalRecord(context, jobExecution.getId(), (journalRecords) -> (long) journalRecords.size() == 1);
+      assertJournalRecord(context, jobExecution.getId(), journalRecords -> (long) journalRecords.size() == 1);
       async.complete();
     });
 

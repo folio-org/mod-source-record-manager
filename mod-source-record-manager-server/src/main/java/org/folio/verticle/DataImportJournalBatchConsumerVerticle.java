@@ -300,7 +300,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
                 .stream()
                 .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
                 .map(this::setDeterministicIdentifer)
-                .collect(Collectors.toList());
+                .toList();
               // If no records or tenant ID is missing, complete without action
               if (journalRecords.isEmpty() || groupedRecords.getKey().isEmpty()) return Completable.complete();
 
