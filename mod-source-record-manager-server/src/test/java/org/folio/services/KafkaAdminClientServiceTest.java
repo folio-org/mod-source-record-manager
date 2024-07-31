@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.folio.kafka.services.KafkaAdminClientService;
+import org.folio.kafka.services.KafkaEnvironmentProperties;
 import org.folio.kafka.services.KafkaTopic;
 import org.folio.services.kafka.SRMKafkaTopicService;
 import org.folio.services.kafka.support.SRMKafkaTopic;
@@ -145,16 +146,17 @@ public class KafkaAdminClientServiceTest {
     }
   }
 
+  private final String env = KafkaEnvironmentProperties.environment();
   private final Set<String> allExpectedTopics = Set.of(
-    "folio.Default.foo-tenant.DI_COMPLETED",
-    "folio.Default.foo-tenant.DI_ERROR",
-    "folio.Default.foo-tenant.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
-    "folio.Default.foo-tenant.DI_SRS_MARC_HOLDING_RECORD_CREATED",
-    "folio.Default.foo-tenant.DI_RAW_RECORDS_CHUNK_PARSED",
-    "folio.Default.foo-tenant.DI_MARC_FOR_UPDATE_RECEIVED",
-    "folio.Default.foo-tenant.DI_MARC_FOR_DELETE_RECEIVED",
-    "folio.Default.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
-    "folio.Default.foo-tenant.DI_INCOMING_MARC_BIB_RECORD_PARSED",
-    "folio.Default.foo-tenant.DI_INCOMING_EDIFACT_RECORD_PARSED"
+    env + ".Default.foo-tenant.DI_COMPLETED",
+    env + ".Default.foo-tenant.DI_ERROR",
+    env + ".Default.foo-tenant.DI_SRS_MARC_AUTHORITY_RECORD_CREATED",
+    env + ".Default.foo-tenant.DI_SRS_MARC_HOLDING_RECORD_CREATED",
+    env + ".Default.foo-tenant.DI_RAW_RECORDS_CHUNK_PARSED",
+    env + ".Default.foo-tenant.DI_MARC_FOR_UPDATE_RECEIVED",
+    env + ".Default.foo-tenant.DI_MARC_FOR_DELETE_RECEIVED",
+    env + ".Default.foo-tenant.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED",
+    env + ".Default.foo-tenant.DI_INCOMING_MARC_BIB_RECORD_PARSED",
+    env + ".Default.foo-tenant.DI_INCOMING_EDIFACT_RECORD_PARSED"
   );
 }
