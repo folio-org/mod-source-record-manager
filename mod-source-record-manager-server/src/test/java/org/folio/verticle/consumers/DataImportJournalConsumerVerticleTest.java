@@ -122,6 +122,7 @@ public class DataImportJournalConsumerVerticleTest extends AbstractRestTest {
     assertJournalRecord(context, jobExecutionId, (records) -> true);
   }
 
+  @SuppressWarnings("java:S5779")
   private void assertJournalRecord(TestContext context, String jobExecutionId, Predicate<Collection<JournalRecord>> valueChecker) {
     Async async = context.async();
     long timerId = vertx.setTimer(60_000, id -> {
