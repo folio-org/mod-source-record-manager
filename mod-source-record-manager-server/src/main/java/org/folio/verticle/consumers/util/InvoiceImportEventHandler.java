@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.folio.DataImportEventPayload;
 import org.folio.rest.jaxrs.model.JournalRecord;
-import org.folio.services.journal.BatchJournalService;
 import org.folio.services.journal.InvoiceUtil;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
@@ -27,7 +26,7 @@ public class InvoiceImportEventHandler implements SpecificEventHandler {
   }
 
   @Override
-  public Future<Collection<JournalRecord>> transform(BatchJournalService journalService, DataImportEventPayload eventPayload, String tenantId) throws JournalRecordMapperException, JsonProcessingException {
+  public Future<Collection<JournalRecord>> transform(JournalService journalService, DataImportEventPayload eventPayload, String tenantId) throws JournalRecordMapperException, JsonProcessingException {
     List<JournalRecord> journalRecords = InvoiceUtil.buildJournalRecordByEvent(eventPayload);
     return Future.succeededFuture(journalRecords);
   }

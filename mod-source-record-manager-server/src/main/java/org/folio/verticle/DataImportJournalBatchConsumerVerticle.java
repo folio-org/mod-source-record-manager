@@ -335,7 +335,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
   private Single<Collection<BatchableJournalRecord>> createJournalRecords(Bundle bundle) throws JsonProcessingException, JournalRecordMapperException {
     DataImportEventPayloadWithoutCurrentNode eventPayload = bundle.event().getEventPayload();
     String tenantId = bundle.okapiConnectionParams.getTenantId();
-    return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload).transform(batchJournalService, eventPayload, tenantId),
+    return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload).transform(batchJournalService.getJournalService(), eventPayload, tenantId),
       col -> col.stream().map(BatchableJournalRecord::new).toList());
   }
 

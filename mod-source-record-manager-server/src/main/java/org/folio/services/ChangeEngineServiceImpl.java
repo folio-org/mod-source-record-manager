@@ -316,9 +316,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
     if (!parsedRecords.isEmpty()) {
-      List<IncomingRecord> incomingRecords = JournalUtil.buildIncomingRecordsByRecords(parsedRecords);
-      incomingRecordService.saveBatch(incomingRecords, tenantId);
-      List<BatchableJournalRecord> batchableJournalRecords = JournalUtil.buildJournalRecordsByRecords(parsedRecords).stream()
+      incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
+      List<BatchableJournalRecord> batchableJournalRecords = JournalUtil.buildJournalRecordsByRecords(parsedRecords)
+        .stream()
         .map(r -> new BatchableJournalRecord(r.withTenantId(tenantId)))
         .toList();
       journalRecordProducer.write(batchableJournalRecords);

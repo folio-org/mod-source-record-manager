@@ -121,7 +121,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
   }
 
   @Override
-  public Future<Collection<JournalRecord>> transform(BatchJournalService batchJournalService, DataImportEventPayload eventPayload, String tenantId)
+  public Future<Collection<JournalRecord>> transform(JournalService journalService, DataImportEventPayload eventPayload, String tenantId)
     {
         Optional<JournalParams> journalParamsOptional =
           JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
@@ -135,7 +135,7 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           } catch (JournalRecordMapperException e) {
             return Future.failedFuture(e);
           }
-          return Future.all(improveJournalRecordsIfNeeded(batchJournalService.getJournalService(), eventPayload, tenantId, journalRecords))
+          return Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
             .map(ar -> ar.result().<JournalRecord>list());
         }
         return Future.succeededFuture();
