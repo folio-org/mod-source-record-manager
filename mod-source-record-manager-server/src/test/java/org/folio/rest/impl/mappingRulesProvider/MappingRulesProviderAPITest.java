@@ -2,7 +2,6 @@ package org.folio.rest.impl.mappingRulesProvider;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.vertx.core.json.JsonArray;
@@ -43,7 +42,7 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
     shouldReturnDefaultMarcRulesOnGet(DEFAULT_MARC_HOLDINGS_RULES_PATH, MARC_HOLDINGS);
   }
 
-  @Ignore
+  @Ignore("custom migration occur that change the default auth rules")
   public void shouldReturnDefaultMarcAuthorityRulesOnGet() throws IOException {
     shouldReturnDefaultMarcRulesOnGet(DEFAULT_MARC_AUTHORITY_RULES_PATH, MARC_AUTHORITY);
   }
@@ -130,9 +129,8 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
   }
 
   private void shouldReturnDefaultMarcRulesOnGet(String defaultMarcBibRulesPath, String recordType) throws IOException {
-
-    JsonNode expectedRules = mapper.readTree(TestUtil.readFileFromPath(defaultMarcBibRulesPath));
-    JsonNode defaultRules = mapper.readTree(
+    JsonObject expectedRules = new JsonObject(TestUtil.readFileFromPath(defaultMarcBibRulesPath));
+    JsonObject defaultRules = new JsonObject(
       RestAssured.given()
         .spec(spec)
         .when()
@@ -142,7 +140,6 @@ public class MappingRulesProviderAPITest extends AbstractRestTest {
         .extract().body().asString());
     Assert.assertNotNull(defaultRules);
     Assert.assertFalse(defaultRules.isEmpty());
-
     Assert.assertEquals(expectedRules, defaultRules);
   }
 
