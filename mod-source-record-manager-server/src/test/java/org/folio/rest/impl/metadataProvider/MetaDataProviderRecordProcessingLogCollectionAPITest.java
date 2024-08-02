@@ -921,6 +921,38 @@ public class MetaDataProviderRecordProcessingLogCollectionAPITest extends Abstra
   }
 
   @Test
+  public void shouldReturnCorrectInstanceTitle(TestContext context) {
+    var async = context.async();
+    var createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    var sourceRecordId = UUID.randomUUID().toString();
+    var entityId = UUID.randomUUID().toString();
+    var instanceTitle = "instance title";
+    var sourceTitle = "source title";
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, null, instanceTitle, 0, CREATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, entityId, null, instanceTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, sourceTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, instanceTitle, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries.size()", is(1))
+        .body("totalRecords", is(1))
+        .body("entries[0].incomingRecordId", is(sourceRecordId))
+        .body("entries[0].sourceRecordTitle", is(instanceTitle));
+
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnSortedEntriesWhenSortByParameterSpecified(TestContext context) {
     Async async = context.async();
     JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
