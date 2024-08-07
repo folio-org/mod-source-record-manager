@@ -1,6 +1,10 @@
 package org.folio.services.journal;
 
 import com.google.common.collect.Lists;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +18,7 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.Record;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -61,6 +66,7 @@ public class JournalUtil {
   private static final String CURRENT_EVENT_TYPE = "CURRENT_EVENT_TYPE";
   public static final String MARC_BIB_RECORD_CREATED = "MARC_BIB_RECORD_CREATED";
   public static final String INCOMING_RECORD_ID = "INCOMING_RECORD_ID";
+  public static final String BATCH_JOURNAL_ADDRESS = "batch-journal-queue";
 
   private static final EnumMap<JournalRecord.EntityType, JournalRecord.EntityType> ENTITY_TO_RELATED_ENTITY;
 
@@ -212,6 +218,25 @@ public class JournalUtil {
       LOGGER.warn("buildJournalRecordsByEvent:: Error while build JournalRecords, entityType: {}", entityType.value(), e);
       throw new JournalRecordMapperException(String.format(ENTITY_OR_RECORD_MAPPING_EXCEPTION_MSG, entityType.value()), e);
     }
+  }
+
+  public static MessageProducer<Collection<BatchableJournalRecord>> getJournalMessageProducer(Vertx eventBusVertx) {
+    return eventBusVertx.eventBus().sender(BATCH_JOURNAL_ADDRESS,
+      new DeliveryOptions()
+        .setLocalOnly(true)
+        .setCodecName(BatchableJournalRecordCodec.class.getSimpleName()));
+  }
+
+  public static MessageConsumer<Collection<BatchableJournalRecord>> getJournalMessageConsumer(Vertx eventBusVertx){
+    return eventBusVertx.eventBus().localConsumer(BATCH_JOURNAL_ADDRESS);
+  }
+
+  /**
+   * Register needed message codecs for journal processing
+   */
+  public static Vertx registerCodecs(Vertx vertx) {
+    vertx.eventBus().registerCodec(new BatchableJournalRecordCodec());
+    return vertx;
   }
 
   private static boolean isCreateOrUpdateInstanceEventReceived(HashMap<String, String> eventPayloadContext) {

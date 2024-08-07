@@ -8,6 +8,7 @@ import org.folio.rest.jaxrs.model.JournalRecord;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDto;
 import org.folio.rest.jaxrs.model.RecordProcessingLogDtoCollection;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ public interface JournalRecordDao {
    * @param tenantId        tenant id
    * @return future with created JournalRecord entities
    */
-  Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId);
+  Future<List<RowSet<Row>>> saveBatch(Collection<JournalRecord> journalRecords, String tenantId);
 
   /**
    * Searches for JournalRecord entities by jobExecutionId and sorts them using specified sort criteria and direction
