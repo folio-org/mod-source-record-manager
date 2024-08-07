@@ -855,8 +855,9 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             }
             String inventoryId = UUID.randomUUID().toString();
             addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
-            var hrid = getControlFieldValue(record, TAG_001).trim();
-            record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
+            Optional.ofNullable(getControlFieldValue(record, TAG_001))
+              .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrId.trim())),
+                () -> LOGGER.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId()));
           }
         }
       }
