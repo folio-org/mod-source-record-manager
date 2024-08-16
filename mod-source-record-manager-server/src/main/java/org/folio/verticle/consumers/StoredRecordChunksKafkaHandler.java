@@ -195,8 +195,7 @@ public class StoredRecordChunksKafkaHandler implements AsyncRecordHandler<String
           .withActionType(CREATE)
           .withActionStatus(COMPLETED)
           .withActionDate(new Date())
-          .withTitle(retrievedTitleFromRecord)
-          .withTenantId(tenantId));
+          .withTitle(retrievedTitleFromRecord), tenantId);
 
         journalRecords.add(journalRecord);
       }

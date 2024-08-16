@@ -276,7 +276,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       .window(2, TimeUnit.SECONDS, scheduler, MAX_NUM_EVENTS, true)
       .flatMap(window -> window
         // Group messages by tenant ID
-        .groupBy(msg -> msg.getJournalRecord().getTenantId())
+        .groupBy(BatchableJournalRecord::getTenantId)
         .flatMapSingle(Flowable::toList)
         .map(journalRecords -> Pair.of(Optional.empty(), journalRecords))
       );
@@ -289,7 +289,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
       // Group records by tenant ID
       .groupBy(pair -> {
         Optional<BatchableJournalRecord> first = pair.getRight().stream().findFirst();
-        return first.map(journalRecord -> journalRecord.getJournalRecord().getTenantId());
+        return first.map(BatchableJournalRecord::getTenantId);
       })
       // Process each group of records
       .flatMapCompletable(groupedRecords -> groupedRecords.toList()
@@ -336,7 +336,7 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
     DataImportEventPayloadWithoutCurrentNode eventPayload = bundle.event().getEventPayload();
     String tenantId = bundle.okapiConnectionParams.getTenantId();
     return AsyncResultSingle.toSingle(eventTypeHandlerSelector.getHandler(eventPayload).transform(batchJournalService.getJournalService(), eventPayload, tenantId),
-      col -> col.stream().map(BatchableJournalRecord::new).toList());
+      col -> col.stream().map(res -> new BatchableJournalRecord(res, tenantId)).toList());
   }
 
   private void commitKafkaEvents(Flowable<Bundle> bundles) {
