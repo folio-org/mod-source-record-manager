@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_entity_ty
   order_id              text,
   permanent_location_id text,
   tenant_id             text,
-  PRIMARY KEY (id, entity_type)
+  --PRIMARY KEY (id, entity_type)
 ) partition by list (entity_type);
 
 CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_marc_bibliographic PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_BIBLIOGRAPHIC');
