@@ -39,8 +39,8 @@ SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid, act
        tenant_id
 FROM ${myuniversity}_${mymodule}.journal_records;
 
-ALTER TABLE ${myuniversity}_${mymodule}.journal_records RENAME TO ${myuniversity}_${mymodule}.journal_records_backup;
-ALTER TABLE ${myuniversity}_${mymodule}.journal_records_entity_type RENAME TO ${myuniversity}_${mymodule}.journal_records;
+ALTER TABLE ${myuniversity}_${mymodule}.journal_records RENAME TO journal_records_backup;
+ALTER TABLE ${myuniversity}_${mymodule}.journal_records_entity_type RENAME TO journal_records;
 
 DO $$
 DECLARE
