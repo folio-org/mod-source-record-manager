@@ -39,8 +39,8 @@ SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid, act
        tenant_id
 FROM ${myuniversity}_${mymodule}.journal_records;
 
-ALTER TABLE {myuniversity}_${mymodule}.journal_records RENAME TO {myuniversity}_${mymodule}.journal_records_backup;
-ALTER TABLE {myuniversity}_${mymodule}.journal_records_entity_type RENAME TO {myuniversity}_${mymodule}.journal_records;
+ALTER TABLE ${myuniversity}_${mymodule}.journal_records RENAME TO ${myuniversity}_${mymodule}.journal_records_backup;
+ALTER TABLE ${myuniversity}_${mymodule}.journal_records_entity_type RENAME TO ${myuniversity}_${mymodule}.journal_records;
 
 DO $$
 DECLARE
@@ -50,10 +50,10 @@ BEGIN
 FOR index_record IN
   SELECT indexname, indexdef
   FROM pg_indexes
-  WHERE schemaname = '{myuniversity}_${mymodule}' AND tablename = 'journal_records'
+  WHERE schemaname = '${myuniversity}_${mymodule}' AND tablename = 'journal_records'
     LOOP
       new_indexdef := REPLACE(index_record.indexdef,
-             '{myuniversity}_${mymodule}.journal_records_backup', '{myuniversity}_${mymodule}.journal_records');
+             '${myuniversity}_${mymodule}.journal_records_backup', '${myuniversity}_${mymodule}.journal_records');
       EXECUTE new_indexdef;
     END LOOP;
 END $$;
