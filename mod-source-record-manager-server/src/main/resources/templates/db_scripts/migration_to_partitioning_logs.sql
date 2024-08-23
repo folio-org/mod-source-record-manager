@@ -1,4 +1,4 @@
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_entity_type (
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_entity_type (
   id                    UUID,
   job_execution_id      UUID,
   source_id             UUID,
@@ -19,17 +19,17 @@ CREATE TABLE ${myuniversity}_${mymodule}.journal_records_entity_type (
   PRIMARY KEY (id, entity_type)
 ) partition by list (entity_type);
 
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_marc_bibliographic PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_BIBLIOGRAPHIC');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_po_line PARTITION OF journal_records_entity_type FOR VALUES IN ('PO_LINE');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_marc_holdings PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_HOLDINGS');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_marc_authority PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_AUTHORITY');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_holdings PARTITION OF journal_records_entity_type FOR VALUES IN ('HOLDINGS');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_authority PARTITION OF journal_records_entity_type FOR VALUES IN ('AUTHORITY');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_instance PARTITION OF journal_records_entity_type FOR VALUES IN ('INSTANCE');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_item PARTITION OF journal_records_entity_type FOR VALUES IN ('ITEM');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_invoice PARTITION OF journal_records_entity_type FOR VALUES IN ('INVOICE');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_edifact PARTITION OF journal_records_entity_type FOR VALUES IN ('EDIFACT');
-CREATE TABLE ${myuniversity}_${mymodule}.journal_records_empty_entity_type PARTITION OF journal_records FOR VALUES IN ('');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_marc_bibliographic PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_BIBLIOGRAPHIC');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_po_line PARTITION OF journal_records_entity_type FOR VALUES IN ('PO_LINE');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_marc_holdings PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_HOLDINGS');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_marc_authority PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_AUTHORITY');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_holdings PARTITION OF journal_records_entity_type FOR VALUES IN ('HOLDINGS');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_authority PARTITION OF journal_records_entity_type FOR VALUES IN ('AUTHORITY');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_instance PARTITION OF journal_records_entity_type FOR VALUES IN ('INSTANCE');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_item PARTITION OF journal_records_entity_type FOR VALUES IN ('ITEM');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_invoice PARTITION OF journal_records_entity_type FOR VALUES IN ('INVOICE');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_edifact PARTITION OF journal_records_entity_type FOR VALUES IN ('EDIFACT');
+CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_empty_entity_type PARTITION OF journal_records_entity_type FOR VALUES IN ('');
 
 INSERT INTO ${myuniversity}_${mymodule}.journal_records_entity_type (id, job_execution_id, source_id, entity_type, entity_id, entity_hrid,
                                          action_type, action_status, action_date, source_record_order, error, title,
