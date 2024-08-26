@@ -66,6 +66,7 @@ import org.folio.rest.persist.PostgresClient;
 import org.folio.rest.tools.utils.Envs;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.OkapiConnectionParams;
+import org.folio.util.SharedDataUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -340,6 +341,7 @@ public abstract class AbstractRestTest {
   @BeforeClass
   public static void setUpClass(final TestContext context) throws Exception {
     vertx = Vertx.vertx();
+    SharedDataUtil.setIsTesting(vertx);
     kafkaCluster = provisionWith(defaultClusterConfig());
     kafkaCluster.start();
     String[] hostAndPort = kafkaCluster.getBrokerList().split(":");

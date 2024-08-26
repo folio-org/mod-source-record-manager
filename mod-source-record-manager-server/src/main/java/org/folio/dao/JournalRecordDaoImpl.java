@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -145,7 +146,10 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
     "instance_action_status", "holdings_action_status", "item_action_status", "authority_action_status", "order_action_status",
     "invoice_action_status", "error");
   private static final String JOURNAL_RECORDS_TABLE = "journal_records";
-  private static final String INSERT_SQL = "INSERT INTO %s.%s (id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title, instance_id, holdings_id, order_id, permanent_location_id, tenant_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)";
+  private static final String INSERT_SQL = "INSERT INTO %s.%s " +
+    "(id, job_execution_id, source_id, source_record_order, entity_type, entity_id, entity_hrid, action_type, action_status, error, action_date, title, instance_id, holdings_id, order_id, permanent_location_id, tenant_id) " +
+    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) "+
+    "ON CONFLICT DO NOTHING";
   private static final String SELECT_BY_JOB_EXECUTION_ID_QUERY = "SELECT * FROM %s.%s WHERE job_execution_id = $1";
   private static final String ORDER_BY_PATTERN = " ORDER BY %s %s";
   private static final String DELETE_BY_JOB_EXECUTION_ID_QUERY = "DELETE FROM %s.%s WHERE job_execution_id = $1";
@@ -175,7 +179,7 @@ public class JournalRecordDaoImpl implements JournalRecordDao {
   }
 
   @Override
-  public Future<List<RowSet<Row>>> saveBatch(List<JournalRecord> journalRecords, String tenantId) {
+  public Future<List<RowSet<Row>>> saveBatch(Collection<JournalRecord> journalRecords, String tenantId) {
     LOGGER.info("saveBatch:: Trying to save list of JournalRecord entities to the {} table", JOURNAL_RECORDS_TABLE);
     Promise<List<RowSet<Row>>> promise = Promise.promise();
     try {

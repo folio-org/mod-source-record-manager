@@ -15,11 +15,13 @@ import org.folio.config.ApplicationConfig;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.services.journal.JournalService;
+import org.folio.services.journal.JournalUtil;
+import org.folio.services.progress.JobExecutionProgressUtil;
 import org.folio.spring.SpringContextUtil;
 import org.folio.verticle.DataImportConsumersVerticle;
 import org.folio.verticle.DataImportInitConsumersVerticle;
-import org.folio.verticle.DataImportJournalConsumersVerticle;
 import org.folio.verticle.JobExecutionProgressVerticle;
+import org.folio.verticle.DataImportJournalBatchConsumerVerticle;
 import org.folio.verticle.QuickMarcUpdateConsumersVerticle;
 import org.folio.verticle.RawMarcChunkConsumersVerticle;
 import org.folio.verticle.StoredRecordChunkConsumersVerticle;
@@ -31,8 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import java.util.Arrays;
-
-import static org.folio.services.progress.JobExecutionProgressUtil.registerCodecs;
 
 public class InitAPIImpl implements InitAPI {
 
@@ -74,7 +74,8 @@ public class InitAPIImpl implements InitAPI {
       SpringContextUtil.init(vertx, context, ApplicationConfig.class);
       SpringContextUtil.autowireDependencies(this, context);
 
-      registerCodecs(vertx);
+      JobExecutionProgressUtil.registerCodecs(vertx);
+      JournalUtil.registerCodecs(vertx);
 
       initJournalService(vertx);
       deployConsumersVerticles(vertx)
@@ -132,7 +133,7 @@ public class InitAPIImpl implements InitAPI {
         .setWorker(true)
         .setInstances(dataImportConsumerInstancesNumber), deployDataImportConsumer);
 
-    vertx.deployVerticle(getVerticleName(verticleFactory, DataImportJournalConsumersVerticle.class),
+    vertx.deployVerticle(getVerticleName(verticleFactory, DataImportJournalBatchConsumerVerticle.class),
       new DeploymentOptions()
         .setWorker(true)
         .setInstances(dataImportJournalConsumerInstancesNumber), deployDataImportJournalConsumer);
