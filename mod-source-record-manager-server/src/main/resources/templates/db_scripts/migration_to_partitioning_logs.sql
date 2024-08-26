@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_entity_ty
   holdings_id           text,
   order_id              text,
   permanent_location_id text,
-  tenant_id             text,
-  PRIMARY KEY (id, entity_type)
+  tenant_id             text
+  --, PRIMARY KEY (id, entity_type)
 ) partition by list (entity_type);
 
 CREATE TABLE IF NOT EXISTS ${myuniversity}_${mymodule}.journal_records_marc_bibliographic PARTITION OF journal_records_entity_type FOR VALUES IN ('MARC_BIBLIOGRAPHIC');
@@ -39,23 +39,10 @@ SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid, act
        tenant_id
 FROM ${myuniversity}_${mymodule}.journal_records;
 
-DO $$
-DECLARE
-  index_record RECORD;
-  new_indexdef TEXT;
-BEGIN
-FOR index_record IN
-  SELECT indexname, indexdef
-  FROM pg_indexes
-  WHERE schemaname = '${myuniversity}_${mymodule}' AND tablename = 'journal_records'
-        AND indexname not like '%pkey'
-    LOOP
-      new_indexdef := REPLACE(index_record.indexdef,
-             '${myuniversity}_${mymodule}.journal_records',
-             '${myuniversity}_${mymodule}.journal_records_entity_type');
-      EXECUTE new_indexdef;
-    END LOOP;
-END $$;
+CREATE UNIQUE INDEX journal_records_pkey ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (id);
+CREATE INDEX journal_records_job_execution_id_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (job_execution_id);
+CREATE INDEX journal_records_source_id_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (source_id);
+CREATE INDEX journal_records_action_type_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (action_type);
 
 ALTER TABLE ${myuniversity}_${mymodule}.journal_records RENAME TO journal_records_backup;
 ALTER TABLE ${myuniversity}_${mymodule}.journal_records_entity_type RENAME TO journal_records;
