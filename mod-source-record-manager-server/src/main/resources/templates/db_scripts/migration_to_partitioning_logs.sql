@@ -38,7 +38,7 @@ SELECT id, job_execution_id, source_id, entity_type, entity_id, entity_hrid, act
        tenant_id
 FROM ${myuniversity}_${mymodule}.journal_records;
 
-CREATE UNIQUE INDEX journal_records_et_pkey ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (id);
+CREATE UNIQUE INDEX journal_records_et_pkey ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (id, entity_type);
 CREATE INDEX journal_records_et_job_execution_id_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (job_execution_id);
 CREATE INDEX journal_records_et_source_id_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (source_id);
 CREATE INDEX journal_records_et_action_type_idx ON ${myuniversity}_${mymodule}.journal_records_entity_type USING btree (action_type);
