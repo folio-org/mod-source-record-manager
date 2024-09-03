@@ -273,8 +273,8 @@ FROM (
      ) AS records_actions
        LEFT JOIN (SELECT journal_records.source_id, journal_records.title
                   FROM journal_records
-                  WHERE journal_records.job_execution_id = ''%1$s'') AS rec_titles
-                 ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
+                  WHERE journal_records.job_execution_id = ''%1$s'' AND (journal_records.entity_id IS NOT NULL OR journal_records.action_status = ''ERROR'' or journal_records.action_type = ''NON_MATCH'') )
+                AS rec_titles ON rec_titles.source_id = records_actions.source_id AND rec_titles.title IS NOT NULL
        LEFT JOIN (
   SELECT   instances.action_type AS action_type,
            instances.job_execution_id AS job_execution_id,
