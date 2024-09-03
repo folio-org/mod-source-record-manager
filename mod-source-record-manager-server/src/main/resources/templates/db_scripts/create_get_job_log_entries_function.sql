@@ -114,7 +114,7 @@ WITH
                  END
       FROM temp_result nested_result) AS joining_table
      ON tmp.id = joining_table.id
-WHERE tmp.entity_type = ''HOLDINGS''
+WHERE tmp.entity_type = ''HOLDINGS'' AND tmp.entity_id IS NOT NULL
   ),
   items AS (
     SELECT tmp.action_type, tmp.entity_id, tmp.holdings_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
@@ -144,7 +144,7 @@ WHERE tmp.entity_type = ''HOLDINGS''
                  END
       FROM temp_result nested_result) AS joining_table
      ON tmp.id = joining_table.id
-WHERE tmp.entity_type = ''ITEM''
+WHERE tmp.entity_type = ''ITEM'' AND tmp.entity_id IS NOT NULL
   ),
   po_lines AS (
     SELECT action_type,entity_id,entity_hrid,temp_result.source_id,error,order_id,temp_result.job_execution_id,temp_result.title,temp_result.source_record_order
