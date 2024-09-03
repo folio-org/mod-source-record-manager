@@ -261,6 +261,22 @@ public class MarcImportEventsHandlerTest {
   }
 
   @Test
+  public void testTransformReturnEmptyListIfNoJournalParams(TestContext context) {
+    Async async = context.async();
+
+    var payload = new DataImportEventPayload()
+      .withEventType(DI_COMPLETED.value())
+      .withEventsChain(List.of("Test"));
+    handler.transform(journalService, payload, TEST_TENANT)
+      .onComplete(ar -> {
+        assertTrue(ar.succeeded());
+        assertEquals(0, ar.result().size());
+        async.complete();
+      });
+  }
+
+
+  @Test
   public void testSaveNonMatchHoldings() throws JournalRecordMapperException {
     String title = "The Journal of ecclesiastical history.";
     when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
