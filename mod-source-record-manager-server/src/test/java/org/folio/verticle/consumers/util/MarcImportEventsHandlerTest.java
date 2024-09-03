@@ -15,6 +15,7 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_SRS_MARC_AUTHOR
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,6 +36,8 @@ import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.services.JournalRecordService;
 import org.junit.After;
@@ -230,6 +233,31 @@ public class MarcImportEventsHandlerTest {
     var actualJournalRecord = journalRecordCaptor.getValue().getJsonObject(0).mapTo(JournalRecord.class);
 
     assertEquals(title, actualJournalRecord.getTitle());
+  }
+
+  @Test
+  public void testTransformPOLineJournalRecord(TestContext context) {
+    Async async = context.async();
+    when(journalRecordService.updateErrorJournalRecordsByOrderIdAndJobExecution(any(String.class), any(String.class), any(String.class), eq(TEST_TENANT))).thenReturn(Future.succeededFuture(1));
+    String title = "The Journal of ecclesiastical history.";
+    when(mappingRuleCache.get(any())).thenReturn(Future.succeededFuture(Optional.of(new JsonObject(
+      Map.of("245", List.of(
+        Map.of("target", "title",
+          "subfield", List.of("a"))
+      ))
+    ))));
+    var marcRecord = marcFactory.newRecord();
+    marcRecord.addVariableField(marcFactory.newDataField("245", '0', '0', "a", title));
+
+    var payload = constructCreateErrorPOLinePayloadWithOrderId(marcRecord);
+    handler.transform(journalService, payload, TEST_TENANT)
+      .onComplete(ar -> {
+        assertTrue(ar.succeeded());
+        assertEquals(1, ar.result().size());
+        var actualJournalRecord = ar.result().stream().findFirst().get();
+        assertEquals(title, actualJournalRecord.getTitle());
+        async.complete();
+      });
   }
 
   @Test

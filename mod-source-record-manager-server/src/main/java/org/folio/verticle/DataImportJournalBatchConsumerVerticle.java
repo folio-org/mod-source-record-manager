@@ -48,7 +48,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -300,7 +299,6 @@ public class DataImportJournalBatchConsumerVerticle extends AbstractVerticle {
               Collection<JournalRecord> journalRecords = pairs
                 .stream()
                 .flatMap(pair -> pair.getRight().stream().map(BatchableJournalRecord::getJournalRecord))
-                .filter(Objects::nonNull)
                 .map(this::setDeterministicIdentifer)
                 .toList();
               // If no records or tenant ID is missing, complete without action
