@@ -13,7 +13,6 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.JournalRecordService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
-import org.folio.services.journal.BatchJournalService;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
@@ -138,20 +137,19 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
           return Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
             .map(ar -> ar.result().<JournalRecord>list());
         }
-        return Future.succeededFuture();
+        return Future.succeededFuture(new ArrayList<>());
   }
 
   private List<Future<JournalRecord>> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
     List<Future<JournalRecord>> futureRecords = new ArrayList<>();
     for (JournalRecord journalRecord : journalRecords) {
-      if(StringUtils.isBlank(journalRecord.getTenantId())) {
+      if (StringUtils.isBlank(journalRecord.getTenantId())) {
         journalRecord.setTenantId(tenantId);
       }
-      futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
       if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
         processJournalRecordForOrder(journalService, tenantId, journalRecord);
-        futureRecords.add(Future.succeededFuture());
       }
+      futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
     }
     return Lists.newArrayList(futureRecords);
   }
