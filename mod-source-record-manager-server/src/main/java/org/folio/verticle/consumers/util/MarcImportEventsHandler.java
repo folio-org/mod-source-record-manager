@@ -13,7 +13,6 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.services.JournalRecordService;
 import org.folio.services.MappingRuleCache;
 import org.folio.services.entity.MappingRuleCacheKey;
-import org.folio.services.journal.BatchJournalService;
 import org.folio.services.journal.JournalRecordMapperException;
 import org.folio.services.journal.JournalService;
 import org.folio.services.journal.JournalUtil;
