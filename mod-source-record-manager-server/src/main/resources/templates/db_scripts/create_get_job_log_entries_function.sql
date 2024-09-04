@@ -88,63 +88,32 @@ WITH
          WHERE tr2.entity_type = ''INSTANCE'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   holdings AS (
-    SELECT tmp.action_type, tmp.entity_type, tmp.entity_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
-            tmp.permanent_location_id, tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
-    FROM temp_result tmp
-         INNER JOIN
-     (SELECT CASE
-                 WHEN EXISTS (SELECT condition_result.entity_id
-                              FROM temp_result condition_result
-                              WHERE (condition_result.action_type IN (''CREATED'', ''UPDATED'', ''DISCARDED'') AND
-                                     condition_result.entity_type = ''HOLDINGS''))
-                     THEN
-                     (SELECT deep_nested.id
-                      FROM temp_result deep_nested
-                      WHERE (deep_nested.id = nested_result.id AND (deep_nested.action_type IN (''CREATED'', ''UPDATED'') OR
-                                                                    (deep_nested.action_type = ''DISCARDED'' AND deep_nested.error != '''')))
-                         OR (deep_nested.action_type = ''DISCARDED'' AND
-                             deep_nested.id = nested_result.id AND
-                             deep_nested.source_id NOT IN (SELECT not_discarded_condition.source_id
-                                                           FROM temp_result not_discarded_condition
-                                                           WHERE not_discarded_condition.action_type = ''CREATED''
-                                                             AND not_discarded_condition.entity_type = ''HOLDINGS''
-                                                             AND not_discarded_condition.source_id = deep_nested.source_id)))
-                 ELSE
-                     nested_result.id
-                 END
-      FROM temp_result nested_result) AS joining_table
-     ON tmp.id = joining_table.id
-WHERE tmp.entity_type = ''HOLDINGS'' AND tmp.entity_id IS NOT NULL
+      SELECT action_type, entity_type, entity_id, entity_hrid, error, instance_id,
+          permanent_location_id, job_execution_id, source_id, title, source_record_order
+          FROM temp_result
+          WHERE entity_type = ''HOLDINGS'' AND entity_id IS NOT NULL
+          UNION ALL
+          SELECT action_type, entity_type, entity_id, entity_hrid, error, instance_id,
+               permanent_location_id, job_execution_id, source_id, title, source_record_order
+          FROM temp_result
+          WHERE entity_type = ''HOLDINGS'' AND entity_id IS NULL AND NOT EXISTS
+              (SELECT 1
+               FROM temp_result as tr2
+               WHERE tr2.entity_type = ''HOLDINGS'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   items AS (
-    SELECT tmp.action_type, tmp.entity_id, tmp.holdings_id, tmp.entity_hrid, tmp.error, tmp.instance_id,
-            tmp.job_execution_id, tmp.source_id, tmp.title, tmp.source_record_order
-    FROM temp_result tmp
-         INNER JOIN
-     (SELECT CASE
-                 WHEN EXISTS (SELECT condition_result.entity_id
-                              FROM temp_result condition_result
-                              WHERE ((condition_result.action_type IN (''CREATED'', ''UPDATED'', ''DISCARDED'') AND
-                                      condition_result.entity_type = ''ITEM'')))
-                     THEN
-                     (SELECT deep_nested.id
-                      FROM temp_result deep_nested
-                      WHERE ((deep_nested.id = nested_result.id AND
-                              (deep_nested.action_type IN (''CREATED'', ''UPDATED'') OR
-                               deep_nested.action_type = ''DISCARDED'' and deep_nested.error != ''''))
-                          OR (deep_nested.action_type = ''DISCARDED'' AND deep_nested.id = nested_result.id AND
-                              deep_nested.source_id NOT IN
-                              (SELECT not_discarded_condition.source_id
-                               FROM temp_result not_discarded_condition
-                               WHERE not_discarded_condition.action_type IN (''CREATED'', ''UPDATED'')
-                                 AND not_discarded_condition.entity_type = ''ITEM''
-                                 AND deep_nested.source_id = not_discarded_condition.source_id))))
-                 ELSE
-                     nested_result.id
-                 END
-      FROM temp_result nested_result) AS joining_table
-     ON tmp.id = joining_table.id
-WHERE tmp.entity_type = ''ITEM'' AND tmp.entity_id IS NOT NULL
+          SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id,
+              job_execution_id, source_id, title, source_record_order
+              FROM temp_result
+              WHERE entity_type = ''ITEM'' AND entity_id IS NOT NULL
+              UNION ALL
+              SELECT action_type, entity_id, holdings_id, entity_hrid, error, instance_id,
+                                   job_execution_id, source_id, title, source_record_order
+              FROM temp_result
+              WHERE entity_type = ''ITEM'' AND entity_id IS NULL AND NOT EXISTS
+                  (SELECT 1
+                   FROM temp_result as tr2
+                   WHERE tr2.entity_type = ''ITEM'' AND tr2.source_id = temp_result.source_id and tr2.entity_id IS NOT NULL)
   ),
   po_lines AS (
     SELECT action_type,entity_id,entity_hrid,temp_result.source_id,error,order_id,temp_result.job_execution_id,temp_result.title,temp_result.source_record_order
