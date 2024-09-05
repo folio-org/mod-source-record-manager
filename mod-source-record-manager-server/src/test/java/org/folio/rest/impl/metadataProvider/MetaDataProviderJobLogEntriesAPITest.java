@@ -176,6 +176,48 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
   }
 
   @Test
+  public void shouldReturnAllUpdatedEntitiesWithoutEmptyEntityId(TestContext context) {
+    Async async = context.async();
+    JobExecution createdJobExecution = constructAndPostInitJobExecutionRqDto(1).getJobExecutions().get(0);
+    String sourceRecordId = UUID.randomUUID().toString();
+    String recordTitle = "test title";
+
+    String instanceId = UUID.randomUUID().toString();
+    String instanceHrid = "i001";
+
+    String holdingsId = UUID.randomUUID().toString();
+    String holdingsHrid = "h001";
+
+    String updateMarcBibliographic = UUID.randomUUID().toString();
+
+    Future<JournalRecord> future = Future.succeededFuture()
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, null, 0, PARSE, null, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, NON_MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, holdingsId, holdingsHrid, recordTitle, 0, UPDATE, HOLDINGS, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, instanceId, instanceHrid, recordTitle, 0, UPDATE, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, null, null, recordTitle, 0, MATCH, INSTANCE, COMPLETED, null, null))
+      .compose(v -> createJournalRecord(createdJobExecution.getId(), sourceRecordId, updateMarcBibliographic, null, recordTitle, 0, UPDATE, MARC_BIBLIOGRAPHIC, COMPLETED, null, null))
+      .onFailure(context::fail);
+
+    future.onComplete(ar -> context.verify(v -> {
+      RestAssured.given()
+        .spec(spec)
+        .when()
+        .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId())
+        .then()
+        .statusCode(HttpStatus.SC_OK)
+        .body("entries[0].jobExecutionId", is(createdJobExecution.getId()))
+        .body("entries[0].relatedHoldingsInfo[0].id", is(holdingsId))
+        .body("entries[0].relatedHoldingsInfo[0].actionStatus", is("UPDATED"))
+        .body("entries[0].relatedInstanceInfo.idList[0]", is(instanceId));
+      async.complete();
+    }));
+  }
+
+  @Test
   public void shouldReturnEmptyDtoIfHasNoLogRecordsBySpecifiedJobIdAndRecordId() {
     RestAssured.given()
       .spec(spec)
