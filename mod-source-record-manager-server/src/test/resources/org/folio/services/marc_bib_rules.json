@@ -5836,6 +5836,402 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -5920,6 +6316,233 @@
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
+          ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
           ]
         }
       ]
@@ -6006,6 +6629,233 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -6086,6 +6936,233 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uniform title"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -6142,6 +7219,233 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Named event"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -6187,6 +7491,233 @@
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
+          ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Chronological term"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
           ]
         }
       ]
@@ -6244,6 +7775,233 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Topical term"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -6294,6 +8052,233 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Geographic name"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
+          ]
         }
       ]
     }
@@ -6343,6 +8328,233 @@
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
+          ]
+        },
+        {
+          "target": "subjects.subjectTypeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Genre/Form"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "0"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "1"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Library of Congress Children’s and Young Adults' Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "2"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Medical Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "3"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "National Agriculture Library subject authority file"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "4"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source not specified"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "5"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Canadian Subject Headings"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "6"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Répertoire de vedettes-matière"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "indicators": {
+        "ind1": "*",
+        "ind2": "7"
+      },
+      "target": "subjects.subjectSourceId",
+      "description": "Subject source",
+      "applyRulesOnConcatenatedData": true,
+      "subfield": [
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "type": "set_subject_source_id",
+              "parameter": {
+                "name": "Source specified in subfield $2"
+              }
+            }
           ]
         }
       ]
