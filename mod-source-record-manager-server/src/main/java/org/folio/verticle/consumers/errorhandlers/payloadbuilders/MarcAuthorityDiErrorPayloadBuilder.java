@@ -8,7 +8,6 @@ import org.folio.verticle.consumers.util.DiErrorBuilderUtil;
 import org.springframework.stereotype.Component;
 
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
 @Component
 public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder {

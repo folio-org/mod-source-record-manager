@@ -3,7 +3,6 @@ package org.folio.verticle.consumers.errorhandlers.errorpayloadbuilders;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -14,8 +13,6 @@ import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.rest.jaxrs.model.EntityType;
 import org.folio.rest.jaxrs.model.ParsedRecord;
 import org.folio.rest.jaxrs.model.Record;
-import org.folio.services.MappingRuleCache;
-import org.folio.services.entity.MappingRuleCacheKey;
 import org.folio.verticle.consumers.errorhandlers.payloadbuilders.MarcAuthorityDiErrorPayloadBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,21 +23,17 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.folio.dataimport.util.RestUtil.OKAPI_URL_HEADER;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_ERROR;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TENANT_HEADER;
 import static org.folio.rest.util.OkapiConnectionParams.OKAPI_TOKEN_HEADER;
-import static org.folio.verticle.consumers.DataImportJournalConsumerVerticleMockTest.MAPPING_RULES_PATH;
 import static org.folio.verticle.consumers.errorhandlers.RawMarcChunksErrorHandler.ERROR_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class MarcAuthorityPayloadBuilderTest {
