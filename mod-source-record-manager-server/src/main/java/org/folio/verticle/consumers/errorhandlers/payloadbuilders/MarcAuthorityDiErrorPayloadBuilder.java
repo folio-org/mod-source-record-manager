@@ -23,6 +23,6 @@ public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder
                                                           String jobExecutionId,
                                                           Record currentRecord) {
     DataImportEventPayload diErrorPayload = DiErrorBuilderUtil.prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, currentRecord);
-    return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(currentRecord, NO_TITLE_MESSAGE, diErrorPayload));
+    return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(currentRecord, null, diErrorPayload));
   }
 }
