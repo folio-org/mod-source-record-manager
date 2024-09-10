@@ -46,6 +46,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   private static final Integer TOTAL_RECORDS = 10;
   private static final String DEFAULT_NAMESPACE = "folio";
 
+  @Spy
   private Vertx vertx = Vertx.vertx();
   private OkapiConnectionParams params;
   private String jobExecutionId;
@@ -65,6 +66,7 @@ public class DataImportInitConsumerVerticleTest extends AbstractRestTest {
   @InjectMocks
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
+
 
   @Spy
   @InjectMocks

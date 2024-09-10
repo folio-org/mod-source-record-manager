@@ -1,10 +1,7 @@
 package org.folio.services;
 
-import org.folio.okapi.common.GenericCompositeFuture;
-
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.RunTestOnContext;
@@ -13,6 +10,7 @@ import org.folio.dao.JobExecutionDaoImpl;
 import org.folio.dao.JobExecutionProgressDaoImpl;
 import org.folio.dao.util.PostgresClientFactory;
 import org.folio.dataimport.util.OkapiConnectionParams;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.impl.AbstractRestTest;
 import org.folio.rest.jaxrs.model.File;
 import org.folio.rest.jaxrs.model.InitJobExecutionsRqDto;
@@ -41,7 +39,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
 
-  private Vertx vertx = Vertx.vertx();
   @Spy
   PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy
@@ -54,18 +51,18 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
   @Spy
   private JobExecutionProgressDaoImpl jobExecutionProgressDao;
   @InjectMocks
-  private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl();
+  private JobExecutionProgressService jobExecutionProgressService = new JobExecutionProgressServiceImpl(vertx);
 
   private OkapiConnectionParams params;
 
-  private InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
+  private final InitJobExecutionsRqDto initJobExecutionsRqDto = new InitJobExecutionsRqDto()
     .withFiles(Collections.singletonList(new File().withName("importBib1.bib")))
     .withSourceType(InitJobExecutionsRqDto.SourceType.FILES)
     .withUserId(okapiUserIdHeader);
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
 
     HashMap<String, String> headers = new HashMap<>();
     headers.put(OKAPI_URL_HEADER, "http://localhost:" + snapshotMockServer.port());
@@ -154,19 +151,15 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
     int expectedSucceededRecords = 40;
     int expectedFailedRecords = 2;
 
-    Future<JobExecutionProgress> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
+    Future<Void> future = jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params)
       .compose(initJobExecutionsRsDto -> jobExecutionService.initializeJobExecutions(initJobExecutionsRqDto, params))
       .compose(initJobExecutionsRsDto -> jobExecutionProgressService.initializeJobExecutionProgress(initJobExecutionsRsDto.getParentJobExecutionId(), expectedTotalRecords, TENANT_ID))
       .compose(progress ->
         jobExecutionProgressService.updateCompletionCounts(progress.getJobExecutionId(), expectedSucceededRecords,
-          expectedFailedRecords, TENANT_ID));
+          expectedFailedRecords, params));
 
     future.onComplete(ar -> {
       context.assertTrue(ar.succeeded());
-      JobExecutionProgress progress = ar.result();
-      context.assertEquals(expectedTotalRecords, progress.getTotal());
-      context.assertEquals(expectedSucceededRecords, progress.getCurrentlySucceeded());
-      context.assertEquals(expectedFailedRecords, progress.getCurrentlyFailed());
       async.complete();
     });
   }
@@ -179,19 +172,6 @@ public class JobExecutionProgressServiceImplTest extends AbstractRestTest {
 
     Future<JobExecutionProgress> future = jobExecutionProgressService.updateJobExecutionProgress(jobExecutionId, progressToUpdate ->
       progressToUpdate.withCurrentlySucceeded(succeededRecords), TENANT_ID);
-
-    future.onComplete(ar -> {
-      context.assertTrue(ar.failed());
-      async.complete();
-    });
-  }
-
-  @Test
-  public void shouldReturnFailedFutureOnUpdateCountsWhenProgressDoesNotExist(TestContext context) {
-    Async async = context.async();
-    String jobExecutionId = UUID.randomUUID().toString();
-
-    Future<JobExecutionProgress> future = jobExecutionProgressService.updateCompletionCounts(jobExecutionId, 7, 0, TENANT_ID);
 
     future.onComplete(ar -> {
       context.assertTrue(ar.failed());

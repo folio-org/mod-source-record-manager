@@ -12,8 +12,9 @@ import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_B
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_DELETE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_RAW_RECORDS_CHUNK_PARSED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_BIB;
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_HOLDING;
@@ -24,6 +25,7 @@ import static org.folio.services.afterprocessing.AdditionalFieldsUtil.addFieldTo
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getControlFieldValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.getValue;
 import static org.folio.services.afterprocessing.AdditionalFieldsUtil.hasIndicator;
+import static org.folio.services.journal.JournalUtil.getJournalMessageProducer;
 import static org.folio.services.util.EventHandlingUtil.sendEventToKafka;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
@@ -33,6 +35,8 @@ import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ORDER_
 import com.google.common.collect.Lists;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
@@ -60,7 +64,9 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.MappingProfile;
+import org.folio.rest.jaxrs.model.IncomingRecord;
 import org.folio.services.exceptions.InvalidJobProfileForFileException;
+import org.folio.services.journal.BatchableJournalRecord;
 import org.folio.services.journal.JournalUtil;
 import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dataimport.util.OkapiConnectionParams;
@@ -137,7 +143,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private final KafkaConfig kafkaConfig;
   private final FieldModificationService fieldModificationService;
   private final IncomingRecordService incomingRecordService;
-  private final JournalRecordService journalRecordService;
+  private MessageProducer<Collection<BatchableJournalRecord>> journalRecordProducer;
 
   @Value("${srm.kafka.RawChunksKafkaHandler.maxDistributionNum:100}")
   private int maxDistributionNum;
@@ -155,7 +161,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                  @Autowired KafkaConfig kafkaConfig,
                                  @Autowired FieldModificationService fieldModificationService,
                                  @Autowired IncomingRecordService incomingRecordService,
-                                 @Autowired JournalRecordService journalRecordService) {
+                                 @Autowired Vertx vertx) {
     this.jobExecutionSourceChunkDao = jobExecutionSourceChunkDao;
     this.jobExecutionService = jobExecutionService;
     this.marcRecordAnalyzer = marcRecordAnalyzer;
@@ -166,7 +172,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
     this.kafkaConfig = kafkaConfig;
     this.fieldModificationService = fieldModificationService;
     this.incomingRecordService = incomingRecordService;
-    this.journalRecordService = journalRecordService;
+    this.journalRecordProducer = getJournalMessageProducer(vertx);
   }
 
   @Override
@@ -311,14 +317,18 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private void saveIncomingAndJournalRecords(List<Record> parsedRecords, String tenantId) {
     if (!parsedRecords.isEmpty()) {
       incomingRecordService.saveBatch(JournalUtil.buildIncomingRecordsByRecords(parsedRecords), tenantId);
-      journalRecordService.saveBatch(JournalUtil.buildJournalRecordsByRecords(parsedRecords), tenantId);
+      List<BatchableJournalRecord> batchableJournalRecords = JournalUtil.buildJournalRecordsByRecords(parsedRecords)
+        .stream()
+        .map(r -> new BatchableJournalRecord(r, tenantId))
+        .toList();
+      journalRecordProducer.write(batchableJournalRecords);
     }
   }
 
   private boolean createOrderActionExists(JobExecution jobExecution) {
     if (jobExecution.getJobProfileSnapshotWrapper() != null) {
       List<ProfileSnapshotWrapper> actionProfiles = jobExecution.getJobProfileSnapshotWrapper().getChildSnapshotWrappers()
-        .stream().filter(wrapper -> wrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE).toList();
+        .stream().filter(wrapper -> wrapper.getContentType() == ACTION_PROFILE).toList();
 
       if (!actionProfiles.isEmpty() && ifOrderCreateActionProfileExists(actionProfiles)) {
         LOGGER.debug("createOrderActionExists:: Event type for Order's logic set by jobExecutionId {} ", jobExecution.getId());
@@ -427,7 +437,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
 
   private boolean containsCreateInstanceActionWithoutMarcBib(ProfileSnapshotWrapper profileSnapshot) {
     for (ProfileSnapshotWrapper childWrapper : profileSnapshot.getChildSnapshotWrappers()) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.INSTANCE), Action.CREATE)) {
         return childWrapper.getReactTo() != NON_MATCH && !containsMarcBibToInstanceMappingProfile(childWrapper);
       } else if (containsCreateInstanceActionWithoutMarcBib(childWrapper)) {
@@ -465,7 +475,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean containsMatchProfile(ProfileSnapshotWrapper profileSnapshot) {
     var childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.MATCH_PROFILE
+      if (childWrapper.getContentType() == MATCH_PROFILE
         && marcAuthorityMatchProfileMatches(childWrapper)) {
         return true;
       } else if (containsMatchProfile(childWrapper)) {
@@ -484,7 +494,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
                                             List<FolioRecord> entityTypes, Action action) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, entityTypes, action)) {
         return true;
       } else if (containsMarcActionProfile(childWrapper, entityTypes, action)) {
@@ -497,7 +507,7 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
   private boolean containsCreateActionProfileWithMarcHoldings(ProfileSnapshotWrapper profileSnapshot) {
     List<ProfileSnapshotWrapper> childWrappers = profileSnapshot.getChildSnapshotWrappers();
     for (ProfileSnapshotWrapper childWrapper : childWrappers) {
-      if (childWrapper.getContentType() == ProfileSnapshotWrapper.ContentType.ACTION_PROFILE
+      if (childWrapper.getContentType() == ACTION_PROFILE
         && actionProfileMatches(childWrapper, List.of(FolioRecord.HOLDINGS), Action.CREATE)
         && isMarcHoldingsExists(childWrapper)) {
         return true;
@@ -854,8 +864,13 @@ public class ChangeEngineServiceImpl implements ChangeEngineService {
             }
             String inventoryId = UUID.randomUUID().toString();
             addFieldToMarcRecord(record, TAG_999, SUBFIELD_I, inventoryId);
-            var hrid = getControlFieldValue(record, TAG_001).trim();
-            record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrid));
+            Optional.ofNullable(getControlFieldValue(record, TAG_001))
+              .map(String::trim)
+              .ifPresentOrElse(hrId -> record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId).withAuthorityHrid(hrId)),
+                () -> {
+                  record.setExternalIdsHolder(new ExternalIdsHolder().withAuthorityId(inventoryId));
+                  LOGGER.warn("fillParsedRecordsWithAdditionalFields:: record with id: {} does not contain the hrId field", record.getId());
+                });
           }
         }
       }

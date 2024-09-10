@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,14 +119,37 @@ public class MarcImportEventsHandler implements SpecificEventHandler {
     }
   }
 
+  @Override
+  public Future<Collection<JournalRecord>> transform(JournalService journalService, DataImportEventPayload eventPayload, String tenantId)
+    {
+        Optional<JournalParams> journalParamsOptional =
+          JournalParams.JournalParamsEnum.getValue(eventPayload.getEventType()).getJournalParams(eventPayload);
+
+        if (journalParamsOptional.isPresent()) {
+          JournalParams journalParams = journalParamsOptional.get();
+          List<JournalRecord> journalRecords = null;
+          try {
+            journalRecords = JournalUtil.buildJournalRecordsByEvent(eventPayload,
+              journalParams.journalActionType, journalParams.journalEntityType, journalParams.journalActionStatus);
+          } catch (JournalRecordMapperException e) {
+            return Future.failedFuture(e);
+          }
+          return Future.all(improveJournalRecordsIfNeeded(journalService, eventPayload, tenantId, journalRecords))
+            .map(ar -> ar.result().<JournalRecord>list());
+        }
+        return Future.succeededFuture(new ArrayList<>());
+  }
+
   private List<Future<JournalRecord>> improveJournalRecordsIfNeeded(JournalService journalService, DataImportEventPayload eventPayload, String tenantId, List<JournalRecord> journalRecords) {
     List<Future<JournalRecord>> futureRecords = new ArrayList<>();
     for (JournalRecord journalRecord : journalRecords) {
-      futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
+      if (StringUtils.isBlank(journalRecord.getTenantId())) {
+        journalRecord.setTenantId(tenantId);
+      }
       if (Objects.equals(journalRecord.getEntityType(), PO_LINE)) {
         processJournalRecordForOrder(journalService, tenantId, journalRecord);
-        futureRecords.add(Future.succeededFuture());
       }
+      futureRecords.add(populateRecordTitleIfNeeded(journalRecord, eventPayload));
     }
     return Lists.newArrayList(futureRecords);
   }

@@ -1,0 +1,397 @@
+{
+  "100": [
+    {
+      "target": "personalName",
+      "description": "Heading personal Name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": []
+    },
+    {
+      "target": "personalNameTitle",
+      "description": "Heading personal name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "applyRulesOnConcatenatedData": true,
+      "rules": []
+    }
+  ],
+  "110": [
+    {
+      "target": "corporateName",
+      "description": "Heading corporate name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "corporateNameTitle",
+      "description": "Heading corporate name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "111": [
+    {
+      "target": "meetingName",
+      "description": "Heading meeting name",
+      "subfield": [
+        "a",
+        "c",
+        "d",
+        "n",
+        "q",
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "meetingNameTitle",
+      "description": "Heading meeting name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "400": [
+    {
+      "target": "sftPersonalName",
+      "description": "See from tracing personal Name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "sftPersonalNameTitle",
+      "description": "See from tracing personal name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "410": [
+    {
+      "target": "sftCorporateName",
+      "description": "See from tracing corporate name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "sftCorporateNameTitle",
+      "description": "See from tracing corporate name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "411": [
+    {
+      "target": "sftMeetingName",
+      "description": "See from tracing meeting name",
+      "subfield": [
+        "a",
+        "c",
+        "d",
+        "n",
+        "q",
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "sftMeetingNameTitle",
+      "description": "See from tracing meeting name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "500": [
+    {
+      "target": "saftPersonalName",
+      "description": "See also from tracing personal Name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "q",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "saftPersonalNameTitle",
+      "description": "See also from tracing personal name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "510": [
+    {
+      "target": "saftCorporateName",
+      "description": "See also from tracing corporate name",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "g",
+        "n",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "saftCorporateNameTitle",
+      "description": "See also from tracing corporate name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ],
+  "511": [
+    {
+      "target": "saftMeetingName",
+      "description": "See also from tracing meeting name",
+      "subfield": [
+        "a",
+        "c",
+        "d",
+        "n",
+        "q",
+        "g",
+        "v",
+        "x",
+        "y",
+        "z"
+      ],
+      "exclusiveSubfield": ["t"],
+      "rules": []
+    },
+    {
+      "target": "saftMeetingNameTitle",
+      "description": "See also from tracing meeting name title",
+      "subfield": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "f",
+        "i",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t"
+      ],
+      "requiredSubfield": ["t"],
+      "rules": []
+    }
+  ]
+}

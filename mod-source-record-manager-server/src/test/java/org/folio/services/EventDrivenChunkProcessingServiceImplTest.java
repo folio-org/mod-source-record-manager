@@ -65,6 +65,7 @@ import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.rest.jaxrs.model.StatusDto;
 import org.folio.services.afterprocessing.FieldModificationServiceImpl;
 import org.folio.services.afterprocessing.HrIdFieldServiceImpl;
+import org.folio.services.journal.JournalUtil;
 import org.folio.services.mappers.processor.MappingParametersProvider;
 import org.folio.services.progress.JobExecutionProgressServiceImpl;
 import org.folio.services.validation.JobProfileSnapshotValidationServiceImpl;
@@ -91,7 +92,8 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
   @Rule
   public RunTestOnContext rule = new RunTestOnContext();
 
-  private Vertx vertx = Vertx.vertx();
+  @Spy
+  private Vertx vertx = JournalUtil.registerCodecs(Vertx.vertx());
   @Spy
   private PostgresClientFactory postgresClientFactory = new PostgresClientFactory(vertx);
   @Spy
@@ -194,7 +196,7 @@ public class EventDrivenChunkProcessingServiceImplTest extends AbstractRestTest 
       new DataImportPayloadContextBuilderImpl(marcRecordAnalyzer), kafkaConfig, emptyList());
     changeEngineService = new ChangeEngineServiceImpl(jobExecutionSourceChunkDao, jobExecutionService, marcRecordAnalyzer,
       hrIdFieldService, recordsPublishingService, mappingMetadataService, new JobProfileSnapshotValidationServiceImpl(), kafkaConfig,
-      fieldModificationService, incomingRecordService, journalRecordService);
+      fieldModificationService, incomingRecordService, vertx);
     ReflectionTestUtils.setField(changeEngineService, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(changeEngineService, "batchSize", 100);
     ReflectionTestUtils.setField(recordsPublishingService, "maxDistributionNum", 100);

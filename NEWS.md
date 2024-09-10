@@ -1,4 +1,5 @@
 ## 2024-xx-xx v3.9.0
+* [MODSOURMAN-1195](https://folio-org.atlassian.net/browse/MODSOURMAN-1195) Save job execution progress in batches
 * [MODSOURMAN-1166](https://folio-org.atlassian.net/browse/MODSOURMAN-1166) Sorting by Autority, Order and Error columns is not working on Log details page
 * [MODDATAIMP-1029](https://folio-org.atlassian.net/browse/MODDATAIMP-1029) The authority record loaded via data-import using Default - Create SRS MARC Authority job profile is duplicated on the job-summary page
 * [MODSOURMAN-1152](https://folio-org.atlassian.net/browse/MODSOURMAN-1152) The error message is not displayed in the di log summary
@@ -11,6 +12,9 @@
 * [MODSOURMAN-1188](https://issues.folio.org/browse/MODSOURMAN-1188) Change MARC mappings of 010 $z from "Cancelled" LCCN to "Canceled LCCN"
 * [MODSOURMAN-1181](https://issues.folio.org/browse/MODSOURMAN-1181) Modify the get_job_log_entries function to increase performance.
 * [MODSOURMAN-1185](https://folio-org.atlassian.net/browse/MODSOURMAN-1185) Logs are duplicated on the import logs page for order import
+* [MODSOURMAN-1194](https://folio-org.atlassian.net/browse/MODSOURMAN-1194) Include subject metadata subfields in authority name fields
+* [MODSOURMAN-1215](https://folio-org.atlassian.net/browse/MODSOURMAN-1215) Upgrade Spring from 5 to 6.1.12
+* [MODINV-1069](https://folio-org.atlassian.net/browse/MODINV-1069) Fix DataImportConsumerVerticleTest in mod-inventory and Fix NPE in HoldingsItemMatcher, fix job log entries
 
 ## 2023-03-22 v3.8.0
 * [MODSOURMAN-1131](https://folio-org.atlassian.net/browse/MODSOURMAN-1131) The import of file for creating orders is completed with errors

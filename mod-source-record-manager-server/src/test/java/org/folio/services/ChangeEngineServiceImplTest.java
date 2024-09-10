@@ -6,11 +6,11 @@ import static org.folio.rest.jaxrs.model.ActionProfile.FolioRecord.MARC_AUTHORIT
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_FOR_ORDER_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_INCOMING_MARC_BIB_RECORD_PARSED;
 import static org.folio.rest.jaxrs.model.DataImportEventTypes.DI_MARC_FOR_UPDATE_RECEIVED;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.ACTION_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.JOB_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MAPPING_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ContentType.MATCH_PROFILE;
-import static org.folio.rest.jaxrs.model.ProfileSnapshotWrapper.ReactTo.NON_MATCH;
+import static org.folio.rest.jaxrs.model.ProfileType.ACTION_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.JOB_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MAPPING_PROFILE;
+import static org.folio.rest.jaxrs.model.ProfileType.MATCH_PROFILE;
+import static org.folio.rest.jaxrs.model.ReactToType.NON_MATCH;
 import static org.folio.services.ChangeEngineServiceImpl.RECORD_ID_HEADER;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.ACTION_FIELD;
 import static org.folio.verticle.consumers.StoredRecordChunksKafkaHandler.CREATE_ACTION;
@@ -36,13 +36,14 @@ import static org.mockito.Mockito.when;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.MessageProducer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaHeader;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,6 +69,8 @@ import org.folio.rest.jaxrs.model.Record;
 import org.folio.rest.jaxrs.model.RecordsMetadata;
 import org.folio.services.afterprocessing.FieldModificationService;
 import org.folio.services.afterprocessing.HrIdFieldService;
+import org.folio.services.journal.BatchableJournalRecord;
+import org.folio.services.journal.JournalUtil;
 import org.folio.services.util.EventHandlingUtil;
 import org.folio.services.validation.JobProfileSnapshotValidationService;
 import org.junit.Before;
@@ -78,6 +81,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -118,11 +122,15 @@ public class ChangeEngineServiceImplTest {
   private IncomingRecordService incomingRecordService;
   @Mock
   private JournalRecordService journalRecordService;
+  @Mock
+  private MessageProducer<Collection<BatchableJournalRecord>> messageProducer;
+  @Spy
+  private Vertx vertx = JournalUtil.registerCodecs(Vertx.vertx());
 
   @Captor
   private ArgumentCaptor<List<KafkaHeader>> kafkaHeadersCaptor;
 
-  private final OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(new HashMap<>(), Vertx.vertx());
+  private final OkapiConnectionParams okapiConnectionParams = new OkapiConnectionParams(Map.of("x-okapi-tenant", "diku"), Vertx.vertx());
 
   @InjectMocks
   private ChangeEngineServiceImpl service;
@@ -131,6 +139,7 @@ public class ChangeEngineServiceImplTest {
   public void setUp() {
     ReflectionTestUtils.setField(service, "maxDistributionNum", 10);
     ReflectionTestUtils.setField(service, "batchSize", 100);
+    ReflectionTestUtils.setField(service, "journalRecordProducer", messageProducer);
 
     when(mappingMetadataService.getMappingMetadataDto(anyString(), any(OkapiConnectionParams.class)))
       .thenReturn(Future.succeededFuture(new MappingMetadataDto()));
@@ -303,8 +312,7 @@ public class ChangeEngineServiceImplTest {
 
     var actual = serviceFuture.result();
     assertThat(actual, hasSize(0));
-    verify(journalRecordService)
-      .saveBatch(argThat(incomingRecords -> incomingRecords.size() == 1 && incomingRecords.get(0).getJobExecutionId().equals(jobExecution.getId())), any());
+    verify(messageProducer, times(1)).write(any());
     verify(incomingRecordService)
       .saveBatch(argThat(parseJournalRecord -> parseJournalRecord.size() == 1 && parseJournalRecord.get(0).getJobExecutionId().equals(jobExecution.getId())), any());
   }

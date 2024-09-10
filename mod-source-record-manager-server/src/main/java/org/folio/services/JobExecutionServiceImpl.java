@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.dao.JobExecutionDao;
 import org.folio.dao.JobExecutionFilter;
-import org.folio.dao.JobExecutionSourceChunkDao;
 import org.folio.dao.util.SortField;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
@@ -76,8 +75,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final String GET_USER_URL = "/users?query=id==";
   private static final String DEFAULT_LASTNAME = "SYSTEM";
-  private static final String DEFAULT_JOB_PROFILE = "CLI Create MARC Bibs and Instances";
-  private static final String DEFAULT_JOB_PROFILE_ID = "22fafcc3-f582-493d-88b0-3c538480cd83";
   private static final String NO_FILE_NAME = "No file name";
 
   private static final List<JobExecution.UiStatus> COMPLETE_STATUSES = Collections.unmodifiableList(Arrays.asList(
@@ -89,10 +86,10 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
   @Autowired
   private JobExecutionDao jobExecutionDao;
-  @Autowired
-  private JobExecutionSourceChunkDao jobExecutionSourceChunkDao;
-  @Autowired
-  private JournalRecordService journalRecordService;
+
+  public JobExecutionServiceImpl(@Autowired JobExecutionDao jobExecutionDao) {
+    this.jobExecutionDao = jobExecutionDao;
+  }
 
   @Override
   public Future<JobExecutionDtoCollection> getJobExecutionsWithoutParentMultiple(JobExecutionFilter filter, List<SortField> sortFields, int offset, int limit, String tenantId) {
@@ -303,7 +300,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .map(this::verifyJobExecution)
       .map(this::modifyJobExecutionToCompleteWithCancelledStatus)
       .compose(jobExec -> updateJobExecutionWithSnapshotStatus(jobExec, params))
-      .compose(jobExec -> deleteRecordsFromSRSIfNecessary(jobExec, params))
       .map(true)
       .recover(
         throwable -> throwable instanceof JobDuplicateUpdateException ?
@@ -342,9 +338,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     switch (sourceType) {
       case ONLINE -> {
         JobProfileInfo jobProfileInfo = dto.getJobProfileInfo();
-        if (jobProfileInfo != null && jobProfileInfo.getId().equals(DEFAULT_JOB_PROFILE_ID)) {
-          jobProfileInfo.withName(DEFAULT_JOB_PROFILE);
-        }
         return Collections.singletonList(buildNewJobExecution(true, true, false, parentJobExecutionId, NO_FILE_NAME, userId)
           .withJobProfileInfo(jobProfileInfo)
           .withRunBy(runBy));
@@ -608,35 +601,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
       .withStatus(JobExecution.Status.CANCELLED)
       .withUiStatus(JobExecution.UiStatus.CANCELLED)
       .withCompletedDate(new Date());
-  }
-
-  private Future<Boolean> deleteRecordsFromSRSIfNecessary(JobExecution jobExecution, OkapiConnectionParams params) {
-    if (!jobExecution.getJobProfileInfo().getId().equals(DEFAULT_JOB_PROFILE_ID)) {
-      LOGGER.info("deleteRecordsFromSRSIfNecessary:: Records removing was skipped because JobExecution is not processed by default job profile");
-      return Future.succeededFuture(false);
-    }
-    return deleteRecordsFromSRS(jobExecution.getId(), params);
-  }
-
-  private Future<Boolean> deleteRecordsFromSRS(String jobExecutionId, OkapiConnectionParams params) {
-    LOGGER.debug("deleteRecordsFromSRS:: jobExecutionId {}", jobExecutionId);
-    Promise<Boolean> promise = Promise.promise();
-    SourceStorageSnapshotsClient client = new SourceStorageSnapshotsClient(params.getOkapiUrl(), params.getTenantId(), params.getToken());
-    try {
-      client.deleteSourceStorageSnapshotsByJobExecutionId(jobExecutionId, response -> {
-        if (response.result().statusCode() == HttpStatus.HTTP_NO_CONTENT.toInt()) {
-          promise.complete(true);
-        } else {
-          String message = format("Records from SRS were not deleted for JobExecution %s", jobExecutionId);
-          LOGGER.warn(message);
-          promise.fail(new HttpException(response.result().statusCode(), message));
-        }
-      });
-    } catch (Exception e) {
-      LOGGER.warn("deleteRecordsFromSRS:: Error deleting records from SRS for Job Execution {}", jobExecutionId, e);
-      promise.fail(e);
-    }
-    return promise.future();
   }
 
   /**
