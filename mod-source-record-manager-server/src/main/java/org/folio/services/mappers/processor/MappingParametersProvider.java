@@ -78,6 +78,10 @@ import org.folio.StatisticalCode;
 import org.folio.StatisticalCodeType;
 import org.folio.Statisticalcodes;
 import org.folio.Statisticalcodetypes;
+import org.folio.SubjectSource;
+import org.folio.SubjectSources;
+import org.folio.SubjectType;
+import org.folio.SubjectTypes;
 import org.folio.dataimport.util.OkapiConnectionParams;
 import org.folio.dataimport.util.RestUtil;
 import org.folio.okapi.common.GenericCompositeFuture;
@@ -128,6 +132,8 @@ public class MappingParametersProvider {
   private static final String FIELD_PROTECTION_SETTINGS_RESPONSE_PARAM = "marcFieldProtectionSettings";
   private static final String AUTHORITY_NOTE_TYPES_RESPONSE_PARAM = "authorityNoteTypes";
   private static final String AUTHORITY_SOURCE_FILES_RESPONSE_PARAM = "authoritySourceFiles";
+  private static final String SUBJECTS_SOURCES_RESPONSE_PARAM = "subjectSources";
+  private static final String SUBJECTS_TYPES_RESPONSE_PARAM = "subjectTypes";
 
   private static final String CONFIGS_VALUE_RESPONSE = "configs";
   private static final String VALUE_RESPONSE = "value";
@@ -188,6 +194,8 @@ public class MappingParametersProvider {
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
+    Future<List<SubjectSource>> subjectSourcesFuture = getSubjectSources(okapiParams);
+    Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
 
 
     return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
@@ -448,6 +456,32 @@ public class MappingParametersProvider {
     String issuanceModesUrl = "/modes-of-issuance?limit=" + settingsLimit;
     return loadData(params, issuanceModesUrl, ISSUANCE_MODES_RESPONSE_PARAM,
       response -> response.mapTo(Issuancemodes.class).getIssuanceModes());
+  }
+
+  /**
+   * Requests for Subject sources from application Settings (mod-inventory-storage)
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return List Subject sources
+   */
+  private Future<List<SubjectSource>> getSubjectSources(OkapiConnectionParams params) {
+    String subjectSourcesUrl = "/subject-sources?limit=" + settingsLimit;
+    return loadData(params, subjectSourcesUrl, SUBJECTS_SOURCES_RESPONSE_PARAM,
+      response -> response.mapTo(SubjectSources.class).getSubjectSources());
+  }
+
+  /**
+   * Requests for Subject types from application Settings (mod-inventory-storage)
+   * *
+   *
+   * @param params Okapi connection parameters
+   * @return List Subject types
+   */
+  private Future<List<SubjectType>> getSubjectTypes(OkapiConnectionParams params) {
+    String subjectTypesUrl = "/subject-types?limit=" + settingsLimit;
+    return loadData(params, subjectTypesUrl, SUBJECTS_TYPES_RESPONSE_PARAM,
+      response -> response.mapTo(SubjectTypes.class).getSubjectTypes());
   }
 
   /**
