@@ -66,6 +66,9 @@ public class MappingParametersProviderTest {
   protected static final String ITEM_NOTE_TYPES_URL = "/item-note-types?limit=0";
   protected static final String AUTHORITY_NOTE_TYPES_URL = "/authority-note-types?limit=0";
   protected static final String AUTHORITY_SOURCE_FILES_URL = "/authority-source-files?limit=0";
+  protected static final String SUBJECT_SOURCES_URL = "/subject-sources?limit=0";
+  protected static final String SUBJECT_TYPES_URL = "/subject-types?limit=0";
+
   protected static final String FIELD_PROTECTION_SETTINGS_URL =
     "/field-protection-settings/marc?limit=0";
   protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL =
@@ -200,6 +203,14 @@ public class MappingParametersProviderTest {
       get(AUTHORITY_SOURCE_FILES_URL)
         .willReturn(
           okJson(new JsonObject().put("authoritySourceFiles", new JsonArray()).toString())));
+    WireMock.stubFor(
+      get(SUBJECT_SOURCES_URL)
+        .willReturn(
+          okJson(new JsonObject().put("subjectSources", new JsonArray()).toString())));
+    WireMock.stubFor(
+      get(SUBJECT_TYPES_URL)
+        .willReturn(
+          okJson(new JsonObject().put("subjectTypes", new JsonArray()).toString())));
     WireMock.stubFor(
       get(FIELD_PROTECTION_SETTINGS_URL)
         .willReturn(

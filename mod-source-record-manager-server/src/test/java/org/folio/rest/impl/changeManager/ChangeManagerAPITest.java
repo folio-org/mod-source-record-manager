@@ -1364,6 +1364,8 @@ public class ChangeManagerAPITest extends AbstractRestTest {
     verify(1, getRequestedFor(urlEqualTo(ITEM_NOTE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(AUTHORITY_NOTE_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(AUTHORITY_SOURCE_FILES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(SUBJECT_SOURCES_URL)));
+    verify(1, getRequestedFor(urlEqualTo(SUBJECT_TYPES_URL)));
     verify(1, getRequestedFor(urlEqualTo(FIELD_PROTECTION_SETTINGS_URL)));
     verify(1, getRequestedFor(urlEqualTo(TENANT_CONFIGURATIONS_SETTINGS_URL)));
     async.complete();
