@@ -191,18 +191,18 @@ public class MappingParametersProvider {
     Future<List<ItemNoteType>> itemNoteTypesFuture = getItemNoteTypes(okapiParams);
     Future<List<AuthorityNoteType>> authorityNoteTypesFuture = getAuthorityNoteTypes(okapiParams);
     Future<List<AuthoritySourceFile>> authoritySourceFilesFuture = getAuthoritySourceFiles(okapiParams);
+    Future<List<SubjectSource>> subjectSourcesFuture = getSubjectSources(okapiParams);
+    Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
     Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
-    Future<List<SubjectSource>> subjectSourcesFuture = getSubjectSources(okapiParams);
-    Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
 
 
     return GenericCompositeFuture.join(Arrays.asList(identifierTypesFuture, classificationTypesFuture, instanceTypesFuture, instanceFormatsFuture,
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture,
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture,
         linkingRulesFuture))
       .map(ar ->
         mappingParams
@@ -234,6 +234,8 @@ public class MappingParametersProvider {
           .withItemNoteTypes(itemNoteTypesFuture.result())
           .withAuthorityNoteTypes(authorityNoteTypesFuture.result())
           .withAuthoritySourceFiles(authoritySourceFilesFuture.result())
+          .withSubjectSources(subjectSourcesFuture.result())
+          .withSubjectTypes(subjectTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
           .withTenantConfiguration(tenantConfigurationFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
