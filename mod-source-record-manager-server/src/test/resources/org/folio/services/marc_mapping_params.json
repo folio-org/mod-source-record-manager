@@ -28,8 +28,8 @@
   "tenantConfiguration": "",
   "authorityNoteTypes": [],
   "authoritySourceFiles": [],
-  "subjectSources": null,
-  "subjectTypes": null,
+  "subjectSources": [],
+  "subjectTypes": [],
   "organizations": null,
   "linkingRules": []
 }
