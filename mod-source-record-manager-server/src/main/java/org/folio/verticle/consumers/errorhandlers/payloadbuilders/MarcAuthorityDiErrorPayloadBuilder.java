@@ -8,7 +8,6 @@ import org.folio.verticle.consumers.util.DiErrorBuilderUtil;
 import org.springframework.stereotype.Component;
 
 import static org.folio.rest.jaxrs.model.Record.RecordType.MARC_AUTHORITY;
-import static org.folio.verticle.consumers.util.MarcImportEventsHandler.NO_TITLE_MESSAGE;
 
 @Component
 public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder {
@@ -23,6 +22,6 @@ public class MarcAuthorityDiErrorPayloadBuilder implements DiErrorPayloadBuilder
                                                           String jobExecutionId,
                                                           Record currentRecord) {
     DataImportEventPayload diErrorPayload = DiErrorBuilderUtil.prepareDiErrorEventPayload(throwable, okapiParams, jobExecutionId, currentRecord);
-    return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(currentRecord, NO_TITLE_MESSAGE, diErrorPayload));
+    return Future.succeededFuture(DiErrorBuilderUtil.makeLightweightPayload(currentRecord, null, diErrorPayload));
   }
 }
