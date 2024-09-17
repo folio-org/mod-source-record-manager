@@ -310,6 +310,8 @@
             "inventory-storage.preceding-succeeding-titles.item.put",
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.subject-sources.collection.get",
+            "inventory-storage.subject-types.collection.get",
             "mapping-metadata.get",
             "orders.po-lines.collection.get",
             "source-storage.records.get",
