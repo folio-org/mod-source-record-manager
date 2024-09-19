@@ -71,7 +71,7 @@ public class MappingParametersProviderTest {
 
   protected static final String FIELD_PROTECTION_SETTINGS_URL =
     "/field-protection-settings/marc?limit=0";
-  protected static final String TENANT_CONFIGURATIONS_SETTINGS_URL =
+  protected static final String TENANT_CONFIGURATION_ZONE_SETTINGS_URL =
     "/configurations/entries?query="
       + URLEncoder.encode(
       "(module==ORG and configName==localeSettings)", StandardCharsets.UTF_8);
@@ -219,7 +219,7 @@ public class MappingParametersProviderTest {
               .put("marcFieldProtectionSettings", new JsonArray())
               .toString())));
     WireMock.stubFor(
-      get(TENANT_CONFIGURATIONS_SETTINGS_URL)
+      get(TENANT_CONFIGURATION_ZONE_SETTINGS_URL)
         .willReturn(okJson(new JsonObject().put("configs", new JsonArray()).toString())));
     WireMock.stubFor(
       get(LINKING_RULES_URL)
