@@ -454,6 +454,7 @@ public class MetaDataProviderJobLogEntriesAPITest extends AbstractRestTest {
         .get(GET_JOB_EXECUTION_JOURNAL_RECORDS_PATH + "/" + createdJobExecution.getId() + "/records/" + sourceRecordId)
         .then()
         .statusCode(HttpStatus.SC_OK)
+        .log().all()
         .body("jobExecutionId", is(createdJobExecution.getId()))
         .body("incomingRecordId", is(sourceRecordId))
         .body("sourceRecordTitle", is(recordTitle))
