@@ -606,7 +606,9 @@
             "inventory-storage.modes-of-issuance.collection.get",
             "inventory-storage.nature-of-content-terms.collection.get",
             "inventory-storage.statistical-code-types.collection.get",
-            "inventory-storage.statistical-codes.collection.get"
+            "inventory-storage.statistical-codes.collection.get",
+            "inventory-storage.subject-sources.collection.get",
+            "inventory-storage.subject-types.collection.get"
           ]
         }
       ]
