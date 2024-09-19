@@ -25,11 +25,16 @@
   "loanTypes": [],
   "itemNoteTypes": [],
   "marcFieldProtectionSettings": [],
-  "tenantConfiguration": "",
+  "tenantConfigurationZone": "",
   "authorityNoteTypes": [],
   "authoritySourceFiles": [],
   "subjectSources": [],
   "subjectTypes": [],
   "organizations": null,
-  "linkingRules": []
+  "linkingRules": [],
+  "acquisitionsUnits":null,
+  "acquisitionMethods":null,
+  "funds":null,
+  "expenseClasses":null,
+  "tenantConfigurationAddresses":null
 }

@@ -194,7 +194,7 @@ public class MappingParametersProvider {
     Future<List<SubjectSource>> subjectSourcesFuture = getSubjectSources(okapiParams);
     Future<List<SubjectType>> subjectTypesFuture = getSubjectTypes(okapiParams);
     Future<List<MarcFieldProtectionSetting>> marcFieldProtectionSettingsFuture = getMarcFieldProtectionSettings(okapiParams);
-    Future<String> tenantConfigurationFuture = getTenantConfiguration(okapiParams);
+    Future<String> tenantConfigurationZoneFuture = getTenantConfigurationZone(okapiParams);
     Future<List<LinkingRuleDto>> linkingRulesFuture = getLinkingRules(okapiParams);
 
 
@@ -202,7 +202,7 @@ public class MappingParametersProvider {
         contributorTypesFuture, contributorNameTypesFuture, electronicAccessRelationshipsFuture, instanceNoteTypesFuture, alternativeTitleTypesFuture,
         issuanceModesFuture, instanceStatusesFuture, natureOfContentTermsFuture, instanceRelationshipTypesFuture, holdingsTypesFuture, holdingsNoteTypesFuture,
         illPoliciesFuture, callNumberTypesFuture, statisticalCodesFuture, statisticalCodeTypesFuture, locationsFuture, materialTypesFuture, itemDamagedStatusesFuture,
-        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationFuture,
+        loanTypesFuture, itemNoteTypesFuture, authorityNoteTypesFuture, authoritySourceFilesFuture,subjectSourcesFuture, subjectTypesFuture, marcFieldProtectionSettingsFuture, tenantConfigurationZoneFuture,
         linkingRulesFuture))
       .map(ar ->
         mappingParams
@@ -237,7 +237,7 @@ public class MappingParametersProvider {
           .withSubjectSources(subjectSourcesFuture.result())
           .withSubjectTypes(subjectTypesFuture.result())
           .withMarcFieldProtectionSettings(marcFieldProtectionSettingsFuture.result())
-          .withTenantConfiguration(tenantConfigurationFuture.result())
+          .withTenantConfigurationZone(tenantConfigurationZoneFuture.result())
           .withLinkingRules(linkingRulesFuture.result())
       ).onFailure(e -> LOGGER.error("initializeParameters:: Something happened while initializing mapping parameters", e));
   }
@@ -493,7 +493,7 @@ public class MappingParametersProvider {
    * @param params Okapi connection parameters
    * @return tenant configuration
    */
-  private Future<String> getTenantConfiguration(OkapiConnectionParams params) {
+  private Future<String> getTenantConfigurationZone(OkapiConnectionParams params) {
     Promise<String> promise = Promise.promise();
     RestUtil.doRequest(params, TENANT_CONFIGURATION_ZONE_URL, HttpMethod.GET, null).onComplete(ar -> {
       if (RestUtil.validateAsyncResult(ar, promise)) {
