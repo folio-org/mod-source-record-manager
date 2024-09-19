@@ -146,7 +146,7 @@
           ],
           "pathPattern": "/metadata-provider/jobExecutions",
           "permissionsRequired": [
-            "metadata-provider.jobexecutions.get"
+            "metadata-provider.jobExecutions.collection.get"
           ]
         },
         {
@@ -155,7 +155,7 @@
           ],
           "pathPattern": "/metadata-provider/journalRecords/{jobExecutionId}",
           "permissionsRequired": [
-            "metadata-provider.logs.get"
+            "metadata-provider.journalRecords.collection.get"
           ]
         },
         {
@@ -164,7 +164,7 @@
           ],
           "pathPattern": "/metadata-provider/jobExecutions/jobProfiles",
           "permissionsRequired": [
-            "metadata-provider.jobexecutions.get"
+            "metadata-provider.jobExecutions.jobProfiles.collection.get"
           ]
         },
         {
@@ -195,7 +195,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}",
           "permissionsRequired": [
-            "change-manager.jobexecutions.put"
+            "change-manager.jobExecutions.item.put"
           ]
         },
         {
@@ -204,7 +204,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}",
           "permissionsRequired": [
-            "change-manager.jobexecutions.get"
+            "change-manager.jobExecutions.item.get"
           ]
         },
         {
@@ -213,7 +213,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}/children",
           "permissionsRequired": [
-            "change-manager.jobexecutions.get"
+            "change-manager.jobExecutions.children.collection.get"
           ]
         },
         {
@@ -222,7 +222,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}/status",
           "permissionsRequired": [
-            "change-manager.jobexecutions.put"
+            "change-manager.jobExecutions.status.item.put"
           ],
           "modulePermissions": [
             "source-storage.snapshots.put"
@@ -234,7 +234,7 @@
           ],
           "pathPattern": "/change-manager/jobExecutions/{id}/jobProfile",
           "permissionsRequired": [
-            "change-manager.jobexecutions.put"
+            "change-manager.jobExecutions.jobProfile.item.put"
           ],
           "modulePermissions": [
             "converter-storage.jobprofilesnapshots.post",
@@ -312,7 +312,8 @@
             "inventory-storage.statistical-codes.collection.get",
             "inventory-storage.subject-sources.collection.get",
             "inventory-storage.subject-types.collection.get",
-            "mapping-metadata.get",
+            "mapping-metadata.item.get",
+            "mapping-metadata.type.item.get",
             "orders.po-lines.collection.get",
             "source-storage.records.get",
             "source-storage.snapshots.get",
@@ -457,7 +458,8 @@
             "inventory-storage.preceding-succeeding-titles.item.put",
             "inventory-storage.statistical-code-types.collection.get",
             "inventory-storage.statistical-codes.collection.get",
-            "mapping-metadata.get",
+            "mapping-metadata.item.get",
+            "mapping-metadata.type.item.get",
             "source-storage.snapshots.get",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
@@ -482,7 +484,7 @@
           ],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}",
           "permissionsRequired": [
-            "metadata-provider.logs.get"
+            "metadata-provider.jobLogEntries.collection.get"
           ]
         },
         {
@@ -491,7 +493,7 @@
           ],
           "pathPattern": "/metadata-provider/jobLogEntries/{jobExecutionId}/records/{recordId}",
           "permissionsRequired": [
-            "metadata-provider.logs.get"
+            "metadata-provider.jobLogEntries.records.item.get"
           ]
         },
         {
@@ -500,7 +502,7 @@
           ],
           "pathPattern": "/metadata-provider/jobSummary/{jobExecutionId}",
           "permissionsRequired": [
-            "metadata-provider.logs.get"
+            "metadata-provider.jobSummary.item.get"
           ]
         },
         {
@@ -509,7 +511,7 @@
           ],
           "pathPattern": "/metadata-provider/jobExecutions/users",
           "permissionsRequired": [
-            "metadata-provider.jobexecutions.get"
+            "metadata-provider.jobExecutions.users.collection.get"
           ]
         },
         {
@@ -566,7 +568,7 @@
           ],
           "pathPattern": "/mapping-metadata/{jobExecutionId}",
           "permissionsRequired": [
-            "mapping-metadata.get"
+            "mapping-metadata.item.get"
           ]
         },
         {
@@ -575,7 +577,7 @@
           ],
           "pathPattern": "/mapping-metadata/type/{recordType}",
           "permissionsRequired": [
-            "mapping-metadata.get"
+            "mapping-metadata.type.item.get"
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
@@ -663,14 +665,39 @@
   ],
   "permissionSets": [
     {
-      "permissionName": "metadata-provider.jobexecutions.get",
+      "permissionName": "metadata-provider.jobExecutions.collection.get",
       "displayName": "Metadata Provider - get jobExecutions",
       "description": "Get JobExecutions"
     },
     {
-      "permissionName": "metadata-provider.logs.get",
-      "displayName": "Metadata Provider - get jobExecution logs",
+      "permissionName": "metadata-provider.jobExecutions.users.collection.get",
+      "displayName": "Metadata Provider - get unique users for job JobExecutions",
+      "description": "Get Users for JobExecutions"
+    },
+    {
+      "permissionName": "metadata-provider.jobExecutions.jobProfiles.collection.get",
+      "displayName": "Metadata Provider - get JobProfiles for JobExecutions",
+      "description": "Get JobProfiles for JobExecutions"
+    },
+    {
+      "permissionName": "metadata-provider.jobLogEntries.collection.get",
+      "displayName": "Metadata Provider - get journal records",
+      "description": "Get JournalRecordCollection"
+    },
+    {
+      "permissionName": "metadata-provider.jobLogEntries.records.item.get",
+      "displayName": "Metadata Provider - get record processing logs",
       "description": "Get JobExecutionLogDto"
+    },
+    {
+      "permissionName": "metadata-provider.journalRecords.collection.get",
+      "displayName": "Metadata Provider - get jobExecution logs",
+      "description": "Get RecordProcessingLogDto"
+    },
+    {
+      "permissionName": "metadata-provider.jobSummary.item.get",
+      "displayName": "Metadata Provider - get summary result",
+      "description": "Get JobExecutionSummaryDto"
     },
     {
       "permissionName": "metadata-provider.incomingrecords.get",
@@ -688,14 +715,29 @@
       "description": "Batch Delete JobExecutions"
     },
     {
-      "permissionName": "change-manager.jobexecutions.put",
-      "displayName": "Change Manager - update jobExecutions",
-      "description": "Put JobExecution"
+      "permissionName": "change-manager.jobExecutions.item.put",
+      "displayName": "Change Manager - update jobExecution",
+      "description": "Update JobExecution"
     },
     {
-      "permissionName": "change-manager.jobexecutions.get",
+      "permissionName": "change-manager.jobExecutions.status.item.put",
+      "displayName": "Change Manager - update jobExecutions status",
+      "description": "Update JobExecution Status"
+    },
+    {
+      "permissionName": "change-manager.jobExecutions.jobProfile.item.put",
+      "displayName": "Change Manager - set jobProfile for jobExecution",
+      "description": "Set JobProfile for JobExecution"
+    },
+    {
+      "permissionName": "change-manager.jobExecutions.item.get",
       "displayName": "Change Manager - get jobExecutions by id",
       "description": "Get JobExecution by id"
+    },
+    {
+      "permissionName": "change-manager.jobExecutions.children.collection.get",
+      "displayName": "Change Manager - get children JobExecutions by parent id",
+      "description": "Get children JobExecutions by parent id"
     },
     {
       "permissionName": "change-manager.records.post",
@@ -733,9 +775,14 @@
       "description": "Restore existing mapping rules to default for tenant"
     },
     {
-      "permissionName": "mapping-metadata.get",
+      "permissionName": "mapping-metadata.item.get",
       "displayName": "Mapping metadata provider - get mapping metadata",
       "description": "Get mapping metadata"
+    },
+    {
+      "permissionName": "mapping-metadata.type.item.get",
+      "displayName": "Mapping metadata provider - get mapping metadata type",
+      "description": "Get mapping metadata type"
     },
     {
       "permissionName": "source-records-manager.all",
@@ -743,11 +790,20 @@
       "description": "Entire set of permissions needed to manage jobExecutions",
       "subPermissions": [
         "metadata-provider.jobexecutions.get",
-        "metadata-provider.logs.get",
+        "metadata-provider.jobLogEntries.collection.get",
+        "metadata-provider.jobLogEntries.records.item.get",
+        "metadata-provider.journalRecords.collection.get",
+        "metadata-provider.jobSummary.item.get",
+        "metadata-provider.jobExecutions.collection.get",
+        "metadata-provider.jobExecutions.users.collection.get",
+        "metadata-provider.jobExecutions.jobProfiles.collection.get",
         "metadata-provider.incomingrecords.get",
         "change-manager.jobexecutions.post",
-        "change-manager.jobexecutions.put",
-        "change-manager.jobexecutions.get",
+        "change-manager.jobExecutions.jobProfile.item.put",
+        "change-manager.jobExecutions.status.item.put",
+        "change-manager.jobExecutions.item.get",
+        "change-manager.jobExecutions.children.collection.get",
+        "change-manager.jobExecutions.item.put",
         "change-manager.records.post",
         "change-manager.records.delete",
         "change-manager.parsedrecords.get",
@@ -755,7 +811,8 @@
         "mapping-rules.get",
         "mapping-rules.update",
         "mapping-rules.restore",
-        "mapping-metadata.get"
+        "mapping-metadata.item.get",
+        "mapping-metadata.type.item.get"
       ],
       "visible": false
     }
