@@ -5831,7 +5831,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -7340,7 +7340,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -8776,7 +8776,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -10175,7 +10175,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -11495,7 +11495,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -12437,7 +12437,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -13261,7 +13261,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -14239,7 +14239,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
@@ -15121,7 +15121,7 @@
           ]
         },
         {
-          "target": "series.authorityId",
+          "target": "subjects.authorityId",
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
