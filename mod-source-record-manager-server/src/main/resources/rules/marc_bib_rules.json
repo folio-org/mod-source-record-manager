@@ -5752,6 +5752,94 @@
   ],
   "600": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": " ",
+              "subfields": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "j",
+                "q",
+                "t",
+                "f",
+                "g",
+                "k",
+                "l",
+                "m",
+                "n",
+                "o",
+                "p",
+                "r",
+                "s"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": [
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": []
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -7178,6 +7266,89 @@
   ],
   "610": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": " ",
+              "subfields": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "t",
+                "f",
+                "g",
+                "k",
+                "l",
+                "m",
+                "n",
+                "o",
+                "p",
+                "s"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": [
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": []
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -8531,6 +8702,89 @@
   ],
   "611": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "n",
+            "p",
+            "q",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": " ",
+              "subfields": [
+                "a",
+                "c",
+                "d",
+                "e",
+                "q",
+                "t",
+                "f",
+                "g",
+                "k",
+                "l",
+                "m",
+                "n",
+                "o",
+                "p",
+                "r",
+                "s"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": [
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": []
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -9852,6 +10106,84 @@
   ],
   "630": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "r",
+            "s",
+            "t",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": " ",
+              "subfields": [
+                "a",
+                "d",
+                "f",
+                "g",
+                "k",
+                "l",
+                "m",
+                "n",
+                "o",
+                "p",
+                "r",
+                "s"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": [
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": []
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -11118,6 +11450,60 @@
   ],
   "647": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "c",
+            "d",
+            "g",
+            "x",
+            "y",
+            "z",
+            "v"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": "--",
+              "subfields": [
+                "a",
+                "c",
+                "d",
+                "g",
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            },
+            {
+              "value": "--",
+              "subfields": []
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -12016,6 +12402,50 @@
   ],
   "648": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "x",
+            "y",
+            "z",
+            "v"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": "--",
+              "subfields": [
+                "a",
+                "x",
+                "y",
+                "z",
+                "v"
+              ]
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -12785,6 +13215,60 @@
     }
   ],
   "650": [
+    {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "g",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": "--",
+              "subfields": [
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "g",
+                "v",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
     {
       "indicators": {
         "ind1": "*",
@@ -13716,6 +14200,54 @@
   ],
   "651": [
     {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "e",
+            "g",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": "--",
+              "subfields": [
+                "a",
+                "e",
+                "g",
+                "v",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
+    {
       "indicators": {
         "ind1": "*",
         "ind2": "0"
@@ -14549,6 +15081,54 @@
     }
   ],
   "655": [
+    {
+      "entity": [
+        {
+          "target": "subjects.value",
+          "description": "Subject Headings",
+          "applyRulesOnConcatenatedData": true,
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "trim_period, trim"
+                }
+              ]
+            }
+          ],
+          "subFieldDelimiter": [
+            {
+              "value": "--",
+              "subfields": [
+                "a",
+                "e",
+                "g",
+                "v",
+                "x",
+                "y",
+                "z"
+              ]
+            }
+          ]
+        },
+        {
+          "target": "series.authorityId",
+          "description": "Authority ID that controlling the subject",
+          "subfield": [
+            "9"
+          ]
+        }
+      ]
+    },
     {
       "indicators": {
         "ind1": "*",
