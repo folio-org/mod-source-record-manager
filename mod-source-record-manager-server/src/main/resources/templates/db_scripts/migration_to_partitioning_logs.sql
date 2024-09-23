@@ -283,7 +283,7 @@ BEGIN
              array_agg(error) FILTER (WHERE entity_type = 'INVOICE' AND journal_records_backup.title = 'INVOICE') AS invoice_entity_error
       FROM journal_records_backup
       WHERE journal_records_backup.source_id = invoice_line_info.source_id AND (entity_type = 'EDIFACT' OR journal_records_backup.title = 'INVOICE')
-      GROUP BY journal_records_backup.source_id, journal_records_backup.job_execution_id,journal_records_backup.source_record_order, journal_records.tenant_id
+      GROUP BY journal_records_backup.source_id, journal_records_backup.job_execution_id,journal_records_backup.source_record_order, journal_records_backup.tenant_id
       ) AS records_actions ON TRUE;
 END;
 $$ LANGUAGE plpgsql;
