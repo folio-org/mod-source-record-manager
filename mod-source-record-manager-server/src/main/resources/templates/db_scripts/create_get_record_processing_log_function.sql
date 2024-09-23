@@ -236,7 +236,7 @@ BEGIN
       WHERE journal_records.source_id = invoice_line_info.source_id AND (entity_type = 'EDIFACT' OR journal_records.title = 'INVOICE')
       GROUP BY journal_records.source_id, journal_records.job_execution_id,journal_records.source_record_order, journal_records.tenant_id
       ) AS records_actions ON TRUE
-      ORDER BY source_id, holdings_entity_hrid, item_entity_hrid;
+      ORDER BY source_id, holdings_entity_hrid, item_entity_hrid, po_line_entity_hrid, invoice_entity_hrid, invoice_line_entity_hrid, title;
 END;
 $$ LANGUAGE plpgsql;
 
