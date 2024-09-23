@@ -667,37 +667,44 @@
     {
       "permissionName": "metadata-provider.jobExecutions.collection.get",
       "displayName": "Metadata Provider - get jobExecutions",
-      "description": "Get JobExecutions"
+      "description": "Get JobExecutions",
+      "replaces": ["metadata-provider.jobexecutions.get"]
     },
     {
       "permissionName": "metadata-provider.jobExecutions.users.collection.get",
       "displayName": "Metadata Provider - get unique users for job JobExecutions",
-      "description": "Get Users for JobExecutions"
+      "description": "Get Users for JobExecutions",
+      "replaces": ["metadata-provider.jobexecutions.get"]
     },
     {
       "permissionName": "metadata-provider.jobExecutions.jobProfiles.collection.get",
       "displayName": "Metadata Provider - get JobProfiles for JobExecutions",
-      "description": "Get JobProfiles for JobExecutions"
+      "description": "Get JobProfiles for JobExecutions",
+      "replaces": ["metadata-provider.jobexecutions.get"]
     },
     {
       "permissionName": "metadata-provider.jobLogEntries.collection.get",
       "displayName": "Metadata Provider - get journal records",
-      "description": "Get JournalRecordCollection"
+      "description": "Get JournalRecordCollection",
+      "replaces": ["metadata-provider.logs.get"]
     },
     {
       "permissionName": "metadata-provider.jobLogEntries.records.item.get",
       "displayName": "Metadata Provider - get record processing logs",
-      "description": "Get JobExecutionLogDto"
+      "description": "Get JobExecutionLogDto",
+      "replaces": ["metadata-provider.logs.get"]
     },
     {
       "permissionName": "metadata-provider.journalRecords.collection.get",
       "displayName": "Metadata Provider - get jobExecution logs",
-      "description": "Get RecordProcessingLogDto"
+      "description": "Get RecordProcessingLogDto",
+      "replaces": ["metadata-provider.logs.get"]
     },
     {
       "permissionName": "metadata-provider.jobSummary.item.get",
       "displayName": "Metadata Provider - get summary result",
-      "description": "Get JobExecutionSummaryDto"
+      "description": "Get JobExecutionSummaryDto",
+      "replaces": ["metadata-provider.logs.get"]
     },
     {
       "permissionName": "metadata-provider.incomingrecords.get",
@@ -717,27 +724,32 @@
     {
       "permissionName": "change-manager.jobExecutions.item.put",
       "displayName": "Change Manager - update jobExecution",
-      "description": "Update JobExecution"
+      "description": "Update JobExecution",
+      "replaces": ["change-manager.jobexecutions.put"]
     },
     {
       "permissionName": "change-manager.jobExecutions.status.item.put",
       "displayName": "Change Manager - update jobExecutions status",
-      "description": "Update JobExecution Status"
+      "description": "Update JobExecution Status",
+      "replaces": ["change-manager.jobexecutions.put"]
     },
     {
       "permissionName": "change-manager.jobExecutions.jobProfile.item.put",
       "displayName": "Change Manager - set jobProfile for jobExecution",
-      "description": "Set JobProfile for JobExecution"
+      "description": "Set JobProfile for JobExecution",
+      "replaces": ["change-manager.jobexecutions.put"]
     },
     {
       "permissionName": "change-manager.jobExecutions.item.get",
       "displayName": "Change Manager - get jobExecutions by id",
-      "description": "Get JobExecution by id"
+      "description": "Get JobExecution by id",
+      "replaces": ["change-manager.jobexecutions.get"]
     },
     {
       "permissionName": "change-manager.jobExecutions.children.collection.get",
       "displayName": "Change Manager - get children JobExecutions by parent id",
-      "description": "Get children JobExecutions by parent id"
+      "description": "Get children JobExecutions by parent id",
+      "replaces": ["change-manager.jobexecutions.get",
     },
     {
       "permissionName": "change-manager.records.post",
@@ -777,12 +789,14 @@
     {
       "permissionName": "mapping-metadata.item.get",
       "displayName": "Mapping metadata provider - get mapping metadata",
-      "description": "Get mapping metadata"
+      "description": "Get mapping metadata",
+      "replaces": ["mapping-metadata.get"]
     },
     {
       "permissionName": "mapping-metadata.type.item.get",
       "displayName": "Mapping metadata provider - get mapping metadata type",
-      "description": "Get mapping metadata type"
+      "description": "Get mapping metadata type",
+      "replaces": ["mapping-metadata.get"]
     },
     {
       "permissionName": "source-records-manager.all",
