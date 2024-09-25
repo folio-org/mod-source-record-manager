@@ -749,7 +749,7 @@
       "permissionName": "change-manager.jobExecutions.children.collection.get",
       "displayName": "Change Manager - get children JobExecutions by parent id",
       "description": "Get children JobExecutions by parent id",
-      "replaces": ["change-manager.jobexecutions.get",
+      "replaces": ["change-manager.jobexecutions.get"]
     },
     {
       "permissionName": "change-manager.records.post",
