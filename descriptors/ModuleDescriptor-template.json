@@ -238,7 +238,7 @@
           ],
           "modulePermissions": [
             "converter-storage.jobprofilesnapshots.post",
-            "converter-storage.jobprofile.get"
+            "converter-storage.jobprofile.item.get"
           ]
         }
       ]
@@ -257,7 +257,8 @@
           ],
           "modulePermissions": [
             "configuration.entries.collection.get",
-            "converter-storage.field-protection-settings.get",
+            "converter-storage.field-protection-settings.item.get",
+            "converter-storage.field-protection-settings.collection.get",
             "converter-storage.jobprofilesnapshots.get",
             "inventory-storage.alternative-title-types.collection.get",
             "inventory-storage.authorities.collection.get",
@@ -315,8 +316,10 @@
             "mapping-metadata.item.get",
             "mapping-metadata.type.item.get",
             "orders.po-lines.collection.get",
-            "source-storage.records.get",
-            "source-storage.snapshots.get",
+            "source-storage.records.collection.get",
+            "source-storage.records.item.get",
+            "source-storage.snapshots.item.get",
+            "source-storage.snapshots.collection.get",
             "source-storage.snapshots.post",
             "source-storage.snapshots.put",
             "source-storage.verified.records",
@@ -391,7 +394,7 @@
             "change-manager.parsedrecords.get"
           ],
           "modulePermissions": [
-            "source-storage.sourceRecords.get"
+            "source-storage.source-records.item.get"
           ]
         },
         {
