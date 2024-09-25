@@ -806,7 +806,6 @@
       "displayName": "Source Record Manager - all permissions",
       "description": "Entire set of permissions needed to manage jobExecutions",
       "subPermissions": [
-        "metadata-provider.jobexecutions.get",
         "metadata-provider.jobLogEntries.collection.get",
         "metadata-provider.jobLogEntries.records.item.get",
         "metadata-provider.journalRecords.collection.get",
