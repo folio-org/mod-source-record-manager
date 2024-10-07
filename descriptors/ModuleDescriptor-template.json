@@ -327,7 +327,7 @@
             "finance.funds.item.get",
             "finance.fiscal-years.item.get",
             "finance.ledgers.collection.get",
-            "finance.transactions.batch",
+            "finance.transactions.batch.execute",
             "finance.transactions.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
