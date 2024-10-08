@@ -7222,40 +7222,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h",
-            "j",
-            "k",
-            "l",
-            "m",
-            "n",
-            "o",
-            "p",
-            "q",
-            "r",
-            "s",
-            "t",
-            "u",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -8660,38 +8634,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h",
-            "k",
-            "l",
-            "m",
-            "n",
-            "o",
-            "p",
-            "r",
-            "s",
-            "t",
-            "u",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -10066,36 +10016,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h",
-            "j",
-            "k",
-            "l",
-            "n",
-            "p",
-            "q",
-            "s",
-            "t",
-            "u",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -11411,35 +11339,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h",
-            "k",
-            "l",
-            "m",
-            "n",
-            "o",
-            "p",
-            "r",
-            "s",
-            "t",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -12374,24 +12281,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "c",
-            "d",
-            "g",
-            "x",
-            "y",
-            "z",
-            "v"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -13191,21 +13088,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "x",
-            "y",
-            "z",
-            "v"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -14170,26 +14060,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "g",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -15055,23 +14933,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "e",
-            "g",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
@@ -15937,23 +15806,14 @@
           "target": "subjects.sourceId",
           "description": "Subject source",
           "subfield": [
-            "a",
-            "b",
-            "c",
-            "v",
-            "x",
-            "y",
-            "z"
+            "2"
           ],
           "applyRulesOnConcatenatedData": true,
           "rules": [
             {
               "conditions": [
                 {
-                  "type": "set_subject_source_id",
-                  "parameter": {
-                    "name": "Source specified in subfield $2"
-                  }
+                  "type": "set_subject_source_id_by_code"
                 }
               ]
             }
