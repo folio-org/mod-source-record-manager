@@ -5847,6 +5847,49 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Personal name"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -7330,6 +7373,47 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Corporate name"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -8743,6 +8827,45 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "j",
+            "k",
+            "l",
+            "n",
+            "p",
+            "q",
+            "s",
+            "t",
+            "u",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Meeting name"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -10121,6 +10244,44 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "r",
+            "s",
+            "t",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Uniform title"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -11420,6 +11581,33 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "c",
+            "d",
+            "g",
+            "x",
+            "y",
+            "z",
+            "v"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Named event"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -12352,6 +12540,30 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "x",
+            "y",
+            "z",
+            "v"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Chronological term"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -13168,6 +13380,35 @@
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "g",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Topical term"
+                  }
+                }
+              ]
+            }
           ]
         }
       ]
@@ -14135,6 +14376,32 @@
           "subfield": [
             "9"
           ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "e",
+            "g",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Geographic name"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -15007,6 +15274,32 @@
           "description": "Authority ID that controlling the subject",
           "subfield": [
             "9"
+          ]
+        },
+        {
+          "target": "subjects.typeId",
+          "description": "Subject type id",
+          "subfield": [
+            "a",
+            "b",
+            "c",
+            "v",
+            "x",
+            "y",
+            "z"
+          ],
+          "applyRulesOnConcatenatedData": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "type": "set_subject_type_id",
+                  "parameter": {
+                    "name": "Genre/Form"
+                  }
+                }
+              ]
+            }
           ]
         }
       ]
